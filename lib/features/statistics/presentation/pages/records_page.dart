@@ -4,16 +4,22 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_bar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Full-page personal records, reached from the Statistics tab's trophy
+/// action. Scoped by the Statistics filter (issue #1028) so it agrees with the
+/// records card on the overview page one tap behind it; the filter bar keeps
+/// the narrowed scope visible and clearable here too.
 class RecordsPage extends ConsumerWidget {
   const RecordsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final recordsAsync = ref.watch(diveRecordsProvider);
+    final recordsAsync = ref.watch(filteredDiveRecordsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -22,32 +28,40 @@ class RecordsPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: context.l10n.statistics_tooltip_refreshRecords,
-            onPressed: () => ref.invalidate(diveRecordsProvider),
+            onPressed: () => ref.invalidate(filteredDiveRecordsProvider),
           ),
         ],
       ),
-      body: recordsAsync.when(
-        data: (records) => _buildContent(context, ref, records),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Theme.of(context).colorScheme.error,
+      body: Column(
+        children: [
+          const StatisticsFilterBar(),
+          Expanded(
+            child: recordsAsync.when(
+              data: (records) => _buildContent(context, ref, records),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(context.l10n.statistics_records_error),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: () =>
+                          ref.invalidate(filteredDiveRecordsProvider),
+                      child: Text(context.l10n.statistics_records_retry),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              Text(context.l10n.statistics_records_error),
-              const SizedBox(height: 8),
-              FilledButton(
-                onPressed: () => ref.invalidate(diveRecordsProvider),
-                child: Text(context.l10n.statistics_records_retry),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -60,19 +74,33 @@ class RecordsPage extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
-    final hasRecords =
-        records.deepestDive != null ||
-        records.longestDive != null ||
-        records.coldestDive != null ||
-        records.warmestDive != null;
+    // Every slot the page can render, not just the four superlative cards:
+    // firstDive/lastDive carry no field predicate, so dives logged with only a
+    // date populate the milestones while all four superlatives stay null.
+    // Gating on the four alone hid milestone cards that had content.
+    final hasRecords = [
+      records.deepestDive,
+      records.longestDive,
+      records.coldestDive,
+      records.warmestDive,
+      records.shallowestDive,
+      records.firstDive,
+      records.lastDive,
+    ].any((record) => record != null);
 
     if (!hasRecords) {
+      // "Start logging dives" is wrong advice when the logbook is full and the
+      // filter is simply too narrow, so the filtered case gets the dive list's
+      // wording instead.
+      final filtered = ref.watch(
+        statisticsFilterProvider.select((f) => f.hasActiveFilters),
+      );
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.emoji_events_outlined,
+              filtered ? Icons.filter_list_off : Icons.emoji_events_outlined,
               size: 80,
               color: Theme.of(
                 context,
@@ -80,15 +108,21 @@ class RecordsPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              context.l10n.statistics_records_emptyTitle,
+              filtered
+                  ? context.l10n.diveLog_emptyFiltered_title
+                  : context.l10n.statistics_records_emptyTitle,
               style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              context.l10n.statistics_records_emptySubtitle,
+              filtered
+                  ? context.l10n.diveLog_emptyFiltered_subtitle
+                  : context.l10n.statistics_records_emptySubtitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

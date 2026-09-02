@@ -14,20 +14,25 @@ class MediaLibraryTile extends StatelessWidget {
     required this.entry,
     required this.selected,
     required this.onTap,
-    this.onLongPress,
+    this.isSelectionMode = false,
   });
 
   final MediaLibraryEntry entry;
   final bool selected;
   final VoidCallback onTap;
-  final VoidCallback? onLongPress;
+
+  /// Whether the surface is in multi-select. Unselected tiles dim, which is
+  /// what makes an explicitly entered mode legible before anything is
+  /// checked -- the state the old long-press entry could not even represent.
+  final bool isSelectionMode;
 
   /// Opens the context menu at the pointer.
   ///
   /// Desktop-only in practice: `onSecondaryTapDown` does not fire on a
   /// touchscreen, so mobile reaches the panel through the viewer's info
-  /// button instead. Long-press is not available here, being already claimed
-  /// by selection toggling.
+  /// button instead. Long-press is deliberately unbound here: it enters
+  /// selection nowhere in the app, and a hidden gesture is not an
+  /// affordance.
   // coverage:ignore-start
   // showMenu at a pointer position is not drivable from flutter_test without
   // a real mouse; the menu's single action is a direct call to the same
@@ -61,7 +66,6 @@ class MediaLibraryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      onLongPress: onLongPress,
       onSecondaryTapDown: (details) => _showContextMenu(context, details),
       child: Stack(
         fit: StackFit.expand,
@@ -72,6 +76,8 @@ class MediaLibraryTile extends StatelessWidget {
             targetSize: const Size(200, 200),
             fit: BoxFit.cover,
           ),
+          if (isSelectionMode && !selected)
+            Container(color: Colors.black.withValues(alpha: 0.3)),
           // Top-left: the top-right corner belongs to the selection check.
           Positioned(
             top: 4,
@@ -108,7 +114,7 @@ class MediaLibraryGrid extends StatelessWidget {
     required this.onLoadMore,
     required this.onTileTap,
     this.selectedIds = const {},
-    this.onTileLongPress,
+    this.isSelectionMode = false,
   });
 
   final List<MediaLibraryEntry> entries;
@@ -119,8 +125,9 @@ class MediaLibraryGrid extends StatelessWidget {
   /// Ids rendered with the selection overlay.
   final Set<String> selectedIds;
 
-  /// Long-press hook for entering selection mode.
-  final void Function(MediaLibraryEntry entry)? onTileLongPress;
+  /// Whether the surface is in multi-select, which can be true with nothing
+  /// checked.
+  final bool isSelectionMode;
 
   static const double _loadMoreThreshold = 400;
 
@@ -148,10 +155,8 @@ class MediaLibraryGrid extends StatelessWidget {
           return MediaLibraryTile(
             entry: entry,
             selected: selectedIds.contains(entry.item.id),
+            isSelectionMode: isSelectionMode,
             onTap: () => onTileTap(entry, index),
-            onLongPress: onTileLongPress == null
-                ? null
-                : () => onTileLongPress!(entry),
           );
         },
       ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
-import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculators_page.dart';
 import 'package:submersion/features/planning/presentation/planning_tools.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_list_content.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_summary_widget.dart';
@@ -52,8 +51,9 @@ class PlanningPage extends ConsumerWidget {
     switch (toolId) {
       case 'deco-calculator':
         return const DecoCalculatorPage(embedded: true);
-      case 'gas-calculators':
-        return const GasCalculatorsPage(embedded: true);
+      // Gas Calculators is deliberately absent: it takes the whole window and
+      // runs a split view of its own. See
+      // PlanningToolPresentation.splitViewPage.
       case 'weight-calculator':
         return const WeightPlannerPage(embedded: true);
       case 'surface-interval':

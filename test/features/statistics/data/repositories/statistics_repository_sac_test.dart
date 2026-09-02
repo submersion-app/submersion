@@ -100,7 +100,7 @@ void main() {
   // SAC Volume Trend (uses COALESCE(d.runtime, d.bottom_time))
   // ---------------------------------------------------------------------------
 
-  group('getSacVolumeTrend', () {
+  group('getSacVolumePerDive', () {
     test('computes SAC using runtime when available', () async {
       await insertDiveWithTank(
         id: 'dive-runtime',
@@ -112,7 +112,7 @@ void main() {
         volume: 11.1,
       );
 
-      final results = await repository.getSacVolumeTrend();
+      final results = await repository.getSacVolumePerDive();
 
       expect(results, hasLength(1));
       // SAC with Z-factor: gasVol(200)-gasVol(50) at 11.1L / 42 / 3.0 ≈ 12.40 L/min
@@ -130,7 +130,7 @@ void main() {
         volume: 11.1,
       );
 
-      final results = await repository.getSacVolumeTrend();
+      final results = await repository.getSacVolumePerDive();
 
       expect(results, hasLength(1));
       // SAC with Z-factor: gasVol(200)-gasVol(50) at 11.1L / 35 / 3.0 ≈ 14.88 L/min
@@ -138,7 +138,7 @@ void main() {
     });
 
     test('returns empty when no valid data', () async {
-      final results = await repository.getSacVolumeTrend();
+      final results = await repository.getSacVolumePerDive();
       expect(results, isEmpty);
     });
 
@@ -172,7 +172,7 @@ void main() {
         tankOrder: 2,
       );
 
-      final results = await repository.getSacVolumeTrend();
+      final results = await repository.getSacVolumePerDive();
 
       expect(results, hasLength(1));
       // With Z-factor: ≈ 11.15 L/min
@@ -184,7 +184,7 @@ void main() {
   // SAC Pressure Trend (uses COALESCE(d.runtime, d.bottom_time))
   // ---------------------------------------------------------------------------
 
-  group('getSacPressureTrend', () {
+  group('getSacPressurePerDive', () {
     test('computes pressure SAC using runtime', () async {
       await insertDiveWithTank(
         id: 'dive-pressure-rt',
@@ -195,7 +195,7 @@ void main() {
         endPressure: 50,
       );
 
-      final results = await repository.getSacPressureTrend();
+      final results = await repository.getSacPressurePerDive();
 
       expect(results, hasLength(1));
       // pressure SAC = (200-50) / (42) / ((20/10)+1)
@@ -213,7 +213,7 @@ void main() {
         endPressure: 50,
       );
 
-      final results = await repository.getSacPressureTrend();
+      final results = await repository.getSacPressurePerDive();
 
       expect(results, hasLength(1));
       // pressure SAC = 150 / 35 / 3 = 1.43 bar/min
@@ -243,7 +243,7 @@ void main() {
         tankOrder: 2,
       );
 
-      final results = await repository.getSacPressureTrend();
+      final results = await repository.getSacPressurePerDive();
 
       expect(results, hasLength(1));
       // 100 / 42 / 3.0 = 0.794 bar/min
@@ -256,7 +256,7 @@ void main() {
         // backGas: start=100, end=200 (invalid — no drop)
         // stage: start=200, end=100 (valid — 100 bar drop)
         // Must NOT fall back to stage; must exclude dive entirely,
-        // matching Dive.sacPressure which returns null in this case.
+        // matching Dive.sac which returns null in this case.
         final diveId = await insertDiveWithTank(
           id: 'dive-pres-trend-invalid-bg',
           bottomTimeSeconds: 35 * 60,
@@ -274,7 +274,7 @@ void main() {
           tankOrder: 2,
         );
 
-        final results = await repository.getSacPressureTrend();
+        final results = await repository.getSacPressurePerDive();
 
         expect(results, isEmpty);
       },
@@ -443,7 +443,7 @@ void main() {
         // backGas: start=100, end=200 (invalid — no drop)
         // stage: start=200, end=100 (valid — 100 bar drop)
         // Must NOT fall back to stage; must exclude dive entirely,
-        // matching Dive.sacPressure which returns null in this case.
+        // matching Dive.sac which returns null in this case.
         final diveId = await insertDiveWithTank(
           id: 'dive-pres-rec-invalid-bg',
           bottomTimeSeconds: 35 * 60,
@@ -608,8 +608,8 @@ void main() {
   // Bottom Time Trend (uses bottom_time column directly)
   // ---------------------------------------------------------------------------
 
-  group('getBottomTimeTrend', () {
-    test('computes average bottom time per month', () async {
+  group('getBottomTimePerDive', () {
+    test('reports bottom time in minutes, ignoring runtime', () async {
       await insertDiveWithTank(
         id: 'dive-bt-trend',
         bottomTimeSeconds: 45 * 60, // 45 min
@@ -619,7 +619,7 @@ void main() {
         endPressure: 50,
       );
 
-      final results = await repository.getBottomTimeTrend();
+      final results = await repository.getBottomTimePerDive();
 
       expect(results, hasLength(1));
       expect(results.first.value, closeTo(45.0, 0.5));
@@ -640,8 +640,121 @@ void main() {
             ),
           );
 
-      final results = await repository.getBottomTimeTrend();
+      final results = await repository.getBottomTimePerDive();
       expect(results, isEmpty);
+    });
+  });
+
+  group('getSacVolumePerDive', () {
+    test('returns one point per dive rather than one per month', () async {
+      await insertDiveWithTank(
+        id: 'dive-1',
+        bottomTimeSeconds: 40 * 60,
+        avgDepth: 20.0,
+        startPressure: 200,
+        endPressure: 50,
+        volume: 11.1,
+        diveDateTimeMs: DateTime.utc(2024, 5, 10).millisecondsSinceEpoch,
+      );
+      await insertDiveWithTank(
+        id: 'dive-2',
+        bottomTimeSeconds: 40 * 60,
+        avgDepth: 20.0,
+        startPressure: 200,
+        endPressure: 100,
+        volume: 11.1,
+        diveDateTimeMs: DateTime.utc(2024, 5, 11).millisecondsSinceEpoch,
+      );
+
+      final points = await repository.getSacVolumePerDive();
+
+      expect(points, hasLength(2));
+      // Ordered by date, and the second dive used less gas.
+      expect(points[0].date.isBefore(points[1].date), isTrue);
+      expect(points[1].value, lessThan(points[0].value));
+    });
+
+    test('sums every tank on a dive into that dive single SAC', () async {
+      final diveId = await insertDiveWithTank(
+        id: 'dive-twin',
+        bottomTimeSeconds: 40 * 60,
+        avgDepth: 20.0,
+        startPressure: 200,
+        endPressure: 100,
+        volume: 11.1,
+      );
+      await insertTank(
+        diveId: diveId,
+        startPressure: 200,
+        endPressure: 100,
+        volume: 11.1,
+      );
+
+      final points = await repository.getSacVolumePerDive();
+
+      expect(points, hasLength(1));
+    });
+
+    test('includes a dive far older than five years', () async {
+      final longAgo = DateTime.now().toUtc().subtract(
+        const Duration(days: 365 * 8),
+      );
+      await insertDiveWithTank(
+        id: 'ancient',
+        bottomTimeSeconds: 40 * 60,
+        avgDepth: 20.0,
+        startPressure: 200,
+        endPressure: 50,
+        volume: 11.1,
+        diveDateTimeMs: longAgo.millisecondsSinceEpoch,
+      );
+
+      expect(await repository.getSacVolumePerDive(), hasLength(1));
+    });
+  });
+
+  group('getSacPressurePerDive', () {
+    test('returns one point per dive rather than one per month', () async {
+      await insertDiveWithTank(
+        id: 'dive-1',
+        bottomTimeSeconds: 40 * 60,
+        avgDepth: 20.0,
+        startPressure: 200,
+        endPressure: 50,
+        diveDateTimeMs: DateTime.utc(2024, 5, 10).millisecondsSinceEpoch,
+      );
+      await insertDiveWithTank(
+        id: 'dive-2',
+        bottomTimeSeconds: 40 * 60,
+        avgDepth: 20.0,
+        startPressure: 200,
+        endPressure: 100,
+        diveDateTimeMs: DateTime.utc(2024, 5, 11).millisecondsSinceEpoch,
+      );
+
+      final points = await repository.getSacPressurePerDive();
+
+      expect(points, hasLength(2));
+      // (200-50) / 40 / 3.0 = 1.25 bar/min
+      expect(points[0].value, closeTo(1.25, 1e-6));
+      // (200-100) / 40 / 3.0 = 0.8333 bar/min
+      expect(points[1].value, closeTo(0.8333, 1e-3));
+    });
+
+    test('includes a dive far older than five years', () async {
+      final longAgo = DateTime.now().toUtc().subtract(
+        const Duration(days: 365 * 8),
+      );
+      await insertDiveWithTank(
+        id: 'ancient',
+        bottomTimeSeconds: 40 * 60,
+        avgDepth: 20.0,
+        startPressure: 200,
+        endPressure: 50,
+        diveDateTimeMs: longAgo.millisecondsSinceEpoch,
+      );
+
+      expect(await repository.getSacPressurePerDive(), hasLength(1));
     });
   });
 }

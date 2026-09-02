@@ -7,7 +7,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// for #211/#627: gen-l10n falls back to English silently, so a locale that
 /// never got the keys would ship looking fine in CI and wrong to the user.
 void main() {
-  /// The 13 strings this feature introduced, resolved for [locale].
+  /// The 14 strings this feature introduced, resolved for [locale].
   List<String> siteMediaStrings(AppLocalizations l10n) => <String>[
     l10n.media_siteMediaSection_title,
     l10n.media_siteMediaSection_addPhotos,
@@ -16,8 +16,11 @@ void main() {
     l10n.media_siteMediaSection_divePhotosGroup(3),
     l10n.media_siteMediaSection_divePhotoLabel,
     l10n.media_siteMediaSection_unlinkSelectedTitle(2),
-    l10n.media_siteMediaSection_unlinkSelectedContent,
+    l10n.media_siteMediaSection_unlinkSelectedContent(2),
     l10n.media_siteMediaSection_unlinkSelectedSuccess(2),
+    // The site surface owns its failure string rather than borrowing the
+    // dive section's, so a locale that never got it fails here.
+    l10n.media_siteMediaSection_unlinkError('boom'),
     l10n.media_documentViewer_title,
     l10n.media_documentViewer_unavailable,
     l10n.media_documentViewer_availableOnOriginDevice,

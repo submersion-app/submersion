@@ -412,6 +412,128 @@ void main() {
     });
   });
 
+  group('Import dives (deco dive type default)', () {
+    setUp(() {
+      when(
+        mockDiveRepo.createDive(any),
+      ).thenAnswer((inv) async => inv.positionalArguments[0] as Dive);
+      when(mockDiveRepo.saveComputerReading(any)).thenAnswer((_) async {});
+    });
+
+    Future<Dive> importSingleDive(Map<String, dynamic> diveData) async {
+      await importer.import(
+        data: UddfImportResult(dives: [diveData]),
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+      return verify(mockDiveRepo.createDive(captureAny)).captured.single
+          as Dive;
+    }
+
+    test(
+      'a profile with a deco ceiling defaults the type to technical',
+      () async {
+        final dive = await importSingleDive({
+          'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
+          'maxDepth': 42.0,
+          'duration': const Duration(seconds: 3600),
+          'profile': <Map<String, dynamic>>[
+            {'timestamp': 0, 'depth': 1.5, 'ceiling': 0.0},
+            {'timestamp': 600, 'depth': 42.0, 'ceiling': 6.0},
+          ],
+        });
+        expect(dive.diveTypeIds, ['technical']);
+      },
+    );
+
+    test(
+      'exhausted NDL with TTS at depth defaults the type to technical',
+      () async {
+        final dive = await importSingleDive({
+          'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
+          'maxDepth': 35.0,
+          'duration': const Duration(seconds: 3600),
+          'profile': <Map<String, dynamic>>[
+            {'timestamp': 0, 'depth': 30.0, 'ndl': 300, 'tts': 120},
+            {'timestamp': 900, 'depth': 32.0, 'ndl': 0, 'tts': 600},
+          ],
+        });
+        expect(dive.diveTypeIds, ['technical']);
+      },
+    );
+
+    test('a decoStopStart event defaults the type to technical', () async {
+      final dive = await importSingleDive({
+        'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
+        'maxDepth': 40.0,
+        'duration': const Duration(seconds: 3600),
+        'events': <Map<String, dynamic>>[
+          {'eventType': 'decoStopStart', 'timestamp': 1800},
+        ],
+      });
+      expect(dive.diveTypeIds, ['technical']);
+    });
+
+    test('a decoStopStart event under profileEvents (UDDF source key) defaults '
+        'the type to technical', () async {
+      final dive = await importSingleDive({
+        'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
+        'maxDepth': 40.0,
+        'duration': const Duration(seconds: 3600),
+        'profileEvents': <Map<String, dynamic>>[
+          {'eventType': 'decoStopStart', 'timestamp': 1800},
+        ],
+      });
+      expect(dive.diveTypeIds, ['technical']);
+    });
+
+    test('a no-deco profile keeps the recreational default', () async {
+      final dive = await importSingleDive({
+        'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
+        'maxDepth': 18.0,
+        'duration': const Duration(seconds: 2700),
+        'profile': <Map<String, dynamic>>[
+          {'timestamp': 0, 'depth': 1.0, 'ndl': 3600},
+          {'timestamp': 600, 'depth': 18.0, 'ndl': 1500, 'tts': 120},
+        ],
+      });
+      expect(dive.diveTypeIds, ['recreational']);
+    });
+
+    test(
+      'an explicit dive type from the source wins over deco detection',
+      () async {
+        final dive = await importSingleDive({
+          'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
+          'maxDepth': 42.0,
+          'duration': const Duration(seconds: 3600),
+          'diveType': 'training',
+          'profile': <Map<String, dynamic>>[
+            {'timestamp': 600, 'depth': 42.0, 'ceiling': 6.0},
+          ],
+        });
+        expect(dive.diveTypeIds, ['training']);
+      },
+    );
+
+    test(
+      'explicit dive type ids from the source win over deco detection',
+      () async {
+        final dive = await importSingleDive({
+          'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
+          'maxDepth': 42.0,
+          'duration': const Duration(seconds: 3600),
+          'diveTypeIds': ['cave', 'night'],
+          'profile': <Map<String, dynamic>>[
+            {'timestamp': 600, 'depth': 42.0, 'ceiling': 6.0},
+          ],
+        });
+        expect(dive.diveTypeIds, ['cave', 'night']);
+      },
+    );
+  });
+
   group('Import equipment', () {
     test('imports equipment with type parsing', () async {
       when(mockEquipmentRepo.createEquipment(any)).thenAnswer(

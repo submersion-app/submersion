@@ -137,6 +137,60 @@ void main() {
       );
     });
 
+    // The scenario from #1258: a phone sitting on v1.7.4.6062 while
+    // v1.7.5.6772 was published. currentVersion is assembled in
+    // update_providers.dart from PackageInfo, whose Android values are the
+    // APK's versionName and versionCode. Promoted stable APKs carry the
+    // tag's build number as their versionCode (promote.yml copies the beta
+    // artifacts, and beta APKs are built with build-number = commit count),
+    // so the assembled string is directly comparable to the 4-segment tag.
+    test(
+      'an Android install is offered the APK asset for a newer tag',
+      () async {
+        final client = MockClient((request) async {
+          return http.Response(
+            jsonEncode(makeRelease(tagName: 'v1.7.5.6772')),
+            200,
+          );
+        });
+
+        final service = GithubUpdateService(
+          owner: owner,
+          repo: repo,
+          currentVersion: '1.7.4.6062',
+          platformSuffix: 'Android.apk',
+          httpClient: client,
+        );
+
+        final status = await service.checkForUpdate();
+        expect(status, isA<UpdateAvailable>());
+        expect((status as UpdateAvailable).version, '1.7.5.6772');
+        expect(status.downloadUrl, endsWith('Android.apk'));
+      },
+    );
+
+    test('an Android install on the published build stays quiet', () async {
+      // The other half of the same wiring: if versionCode did not line up
+      // with the tag's build number, every check would report the version
+      // the device is already running as an available update, forever.
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode(makeRelease(tagName: 'v1.7.5.6772')),
+          200,
+        );
+      });
+
+      final service = GithubUpdateService(
+        owner: owner,
+        repo: repo,
+        currentVersion: '1.7.5.6772',
+        platformSuffix: 'Android.apk',
+        httpClient: client,
+      );
+
+      expect(await service.checkForUpdate(), isA<UpToDate>());
+    });
+
     test('returns UpToDate when current is newer than remote', () async {
       final client = MockClient((request) async {
         return http.Response(jsonEncode(makeRelease(tagName: 'v0.9.0')), 200);

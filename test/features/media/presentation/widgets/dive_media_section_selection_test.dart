@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
@@ -43,8 +44,9 @@ class _CapturingMediaListNotifier
   List<String>? deletedIds;
 
   @override
-  Future<void> unlinkMultipleMedia(List<String> ids) async {
+  Future<UnlinkOutcome> unlinkMultipleMedia(List<String> ids) async {
     unlinkedIds = List<String>.from(ids);
+    return UnlinkOutcome(deleted: ids.length, keptAsSiteMedia: 0);
   }
 
   @override

@@ -47,9 +47,11 @@ Future<List<LocalPickedFile>> materializePickedFiles(
     await scratch.create(recursive: true);
 
     // Name collisions are real here: two SAF picks from different folders can
-    // share a display name, so give each its own subdirectory.
-    final dir = Directory(p.join(scratch.path, '${out.length}'));
-    await dir.create(recursive: true);
+    // share a display name, so give each its own subdirectory. The name is
+    // unique rather than a per-call index, so it collides neither with an
+    // earlier pick's leftovers nor with a directory the scratch sweep has
+    // already decided to prune.
+    final dir = await scratch.createTemp('pick_');
     final dest = File(p.join(dir.path, file.name));
 
     try {

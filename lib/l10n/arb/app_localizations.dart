@@ -655,6 +655,18 @@ abstract class AppLocalizations {
   /// **'Favorite'**
   String get diveLog_bulkEdit_fieldFavorite;
 
+  /// No description provided for @diveLog_bulkEdit_fieldMyRole.
+  ///
+  /// In en, this message translates to:
+  /// **'My role'**
+  String get diveLog_bulkEdit_fieldMyRole;
+
+  /// No description provided for @diveLog_bulkEdit_buddyRoleMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed'**
+  String get diveLog_bulkEdit_buddyRoleMixed;
+
   /// No description provided for @diveLog_bulkEdit_collectionWeights.
   ///
   /// In en, this message translates to:
@@ -1344,6 +1356,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{title} map view'**
   String accessibility_label_mapViewTitle(Object title);
+
+  /// Semantics label for the draggable divider between the master and detail panes in master-detail scaffold
+  ///
+  /// In en, this message translates to:
+  /// **'Resize master pane'**
+  String get accessibility_label_resizeMasterPane;
 
   /// Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared across dive profiles. Descriptive form (state), distinct from the imperative form used on the edit-page switch.
   ///
@@ -2208,12 +2226,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not specified'**
   String get buddies_label_notSpecified;
-
-  /// No description provided for @buddies_label_photoComingSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo support coming in v2.0'**
-  String get buddies_label_photoComingSoon;
 
   /// No description provided for @buddies_message_added.
   ///
@@ -4402,6 +4414,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get common_action_cancel;
+
+  /// Tooltip on the icon that removes a star rating from a form row, returning it to no rating
+  ///
+  /// In en, this message translates to:
+  /// **'Clear rating'**
+  String get common_action_clearRating;
 
   /// Generic close action used for dialogs, menus, etc.
   ///
@@ -7664,6 +7682,46 @@ abstract class AppLocalizations {
   /// **'TTS'**
   String get diveLog_deco_label_tts;
 
+  /// No description provided for @diveLog_deco_gf_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'GF: {low}/{high}'**
+  String diveLog_deco_gf_chip(Object low, Object high);
+
+  /// No description provided for @diveLog_deco_gf_chipFromSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'GF: {low}/{high} · your settings'**
+  String diveLog_deco_gf_chipFromSettings(Object low, Object high);
+
+  /// No description provided for @diveLog_deco_gf_chipRecordedAlgorithm.
+  ///
+  /// In en, this message translates to:
+  /// **'{algorithm} · analyzed at GF {low}/{high}'**
+  String diveLog_deco_gf_chipRecordedAlgorithm(
+    Object algorithm,
+    Object low,
+    Object high,
+  );
+
+  /// No description provided for @diveLog_deco_gf_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Gradient factors: low {low}, high {high}'**
+  String diveLog_deco_gf_semantics(Object low, Object high);
+
+  /// No description provided for @diveLog_deco_gf_tooltipFromSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive computer did not record its gradient factors, so this dive is analyzed with the ones from your settings.'**
+  String get diveLog_deco_gf_tooltipFromSettings;
+
+  /// No description provided for @diveLog_deco_gf_tooltipRecordedAlgorithm.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive was computed on {algorithm}, which does not use gradient factors. Submersion analyzes it with the ones from your settings.'**
+  String diveLog_deco_gf_tooltipRecordedAlgorithm(Object algorithm);
+
   /// No description provided for @diveLog_deco_sectionDecoStops.
   ///
   /// In en, this message translates to:
@@ -7981,11 +8039,17 @@ abstract class AppLocalizations {
   /// **'Rate of Change'**
   String get diveLog_detail_label_rateOfChange;
 
-  /// No description provided for @diveLog_detail_label_sacRate.
+  /// No description provided for @diveLog_detail_label_rmv.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
-  String get diveLog_detail_label_sacRate;
+  /// **'RMV'**
+  String get diveLog_detail_label_rmv;
+
+  /// No description provided for @diveLog_detail_label_sac.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC'**
+  String get diveLog_detail_label_sac;
 
   /// No description provided for @diveLog_detail_label_state.
   ///
@@ -8116,8 +8180,14 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_section_marineLife.
   ///
   /// In en, this message translates to:
-  /// **'Marine Life'**
+  /// **'Species'**
   String get diveLog_detail_section_marineLife;
+
+  /// No description provided for @diveLog_detail_sightingPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String diveLog_detail_sightingPhotos(int count);
 
   /// No description provided for @diveLog_detail_section_notes.
   ///
@@ -8134,7 +8204,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_section_sacRateBySegment.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate by Segment'**
+  /// **'Gas consumption by segment'**
   String get diveLog_detail_section_sacRateBySegment;
 
   /// No description provided for @diveLog_detail_section_tags.
@@ -8680,7 +8750,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_edit_noMarineLife.
   ///
   /// In en, this message translates to:
-  /// **'No marine life logged'**
+  /// **'No species logged'**
   String get diveLog_edit_noMarineLife;
 
   /// No description provided for @diveLog_edit_notSpecified.
@@ -8896,7 +8966,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_edit_section_marineLife.
   ///
   /// In en, this message translates to:
-  /// **'Marine Life'**
+  /// **'Species'**
   String get diveLog_edit_section_marineLife;
 
   /// No description provided for @diveLog_edit_section_notes.
@@ -9487,6 +9557,12 @@ abstract class AppLocalizations {
   /// **'From {date}'**
   String diveLog_filterChip_from(Object date);
 
+  /// No description provided for @diveLog_filterChip_noBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'No Buddy'**
+  String get diveLog_filterChip_noBuddy;
+
   /// No description provided for @diveLog_filterChip_until.
   ///
   /// In en, this message translates to:
@@ -9540,6 +9616,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear rating filter'**
   String get diveLog_filter_clearRating;
+
+  /// No description provided for @diveLog_filter_clearWeekdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear weekdays'**
+  String get diveLog_filter_clearWeekdays;
 
   /// No description provided for @diveLog_filter_dateSeparator.
   ///
@@ -9600,6 +9682,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Min'**
   String get diveLog_filter_min;
+
+  /// No description provided for @diveLog_filter_noBuddyOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'No Buddy Assigned'**
+  String get diveLog_filter_noBuddyOnly;
 
   /// No description provided for @diveLog_filter_noTagsYet.
   ///
@@ -9685,11 +9773,23 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get diveLog_filter_sectionTags;
 
+  /// No description provided for @diveLog_filter_sectionWeekdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekdays'**
+  String get diveLog_filter_sectionWeekdays;
+
   /// No description provided for @diveLog_filter_showOnlyFavorites.
   ///
   /// In en, this message translates to:
   /// **'Show only favorite dives'**
   String get diveLog_filter_showOnlyFavorites;
+
+  /// No description provided for @diveLog_filter_showOnlyNoBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Show only dives without a buddy'**
+  String get diveLog_filter_showOnlyNoBuddy;
 
   /// No description provided for @diveLog_filter_startDate.
   ///
@@ -9868,7 +9968,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_legend_label_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
+  /// **'Consumption'**
   String get diveLog_legend_label_sacRate;
 
   /// No description provided for @diveLog_legend_label_showGas.
@@ -9894,6 +9994,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TTS'**
   String get diveLog_legend_label_tts;
+
+  /// No description provided for @diveLog_legend_label_gtr.
+  ///
+  /// In en, this message translates to:
+  /// **'GTR'**
+  String get diveLog_legend_label_gtr;
 
   /// No description provided for @diveLog_legend_source_dc.
   ///
@@ -10062,6 +10168,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Match Dives to Sites'**
   String get diveLog_listPage_menuMatchSites;
+
+  /// No description provided for @diveLog_listPage_menuFetchConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Conditions for All Dives'**
+  String get diveLog_listPage_menuFetchConditions;
+
+  /// No description provided for @diveLog_fetchConditions_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch conditions?'**
+  String get diveLog_fetchConditions_confirmTitle;
+
+  /// No description provided for @diveLog_fetchConditions_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive is missing conditions.} other{{count} dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.'**
+  String diveLog_fetchConditions_confirmBody(int count);
+
+  /// No description provided for @diveLog_fetchConditions_confirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch'**
+  String get diveLog_fetchConditions_confirmAction;
+
+  /// No description provided for @diveLog_fetchConditions_noneNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives are missing conditions.'**
+  String get diveLog_fetchConditions_noneNeeded;
+
+  /// No description provided for @diveLog_fetchConditions_progressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching conditions'**
+  String get diveLog_fetchConditions_progressTitle;
+
+  /// No description provided for @diveLog_fetchConditions_progressCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} of {total}'**
+  String diveLog_fetchConditions_progressCount(int completed, int total);
+
+  /// No description provided for @diveLog_fetchConditions_summaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditions fetched'**
+  String get diveLog_fetchConditions_summaryTitle;
+
+  /// No description provided for @diveLog_fetchConditions_summaryFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive updated} other{{count} dives updated}}'**
+  String diveLog_fetchConditions_summaryFilled(int count);
+
+  /// No description provided for @diveLog_fetchConditions_summaryUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive had no data available} other{{count} dives had no data available}}'**
+  String diveLog_fetchConditions_summaryUnavailable(int count);
+
+  /// No description provided for @diveLog_fetchConditions_summaryUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive had nothing to fill} other{{count} dives had nothing to fill}}'**
+  String diveLog_fetchConditions_summaryUnchanged(int count);
+
+  /// No description provided for @diveLog_fetchConditions_summaryCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Stopped early; 1 dive was processed.} other{Stopped early; {count} dives were processed.}}'**
+  String diveLog_fetchConditions_summaryCancelled(int count);
 
   /// Tooltip: decrease the sighting count
   ///
@@ -10300,7 +10478,7 @@ abstract class AppLocalizations {
   /// Empty-state invitation for the Life & notes group
   ///
   /// In en, this message translates to:
-  /// **'Add marine life, notes or sharing'**
+  /// **'Add species, notes or sharing'**
   String get diveSites_edit_invite_lifeNotes;
 
   /// Empty-state invitation for the Location group
@@ -10831,11 +11009,11 @@ abstract class AppLocalizations {
   /// **'Pressure'**
   String get setup_units_pressure;
 
-  /// No description provided for @setup_units_sac.
+  /// No description provided for @setup_units_gasConsumption.
   ///
   /// In en, this message translates to:
-  /// **'SAC rate'**
-  String get setup_units_sac;
+  /// **'Gas consumption'**
+  String get setup_units_gasConsumption;
 
   /// No description provided for @setup_units_subtitle.
   ///
@@ -10933,6 +11111,66 @@ abstract class AppLocalizations {
   /// **'Nothing to match.'**
   String get siteMatchReview_empty;
 
+  /// No description provided for @siteSuggestion_titlePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Location found in photos'**
+  String get siteSuggestion_titlePhoto;
+
+  /// No description provided for @siteSuggestion_titleDiveComputer.
+  ///
+  /// In en, this message translates to:
+  /// **'Location from dive computer'**
+  String get siteSuggestion_titleDiveComputer;
+
+  /// No description provided for @siteSuggestion_assignButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign {name}'**
+  String siteSuggestion_assignButton(Object name);
+
+  /// No description provided for @siteSuggestion_chooseNearbyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose nearby site ({count})'**
+  String siteSuggestion_chooseNearbyButton(int count);
+
+  /// No description provided for @siteSuggestion_addLocationButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add location to {name}'**
+  String siteSuggestion_addLocationButton(Object name);
+
+  /// No description provided for @siteSuggestion_assignedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned {name}'**
+  String siteSuggestion_assignedSnack(Object name);
+
+  /// No description provided for @siteMatchReview_sourcePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'from photo'**
+  String get siteMatchReview_sourcePhoto;
+
+  /// No description provided for @siteMatchReview_sourceDiveComputer.
+  ///
+  /// In en, this message translates to:
+  /// **'from dive computer'**
+  String get siteMatchReview_sourceDiveComputer;
+
+  /// No description provided for @siteMatchReview_currentSiteCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Add location to this site'**
+  String get siteMatchReview_currentSiteCard;
+
+  /// No description provided for @siteMatchReview_createHereButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create site here'**
+  String get siteMatchReview_createHereButton;
+
   /// No description provided for @siteMatchReview_summary.
   ///
   /// In en, this message translates to:
@@ -10978,8 +11216,8 @@ abstract class AppLocalizations {
   /// No description provided for @siteMatchReview_appliedSnack.
   ///
   /// In en, this message translates to:
-  /// **'Linked {dives} dives · added {sites} sites'**
-  String siteMatchReview_appliedSnack(int dives, int sites);
+  /// **'Linked {dives} dives · added {sites} sites · located {located} sites'**
+  String siteMatchReview_appliedSnack(int dives, int sites, int located);
 
   /// No description provided for @siteMatchReview_applyError.
   ///
@@ -11653,12 +11891,6 @@ abstract class AppLocalizations {
   /// **'Min Temp'**
   String get diveLog_rangeStats_label_minTemp;
 
-  /// No description provided for @diveLog_rangeStats_label_sacRate.
-  ///
-  /// In en, this message translates to:
-  /// **'SAC Rate'**
-  String get diveLog_rangeStats_label_sacRate;
-
   /// No description provided for @diveLog_rangeStats_title.
   ///
   /// In en, this message translates to:
@@ -11827,17 +12059,35 @@ abstract class AppLocalizations {
   /// **'Error loading dive types'**
   String get diveLog_search_errorLoadingDiveTypes;
 
+  /// No description provided for @diveLog_search_errorLoadingEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading equipment'**
+  String get diveLog_search_errorLoadingEquipment;
+
   /// No description provided for @diveLog_search_errorLoadingTrips.
   ///
   /// In en, this message translates to:
   /// **'Error loading trips'**
   String get diveLog_search_errorLoadingTrips;
 
+  /// No description provided for @diveLog_search_filter_any.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get diveLog_search_filter_any;
+
   /// No description provided for @diveLog_search_gasTrimix.
   ///
   /// In en, this message translates to:
   /// **'Trimix (<21% O₂)'**
   String get diveLog_search_gasTrimix;
+
+  /// No description provided for @diveLog_search_label_deco.
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression'**
+  String get diveLog_search_label_deco;
 
   /// No description provided for @diveLog_search_label_depthRange.
   ///
@@ -11868,6 +12118,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Duration Range (min)'**
   String get diveLog_search_label_durationRange;
+
+  /// No description provided for @diveLog_search_label_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get diveLog_search_label_equipment;
 
   /// No description provided for @diveLog_search_label_trip.
   ///
@@ -12094,7 +12350,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_speciesPicker_title.
   ///
   /// In en, this message translates to:
-  /// **'Add Marine Life'**
+  /// **'Add Species'**
   String get diveLog_speciesPicker_title;
 
   /// No description provided for @diveLog_speciesPicker_tooltip_clearSearch.
@@ -12511,11 +12767,17 @@ abstract class AppLocalizations {
   /// **'Rate'**
   String get diveLog_tooltip_rate;
 
-  /// No description provided for @diveLog_tooltip_sac.
+  /// No description provided for @gasConsumption_rmv.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV'**
+  String get gasConsumption_rmv;
+
+  /// No description provided for @gasConsumption_sac.
   ///
   /// In en, this message translates to:
   /// **'SAC'**
-  String get diveLog_tooltip_sac;
+  String get gasConsumption_sac;
 
   /// No description provided for @diveLog_tooltip_sensor.
   ///
@@ -12570,6 +12832,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TTS'**
   String get diveLog_tooltip_tts;
+
+  /// No description provided for @diveLog_tooltip_gtr.
+  ///
+  /// In en, this message translates to:
+  /// **'GTR'**
+  String get diveLog_tooltip_gtr;
 
   /// No description provided for @diveLog_sources_row_metric.
   ///
@@ -12964,7 +13232,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_label_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate:'**
+  /// **'RMV:'**
   String get divePlanner_label_sacRate;
 
   /// No description provided for @divePlanner_label_status.
@@ -13472,6 +13740,12 @@ abstract class AppLocalizations {
   /// **'Difficulty Level'**
   String get diveSites_detail_section_difficultyLevel;
 
+  /// No description provided for @diveSites_detail_section_diveStatistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Statistics'**
+  String get diveSites_detail_section_diveStatistics;
+
   /// No description provided for @diveSites_detail_section_divesAtSite.
   ///
   /// In en, this message translates to:
@@ -13501,6 +13775,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rating'**
   String get diveSites_detail_section_rating;
+
+  /// No description provided for @diveSites_detail_stats_avgDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Average Duration'**
+  String get diveSites_detail_stats_avgDuration;
+
+  /// No description provided for @diveSites_detail_stats_firstDive.
+  ///
+  /// In en, this message translates to:
+  /// **'First Dive'**
+  String get diveSites_detail_stats_firstDive;
+
+  /// No description provided for @diveSites_detail_stats_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Dive'**
+  String get diveSites_detail_stats_lastDive;
+
+  /// No description provided for @diveSites_detail_stats_longestDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest Dive'**
+  String get diveSites_detail_stats_longestDive;
+
+  /// No description provided for @diveSites_detail_stats_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepest Dive'**
+  String get diveSites_detail_stats_maxDepth;
+
+  /// No description provided for @diveSites_detail_stats_minDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Shallowest Dive'**
+  String get diveSites_detail_stats_minDepth;
+
+  /// No description provided for @diveSites_detail_stats_notAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get diveSites_detail_stats_notAvailable;
 
   /// No description provided for @diveSites_detail_semantics_copyToClipboard.
   ///
@@ -13872,7 +14188,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveSites_edit_gps_helperText.
   ///
   /// In en, this message translates to:
-  /// **'Choose a location method - coordinates will auto-fill country and region'**
+  /// **'Choose a location method or look up the coordinates to auto-fill country, region, town and body of water'**
   String get diveSites_edit_gps_helperText;
 
   /// No description provided for @diveSites_edit_gps_latitude_hint.
@@ -13916,6 +14232,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick from Map'**
   String get diveSites_edit_gps_pickFromMap;
+
+  /// No description provided for @diveSites_edit_gps_lookupFromCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up from coordinates'**
+  String get diveSites_edit_gps_lookupFromCoordinates;
+
+  /// No description provided for @diveSites_edit_snackbar_lookupNothingFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No location details found for these coordinates'**
+  String get diveSites_edit_snackbar_lookupNothingFound;
+
+  /// No description provided for @diveSites_edit_snackbar_lookupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Location lookup failed. Check your connection and try again.'**
+  String get diveSites_edit_snackbar_lookupFailed;
+
+  /// No description provided for @diveSites_edit_lookupReplace_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace location details?'**
+  String get diveSites_edit_lookupReplace_title;
+
+  /// No description provided for @diveSites_edit_lookupReplace_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The lookup found different values for these fields:'**
+  String get diveSites_edit_lookupReplace_body;
+
+  /// No description provided for @diveSites_edit_lookupReplace_replace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get diveSites_edit_lookupReplace_replace;
+
+  /// No description provided for @diveSites_edit_lookupReplace_keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get diveSites_edit_lookupReplace_keep;
 
   /// No description provided for @diveSites_edit_gps_useMyLocation.
   ///
@@ -14062,7 +14420,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveSites_edit_section_expectedMarineLife.
   ///
   /// In en, this message translates to:
-  /// **'Expected Marine Life'**
+  /// **'Expected Species'**
   String get diveSites_edit_section_expectedMarineLife;
 
   /// No description provided for @diveSites_edit_section_gpsCoordinates.
@@ -14509,22 +14867,22 @@ abstract class AppLocalizations {
   /// **'Country: {country}'**
   String diveSites_list_activeFilter_country(Object country);
 
-  /// No description provided for @diveSites_list_activeFilter_depthRangeBoth.
+  /// Active depth filter chip for a two-ended range. Both values arrive already converted to the diver's depth unit; max already carries the unit symbol, so do not add one.
   ///
   /// In en, this message translates to:
-  /// **'{min}-{max}m'**
+  /// **'{min}-{max}'**
   String diveSites_list_activeFilter_depthRangeBoth(Object min, Object max);
 
-  /// No description provided for @diveSites_list_activeFilter_depthRangeMax.
+  /// Active depth filter chip for an upper bound only. The value arrives already converted and already carries the diver's depth unit symbol, so do not add one.
   ///
   /// In en, this message translates to:
-  /// **'Up to {max}m'**
+  /// **'Up to {max}'**
   String diveSites_list_activeFilter_depthRangeMax(Object max);
 
-  /// No description provided for @diveSites_list_activeFilter_depthRangeMin.
+  /// Active depth filter chip for a lower bound only. The value arrives already converted and already carries the diver's depth unit symbol, so do not add one.
   ///
   /// In en, this message translates to:
-  /// **'{min}m+'**
+  /// **'{min}+'**
   String diveSites_list_activeFilter_depthRangeMin(Object min);
 
   /// No description provided for @diveSites_list_activeFilter_hasCoordinates.
@@ -14676,6 +15034,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select sites'**
   String get diveSites_list_menu_select;
+
+  /// No description provided for @diveSites_list_menu_fillLocationDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in missing location details'**
+  String get diveSites_list_menu_fillLocationDetails;
+
+  /// No description provided for @diveSites_backfill_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in missing location details?'**
+  String get diveSites_backfill_confirm_title;
+
+  /// No description provided for @diveSites_backfill_confirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 site with coordinates has an empty country, region, town or body of water.} other{{count} sites with coordinates have an empty country, region, town or body of water.}} Submersion will look each one up on OpenStreetMap and fill only the empty fields. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.'**
+  String diveSites_backfill_confirm_body(int count, int minutes);
+
+  /// No description provided for @diveSites_backfill_confirm_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get diveSites_backfill_confirm_start;
+
+  /// No description provided for @diveSites_backfill_nothingToFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Every site with coordinates already has its location details.'**
+  String get diveSites_backfill_nothingToFill;
+
+  /// No description provided for @diveSites_backfill_progress_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Filling in location details'**
+  String get diveSites_backfill_progress_title;
+
+  /// No description provided for @diveSites_backfill_progress_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String diveSites_backfill_progress_count(int done, int total);
+
+  /// No description provided for @diveSites_backfill_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get diveSites_backfill_cancel;
+
+  /// No description provided for @diveSites_backfill_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {updated}, unchanged {unchanged}, failed {failed}'**
+  String diveSites_backfill_summary(int updated, int unchanged, int failed);
+
+  /// No description provided for @diveSites_backfill_offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Location lookup is unavailable. Check your connection and try again.'**
+  String get diveSites_backfill_offline;
 
   /// No description provided for @diveSites_list_search_backTooltip.
   ///
@@ -15070,11 +15488,23 @@ abstract class AppLocalizations {
   /// **'Altitude'**
   String get diveType_builtin_altitude;
 
+  /// No description provided for @diveType_builtin_altitude_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Alt'**
+  String get diveType_builtin_altitude_short;
+
   /// No description provided for @diveType_builtin_boat.
   ///
   /// In en, this message translates to:
   /// **'Boat'**
   String get diveType_builtin_boat;
+
+  /// No description provided for @diveType_builtin_boat_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Boat'**
+  String get diveType_builtin_boat_short;
 
   /// No description provided for @diveType_builtin_cave.
   ///
@@ -15082,11 +15512,23 @@ abstract class AppLocalizations {
   /// **'Cave'**
   String get diveType_builtin_cave;
 
+  /// No description provided for @diveType_builtin_cave_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Cave'**
+  String get diveType_builtin_cave_short;
+
   /// No description provided for @diveType_builtin_cavern.
   ///
   /// In en, this message translates to:
   /// **'Cavern'**
   String get diveType_builtin_cavern;
+
+  /// No description provided for @diveType_builtin_cavern_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Cavern'**
+  String get diveType_builtin_cavern_short;
 
   /// No description provided for @diveType_builtin_deep.
   ///
@@ -15094,11 +15536,23 @@ abstract class AppLocalizations {
   /// **'Deep'**
   String get diveType_builtin_deep;
 
+  /// No description provided for @diveType_builtin_deep_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep'**
+  String get diveType_builtin_deep_short;
+
   /// No description provided for @diveType_builtin_drift.
   ///
   /// In en, this message translates to:
   /// **'Drift'**
   String get diveType_builtin_drift;
+
+  /// No description provided for @diveType_builtin_drift_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Drift'**
+  String get diveType_builtin_drift_short;
 
   /// No description provided for @diveType_builtin_freedive.
   ///
@@ -15106,11 +15560,23 @@ abstract class AppLocalizations {
   /// **'Freedive'**
   String get diveType_builtin_freedive;
 
+  /// No description provided for @diveType_builtin_freedive_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get diveType_builtin_freedive_short;
+
   /// No description provided for @diveType_builtin_ice.
   ///
   /// In en, this message translates to:
   /// **'Ice'**
   String get diveType_builtin_ice;
+
+  /// No description provided for @diveType_builtin_ice_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Ice'**
+  String get diveType_builtin_ice_short;
 
   /// No description provided for @diveType_builtin_liveaboard.
   ///
@@ -15118,11 +15584,23 @@ abstract class AppLocalizations {
   /// **'Liveaboard'**
   String get diveType_builtin_liveaboard;
 
+  /// No description provided for @diveType_builtin_liveaboard_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get diveType_builtin_liveaboard_short;
+
   /// No description provided for @diveType_builtin_night.
   ///
   /// In en, this message translates to:
   /// **'Night'**
   String get diveType_builtin_night;
+
+  /// No description provided for @diveType_builtin_night_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get diveType_builtin_night_short;
 
   /// No description provided for @diveType_builtin_recreational.
   ///
@@ -15130,11 +15608,23 @@ abstract class AppLocalizations {
   /// **'Recreational'**
   String get diveType_builtin_recreational;
 
+  /// No description provided for @diveType_builtin_recreational_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Rec'**
+  String get diveType_builtin_recreational_short;
+
   /// No description provided for @diveType_builtin_shore.
   ///
   /// In en, this message translates to:
   /// **'Shore'**
   String get diveType_builtin_shore;
+
+  /// No description provided for @diveType_builtin_shore_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Shore'**
+  String get diveType_builtin_shore_short;
 
   /// No description provided for @diveType_builtin_technical.
   ///
@@ -15142,17 +15632,35 @@ abstract class AppLocalizations {
   /// **'Technical'**
   String get diveType_builtin_technical;
 
+  /// No description provided for @diveType_builtin_technical_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Tec'**
+  String get diveType_builtin_technical_short;
+
   /// No description provided for @diveType_builtin_training.
   ///
   /// In en, this message translates to:
   /// **'Training'**
   String get diveType_builtin_training;
 
+  /// No description provided for @diveType_builtin_training_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get diveType_builtin_training_short;
+
   /// No description provided for @diveType_builtin_wreck.
   ///
   /// In en, this message translates to:
   /// **'Wreck'**
   String get diveType_builtin_wreck;
+
+  /// No description provided for @diveType_builtin_wreck_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Wreck'**
+  String get diveType_builtin_wreck_short;
 
   /// No description provided for @diveTypes_addDialog_addButton.
   ///
@@ -15177,6 +15685,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter a name'**
   String get diveTypes_addDialog_nameValidation;
+
+  /// No description provided for @diveTypes_addDialog_shortNameHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown on the dive detail header when space is tight'**
+  String get diveTypes_addDialog_shortNameHelper;
+
+  /// No description provided for @diveTypes_addDialog_shortNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., S&R'**
+  String get diveTypes_addDialog_shortNameHint;
+
+  /// No description provided for @diveTypes_addDialog_shortNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Short name (optional)'**
+  String get diveTypes_addDialog_shortNameLabel;
 
   /// No description provided for @diveTypes_addDialog_title.
   ///
@@ -15238,6 +15764,48 @@ abstract class AppLocalizations {
   /// **'Delete dive type'**
   String get diveTypes_deleteTooltip;
 
+  /// No description provided for @diveTypes_editDialog_builtInNameHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in names can\'t be changed'**
+  String get diveTypes_editDialog_builtInNameHelper;
+
+  /// No description provided for @diveTypes_editDialog_saveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get diveTypes_editDialog_saveButton;
+
+  /// No description provided for @diveTypes_editDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Dive Type'**
+  String get diveTypes_editDialog_title;
+
+  /// No description provided for @diveTypes_showInHeaderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Header'**
+  String get diveTypes_showInHeaderLabel;
+
+  /// No description provided for @diveTypes_showInHeaderTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Show this type\'s badge in the dive detail header'**
+  String get diveTypes_showInHeaderTooltip;
+
+  /// No description provided for @diveTypes_showInListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get diveTypes_showInListLabel;
+
+  /// No description provided for @diveTypes_showInListTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Show this type\'s badge in the dive list'**
+  String get diveTypes_showInListTooltip;
+
   /// No description provided for @diveTypes_snackbar_added.
   ///
   /// In en, this message translates to:
@@ -15267,6 +15835,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error deleting dive type: {error}'**
   String diveTypes_snackbar_errorDeleting(Object error);
+
+  /// No description provided for @diveTypes_snackbar_errorUpdating.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating dive type: {error}'**
+  String diveTypes_snackbar_errorUpdating(Object error);
+
+  /// No description provided for @diveTypes_snackbar_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated \"{name}\"'**
+  String diveTypes_snackbar_updated(Object name);
 
   /// No description provided for @divers_detail_activeDiver.
   ///
@@ -16915,13 +17495,13 @@ abstract class AppLocalizations {
   /// No description provided for @enum_profileMetric_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
+  /// **'Gas consumption'**
   String get enum_profileMetric_sacRate;
 
   /// No description provided for @enum_profileMetric_sacRate_short.
   ///
   /// In en, this message translates to:
-  /// **'SAC'**
+  /// **'Usage'**
   String get enum_profileMetric_sacRate_short;
 
   /// No description provided for @enum_profileMetric_surfaceGf.
@@ -16959,6 +17539,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TTS'**
   String get enum_profileMetric_tts_short;
+
+  /// No description provided for @enum_profileMetric_gtr.
+  ///
+  /// In en, this message translates to:
+  /// **'GTR'**
+  String get enum_profileMetric_gtr;
+
+  /// No description provided for @enum_profileMetric_gtr_short.
+  ///
+  /// In en, this message translates to:
+  /// **'GTR'**
+  String get enum_profileMetric_gtr_short;
 
   /// No description provided for @enum_scrType_cmf.
   ///
@@ -17086,6 +17678,12 @@ abstract class AppLocalizations {
   /// **'Date Issued'**
   String get enum_sortField_dateIssued;
 
+  /// No description provided for @enum_sortField_dateTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Taken'**
+  String get enum_sortField_dateTaken;
+
   /// No description provided for @enum_sortField_difficulty.
   ///
   /// In en, this message translates to:
@@ -17115,6 +17713,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'End Date'**
   String get enum_sortField_endDate;
+
+  /// No description provided for @enum_sortField_fileName.
+  ///
+  /// In en, this message translates to:
+  /// **'File Name'**
+  String get enum_sortField_fileName;
+
+  /// No description provided for @enum_sortField_fileSize.
+  ///
+  /// In en, this message translates to:
+  /// **'File Size'**
+  String get enum_sortField_fileSize;
+
+  /// No description provided for @enum_sortField_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Dive'**
+  String get enum_sortField_lastDive;
 
   /// No description provided for @enum_sortField_lastServiceDate.
   ///
@@ -19995,7 +20611,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
+  /// **'RMV'**
   String get gasCalculators_sacRate;
 
   /// No description provided for @gasCalculators_tab_bestMix.
@@ -20019,7 +20635,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_tab_blender.
   ///
   /// In en, this message translates to:
-  /// **'Blender'**
+  /// **'Trimix blender'**
   String get gasCalculators_tab_blender;
 
   /// No description provided for @gasCalculators_blender_cylinder.
@@ -20164,6 +20780,12 @@ abstract class AppLocalizations {
   /// **'These fill gases cannot reach the target mix exactly. Check the fill gases and their order.'**
   String get gasCalculators_blender_error_targetNotReached;
 
+  /// No description provided for @gasCalculators_blender_error_implausibleStartMix.
+  ///
+  /// In en, this message translates to:
+  /// **'The cylinder is holding pressure but no oxygen and no helium, which would be pure nitrogen. Check the mix already in the cylinder.'**
+  String get gasCalculators_blender_error_implausibleStartMix;
+
   /// No description provided for @gasCalculators_blender_about.
   ///
   /// In en, this message translates to:
@@ -20173,8 +20795,302 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_blender_aboutBody.
   ///
   /// In en, this message translates to:
-  /// **'Partial-pressure blend for the target mix, using real-gas (Van der Waals) behaviour. Add each fill gas in order, up to the pressure shown. Fill gases and their order are configurable; always analyse the finished mix before diving it.'**
+  /// **'Partial-pressure blend for the target mix. Add each fill gas in order, up to the pressure shown, then let the cylinder settle. Fill gases and their order are configurable, so setting the last gas to 32/0 tops off with EAN32 instead of air. Always analyse the finished mix before diving it.'**
   String get gasCalculators_blender_aboutBody;
+
+  /// No description provided for @gasCalculators_blender_conditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Blending conditions'**
+  String get gasCalculators_blender_conditions;
+
+  /// No description provided for @gasCalculators_blender_fillTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill temperature'**
+  String get gasCalculators_blender_fillTemp;
+
+  /// No description provided for @gasCalculators_blender_fillTempHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The cylinder\'s temperature while you fill it. Every pressure in the procedure is the gauge reading at this temperature.'**
+  String get gasCalculators_blender_fillTempHelp;
+
+  /// No description provided for @gasCalculators_blender_settledTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled temperature'**
+  String get gasCalculators_blender_settledTemp;
+
+  /// No description provided for @gasCalculators_blender_settledTempHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The temperature the cylinder ends up at. The target pressure is what it reads once it gets there.'**
+  String get gasCalculators_blender_settledTempHelp;
+
+  /// No description provided for @gasCalculators_blender_gasModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas model'**
+  String get gasCalculators_blender_gasModel;
+
+  /// No description provided for @gasCalculators_blender_modelIdeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideal gas'**
+  String get gasCalculators_blender_modelIdeal;
+
+  /// No description provided for @gasCalculators_blender_modelVanDerWaals.
+  ///
+  /// In en, this message translates to:
+  /// **'Van der Waals'**
+  String get gasCalculators_blender_modelVanDerWaals;
+
+  /// No description provided for @gasCalculators_blender_modelZFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Real gas (Z-factor)'**
+  String get gasCalculators_blender_modelZFactor;
+
+  /// No description provided for @gasCalculators_blender_modelRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get gasCalculators_blender_modelRecommended;
+
+  /// No description provided for @gasCalculators_blender_modelHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Real gas (Z-factor) is the most accurate at cylinder pressures. Ideal gas matches most published blending tables. Van der Waals is offered for comparison with other blending software and is several percent off at fill pressure.'**
+  String get gasCalculators_blender_modelHelp;
+
+  /// No description provided for @gasCalculators_blender_stepAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {gas}'**
+  String gasCalculators_blender_stepAdd(String gas);
+
+  /// No description provided for @gasCalculators_blender_stepStartLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get gasCalculators_blender_stepStartLabel;
+
+  /// No description provided for @gasCalculators_blender_settlesTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Settles to {pressure} at {temperature}'**
+  String gasCalculators_blender_settlesTo(String pressure, String temperature);
+
+  /// No description provided for @gasCalculators_blender_templates.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get gasCalculators_blender_templates;
+
+  /// No description provided for @gasCalculators_blender_templatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target mix templates'**
+  String get gasCalculators_blender_templatesTitle;
+
+  /// No description provided for @gasCalculators_blender_saveTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Save current mix'**
+  String get gasCalculators_blender_saveTemplate;
+
+  /// No description provided for @gasCalculators_blender_manageTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage templates'**
+  String get gasCalculators_blender_manageTemplates;
+
+  /// No description provided for @gasCalculators_blender_templateSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {mix}'**
+  String gasCalculators_blender_templateSaved(String mix);
+
+  /// No description provided for @gasCalculators_blender_templateExists.
+  ///
+  /// In en, this message translates to:
+  /// **'That mix is already saved.'**
+  String get gasCalculators_blender_templateExists;
+
+  /// No description provided for @gasCalculators_blender_templateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'O₂ + He cannot exceed 100%.'**
+  String get gasCalculators_blender_templateInvalid;
+
+  /// No description provided for @gasCalculators_blender_templateNeedsNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter both O₂ and He as numbers.'**
+  String get gasCalculators_blender_templateNeedsNumbers;
+
+  /// No description provided for @gasCalculators_blender_templateLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can save up to {count} templates.'**
+  String gasCalculators_blender_templateLimit(int count);
+
+  /// No description provided for @gasCalculators_blender_templateNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates yet. Save a target mix to reuse it here.'**
+  String get gasCalculators_blender_templateNone;
+
+  /// No description provided for @gasCalculators_blender_templateDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {mix}'**
+  String gasCalculators_blender_templateDelete(String mix);
+
+  /// No description provided for @gasCalculators_blender_templateAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add template'**
+  String get gasCalculators_blender_templateAdd;
+
+  /// No description provided for @gasCalculators_blender_billing.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get gasCalculators_blender_billing;
+
+  /// No description provided for @gasCalculators_blender_cylinderVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder water capacity'**
+  String get gasCalculators_blender_cylinderVolume;
+
+  /// No description provided for @gasCalculators_blender_cylinderPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Presets'**
+  String get gasCalculators_blender_cylinderPresets;
+
+  /// No description provided for @gasCalculators_blender_unitPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per 100 {unit}'**
+  String gasCalculators_blender_unitPrice(String unit);
+
+  /// No description provided for @gasCalculators_blender_currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get gasCalculators_blender_currency;
+
+  /// No description provided for @gasCalculators_blender_costTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get gasCalculators_blender_costTotal;
+
+  /// No description provided for @gasCalculators_blender_costBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed on the pressure delivered (cylinder water capacity × bar added), the way a fill station meters it.'**
+  String get gasCalculators_blender_costBasis;
+
+  /// No description provided for @gasCalculators_blender_costMissingPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a price for every gas to see the total.'**
+  String get gasCalculators_blender_costMissingPrice;
+
+  /// No description provided for @gasCalculators_blender_saveFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this fill'**
+  String get gasCalculators_blender_saveFill;
+
+  /// No description provided for @gasCalculators_blender_billed.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed'**
+  String get gasCalculators_blender_billed;
+
+  /// No description provided for @gasCalculators_blender_billedNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing billed yet. Finish a fill and save it here.'**
+  String get gasCalculators_blender_billedNone;
+
+  /// No description provided for @gasCalculators_blender_billedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed to'**
+  String get gasCalculators_blender_billedTo;
+
+  /// No description provided for @gasCalculators_blender_addManualLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a line'**
+  String get gasCalculators_blender_addManualLine;
+
+  /// No description provided for @gasCalculators_blender_lineDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get gasCalculators_blender_lineDescription;
+
+  /// No description provided for @gasCalculators_blender_lineAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get gasCalculators_blender_lineAmount;
+
+  /// No description provided for @gasCalculators_blender_clearBilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get gasCalculators_blender_clearBilled;
+
+  /// No description provided for @gasCalculators_blender_clearBilledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the bill?'**
+  String get gasCalculators_blender_clearBilledTitle;
+
+  /// No description provided for @gasCalculators_blender_clearBilledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes all {count} saved fills.'**
+  String gasCalculators_blender_clearBilledBody(int count);
+
+  /// No description provided for @gasCalculators_blender_editLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {label}'**
+  String gasCalculators_blender_editLine(String label);
+
+  /// No description provided for @gasCalculators_blender_deleteLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {label}'**
+  String gasCalculators_blender_deleteLine(String label);
+
+  /// No description provided for @gasCalculators_blender_fillAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{mix} added to the bill'**
+  String gasCalculators_blender_fillAdded(String mix);
+
+  /// No description provided for @gasCalculators_blender_billedIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'One or more lines have no price, so this total is incomplete.'**
+  String get gasCalculators_blender_billedIncomplete;
+
+  /// No description provided for @gasCalculators_blender_billedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get gasCalculators_blender_billedTotal;
 
   /// No description provided for @gasCalculators_tab_mod.
   ///
@@ -20199,6 +21115,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas Calculators'**
   String get gasCalculators_title;
+
+  /// No description provided for @gasCalculators_desc_mod.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepest safe depth for a mix'**
+  String get gasCalculators_desc_mod;
+
+  /// No description provided for @gasCalculators_desc_bestMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Richest mix for a target depth'**
+  String get gasCalculators_desc_bestMix;
+
+  /// No description provided for @gasCalculators_desc_consumption.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas a planned dive will use'**
+  String get gasCalculators_desc_consumption;
+
+  /// No description provided for @gasCalculators_desc_rockBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserve to bring two divers up'**
+  String get gasCalculators_desc_rockBottom;
+
+  /// No description provided for @gasCalculators_desc_mnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Narcosis depth limit for a mix'**
+  String get gasCalculators_desc_mnd;
+
+  /// No description provided for @gasCalculators_desc_blender.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill procedure for a target mix'**
+  String get gasCalculators_desc_blender;
+
+  /// No description provided for @gasCalculators_summary_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a calculator to get started'**
+  String get gasCalculators_summary_prompt;
 
   /// No description provided for @marineLife_siteSection_editExpectedTooltip.
   ///
@@ -20233,7 +21191,7 @@ abstract class AppLocalizations {
   /// No description provided for @marineLife_siteSection_noSpotted.
   ///
   /// In en, this message translates to:
-  /// **'No marine life spotted yet'**
+  /// **'No species spotted yet'**
   String get marineLife_siteSection_noSpotted;
 
   /// No description provided for @marineLife_siteSection_spottedCountSemantics.
@@ -20254,7 +21212,7 @@ abstract class AppLocalizations {
   /// No description provided for @marineLife_siteSection_title.
   ///
   /// In en, this message translates to:
-  /// **'Marine Life'**
+  /// **'Species'**
   String get marineLife_siteSection_title;
 
   /// No description provided for @marineLife_speciesDetail_backTooltip.
@@ -20418,6 +21376,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error saving species: {error}'**
   String marineLife_speciesEdit_errorSaving(Object error);
+
+  /// No description provided for @marineLife_speciesEdit_notFoundMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This species no longer exists.'**
+  String get marineLife_speciesEdit_notFoundMessage;
 
   /// No description provided for @marineLife_speciesEdit_saveButton.
   ///
@@ -20593,6 +21557,348 @@ abstract class AppLocalizations {
   /// **'Search species...'**
   String get marineLife_speciesManage_searchHint;
 
+  /// No description provided for @marineLife_lookup_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up online'**
+  String get marineLife_lookup_button;
+
+  /// No description provided for @marineLife_lookup_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up a species'**
+  String get marineLife_lookup_title;
+
+  /// No description provided for @marineLife_lookup_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Common or scientific name'**
+  String get marineLife_lookup_searchHint;
+
+  /// No description provided for @marineLife_lookup_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up'**
+  String get marineLife_lookup_search;
+
+  /// No description provided for @marineLife_lookup_createWithout.
+  ///
+  /// In en, this message translates to:
+  /// **'Create without lookup'**
+  String get marineLife_lookup_createWithout;
+
+  /// No description provided for @marineLife_lookup_attribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Species data and photos from iNaturalist'**
+  String get marineLife_lookup_attribution;
+
+  /// No description provided for @marineLife_lookup_idle.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a name and tap Look up.'**
+  String get marineLife_lookup_idle;
+
+  /// No description provided for @marineLife_lookup_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No species found for \"{query}\"'**
+  String marineLife_lookup_empty(String query);
+
+  /// No description provided for @marineLife_lookup_errorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You appear to be offline.'**
+  String get marineLife_lookup_errorOffline;
+
+  /// No description provided for @marineLife_lookup_errorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The lookup timed out.'**
+  String get marineLife_lookup_errorTimeout;
+
+  /// No description provided for @marineLife_lookup_errorServer.
+  ///
+  /// In en, this message translates to:
+  /// **'iNaturalist returned an error. Try again later.'**
+  String get marineLife_lookup_errorServer;
+
+  /// No description provided for @marineLife_lookup_errorMalformed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected response from iNaturalist.'**
+  String get marineLife_lookup_errorMalformed;
+
+  /// No description provided for @marineLife_lookup_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get marineLife_lookup_retry;
+
+  /// No description provided for @marineLife_lookup_observations.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 observation} other{{count} observations}}'**
+  String marineLife_lookup_observations(int count);
+
+  /// No description provided for @marineLife_lookup_unresolvableRank.
+  ///
+  /// In en, this message translates to:
+  /// **'{rank}: choose a species'**
+  String marineLife_lookup_unresolvableRank(String rank);
+
+  /// No description provided for @marineLife_speciesDetail_suggestForCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest for the catalog'**
+  String get marineLife_speciesDetail_suggestForCatalog;
+
+  /// No description provided for @marineLife_suggest_couldNotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the browser'**
+  String get marineLife_suggest_couldNotOpen;
+
+  /// No description provided for @marineLife_suggest_copyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get marineLife_suggest_copyLink;
+
+  /// No description provided for @marineLife_speciesPhotos_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos ({count})'**
+  String marineLife_speciesPhotos_title(Object count);
+
+  /// No description provided for @marineLife_speciesPhotos_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos tagged with this species appear here.'**
+  String get marineLife_speciesPhotos_empty;
+
+  /// No description provided for @marineLife_speciesPhotos_tagPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag photos'**
+  String get marineLife_speciesPhotos_tagPhotos;
+
+  /// No description provided for @marineLife_speciesPhotos_addPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos'**
+  String get marineLife_speciesPhotos_addPhotos;
+
+  /// No description provided for @marineLife_speciesPhotos_thumbnailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Species photo'**
+  String get marineLife_speciesPhotos_thumbnailLabel;
+
+  /// No description provided for @marineLife_speciesPhotos_importAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo added} other{{count} photos added}}'**
+  String marineLife_speciesPhotos_importAdded(int count);
+
+  /// No description provided for @marineLife_speciesPhotos_importSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 skipped} other{{count} skipped}}'**
+  String marineLife_speciesPhotos_importSkipped(int count);
+
+  /// No description provided for @marineLife_speciesPhotos_importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 failed} other{{count} failed}}'**
+  String marineLife_speciesPhotos_importFailed(int count);
+
+  /// No description provided for @marineLife_tagPicker_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag photos'**
+  String get marineLife_tagPicker_title;
+
+  /// No description provided for @marineLife_tagPicker_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No untagged photos on dives where you logged this species.'**
+  String get marineLife_tagPicker_empty;
+
+  /// No description provided for @marineLife_tagPicker_emptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Add photos to import pictures from your camera roll.'**
+  String get marineLife_tagPicker_emptyHint;
+
+  /// No description provided for @marineLife_tagPicker_selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get marineLife_tagPicker_selectAll;
+
+  /// No description provided for @marineLife_tagPicker_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Tag 1 photo} other{Tag {count} photos}}'**
+  String marineLife_tagPicker_confirm(int count);
+
+  /// No description provided for @marineLife_tagPicker_tagged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Tagged 1 photo} other{Tagged {count} photos}}'**
+  String marineLife_tagPicker_tagged(int count);
+
+  /// No description provided for @marineLife_tagPicker_diveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {number}'**
+  String marineLife_tagPicker_diveLabel(Object number);
+
+  /// No description provided for @marineLife_speciesPage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get marineLife_speciesPage_title;
+
+  /// No description provided for @marineLife_speciesPage_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search species you have seen'**
+  String get marineLife_speciesPage_searchHint;
+
+  /// No description provided for @marineLife_speciesPage_clearSearchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get marineLife_speciesPage_clearSearchTooltip;
+
+  /// No description provided for @marineLife_speciesPage_manageCatalogTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage catalog'**
+  String get marineLife_speciesPage_manageCatalogTooltip;
+
+  /// No description provided for @marineLife_speciesPage_sortTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get marineLife_speciesPage_sortTooltip;
+
+  /// No description provided for @marineLife_speciesPage_sort_mostSightings.
+  ///
+  /// In en, this message translates to:
+  /// **'Most sightings'**
+  String get marineLife_speciesPage_sort_mostSightings;
+
+  /// No description provided for @marineLife_speciesPage_sort_recentlySeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently seen'**
+  String get marineLife_speciesPage_sort_recentlySeen;
+
+  /// No description provided for @marineLife_speciesPage_sort_firstSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'First seen'**
+  String get marineLife_speciesPage_sort_firstSeen;
+
+  /// No description provided for @marineLife_speciesPage_sort_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get marineLife_speciesPage_sort_name;
+
+  /// No description provided for @marineLife_speciesPage_speciesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 species} other{{count} species}}'**
+  String marineLife_speciesPage_speciesCount(int count);
+
+  /// No description provided for @marineLife_speciesPage_sightingsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 sighting} other{{count} sightings}}'**
+  String marineLife_speciesPage_sightingsCount(int count);
+
+  /// No description provided for @marineLife_speciesPage_divesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String marineLife_speciesPage_divesCount(int count);
+
+  /// No description provided for @marineLife_speciesPage_lastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen {date}'**
+  String marineLife_speciesPage_lastSeen(String date);
+
+  /// No description provided for @marineLife_speciesPage_emptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No species yet'**
+  String get marineLife_speciesPage_emptyTitle;
+
+  /// No description provided for @marineLife_speciesPage_emptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Species sightings added to a dive will show up here.'**
+  String get marineLife_speciesPage_emptyHint;
+
+  /// No description provided for @marineLife_speciesPage_noMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No species match your search'**
+  String get marineLife_speciesPage_noMatch;
+
+  /// No description provided for @marineLife_speciesPage_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your species: {error}'**
+  String marineLife_speciesPage_error(String error);
+
+  /// No description provided for @marineLife_speciesPage_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get marineLife_speciesPage_retry;
+
+  /// No description provided for @marineLife_speciesDetail_sightingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sightings ({count})'**
+  String marineLife_speciesDetail_sightingsTitle(Object count);
+
+  /// No description provided for @marineLife_speciesDetail_sightingsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load sightings: {error}'**
+  String marineLife_speciesDetail_sightingsError(String error);
+
+  /// No description provided for @marineLife_speciesDetail_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String marineLife_speciesDetail_showAll(Object count);
+
+  /// No description provided for @marineLife_speciesDetail_showFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get marineLife_speciesDetail_showFewer;
+
+  /// No description provided for @marineLife_speciesDetail_unknownSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown site'**
+  String get marineLife_speciesDetail_unknownSite;
+
+  /// No description provided for @marineLife_speciesDetail_countTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'× {count}'**
+  String marineLife_speciesDetail_countTimes(Object count);
+
   /// No description provided for @marineLife_speciesPicker_allFilter.
   ///
   /// In en, this message translates to:
@@ -20707,36 +22013,6 @@ abstract class AppLocalizations {
   /// **'Photos & Video'**
   String get media_diveMediaSection_title;
 
-  /// Dive media selection: destructive delete action
-  ///
-  /// In en, this message translates to:
-  /// **'Delete'**
-  String get media_diveMediaSection_deleteButton;
-
-  /// Error snackbar when the dive media bulk delete fails
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to delete: {error}'**
-  String media_diveMediaSection_deleteError(Object error);
-
-  /// Body of the dive media bulk delete confirmation
-  ///
-  /// In en, this message translates to:
-  /// **'This removes them from the app and any media store. This cannot be undone.'**
-  String get media_diveMediaSection_deleteSelectedContent;
-
-  /// No description provided for @media_diveMediaSection_deleteSelectedSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Deleted {count} items'**
-  String media_diveMediaSection_deleteSelectedSuccess(int count);
-
-  /// No description provided for @media_diveMediaSection_deleteSelectedTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete {count} items?'**
-  String media_diveMediaSection_deleteSelectedTitle(int count);
-
   /// Replace-link confirm action for a changed file
   ///
   /// In en, this message translates to:
@@ -20761,18 +22037,6 @@ abstract class AppLocalizations {
   /// **'Unlink'**
   String get media_diveMediaSection_unlinkButton;
 
-  /// No description provided for @media_diveMediaSection_unlinkDialogContent.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove this photo from the dive? The photo will remain in your gallery.'**
-  String get media_diveMediaSection_unlinkDialogContent;
-
-  /// No description provided for @media_diveMediaSection_unlinkDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Unlink Photo'**
-  String get media_diveMediaSection_unlinkDialogTitle;
-
   /// No description provided for @media_diveMediaSection_unlinkError.
   ///
   /// In en, this message translates to:
@@ -20788,7 +22052,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_diveMediaSection_unlinkSelectedContent.
   ///
   /// In en, this message translates to:
-  /// **'This will remove {count} media items from this dive. The original files won\'t be deleted.'**
+  /// **'Removes {count} media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.'**
   String media_diveMediaSection_unlinkSelectedContent(int count);
 
   /// No description provided for @media_diveMediaSection_unlinkSelectedSuccess.
@@ -20803,11 +22067,29 @@ abstract class AppLocalizations {
   /// **'Unlink {count} items?'**
   String media_diveMediaSection_unlinkSelectedTitle(int count);
 
-  /// No description provided for @media_diveMediaSection_unlinkSuccess.
+  /// Title of the library unlink confirmation dialog
   ///
   /// In en, this message translates to:
-  /// **'Photo unlinked'**
-  String get media_diveMediaSection_unlinkSuccess;
+  /// **'Unlink {count} items?'**
+  String media_library_unlinkConfirmTitle(int count);
+
+  /// Site page unlink failure snackbar
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to unlink: {error}'**
+  String media_siteMediaSection_unlinkError(Object error);
+
+  /// Body of the library unlink confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'They leave your library, along with their cloud copies and thumbnails. Your original files are not affected. This cannot be undone.'**
+  String get media_library_unlinkConfirmBody;
+
+  /// Extra line naming the captions and favorites an unlink discards
+  ///
+  /// In en, this message translates to:
+  /// **'{count,plural, =1{1 of these has a caption or favorite saved in Submersion, and those details are lost.} other{{count} of these have a caption or favorite saved in Submersion, and those details are lost.}}'**
+  String media_library_unlinkMetadataNote(int count);
 
   /// No description provided for @media_siteMediaSection_title.
   ///
@@ -20848,19 +22130,19 @@ abstract class AppLocalizations {
   /// No description provided for @media_siteMediaSection_unlinkSelectedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Remove {count} attachments?'**
+  /// **'Unlink {count} items?'**
   String media_siteMediaSection_unlinkSelectedTitle(int count);
 
-  /// No description provided for @media_siteMediaSection_unlinkSelectedContent.
+  /// Site page unlink confirmation body
   ///
   /// In en, this message translates to:
-  /// **'The selected items will be removed from this site. Files in your photo library or on disk are not deleted.'**
-  String get media_siteMediaSection_unlinkSelectedContent;
+  /// **'Removes {count} items from your library, along with their cloud copies and thumbnails. Media a dive still uses is kept. Your original files are not affected.'**
+  String media_siteMediaSection_unlinkSelectedContent(int count);
 
   /// No description provided for @media_siteMediaSection_unlinkSelectedSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Removed {count} attachments'**
+  /// **'Unlinked {count} items'**
   String media_siteMediaSection_unlinkSelectedSuccess(int count);
 
   /// No description provided for @media_documentViewer_title.
@@ -20958,6 +22240,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dismiss GPS suggestion'**
   String get media_gpsBanner_dismissTooltip;
+
+  /// No description provided for @mediaImport_offerSiteReview.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives could get a site from their photos'**
+  String mediaImport_offerSiteReview(int count);
+
+  /// No description provided for @mediaImport_reviewSitesAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review sites'**
+  String get mediaImport_reviewSitesAction;
 
   /// No description provided for @media_gpsBanner_title.
   ///
@@ -21167,6 +22461,196 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Toggle selection for photo, selected'**
   String get media_photoPicker_thumbnailToggleSelectedLabel;
+
+  /// No description provided for @media_photoPicker_files_pickFilesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick files…'**
+  String get media_photoPicker_files_pickFilesButton;
+
+  /// No description provided for @media_photoPicker_files_pickFolderButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a folder…'**
+  String get media_photoPicker_files_pickFolderButton;
+
+  /// No description provided for @media_photoPicker_files_autoMatchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-match photos and videos to dives by date'**
+  String get media_photoPicker_files_autoMatchLabel;
+
+  /// No description provided for @media_photoPicker_files_emptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick files or a folder to start.'**
+  String get media_photoPicker_files_emptyHint;
+
+  /// No description provided for @media_photoPicker_files_linkButton.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Link 1 item} other{Link {count} items}}'**
+  String media_photoPicker_files_linkButton(int count);
+
+  /// No description provided for @media_photoPicker_files_attachToSiteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Attach 1 item to this site} other{Attach {count} items to this site}}'**
+  String media_photoPicker_files_attachToSiteButton(int count);
+
+  /// No description provided for @media_photoPicker_files_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{fileCount, plural, =1{1 file} other{{fileCount} files}}, {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {unmatchedCount} unmatched'**
+  String media_photoPicker_files_summary(
+    int fileCount,
+    int diveCount,
+    Object unmatchedCount,
+  );
+
+  /// No description provided for @media_photoPicker_files_itemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String media_photoPicker_files_itemCount(int count);
+
+  /// No description provided for @media_photoPicker_files_diveGroupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {diveId}'**
+  String media_photoPicker_files_diveGroupTitle(String diveId);
+
+  /// No description provided for @media_photoPicker_files_groupCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file} other{{count} files}}'**
+  String media_photoPicker_files_groupCount(int count);
+
+  /// No description provided for @media_photoPicker_files_unmatchedGroupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmatched'**
+  String get media_photoPicker_files_unmatchedGroupTitle;
+
+  /// No description provided for @media_photoPicker_files_addAllToDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add 1 to this dive} other{Add all {count} to this dive}}'**
+  String media_photoPicker_files_addAllToDive(int count);
+
+  /// No description provided for @media_photoPicker_files_addToDiveTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this dive'**
+  String get media_photoPicker_files_addToDiveTooltip;
+
+  /// No description provided for @media_photoPicker_files_chooseDiveTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a dive'**
+  String get media_photoPicker_files_chooseDiveTooltip;
+
+  /// No description provided for @media_photoPicker_files_removeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from selection'**
+  String get media_photoPicker_files_removeTooltip;
+
+  /// No description provided for @media_photoPicker_files_sourceExif.
+  ///
+  /// In en, this message translates to:
+  /// **'from EXIF'**
+  String get media_photoPicker_files_sourceExif;
+
+  /// No description provided for @media_photoPicker_files_sourceContainer.
+  ///
+  /// In en, this message translates to:
+  /// **'from file metadata'**
+  String get media_photoPicker_files_sourceContainer;
+
+  /// No description provided for @media_photoPicker_files_sourceFileDate.
+  ///
+  /// In en, this message translates to:
+  /// **'from file date'**
+  String get media_photoPicker_files_sourceFileDate;
+
+  /// No description provided for @media_photoPicker_files_sourceNone.
+  ///
+  /// In en, this message translates to:
+  /// **'no date found'**
+  String get media_photoPicker_files_sourceNone;
+
+  /// No description provided for @media_photoPicker_files_shiftedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'{shifted} (was {original})'**
+  String media_photoPicker_files_shiftedTime(String shifted, String original);
+
+  /// No description provided for @media_photoPicker_files_reasonNoTimestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'No capture time could be read'**
+  String get media_photoPicker_files_reasonNoTimestamp;
+
+  /// No description provided for @media_photoPicker_files_reasonBeforeDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{gap} before the nearest dive'**
+  String media_photoPicker_files_reasonBeforeDive(String gap);
+
+  /// No description provided for @media_photoPicker_files_reasonAfterDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{gap} after the nearest dive'**
+  String media_photoPicker_files_reasonAfterDive(String gap);
+
+  /// No description provided for @media_photoPicker_files_reasonNoDives.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives to match against'**
+  String get media_photoPicker_files_reasonNoDives;
+
+  /// No description provided for @media_photoPicker_files_offsetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift capture times by'**
+  String get media_photoPicker_files_offsetLabel;
+
+  /// No description provided for @media_photoPicker_files_offsetResetTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to no shift'**
+  String get media_photoPicker_files_offsetResetTooltip;
+
+  /// No description provided for @media_photoPicker_files_offsetBackTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift {amount} earlier'**
+  String media_photoPicker_files_offsetBackTooltip(String amount);
+
+  /// No description provided for @media_photoPicker_files_offsetForwardTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift {amount} later'**
+  String media_photoPicker_files_offsetForwardTooltip(String amount);
+
+  /// No description provided for @media_photoPicker_files_linkedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Linked 1 item} other{Linked {count} items}}'**
+  String media_photoPicker_files_linkedCount(int count);
+
+  /// No description provided for @media_photoPicker_files_attachedToSiteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Attached 1 item to this site} other{Attached {count} items to this site}}'**
+  String media_photoPicker_files_attachedToSiteCount(int count);
+
+  /// No description provided for @media_photoPicker_files_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get media_photoPicker_files_undo;
 
   /// No description provided for @media_photoPicker_thumbnailAlreadyLinkedLabel.
   ///
@@ -21570,6 +23054,12 @@ abstract class AppLocalizations {
   /// **'Keep original video'**
   String get media_writeMetadata_keepOriginalVideo;
 
+  /// No description provided for @media_writeMetadata_livePhotoUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Photos are not supported yet. Duplicate this as a still photo, then write the dive data to the copy.'**
+  String get media_writeMetadata_livePhotoUnsupported;
+
   /// No description provided for @media_writeMetadata_noDataAvailable.
   ///
   /// In en, this message translates to:
@@ -21690,10 +23180,76 @@ abstract class AppLocalizations {
   /// **'Import media...'**
   String get media_import_launch;
 
+  /// App bar title of the pre-import review
+  ///
+  /// In en, this message translates to:
+  /// **'Review import'**
+  String get media_import_review_title;
+
+  /// Confirm button of the pre-import review
+  ///
+  /// In en, this message translates to:
+  /// **'Import {count} items'**
+  String media_import_review_confirm(int count);
+
+  /// Snackbar after the review imports
+  ///
+  /// In en, this message translates to:
+  /// **'{linked} linked, {skipped} skipped, {failed} failed'**
+  String media_import_review_result(int linked, int skipped, int failed);
+
+  /// Review row menu: attach to a dive site
+  ///
+  /// In en, this message translates to:
+  /// **'Choose site'**
+  String get media_import_review_chooseSite;
+
+  /// Review row subtitle when several dives match the timestamp
+  ///
+  /// In en, this message translates to:
+  /// **'Several dives match'**
+  String get media_import_review_ambiguous;
+
+  /// Review row subtitle when no dive matches the timestamp
+  ///
+  /// In en, this message translates to:
+  /// **'No matching dive'**
+  String get media_import_review_noMatch;
+
+  /// Review row subtitle for a row the user unchecked
+  ///
+  /// In en, this message translates to:
+  /// **'Not imported'**
+  String get media_import_review_skipped;
+
+  /// Review row subtitle for a confident auto-match
+  ///
+  /// In en, this message translates to:
+  /// **'Link to #{number}'**
+  String media_import_review_linkChip(int number);
+
+  /// Review row menu: attach to a dive
+  ///
+  /// In en, this message translates to:
+  /// **'Link to dive'**
+  String get media_import_review_linkToDive;
+
+  /// Review row subtitle when attached to a site
+  ///
+  /// In en, this message translates to:
+  /// **'Link to site'**
+  String get media_import_review_linkToSite;
+
+  /// Review row menu: pick a dive
+  ///
+  /// In en, this message translates to:
+  /// **'Choose dive'**
+  String get media_import_review_chooseDive;
+
   /// Import section intro text
   ///
   /// In en, this message translates to:
-  /// **'Imported media is kept in your library and can be linked to dives automatically.'**
+  /// **'Photos are linked to a dive or a dive site as you import them.'**
   String get media_import_intro;
 
   /// Media console label for the sources section
@@ -21900,12 +23456,6 @@ abstract class AppLocalizations {
   /// **'via {source}'**
   String media_repairHistory_source(String source);
 
-  /// Media console sidebar/tab label for the missing-files view
-  ///
-  /// In en, this message translates to:
-  /// **'Missing'**
-  String get media_console_missing;
-
   /// Empty state for the missing-files view
   ///
   /// In en, this message translates to:
@@ -22008,72 +23558,6 @@ abstract class AppLocalizations {
     int skipped,
   );
 
-  /// Media console sidebar/tab label for the unlinked inbox
-  ///
-  /// In en, this message translates to:
-  /// **'Unlinked'**
-  String get media_console_unlinked;
-
-  /// Title of the post-import batch link screen
-  ///
-  /// In en, this message translates to:
-  /// **'Link imported media'**
-  String get media_import_linkTitle;
-
-  /// Confirm button on the post-import batch link screen
-  ///
-  /// In en, this message translates to:
-  /// **'Link {count} items'**
-  String media_import_linkConfirm(int count);
-
-  /// Row subtitle for imports without a confident dive match
-  ///
-  /// In en, this message translates to:
-  /// **'Stays in Unlinked'**
-  String get media_import_staysUnlinked;
-
-  /// Snackbar after the batch link applies
-  ///
-  /// In en, this message translates to:
-  /// **'{count} items linked'**
-  String media_import_linkedResult(int count);
-
-  /// Inbox chip for an ambiguous auto-match
-  ///
-  /// In en, this message translates to:
-  /// **'Choose dive'**
-  String get media_inbox_chooseDive;
-
-  /// Empty state for the unlinked inbox
-  ///
-  /// In en, this message translates to:
-  /// **'No unlinked media'**
-  String get media_inbox_empty;
-
-  /// Inbox action: keep the item in the library unlinked
-  ///
-  /// In en, this message translates to:
-  /// **'Keep'**
-  String get media_inbox_keep;
-
-  /// Inbox chip for a confident auto-match
-  ///
-  /// In en, this message translates to:
-  /// **'Link to #{number}'**
-  String media_inbox_linkChip(int number);
-
-  /// Inbox menu action: pick a dive manually
-  ///
-  /// In en, this message translates to:
-  /// **'Link to dive'**
-  String get media_inbox_linkToDive;
-
-  /// Inbox menu action: pick a site manually
-  ///
-  /// In en, this message translates to:
-  /// **'Link to site'**
-  String get media_inbox_linkToSite;
-
   /// Empty state for the media library
   ///
   /// In en, this message translates to:
@@ -22104,6 +23588,12 @@ abstract class AppLocalizations {
   /// **'Site'**
   String get media_library_filter_site;
 
+  /// Library filter chip: pick a species tag
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get media_library_filter_species;
+
   /// Library filter chip: pick a trip
   ///
   /// In en, this message translates to:
@@ -22116,11 +23606,53 @@ abstract class AppLocalizations {
   /// **'Dates'**
   String get media_library_filter_dates;
 
+  /// Library filter chip: rows whose backing file is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Missing files'**
+  String get media_library_filter_missing;
+
+  /// Library filter chip with the missing-file count
+  ///
+  /// In en, this message translates to:
+  /// **'Missing files ({count})'**
+  String media_library_filter_missingCount(int count);
+
   /// Library filter chip: reset every filter
   ///
   /// In en, this message translates to:
   /// **'Clear filters'**
   String get media_library_filter_clear;
+
+  /// Value shown for a filter facet that is not constrained, e.g. Site: Any
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get media_library_filter_any;
+
+  /// Title of the media library filter sheet, and the filter button's tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Filter media'**
+  String get media_library_filter_title;
+
+  /// Button that applies the drafted media filter
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get media_library_filter_apply;
+
+  /// Title of the media library sort sheet, and the sort button's tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Sort media'**
+  String get media_library_sort_title;
+
+  /// Opens the list of saved smart albums to load one
+  ///
+  /// In en, this message translates to:
+  /// **'Load album'**
+  String get media_smartAlbum_load;
 
   /// Title of the dive picker sheet
   ///
@@ -22134,31 +23666,13 @@ abstract class AppLocalizations {
   /// **'Search dives'**
   String get media_divePicker_search;
 
-  /// Body of the bulk delete confirmation dialog
-  ///
-  /// In en, this message translates to:
-  /// **'This removes them from the app and any media store. This cannot be undone.'**
-  String get media_library_deleteConfirmBody;
-
-  /// Title of the bulk delete confirmation dialog
-  ///
-  /// In en, this message translates to:
-  /// **'Delete {count} items?'**
-  String media_library_deleteConfirmTitle(int count);
-
   /// Library selection action: reassign media to a dive
   ///
   /// In en, this message translates to:
   /// **'Move to dive'**
   String get media_library_moveToDive;
 
-  /// Library selection action: clear the site link
-  ///
-  /// In en, this message translates to:
-  /// **'Unlink from site'**
-  String get media_library_unlinkFromSite;
-
-  /// Library selection action: clear the dive link
+  /// Library selection action, and its confirm button: clear every link the row has, which removes it from the library
   ///
   /// In en, this message translates to:
   /// **'Unlink'**
@@ -22253,6 +23767,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sites'**
   String get nav_sites;
+
+  /// Navigation label for the species section
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get nav_species;
 
   /// Navigation label for statistics section
   ///
@@ -23346,6 +24866,84 @@ abstract class AppLocalizations {
   /// **'Restore'**
   String get safetyReview_restore;
 
+  /// No description provided for @safetyReview_dismissAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all'**
+  String get safetyReview_dismissAll;
+
+  /// No description provided for @safetyReview_restoreAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore all'**
+  String get safetyReview_restoreAll;
+
+  /// No description provided for @safetySettings_dismissAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all observations'**
+  String get safetySettings_dismissAll;
+
+  /// No description provided for @safetySettings_dismissAll_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark every observation in this logbook as reviewed'**
+  String get safetySettings_dismissAll_subtitle;
+
+  /// No description provided for @safetySettings_dismissAll_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all observations?'**
+  String get safetySettings_dismissAll_confirmTitle;
+
+  /// No description provided for @safetySettings_dismissAll_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every observation on every analyzed dive is marked as reviewed. You can restore them one dive at a time from that dive’s safety review section.'**
+  String get safetySettings_dismissAll_confirmBody;
+
+  /// No description provided for @safetySettings_dismissAll_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all'**
+  String get safetySettings_dismissAll_confirm;
+
+  /// No description provided for @safetySettings_dismissAll_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get safetySettings_dismissAll_cancel;
+
+  /// No description provided for @safetySettings_dismissAll_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked {done} of {total} dives'**
+  String safetySettings_dismissAll_progress(int done, int total);
+
+  /// No description provided for @safetySettings_dismissAll_done.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No observations to dismiss} =1{1 observation dismissed} other{{count} observations dismissed}}'**
+  String safetySettings_dismissAll_done(int count);
+
+  /// No description provided for @safetySettings_dismissAll_doneWithErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No observations dismissed} =1{1 observation dismissed} other{{count} observations dismissed}}, {failed, plural, =1{1 dive could not be updated} other{{failed} dives could not be updated}}'**
+  String safetySettings_dismissAll_doneWithErrors(int count, int failed);
+
+  /// No description provided for @safetySettings_dismissAll_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read your dive list. No dives were changed.'**
+  String get safetySettings_dismissAll_failed;
+
+  /// No description provided for @safetySettings_analyzeAll_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not analyze your dives.'**
+  String get safetySettings_analyzeAll_failed;
+
   /// Link in the chart finding callout that scrolls to the full safety review section
   ///
   /// In en, this message translates to:
@@ -23463,13 +25061,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_sacSegments_name.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate by Segment'**
+  /// **'Gas consumption by segment'**
   String get diveDetailSection_sacSegments_name;
 
   /// No description provided for @diveDetailSection_sacSegments_description.
   ///
   /// In en, this message translates to:
-  /// **'Phase/time SAC segmentation'**
+  /// **'SAC and RMV by phase or time'**
   String get diveDetailSection_sacSegments_description;
 
   /// No description provided for @diveDetailSection_details_name.
@@ -23760,6 +25358,12 @@ abstract class AppLocalizations {
   /// **'Link an exposure suit to this dive for a fuller picture'**
   String get buoyancy_linkSuitHint;
 
+  /// No description provided for @buoyancy_noLeadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No lead recorded: add weights to this dive, or a dry weight to your weights gear'**
+  String get buoyancy_noLeadHint;
+
   /// No description provided for @buoyancy_chartNet.
   ///
   /// In en, this message translates to:
@@ -23859,7 +25463,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_tanks_description.
   ///
   /// In en, this message translates to:
-  /// **'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC'**
+  /// **'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption'**
   String get diveDetailSection_tanks_description;
 
   /// No description provided for @diveDetailSection_buddies_name.
@@ -23901,7 +25505,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_sightings_name.
   ///
   /// In en, this message translates to:
-  /// **'Marine Life Sightings'**
+  /// **'Species Sightings'**
   String get diveDetailSection_sightings_name;
 
   /// No description provided for @diveDetailSection_sightings_description.
@@ -24102,6 +25706,12 @@ abstract class AppLocalizations {
   /// **'Events'**
   String get settings_appearance_metric_events;
 
+  /// Settings switch that turns off the synthesized (estimated) tank pressure line on the dive profile chart.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated Tank Pressure'**
+  String get settings_appearance_metric_estimatedTankPressure;
+
   /// No description provided for @settings_appearance_metric_gasDensity.
   ///
   /// In en, this message translates to:
@@ -24159,7 +25769,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_appearance_metric_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
+  /// **'Gas consumption'**
   String get settings_appearance_metric_sacRate;
 
   /// No description provided for @settings_appearance_metric_surfaceGf.
@@ -24179,6 +25789,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TTS (Time to Surface)'**
   String get settings_appearance_metric_tts;
+
+  /// No description provided for @settings_appearance_metric_gtr.
+  ///
+  /// In en, this message translates to:
+  /// **'GTR (Gas Time Remaining)'**
+  String get settings_appearance_metric_gtr;
 
   /// No description provided for @settings_appearance_metric_cns.
   ///
@@ -24657,6 +26273,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **' and '**
   String get settings_cloudSync_peerNeedsAdopt_listLastSeparator;
+
+  /// No description provided for @settings_cloudSync_peerReadFailed_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes from {deviceList} could not be read during the last sync, so they were not merged. The next sync will retry automatically.'**
+  String settings_cloudSync_peerReadFailed_banner(Object deviceList);
+
+  /// No description provided for @settings_cloudSync_peerReadFailed_bannerPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes from {deviceList} could not be read during the last sync, so they were not merged. The next sync will retry automatically.'**
+  String settings_cloudSync_peerReadFailed_bannerPlural(Object deviceList);
 
   /// No description provided for @settings_cloudSync_peerRequiresUpdate_bannerNamed.
   ///
@@ -25148,6 +26776,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Previous conflict'**
   String get settings_conflict_previous_tooltip;
+
+  /// No description provided for @settings_conflict_ref_buddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy'**
+  String get settings_conflict_ref_buddy;
+
+  /// No description provided for @settings_conflict_ref_certification.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification'**
+  String get settings_conflict_ref_certification;
+
+  /// No description provided for @settings_conflict_ref_checklistTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist template'**
+  String get settings_conflict_ref_checklistTemplate;
+
+  /// No description provided for @settings_conflict_ref_connectedAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected account'**
+  String get settings_conflict_ref_connectedAccount;
+
+  /// No description provided for @settings_conflict_ref_course.
+  ///
+  /// In en, this message translates to:
+  /// **'Course'**
+  String get settings_conflict_ref_course;
+
+  /// No description provided for @settings_conflict_ref_courseRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Course requirement'**
+  String get settings_conflict_ref_courseRequirement;
+
+  /// No description provided for @settings_conflict_ref_cylinderConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder configuration'**
+  String get settings_conflict_ref_cylinderConfig;
+
+  /// No description provided for @settings_conflict_ref_dataSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Data source'**
+  String get settings_conflict_ref_dataSource;
+
+  /// No description provided for @settings_conflict_ref_dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get settings_conflict_ref_dive;
+
+  /// No description provided for @settings_conflict_ref_diveCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center'**
+  String get settings_conflict_ref_diveCenter;
+
+  /// No description provided for @settings_conflict_ref_diveComputer.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computer'**
+  String get settings_conflict_ref_diveComputer;
+
+  /// No description provided for @settings_conflict_ref_divePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive plan'**
+  String get settings_conflict_ref_divePlan;
+
+  /// No description provided for @settings_conflict_ref_diveSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive site'**
+  String get settings_conflict_ref_diveSite;
+
+  /// No description provided for @settings_conflict_ref_diveType.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive type'**
+  String get settings_conflict_ref_diveType;
+
+  /// No description provided for @settings_conflict_ref_diver.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver'**
+  String get settings_conflict_ref_diver;
+
+  /// No description provided for @settings_conflict_ref_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get settings_conflict_ref_equipment;
+
+  /// No description provided for @settings_conflict_ref_equipmentSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment set'**
+  String get settings_conflict_ref_equipmentSet;
+
+  /// No description provided for @settings_conflict_ref_finding.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding'**
+  String get settings_conflict_ref_finding;
+
+  /// No description provided for @settings_conflict_ref_instructor.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructor'**
+  String get settings_conflict_ref_instructor;
+
+  /// No description provided for @settings_conflict_ref_linkedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked dive'**
+  String get settings_conflict_ref_linkedDive;
+
+  /// No description provided for @settings_conflict_ref_media.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get settings_conflict_ref_media;
+
+  /// No description provided for @settings_conflict_ref_mediaSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Media subscription'**
+  String get settings_conflict_ref_mediaSubscription;
+
+  /// No description provided for @settings_conflict_ref_missing.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer in this library'**
+  String get settings_conflict_ref_missing;
+
+  /// No description provided for @settings_conflict_ref_named.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({date})'**
+  String settings_conflict_ref_named(Object name, Object date);
+
+  /// No description provided for @settings_conflict_ref_plannedTank.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned tank'**
+  String get settings_conflict_ref_plannedTank;
+
+  /// No description provided for @settings_conflict_ref_preDiveChecklistTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-dive checklist template'**
+  String get settings_conflict_ref_preDiveChecklistTemplate;
+
+  /// No description provided for @settings_conflict_ref_preDiveSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-dive checklist run'**
+  String get settings_conflict_ref_preDiveSession;
+
+  /// No description provided for @settings_conflict_ref_relatedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Related dive'**
+  String get settings_conflict_ref_relatedDive;
+
+  /// No description provided for @settings_conflict_ref_serviceKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Service type'**
+  String get settings_conflict_ref_serviceKind;
+
+  /// No description provided for @settings_conflict_ref_sighting.
+  ///
+  /// In en, this message translates to:
+  /// **'Sighting'**
+  String get settings_conflict_ref_sighting;
+
+  /// No description provided for @settings_conflict_ref_signer.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed by'**
+  String get settings_conflict_ref_signer;
+
+  /// No description provided for @settings_conflict_ref_sourceDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Source dive'**
+  String get settings_conflict_ref_sourceDive;
+
+  /// No description provided for @settings_conflict_ref_species.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get settings_conflict_ref_species;
+
+  /// No description provided for @settings_conflict_ref_tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get settings_conflict_ref_tag;
+
+  /// No description provided for @settings_conflict_ref_tank.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank'**
+  String get settings_conflict_ref_tank;
+
+  /// No description provided for @settings_conflict_ref_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get settings_conflict_ref_trip;
 
   /// No description provided for @settings_conflict_remoteVersion.
   ///
@@ -26090,7 +27934,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_manage_species_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage marine life species catalog'**
+  /// **'Manage the species catalog'**
   String get settings_manage_species_subtitle;
 
   /// No description provided for @settings_manage_tags.
@@ -27111,12 +28955,6 @@ abstract class AppLocalizations {
   /// **'Pressure Unit'**
   String get settings_units_dialog_pressureUnit;
 
-  /// No description provided for @settings_units_dialog_sacRateUnit.
-  ///
-  /// In en, this message translates to:
-  /// **'SAC Rate Unit'**
-  String get settings_units_dialog_sacRateUnit;
-
   /// No description provided for @settings_units_gasModel.
   ///
   /// In en, this message translates to:
@@ -27150,7 +28988,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_units_gasModel_explanation.
   ///
   /// In en, this message translates to:
-  /// **'How cylinder pressure is converted to gas volume. This affects SAC rate, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for SAC.'**
+  /// **'How cylinder pressure is converted to gas volume. This affects RMV, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.'**
   String get settings_units_gasModel_explanation;
 
   /// No description provided for @settings_units_dialog_gasModel.
@@ -27237,11 +29075,41 @@ abstract class AppLocalizations {
   /// **'Quick Select'**
   String get settings_units_quickSelect;
 
-  /// No description provided for @settings_units_sacRate.
+  /// No description provided for @settings_units_gasConsumption_both_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
-  String get settings_units_sacRate;
+  /// **'Show SAC and RMV side by side.'**
+  String get settings_units_gasConsumption_both_subtitle;
+
+  /// No description provided for @settings_units_gasConsumption_both.
+  ///
+  /// In en, this message translates to:
+  /// **'Both'**
+  String get settings_units_gasConsumption_both;
+
+  /// No description provided for @settings_units_gasConsumption_rmv_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas volume breathed per minute at the surface ({unit}). Needs a tank volume.'**
+  String settings_units_gasConsumption_rmv_subtitle(String unit);
+
+  /// No description provided for @settings_units_gasConsumption_sac_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank pressure drop per minute ({unit}). Works with any logged pressures.'**
+  String settings_units_gasConsumption_sac_subtitle(String unit);
+
+  /// No description provided for @settings_units_dialog_gasConsumption.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas consumption display'**
+  String get settings_units_dialog_gasConsumption;
+
+  /// No description provided for @settings_units_gasConsumption.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas consumption'**
+  String get settings_units_gasConsumption;
 
   /// No description provided for @settings_units_defaultCurrency.
   ///
@@ -27254,30 +29122,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default Currency'**
   String get settings_units_dialog_defaultCurrency;
-
-  /// No description provided for @settings_units_sac_pressurePerMinute.
-  ///
-  /// In en, this message translates to:
-  /// **'Pressure per minute'**
-  String get settings_units_sac_pressurePerMinute;
-
-  /// No description provided for @settings_units_sac_pressurePerMinute_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'No tank volume needed (bar/min or psi/min)'**
-  String get settings_units_sac_pressurePerMinute_subtitle;
-
-  /// No description provided for @settings_units_sac_volumePerMinute.
-  ///
-  /// In en, this message translates to:
-  /// **'Volume per minute'**
-  String get settings_units_sac_volumePerMinute;
-
-  /// No description provided for @settings_units_sac_volumePerMinute_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Requires tank volume (L/min or cuft/min)'**
-  String get settings_units_sac_volumePerMinute_subtitle;
 
   /// No description provided for @settings_units_temperature.
   ///
@@ -27585,6 +29429,12 @@ abstract class AppLocalizations {
   /// **'Please enter the signer name'**
   String get signatures_error_enterSignerName;
 
+  /// Error shown when saving a signature failed
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the signature. Please try again.'**
+  String get signatures_error_saveFailed;
+
   /// Label for the instructor name text field
   ///
   /// In en, this message translates to:
@@ -27696,7 +29546,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_category_gas_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'SAC rates & gas mixes'**
+  /// **'Gas consumption & gas mixes'**
   String get statistics_category_gas_subtitle;
 
   /// No description provided for @statistics_category_gas_title.
@@ -27726,7 +29576,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_category_marineLife_title.
   ///
   /// In en, this message translates to:
-  /// **'Marine Life'**
+  /// **'Species'**
   String get statistics_category_marineLife_title;
 
   /// Title for the Overview entry in the Statistics category list
@@ -27903,13 +29753,13 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_conditions_temperature_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Min/Avg/Max temperatures'**
+  /// **'Min, average and max by calendar month, across every year'**
   String get statistics_conditions_temperature_subtitle;
 
   /// No description provided for @statistics_conditions_temperature_title.
   ///
   /// In en, this message translates to:
-  /// **'Water Temperature by Month'**
+  /// **'Seasonal Water Temperature'**
   String get statistics_conditions_temperature_title;
 
   /// No description provided for @statistics_conditions_visibility_error.
@@ -27981,7 +29831,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_equipment_weightTrend_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Average weight over time'**
+  /// **'Total lead carried per dive'**
   String get statistics_equipment_weightTrend_subtitle;
 
   /// No description provided for @statistics_equipment_weightTrend_title.
@@ -28041,7 +29891,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_gas_sacByRole_error.
   ///
   /// In en, this message translates to:
-  /// **'Failed to load SAC by role'**
+  /// **'Failed to load consumption by role'**
   String get statistics_gas_sacByRole_error;
 
   /// No description provided for @statistics_gas_sacByRole_subtitle.
@@ -28053,32 +29903,44 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_gas_sacByRole_title.
   ///
   /// In en, this message translates to:
-  /// **'SAC by Tank Role'**
+  /// **'Gas consumption by tank role'**
   String get statistics_gas_sacByRole_title;
-
-  /// No description provided for @statistics_gas_sacRecords_best.
-  ///
-  /// In en, this message translates to:
-  /// **'Best SAC Rate'**
-  String get statistics_gas_sacRecords_best;
 
   /// No description provided for @statistics_gas_sacRecords_empty.
   ///
   /// In en, this message translates to:
-  /// **'No SAC data available yet'**
+  /// **'No consumption data yet'**
   String get statistics_gas_sacRecords_empty;
 
   /// No description provided for @statistics_gas_sacRecords_error.
   ///
   /// In en, this message translates to:
-  /// **'Failed to load SAC records'**
+  /// **'Failed to load consumption records'**
   String get statistics_gas_sacRecords_error;
 
-  /// No description provided for @statistics_gas_sacRecords_highest.
+  /// No description provided for @statistics_gas_sacRecords_highestRmv.
   ///
   /// In en, this message translates to:
-  /// **'Highest SAC Rate'**
-  String get statistics_gas_sacRecords_highest;
+  /// **'Highest RMV'**
+  String get statistics_gas_sacRecords_highestRmv;
+
+  /// No description provided for @statistics_gas_sacRecords_highestSac.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest SAC'**
+  String get statistics_gas_sacRecords_highestSac;
+
+  /// No description provided for @statistics_gas_sacRecords_bestRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'Best RMV'**
+  String get statistics_gas_sacRecords_bestRmv;
+
+  /// No description provided for @statistics_gas_sacRecords_bestSac.
+  ///
+  /// In en, this message translates to:
+  /// **'Best SAC'**
+  String get statistics_gas_sacRecords_bestSac;
 
   /// No description provided for @statistics_gas_sacRecords_subtitle.
   ///
@@ -28089,25 +29951,25 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_gas_sacRecords_title.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate Records'**
+  /// **'Gas consumption records'**
   String get statistics_gas_sacRecords_title;
 
   /// No description provided for @statistics_gas_sacTrend_error.
   ///
   /// In en, this message translates to:
-  /// **'Failed to load SAC trend'**
+  /// **'Failed to load consumption trend'**
   String get statistics_gas_sacTrend_error;
 
   /// No description provided for @statistics_gas_sacTrend_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Monthly average over 5 years'**
+  /// **'Every dive in range'**
   String get statistics_gas_sacTrend_subtitle;
 
   /// No description provided for @statistics_gas_sacTrend_title.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate Trend'**
+  /// **'Gas consumption trend'**
   String get statistics_gas_sacTrend_title;
 
   /// No description provided for @statistics_gas_tankRole_backGas.
@@ -28281,7 +30143,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_marineLife_appBar_title.
   ///
   /// In en, this message translates to:
-  /// **'Marine Life'**
+  /// **'Species'**
   String get statistics_marineLife_appBar_title;
 
   /// No description provided for @statistics_marineLife_bestSites_empty.
@@ -28315,7 +30177,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_marineLife_bestSites_title.
   ///
   /// In en, this message translates to:
-  /// **'Best Sites for Marine Life'**
+  /// **'Best Sites'**
   String get statistics_marineLife_bestSites_title;
 
   /// No description provided for @statistics_marineLife_mostCommon_empty.
@@ -28357,6 +30219,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Species Spotted'**
   String get statistics_marineLife_speciesSpotted;
+
+  /// No description provided for @statistics_marineLife_seeAllSpecies_title.
+  ///
+  /// In en, this message translates to:
+  /// **'See all species'**
+  String get statistics_marineLife_seeAllSpecies_title;
+
+  /// No description provided for @statistics_marineLife_seeAllSpecies_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every species you have logged, searchable'**
+  String get statistics_marineLife_seeAllSpecies_subtitle;
 
   /// No description provided for @statistics_profile_appBar_title.
   ///
@@ -28511,7 +30385,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_progression_bottomTime_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Average duration by month'**
+  /// **'Every dive in range'**
   String get statistics_progression_bottomTime_subtitle;
 
   /// No description provided for @statistics_progression_bottomTime_title.
@@ -28547,7 +30421,7 @@ abstract class AppLocalizations {
   /// No description provided for @statistics_progression_depthProgression_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Monthly max depth over 5 years'**
+  /// **'Every dive in range'**
   String get statistics_progression_depthProgression_subtitle;
 
   /// No description provided for @statistics_progression_depthProgression_title.
@@ -29604,6 +31478,48 @@ abstract class AppLocalizations {
   /// **'Create tag'**
   String get tags_action_createTag;
 
+  /// No description provided for @tags_action_browse.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse'**
+  String get tags_action_browse;
+
+  /// No description provided for @tags_picker_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick Tags'**
+  String get tags_picker_title;
+
+  /// No description provided for @tags_picker_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No tags yet. Type a tag name to create your first one.'**
+  String get tags_picker_empty;
+
+  /// Shown in the tag picker sheet when the tag list fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading tags: {error}'**
+  String tags_picker_errorLoading(String error);
+
+  /// No description provided for @tags_picker_allAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'All tags are already added.'**
+  String get tags_picker_allAdded;
+
+  /// No description provided for @tags_picker_noMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No tags match your search.'**
+  String get tags_picker_noMatches;
+
+  /// Confirm button on the tag picker sheet; count is how many tags are ticked
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Add tags} =1{Add 1 tag} other{Add {count} tags}}'**
+  String tags_picker_addCount(int count);
+
   /// No description provided for @tags_action_deleteTag.
   ///
   /// In en, this message translates to:
@@ -29639,6 +31555,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tags'**
   String get importWizard_tagsLabel;
+
+  /// Wizard step label for resolving photos referenced by an imported logbook
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get importWizard_photos_stepLabel;
+
+  /// Count of photos the imported logbook refers to
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 photo referenced in this logbook} other{{count} photos referenced in this logbook}}'**
+  String importWizard_photos_foundCount(int count);
+
+  /// Button that opens a folder picker for locating referenced photos
+  ///
+  /// In en, this message translates to:
+  /// **'Choose photo folder...'**
+  String get importWizard_photos_chooseFolder;
+
+  /// Progress label while the picked folder is being scanned
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning folder...'**
+  String get importWizard_photos_scanning;
+
+  /// Result of resolving referenced photos against the picked folder
+  ///
+  /// In en, this message translates to:
+  /// **'{matched} matched, {byName} by filename only, {missing} not found'**
+  String importWizard_photos_matchSummary(int matched, int byName, int missing);
+
+  /// Button to continue the import without photos
+  ///
+  /// In en, this message translates to:
+  /// **'Skip photos'**
+  String get importWizard_photos_skip;
+
+  /// Shown on mobile, where a photo folder cannot be picked
+  ///
+  /// In en, this message translates to:
+  /// **'Importing photos needs a folder on this device\'s disk. Run this import on a computer to include them. Dives and sites import normally.'**
+  String get importWizard_photos_mobileUnsupported;
 
   /// Title for the collapsed ExpansionTile summarizing auto-skipped dives that fall at or before the diver's first-sync cutoff
   ///
@@ -30709,7 +32667,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_section_exportTitle.
   ///
   /// In en, this message translates to:
-  /// **'Export'**
+  /// **'File Export'**
   String get transfer_section_exportTitle;
 
   /// No description provided for @transfer_section_importSubtitle.
@@ -30721,7 +32679,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_section_importTitle.
   ///
   /// In en, this message translates to:
-  /// **'Import'**
+  /// **'File Import'**
   String get transfer_section_importTitle;
 
   /// No description provided for @transfer_summary_description.
@@ -32146,18 +34104,6 @@ abstract class AppLocalizations {
   /// **'mV'**
   String get units_profileMetric_millivolts;
 
-  /// Symbol for SAC rate in liters per minute
-  ///
-  /// In en, this message translates to:
-  /// **'L/min'**
-  String get units_sac_litersPerMin;
-
-  /// Symbol for SAC rate in pressure units per minute
-  ///
-  /// In en, this message translates to:
-  /// **'pressure/min'**
-  String get units_sac_pressurePerMin;
-
   /// Symbol for Celsius temperature unit
   ///
   /// In en, this message translates to:
@@ -32337,6 +34283,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Files'**
   String get universalImport_summary_filesTitle;
+
+  /// No description provided for @universalImport_summary_noticesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the file'**
+  String get universalImport_summary_noticesTitle;
+
+  /// No description provided for @universalImport_summary_noticeNoTankPressureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank pressure not recorded'**
+  String get universalImport_summary_noticeNoTankPressureTitle;
+
+  /// No description provided for @universalImport_summary_noticeNoTankPressureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Air consumption and SAC cannot be calculated. You can add start and end pressure by editing the dive.'**
+  String get universalImport_summary_noticeNoTankPressureBody;
+
+  /// No description provided for @universalImport_summary_noticeAffectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Affects 1 dive} other{Affects {count} dives}}'**
+  String universalImport_summary_noticeAffectedDives(int count);
 
   /// Per-file summary line for a successfully imported file
   ///
@@ -33134,6 +35104,12 @@ abstract class AppLocalizations {
   /// **'Last Download'**
   String get diveComputer_detail_lastDownload;
 
+  /// No description provided for @diveComputer_detail_linkedGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear item'**
+  String get diveComputer_detail_linkedGear;
+
   /// No description provided for @diveComputer_detail_notesTitle.
   ///
   /// In en, this message translates to:
@@ -33574,6 +35550,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No USB serial ports found. Is the dive computer connected and powered on?'**
   String get diveComputer_download_noSerialPortsFound;
+
+  /// No description provided for @diveComputer_download_noUsbDeviceFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No {model} found over USB. Is it connected to this computer and powered on?'**
+  String diveComputer_download_noUsbDeviceFound(Object model);
 
   /// No description provided for @diveComputer_download_stalePairing.
   ///
@@ -34591,6 +36573,12 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get diveImport_uddf_tags;
 
+  /// Entity type label for photos referenced by an imported logbook
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get diveImport_uddf_media;
+
   /// No description provided for @diveImport_uddf_title.
   ///
   /// In en, this message translates to:
@@ -34798,7 +36786,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_rockBottom_aboutDescription.
   ///
   /// In en, this message translates to:
-  /// **'Rock bottom is the minimum gas reserve for an emergency ascent while sharing air with your buddy.\n\n• Uses stressed SAC rates (2-3x normal)\n• Assumes both divers on one tank\n• Includes safety stop when enabled\n\nAlways turn the dive BEFORE reaching rock bottom!'**
+  /// **'Rock bottom is the minimum gas reserve for an emergency ascent while sharing air with your buddy.\n\n• Uses a stressed RMV (2-3x normal)\n• Assumes both divers on one tank\n• Includes safety stop when enabled\n\nAlways turn the dive BEFORE reaching rock bottom!'**
   String get gasCalculators_rockBottom_aboutDescription;
 
   /// No description provided for @gasCalculators_rockBottom_aboutTitle.
@@ -34834,13 +36822,13 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_rockBottom_buddySac.
   ///
   /// In en, this message translates to:
-  /// **'Buddy SAC'**
+  /// **'Buddy RMV'**
   String get gasCalculators_rockBottom_buddySac;
 
   /// No description provided for @gasCalculators_rockBottom_combinedStressedSac.
   ///
   /// In en, this message translates to:
-  /// **'Combined stressed SAC'**
+  /// **'Combined stressed RMV'**
   String get gasCalculators_rockBottom_combinedStressedSac;
 
   /// No description provided for @gasCalculators_rockBottom_emergencyAscentBreakdown.
@@ -34902,13 +36890,13 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_rockBottom_stressedSacHint.
   ///
   /// In en, this message translates to:
-  /// **'Use higher SAC rates to account for stress during emergency'**
+  /// **'Use a higher RMV to account for stress during an emergency'**
   String get gasCalculators_rockBottom_stressedSacHint;
 
   /// No description provided for @gasCalculators_rockBottom_stressedSacRates.
   ///
   /// In en, this message translates to:
-  /// **'Stressed SAC Rates'**
+  /// **'Stressed RMV'**
   String get gasCalculators_rockBottom_stressedSacRates;
 
   /// No description provided for @gasCalculators_rockBottom_tankSize.
@@ -34935,7 +36923,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_rockBottom_yourSac.
   ///
   /// In en, this message translates to:
-  /// **'Your SAC'**
+  /// **'Your RMV'**
   String get gasCalculators_rockBottom_yourSac;
 
   /// No description provided for @gpsLogger_androidNotificationText.
@@ -35045,6 +37033,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recording GPS track · {count, plural, one{{count} point} other{{count} points}}'**
   String gpsLogger_stripStatus(num count);
+
+  /// No description provided for @gpsLogger_summary_tracks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracks'**
+  String get gpsLogger_summary_tracks;
+
+  /// No description provided for @gpsLogger_summary_recordedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded time'**
+  String get gpsLogger_summary_recordedTime;
+
+  /// No description provided for @gpsLogger_summary_divesCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives covered'**
+  String get gpsLogger_summary_divesCovered;
 
   /// No description provided for @gpsLogger_trackSubtitle.
   ///
@@ -35189,6 +37195,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That file has a position or timestamp this app cannot read.'**
   String get gpsTrack_importError_badData;
+
+  /// Track import failed: the file has more positions than a single track can store.
+  ///
+  /// In en, this message translates to:
+  /// **'That file has too many positions to store as one track. Split it into shorter tracks and import them separately.'**
+  String get gpsTrack_importError_tooLarge;
 
   /// No description provided for @gpsTrack_export_saved.
   ///
@@ -36126,6 +38138,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'How aggressively downloaded dives are matched to sites'**
   String get settings_siteMatch_subtitle;
+
+  /// No description provided for @settings_tankPressureAtSurfacing_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank pressure at surfacing'**
+  String get settings_tankPressureAtSurfacing_title;
+
+  /// No description provided for @settings_tankPressureAtSurfacing_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read end pressure when you reached the surface, not when the computer stopped recording'**
+  String get settings_tankPressureAtSurfacing_subtitle;
 
   /// No description provided for @settings_siteMatch_strict.
   ///
@@ -37325,6 +39349,12 @@ abstract class AppLocalizations {
   /// **'Media store connected'**
   String get settings_mediaStorage_saved;
 
+  /// No description provided for @settings_mediaStorage_error_notReady.
+  ///
+  /// In en, this message translates to:
+  /// **'The cloud storage could not be read yet. Wait a moment and try connecting again.'**
+  String get settings_mediaStorage_error_notReady;
+
   /// No description provided for @settings_mediaStorage_action_disconnect.
   ///
   /// In en, this message translates to:
@@ -37409,6 +39439,18 @@ abstract class AppLocalizations {
   /// **'Failed'**
   String get settings_mediaStorage_transfers_state_failed;
 
+  /// No description provided for @settings_mediaStorage_transfers_suspended_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers paused'**
+  String get settings_mediaStorage_transfers_suspended_title;
+
+  /// No description provided for @settings_mediaStorage_transfers_suspended_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This device and the cloud store no longer agree on which store is in use. Reconnecting media storage adopts the store the cloud holds now.'**
+  String get settings_mediaStorage_transfers_suspended_subtitle;
+
   /// No description provided for @settings_mediaStorage_transfers_queued.
   ///
   /// In en, this message translates to:
@@ -37436,9 +39478,12 @@ abstract class AppLocalizations {
   /// No description provided for @settings_mediaStorage_verify_summary.
   ///
   /// In en, this message translates to:
-  /// **'Checked {checked} objects: removed {removed} orphans, queued {repaired} repairs, aborted {aborted} stale uploads'**
+  /// **'Checked {checked} cloud objects ({originals, plural, =1{1 original} other{{originals} originals}}, {thumbs, plural, =1{1 thumbnail} other{{thumbs} thumbnails}}, {renditions, plural, =1{1 compressed version} other{{renditions} compressed versions}}): removed {removed} orphans, queued {repaired} repairs, aborted {aborted} stale uploads'**
   String settings_mediaStorage_verify_summary(
     int checked,
+    int originals,
+    int thumbs,
+    int renditions,
     int removed,
     int repaired,
     int aborted,
@@ -38194,6 +40239,90 @@ abstract class AppLocalizations {
   /// **'Pressure'**
   String get dive3d_metric_tankPressure;
 
+  /// No description provided for @dive3d_zAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Z axis'**
+  String get dive3d_zAxis;
+
+  /// No description provided for @dive3d_zAxis_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get dive3d_zAxis_none;
+
+  /// No description provided for @dive3d_overlay_shadows.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall shadows'**
+  String get dive3d_overlay_shadows;
+
+  /// No description provided for @dive3d_metric_tts.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS'**
+  String get dive3d_metric_tts;
+
+  /// No description provided for @dive3d_axis_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth ({unitSymbol})'**
+  String dive3d_axis_depth(String unitSymbol);
+
+  /// No description provided for @dive3d_axis_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Run time (min)'**
+  String get dive3d_axis_time;
+
+  /// No description provided for @dive3d_pose_menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get dive3d_pose_menu;
+
+  /// No description provided for @dive3d_pose_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Default view'**
+  String get dive3d_pose_default;
+
+  /// No description provided for @dive3d_pose_front.
+  ///
+  /// In en, this message translates to:
+  /// **'Front (depth vs time)'**
+  String get dive3d_pose_front;
+
+  /// No description provided for @dive3d_pose_side.
+  ///
+  /// In en, this message translates to:
+  /// **'Side (depth vs metric)'**
+  String get dive3d_pose_side;
+
+  /// No description provided for @dive3d_pose_top.
+  ///
+  /// In en, this message translates to:
+  /// **'Top (metric vs time)'**
+  String get dive3d_pose_top;
+
+  /// No description provided for @dive3d_readout_runTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Run time'**
+  String get dive3d_readout_runTime;
+
+  /// No description provided for @dive3d_readout_ceiling.
+  ///
+  /// In en, this message translates to:
+  /// **'Ceiling'**
+  String get dive3d_readout_ceiling;
+
+  /// No description provided for @dive3d_readout_tank.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank {n}'**
+  String dive3d_readout_tank(int n);
+
   /// No description provided for @dive3d_scene_dive.
   ///
   /// In en, this message translates to:
@@ -38500,6 +40629,12 @@ abstract class AppLocalizations {
   /// **'Accounts'**
   String get settings_photosMedia_accountsHeader;
 
+  /// No description provided for @settings_photosMedia_displayHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get settings_photosMedia_displayHeader;
+
   /// No description provided for @settings_photosMedia_guidedSetup.
   ///
   /// In en, this message translates to:
@@ -38667,6 +40802,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Volume not mounted'**
   String get media_unavailablePlaceholder_volumeOffline;
+
+  /// No description provided for @media_unavailablePlaceholder_stillFetching.
+  ///
+  /// In en, this message translates to:
+  /// **'Still loading. Tap to retry.'**
+  String get media_unavailablePlaceholder_stillFetching;
+
+  /// No description provided for @media_unavailablePlaceholder_accessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'No photo library access'**
+  String get media_unavailablePlaceholder_accessDenied;
 
   /// No description provided for @attrLabel_size.
   ///
@@ -39616,6 +41763,12 @@ abstract class AppLocalizations {
   /// **'This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive\'s altitude to correct it.'**
   String get diveLog_detail_altitudeMismatch_subtitle;
 
+  /// No description provided for @diveLog_detail_sacVolumeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a cylinder volume to show RMV in {unit}/min'**
+  String diveLog_detail_sacVolumeHint(String unit);
+
   /// No description provided for @safetyHub_alert_noFly.
   ///
   /// In en, this message translates to:
@@ -39705,6 +41858,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Details verified {date}'**
   String emergencyCard_chamberVerified(String date);
+
+  /// No description provided for @emergencyCard_chambersNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest chambers'**
+  String get emergencyCard_chambersNearby;
+
+  /// No description provided for @emergencyCard_chamberViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all {count} chambers'**
+  String emergencyCard_chamberViewAll(int count);
+
+  /// No description provided for @emergencyCard_chambersNoneNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'No chamber listed within range. Call the diver emergency hotline: they will route you to the nearest facility that can treat you.'**
+  String get emergencyCard_chambersNoneNearby;
+
+  /// No description provided for @emergencyCard_chamberCapability_divingEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Treats diving injuries'**
+  String get emergencyCard_chamberCapability_divingEmergency;
+
+  /// No description provided for @emergencyCard_chamberCapability_hyperbaricUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Hospital hyperbaric unit'**
+  String get emergencyCard_chamberCapability_hyperbaricUnit;
+
+  /// No description provided for @emergencyCard_chamberCapability_elective.
+  ///
+  /// In en, this message translates to:
+  /// **'Elective therapy only'**
+  String get emergencyCard_chamberCapability_elective;
+
+  /// No description provided for @emergencyCard_chamberCapability_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Capability unconfirmed'**
+  String get emergencyCard_chamberCapability_unknown;
+
+  /// No description provided for @emergencyCard_chamberAvailability_h24.
+  ///
+  /// In en, this message translates to:
+  /// **'24h'**
+  String get emergencyCard_chamberAvailability_h24;
+
+  /// No description provided for @emergencyCard_chamberAvailability_onCall.
+  ///
+  /// In en, this message translates to:
+  /// **'On call'**
+  String get emergencyCard_chamberAvailability_onCall;
+
+  /// No description provided for @emergencyCard_chamberAvailability_businessHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Business hours'**
+  String get emergencyCard_chamberAvailability_businessHours;
+
+  /// No description provided for @emergencyCard_chamberUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not confirmed with the facility'**
+  String get emergencyCard_chamberUnverified;
+
+  /// No description provided for @chambersDirectory_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Hyperbaric chambers'**
+  String get chambersDirectory_title;
+
+  /// No description provided for @chambersDirectory_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, city or country'**
+  String get chambersDirectory_search;
+
+  /// No description provided for @chambersDirectory_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No chamber matches that search.'**
+  String get chambersDirectory_empty;
+
+  /// No description provided for @chambersDirectory_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 chamber} other{{count} chambers}}'**
+  String chambersDirectory_count(int count);
 
   /// No description provided for @emergencyCard_hideChamber.
   ///
@@ -41104,6 +43347,12 @@ abstract class AppLocalizations {
   /// **'Add to expected species'**
   String get reef_species_addToExpected;
 
+  /// No description provided for @reef_species_addFromLookup.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up and add to your species'**
+  String get reef_species_addFromLookup;
+
   /// Expands the capped nearby-species chip list to its full length
   ///
   /// In en, this message translates to:
@@ -41199,6 +43448,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'How GPS positions are shown and entered'**
   String get settings_coordinateFormat_subtitle;
+
+  /// No description provided for @settings_placeNameLanguage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Place name language'**
+  String get settings_placeNameLanguage_title;
+
+  /// No description provided for @settings_placeNameLanguage_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Used when country, region, town and body of water are looked up from coordinates. Existing sites are not changed.'**
+  String get settings_placeNameLanguage_subtitle;
 
   /// No description provided for @settings_coordinateFormat_decimalDegrees.
   ///
@@ -41548,11 +43809,17 @@ abstract class AppLocalizations {
   /// **'End Pressure'**
   String get enum_diveField_endPressure;
 
-  /// No description provided for @enum_diveField_sacRate.
+  /// No description provided for @enum_diveField_rmv.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate'**
-  String get enum_diveField_sacRate;
+  /// **'RMV (volume rate)'**
+  String get enum_diveField_rmv;
+
+  /// No description provided for @enum_diveField_sac.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC (pressure rate)'**
+  String get enum_diveField_sac;
 
   /// No description provided for @enum_diveField_gasConsumed.
   ///
@@ -41896,11 +44163,17 @@ abstract class AppLocalizations {
   /// **'End P'**
   String get enum_diveField_endPressure_short;
 
-  /// No description provided for @enum_diveField_sacRate_short.
+  /// No description provided for @enum_diveField_rmv_short.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV'**
+  String get enum_diveField_rmv_short;
+
+  /// No description provided for @enum_diveField_sac_short.
   ///
   /// In en, this message translates to:
   /// **'SAC'**
-  String get enum_diveField_sacRate_short;
+  String get enum_diveField_sac_short;
 
   /// No description provided for @enum_diveField_gasConsumed_short.
   ///
@@ -42358,6 +44631,42 @@ abstract class AppLocalizations {
   /// **'Lon'**
   String get enum_siteField_longitude_short;
 
+  /// No description provided for @enum_siteField_depthRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth Range'**
+  String get enum_siteField_depthRange;
+
+  /// No description provided for @enum_siteField_depthRange_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get enum_siteField_depthRange_short;
+
+  /// No description provided for @enum_siteField_lastDived.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Dived'**
+  String get enum_siteField_lastDived;
+
+  /// No description provided for @enum_siteField_lastDived_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived'**
+  String get enum_siteField_lastDived_short;
+
+  /// No description provided for @enum_siteField_maxDepthReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Max Depth'**
+  String get enum_siteField_maxDepthReached;
+
+  /// No description provided for @enum_siteField_maxDepthReached_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Your max'**
+  String get enum_siteField_maxDepthReached_short;
+
   /// No description provided for @enum_buddyField_buddyName.
   ///
   /// In en, this message translates to:
@@ -42441,6 +44750,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get enum_buddyField_notes_short;
+
+  /// No description provided for @enum_buddyField_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Dive'**
+  String get enum_buddyField_lastDive;
+
+  /// No description provided for @enum_buddyField_lastDive_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive'**
+  String get enum_buddyField_lastDive_short;
 
   /// No description provided for @enum_tripField_tripName.
   ///
@@ -49426,6 +51747,2094 @@ abstract class AppLocalizations {
   /// **'Largest living reptile, found in coastal and estuarine waters of the Indo-Pacific.'**
   String get species_saltwater_crocodile_desc;
 
+  /// No description provided for @species_northern_pike_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Northern Pike'**
+  String get species_northern_pike_name;
+
+  /// No description provided for @species_northern_pike_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-bodied ambush predator with a duckbill snout, hanging motionless among weeds at lake margins.'**
+  String get species_northern_pike_desc;
+
+  /// No description provided for @species_muskellunge_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Muskellunge'**
+  String get species_muskellunge_name;
+
+  /// No description provided for @species_muskellunge_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The largest pike, a barred or spotted giant of clear northern lakes, rarely seen and never forgotten.'**
+  String get species_muskellunge_desc;
+
+  /// No description provided for @species_chain_pickerel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Chain Pickerel'**
+  String get species_chain_pickerel_name;
+
+  /// No description provided for @species_chain_pickerel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Slender pike of weedy eastern North American ponds, named for the chain-like pattern along its flanks.'**
+  String get species_chain_pickerel_desc;
+
+  /// No description provided for @species_walleye_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Walleye'**
+  String get species_walleye_name;
+
+  /// No description provided for @species_walleye_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Golden-olive perch relative with large reflective eyes, hunting at dusk over rocky and sandy lake bottoms.'**
+  String get species_walleye_desc;
+
+  /// No description provided for @species_sauger_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Sauger'**
+  String get species_sauger_name;
+
+  /// No description provided for @species_sauger_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller, blotchier cousin of the walleye that favours turbid rivers and reservoirs.'**
+  String get species_sauger_desc;
+
+  /// No description provided for @species_yellow_perch_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow Perch'**
+  String get species_yellow_perch_name;
+
+  /// No description provided for @species_yellow_perch_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Schooling golden perch with dark vertical bars, common around docks and weed beds across North America.'**
+  String get species_yellow_perch_desc;
+
+  /// No description provided for @species_european_perch_name.
+  ///
+  /// In en, this message translates to:
+  /// **'European Perch'**
+  String get species_european_perch_name;
+
+  /// No description provided for @species_european_perch_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Striped, spiny-finned perch with red-orange lower fins, found in nearly every European lake and slow river.'**
+  String get species_european_perch_desc;
+
+  /// No description provided for @species_zander_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Zander'**
+  String get species_zander_name;
+
+  /// No description provided for @species_zander_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Large pale predator with glassy eyes and fanged jaws, patrolling murky European lakes and rivers after dark.'**
+  String get species_zander_desc;
+
+  /// No description provided for @species_ruffe_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Ruffe'**
+  String get species_ruffe_name;
+
+  /// No description provided for @species_ruffe_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Small mottled perch with a spiny joined dorsal fin, abundant on soft bottoms of European lakes.'**
+  String get species_ruffe_desc;
+
+  /// No description provided for @species_largemouth_bass_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Largemouth Bass'**
+  String get species_largemouth_bass_name;
+
+  /// No description provided for @species_largemouth_bass_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Green-backed bass with a dark side stripe and a huge mouth, lurking beside logs and weed edges in warm lakes.'**
+  String get species_largemouth_bass_desc;
+
+  /// No description provided for @species_smallmouth_bass_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Smallmouth Bass'**
+  String get species_smallmouth_bass_name;
+
+  /// No description provided for @species_smallmouth_bass_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bronze bass with faint vertical bars, holding over rock and gravel in clear, cool lakes and rivers.'**
+  String get species_smallmouth_bass_desc;
+
+  /// No description provided for @species_rock_bass_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Rock Bass'**
+  String get species_rock_bass_name;
+
+  /// No description provided for @species_rock_bass_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Chunky red-eyed sunfish with rows of dark spots, sheltering among boulders in clear streams and lakes.'**
+  String get species_rock_bass_desc;
+
+  /// No description provided for @species_bluegill_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluegill'**
+  String get species_bluegill_name;
+
+  /// No description provided for @species_bluegill_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Disc-shaped sunfish with a blue-black ear flap and orange breast, nesting in colonies on shallow sandy bottoms.'**
+  String get species_bluegill_desc;
+
+  /// No description provided for @species_pumpkinseed_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Pumpkinseed'**
+  String get species_pumpkinseed_name;
+
+  /// No description provided for @species_pumpkinseed_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Brightly speckled sunfish with a red-tipped ear flap and wavy blue cheek lines, common in weedy shallows.'**
+  String get species_pumpkinseed_desc;
+
+  /// No description provided for @species_black_crappie_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Black Crappie'**
+  String get species_black_crappie_name;
+
+  /// No description provided for @species_black_crappie_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silvery, deep-bodied panfish speckled with black, schooling around submerged brush and pilings.'**
+  String get species_black_crappie_desc;
+
+  /// No description provided for @species_white_crappie_name.
+  ///
+  /// In en, this message translates to:
+  /// **'White Crappie'**
+  String get species_white_crappie_name;
+
+  /// No description provided for @species_white_crappie_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Paler crappie with faint vertical bands, favouring turbid reservoirs and slow rivers.'**
+  String get species_white_crappie_desc;
+
+  /// No description provided for @species_brown_trout_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Brown Trout'**
+  String get species_brown_trout_name;
+
+  /// No description provided for @species_brown_trout_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Golden-brown trout with red and black spots, holding in the current of cool, clear rivers and lakes.'**
+  String get species_brown_trout_desc;
+
+  /// No description provided for @species_rainbow_trout_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Rainbow Trout'**
+  String get species_rainbow_trout_name;
+
+  /// No description provided for @species_rainbow_trout_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silvery trout with a pink lateral band and fine black speckling, stocked and wild in cold waters worldwide.'**
+  String get species_rainbow_trout_desc;
+
+  /// No description provided for @species_brook_trout_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Brook Trout'**
+  String get species_brook_trout_name;
+
+  /// No description provided for @species_brook_trout_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Char with worm-like markings on its back, red spots in blue halos and white-edged fins, in cold headwater streams.'**
+  String get species_brook_trout_desc;
+
+  /// No description provided for @species_lake_trout_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Lake Trout'**
+  String get species_lake_trout_name;
+
+  /// No description provided for @species_lake_trout_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Big grey char covered in pale spots with a forked tail, cruising the deep cold water of northern lakes.'**
+  String get species_lake_trout_desc;
+
+  /// No description provided for @species_arctic_char_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Arctic Char'**
+  String get species_arctic_char_name;
+
+  /// No description provided for @species_arctic_char_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Northernmost freshwater fish, a slender char whose belly flushes orange-red in autumn spawning colours.'**
+  String get species_arctic_char_desc;
+
+  /// No description provided for @species_atlantic_salmon_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Atlantic Salmon'**
+  String get species_atlantic_salmon_name;
+
+  /// No description provided for @species_atlantic_salmon_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver sea-run salmon with black X-shaped spots, leaping falls on its return to natal rivers to spawn.'**
+  String get species_atlantic_salmon_desc;
+
+  /// No description provided for @species_chinook_salmon_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinook Salmon'**
+  String get species_chinook_salmon_name;
+
+  /// No description provided for @species_chinook_salmon_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The largest Pacific salmon, blue-green backed with black gums, ascending big western rivers to spawn.'**
+  String get species_chinook_salmon_desc;
+
+  /// No description provided for @species_sockeye_salmon_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Sockeye Salmon'**
+  String get species_sockeye_salmon_name;
+
+  /// No description provided for @species_sockeye_salmon_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Salmon that turns brilliant red with a green head at spawning, crowding gravel beds of lake-fed rivers.'**
+  String get species_sockeye_salmon_desc;
+
+  /// No description provided for @species_coho_salmon_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Coho Salmon'**
+  String get species_coho_salmon_name;
+
+  /// No description provided for @species_coho_salmon_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver salmon with white gums and spots only on the upper tail, spawning in small coastal streams.'**
+  String get species_coho_salmon_desc;
+
+  /// No description provided for @species_lake_whitefish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Lake Whitefish'**
+  String get species_lake_whitefish_name;
+
+  /// No description provided for @species_lake_whitefish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silvery, small-mouthed whitefish of deep cold lakes, feeding on the bottom in large schools.'**
+  String get species_lake_whitefish_desc;
+
+  /// No description provided for @species_cisco_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Cisco'**
+  String get species_cisco_name;
+
+  /// No description provided for @species_cisco_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Slender herring-like whitefish that shoals in open water of cold northern lakes, prey for lake trout.'**
+  String get species_cisco_desc;
+
+  /// No description provided for @species_european_grayling_name.
+  ///
+  /// In en, this message translates to:
+  /// **'European Grayling'**
+  String get species_european_grayling_name;
+
+  /// No description provided for @species_european_grayling_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver-grey river fish with a tall, sail-like dorsal fin edged in purple, holding in fast clean gravel runs.'**
+  String get species_european_grayling_desc;
+
+  /// No description provided for @species_common_carp_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Common Carp'**
+  String get species_common_carp_name;
+
+  /// No description provided for @species_common_carp_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy bronze carp with large scales and two barbels, rooting through soft bottoms of warm lakes and rivers.'**
+  String get species_common_carp_desc;
+
+  /// No description provided for @species_grass_carp_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Grass Carp'**
+  String get species_grass_carp_name;
+
+  /// No description provided for @species_grass_carp_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Torpedo-shaped Asian carp introduced worldwide to graze on aquatic weeds, often seen in clear quarry lakes.'**
+  String get species_grass_carp_desc;
+
+  /// No description provided for @species_tench_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Tench'**
+  String get species_tench_name;
+
+  /// No description provided for @species_tench_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Olive-green fish with tiny scales, red eyes and rounded fins, sliding through mud and reeds of still waters.'**
+  String get species_tench_desc;
+
+  /// No description provided for @species_common_bream_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Common Bream'**
+  String get species_common_bream_name;
+
+  /// No description provided for @species_common_bream_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep, laterally flattened bronze fish that feeds head-down in muddy shoals, common across European lowlands.'**
+  String get species_common_bream_desc;
+
+  /// No description provided for @species_roach_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Roach'**
+  String get species_roach_name;
+
+  /// No description provided for @species_roach_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver shoaling fish with red fins and a red iris, the most abundant fish in many European lakes and canals.'**
+  String get species_roach_desc;
+
+  /// No description provided for @species_rudd_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Rudd'**
+  String get species_rudd_name;
+
+  /// No description provided for @species_rudd_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Golden-flanked relative of the roach with bright red fins and an upturned mouth, feeding just under the surface.'**
+  String get species_rudd_desc;
+
+  /// No description provided for @species_chub_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Chub'**
+  String get species_chub_name;
+
+  /// No description provided for @species_chub_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Thick-set river fish with a broad head, large dark-edged scales and a big mouth, holding under overhanging trees.'**
+  String get species_chub_desc;
+
+  /// No description provided for @species_barbel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Barbel'**
+  String get species_barbel_name;
+
+  /// No description provided for @species_barbel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Streamlined bottom-dweller with four barbels and an underslung mouth, hugging gravel in fast European rivers.'**
+  String get species_barbel_desc;
+
+  /// No description provided for @species_european_eel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'European Eel'**
+  String get species_european_eel_name;
+
+  /// No description provided for @species_european_eel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Snake-like fish that spends decades in rivers and lakes before migrating to the Sargasso Sea to spawn once.'**
+  String get species_european_eel_desc;
+
+  /// No description provided for @species_american_eel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'American Eel'**
+  String get species_american_eel_name;
+
+  /// No description provided for @species_american_eel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'North American eel that hides under rocks by day in rivers and lakes and returns to the Sargasso Sea to breed.'**
+  String get species_american_eel_desc;
+
+  /// No description provided for @species_burbot_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Burbot'**
+  String get species_burbot_name;
+
+  /// No description provided for @species_burbot_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The only freshwater cod, a mottled eel-like fish with a single chin barbel, hiding in cold deep water by day.'**
+  String get species_burbot_desc;
+
+  /// No description provided for @species_channel_catfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel Catfish'**
+  String get species_channel_catfish_name;
+
+  /// No description provided for @species_channel_catfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Grey catfish with scattered dark spots, a forked tail and eight barbels, common in rivers and reservoirs across North America.'**
+  String get species_channel_catfish_desc;
+
+  /// No description provided for @species_flathead_catfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Flathead Catfish'**
+  String get species_flathead_catfish_name;
+
+  /// No description provided for @species_flathead_catfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Huge mottled brown catfish with a flattened head and protruding lower jaw, lying in deep river holes.'**
+  String get species_flathead_catfish_desc;
+
+  /// No description provided for @species_brown_bullhead_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Brown Bullhead'**
+  String get species_brown_bullhead_name;
+
+  /// No description provided for @species_brown_bullhead_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Small stocky catfish with dark barbels and a squared tail, tolerating muddy, warm and low-oxygen ponds.'**
+  String get species_brown_bullhead_desc;
+
+  /// No description provided for @species_wels_catfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Wels Catfish'**
+  String get species_wels_catfish_name;
+
+  /// No description provided for @species_wels_catfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Europe\'s largest freshwater fish, a scaleless giant with a broad flat head and long whiskers, lying in deep river holes.'**
+  String get species_wels_catfish_desc;
+
+  /// No description provided for @species_white_sturgeon_name.
+  ///
+  /// In en, this message translates to:
+  /// **'White Sturgeon'**
+  String get species_white_sturgeon_name;
+
+  /// No description provided for @species_white_sturgeon_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'North America\'s largest freshwater fish, an armoured grey giant with a shark-like tail cruising big western rivers.'**
+  String get species_white_sturgeon_desc;
+
+  /// No description provided for @species_lake_sturgeon_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Lake Sturgeon'**
+  String get species_lake_sturgeon_name;
+
+  /// No description provided for @species_lake_sturgeon_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow-growing armoured sturgeon of the Great Lakes and Mississippi basin, vacuuming the bottom with its tube mouth.'**
+  String get species_lake_sturgeon_desc;
+
+  /// No description provided for @species_european_sturgeon_name.
+  ///
+  /// In en, this message translates to:
+  /// **'European Sturgeon'**
+  String get species_european_sturgeon_name;
+
+  /// No description provided for @species_european_sturgeon_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Critically endangered armoured sturgeon of Atlantic rivers, now bred and released in the Garonne and Elbe.'**
+  String get species_european_sturgeon_desc;
+
+  /// No description provided for @species_alligator_gar_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Alligator Gar'**
+  String get species_alligator_gar_name;
+
+  /// No description provided for @species_alligator_gar_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Prehistoric giant with a broad toothy snout and diamond-shaped armour scales, surfacing to gulp air in southern rivers.'**
+  String get species_alligator_gar_desc;
+
+  /// No description provided for @species_longnose_gar_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Longnose Gar'**
+  String get species_longnose_gar_name;
+
+  /// No description provided for @species_longnose_gar_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Slender armoured fish with a needle-like snout, hanging motionless just below the surface of warm rivers.'**
+  String get species_longnose_gar_desc;
+
+  /// No description provided for @species_bowfin_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Bowfin'**
+  String get species_bowfin_name;
+
+  /// No description provided for @species_bowfin_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Living fossil with a long undulating dorsal fin and a bony head, guarding its fry in weedy backwaters.'**
+  String get species_bowfin_desc;
+
+  /// No description provided for @species_american_paddlefish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'American Paddlefish'**
+  String get species_american_paddlefish_name;
+
+  /// No description provided for @species_american_paddlefish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter-feeding giant with a paddle-shaped snout a third of its length, swimming open-mouthed through big rivers.'**
+  String get species_american_paddlefish_desc;
+
+  /// No description provided for @species_sea_lamprey_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Sea Lamprey'**
+  String get species_sea_lamprey_name;
+
+  /// No description provided for @species_sea_lamprey_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Jawless eel-like parasite with a sucker mouth ringed with teeth, spawning in gravel streams after feeding at sea or in lakes.'**
+  String get species_sea_lamprey_desc;
+
+  /// No description provided for @species_freshwater_drum_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Freshwater Drum'**
+  String get species_freshwater_drum_name;
+
+  /// No description provided for @species_freshwater_drum_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silvery humpbacked fish that grunts audibly and crushes mussels with throat teeth, common in big rivers and lakes.'**
+  String get species_freshwater_drum_desc;
+
+  /// No description provided for @species_white_sucker_name.
+  ///
+  /// In en, this message translates to:
+  /// **'White Sucker'**
+  String get species_white_sucker_name;
+
+  /// No description provided for @species_white_sucker_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylindrical bottom-feeder with a fleshy downturned mouth, running up streams in spring spawning crowds.'**
+  String get species_white_sucker_desc;
+
+  /// No description provided for @species_common_minnow_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Common Minnow'**
+  String get species_common_minnow_name;
+
+  /// No description provided for @species_common_minnow_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiny striped shoaling fish of clear cool streams and lakes, the males turning red and green in spring.'**
+  String get species_common_minnow_desc;
+
+  /// No description provided for @species_three_spined_stickleback_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Three-spined Stickleback'**
+  String get species_three_spined_stickleback_name;
+
+  /// No description provided for @species_three_spined_stickleback_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiny armoured fish with three dorsal spines whose red-throated males build and guard nests of plant fibres.'**
+  String get species_three_spined_stickleback_desc;
+
+  /// No description provided for @species_alewife_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Alewife'**
+  String get species_alewife_name;
+
+  /// No description provided for @species_alewife_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver herring that runs up rivers in spring and now fills the Great Lakes in vast schools.'**
+  String get species_alewife_desc;
+
+  /// No description provided for @species_nile_perch_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Nile Perch'**
+  String get species_nile_perch_name;
+
+  /// No description provided for @species_nile_perch_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Massive silver predator with a black-rimmed eye, introduced into Lake Victoria where it dominates open water.'**
+  String get species_nile_perch_desc;
+
+  /// No description provided for @species_nile_tilapia_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Nile Tilapia'**
+  String get species_nile_tilapia_name;
+
+  /// No description provided for @species_nile_tilapia_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Grey cichlid with vertical tail bars that broods its young in its mouth, farmed and feral in warm waters worldwide.'**
+  String get species_nile_tilapia_desc;
+
+  /// No description provided for @species_african_tigerfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'African Tigerfish'**
+  String get species_african_tigerfish_name;
+
+  /// No description provided for @species_african_tigerfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Striped silver predator with interlocking dagger teeth, hunting in fast African rivers such as the Zambezi.'**
+  String get species_african_tigerfish_desc;
+
+  /// No description provided for @species_marbled_lungfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Marbled Lungfish'**
+  String get species_marbled_lungfish_name;
+
+  /// No description provided for @species_marbled_lungfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Eel-shaped air-breathing fish with thread-like fins that survives droughts sealed in a mud cocoon.'**
+  String get species_marbled_lungfish_desc;
+
+  /// No description provided for @species_electric_catfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Electric Catfish'**
+  String get species_electric_catfish_name;
+
+  /// No description provided for @species_electric_catfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Plump grey catfish of the Nile and Congo that stuns prey with shocks of several hundred volts.'**
+  String get species_electric_catfish_desc;
+
+  /// No description provided for @species_zebra_mbuna_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Zebra Mbuna'**
+  String get species_zebra_mbuna_name;
+
+  /// No description provided for @species_zebra_mbuna_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue-barred rock cichlid of Lake Malawi, grazing algae from boulders in dense territorial crowds.'**
+  String get species_zebra_mbuna_desc;
+
+  /// No description provided for @species_malawi_butterfly_peacock_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Malawi Butterfly Peacock'**
+  String get species_malawi_butterfly_peacock_name;
+
+  /// No description provided for @species_malawi_butterfly_peacock_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Iridescent blue peacock cichlid of Lake Malawi caves, the males glowing with white-edged fins.'**
+  String get species_malawi_butterfly_peacock_desc;
+
+  /// No description provided for @species_fuelleborn_cichlid_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuelleborn\'s Cichlid'**
+  String get species_fuelleborn_cichlid_name;
+
+  /// No description provided for @species_fuelleborn_cichlid_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Blunt-nosed Lake Malawi mbuna with a fleshy overhanging snout for scraping algae in the surf zone.'**
+  String get species_fuelleborn_cichlid_desc;
+
+  /// No description provided for @species_princess_of_burundi_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Princess of Burundi'**
+  String get species_princess_of_burundi_name;
+
+  /// No description provided for @species_princess_of_burundi_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Elegant Lake Tanganyika cichlid with lyre-shaped fins, living in extended families that share nest duties.'**
+  String get species_princess_of_burundi_desc;
+
+  /// No description provided for @species_frontosa_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Frontosa'**
+  String get species_frontosa_name;
+
+  /// No description provided for @species_frontosa_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep-water Tanganyika cichlid with bold blue-white bands and a humped forehead, moving slowly in groups over rocks.'**
+  String get species_frontosa_desc;
+
+  /// No description provided for @species_tropheus_moorii_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Blunthead Cichlid'**
+  String get species_tropheus_moorii_name;
+
+  /// No description provided for @species_tropheus_moorii_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Stocky Tanganyika rock cichlid in dozens of colour forms, each confined to its own stretch of shore.'**
+  String get species_tropheus_moorii_desc;
+
+  /// No description provided for @species_arapaima_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Arapaima'**
+  String get species_arapaima_name;
+
+  /// No description provided for @species_arapaima_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'One of the largest freshwater fish, an armoured Amazon giant with a red-flecked tail that rises to gulp air.'**
+  String get species_arapaima_desc;
+
+  /// No description provided for @species_silver_arowana_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver Arowana'**
+  String get species_silver_arowana_name;
+
+  /// No description provided for @species_silver_arowana_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ribbon-like silver Amazon fish with two chin barbels that leaps clear of the water to snatch insects from branches.'**
+  String get species_silver_arowana_desc;
+
+  /// No description provided for @species_red_bellied_piranha_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Red-bellied Piranha'**
+  String get species_red_bellied_piranha_name;
+
+  /// No description provided for @species_red_bellied_piranha_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep-bodied silver fish with a crimson belly and razor teeth, moving in shoals through Amazon backwaters.'**
+  String get species_red_bellied_piranha_desc;
+
+  /// No description provided for @species_black_piranha_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Black Piranha'**
+  String get species_black_piranha_name;
+
+  /// No description provided for @species_black_piranha_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Large solitary piranha with red eyes and a dark diamond-shaped body, lurking in clear rocky Amazon tributaries.'**
+  String get species_black_piranha_desc;
+
+  /// No description provided for @species_red_bellied_pacu_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Red-bellied Pacu'**
+  String get species_red_bellied_pacu_name;
+
+  /// No description provided for @species_red_bellied_pacu_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Piranha-like fruit eater with flat crushing teeth and a red belly, gathering under flooded forest trees.'**
+  String get species_red_bellied_pacu_desc;
+
+  /// No description provided for @species_tambaqui_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Tambaqui'**
+  String get species_tambaqui_name;
+
+  /// No description provided for @species_tambaqui_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Huge dark pacu of the Amazon that crunches fallen nuts and seeds beneath flooded forest canopy.'**
+  String get species_tambaqui_desc;
+
+  /// No description provided for @species_electric_eel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Electric Eel'**
+  String get species_electric_eel_name;
+
+  /// No description provided for @species_electric_eel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Not an eel but a knifefish, a long dark air-breather that stuns prey with shocks of up to 600 volts.'**
+  String get species_electric_eel_desc;
+
+  /// No description provided for @species_redtail_catfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Redtail Catfish'**
+  String get species_redtail_catfish_name;
+
+  /// No description provided for @species_redtail_catfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Big Amazon catfish with a dark back, white belly and bright orange-red tail, resting in deep river pools.'**
+  String get species_redtail_catfish_desc;
+
+  /// No description provided for @species_tiger_shovelnose_catfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiger Shovelnose Catfish'**
+  String get species_tiger_shovelnose_catfish_name;
+
+  /// No description provided for @species_tiger_shovelnose_catfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleek striped catfish with a long flattened snout, hunting along sandy South American river channels at night.'**
+  String get species_tiger_shovelnose_catfish_desc;
+
+  /// No description provided for @species_peacock_bass_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Peacock Bass'**
+  String get species_peacock_bass_name;
+
+  /// No description provided for @species_peacock_bass_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Aggressive Amazon cichlid with three dark bars and a tail eyespot, ambushing fish along sunken timber.'**
+  String get species_peacock_bass_desc;
+
+  /// No description provided for @species_oscar_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Oscar'**
+  String get species_oscar_name;
+
+  /// No description provided for @species_oscar_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Stout dark cichlid with orange marbling and a tail eyespot, patrolling slow Amazon waters and flooded margins.'**
+  String get species_oscar_desc;
+
+  /// No description provided for @species_freshwater_angelfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Freshwater Angelfish'**
+  String get species_freshwater_angelfish_name;
+
+  /// No description provided for @species_freshwater_angelfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tall, disc-shaped Amazon cichlid with trailing fins and vertical stripes, drifting among submerged roots.'**
+  String get species_freshwater_angelfish_desc;
+
+  /// No description provided for @species_discus_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Discus'**
+  String get species_discus_name;
+
+  /// No description provided for @species_discus_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Round, laterally flattened cichlid with wavy blue lines that feeds its fry on mucus from its own skin.'**
+  String get species_discus_desc;
+
+  /// No description provided for @species_sailfin_pleco_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Sailfin Pleco'**
+  String get species_sailfin_pleco_name;
+
+  /// No description provided for @species_sailfin_pleco_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Armoured suckermouth catfish with a tall dorsal fin and leopard spots, rasping algae from wood and rock.'**
+  String get species_sailfin_pleco_desc;
+
+  /// No description provided for @species_cardinal_tetra_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardinal Tetra'**
+  String get species_cardinal_tetra_name;
+
+  /// No description provided for @species_cardinal_tetra_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiny tetra with a neon blue stripe over a full-length red band, shoaling in the dark waters of the Rio Negro.'**
+  String get species_cardinal_tetra_desc;
+
+  /// No description provided for @species_mexican_tetra_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Mexican Tetra'**
+  String get species_mexican_tetra_name;
+
+  /// No description provided for @species_mexican_tetra_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver tetra of Mexican rivers whose cave populations are blind and pale, a favourite of cenote divers.'**
+  String get species_mexican_tetra_desc;
+
+  /// No description provided for @species_mekong_giant_catfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Mekong Giant Catfish'**
+  String get species_mekong_giant_catfish_name;
+
+  /// No description provided for @species_mekong_giant_catfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Critically endangered toothless giant of the Mekong, grey and barbel-less, once reaching three metres.'**
+  String get species_mekong_giant_catfish_desc;
+
+  /// No description provided for @species_giant_barb_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Giant Barb'**
+  String get species_giant_barb_name;
+
+  /// No description provided for @species_giant_barb_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The largest carp in the world, a big-scaled Mekong giant with a huge head, now rare in deep river pools.'**
+  String get species_giant_barb_desc;
+
+  /// No description provided for @species_asian_arowana_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Asian Arowana'**
+  String get species_asian_arowana_name;
+
+  /// No description provided for @species_asian_arowana_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Metallic red or gold dragon fish of Southeast Asian blackwater rivers, gliding just under the surface.'**
+  String get species_asian_arowana_desc;
+
+  /// No description provided for @species_striped_snakehead_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Striped Snakehead'**
+  String get species_striped_snakehead_name;
+
+  /// No description provided for @species_striped_snakehead_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Torpedo-shaped air-breathing predator with a flat snake-like head, guarding its fry in weedy Asian ponds.'**
+  String get species_striped_snakehead_desc;
+
+  /// No description provided for @species_giant_snakehead_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Giant Snakehead'**
+  String get species_giant_snakehead_name;
+
+  /// No description provided for @species_giant_snakehead_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Large fierce snakehead, striped when young and dark when grown, defending its bright red fry in Southeast Asian lakes.'**
+  String get species_giant_snakehead_desc;
+
+  /// No description provided for @species_climbing_perch_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Climbing Perch'**
+  String get species_climbing_perch_name;
+
+  /// No description provided for @species_climbing_perch_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Hardy olive fish that breathes air and crawls overland on its spiny gill covers between drying pools.'**
+  String get species_climbing_perch_desc;
+
+  /// No description provided for @species_golden_mahseer_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Golden Mahseer'**
+  String get species_golden_mahseer_name;
+
+  /// No description provided for @species_golden_mahseer_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Golden-scaled carp of Himalayan rivers, a powerful swimmer holding in fast clear pools below rapids.'**
+  String get species_golden_mahseer_desc;
+
+  /// No description provided for @species_koi_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Koi'**
+  String get species_koi_name;
+
+  /// No description provided for @species_koi_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ornamental carp bred in Japan in white, red, black and gold patterns, at home in ponds and warm clear lakes.'**
+  String get species_koi_desc;
+
+  /// No description provided for @species_goldfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Goldfish'**
+  String get species_goldfish_name;
+
+  /// No description provided for @species_goldfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Domesticated Asian carp that reverts to olive-bronze in the wild, forming large feral schools in warm lakes.'**
+  String get species_goldfish_desc;
+
+  /// No description provided for @species_giant_gourami_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Giant Gourami'**
+  String get species_giant_gourami_name;
+
+  /// No description provided for @species_giant_gourami_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Broad, humped Southeast Asian fish with thread-like pelvic fins that builds bubble nests in slow weedy water.'**
+  String get species_giant_gourami_desc;
+
+  /// No description provided for @species_clown_knifefish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Clown Knifefish'**
+  String get species_clown_knifefish_name;
+
+  /// No description provided for @species_clown_knifefish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver blade-shaped fish with ocellated spots along a long rippling anal fin, hovering under Asian river snags.'**
+  String get species_clown_knifefish_desc;
+
+  /// No description provided for @species_walking_catfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Walking Catfish'**
+  String get species_walking_catfish_name;
+
+  /// No description provided for @species_walking_catfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Slender air-breathing catfish that wriggles across wet ground between ponds, now feral in Florida.'**
+  String get species_walking_catfish_desc;
+
+  /// No description provided for @species_japanese_eel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Japanese Eel'**
+  String get species_japanese_eel_name;
+
+  /// No description provided for @species_japanese_eel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'East Asian eel that grows up in rivers and lakes and migrates to the western Pacific to spawn.'**
+  String get species_japanese_eel_desc;
+
+  /// No description provided for @species_ayu_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Ayu'**
+  String get species_ayu_name;
+
+  /// No description provided for @species_ayu_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Slender silver Japanese sweetfish that grazes algae from stones in clear rivers and defends a feeding territory.'**
+  String get species_ayu_desc;
+
+  /// No description provided for @species_baikal_omul_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Baikal Omul'**
+  String get species_baikal_omul_name;
+
+  /// No description provided for @species_baikal_omul_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver whitefish found only in Lake Baikal, schooling in the cold open water and running up rivers to spawn.'**
+  String get species_baikal_omul_desc;
+
+  /// No description provided for @species_baikal_oilfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Baikal Oilfish'**
+  String get species_baikal_oilfish_name;
+
+  /// No description provided for @species_baikal_oilfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Translucent, scaleless fish of Lake Baikal\'s depths, so rich in oil it is nearly see-through, giving birth to live young.'**
+  String get species_baikal_oilfish_desc;
+
+  /// No description provided for @species_murray_cod_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Murray Cod'**
+  String get species_murray_cod_name;
+
+  /// No description provided for @species_murray_cod_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Australia\'s largest freshwater fish, a mottled green giant with a white belly, holding beside snags in the Murray-Darling.'**
+  String get species_murray_cod_desc;
+
+  /// No description provided for @species_golden_perch_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Golden Perch'**
+  String get species_golden_perch_name;
+
+  /// No description provided for @species_golden_perch_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep-bodied golden-olive perch of Australian inland rivers, sheltering by fallen timber and rock ledges.'**
+  String get species_golden_perch_desc;
+
+  /// No description provided for @species_australian_bass_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Australian Bass'**
+  String get species_australian_bass_name;
+
+  /// No description provided for @species_australian_bass_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bronze-green bass of eastern Australian coastal rivers that migrates downstream to spawn in brackish estuaries.'**
+  String get species_australian_bass_desc;
+
+  /// No description provided for @species_barramundi_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Barramundi'**
+  String get species_barramundi_name;
+
+  /// No description provided for @species_barramundi_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver, hump-backed perch of northern Australian rivers and estuaries, changing sex from male to female with age.'**
+  String get species_barramundi_desc;
+
+  /// No description provided for @species_silver_perch_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver Perch'**
+  String get species_silver_perch_name;
+
+  /// No description provided for @species_silver_perch_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver-grey grunter of the Murray-Darling with a small mouth and forked tail, once schooling in huge numbers.'**
+  String get species_silver_perch_desc;
+
+  /// No description provided for @species_gulf_saratoga_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Gulf Saratoga'**
+  String get species_gulf_saratoga_name;
+
+  /// No description provided for @species_gulf_saratoga_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bronze Australian arowana with red-flecked scales that broods its eggs in its mouth in northern billabongs.'**
+  String get species_gulf_saratoga_desc;
+
+  /// No description provided for @species_sooty_grunter_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Sooty Grunter'**
+  String get species_sooty_grunter_name;
+
+  /// No description provided for @species_sooty_grunter_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark, thickset grunter of northern Australian rivers, grazing algae and fruit around rocks and rapids.'**
+  String get species_sooty_grunter_desc;
+
+  /// No description provided for @species_eel_tailed_catfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Eel-tailed Catfish'**
+  String get species_eel_tailed_catfish_name;
+
+  /// No description provided for @species_eel_tailed_catfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Australian catfish with a tapering eel-like tail that builds and guards a gravel nest in clear river shallows.'**
+  String get species_eel_tailed_catfish_desc;
+
+  /// No description provided for @species_spangled_perch_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Spangled Perch'**
+  String get species_spangled_perch_name;
+
+  /// No description provided for @species_spangled_perch_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Small silver-spotted grunter found across inland Australia, colonising any waterhole a flood connects.'**
+  String get species_spangled_perch_desc;
+
+  /// No description provided for @species_eastern_rainbowfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Eastern Rainbowfish'**
+  String get species_eastern_rainbowfish_name;
+
+  /// No description provided for @species_eastern_rainbowfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Small iridescent fish of eastern Australian creeks, the males flashing red and blue stripes in the sun.'**
+  String get species_eastern_rainbowfish_desc;
+
+  /// No description provided for @species_signal_crayfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Signal Crayfish'**
+  String get species_signal_crayfish_name;
+
+  /// No description provided for @species_signal_crayfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Large brown crayfish with a white patch at the claw joint, an invasive North American species spreading through European rivers.'**
+  String get species_signal_crayfish_desc;
+
+  /// No description provided for @species_red_swamp_crayfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Red Swamp Crayfish'**
+  String get species_red_swamp_crayfish_name;
+
+  /// No description provided for @species_red_swamp_crayfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark red crayfish with bumpy claws from Louisiana marshes, now burrowing into warm wetlands on every continent.'**
+  String get species_red_swamp_crayfish_desc;
+
+  /// No description provided for @species_noble_crayfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Noble Crayfish'**
+  String get species_noble_crayfish_name;
+
+  /// No description provided for @species_noble_crayfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Europe\'s native crayfish, dark brown with red-undersided claws, hiding in bank burrows of clean cool streams and lakes.'**
+  String get species_noble_crayfish_desc;
+
+  /// No description provided for @species_white_clawed_crayfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'White-clawed Crayfish'**
+  String get species_white_clawed_crayfish_name;
+
+  /// No description provided for @species_white_clawed_crayfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Small olive crayfish with pale claw undersides, a threatened native of clean limestone streams in western Europe.'**
+  String get species_white_clawed_crayfish_desc;
+
+  /// No description provided for @species_tasmanian_giant_freshwater_crayfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasmanian Giant Freshwater Crayfish'**
+  String get species_tasmanian_giant_freshwater_crayfish_name;
+
+  /// No description provided for @species_tasmanian_giant_freshwater_crayfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The world\'s largest freshwater invertebrate, a slow-growing blue-brown crayfish of shaded Tasmanian rivers.'**
+  String get species_tasmanian_giant_freshwater_crayfish_desc;
+
+  /// No description provided for @species_zebra_mussel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Zebra Mussel'**
+  String get species_zebra_mussel_name;
+
+  /// No description provided for @species_zebra_mussel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnail-sized striped mussel that carpets rocks, wrecks and pipes by the thousand, clearing the water as it spreads.'**
+  String get species_zebra_mussel_desc;
+
+  /// No description provided for @species_quagga_mussel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Quagga Mussel'**
+  String get species_quagga_mussel_name;
+
+  /// No description provided for @species_quagga_mussel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounder, paler relative of the zebra mussel that colonises soft bottoms and deep cold water the zebra cannot.'**
+  String get species_quagga_mussel_desc;
+
+  /// No description provided for @species_freshwater_pearl_mussel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Freshwater Pearl Mussel'**
+  String get species_freshwater_pearl_mussel_name;
+
+  /// No description provided for @species_freshwater_pearl_mussel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark, elongated mussel that can live over a century half-buried in clean gravel of fast salmon rivers.'**
+  String get species_freshwater_pearl_mussel_desc;
+
+  /// No description provided for @species_swan_mussel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Swan Mussel'**
+  String get species_swan_mussel_name;
+
+  /// No description provided for @species_swan_mussel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Large thin-shelled mussel of muddy lakes and canals, filtering water with its siphons just above the silt.'**
+  String get species_swan_mussel_desc;
+
+  /// No description provided for @species_chinese_pond_mussel_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese Pond Mussel'**
+  String get species_chinese_pond_mussel_name;
+
+  /// No description provided for @species_chinese_pond_mussel_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Very large invasive Asian mussel with a glossy brown shell, arriving with farmed fish and spreading through warm lakes.'**
+  String get species_chinese_pond_mussel_desc;
+
+  /// No description provided for @species_freshwater_sponge_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Freshwater Sponge'**
+  String get species_freshwater_sponge_name;
+
+  /// No description provided for @species_freshwater_sponge_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Green or grey branching sponge encrusting sticks and stones in clear lakes, coloured by algae living inside it.'**
+  String get species_freshwater_sponge_desc;
+
+  /// No description provided for @species_freshwater_jellyfish_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Freshwater Jellyfish'**
+  String get species_freshwater_jellyfish_name;
+
+  /// No description provided for @species_freshwater_jellyfish_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Coin-sized transparent jellyfish that appears in swarms in warm quarry lakes and reservoirs in late summer.'**
+  String get species_freshwater_jellyfish_desc;
+
+  /// No description provided for @species_great_pond_snail_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Great Pond Snail'**
+  String get species_great_pond_snail_name;
+
+  /// No description provided for @species_great_pond_snail_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Large pointed-shelled snail gliding over plants and glass-clear surfaces of still European waters, breathing air at the surface.'**
+  String get species_great_pond_snail_desc;
+
+  /// No description provided for @species_great_ramshorn_snail_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Great Ramshorn Snail'**
+  String get species_great_ramshorn_snail_name;
+
+  /// No description provided for @species_great_ramshorn_snail_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat, coiled snail like a tiny ram\'s horn, grazing algae from leaves and stones in weedy ponds.'**
+  String get species_great_ramshorn_snail_desc;
+
+  /// No description provided for @species_channeled_apple_snail_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Channeled Apple Snail'**
+  String get species_channeled_apple_snail_name;
+
+  /// No description provided for @species_channeled_apple_snail_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Large golden-brown snail that lays bright pink egg clusters above the waterline, invasive in warm wetlands and rice fields.'**
+  String get species_channeled_apple_snail_desc;
+
+  /// No description provided for @species_magnificent_bryozoan_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Magnificent Bryozoan'**
+  String get species_magnificent_bryozoan_name;
+
+  /// No description provided for @species_magnificent_bryozoan_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Jelly-like colony the size of a football, studded with tiny animals, clinging to branches and ropes in warm still water.'**
+  String get species_magnificent_bryozoan_desc;
+
+  /// No description provided for @species_chinese_mitten_crab_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese Mitten Crab'**
+  String get species_chinese_mitten_crab_name;
+
+  /// No description provided for @species_chinese_mitten_crab_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Burrowing crab with furry claws that spends years in rivers before walking downstream to breed in estuaries.'**
+  String get species_chinese_mitten_crab_desc;
+
+  /// No description provided for @species_giant_freshwater_prawn_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Giant Freshwater Prawn'**
+  String get species_giant_freshwater_prawn_name;
+
+  /// No description provided for @species_giant_freshwater_prawn_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Big blue-clawed prawn of Asian and Australian rivers with claws longer than its body in old males.'**
+  String get species_giant_freshwater_prawn_desc;
+
+  /// No description provided for @species_common_snapping_turtle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Common Snapping Turtle'**
+  String get species_common_snapping_turtle_name;
+
+  /// No description provided for @species_common_snapping_turtle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy, rough-shelled turtle with a long saw-toothed tail, lying in the mud of ponds and slow rivers with its head out.'**
+  String get species_common_snapping_turtle_desc;
+
+  /// No description provided for @species_alligator_snapping_turtle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Alligator Snapping Turtle'**
+  String get species_alligator_snapping_turtle_name;
+
+  /// No description provided for @species_alligator_snapping_turtle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Prehistoric-looking giant with three ridged keels and a worm-like tongue lure, waiting open-mouthed on southern river bottoms.'**
+  String get species_alligator_snapping_turtle_desc;
+
+  /// No description provided for @species_painted_turtle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Painted Turtle'**
+  String get species_painted_turtle_name;
+
+  /// No description provided for @species_painted_turtle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Smooth dark turtle with red and yellow stripes on its neck and shell rim, basking in rows on logs across North America.'**
+  String get species_painted_turtle_desc;
+
+  /// No description provided for @species_red_eared_slider_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Red-eared Slider'**
+  String get species_red_eared_slider_name;
+
+  /// No description provided for @species_red_eared_slider_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Green-striped pond turtle with a red stripe behind each eye, the pet-trade turtle now feral in warm waters worldwide.'**
+  String get species_red_eared_slider_desc;
+
+  /// No description provided for @species_northern_map_turtle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Northern Map Turtle'**
+  String get species_northern_map_turtle_name;
+
+  /// No description provided for @species_northern_map_turtle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Olive turtle with map-like yellow lines on its shell and a low keel, basking on rocks along clear rivers and large lakes.'**
+  String get species_northern_map_turtle_desc;
+
+  /// No description provided for @species_spiny_softshell_turtle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Spiny Softshell Turtle'**
+  String get species_spiny_softshell_turtle_name;
+
+  /// No description provided for @species_spiny_softshell_turtle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat, leathery pancake of a turtle with a snorkel snout, buried in sand in shallow rivers with only its head showing.'**
+  String get species_spiny_softshell_turtle_desc;
+
+  /// No description provided for @species_florida_softshell_turtle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Florida Softshell Turtle'**
+  String get species_florida_softshell_turtle_name;
+
+  /// No description provided for @species_florida_softshell_turtle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Large dark softshell with a long tubular snout, common in Florida springs, canals and lakes.'**
+  String get species_florida_softshell_turtle_desc;
+
+  /// No description provided for @species_pig_nosed_turtle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Pig-nosed Turtle'**
+  String get species_pig_nosed_turtle_name;
+
+  /// No description provided for @species_pig_nosed_turtle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Unique river turtle of New Guinea and northern Australia with sea-turtle flippers and a fleshy pig-like snout.'**
+  String get species_pig_nosed_turtle_desc;
+
+  /// No description provided for @species_mary_river_turtle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Mary River Turtle'**
+  String get species_mary_river_turtle_name;
+
+  /// No description provided for @species_mary_river_turtle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Rare Australian turtle that breathes through its cloaca and grows a green algae mohawk, found in a single Queensland river.'**
+  String get species_mary_river_turtle_desc;
+
+  /// No description provided for @species_yellow_spotted_river_turtle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow-spotted River Turtle'**
+  String get species_yellow_spotted_river_turtle_name;
+
+  /// No description provided for @species_yellow_spotted_river_turtle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Amazon side-necked turtle with yellow head spots, basking in groups on logs and sandbanks of large rivers.'**
+  String get species_yellow_spotted_river_turtle_desc;
+
+  /// No description provided for @species_european_pond_turtle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'European Pond Turtle'**
+  String get species_european_pond_turtle_name;
+
+  /// No description provided for @species_european_pond_turtle_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark turtle speckled with yellow dots, Europe\'s native freshwater turtle, slipping off sunny banks into weedy ponds.'**
+  String get species_european_pond_turtle_desc;
+
+  /// No description provided for @species_american_alligator_name.
+  ///
+  /// In en, this message translates to:
+  /// **'American Alligator'**
+  String get species_american_alligator_name;
+
+  /// No description provided for @species_american_alligator_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Broad-snouted armoured reptile of southeastern US swamps, springs and rivers, floating with only eyes and nostrils showing.'**
+  String get species_american_alligator_desc;
+
+  /// No description provided for @species_spectacled_caiman_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Spectacled Caiman'**
+  String get species_spectacled_caiman_name;
+
+  /// No description provided for @species_spectacled_caiman_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Small olive caiman with a bony ridge between its eyes, abundant in slow rivers and lagoons across Central and South America.'**
+  String get species_spectacled_caiman_desc;
+
+  /// No description provided for @species_black_caiman_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Black Caiman'**
+  String get species_black_caiman_name;
+
+  /// No description provided for @species_black_caiman_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The Amazon\'s largest predator, a black armoured caiman up to five metres long, hunting at night in lakes and flooded forest.'**
+  String get species_black_caiman_desc;
+
+  /// No description provided for @species_freshwater_crocodile_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Freshwater Crocodile'**
+  String get species_freshwater_crocodile_name;
+
+  /// No description provided for @species_freshwater_crocodile_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Slender-snouted Australian crocodile of northern rivers and gorges, shy and far smaller than the saltwater crocodile.'**
+  String get species_freshwater_crocodile_desc;
+
+  /// No description provided for @species_northern_water_snake_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Northern Water Snake'**
+  String get species_northern_water_snake_name;
+
+  /// No description provided for @species_northern_water_snake_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Thick-bodied banded brown snake basking on rocks and branches over eastern North American streams, harmless but quick to bite.'**
+  String get species_northern_water_snake_desc;
+
+  /// No description provided for @species_green_anaconda_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Green Anaconda'**
+  String get species_green_anaconda_name;
+
+  /// No description provided for @species_green_anaconda_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The heaviest snake on earth, an olive giant with black blotches, lying submerged in Amazon swamps and slow rivers.'**
+  String get species_green_anaconda_desc;
+
+  /// No description provided for @species_hellbender_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Hellbender'**
+  String get species_hellbender_name;
+
+  /// No description provided for @species_hellbender_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Giant flat-headed salamander with wrinkled skin folds, hiding under big rocks in cold clear Appalachian rivers.'**
+  String get species_hellbender_desc;
+
+  /// No description provided for @species_mudpuppy_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Mudpuppy'**
+  String get species_mudpuppy_name;
+
+  /// No description provided for @species_mudpuppy_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Brown spotted salamander that keeps its feathery red gills for life, crawling over lake and river bottoms at night.'**
+  String get species_mudpuppy_desc;
+
+  /// No description provided for @species_axolotl_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Axolotl'**
+  String get species_axolotl_name;
+
+  /// No description provided for @species_axolotl_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Smiling gilled salamander that never leaves the water, critically endangered in the canals of Xochimilco near Mexico City.'**
+  String get species_axolotl_desc;
+
+  /// No description provided for @species_chinese_giant_salamander_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese Giant Salamander'**
+  String get species_chinese_giant_salamander_name;
+
+  /// No description provided for @species_chinese_giant_salamander_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The largest amphibian alive, a wrinkled brown giant nearly two metres long, hiding in cool rocky mountain streams.'**
+  String get species_chinese_giant_salamander_desc;
+
+  /// No description provided for @species_smooth_newt_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Smooth Newt'**
+  String get species_smooth_newt_name;
+
+  /// No description provided for @species_smooth_newt_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Small olive newt that returns to ponds each spring, the males growing a wavy crest and spotted orange belly.'**
+  String get species_smooth_newt_desc;
+
+  /// No description provided for @species_great_crested_newt_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Great Crested Newt'**
+  String get species_great_crested_newt_name;
+
+  /// No description provided for @species_great_crested_newt_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Large black warty newt with a fiery orange belly, the breeding males sporting a jagged dragon-like crest.'**
+  String get species_great_crested_newt_desc;
+
+  /// No description provided for @species_american_bullfrog_name.
+  ///
+  /// In en, this message translates to:
+  /// **'American Bullfrog'**
+  String get species_american_bullfrog_name;
+
+  /// No description provided for @species_american_bullfrog_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Huge green frog with a bass bellow, sitting among lily pads in warm ponds and now invasive on several continents.'**
+  String get species_american_bullfrog_desc;
+
+  /// No description provided for @species_common_frog_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Common Frog'**
+  String get species_common_frog_name;
+
+  /// No description provided for @species_common_frog_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Brown frog with a dark eye mask that gathers in noisy spring crowds to spawn in European ponds and ditches.'**
+  String get species_common_frog_desc;
+
+  /// No description provided for @species_north_american_river_otter_name.
+  ///
+  /// In en, this message translates to:
+  /// **'North American River Otter'**
+  String get species_north_american_river_otter_name;
+
+  /// No description provided for @species_north_american_river_otter_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleek playful otter that hunts fish and crayfish in rivers and lakes across North America, leaving mud slides on banks.'**
+  String get species_north_american_river_otter_desc;
+
+  /// No description provided for @species_eurasian_otter_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Eurasian Otter'**
+  String get species_eurasian_otter_name;
+
+  /// No description provided for @species_eurasian_otter_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Shy brown otter of European rivers, lakes and coasts, recovering across its range after decades of decline.'**
+  String get species_eurasian_otter_desc;
+
+  /// No description provided for @species_giant_otter_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Giant Otter'**
+  String get species_giant_otter_name;
+
+  /// No description provided for @species_giant_otter_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearly two-metre otter with a cream throat patch, living in noisy family groups on Amazon rivers and oxbow lakes.'**
+  String get species_giant_otter_desc;
+
+  /// No description provided for @species_north_american_beaver_name.
+  ///
+  /// In en, this message translates to:
+  /// **'North American Beaver'**
+  String get species_north_american_beaver_name;
+
+  /// No description provided for @species_north_american_beaver_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Large flat-tailed rodent that dams streams into ponds and swims beneath the ice with a lodge of sticks for shelter.'**
+  String get species_north_american_beaver_desc;
+
+  /// No description provided for @species_eurasian_beaver_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Eurasian Beaver'**
+  String get species_eurasian_beaver_name;
+
+  /// No description provided for @species_eurasian_beaver_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Europe\'s largest rodent, reintroduced across the continent, felling riverside trees and building dams and lodges.'**
+  String get species_eurasian_beaver_desc;
+
+  /// No description provided for @species_muskrat_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Muskrat'**
+  String get species_muskrat_name;
+
+  /// No description provided for @species_muskrat_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Rat-sized brown rodent with a scaly flattened tail, swimming through cattail marshes and building domed reed lodges.'**
+  String get species_muskrat_desc;
+
+  /// No description provided for @species_platypus_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Platypus'**
+  String get species_platypus_name;
+
+  /// No description provided for @species_platypus_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Egg-laying mammal with a duck bill and webbed feet, foraging with closed eyes along eastern Australian creeks at dawn and dusk.'**
+  String get species_platypus_desc;
+
+  /// No description provided for @species_amazonian_manatee_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Amazonian Manatee'**
+  String get species_amazonian_manatee_name;
+
+  /// No description provided for @species_amazonian_manatee_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The smallest manatee, a smooth dark grazer with a white chest patch, browsing water plants in Amazon lakes and rivers.'**
+  String get species_amazonian_manatee_desc;
+
+  /// No description provided for @species_amazon_river_dolphin_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Amazon River Dolphin'**
+  String get species_amazon_river_dolphin_name;
+
+  /// No description provided for @species_amazon_river_dolphin_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink long-beaked dolphin with a flexible neck, weaving between trunks of flooded forest in the Amazon and Orinoco.'**
+  String get species_amazon_river_dolphin_desc;
+
+  /// No description provided for @species_baikal_seal_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Baikal Seal'**
+  String get species_baikal_seal_name;
+
+  /// No description provided for @species_baikal_seal_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The world\'s only freshwater seal, a small silver-grey seal that hauls out on Lake Baikal\'s ice and rocky shores.'**
+  String get species_baikal_seal_desc;
+
+  /// No description provided for @species_capybara_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Capybara'**
+  String get species_capybara_name;
+
+  /// No description provided for @species_capybara_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The largest rodent, a barrel-shaped grazer that wades and swims in South American rivers and wetlands in calm herds.'**
+  String get species_capybara_desc;
+
+  /// No description provided for @species_hippopotamus_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Hippopotamus'**
+  String get species_hippopotamus_name;
+
+  /// No description provided for @species_hippopotamus_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Massive African river giant that spends the day submerged in pods and walks the bottom rather than swims; dangerous to approach.'**
+  String get species_hippopotamus_desc;
+
+  /// No description provided for @species_white_water_lily_name.
+  ///
+  /// In en, this message translates to:
+  /// **'White Water Lily'**
+  String get species_white_water_lily_name;
+
+  /// No description provided for @species_white_water_lily_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating round leaves and large white flowers rising from thick rhizomes rooted in the mud of still European waters.'**
+  String get species_white_water_lily_desc;
+
+  /// No description provided for @species_yellow_pond_lily_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow Pond Lily'**
+  String get species_yellow_pond_lily_name;
+
+  /// No description provided for @species_yellow_pond_lily_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart-shaped floating leaves and cup-like yellow flowers, with large translucent underwater leaves visible to divers below.'**
+  String get species_yellow_pond_lily_desc;
+
+  /// No description provided for @species_american_eelgrass_name.
+  ///
+  /// In en, this message translates to:
+  /// **'American Eelgrass'**
+  String get species_american_eelgrass_name;
+
+  /// No description provided for @species_american_eelgrass_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ribbon-like leaves up to two metres long swaying in the current of clear rivers and springs, a favourite of manatees.'**
+  String get species_american_eelgrass_desc;
+
+  /// No description provided for @species_coontail_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Coontail'**
+  String get species_coontail_name;
+
+  /// No description provided for @species_coontail_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Rootless submerged plant with whorls of stiff forked leaves like a raccoon\'s tail, drifting in dense masses in still water.'**
+  String get species_coontail_desc;
+
+  /// No description provided for @species_eurasian_watermilfoil_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Eurasian Watermilfoil'**
+  String get species_eurasian_watermilfoil_name;
+
+  /// No description provided for @species_eurasian_watermilfoil_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Feathery submerged plant with whorls of finely divided leaves that forms thick mats near the surface, invasive in many lakes.'**
+  String get species_eurasian_watermilfoil_desc;
+
+  /// No description provided for @species_muskgrass_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Muskgrass'**
+  String get species_muskgrass_name;
+
+  /// No description provided for @species_muskgrass_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Brittle, musky-smelling green alga with whorled branches, often crusted with lime, carpeting the bottom of clear hard-water lakes.'**
+  String get species_muskgrass_desc;
+
+  /// No description provided for @species_canadian_waterweed_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Canadian Waterweed'**
+  String get species_canadian_waterweed_name;
+
+  /// No description provided for @species_canadian_waterweed_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Dense submerged plant with whorls of three small dark green leaves, spreading by fragments through cool lakes and canals worldwide.'**
+  String get species_canadian_waterweed_desc;
+
+  /// No description provided for @species_curly_leaf_pondweed_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Curly-leaf Pondweed'**
+  String get species_curly_leaf_pondweed_name;
+
+  /// No description provided for @species_curly_leaf_pondweed_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Submerged plant with wavy-edged reddish-green leaves like crinkled lasagne, growing early in spring before other weeds.'**
+  String get species_curly_leaf_pondweed_desc;
+
+  /// No description provided for @species_water_hyacinth_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Water Hyacinth'**
+  String get species_water_hyacinth_name;
+
+  /// No description provided for @species_water_hyacinth_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating plant with glossy leaves on air-filled stalks and spikes of lavender flowers, choking warm waterways worldwide.'**
+  String get species_water_hyacinth_desc;
+
+  /// No description provided for @species_common_reed_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Common Reed'**
+  String get species_common_reed_name;
+
+  /// No description provided for @species_common_reed_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tall feathery-headed grass forming dense beds along lake shores, its submerged stems sheltering fry and dragonfly larvae.'**
+  String get species_common_reed_desc;
+
   /// Dismiss a finished operation
   ///
   /// In en, this message translates to:
@@ -49892,6 +54301,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} item updated} other{{count} items updated}}'**
   String settings_mediaSources_reverifyResult(int count);
+
+  /// Media Sources: verify every media row regardless of source type
+  ///
+  /// In en, this message translates to:
+  /// **'Check all media'**
+  String get settings_mediaSources_checkAll;
+
+  /// Media Sources: how many rows the check-all pass updated
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item updated} other{{count} items updated}}'**
+  String settings_mediaSources_checkAllResult(int count);
+
+  /// Media Sources: the check-all pass reached none of the rows sources
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Could not check the item. Its source is not reachable right now.} other{Could not check any of the {count} items. Their sources are not reachable right now.}}'**
+  String settings_mediaSources_checkAllBlocked(int count);
 
   /// Media Sources settings page app bar title
   ///
@@ -50595,6 +55022,24 @@ abstract class AppLocalizations {
   /// **'TTS Source'**
   String get settings_decompression_ttsSource;
 
+  /// No description provided for @settings_decompression_gtrSource.
+  ///
+  /// In en, this message translates to:
+  /// **'GTR Source'**
+  String get settings_decompression_gtrSource;
+
+  /// No description provided for @settings_decompression_gtrReserve.
+  ///
+  /// In en, this message translates to:
+  /// **'GTR reserve pressure'**
+  String get settings_decompression_gtrReserve;
+
+  /// No description provided for @settings_decompression_gtrReserve_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank pressure the gas time remaining counts down to. The calculated GTR assumes a direct ascent at 10 m/min with no stops.'**
+  String get settings_decompression_gtrReserve_subtitle;
+
   /// Snackbar after the offset is applied. hours is the signed offset as text; hoursAbs drives the hour/hours plural.
   ///
   /// In en, this message translates to:
@@ -50920,6 +55365,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Publishing library'**
   String get settings_syncMaintenance_phase_publishingLibrary;
+
+  /// No description provided for @settings_cloudSync_adopt_progressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adopting the restored library'**
+  String get settings_cloudSync_adopt_progressTitle;
+
+  /// No description provided for @settings_cloudSync_replaceLibrary_progressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replacing the cloud library'**
+  String get settings_cloudSync_replaceLibrary_progressTitle;
+
+  /// Device name qualified by its short id, used only when two devices published the same name (two phones of one model, or iOS 16+ handing out the model as the name).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({shortId})'**
+  String settings_syncDevices_nameWithId(String name, String shortId);
+
+  /// No description provided for @settings_syncMaintenance_phase_applyingLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying the library'**
+  String get settings_syncMaintenance_phase_applyingLibrary;
+
+  /// No description provided for @settings_syncMaintenance_phase_backingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Backing up this device'**
+  String get settings_syncMaintenance_phase_backingUp;
+
+  /// No description provided for @settings_syncMaintenance_phase_repairing.
+  ///
+  /// In en, this message translates to:
+  /// **'Clearing local sync state'**
+  String get settings_syncMaintenance_phase_repairing;
+
+  /// No description provided for @settings_troubleshootSync_repair_progressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Repairing sync'**
+  String get settings_troubleshootSync_repair_progressTitle;
 
   /// No description provided for @settings_syncMaintenance_phase_working.
   ///
@@ -51419,7 +55906,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_semantics_sacRate.
   ///
   /// In en, this message translates to:
-  /// **'SAC Rate: {value} {volumeSymbol} per minute'**
+  /// **'RMV: {value} {volumeSymbol} per minute'**
   String divePlanner_semantics_sacRate(Object value, Object volumeSymbol);
 
   /// No description provided for @divePlanner_semantics_reservePressure.
@@ -53238,6 +57725,12 @@ abstract class AppLocalizations {
   /// **'Restore failed: {error}'**
   String backup_operation_restoreFailed(String error);
 
+  /// No description provided for @backup_operation_restoreSourceMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was restored: the backup file could not be found. Your current data is unchanged.'**
+  String get backup_operation_restoreSourceMissing;
+
   /// No description provided for @backup_operation_deleting.
   ///
   /// In en, this message translates to:
@@ -53478,6 +57971,12 @@ abstract class AppLocalizations {
   /// **'The replaced library is still uploading. Try again shortly.'**
   String get settings_cloudSync_result_replacementStillUploading;
 
+  /// No description provided for @settings_cloudSync_result_cloudLibraryNewerSchema.
+  ///
+  /// In en, this message translates to:
+  /// **'The cloud library was published by a newer version of Submersion. Update this device, then try again.'**
+  String get settings_cloudSync_result_cloudLibraryNewerSchema;
+
   /// No description provided for @settings_cloudSync_result_recordsFailed.
   ///
   /// In en, this message translates to:
@@ -53561,6 +58060,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Media info'**
   String get media_info_title;
+
+  /// No description provided for @media_species_actionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get media_species_actionTooltip;
+
+  /// No description provided for @media_species_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Species in this photo'**
+  String get media_species_sheetTitle;
+
+  /// No description provided for @media_species_sightedOnDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sighted on this dive'**
+  String get media_species_sightedOnDive;
+
+  /// No description provided for @media_species_otherSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Other species...'**
+  String get media_species_otherSpecies;
+
+  /// No description provided for @media_species_noDiveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo is not linked to a dive. Search for a species to tag it.'**
+  String get media_species_noDiveHint;
+
+  /// No description provided for @media_species_chipsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Species tags'**
+  String get media_species_chipsLabel;
 
   /// No description provided for @media_info_fileSection.
   ///
@@ -53675,6 +58210,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last checked {date}'**
   String media_info_lastChecked(String date);
+
+  /// Media info row label and Set-time dialog title: the moment in the dive a media item was taken.
+  ///
+  /// In en, this message translates to:
+  /// **'Time in dive'**
+  String get media_timeInDive_label;
+
+  /// Viewer chip shown when a media item's capture time falls outside its dive; tapping it opens the Set-time dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Time in dive unknown'**
+  String get media_timeInDive_unknown;
+
+  /// Button and tooltip that opens the dialog to pin a media item to a moment in the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Set time in dive'**
+  String get media_timeInDive_setAction;
+
+  /// Media info row value for a position the diver set themselves; {time} is a minutes:seconds offset.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} (set manually)'**
+  String media_timeInDive_manual(String time);
+
+  /// Set-time dialog: label of the minutes:seconds field.
+  ///
+  /// In en, this message translates to:
+  /// **'Time from dive start'**
+  String get media_timeInDive_fieldLabel;
+
+  /// Set-time dialog: placeholder showing the minutes:seconds format.
+  ///
+  /// In en, this message translates to:
+  /// **'mm:ss'**
+  String get media_timeInDive_fieldHint;
+
+  /// Set-time dialog: helper text under the field; {max} is the dive length as minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Between 0:00 and {max}'**
+  String media_timeInDive_range(String max);
+
+  /// Set-time dialog: error shown for malformed or out-of-range input; {max} is the dive length as minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a time between 0:00 and {max}'**
+  String media_timeInDive_invalid(String max);
+
+  /// Set-time dialog: confirm button.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get media_timeInDive_save;
+
+  /// Set-time dialog: dismiss button.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get media_timeInDive_cancel;
+
+  /// Set-time dialog: button that removes the diver's pin so the position derives from the capture time again.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to automatic'**
+  String get media_timeInDive_reset;
 
   /// No description provided for @media_info_backupSection.
   ///
@@ -53946,6 +58547,66 @@ abstract class AppLocalizations {
   /// **'Missing and not backed up'**
   String get media_status_broken;
 
+  /// No description provided for @media_servedFrom_localDisk.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device'**
+  String get media_servedFrom_localDisk;
+
+  /// No description provided for @media_servedFrom_platformGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo library'**
+  String get media_servedFrom_platformGallery;
+
+  /// No description provided for @media_servedFrom_storeCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud store, cached here'**
+  String get media_servedFrom_storeCache;
+
+  /// No description provided for @media_servedFrom_storeNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud store'**
+  String get media_servedFrom_storeNetwork;
+
+  /// No description provided for @media_servedFrom_networkUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Web link'**
+  String get media_servedFrom_networkUrl;
+
+  /// No description provided for @media_servedFrom_connectorCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected service, cached here'**
+  String get media_servedFrom_connectorCache;
+
+  /// No description provided for @media_servedFrom_connectorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected service'**
+  String get media_servedFrom_connectorNetwork;
+
+  /// No description provided for @media_servedFrom_embedded.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored in this logbook'**
+  String get media_servedFrom_embedded;
+
+  /// No description provided for @settings_media_provenanceBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'Show source badges on thumbnails'**
+  String get settings_media_provenanceBadges;
+
+  /// No description provided for @settings_media_provenanceBadgesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A small glyph showing where each item is served from. Problem badges always show.'**
+  String get settings_media_provenanceBadgesSubtitle;
+
   /// No description provided for @media_status_transferFailed.
   ///
   /// In en, this message translates to:
@@ -54017,6 +58678,564 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'HealthKit is not available on this device'**
   String get settings_dataSources_appleHealth_permissionUnsupported;
+
+  /// No description provided for @statistics_trend_aggregation_monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly average'**
+  String get statistics_trend_aggregation_monthly;
+
+  /// No description provided for @statistics_trend_aggregation_perDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Every dive'**
+  String get statistics_trend_aggregation_perDive;
+
+  /// No description provided for @statistics_trend_aggregation_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'How dives are grouped'**
+  String get statistics_trend_aggregation_tooltip;
+
+  /// No description provided for @statistics_trend_aggregation_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly average'**
+  String get statistics_trend_aggregation_weekly;
+
+  /// No description provided for @statistics_trend_band_semanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shaded band spans the lowest and highest value in each group'**
+  String get statistics_trend_band_semanticLabel;
+
+  /// No description provided for @statistics_trend_legend_rate.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall trend'**
+  String get statistics_trend_legend_rate;
+
+  /// No description provided for @statistics_trend_legend_rollingAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Rolling avg'**
+  String get statistics_trend_legend_rollingAverage;
+
+  /// Linear trend rate shown beside the rate legend entry. The value already carries its unit symbol, for example '+4.4 m'.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}/yr'**
+  String statistics_trend_rate_perYear(String value);
+
+  /// No description provided for @statistics_conditions_tempTrend_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Water Temperature Trend'**
+  String get statistics_conditions_tempTrend_title;
+
+  /// No description provided for @statistics_conditions_tempTrend_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every dive in range'**
+  String get statistics_conditions_tempTrend_subtitle;
+
+  /// No description provided for @statistics_conditions_tempTrend_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No temperature data available'**
+  String get statistics_conditions_tempTrend_empty;
+
+  /// No description provided for @statistics_conditions_tempTrend_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load temperature trend'**
+  String get statistics_conditions_tempTrend_error;
+
+  /// No description provided for @diveLog_filter_presetLast5Years.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 5 years'**
+  String get diveLog_filter_presetLast5Years;
+
+  /// No description provided for @diveLog_filter_presetLast10Years.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 10 years'**
+  String get diveLog_filter_presetLast10Years;
+
+  /// No description provided for @statistics_trend_tooltip_lowest.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest'**
+  String get statistics_trend_tooltip_lowest;
+
+  /// No description provided for @statistics_trend_tooltip_highest.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest'**
+  String get statistics_trend_tooltip_highest;
+
+  /// Checkbox: exclude this dive from all statistics
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude from statistics'**
+  String get diveLog_edit_excludeFromStats;
+
+  /// Help text under the exclude-from-statistics checkbox
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this dive in your logbook, but leave it out of every statistic, including your dive count.'**
+  String get diveLog_edit_excludeFromStatsHelp;
+
+  /// Checkbox: exclude this dive from gas statistics only
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude from gas statistics'**
+  String get diveLog_edit_excludeFromGasStats;
+
+  /// Help text under the exclude-from-gas-statistics checkbox
+  ///
+  /// In en, this message translates to:
+  /// **'Leave this dive out of SAC, RMV and gas mix statistics only. Useful when the gas reading is not representative.'**
+  String get diveLog_edit_excludeFromGasStatsHelp;
+
+  /// Tooltip on the excluded-from-statistics badge
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from statistics'**
+  String get diveLog_badge_excludedFromStats;
+
+  /// Tooltip on the excluded-from-gas-statistics badge
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from gas statistics'**
+  String get diveLog_badge_excludedFromGasStats;
+
+  /// Bulk edit field label
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude from statistics'**
+  String get diveLog_bulkEdit_fieldExcludeFromStats;
+
+  /// Bulk edit field label
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude from gas statistics'**
+  String get diveLog_bulkEdit_fieldExcludeFromGasStats;
+
+  /// Filter axis: show only dives excluded from statistics
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from statistics only'**
+  String get diveLog_filter_excludedOnly;
+
+  /// Collapsed summary fragment: dive excluded from statistics
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded'**
+  String get diveLog_edit_summary_excluded;
+
+  /// Overview footnote naming how many dives are excluded
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 dive excluded from statistics} other{{count} dives excluded from statistics}}'**
+  String statistics_excludedDivesFootnote(int count);
+
+  /// Collapsible dive-form group holding the statistics-exclusion toggles
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get diveLog_edit_group_statistics;
+
+  /// Collapsed Statistics group summary when only gas statistics are excluded
+  ///
+  /// In en, this message translates to:
+  /// **'Gas excluded'**
+  String get diveLog_edit_summary_gasExcluded;
+
+  /// Collapsed Statistics group hint when the dive is not excluded
+  ///
+  /// In en, this message translates to:
+  /// **'Counted in every statistic'**
+  String get diveLog_edit_statisticsIncludedHint;
+
+  /// No description provided for @suuntoCloud_signIn_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to Suunto'**
+  String get suuntoCloud_signIn_title;
+
+  /// No description provided for @suuntoCloud_signIn_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your app.suunto.com account to import your dives directly. Your password is never stored — only the resulting session is cached.'**
+  String get suuntoCloud_signIn_description;
+
+  /// No description provided for @suuntoCloud_signIn_emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get suuntoCloud_signIn_emailLabel;
+
+  /// No description provided for @suuntoCloud_signIn_emailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required'**
+  String get suuntoCloud_signIn_emailRequired;
+
+  /// No description provided for @suuntoCloud_signIn_passwordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get suuntoCloud_signIn_passwordLabel;
+
+  /// No description provided for @suuntoCloud_signIn_passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get suuntoCloud_signIn_passwordRequired;
+
+  /// No description provided for @suuntoCloud_signIn_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get suuntoCloud_signIn_button;
+
+  /// No description provided for @suuntoCloud_signIn_signingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in…'**
+  String get suuntoCloud_signIn_signingIn;
+
+  /// Success state on the Suunto sign-in step, once a session is established.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {email}'**
+  String suuntoCloud_signIn_signedInAs(String email);
+
+  /// No description provided for @suuntoCloud_fetch_listing.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing dives…'**
+  String get suuntoCloud_fetch_listing;
+
+  /// Progress line while downloading each dive from the Suunto cloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching dive {current} of {total}…'**
+  String suuntoCloud_fetch_fetchingDiveOf(int current, int total);
+
+  /// No description provided for @suuntoCloud_fetch_failedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fetch dives'**
+  String get suuntoCloud_fetch_failedTitle;
+
+  /// No description provided for @suuntoCloud_fetch_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get suuntoCloud_fetch_retry;
+
+  /// Result headline after fetching dives from the Suunto cloud.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No dives found} =1{Found 1 dive} other{Found {count} dives}}'**
+  String suuntoCloud_fetch_foundDives(int count);
+
+  /// Shown when one or more fetched Suunto dives could not be converted and were skipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive could not be converted and was skipped.} other{{count} dives could not be converted and were skipped.}}'**
+  String suuntoCloud_fetch_someFailed(int count);
+
+  /// No description provided for @importWizard_review_sortTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get importWizard_review_sortTooltip;
+
+  /// No description provided for @importWizard_review_sortByDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get importWizard_review_sortByDate;
+
+  /// No description provided for @importWizard_review_sortByDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get importWizard_review_sortByDepth;
+
+  /// No description provided for @importWizard_review_sortByDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get importWizard_review_sortByDuration;
+
+  /// No description provided for @transfer_importCloud_suuntoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Suunto'**
+  String get transfer_importCloud_suuntoTitle;
+
+  /// No description provided for @transfer_importCloud_suuntoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import dives from your Suunto app / app.suunto.com account'**
+  String get transfer_importCloud_suuntoSubtitle;
+
+  /// No description provided for @transfer_section_cloudTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud'**
+  String get transfer_section_cloudTitle;
+
+  /// No description provided for @transfer_section_cloudSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from cloud'**
+  String get transfer_section_cloudSubtitle;
+
+  /// No description provided for @settings_storageUsage_appBar_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage Usage'**
+  String get settings_storageUsage_appBar_title;
+
+  /// No description provided for @settings_storageUsage_tile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage Usage'**
+  String get settings_storageUsage_tile_title;
+
+  /// No description provided for @settings_storageUsage_tile_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See what is using space on this device'**
+  String get settings_storageUsage_tile_subtitle;
+
+  /// No description provided for @settings_storageUsage_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get settings_storageUsage_total;
+
+  /// No description provided for @settings_storageUsage_totalPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Total so far'**
+  String get settings_storageUsage_totalPartial;
+
+  /// No description provided for @settings_storageUsage_refresh_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate'**
+  String get settings_storageUsage_refresh_tooltip;
+
+  /// No description provided for @settings_storageUsage_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get settings_storageUsage_unavailable;
+
+  /// No description provided for @settings_storageUsage_measureFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not measure'**
+  String get settings_storageUsage_measureFailed;
+
+  /// No description provided for @settings_storageUsage_group_appData.
+  ///
+  /// In en, this message translates to:
+  /// **'App Data'**
+  String get settings_storageUsage_group_appData;
+
+  /// No description provided for @settings_storageUsage_group_mediaCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Media Cache'**
+  String get settings_storageUsage_group_mediaCache;
+
+  /// No description provided for @settings_storageUsage_group_caches.
+  ///
+  /// In en, this message translates to:
+  /// **'Caches'**
+  String get settings_storageUsage_group_caches;
+
+  /// No description provided for @settings_storageUsage_group_backups.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups'**
+  String get settings_storageUsage_group_backups;
+
+  /// No description provided for @settings_storageUsage_group_temporary.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary Files'**
+  String get settings_storageUsage_group_temporary;
+
+  /// No description provided for @settings_storageUsage_group_exports.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported Files'**
+  String get settings_storageUsage_group_exports;
+
+  /// No description provided for @settings_storageUsage_category_database.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive log database'**
+  String get settings_storageUsage_category_database;
+
+  /// No description provided for @settings_storageUsage_category_localCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Local cache database'**
+  String get settings_storageUsage_category_localCache;
+
+  /// No description provided for @settings_storageUsage_category_mediaCacheOriginals.
+  ///
+  /// In en, this message translates to:
+  /// **'Original photos and videos'**
+  String get settings_storageUsage_category_mediaCacheOriginals;
+
+  /// No description provided for @settings_storageUsage_category_mediaCacheThumbs.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnails'**
+  String get settings_storageUsage_category_mediaCacheThumbs;
+
+  /// No description provided for @settings_storageUsage_category_mediaCacheRenditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Video renditions'**
+  String get settings_storageUsage_category_mediaCacheRenditions;
+
+  /// No description provided for @settings_storageUsage_category_mediaCacheStaging.
+  ///
+  /// In en, this message translates to:
+  /// **'Staged transfers'**
+  String get settings_storageUsage_category_mediaCacheStaging;
+
+  /// No description provided for @settings_storageUsage_category_mediaCacheTranscode.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcoded video'**
+  String get settings_storageUsage_category_mediaCacheTranscode;
+
+  /// No description provided for @settings_storageUsage_category_mapTiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Map tiles'**
+  String get settings_storageUsage_category_mapTiles;
+
+  /// No description provided for @settings_storageUsage_category_networkImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Network images'**
+  String get settings_storageUsage_category_networkImages;
+
+  /// No description provided for @settings_storageUsage_category_videoThumbnails.
+  ///
+  /// In en, this message translates to:
+  /// **'Video thumbnails'**
+  String get settings_storageUsage_category_videoThumbnails;
+
+  /// No description provided for @settings_storageUsage_category_pdfThumbnails.
+  ///
+  /// In en, this message translates to:
+  /// **'Document thumbnails'**
+  String get settings_storageUsage_category_pdfThumbnails;
+
+  /// No description provided for @settings_storageUsage_category_backups.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup files'**
+  String get settings_storageUsage_category_backups;
+
+  /// No description provided for @settings_storageUsage_category_temporary.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary files'**
+  String get settings_storageUsage_category_temporary;
+
+  /// No description provided for @settings_storageUsage_category_exports.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported files'**
+  String get settings_storageUsage_category_exports;
+
+  /// No description provided for @profilePhoto_sheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Photo'**
+  String get profilePhoto_sheet_title;
+
+  /// No description provided for @profilePhoto_source_camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get profilePhoto_source_camera;
+
+  /// No description provided for @profilePhoto_source_library.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Library'**
+  String get profilePhoto_source_library;
+
+  /// No description provided for @profilePhoto_source_file.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose File'**
+  String get profilePhoto_source_file;
+
+  /// No description provided for @profilePhoto_source_contacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Contacts'**
+  String get profilePhoto_source_contacts;
+
+  /// No description provided for @profilePhoto_action_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Photo'**
+  String get profilePhoto_action_remove;
+
+  /// No description provided for @profilePhoto_crop_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust Photo'**
+  String get profilePhoto_crop_title;
+
+  /// No description provided for @profilePhoto_crop_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reposition, pinch to zoom'**
+  String get profilePhoto_crop_hint;
+
+  /// No description provided for @profilePhoto_error_tooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'That image is too large to use. Try a smaller one.'**
+  String get profilePhoto_error_tooLarge;
+
+  /// No description provided for @profilePhoto_error_undecodable.
+  ///
+  /// In en, this message translates to:
+  /// **'That file could not be read as an image.'**
+  String get profilePhoto_error_undecodable;
+
+  /// No description provided for @profilePhoto_error_contactNoPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'That contact does not have a photo.'**
+  String get profilePhoto_error_contactNoPhoto;
+
+  /// No description provided for @profilePhoto_error_contactPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts permission is required to choose a photo.'**
+  String get profilePhoto_error_contactPermission;
 }
 
 class _AppLocalizationsDelegate

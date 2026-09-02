@@ -6,7 +6,16 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/app_version.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/domain/services/species_suggestion_url.dart';
+import 'package:submersion/features/marine_life/presentation/helpers/species_suggestion_launcher.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_sightings_section.dart';
+import 'package:submersion/features/media/data/services/species_tagging_service.dart';
+import 'package:submersion/features/media/presentation/pages/species_tag_picker_page.dart';
+import 'package:submersion/features/media/presentation/helpers/species_photo_import_helper.dart';
+import 'package:submersion/features/media/presentation/widgets/species_photos_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
@@ -34,6 +43,25 @@ class SpeciesDetailPage extends ConsumerWidget {
             tooltip: context.l10n.marineLife_speciesDetail_editTooltip,
             onPressed: () => context.push('/species/$speciesId/edit'),
           ),
+          // Only a custom species can be suggested: built-ins already are
+          // the catalog.
+          if (speciesAsync.value case final species? when !species.isBuiltIn)
+            PopupMenuButton<String>(
+              key: const ValueKey('species_detail_menu'),
+              onSelected: (value) {
+                if (value == 'suggest') {
+                  _suggestForCatalog(context, ref, species);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'suggest',
+                  child: Text(
+                    context.l10n.marineLife_speciesDetail_suggestForCatalog,
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
       body: speciesAsync.when(
@@ -73,6 +101,17 @@ class SpeciesDetailPage extends ConsumerWidget {
                 ],
                 const SizedBox(height: 24),
                 _buildStatisticsSection(context, ref),
+                SpeciesPhotosSection(
+                  speciesId: speciesId,
+                  onTagPhotos: () => _openTagPicker(context),
+                  onAddPhotos: () =>
+                      SpeciesPhotoImportHelper.importPhotosForSpecies(
+                        context,
+                        ref,
+                        speciesId: speciesId,
+                      ),
+                ),
+                SpeciesSightingsSection(speciesId: speciesId),
               ],
             ),
           );
@@ -384,5 +423,39 @@ class SpeciesDetailPage extends ConsumerWidget {
       case SpeciesCategory.other:
         return Colors.grey;
     }
+  }
+
+  Future<void> _suggestForCatalog(
+    BuildContext context,
+    WidgetRef ref,
+    Species species,
+  ) async {
+    final info = await ref.read(packageInfoProvider.future);
+    if (!context.mounted) return;
+    final uri = buildSpeciesSuggestionUrl(
+      species: species,
+      locale: ref.read(localeProvider),
+      appVersion: formatAppVersion(info),
+    );
+    await launchSpeciesSuggestion(
+      context,
+      uri,
+      launch: ref.read(speciesSuggestionLaunchProvider),
+    );
+  }
+
+  Future<void> _openTagPicker(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final result = await Navigator.of(context).push<TagPhotosResult>(
+      MaterialPageRoute<TagPhotosResult>(
+        fullscreenDialog: true,
+        builder: (_) => SpeciesTagPickerPage(speciesId: speciesId),
+      ),
+    );
+    if (result == null) return;
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.marineLife_tagPicker_tagged(result.tagged))),
+    );
   }
 }

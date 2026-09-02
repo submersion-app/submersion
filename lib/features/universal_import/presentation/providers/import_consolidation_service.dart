@@ -1,6 +1,7 @@
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 
 const _log = LoggerService('ImportConsolidationService');
@@ -11,6 +12,7 @@ class ConsolidationSummary {
   const ConsolidationSummary({
     required this.consolidated,
     required this.failed,
+    this.keptStandalone = 0,
     this.removedDiveIds = const {},
   });
 
@@ -21,6 +23,12 @@ class ConsolidationSummary {
   /// been imported as a standalone dive. Each one was deleted (see
   /// [performConsolidations]) rather than left stranded.
   final int failed;
+
+  /// Number of dives whose fold was refused because the PRE-EXISTING match
+  /// holds a series this build cannot decode. Each one was left in place as
+  /// its own standalone dive rather than deleted, so none of them appear in
+  /// [removedDiveIds].
+  final int keptStandalone;
 
   /// The freshly-imported standalone dive ids that are NO LONGER present after
   /// this call -- each was either folded into its match (and tombstoned by
@@ -51,6 +59,12 @@ class ConsolidationSummary {
 /// via [DiveRepository.bulkDeleteDives] (tombstone-honoring) so it doesn't
 /// strand as a bare, unconsolidated duplicate, and the loop continues with
 /// the remaining indices rather than aborting the whole import.
+///
+/// [UnreadableSeriesException] is the one exception to that: it says the
+/// PRE-EXISTING match holds a profile or pressure series this build cannot
+/// decode, so `apply` refused before writing anything. The freshly-imported
+/// dive is not at fault, so it is KEPT standalone (counted in
+/// [ConsolidationSummary.keptStandalone]) rather than deleted.
 Future<ConsolidationSummary> performConsolidations({
   required Set<int> indices,
   required Map<int, String> diveIdByIndex,
@@ -60,6 +74,7 @@ Future<ConsolidationSummary> performConsolidations({
 }) async {
   var consolidated = 0;
   var failed = 0;
+  var keptStandalone = 0;
   final removedDiveIds = <String>{};
 
   for (final index in indices) {
@@ -77,6 +92,17 @@ Future<ConsolidationSummary> performConsolidations({
       consolidated++;
       // The fold tombstoned the standalone dive.
       removedDiveIds.add(newDiveId);
+    } on UnreadableSeriesException catch (e) {
+      // The refusal is about the pre-existing match's stored series, not
+      // about the dive just imported. That dive is good data and this is
+      // its only copy, so it stays standalone: it is deliberately NOT added
+      // to [removedDiveIds], so the caller keeps counting it as imported.
+      _log.warning(
+        'Kept imported dive $newDiveId standalone instead of folding it '
+        'into ${matchResult.diveId}: that dive holds ${e.seriesIds.length} '
+        'series this build cannot decode',
+      );
+      keptStandalone++;
     } catch (e, st) {
       _log.error(
         'Consolidation fold failed for dive into ${matchResult.diveId}',
@@ -106,6 +132,7 @@ Future<ConsolidationSummary> performConsolidations({
   return ConsolidationSummary(
     consolidated: consolidated,
     failed: failed,
+    keptStandalone: keptStandalone,
     removedDiveIds: removedDiveIds,
   );
 }

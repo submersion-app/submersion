@@ -47,6 +47,7 @@ void main() {
     String? siteId,
     MediaType mediaType = MediaType.photo,
     MediaSourceType sourceType = MediaSourceType.platformGallery,
+    String? originDeviceId,
   }) => MediaItem(
     id: '',
     mediaType: mediaType,
@@ -56,6 +57,7 @@ void main() {
     originalFilename: name,
     diveId: diveId,
     siteId: siteId,
+    originDeviceId: originDeviceId,
     takenAt: DateTime(2026, 1, 1),
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
@@ -88,6 +90,31 @@ void main() {
       expect(ids.toSet(), {linkedToDive.id, linkedToSite.id});
     },
   );
+
+  test('a row another device imported is never a candidate here', () async {
+    // The desktop imported the file and its row synced over. This device
+    // cannot read the desktop's path, so enqueueing it only produces a
+    // "source unavailable" failure; the desktop is the one that uploads.
+    await insertDive('dive-1');
+    final fromDesktop = await repo.createMedia(
+      item(
+        'desktop.jpg',
+        diveId: 'dive-1',
+        sourceType: MediaSourceType.localFile,
+        originDeviceId: 'some-other-device',
+      ),
+    );
+    // Imported here: createMedia stamps this device's own id.
+    final mine = await repo.createMedia(
+      item('mine.jpg', diveId: 'dive-1', sourceType: MediaSourceType.localFile),
+    );
+    // Rows from before origin tracking carry no id and keep today's verdict.
+    final legacy = await repo.createMedia(item('legacy.jpg', diveId: 'dive-1'));
+
+    final ids = await repo.getBackfillCandidateIds();
+    expect(ids, isNot(contains(fromDesktop.id)));
+    expect(ids, containsAll([mine.id, legacy.id]));
+  });
 
   group('videos are backfill candidates', () {
     test('an unbacked localFile video is a candidate', () async {

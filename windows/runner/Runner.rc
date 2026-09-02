@@ -99,7 +99,7 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "Eric Griffin" "\0"
+            VALUE "CompanyName", "Submersion" "\0"
             VALUE "FileDescription", "submersion" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "submersion" "\0"

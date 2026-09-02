@@ -83,10 +83,6 @@ void main() {
         throwsA(anything),
       );
       await expectLater(
-        repository.getProfilesForDive('test-id'),
-        throwsA(anything),
-      );
-      await expectLater(
         repository.getComputerIdsForDive('test-id'),
         throwsA(anything),
       );

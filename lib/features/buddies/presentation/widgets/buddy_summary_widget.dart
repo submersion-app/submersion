@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 
@@ -174,17 +175,12 @@ class BuddySummaryWidget extends ConsumerWidget {
           child: Column(
             children: previewBuddies.map((buddy) {
               return ListTile(
-                leading: CircleAvatar(
+                leading: ProfileAvatar(
+                  photo: buddy.photo,
+                  initials: buddy.initials,
                   backgroundColor: Theme.of(
                     context,
                   ).colorScheme.primaryContainer,
-                  child: Text(
-                    buddy.initials,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
                 title: Text(buddy.name),
                 subtitle: buddy.certificationLevel != null

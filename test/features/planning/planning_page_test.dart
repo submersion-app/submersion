@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -9,6 +9,7 @@ import 'package:submersion/features/deco_calculator/presentation/providers/deco_
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
+import 'package:submersion/features/planning/presentation/planning_tools.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_summary_widget.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
 import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
@@ -30,6 +31,35 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 void main() {
+  group('PlanningTool routes', () {
+    test('a tool routes under the hub by default', () {
+      const tool = PlanningTool(
+        id: 'deco-calculator',
+        icon: Icons.calculate,
+        color: Color(0xFF000000),
+        title: 'Deco Calculator',
+        subtitle: 'NDL and deco stops',
+      );
+
+      expect(tool.route, '/planning/deco-calculator');
+    });
+
+    // Gas Calculators owns a second level of tools, so its calculators have
+    // to route under it rather than under the hub.
+    test('a nested tool routes under its own prefix', () {
+      const tool = PlanningTool(
+        id: 'mod',
+        icon: Icons.arrow_downward,
+        color: Color(0xFF000000),
+        title: 'MOD',
+        subtitle: 'Deepest safe depth for a mix',
+        routePrefix: '/planning/gas-calculators',
+      );
+
+      expect(tool.route, '/planning/gas-calculators/mod');
+    });
+  });
+
   testWidgets('hub leads with New plan and recent saved plans', (tester) async {
     final summaries = [
       DivePlanSummary(
@@ -166,6 +196,10 @@ void main() {
                 path: 'dive-planner',
                 builder: (_, _) => const Text('dive planner page'),
               ),
+              GoRoute(
+                path: 'gas-calculators',
+                builder: (_, _) => const Text('gas calculators page'),
+              ),
             ],
           ),
         ],
@@ -292,7 +326,8 @@ void main() {
     testWidgets('every tool id resolves to its own pane', (tester) async {
       const expected = {
         'deco-calculator': 'Deco Calculator',
-        'gas-calculators': 'Gas Calculators',
+        // Gas Calculators is absent on purpose: it is a full-page push now,
+        // so ?tool=gas-calculators has no pane to resolve to.
         'weight-calculator': 'Weight Calculator',
         'surface-interval': 'Surface Interval',
         'no-fly': 'Flying after diving',
@@ -338,6 +373,69 @@ void main() {
       expect(find.text('dive planner page'), findsOneWidget);
       // The hub is covered, not split.
       expect(find.text('Deco Calculator'), findsNothing);
+    });
+
+    // Gas Calculators is the second full-page tool. It has six calculators of
+    // its own and renders them as a split view, which cannot be nested inside
+    // what is left of the window beside a 440px master pane.
+    testWidgets('gas calculators takes the whole window', (tester) async {
+      await pumpWide(tester);
+
+      await tester.tap(find.text('Gas Calculators'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('gas calculators page'), findsOneWidget);
+      expect(find.text('Deco Calculator'), findsNothing);
+    });
+
+    // A tool that hosts its own split view has to be entered with go(), not
+    // push(). Its MasterDetailScaffold selects with go(), and go() rebuilds
+    // the stack from the declarative route match; arriving on an imperative
+    // push leaves the route carrying a generated page key, so the first
+    // selection swaps the key and Flutter animates the whole page in again.
+    testWidgets('a split-view tool is entered declaratively', (tester) async {
+      final router = await pumpWide(tester);
+
+      await tester.tap(find.text('Gas Calculators'));
+      await tester.pumpAndSettle();
+
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        '/planning/gas-calculators',
+      );
+      expect(
+        router.routerDelegate.currentConfiguration.last.pageKey,
+        const ValueKey('/planning/gas-calculators'),
+      );
+    });
+
+    // go() on a nested child route still leaves the hub on the stack, so the
+    // tool stays poppable. This is what makes the declarative entry safe.
+    testWidgets('a split-view tool stays poppable', (tester) async {
+      final router = await pumpWide(tester);
+
+      await tester.tap(find.text('Gas Calculators'));
+      await tester.pumpAndSettle();
+
+      expect(router.routerDelegate.currentConfiguration.matches.length, 2);
+    });
+
+    // The dive planner keeps the push. It drives no URL of its own after
+    // arrival, so it has nothing to re-key, and #647 wants it poppable.
+    testWidgets('the dive planner is still entered with a push', (
+      tester,
+    ) async {
+      final router = await pumpWide(tester);
+
+      await tester.tap(find.text('Dive Planner'));
+      await tester.pumpAndSettle();
+
+      // An imperative push does not move currentConfiguration.uri.
+      expect(router.routerDelegate.currentConfiguration.uri.path, '/planning');
+      expect(
+        router.routerDelegate.currentConfiguration.last.matchedLocation,
+        '/planning/dive-planner',
+      );
     });
   });
 

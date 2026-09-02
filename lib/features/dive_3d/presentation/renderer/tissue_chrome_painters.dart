@@ -5,12 +5,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_3d/domain/geometry/axis_frame.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_grid.dart';
-import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/axis_labels.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/scrub_cursor.dart';
 
@@ -167,6 +168,40 @@ void paintAxisLabels(
   }
 }
 
+/// The hover ring: a dark halo under a light ring so it reads on any
+/// surface color. Shared by every chrome painter that shows a pick.
+void paintHoverRing(Canvas canvas, Offset center, TissueChromeStyle style) {
+  canvas.drawCircle(
+    center,
+    6,
+    Paint()
+      ..color = style.markerOutline.withValues(alpha: 0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.5,
+  );
+  canvas.drawCircle(
+    center,
+    6,
+    Paint()
+      ..color = style.marker.withValues(alpha: 0.9)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2,
+  );
+}
+
+/// Draws [a]->[b] as a 4 px on / 3 px off dashed line.
+void paintDashedLine(Canvas canvas, Offset a, Offset b, Paint paint) {
+  final total = (b - a).distance;
+  if (total < 1e-3) return;
+  final dir = (b - a) / total;
+  var d = 0.0;
+  while (d < total) {
+    final end = math.min(d + 4, total);
+    canvas.drawLine(a + dir * d, a + dir * end, paint);
+    d = end + 3;
+  }
+}
+
 /// Screen angle (radians, canvas convention: y grows downward) of the
 /// scene's -Z axis — geographic NORTH, since the map frame runs Z south
 /// to stay right-handed (see SpatialProjection) — under the projector's
@@ -213,8 +248,18 @@ class AxisChromePainter extends CustomPainter {
   final TissueChromeStyle style;
   final double yawDegrees, pitchDegrees, zoom;
   final TextDirection textDirection;
-  final TissueSurfaceGrid? surfaceGrid;
-  final ValueListenable<TissuePick?>? hoverPick;
+  final ValueListenable<ScenePick?>? hoverPick;
+
+  /// Dashed guide lines from the pick to the back wall, floor, and left
+  /// wall (the path scene), tying the tube to its wall shadows.
+  final bool hoverGuides;
+
+  /// Markers to label with a chip above their anchor (the path scene);
+  /// markers with an empty label stay as the scene painter's dots.
+  final List<SceneMarker>? markerLabels;
+
+  /// The seascape's compass rose; off for the analytical path scene.
+  final bool showCompass;
   final List<ContourLabelSpec>? contourLabels;
 
   /// The viewport's screen-space pan translation. World-anchored chrome
@@ -231,8 +276,10 @@ class AxisChromePainter extends CustomPainter {
     required this.zoom,
     this.labels,
     this.textDirection = TextDirection.ltr,
-    this.surfaceGrid,
     this.hoverPick,
+    this.hoverGuides = false,
+    this.markerLabels,
+    this.showCompass = true,
     this.contourLabels,
     this.panOffset = Offset.zero,
   }) : super(repaint: hoverPick);
@@ -258,7 +305,8 @@ class AxisChromePainter extends CustomPainter {
     paintAxisSegments(canvas, p, frame, style);
     paintAxisLabels(canvas, p, labels, style, textDirection);
     _paintContourLabels(canvas, size, p);
-    _paintCompass(canvas, size, p);
+    if (showCompass) _paintCompass(canvas, size, p);
+    _paintMarkerLabels(canvas, p);
     _paintHoverRing(canvas, p);
   }
 
@@ -356,28 +404,66 @@ class AxisChromePainter extends CustomPainter {
   }
 
   void _paintHoverRing(Canvas canvas, SceneProjector p) {
-    final grid = surfaceGrid;
     final pick = hoverPick?.value;
-    if (grid == null || grid.isEmpty || pick == null) return;
-    if (pick.col >= grid.columns || pick.comp >= grid.compartments) return;
-    final (x, y, z) = grid.positionAt(pick.col, pick.comp);
-    final center = p.project(x, y, z);
-    canvas.drawCircle(
-      center,
-      6,
-      Paint()
-        ..color = style.markerOutline.withValues(alpha: 0.5)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3.5,
-    );
-    canvas.drawCircle(
-      center,
-      6,
-      Paint()
-        ..color = style.marker.withValues(alpha: 0.9)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
+    if (pick == null) return;
+    final center = p.project(pick.x, pick.y, pick.z);
+    if (hoverGuides) {
+      final guide = Paint()
+        ..color = style.label.withValues(alpha: 0.7)
+        ..strokeWidth = 1;
+      paintDashedLine(
+        canvas,
+        center,
+        p.project(pick.x, pick.y, bounds.sceneMinZ),
+        guide,
+      );
+      paintDashedLine(
+        canvas,
+        center,
+        p.project(pick.x, bounds.sceneMinY, pick.z),
+        guide,
+      );
+      paintDashedLine(canvas, center, p.project(0, pick.y, pick.z), guide);
+    }
+    paintHoverRing(canvas, center, style);
+  }
+
+  void _paintMarkerLabels(Canvas canvas, SceneProjector p) {
+    final markers = markerLabels;
+    if (markers == null) return;
+    for (final m in markers) {
+      if (m.label.isEmpty) continue;
+      final at = p.project(m.x, m.y, m.z);
+      final tp = TextPainter(
+        text: TextSpan(
+          text: m.label,
+          style: TextStyle(
+            color: style.label,
+            fontSize: 9.5,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        textDirection: textDirection,
+      )..layout();
+      final center = at - const Offset(0, 14);
+      final rect = Rect.fromCenter(
+        center: center,
+        width: tp.width + 10,
+        height: tp.height + 4,
+      );
+      canvas.drawLine(
+        at,
+        Offset(at.dx, rect.bottom),
+        Paint()
+          ..color = style.label.withValues(alpha: 0.6)
+          ..strokeWidth = 1,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(8)),
+        Paint()..color = style.markerOutline.withValues(alpha: 0.85),
+      );
+      tp.paint(canvas, center - Offset(tp.width / 2, tp.height / 2));
+    }
   }
 
   @override
@@ -388,7 +474,9 @@ class AxisChromePainter extends CustomPainter {
       !identical(old.frame, frame) ||
       !identical(old.labels, labels) ||
       !identical(old.bounds, bounds) ||
-      !identical(old.surfaceGrid, surfaceGrid) ||
+      !identical(old.markerLabels, markerLabels) ||
+      old.hoverGuides != hoverGuides ||
+      old.showCompass != showCompass ||
       !identical(old.contourLabels, contourLabels) ||
       old.panOffset != panOffset ||
       old.style != style ||
@@ -502,7 +590,7 @@ class TissueOverlayPainter extends CustomPainter {
   final TissueChromeStyle style;
   final double yawDegrees, pitchDegrees, zoom;
   final ValueListenable<double> scrubPosition;
-  final ValueListenable<TissuePick?> hoverPick;
+  final ValueListenable<ScenePick?> hoverPick;
 
   TissueOverlayPainter({
     required this.scene,
@@ -532,26 +620,8 @@ class TissueOverlayPainter extends CustomPainter {
 
   void _paintMarker(Canvas canvas, SceneProjector p) {
     final pick = hoverPick.value;
-    if (pick == null || grid.isEmpty) return;
-    if (pick.col >= grid.columns || pick.comp >= grid.compartments) return;
-    final (x, y, z) = grid.positionAt(pick.col, pick.comp);
-    final center = p.project(x, y, z);
-    canvas.drawCircle(
-      center,
-      6,
-      Paint()
-        ..color = style.markerOutline.withValues(alpha: 0.5)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3.5,
-    );
-    canvas.drawCircle(
-      center,
-      6,
-      Paint()
-        ..color = style.marker.withValues(alpha: 0.9)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
+    if (pick == null) return;
+    paintHoverRing(canvas, p.project(pick.x, pick.y, pick.z), style);
   }
 
   void _paintCursor(Canvas canvas, SceneProjector p) {

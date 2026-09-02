@@ -195,6 +195,10 @@ class TrackImportService {
         reason: TrackParseReason.noPositions,
       );
     }
+    // Before the dive scan and before the review step: a file this large is
+    // rejected outright, so there is nothing to review and no point paying
+    // for the duplicate check.
+    validateFixCount(parsed.fixes.length);
 
     final dives = await _diveRepository.getAllDives();
     final deviceOffset = DateTime.now().timeZoneOffset.inMinutes;

@@ -70,6 +70,27 @@ void main() {
       );
     });
 
+    // #1135: the library behind this sample holds 4 certifications and 1
+    // service record in its MacDive.sqlite, yet MacDive's XML export of that
+    // same library contains no element for either. This asserts both halves:
+    // the export really is empty of them, and the parser tells the diver so.
+    test(
+      'real export carries no certifications, and the notice says so',
+      () async {
+        if (skipIfNoFixture()) return;
+        final payload = await const MacDiveXmlParser().parse(bytes);
+
+        expect(payload.entitiesOf(ImportEntityType.certifications), isEmpty);
+        expect(payload.entitiesOf(ImportEntityType.serviceRecords), isEmpty);
+        expect(
+          payload.warnings
+              .where((w) => w.severity == ImportWarningSeverity.info)
+              .where((w) => w.message.contains('MacDive.sqlite')),
+          hasLength(1),
+        );
+      },
+    );
+
     test('every dive has a sourceUuid from <identifier>', () async {
       if (skipIfNoFixture()) return;
       final payload = await const MacDiveXmlParser().parse(bytes);

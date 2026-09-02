@@ -17,15 +17,22 @@
 // pre-160 peer's payload, keyed with the old spelling, arriving here.
 // postV137DiveKeys stays as the record of the previous boundary.
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 
 import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
@@ -261,5 +268,188 @@ void main() {
           .getSingle();
       expect(row.read<String>('service_category'), 'repair');
     });
+  });
+
+  group('v181 peer round-trip across the series boundary (plan 2d)', () {
+    late FakeCloudStorageProvider cloud;
+
+    setUp(() async {
+      await setUpTestDatabase();
+      cloud = FakeCloudStorageProvider();
+    });
+
+    tearDown(() => DatabaseService.instance.resetForTesting());
+
+    SyncService buildService() => SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+
+    /// Seeds a synced (non-pending) dive with no profile, mirroring
+    /// [seedModernDive] in the v137 group above without the post-137 column
+    /// edit this group has no use for.
+    Future<Map<String, dynamic>> seedModernDive(String id) async {
+      await DiveRepository().createDive(createTestDiveWithBottomTime(id: id));
+      final row = await SyncDataSerializer().fetchRecord('dives', id);
+      expect(row, isNotNull, reason: 'precondition');
+      await SyncRepository().resetSyncState();
+      return Map<String, dynamic>.from(row!);
+    }
+
+    /// Publishes [diveRow] alongside [legacyRows] as peer `peer-181`'s single
+    /// changeset and pulls it through the real merge path, the way
+    /// [pullPeerDive] does for the v137 group above. `SyncData.toJson` no
+    /// longer carries the legacy `diveProfiles` key (it is inbound-only as of
+    /// plan 2d task 2), so the payload's `data` section is assembled by hand
+    /// from raw JSON and the checksum is recomputed over it, mirroring
+    /// `buildPayloadJson`/`pullPeerPayload` in
+    /// legacy_sample_entities_inbound_test.dart rather than going through a
+    /// `SyncPayload` object (whose `toJson` would drop the key again).
+    Future<void> pullPeerPayloadWithLegacy(
+      Map<String, dynamic> diveRow,
+      List<Map<String, dynamic>> legacyRows,
+    ) async {
+      const peerId = 'peer-181';
+      final data = SyncData(dives: [diveRow]);
+      final dataJson = {...data.toJson(), 'diveProfiles': legacyRows};
+      final checksum = sha256
+          .convert(utf8.encode(jsonEncode(dataJson)))
+          .toString();
+      final payloadJson = <String, dynamic>{
+        'version': syncFormatVersion,
+        'exportedAt': 9000,
+        'deviceId': peerId,
+        'lastSyncTimestamp': null,
+        'checksum': checksum,
+        'data': dataJson,
+        'deletions': <String, dynamic>{},
+        'uploadNonce': null,
+        'epochId': null,
+        'seq': 1,
+        'baseSeq': null,
+        'sinceHlc': null,
+        'toHlc': null,
+      };
+      final bytes = Uint8List.fromList(utf8.encode(jsonEncode(payloadJson)));
+      final folder = await cloud.getOrCreateSyncFolder();
+      await cloud.uploadFile(
+        bytes,
+        ChangesetLogLayout.changesetName(peerId, 1),
+        folderId: folder,
+      );
+      final manifest = SyncManifest(
+        deviceId: peerId,
+        provider: cloud.providerId,
+        headSeq: 1,
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      );
+      await cloud.uploadFile(
+        manifest.toBytes(),
+        ChangesetLogLayout.manifestName(peerId),
+        folderId: folder,
+      );
+      final result = await buildService().performSync();
+      // A per-row apply failure flips the whole run to error, so this
+      // assertion covers recordsFailed too.
+      expect(result.status, isNot(SyncResultStatus.error));
+    }
+
+    test('the floor is 183', () {
+      expect(AppDatabase.minimumCompatibleSchemaVersion, 183);
+    });
+
+    test('an old peer that still sends dive_profiles rows produces a series '
+        'here', () async {
+      // seedModernDive('dive-old') as the v137 group does, then delete its
+      // series locally so the dive looks like one the peer created:
+      final diveRow = await seedModernDive('dive-old');
+      await ProfileSeriesRepository().deleteForDive('dive-old');
+      await SyncRepository().resetSyncState();
+      final legacyRows = [
+        {
+          'id': 'r1',
+          'diveId': 'dive-old',
+          'timestamp': 0,
+          'depth': 0.0,
+          'isPrimary': true,
+        },
+        {
+          'id': 'r2',
+          'diveId': 'dive-old',
+          'timestamp': 30,
+          'depth': 9.0,
+          'isPrimary': true,
+        },
+      ];
+      await pullPeerPayloadWithLegacy(diveRow, legacyRows);
+      final series = await ProfileSeriesRepository().getSeriesForDive(
+        'dive-old',
+      );
+      expect(series.single.samples.map((s) => s.depth), [0.0, 9.0]);
+    });
+
+    test(
+      'a series row pushed by a modern peer applies with LWW by hlc',
+      () async {
+        final diveRow = await seedModernDive('dive-new');
+        final diveId = diveRow['id'] as String;
+        final seriesId = await ProfileSeriesRepository().insertSeries(
+          diveId: diveId,
+          samples: const [
+            ProfileSample(timestamp: 0, depth: 5.0),
+            ProfileSample(timestamp: 60, depth: 10.0),
+          ],
+        );
+        final row = (await SyncDataSerializer().fetchRecord(
+          'diveProfileSeries',
+          seriesId,
+        ))!;
+        await SyncRepository().resetSyncState();
+
+        const codec = ProfileSeriesCodec();
+        final encoded = codec.encode(const [
+          ProfileSample(timestamp: 0, depth: 1.0),
+          ProfileSample(timestamp: 45, depth: 30.0),
+        ]);
+        final summary = encoded.summary;
+        final peerRow = Map<String, dynamic>.from(row)
+          ..['samples'] = base64Encode(encoded.bytes)
+          ..['codecVersion'] = encoded.codecVersion
+          ..['sampleCount'] = summary.sampleCount
+          ..['startTimestamp'] = summary.startTimestamp
+          ..['endTimestamp'] = summary.endTimestamp
+          ..['maxDepth'] = summary.maxDepth
+          ..['firstDepth'] = summary.firstDepth
+          ..['lastDepth'] = summary.lastDepth
+          ..['hasDecoType'] = summary.hasDecoType
+          ..['hasDecoStop'] = summary.hasDecoStop
+          ..['hasPositiveCeiling'] = summary.hasPositiveCeiling
+          ..['hlc'] = Hlc(
+            Hlc.parse(row['hlc'] as String).physicalTime + 60000,
+            0,
+            'peer-182',
+          ).toString()
+          ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
+
+        final data = SyncData(diveProfileSeries: [peerRow]);
+        final payload = SyncPayload(
+          version: syncFormatVersion,
+          exportedAt: 9000,
+          deviceId: 'peer-182',
+          checksum: sha256
+              .convert(utf8.encode(jsonEncode(data.toJson())))
+              .toString(),
+          data: data,
+          deletions: const {},
+        );
+        await seedPeerBaseFromPayload(cloud, 'peer-182', payload);
+        final result = await buildService().performSync();
+        expect(result.status, isNot(SyncResultStatus.error));
+
+        final profile = await DiveRepository().getDiveProfile(diveId);
+        expect(profile.map((p) => p.depth), [1.0, 30.0]);
+      },
+    );
   });
 }

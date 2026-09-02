@@ -89,18 +89,8 @@ void main() {
     test('real data passes through untouched and is not marked estimated', () {
       final real = {
         't1': const [
-          TankPressurePoint(
-            id: 'r0',
-            tankId: 't1',
-            timestamp: 0,
-            pressure: 205,
-          ),
-          TankPressurePoint(
-            id: 'r1',
-            tankId: 't1',
-            timestamp: 600,
-            pressure: 150,
-          ),
+          TankPressurePoint(tankId: 't1', timestamp: 0, pressure: 205),
+          TankPressurePoint(tankId: 't1', timestamp: 600, pressure: 150),
         ],
       };
       final result = synthesizeEstimatedTankPressures(

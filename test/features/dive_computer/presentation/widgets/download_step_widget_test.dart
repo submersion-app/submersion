@@ -119,6 +119,23 @@ class _StubbedDownloadNotifier extends DownloadNotifier {
 // Test device
 // ---------------------------------------------------------------------------
 
+/// A USB HID computer, the shape issue #1271 added. libdivecomputer declares
+/// the G2 TEK as USBHID | BLE, and the native layer reports the HID bit as usb.
+final _usbHidDevice = DiscoveredDevice(
+  id: 'scubapro_g2_tek',
+  name: 'G2 TEK',
+  connectionType: DeviceConnectionType.usb,
+  address: 'scubapro_g2_tek',
+  recognizedModel: const DeviceModel(
+    id: 'scubapro_g2_tek',
+    manufacturer: 'Scubapro',
+    model: 'G2 TEK',
+    connectionTypes: [DeviceConnectionType.usb],
+    dcModel: 0x31,
+  ),
+  discoveredAt: DateTime(2026, 3, 20),
+);
+
 final _testDevice = DiscoveredDevice(
   id: 'test-device-1',
   name: 'Shearwater Perdix',
@@ -159,6 +176,13 @@ Widget _buildWidget({
       }),
     ],
     child: MaterialApp(
+      // Pinned because every assertion below matches an English literal.
+      // flutter_test forwards the HOST machine's locale list rather than a
+      // fixed en_US, and this app supports eleven locales, so on a developer
+      // machine set to one of them an unpinned MaterialApp renders the
+      // translation and every find.textContaining fails. CI is en_US, so that
+      // breaks only for the contributor.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -167,6 +191,41 @@ Widget _buildWidget({
           onComplete: onComplete ?? () {},
           onError: onError ?? (_) {},
           onImportPartial: onImportPartial,
+        ),
+      ),
+    ),
+  );
+}
+
+/// Builds the widget with a genuinely null device.
+///
+/// `_buildWidget` substitutes `_testDevice` for a null argument, which is what
+/// every other test wants, so the no-device case needs its own builder.
+Widget _buildWidgetWithoutDevice({
+  DownloadState initialState = const DownloadState(),
+}) {
+  return ProviderScope(
+    overrides: [
+      diveComputerServiceProvider.overrideWithValue(_FakeDiveComputerService()),
+      diveComputerRepositoryProvider.overrideWithValue(
+        _FakeDiveComputerRepository(),
+      ),
+      downloadNotifierProvider.overrideWith((ref) {
+        final notifier = _StubbedDownloadNotifier();
+        notifier.state = initialState;
+        return notifier;
+      }),
+    ],
+    child: MaterialApp(
+      // Pinned for the same reason as _buildWidget above.
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: DownloadStepWidget(
+          device: null,
+          onComplete: () {},
+          onError: (_) {},
         ),
       ),
     ),
@@ -782,6 +841,83 @@ void main() {
 
       expect(find.textContaining('stopped responding'), findsOneWidget);
       expect(find.text('Failed to connect to device'), findsNothing);
+    });
+
+    // Issue #1271: a USB HID computer (the Scubapro G2 family, the Suunto EON
+    // Steel family) has no serial port to go looking for, so the no_serial_ports
+    // wording would send the diver hunting for the wrong thing. The native
+    // message says the same thing but only in English, so the model name is
+    // taken from the device and the sentence around it is localized.
+    testWidgets('shows no_usb_device localized error naming the model', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          device: _usbHidDevice,
+          initialState: const DownloadState(
+            phase: DownloadPhase.error,
+            errorCode: 'no_usb_device',
+            errorMessage:
+                'No G2 TEK found over USB. Is it connected to this computer '
+                'and powered on?',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The model comes from the descriptor, not from the native sentence.
+      expect(find.textContaining('Scubapro G2 TEK'), findsOneWidget);
+      expect(find.textContaining('over USB'), findsOneWidget);
+      // The serial advice must not appear: there is no port to look for.
+      expect(find.textContaining('USB serial ports'), findsNothing);
+    });
+
+    // A device the descriptor table did not recognise still has a name from the
+    // scan, and naming it beats falling back to the English native message.
+    testWidgets('names an unrecognized device by its discovered name', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          device: DiscoveredDevice(
+            id: 'unknown-hid-1',
+            name: 'Aladin Square',
+            connectionType: DeviceConnectionType.usb,
+            address: 'unknown-hid-1',
+            discoveredAt: DateTime(2026, 3, 20),
+          ),
+          initialState: const DownloadState(
+            phase: DownloadPhase.error,
+            errorCode: 'no_usb_device',
+            errorMessage: 'No Aladin Square found over USB.',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Aladin Square'), findsOneWidget);
+      expect(find.textContaining('USB serial ports'), findsNothing);
+    });
+
+    // With no device there is no model to name, so the native message is the
+    // best available text. Unreachable in the wizard, which will not start a
+    // download without a device, but the fallback is what keeps the diver from
+    // seeing an empty error if that ever changes.
+    testWidgets('falls back to the native message when there is no device', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildWidgetWithoutDevice(
+          initialState: const DownloadState(
+            phase: DownloadPhase.error,
+            errorCode: 'no_usb_device',
+            errorMessage: 'No dive computer found over USB.',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('No dive computer found over USB.'), findsOneWidget);
     });
 
     testWidgets('calls onError when error phase is entered', (tester) async {

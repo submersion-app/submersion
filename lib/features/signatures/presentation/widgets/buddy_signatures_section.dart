@@ -142,20 +142,36 @@ class BuddySignaturesSection extends ConsumerWidget {
     WidgetRef ref,
     BuddyWithRole bwr,
   ) {
+    // Captured before the sheet closes: the save outlives it, and reporting
+    // a failure needs a messenger that is still in the tree.
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+
     showBuddySignatureRequestSheet(
       context: context,
       buddyWithRole: bwr,
-      onSave: (strokes) async {
+      onSave: (strokes, canvasSize) async {
         final notifier = ref.read(buddySignatureSaveNotifierProvider.notifier);
-        await notifier.saveFromStrokes(
+        // The strokes are in the capture canvas's own coordinates, so the
+        // PNG is rendered at that exact size. A hardcoded size cropped every
+        // signature drawn on a canvas wider than it (issue #1358).
+        final signature = await notifier.saveFromStrokes(
           diveId: diveId,
           buddyId: bwr.buddy.id,
           buddyName: bwr.buddy.name,
           role: bwr.role.id,
           strokes: strokes,
-          width: 400,
-          height: 200,
+          width: canvasSize.width,
+          height: canvasSize.height,
         );
+        // A null result means the save threw. Nothing watches the notifier's
+        // AsyncValue, so without this the diver is shown an unchanged
+        // "Request" button and no reason for it (issue #1358).
+        if (signature == null) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.signatures_error_saveFailed)),
+          );
+        }
       },
     );
   }

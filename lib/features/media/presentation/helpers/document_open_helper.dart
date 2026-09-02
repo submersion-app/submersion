@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:submersion/core/utils/share_anchor.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/document_import_service.dart';
 import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
@@ -49,6 +51,9 @@ class DocumentOpenHelper {
     MediaItem item,
   ) async {
     final l10n = context.l10n;
+    // Captured before the awaits: on iPad this anchors the share popover to
+    // whatever the caller tapped, instead of the middle of the screen.
+    final anchor = shareAnchorFrom(context);
     final resolved = await ref.read(mediaBytesProvider(item).future);
     if (resolved.isUnavailable || resolved.bytes == null) {
       if (context.mounted) {
@@ -67,7 +72,10 @@ class DocumentOpenHelper {
       await Process.run('xdg-open', [file.path]);
     } else {
       await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path, mimeType: item.shareMimeType)]),
+        ShareParams(
+          files: [XFile(file.path, mimeType: item.shareMimeType)],
+          sharePositionOrigin: anchor,
+        ),
       );
     }
   }

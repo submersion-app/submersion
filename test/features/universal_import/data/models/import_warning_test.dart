@@ -146,12 +146,13 @@ void main() {
         field: 'name',
       );
 
-      expect(warning.props, hasLength(5));
+      expect(warning.props, hasLength(6));
       expect(warning.props[0], ImportWarningSeverity.warning);
       expect(warning.props[1], 'test');
       expect(warning.props[2], ImportEntityType.sites);
       expect(warning.props[3], 5);
       expect(warning.props[4], 'name');
+      expect(warning.props[5], isNull);
     });
 
     test('props with null optional fields', () {
@@ -160,10 +161,41 @@ void main() {
         message: 'basic',
       );
 
-      expect(warning.props, hasLength(5));
+      expect(warning.props, hasLength(6));
       expect(warning.props[2], isNull);
       expect(warning.props[3], isNull);
       expect(warning.props[4], isNull);
+      expect(warning.props[5], isNull);
+    });
+
+    test('code participates in equality', () {
+      const coded = ImportWarning(
+        severity: ImportWarningSeverity.info,
+        message: 'Same',
+        code: ImportWarningCode.noTankPressure,
+      );
+      const uncoded = ImportWarning(
+        severity: ImportWarningSeverity.info,
+        message: 'Same',
+      );
+
+      expect(coded, isNot(equals(uncoded)));
+      expect(coded.props.last, ImportWarningCode.noTankPressure);
+    });
+
+    test('identical coded warnings compare equal, so they can be grouped', () {
+      const a = ImportWarning(
+        severity: ImportWarningSeverity.info,
+        message: 'Same',
+        code: ImportWarningCode.noTankPressure,
+      );
+      const b = ImportWarning(
+        severity: ImportWarningSeverity.info,
+        message: 'Same',
+        code: ImportWarningCode.noTankPressure,
+      );
+
+      expect(a, equals(b));
     });
   });
 }

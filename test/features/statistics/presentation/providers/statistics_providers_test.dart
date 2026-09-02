@@ -13,9 +13,9 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Regression guard for the final "filterable statistics" review (issue
-/// #453): [speciesStatisticsProvider]'s only consumer is the Marine Life
-/// species-detail page (route `/species/:id`), which has no filter UI and is
-/// not a Statistics-tab surface. If the provider watched
+/// #453): [speciesStatisticsProvider]'s only consumer is the species detail
+/// page (route `/species/:id`), which has no filter UI and is not a
+/// Statistics-tab surface. If the provider watched
 /// [statisticsFilterProvider], an active Statistics-tab filter would
 /// silently rescope that page's per-species stats.
 void main() {

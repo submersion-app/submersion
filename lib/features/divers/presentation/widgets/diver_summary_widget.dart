@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -192,16 +193,11 @@ class DiverSummaryWidget extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    CircleAvatar(
+                    ProfileAvatar(
+                      photo: activeDiver.photo,
+                      initials: activeDiver.initials,
                       radius: 24,
                       backgroundColor: theme.colorScheme.primaryContainer,
-                      child: Text(
-                        activeDiver.initials,
-                        style: TextStyle(
-                          color: theme.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -278,17 +274,12 @@ class DiverSummaryWidget extends ConsumerWidget {
           child: Column(
             children: otherDivers.map((diver) {
               return ListTile(
-                leading: CircleAvatar(
+                leading: ProfileAvatar(
+                  photo: diver.photo,
+                  initials: diver.initials,
                   backgroundColor: Theme.of(
                     context,
                   ).colorScheme.primaryContainer,
-                  child: Text(
-                    diver.initials,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
                 title: Text(diver.name),
                 trailing: const ExcludeSemantics(

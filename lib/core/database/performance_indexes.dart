@@ -82,16 +82,33 @@ const List<PerformanceIndex> kPerformanceIndexes = [
   ),
   // -- per-dive child tables (the million-row scans) ---------------------
   (
-    name: 'idx_dive_profiles_dive_id',
+    name: 'idx_dive_profile_series_dive_primary',
     ddl:
-        'CREATE INDEX IF NOT EXISTS idx_dive_profiles_dive_id '
-        'ON dive_profiles(dive_id)',
+        'CREATE INDEX IF NOT EXISTS idx_dive_profile_series_dive_primary '
+        'ON dive_profile_series (dive_id, is_primary)',
   ),
   (
-    name: 'idx_tank_pressure_dive_tank',
+    name: 'idx_tank_pressure_series_dive_tank',
     ddl:
-        'CREATE INDEX IF NOT EXISTS idx_tank_pressure_dive_tank '
-        'ON tank_pressure_profiles(dive_id, tank_id, timestamp)',
+        'CREATE INDEX IF NOT EXISTS idx_tank_pressure_series_dive_tank '
+        'ON tank_pressure_series (dive_id, tank_id)',
+  ),
+  // The sync watermark filter. Every publish tick asks whether the pending
+  // series blobs exceed the changeset budget, and both export paths select
+  // on the same predicate; unindexed that is a full scan of the two largest
+  // tables in the database, on a steady-state device that has nothing to
+  // publish at all.
+  (
+    name: 'idx_dive_profile_series_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_profile_series_hlc '
+        'ON dive_profile_series (hlc)',
+  ),
+  (
+    name: 'idx_tank_pressure_series_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_tank_pressure_series_hlc '
+        'ON tank_pressure_series (hlc)',
   ),
   (
     name: 'idx_dive_tanks_dive_id',
@@ -128,6 +145,15 @@ const List<PerformanceIndex> kPerformanceIndexes = [
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_dive_buddies_dive_id '
         'ON dive_buddies(dive_id)',
+  ),
+  // The reverse direction: getDiveIdsForBuddy, getDiveCountForBuddy and
+  // addBuddyToDive's existing-row check all filter on buddy_id, which had no
+  // index and scanned the link table.
+  (
+    name: 'idx_dive_buddies_buddy_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_buddies_buddy_id '
+        'ON dive_buddies(buddy_id, dive_id)',
   ),
   (
     name: 'idx_dive_custom_fields_dive_id',
@@ -272,6 +298,27 @@ const List<PerformanceIndex> kPerformanceIndexes = [
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_media_local_path '
         'ON media(local_path)',
+  ),
+  // Library sort keys, one per MediaSortField. Expression indexes: COALESCE
+  // is deterministic, so SQLite accepts it here. The date one also covers the
+  // default library ordering, which had no index before.
+  (
+    name: 'idx_media_sort_date',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_sort_date '
+        'ON media(COALESCE(taken_at, created_at) DESC, id DESC)',
+  ),
+  (
+    name: 'idx_media_sort_name',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_sort_name '
+        'ON media(COALESCE(original_filename, file_path), id)',
+  ),
+  (
+    name: 'idx_media_sort_size',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_sort_size '
+        'ON media(COALESCE(content_size_bytes, -1) DESC, id DESC)',
   ),
   (
     name: 'idx_media_file_path',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -11,7 +12,6 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -24,6 +24,10 @@ import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/pages/records_page.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_bar.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 typedef Override = riverpod.Override;
@@ -95,8 +99,8 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setWeightUnit(WeightUnit unit) async =>
       state = state.copyWith(weightUnit: unit);
   @override
-  Future<void> setSacUnit(SacUnit unit) async =>
-      state = state.copyWith(sacUnit: unit);
+  Future<void> setGasConsumptionDisplay(GasConsumptionDisplay display) async =>
+      state = state.copyWith(gasConsumptionDisplay: display);
 
   @override
   Future<void> setGasModel(GasModel model) async =>
@@ -138,6 +142,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setLocale(String locale) async =>
       state = state.copyWith(locale: locale);
+  @override
+  Future<void> setPlaceNameLanguage(String code) async =>
+      state = state.copyWith(placeNameLanguage: code);
   @override
   Future<void> setDefaultDiveType(String diveType) async =>
       state = state.copyWith(defaultDiveType: diveType);
@@ -305,6 +312,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setSiteMatchSensitivity(SiteMatchSensitivity value) async =>
       state = state.copyWith(siteMatchSensitivity: value);
   @override
+  Future<void> setTrimTankPressureAtSurfacing(bool value) async =>
+      state = state.copyWith(trimTankPressureAtSurfacing: value);
+  @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);
   @override
@@ -431,6 +441,24 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDefaultShowOtu(bool value) async =>
       state = state.copyWith(defaultShowOtu: value);
   @override
+  Future<void> setDefaultShowO2CellMv(bool value) async =>
+      state = state.copyWith(defaultShowO2CellMv: value);
+
+  @override
+  Future<void> setDefaultShowGtr(bool value) async =>
+      state = state.copyWith(defaultShowGtr: value);
+
+  @override
+  Future<void> setDefaultGtrSource(MetricDataSource value) async =>
+      state = state.copyWith(defaultGtrSource: value);
+
+  @override
+  Future<void> setGtrReservePressure(double value) async =>
+      state = state.copyWith(gtrReservePressure: value);
+  @override
+  Future<void> setDefaultShowEstimatedTankPressure(bool value) async =>
+      state = state.copyWith(defaultShowEstimatedTankPressure: value);
+  @override
   Future<void> setShowDataSourceBadges(bool value) async =>
       state = state.copyWith(showDataSourceBadges: value);
   @override
@@ -494,13 +522,28 @@ void main() {
       prefs = await SharedPreferences.getInstance();
     });
 
-    /// Helper to create common provider overrides
+    /// Helper to create common provider overrides.
+    ///
+    /// [filter] drives the Statistics scope the page now follows (issue
+    /// #1028); an active one also makes StatisticsFilterBar read the filtered
+    /// statistics, hence the paired override.
     List<Override> getOverrides({
       Future<DiveRecords> Function(Ref)? diveRecordsOverride,
+      DiveFilterState filter = const DiveFilterState(),
     }) {
       return [
-        diveRecordsProvider.overrideWith(
+        filteredDiveRecordsProvider.overrideWith(
           diveRecordsOverride ?? (ref) async => DiveRecords(),
+        ),
+        statisticsFilterProvider.overrideWith((ref) => filter),
+        filteredDiveStatisticsProvider.overrideWith(
+          (ref) async => DiveStatistics(
+            totalDives: 0,
+            totalTimeSeconds: 0,
+            maxDepth: 0,
+            avgMaxDepth: 0,
+            totalSites: 0,
+          ),
         ),
         sharedPreferencesProvider.overrideWithValue(prefs),
         // Mock the settingsProvider to avoid database access
@@ -517,6 +560,7 @@ void main() {
         ProviderScope(
           overrides: getOverrides(),
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: RecordsPage(),
@@ -534,6 +578,7 @@ void main() {
         ProviderScope(
           overrides: getOverrides(),
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: RecordsPage(),
@@ -549,11 +594,77 @@ void main() {
       );
     });
 
+    // Issue #1028: the page follows the Statistics filter, so an empty result
+    // can mean "the filter is too narrow" rather than "no dives logged".
+    testWidgets('shows the filtered empty state when a filter is active', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: getOverrides(
+            filter: const DiveFilterState(favoritesOnly: true),
+          ),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RecordsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('No dives match your filters'), findsOneWidget);
+      expect(find.text('No Records Yet'), findsNothing);
+    });
+
+    testWidgets('hosts the filter bar, collapsed while no filter is active', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: getOverrides(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RecordsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StatisticsFilterBar), findsOneWidget);
+      expect(find.byIcon(Icons.filter_list), findsNothing);
+    });
+
+    testWidgets('shows the filter bar summary while a filter is active', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: getOverrides(
+            filter: const DiveFilterState(favoritesOnly: true),
+          ),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RecordsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.filter_list), findsOneWidget);
+    });
+
     testWidgets('should display refresh button in app bar', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: getOverrides(),
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: RecordsPage(),
@@ -589,6 +700,7 @@ void main() {
         ProviderScope(
           overrides: getOverrides(diveRecordsOverride: (ref) async => records),
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: RecordsPage(),
@@ -602,6 +714,72 @@ void main() {
       expect(find.text('Longest Dive'), findsOneWidget);
     });
 
+    // firstDive/lastDive carry no field predicate, so a dive logged with only
+    // a date populates the milestones while every superlative stays null. The
+    // page must not call that "no records".
+    testWidgets('shows milestones when only first and last dive are known', (
+      tester,
+    ) async {
+      final records = DiveRecords(
+        firstDive: DiveRecord(
+          diveId: '1',
+          diveNumber: 1,
+          dateTime: DateTime(2024, 6, 15),
+        ),
+        lastDive: DiveRecord(
+          diveId: '2',
+          diveNumber: 2,
+          dateTime: DateTime(2024, 7, 20),
+        ),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: getOverrides(diveRecordsOverride: (ref) async => records),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RecordsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('No Records Yet'), findsNothing);
+      expect(find.text('First Dive'), findsOneWidget);
+      expect(find.text('Most Recent Dive'), findsOneWidget);
+    });
+
+    testWidgets('shows the shallowest dive card when it is the only record', (
+      tester,
+    ) async {
+      final records = DiveRecords(
+        shallowestDive: DiveRecord(
+          diveId: '1',
+          diveNumber: 1,
+          dateTime: DateTime(2024, 6, 15),
+          maxDepth: 6.0,
+        ),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: getOverrides(diveRecordsOverride: (ref) async => records),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RecordsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('No Records Yet'), findsNothing);
+      expect(find.text('Shallowest Dive'), findsOneWidget);
+    });
+
     testWidgets('should display error state with retry button', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -611,6 +789,7 @@ void main() {
             },
           ),
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: RecordsPage(),

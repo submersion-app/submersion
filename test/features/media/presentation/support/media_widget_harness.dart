@@ -37,18 +37,10 @@ Future<Widget> mediaTestApp({
   MediaSourceData? resolverData,
 }) async {
   final base = await getBaseOverrides();
-  final resolver = FakeLocalFileResolver(
-    resolverData ?? BytesData(bytes: onePixelPng()),
-  );
   return ProviderScope(
     overrides: [
       ...base,
-      mediaSourceResolverRegistryProvider.overrideWithValue(
-        MediaSourceResolverRegistry({
-          MediaSourceType.localFile: resolver,
-          MediaSourceType.platformGallery: resolver,
-        }),
-      ),
+      mediaResolverOverride(resolverData: resolverData),
       ...overrides,
     ],
     child: MaterialApp(
@@ -57,6 +49,20 @@ Future<Widget> mediaTestApp({
       supportedLocales: AppLocalizations.supportedLocales,
       home: home,
     ),
+  );
+}
+
+/// The registry override [mediaTestApp] installs, for tests that build their
+/// own scope (a routed page, say) but still render thumbnails.
+Override mediaResolverOverride({MediaSourceData? resolverData}) {
+  final resolver = FakeLocalFileResolver(
+    resolverData ?? BytesData(bytes: onePixelPng()),
+  );
+  return mediaSourceResolverRegistryProvider.overrideWithValue(
+    MediaSourceResolverRegistry({
+      MediaSourceType.localFile: resolver,
+      MediaSourceType.platformGallery: resolver,
+    }),
   );
 }
 

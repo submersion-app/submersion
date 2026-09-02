@@ -10,6 +10,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -37,8 +38,10 @@ import 'package:submersion/features/universal_import/data/services/garmin_device
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
+import 'package:submersion/features/universal_import/data/services/surfacing_pressure_normalizer.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/data/services/zip_expansion_service.dart';
+import 'package:submersion/features/universal_import/domain/services/import_media_resolver.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
 import 'package:submersion/core/services/files/picked_file_materializer.dart';
 
@@ -50,6 +53,8 @@ export 'package:submersion/features/universal_import/presentation/providers/univ
 
 /// Manages the universal import wizard flow.
 class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
+  static const _log = LoggerService('UniversalImportNotifier');
+
   UniversalImportNotifier(
     this._ref, {
     BatchParseService batchParseService = const BatchParseService(),
@@ -401,6 +406,49 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     state = state.copyWith(wasLoadedExternally: true);
   }
 
+  /// Resolves the payload's referenced photos against [rootPath].
+  ///
+  /// Never throws into the wizard: a scan failure resolves to zero matches
+  /// and the user can pick a different folder or skip. Photos must not be
+  /// able to block a dive import.
+  Future<void> resolvePhotosIn(String rootPath) async {
+    final media = state.payload?.entitiesOf(ImportEntityType.media);
+    if (media == null || media.isEmpty) return;
+
+    state = state.copyWith(photoFolderPath: rootPath, isLoading: true);
+
+    ImportMediaResolution resolution;
+    try {
+      resolution = await const ImportMediaResolver().resolve(
+        media: media,
+        rootPath: rootPath,
+      );
+    } catch (e) {
+      _log.warning('Photo resolution failed under $rootPath: $e');
+      resolution = ImportMediaResolution(
+        resolvedPathByIndex: const {},
+        reRootedCount: 0,
+        filenameOnlyCount: 0,
+        notFoundCount: media.length,
+      );
+    }
+
+    state = state.copyWith(
+      photoResolution: resolution,
+      photosSkipped: false,
+      isLoading: false,
+    );
+  }
+
+  /// Proceeds without photos.
+  void skipPhotos() {
+    state = state.copyWith(
+      photosSkipped: true,
+      clearPhotoResolution: true,
+      clearPhotoFolderPath: true,
+    );
+  }
+
   /// Desktop only: pick a folder and recursively gather importable files.
   Future<void> pickFolder() async {
     state = state.copyWith(
@@ -734,7 +782,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       return;
     }
 
-    final payload = const PayloadMerger().merge(result.parsed);
+    final payload = _applySurfacingPressureRule(
+      const PayloadMerger().merge(result.parsed),
+    );
     final dupResult = await _checkDuplicates(payload);
     final selections = _defaultSelections(payload, dupResult);
 
@@ -762,17 +812,18 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
           ? await _buildPresetRegistry()
           : null;
       final parser = _parserFor(opts.format, registry: registry);
-      final ImportPayload payload;
+      final ImportPayload parsed;
       if (parser is CsvImportParser) {
-        payload = await parser.parse(
+        parsed = await parser.parse(
           bytes,
           options: opts,
           customMappingOverride: state.fieldMapping,
           profileFileBytes: state.additionalFileBytes,
         );
       } else {
-        payload = await parser.parse(bytes, options: opts);
+        parsed = await parser.parse(bytes, options: opts);
       }
+      final payload = _applySurfacingPressureRule(parsed);
 
       if (payload.isEmpty) {
         final errorMsg = payload.warnings.isNotEmpty
@@ -835,6 +886,16 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       }
     }
     return selections;
+  }
+
+  /// Read cylinder end pressure at the moment of surfacing rather than at the
+  /// end of the recording, when the diver has that on (issue #1092). Applied
+  /// to the finished payload so every format is covered at one seam, and after
+  /// the parsers have run so a parser that derives other figures from the
+  /// source's own start/end pair (FIT cylinder volume) still sees them.
+  ImportPayload _applySurfacingPressureRule(ImportPayload payload) {
+    final trim = _ref.read(settingsProvider).trimTankPressureAtSurfacing;
+    return trim ? trimTankPressuresAtSurfacing(payload) : payload;
   }
 
   Future<ImportDuplicateResult> _checkDuplicates(ImportPayload payload) async {

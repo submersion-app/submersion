@@ -360,6 +360,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_bulkEdit_fieldFavorite => 'Favorit';
 
   @override
+  String get diveLog_bulkEdit_fieldMyRole => 'Meine Rolle';
+
+  @override
+  String get diveLog_bulkEdit_buddyRoleMixed => 'Gemischt';
+
+  @override
   String get diveLog_bulkEdit_collectionWeights => 'Gewichte';
 
   @override
@@ -791,6 +797,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String accessibility_label_mapViewTitle(Object title) {
     return '$title Kartenansicht';
   }
+
+  @override
+  String get accessibility_label_resizeMasterPane =>
+      'Hauptbereich in der Groesse aendern';
 
   @override
   String get accessibility_label_sharedWithAllProfiles =>
@@ -1283,9 +1293,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddies_label_notSpecified => 'Nicht angegeben';
-
-  @override
-  String get buddies_label_photoComingSoon => 'Fotounterstützung kommt in v2.0';
 
   @override
   String get buddies_message_added => 'Tauchpartner erfolgreich hinzugefügt';
@@ -2605,6 +2612,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get common_action_cancel => 'Abbrechen';
+
+  @override
+  String get common_action_clearRating => 'Bewertung löschen';
 
   @override
   String get common_action_close => 'Schließen';
@@ -4598,6 +4608,39 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_deco_label_tts => 'TTS';
 
   @override
+  String diveLog_deco_gf_chip(Object low, Object high) {
+    return 'GF: $low/$high';
+  }
+
+  @override
+  String diveLog_deco_gf_chipFromSettings(Object low, Object high) {
+    return 'GF: $low/$high · deine Einstellungen';
+  }
+
+  @override
+  String diveLog_deco_gf_chipRecordedAlgorithm(
+    Object algorithm,
+    Object low,
+    Object high,
+  ) {
+    return '$algorithm · ausgewertet mit GF $low/$high';
+  }
+
+  @override
+  String diveLog_deco_gf_semantics(Object low, Object high) {
+    return 'Gradientenfaktoren: niedrig $low, hoch $high';
+  }
+
+  @override
+  String get diveLog_deco_gf_tooltipFromSettings =>
+      'Dieser Tauchcomputer hat seine Gradientenfaktoren nicht aufgezeichnet, daher wird dieser Tauchgang mit denen aus deinen Einstellungen ausgewertet.';
+
+  @override
+  String diveLog_deco_gf_tooltipRecordedAlgorithm(Object algorithm) {
+    return 'Dieser Tauchgang wurde mit $algorithm berechnet, das keine Gradientenfaktoren verwendet. Submersion wertet ihn mit denen aus deinen Einstellungen aus.';
+  }
+
+  @override
   String get diveLog_deco_sectionDecoStops => 'Dekostopps';
 
   @override
@@ -4803,7 +4846,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_detail_label_rateOfChange => 'Änderungsrate';
 
   @override
-  String get diveLog_detail_label_sacRate => 'AMV';
+  String get diveLog_detail_label_rmv => 'AMV';
+
+  @override
+  String get diveLog_detail_label_sac => 'Druckverbrauch';
 
   @override
   String get diveLog_detail_label_state => 'Zustand';
@@ -4871,7 +4917,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_detail_section_equipment => 'Ausrüstung';
 
   @override
-  String get diveLog_detail_section_marineLife => 'Meeresfauna';
+  String get diveLog_detail_section_marineLife => 'Arten';
+
+  @override
+  String diveLog_detail_sightingPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos',
+      one: '1 Foto',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_section_notes => 'Notizen';
@@ -4880,7 +4937,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_detail_section_oxygenToxicity => 'Sauerstofftoxizität';
 
   @override
-  String get diveLog_detail_section_sacRateBySegment => 'AMV nach Segment';
+  String get diveLog_detail_section_sacRateBySegment =>
+      'Gasverbrauch nach Segment';
 
   @override
   String get diveLog_detail_section_tags => 'Tags';
@@ -5189,7 +5247,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_noEquipmentSelected => 'Keine Ausrüstung ausgewählt';
 
   @override
-  String get diveLog_edit_noMarineLife => 'Keine Meeresfauna erfasst';
+  String get diveLog_edit_noMarineLife => 'Keine Arten erfasst';
 
   @override
   String get diveLog_edit_notSpecified => 'Nicht angegeben';
@@ -5330,7 +5388,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_section_exitTime => 'Ausstiegszeit';
 
   @override
-  String get diveLog_edit_section_marineLife => 'Meeresfauna';
+  String get diveLog_edit_section_marineLife => 'Arten';
 
   @override
   String get diveLog_edit_section_notes => 'Notizen';
@@ -5711,6 +5769,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_filterChip_noBuddy => 'Kein Buddy';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Bis $date';
   }
@@ -5738,6 +5799,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_filter_clearRating => 'Bewertungsfilter zurücksetzen';
+
+  @override
+  String get diveLog_filter_clearWeekdays => 'Wochentage zurücksetzen';
 
   @override
   String get diveLog_filter_dateSeparator => 'bis';
@@ -5769,6 +5833,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_filter_min => 'Min';
+
+  @override
+  String get diveLog_filter_noBuddyOnly => 'Kein Buddy zugewiesen';
 
   @override
   String get diveLog_filter_noTagsYet => 'Noch keine Tags erstellt';
@@ -5813,7 +5880,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_sectionTags => 'Tags';
 
   @override
+  String get diveLog_filter_sectionWeekdays => 'Wochentage';
+
+  @override
   String get diveLog_filter_showOnlyFavorites => 'Nur Favoriten anzeigen';
+
+  @override
+  String get diveLog_filter_showOnlyNoBuddy =>
+      'Nur Tauchgänge ohne Buddy anzeigen';
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
@@ -5907,7 +5981,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_legend_label_pressureThresholds => 'Druckschwellen';
 
   @override
-  String get diveLog_legend_label_sacRate => 'AMV';
+  String get diveLog_legend_label_sacRate => 'Verbrauch';
 
   @override
   String get diveLog_legend_label_showGas => 'Gase';
@@ -5920,6 +5994,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_tts => 'TTS';
+
+  @override
+  String get diveLog_legend_label_gtr => 'GTR';
 
   @override
   String get diveLog_legend_source_dc => 'DC';
@@ -6014,6 +6091,87 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_listPage_menuMatchSites =>
       'Tauchgänge Tauchplätzen zuordnen';
+
+  @override
+  String get diveLog_listPage_menuFetchConditions =>
+      'Bedingungen für alle Tauchgänge abrufen';
+
+  @override
+  String get diveLog_fetchConditions_confirmTitle => 'Bedingungen abrufen?';
+
+  @override
+  String diveLog_fetchConditions_confirmBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bei $count Tauchgängen fehlen die Bedingungen.',
+      one: 'Bei 1 Tauchgang fehlen die Bedingungen.',
+    );
+    return '$_temp0 Es werden nur leere Felder gefüllt; bereits eingetragene Werte bleiben unverändert.';
+  }
+
+  @override
+  String get diveLog_fetchConditions_confirmAction => 'Abrufen';
+
+  @override
+  String get diveLog_fetchConditions_noneNeeded =>
+      'Bei keinem Tauchgang fehlen Bedingungen.';
+
+  @override
+  String get diveLog_fetchConditions_progressTitle =>
+      'Bedingungen werden abgerufen';
+
+  @override
+  String diveLog_fetchConditions_progressCount(int completed, int total) {
+    return '$completed von $total';
+  }
+
+  @override
+  String get diveLog_fetchConditions_summaryTitle => 'Bedingungen abgerufen';
+
+  @override
+  String diveLog_fetchConditions_summaryFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge aktualisiert',
+      one: '1 Tauchgang aktualisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_fetchConditions_summaryUnavailable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Für $count Tauchgänge lagen keine Daten vor',
+      one: 'Für 1 Tauchgang lagen keine Daten vor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_fetchConditions_summaryUnchanged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bei $count Tauchgängen gab es nichts zu füllen',
+      one: 'Bei 1 Tauchgang gab es nichts zu füllen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_fetchConditions_summaryCancelled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vorzeitig beendet; $count Tauchgänge wurden verarbeitet.',
+      one: 'Vorzeitig beendet; 1 Tauchgang wurde verarbeitet.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_sighting_decreaseCount => 'Anzahl verringern';
@@ -6150,7 +6308,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_edit_invite_lifeNotes =>
-      'Meeresleben, Notizen oder Freigabe hinzufügen';
+      'Arten, Notizen oder Freigabe hinzufügen';
 
   @override
   String get diveSites_edit_invite_location =>
@@ -6454,7 +6612,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get setup_units_pressure => 'Druck';
 
   @override
-  String get setup_units_sac => 'AMV';
+  String get setup_units_gasConsumption => 'Gasverbrauch';
 
   @override
   String get setup_units_subtitle =>
@@ -6512,6 +6670,45 @@ class AppLocalizationsDe extends AppLocalizations {
   String get siteMatchReview_empty => 'Nichts zuzuordnen.';
 
   @override
+  String get siteSuggestion_titlePhoto => 'Standort in Fotos gefunden';
+
+  @override
+  String get siteSuggestion_titleDiveComputer => 'Standort vom Tauchcomputer';
+
+  @override
+  String siteSuggestion_assignButton(Object name) {
+    return '$name zuweisen';
+  }
+
+  @override
+  String siteSuggestion_chooseNearbyButton(int count) {
+    return 'Nahegelegenen Tauchplatz wählen ($count)';
+  }
+
+  @override
+  String siteSuggestion_addLocationButton(Object name) {
+    return 'Standort zu $name hinzufügen';
+  }
+
+  @override
+  String siteSuggestion_assignedSnack(Object name) {
+    return '$name zugewiesen';
+  }
+
+  @override
+  String get siteMatchReview_sourcePhoto => 'aus Foto';
+
+  @override
+  String get siteMatchReview_sourceDiveComputer => 'vom Tauchcomputer';
+
+  @override
+  String get siteMatchReview_currentSiteCard =>
+      'Standort zu diesem Tauchplatz hinzufügen';
+
+  @override
+  String get siteMatchReview_createHereButton => 'Tauchplatz hier erstellen';
+
+  @override
   String siteMatchReview_summary(int selected, int review, int none) {
     return '$selected ausgewählt · $review zu prüfen · $none ohne Treffer';
   }
@@ -6544,8 +6741,8 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String siteMatchReview_appliedSnack(int dives, int sites) {
-    return '$dives Tauchgänge verknüpft · $sites Tauchplätze hinzugefügt';
+  String siteMatchReview_appliedSnack(int dives, int sites, int located) {
+    return '$dives Tauchgänge verknüpft · $sites Tauchplätze hinzugefügt · $located Tauchplätze verortet';
   }
 
   @override
@@ -6939,9 +7136,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_rangeStats_label_minTemp => 'Min Temp';
 
   @override
-  String get diveLog_rangeStats_label_sacRate => 'AMV';
-
-  @override
   String get diveLog_rangeStats_title => 'Bereichsstatistik';
 
   @override
@@ -7031,10 +7225,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Fehler beim Laden der Tauchgangstypen';
 
   @override
+  String get diveLog_search_errorLoadingEquipment =>
+      'Fehler beim Laden der Ausrüstung';
+
+  @override
   String get diveLog_search_errorLoadingTrips => 'Fehler beim Laden der Reisen';
 
   @override
+  String get diveLog_search_filter_any => 'Beliebig';
+
+  @override
   String get diveLog_search_gasTrimix => 'Trimix (<21% O₂)';
+
+  @override
+  String get diveLog_search_label_deco => 'Dekompression';
 
   @override
   String get diveLog_search_label_depthRange => 'Tiefenbereich (m)';
@@ -7050,6 +7254,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_search_label_durationRange => 'Dauerbereich (min)';
+
+  @override
+  String get diveLog_search_label_equipment => 'Ausrüstung';
 
   @override
   String get diveLog_search_label_trip => 'Reise';
@@ -7177,7 +7384,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_speciesPicker_searchHint => 'Arten suchen...';
 
   @override
-  String get diveLog_speciesPicker_title => 'Meeresbewohner hinzufügen';
+  String get diveLog_speciesPicker_title => 'Arten hinzufügen';
 
   @override
   String get diveLog_speciesPicker_tooltip_clearSearch => 'Suche löschen';
@@ -7406,7 +7613,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tooltip_rate => 'Rate';
 
   @override
-  String get diveLog_tooltip_sac => 'AMV';
+  String get gasConsumption_rmv => 'AMV';
+
+  @override
+  String get gasConsumption_sac => 'Druckverbrauch';
 
   @override
   String get diveLog_tooltip_sensor => 'Sensor';
@@ -7434,6 +7644,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_tts => 'TTS';
+
+  @override
+  String get diveLog_tooltip_gtr => 'GTR';
 
   @override
   String get diveLog_sources_row_metric => 'Messwert';
@@ -7956,6 +8169,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_detail_section_difficultyLevel => 'Schwierigkeitsgrad';
 
   @override
+  String get diveSites_detail_section_diveStatistics => 'Tauchstatistik';
+
+  @override
   String get diveSites_detail_section_divesAtSite =>
       'Tauchgänge an diesem Platz';
 
@@ -7970,6 +8186,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_detail_section_rating => 'Bewertung';
+
+  @override
+  String get diveSites_detail_stats_avgDuration =>
+      'Durchschnittliche Tauchzeit';
+
+  @override
+  String get diveSites_detail_stats_firstDive => 'Erster Tauchgang';
+
+  @override
+  String get diveSites_detail_stats_lastDive => 'Letzter Tauchgang';
+
+  @override
+  String get diveSites_detail_stats_longestDive => 'Längster Tauchgang';
+
+  @override
+  String get diveSites_detail_stats_maxDepth => 'Tiefster Tauchgang';
+
+  @override
+  String get diveSites_detail_stats_minDepth => 'Flachster Tauchgang';
+
+  @override
+  String get diveSites_detail_stats_notAvailable => 'Nicht verfügbar';
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -8199,7 +8437,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_edit_gps_helperText =>
-      'Wählen Sie eine Standortmethode - Koordinaten füllen Land und Region automatisch aus';
+      'Wählen Sie eine Standortmethode oder suchen Sie die Koordinaten, um Land, Region, Ort und Gewässer automatisch auszufüllen';
 
   @override
   String get diveSites_edit_gps_latitude_hint => 'z. B. 21,4225';
@@ -8221,6 +8459,31 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_edit_gps_pickFromMap => 'Auf Karte auswählen';
+
+  @override
+  String get diveSites_edit_gps_lookupFromCoordinates =>
+      'Aus Koordinaten ermitteln';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNothingFound =>
+      'Keine Ortsangaben für diese Koordinaten gefunden';
+
+  @override
+  String get diveSites_edit_snackbar_lookupFailed =>
+      'Ortssuche fehlgeschlagen. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.';
+
+  @override
+  String get diveSites_edit_lookupReplace_title => 'Ortsangaben ersetzen?';
+
+  @override
+  String get diveSites_edit_lookupReplace_body =>
+      'Die Suche hat für diese Felder andere Werte gefunden:';
+
+  @override
+  String get diveSites_edit_lookupReplace_replace => 'Ersetzen';
+
+  @override
+  String get diveSites_edit_lookupReplace_keep => 'Behalten';
 
   @override
   String get diveSites_edit_gps_useMyLocation => 'Meinen Standort verwenden';
@@ -8320,8 +8583,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_edit_section_difficultyLevel => 'Schwierigkeitsgrad';
 
   @override
-  String get diveSites_edit_section_expectedMarineLife =>
-      'Erwartete Meeresbewohner';
+  String get diveSites_edit_section_expectedMarineLife => 'Erwartete Arten';
 
   @override
   String get diveSites_edit_section_gpsCoordinates => 'GPS-Koordinaten';
@@ -8584,17 +8846,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String diveSites_list_activeFilter_depthRangeBoth(Object min, Object max) {
-    return '$min-${max}m';
+    return '$min-$max';
   }
 
   @override
   String diveSites_list_activeFilter_depthRangeMax(Object max) {
-    return 'Bis zu ${max}m';
+    return 'Bis zu $max';
   }
 
   @override
   String diveSites_list_activeFilter_depthRangeMin(Object min) {
-    return '${min}m+';
+    return '$min+';
   }
 
   @override
@@ -8705,6 +8967,60 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_list_menu_select => 'Tauchplätze auswählen';
+
+  @override
+  String get diveSites_list_menu_fillLocationDetails =>
+      'Fehlende Ortsangaben ergänzen';
+
+  @override
+  String get diveSites_backfill_confirm_title =>
+      'Fehlende Ortsangaben ergänzen?';
+
+  @override
+  String diveSites_backfill_confirm_body(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchplätze mit Koordinaten haben kein Land, keine Region, keinen Ort oder kein Gewässer.',
+      one:
+          '1 Tauchplatz mit Koordinaten hat kein Land, keine Region, keinen Ort oder kein Gewässer.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes Minuten',
+      one: '1 Minute',
+    );
+    return '$_temp0 Submersion sucht jeden auf OpenStreetMap und füllt nur die leeren Felder aus. Das dauert etwa $_temp1.';
+  }
+
+  @override
+  String get diveSites_backfill_confirm_start => 'Starten';
+
+  @override
+  String get diveSites_backfill_nothingToFill =>
+      'Alle Tauchplätze mit Koordinaten haben bereits ihre Ortsangaben.';
+
+  @override
+  String get diveSites_backfill_progress_title => 'Ortsangaben werden ergänzt';
+
+  @override
+  String diveSites_backfill_progress_count(int done, int total) {
+    return '$done von $total';
+  }
+
+  @override
+  String get diveSites_backfill_cancel => 'Abbrechen';
+
+  @override
+  String diveSites_backfill_summary(int updated, int unchanged, int failed) {
+    return 'Aktualisiert $updated, unverändert $unchanged, fehlgeschlagen $failed';
+  }
+
+  @override
+  String get diveSites_backfill_offline =>
+      'Die Ortssuche ist nicht verfügbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.';
 
   @override
   String get diveSites_list_search_backTooltip => 'Zurück';
@@ -8959,46 +9275,91 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveType_builtin_altitude => 'Bergseetauchen';
 
   @override
+  String get diveType_builtin_altitude_short => 'Bergsee';
+
+  @override
   String get diveType_builtin_boat => 'Bootstauchgang';
+
+  @override
+  String get diveType_builtin_boat_short => 'Boot';
 
   @override
   String get diveType_builtin_cave => 'Höhlentauchen';
 
   @override
+  String get diveType_builtin_cave_short => 'Höhle';
+
+  @override
   String get diveType_builtin_cavern => 'Cavern';
+
+  @override
+  String get diveType_builtin_cavern_short => 'Cavern';
 
   @override
   String get diveType_builtin_deep => 'Tieftauchen';
 
   @override
+  String get diveType_builtin_deep_short => 'Tief';
+
+  @override
   String get diveType_builtin_drift => 'Strömungstauchen';
+
+  @override
+  String get diveType_builtin_drift_short => 'Strömung';
 
   @override
   String get diveType_builtin_freedive => 'Apnoetauchen';
 
   @override
+  String get diveType_builtin_freedive_short => 'Apnoe';
+
+  @override
   String get diveType_builtin_ice => 'Eistauchen';
+
+  @override
+  String get diveType_builtin_ice_short => 'Eis';
 
   @override
   String get diveType_builtin_liveaboard => 'Tauchsafari';
 
   @override
+  String get diveType_builtin_liveaboard_short => 'Safari';
+
+  @override
   String get diveType_builtin_night => 'Nachttauchen';
+
+  @override
+  String get diveType_builtin_night_short => 'Nacht';
 
   @override
   String get diveType_builtin_recreational => 'Sporttauchen';
 
   @override
+  String get diveType_builtin_recreational_short => 'Rec';
+
+  @override
   String get diveType_builtin_shore => 'Ufertauchgang';
+
+  @override
+  String get diveType_builtin_shore_short => 'Ufer';
 
   @override
   String get diveType_builtin_technical => 'Technisches Tauchen';
 
   @override
+  String get diveType_builtin_technical_short => 'Tec';
+
+  @override
   String get diveType_builtin_training => 'Ausbildung';
 
   @override
+  String get diveType_builtin_training_short => 'Kurs';
+
+  @override
   String get diveType_builtin_wreck => 'Wracktauchen';
+
+  @override
+  String get diveType_builtin_wreck_short => 'Wrack';
 
   @override
   String get diveTypes_addDialog_addButton => 'Hinzufügen';
@@ -9012,6 +9373,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveTypes_addDialog_nameValidation =>
       'Bitte geben Sie einen Namen ein';
+
+  @override
+  String get diveTypes_addDialog_shortNameHelper =>
+      'Wird im Tauchgang-Header angezeigt, wenn der Platz knapp ist';
+
+  @override
+  String get diveTypes_addDialog_shortNameHint => 'z.B. S&B';
+
+  @override
+  String get diveTypes_addDialog_shortNameLabel => 'Kurzname (optional)';
 
   @override
   String get diveTypes_addDialog_title =>
@@ -9047,6 +9418,30 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'Tauchgangstyp löschen';
 
   @override
+  String get diveTypes_editDialog_builtInNameHelper =>
+      'Interne Namen können nicht geändert werden';
+
+  @override
+  String get diveTypes_editDialog_saveButton => 'Speichern';
+
+  @override
+  String get diveTypes_editDialog_title => 'Tauchgangstyp bearbeiten';
+
+  @override
+  String get diveTypes_showInHeaderLabel => 'Kopfzeile';
+
+  @override
+  String get diveTypes_showInHeaderTooltip =>
+      'Badge dieses Typs in der Tauchgang-Kopfzeile anzeigen';
+
+  @override
+  String get diveTypes_showInListLabel => 'Liste';
+
+  @override
+  String get diveTypes_showInListTooltip =>
+      'Badge dieses Typs in der Tauchgangsliste anzeigen';
+
+  @override
   String diveTypes_snackbar_added(Object name) {
     return 'Tauchgangstyp hinzugefügt: $name';
   }
@@ -9069,6 +9464,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveTypes_snackbar_errorDeleting(Object error) {
     return 'Fehler beim Löschen des Tauchgangstyps: $error';
+  }
+
+  @override
+  String diveTypes_snackbar_errorUpdating(Object error) {
+    return 'Fehler beim Aktualisieren des Tauchgangstyps: $error';
+  }
+
+  @override
+  String diveTypes_snackbar_updated(Object name) {
+    return '\"$name\" aktualisiert';
   }
 
   @override
@@ -9936,10 +10341,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_profileMetric_pressure_short => 'Druck';
 
   @override
-  String get enum_profileMetric_sacRate => 'AMV';
+  String get enum_profileMetric_sacRate => 'Gasverbrauch';
 
   @override
-  String get enum_profileMetric_sacRate_short => 'AMV';
+  String get enum_profileMetric_sacRate_short => 'Verbrauch';
 
   @override
   String get enum_profileMetric_surfaceGf => 'Oberflächenm GF';
@@ -9958,6 +10363,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_profileMetric_tts_short => 'TTS';
+
+  @override
+  String get enum_profileMetric_gtr => 'GTR';
+
+  @override
+  String get enum_profileMetric_gtr_short => 'GTR';
 
   @override
   String get enum_scrType_cmf => 'Konstanter Massenstrom';
@@ -10023,6 +10434,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_sortField_dateIssued => 'Ausstellungsdatum';
 
   @override
+  String get enum_sortField_dateTaken => 'Aufnahmedatum';
+
+  @override
   String get enum_sortField_difficulty => 'Schwierigkeitsgrad';
 
   @override
@@ -10036,6 +10450,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_sortField_endDate => 'Enddatum';
+
+  @override
+  String get enum_sortField_fileName => 'Dateiname';
+
+  @override
+  String get enum_sortField_fileSize => 'Dateigröße';
+
+  @override
+  String get enum_sortField_lastDive => 'Letzter Tauchgang';
 
   @override
   String get enum_sortField_lastServiceDate => 'Letzte Wartung';
@@ -11734,7 +12157,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_tab_mnd => 'MND/END';
 
   @override
-  String get gasCalculators_tab_blender => 'Mischer';
+  String get gasCalculators_tab_blender => 'Trimix-Mischer';
 
   @override
   String get gasCalculators_blender_cylinder => 'Flasche';
@@ -11825,11 +12248,196 @@ class AppLocalizationsDe extends AppLocalizations {
       'Mit diesen Füllgasen wird das Zielgemisch nicht exakt erreicht. Füllgase und ihre Reihenfolge prüfen.';
 
   @override
+  String get gasCalculators_blender_error_implausibleStartMix =>
+      'Die Flasche steht unter Druck, enthält aber weder Sauerstoff noch Helium, also reinen Stickstoff. Prüfe die Mischung, die bereits in der Flasche ist.';
+
+  @override
   String get gasCalculators_blender_about => 'Über das Mischen';
 
   @override
   String get gasCalculators_blender_aboutBody =>
-      'Partialdruck-Mischung für das Zielgemisch mit realem Gasverhalten (Van der Waals). Fülle jedes Füllgas der Reihe nach bis zum angezeigten Druck. Füllgase und ihre Reihenfolge sind einstellbar; analysiere das fertige Gemisch immer, bevor du damit tauchst.';
+      'Partialdruck-Mischung für die Zielmischung. Gib jedes Füllgas der Reihe nach bis zum angezeigten Druck zu und lass die Flasche danach ruhen. Füllgase und ihre Reihenfolge sind einstellbar: Setzt du das letzte Gas auf 32/0, wird statt mit Luft mit EAN32 aufgefüllt. Analysiere die fertige Mischung immer, bevor du sie tauchst.';
+
+  @override
+  String get gasCalculators_blender_conditions => 'Mischbedingungen';
+
+  @override
+  String get gasCalculators_blender_fillTemp => 'Fülltemperatur';
+
+  @override
+  String get gasCalculators_blender_fillTempHelp =>
+      'Die Temperatur der Flasche während des Füllens. Jeder Druck in der Reihenfolge ist der Manometerwert bei dieser Temperatur.';
+
+  @override
+  String get gasCalculators_blender_settledTemp => 'Ruhetemperatur';
+
+  @override
+  String get gasCalculators_blender_settledTempHelp =>
+      'Die Temperatur, die die Flasche am Ende annimmt. Der Zieldruck ist der Wert, den sie dann anzeigt.';
+
+  @override
+  String get gasCalculators_blender_gasModel => 'Gasmodell';
+
+  @override
+  String get gasCalculators_blender_modelIdeal => 'Ideales Gas';
+
+  @override
+  String get gasCalculators_blender_modelVanDerWaals => 'Van der Waals';
+
+  @override
+  String get gasCalculators_blender_modelZFactor => 'Reales Gas (Z-Faktor)';
+
+  @override
+  String get gasCalculators_blender_modelRecommended => 'Empfohlen';
+
+  @override
+  String get gasCalculators_blender_modelHelp =>
+      'Reales Gas (Z-Faktor) ist bei Flaschendrücken am genauesten. Ideales Gas entspricht den meisten veröffentlichten Mischtabellen. Van der Waals dient dem Vergleich mit anderer Mischsoftware und weicht bei Fülldruck um mehrere Prozent ab.';
+
+  @override
+  String gasCalculators_blender_stepAdd(String gas) {
+    return '$gas zugeben';
+  }
+
+  @override
+  String get gasCalculators_blender_stepStartLabel => 'Start';
+
+  @override
+  String gasCalculators_blender_settlesTo(String pressure, String temperature) {
+    return 'Endet bei $pressure bei $temperature';
+  }
+
+  @override
+  String get gasCalculators_blender_templates => 'Vorlagen';
+
+  @override
+  String get gasCalculators_blender_templatesTitle =>
+      'Vorlagen für Zielmischungen';
+
+  @override
+  String get gasCalculators_blender_saveTemplate =>
+      'Aktuelle Mischung speichern';
+
+  @override
+  String get gasCalculators_blender_manageTemplates => 'Vorlagen verwalten';
+
+  @override
+  String gasCalculators_blender_templateSaved(String mix) {
+    return '$mix gespeichert';
+  }
+
+  @override
+  String get gasCalculators_blender_templateExists =>
+      'Diese Mischung ist bereits gespeichert.';
+
+  @override
+  String get gasCalculators_blender_templateInvalid =>
+      'O₂ + He darf 100 % nicht überschreiten.';
+
+  @override
+  String get gasCalculators_blender_templateNeedsNumbers =>
+      'Gib O₂ und He beide als Zahl ein.';
+
+  @override
+  String gasCalculators_blender_templateLimit(int count) {
+    return 'Du kannst bis zu $count Vorlagen speichern.';
+  }
+
+  @override
+  String get gasCalculators_blender_templateNone =>
+      'Noch keine Vorlagen. Speichere eine Zielmischung, um sie hier wiederzuverwenden.';
+
+  @override
+  String gasCalculators_blender_templateDelete(String mix) {
+    return '$mix löschen';
+  }
+
+  @override
+  String get gasCalculators_blender_templateAdd => 'Vorlage hinzufügen';
+
+  @override
+  String get gasCalculators_blender_billing => 'Kosten';
+
+  @override
+  String get gasCalculators_blender_cylinderVolume =>
+      'Wasservolumen der Flasche';
+
+  @override
+  String get gasCalculators_blender_cylinderPresets => 'Voreinstellungen';
+
+  @override
+  String gasCalculators_blender_unitPrice(String unit) {
+    return 'Preis pro 100 $unit';
+  }
+
+  @override
+  String get gasCalculators_blender_currency => 'Währung';
+
+  @override
+  String get gasCalculators_blender_costTotal => 'Gesamt';
+
+  @override
+  String get gasCalculators_blender_costBasis =>
+      'Abgerechnet wird der gelieferte Druck (Wasservolumen der Flasche × zugeführte bar), so wie eine Füllstation misst.';
+
+  @override
+  String get gasCalculators_blender_costMissingPrice =>
+      'Gib für jedes Gas einen Preis ein, um die Summe zu sehen.';
+
+  @override
+  String get gasCalculators_blender_saveFill => 'Diese Füllung speichern';
+
+  @override
+  String get gasCalculators_blender_billed => 'Abgerechnet';
+
+  @override
+  String get gasCalculators_blender_billedNone =>
+      'Noch nichts abgerechnet. Schliesse eine Füllung ab und speichere sie hier.';
+
+  @override
+  String get gasCalculators_blender_billedTo => 'Rechnung an';
+
+  @override
+  String get gasCalculators_blender_addManualLine => 'Position hinzufügen';
+
+  @override
+  String get gasCalculators_blender_lineDescription => 'Bezeichnung';
+
+  @override
+  String get gasCalculators_blender_lineAmount => 'Betrag';
+
+  @override
+  String get gasCalculators_blender_clearBilled => 'Leeren';
+
+  @override
+  String get gasCalculators_blender_clearBilledTitle => 'Rechnung leeren?';
+
+  @override
+  String gasCalculators_blender_clearBilledBody(int count) {
+    return 'Damit werden alle $count gespeicherten Füllungen entfernt.';
+  }
+
+  @override
+  String gasCalculators_blender_editLine(String label) {
+    return '$label bearbeiten';
+  }
+
+  @override
+  String gasCalculators_blender_deleteLine(String label) {
+    return '$label löschen';
+  }
+
+  @override
+  String gasCalculators_blender_fillAdded(String mix) {
+    return '$mix zur Rechnung hinzugefügt';
+  }
+
+  @override
+  String get gasCalculators_blender_billedIncomplete =>
+      'Mindestens eine Position hat keinen Preis, die Summe ist daher unvollständig.';
+
+  @override
+  String get gasCalculators_blender_billedTotal => 'Gesamt';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';
@@ -11842,6 +12450,31 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_title => 'Gasrechner';
+
+  @override
+  String get gasCalculators_desc_mod => 'Größte sichere Tiefe für ein Gemisch';
+
+  @override
+  String get gasCalculators_desc_bestMix =>
+      'Sauerstoffreichstes Gemisch für eine Zieltiefe';
+
+  @override
+  String get gasCalculators_desc_consumption =>
+      'Gasverbrauch eines geplanten Tauchgangs';
+
+  @override
+  String get gasCalculators_desc_rockBottom =>
+      'Reserve für den Aufstieg zu zweit';
+
+  @override
+  String get gasCalculators_desc_mnd => 'Narkosetiefe-Grenze für ein Gemisch';
+
+  @override
+  String get gasCalculators_desc_blender => 'Füllvorgang für ein Zielgemisch';
+
+  @override
+  String get gasCalculators_summary_prompt =>
+      'Wählen Sie einen Rechner aus, um zu beginnen';
 
   @override
   String get marineLife_siteSection_editExpectedTooltip =>
@@ -11863,8 +12496,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine erwarteten Arten hinzugefügt';
 
   @override
-  String get marineLife_siteSection_noSpotted =>
-      'Noch keine Meeresbewohner gesichtet';
+  String get marineLife_siteSection_noSpotted => 'Noch keine Arten gesichtet';
 
   @override
   String marineLife_siteSection_spottedCountSemantics(
@@ -11878,7 +12510,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_siteSection_spottedHere => 'Hier gesichtet';
 
   @override
-  String get marineLife_siteSection_title => 'Meeresbewohner';
+  String get marineLife_siteSection_title => 'Arten';
 
   @override
   String get marineLife_speciesDetail_backTooltip => 'Zurück';
@@ -11985,6 +12617,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String marineLife_speciesEdit_errorSaving(Object error) {
     return 'Fehler beim Speichern der Art: $error';
   }
+
+  @override
+  String get marineLife_speciesEdit_notFoundMessage =>
+      'Diese Art existiert nicht mehr.';
 
   @override
   String get marineLife_speciesEdit_saveButton => 'Speichern';
@@ -12096,6 +12732,282 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesManage_searchHint => 'Arten durchsuchen...';
 
   @override
+  String get marineLife_lookup_button => 'Online nachschlagen';
+
+  @override
+  String get marineLife_lookup_title => 'Art nachschlagen';
+
+  @override
+  String get marineLife_lookup_searchHint =>
+      'Trivial- oder wissenschaftlicher Name';
+
+  @override
+  String get marineLife_lookup_search => 'Nachschlagen';
+
+  @override
+  String get marineLife_lookup_createWithout => 'Ohne Nachschlagen anlegen';
+
+  @override
+  String get marineLife_lookup_attribution =>
+      'Artdaten und Fotos von iNaturalist';
+
+  @override
+  String get marineLife_lookup_idle =>
+      'Geben Sie einen Namen ein und tippen Sie auf Nachschlagen.';
+
+  @override
+  String marineLife_lookup_empty(String query) {
+    return 'Keine Art für \"$query\" gefunden';
+  }
+
+  @override
+  String get marineLife_lookup_errorOffline => 'Sie scheinen offline zu sein.';
+
+  @override
+  String get marineLife_lookup_errorTimeout =>
+      'Zeitüberschreitung beim Nachschlagen.';
+
+  @override
+  String get marineLife_lookup_errorServer =>
+      'iNaturalist hat einen Fehler gemeldet. Versuchen Sie es später erneut.';
+
+  @override
+  String get marineLife_lookup_errorMalformed =>
+      'Unerwartete Antwort von iNaturalist.';
+
+  @override
+  String get marineLife_lookup_retry => 'Erneut versuchen';
+
+  @override
+  String marineLife_lookup_observations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Beobachtungen',
+      one: '1 Beobachtung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_lookup_unresolvableRank(String rank) {
+    return '$rank: wählen Sie eine Art';
+  }
+
+  @override
+  String get marineLife_speciesDetail_suggestForCatalog =>
+      'Für den Katalog vorschlagen';
+
+  @override
+  String get marineLife_suggest_couldNotOpen =>
+      'Browser konnte nicht geöffnet werden';
+
+  @override
+  String get marineLife_suggest_copyLink => 'Link kopieren';
+
+  @override
+  String marineLife_speciesPhotos_title(Object count) {
+    return 'Fotos ($count)';
+  }
+
+  @override
+  String get marineLife_speciesPhotos_empty =>
+      'Fotos, die mit dieser Art markiert sind, erscheinen hier.';
+
+  @override
+  String get marineLife_speciesPhotos_tagPhotos => 'Fotos markieren';
+
+  @override
+  String get marineLife_speciesPhotos_addPhotos => 'Fotos hinzufügen';
+
+  @override
+  String get marineLife_speciesPhotos_thumbnailLabel => 'Artenfoto';
+
+  @override
+  String marineLife_speciesPhotos_importAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos hinzugefügt',
+      one: '1 Foto hinzugefügt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPhotos_importSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count übersprungen',
+      one: '1 übersprungen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPhotos_importFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fehlgeschlagen',
+      one: '1 fehlgeschlagen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_tagPicker_title => 'Fotos markieren';
+
+  @override
+  String get marineLife_tagPicker_empty =>
+      'Keine unmarkierten Fotos bei Tauchgängen, bei denen Sie diese Art protokolliert haben.';
+
+  @override
+  String get marineLife_tagPicker_emptyHint =>
+      'Verwenden Sie Fotos hinzufügen, um Bilder aus Ihren Aufnahmen zu importieren.';
+
+  @override
+  String get marineLife_tagPicker_selectAll => 'Alle auswählen';
+
+  @override
+  String marineLife_tagPicker_confirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos markieren',
+      one: '1 Foto markieren',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_tagPicker_tagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos markiert',
+      one: '1 Foto markiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_tagPicker_diveLabel(Object number) {
+    return 'Tauchgang $number';
+  }
+
+  @override
+  String get marineLife_speciesPage_title => 'Arten';
+
+  @override
+  String get marineLife_speciesPage_searchHint => 'Gesehene Arten suchen';
+
+  @override
+  String get marineLife_speciesPage_clearSearchTooltip => 'Suche löschen';
+
+  @override
+  String get marineLife_speciesPage_manageCatalogTooltip => 'Katalog verwalten';
+
+  @override
+  String get marineLife_speciesPage_sortTooltip => 'Sortieren';
+
+  @override
+  String get marineLife_speciesPage_sort_mostSightings => 'Meiste Sichtungen';
+
+  @override
+  String get marineLife_speciesPage_sort_recentlySeen => 'Zuletzt gesehen';
+
+  @override
+  String get marineLife_speciesPage_sort_firstSeen => 'Zuerst gesehen';
+
+  @override
+  String get marineLife_speciesPage_sort_name => 'Name';
+
+  @override
+  String marineLife_speciesPage_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Arten',
+      one: '1 Art',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPage_sightingsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sichtungen',
+      one: '1 Sichtung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPage_divesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String marineLife_speciesPage_lastSeen(String date) {
+    return 'Zuletzt gesehen $date';
+  }
+
+  @override
+  String get marineLife_speciesPage_emptyTitle => 'Noch keine Arten';
+
+  @override
+  String get marineLife_speciesPage_emptyHint =>
+      'Arten, die zu einem Tauchgang hinzugefügt wurden, erscheinen hier.';
+
+  @override
+  String get marineLife_speciesPage_noMatch =>
+      'Keine Arten passen zu Ihrer Suche';
+
+  @override
+  String marineLife_speciesPage_error(String error) {
+    return 'Ihre Arten konnten nicht geladen werden: $error';
+  }
+
+  @override
+  String get marineLife_speciesPage_retry => 'Erneut versuchen';
+
+  @override
+  String marineLife_speciesDetail_sightingsTitle(Object count) {
+    return 'Sichtungen ($count)';
+  }
+
+  @override
+  String marineLife_speciesDetail_sightingsError(String error) {
+    return 'Sichtungen konnten nicht geladen werden: $error';
+  }
+
+  @override
+  String marineLife_speciesDetail_showAll(Object count) {
+    return 'Alle anzeigen ($count)';
+  }
+
+  @override
+  String get marineLife_speciesDetail_showFewer => 'Weniger anzeigen';
+
+  @override
+  String get marineLife_speciesDetail_unknownSite => 'Unbekannter Tauchplatz';
+
+  @override
+  String marineLife_speciesDetail_countTimes(Object count) {
+    return '× $count';
+  }
+
+  @override
   String get marineLife_speciesPicker_allFilter => 'Alle';
 
   @override
@@ -12161,28 +13073,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_diveMediaSection_title => 'Fotos & Video';
 
   @override
-  String get media_diveMediaSection_deleteButton => 'Löschen';
-
-  @override
-  String media_diveMediaSection_deleteError(Object error) {
-    return 'Löschen fehlgeschlagen: $error';
-  }
-
-  @override
-  String get media_diveMediaSection_deleteSelectedContent =>
-      'Dies entfernt sie aus der App und aus jedem Medienspeicher. Dies kann nicht rückgängig gemacht werden.';
-
-  @override
-  String media_diveMediaSection_deleteSelectedSuccess(int count) {
-    return '$count Elemente gelöscht';
-  }
-
-  @override
-  String media_diveMediaSection_deleteSelectedTitle(int count) {
-    return '$count Elemente löschen?';
-  }
-
-  @override
   String get media_diveMediaSection_replaceButton => 'Neu verknüpfen';
 
   @override
@@ -12197,13 +13087,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => 'Trennen';
 
   @override
-  String get media_diveMediaSection_unlinkDialogContent =>
-      'Dieses Foto vom Tauchgang entfernen? Das Foto bleibt in Ihrer Galerie erhalten.';
-
-  @override
-  String get media_diveMediaSection_unlinkDialogTitle => 'Foto trennen';
-
-  @override
   String media_diveMediaSection_unlinkError(Object error) {
     return 'Trennen fehlgeschlagen: $error';
   }
@@ -12215,7 +13098,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
-    return 'Dies entfernt $count Medienelemente von diesem Tauchgang. Die Originaldateien werden nicht gelöscht.';
+    return 'Entfernt $count Medien samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek. Medien, die ein Tauchplatz noch verwendet, bleiben erhalten. Deine Originaldateien bleiben unberührt.';
   }
 
   @override
@@ -12229,7 +13112,31 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get media_diveMediaSection_unlinkSuccess => 'Foto getrennt';
+  String media_library_unlinkConfirmTitle(int count) {
+    return '$count Elemente trennen?';
+  }
+
+  @override
+  String media_siteMediaSection_unlinkError(Object error) {
+    return 'Trennen fehlgeschlagen: $error';
+  }
+
+  @override
+  String get media_library_unlinkConfirmBody =>
+      'Sie verlassen deine Mediathek, samt Cloud-Kopien und Miniaturansichten. Deine Originaldateien bleiben unberührt. Dies kann nicht rückgängig gemacht werden.';
+
+  @override
+  String media_library_unlinkMetadataNote(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count davon haben eine Bildunterschrift oder Favoritenmarkierung in Submersion, diese Details gehen verloren.',
+      one:
+          'Eines davon hat eine Bildunterschrift oder Favoritenmarkierung in Submersion, diese Details gehen verloren.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_siteMediaSection_title => 'Medien des Tauchplatzes';
@@ -12254,16 +13161,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return '$count Anhänge entfernen?';
+    return '$count Elemente trennen?';
   }
 
   @override
-  String get media_siteMediaSection_unlinkSelectedContent =>
-      'Die ausgewählten Elemente werden von diesem Tauchplatz entfernt. Dateien in deiner Fotobibliothek oder auf der Festplatte werden nicht gelöscht.';
+  String media_siteMediaSection_unlinkSelectedContent(int count) {
+    return 'Entfernt $count Elemente aus Ihrer Bibliothek, einschließlich Cloud-Kopien und Vorschaubildern. Medien, die ein Tauchgang noch verwendet, bleiben erhalten. Ihre Originaldateien sind nicht betroffen.';
+  }
 
   @override
   String media_siteMediaSection_unlinkSelectedSuccess(int count) {
-    return '$count Anhänge entfernt';
+    return '$count Elemente getrennt';
   }
 
   @override
@@ -12345,6 +13253,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_gpsBanner_dismissTooltip => 'GPS-Vorschlag schließen';
+
+  @override
+  String mediaImport_offerSiteReview(int count) {
+    return '$count Tauchgänge könnten aus ihren Fotos einen Tauchplatz erhalten';
+  }
+
+  @override
+  String get mediaImport_reviewSitesAction => 'Tauchplätze prüfen';
 
   @override
   String get media_gpsBanner_title => 'GPS in Fotos gefunden';
@@ -12509,6 +13425,193 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get media_photoPicker_thumbnailToggleSelectedLabel =>
       'Auswahl für Foto umschalten, ausgewählt';
+
+  @override
+  String get media_photoPicker_files_pickFilesButton => 'Dateien auswählen…';
+
+  @override
+  String get media_photoPicker_files_pickFolderButton => 'Ordner auswählen…';
+
+  @override
+  String get media_photoPicker_files_autoMatchLabel =>
+      'Fotos und Videos automatisch nach Datum den Tauchgängen zuordnen';
+
+  @override
+  String get media_photoPicker_files_emptyHint =>
+      'Wähle Dateien oder einen Ordner aus, um zu beginnen.';
+
+  @override
+  String media_photoPicker_files_linkButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente verknüpfen',
+      one: '1 Element verknüpfen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_photoPicker_files_attachToSiteButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente diesem Tauchplatz zuordnen',
+      one: '1 Element diesem Tauchplatz zuordnen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_photoPicker_files_summary(
+    int fileCount,
+    int diveCount,
+    Object unmatchedCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      fileCount,
+      locale: localeName,
+      other: '$fileCount Dateien',
+      one: '1 Datei',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0, $_temp1, $unmatchedCount nicht zugeordnet';
+  }
+
+  @override
+  String media_photoPicker_files_itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente',
+      one: '1 Element',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupTitle(String diveId) {
+    return 'Tauchgang $diveId';
+  }
+
+  @override
+  String media_photoPicker_files_groupCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien',
+      one: '1 Datei',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_photoPicker_files_unmatchedGroupTitle => 'Nicht zugeordnet';
+
+  @override
+  String media_photoPicker_files_addAllToDive(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Alle $count zu diesem Tauchgang hinzufügen',
+      one: '1 zu diesem Tauchgang hinzufügen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_photoPicker_files_addToDiveTooltip =>
+      'Zu diesem Tauchgang hinzufügen';
+
+  @override
+  String get media_photoPicker_files_chooseDiveTooltip => 'Tauchgang auswählen';
+
+  @override
+  String get media_photoPicker_files_removeTooltip =>
+      'Aus der Auswahl entfernen';
+
+  @override
+  String get media_photoPicker_files_sourceExif => 'aus EXIF';
+
+  @override
+  String get media_photoPicker_files_sourceContainer => 'aus Dateimetadaten';
+
+  @override
+  String get media_photoPicker_files_sourceFileDate => 'aus Dateidatum';
+
+  @override
+  String get media_photoPicker_files_sourceNone => 'kein Datum gefunden';
+
+  @override
+  String media_photoPicker_files_shiftedTime(String shifted, String original) {
+    return '$shifted (war $original)';
+  }
+
+  @override
+  String get media_photoPicker_files_reasonNoTimestamp =>
+      'Keine Aufnahmezeit lesbar';
+
+  @override
+  String media_photoPicker_files_reasonBeforeDive(String gap) {
+    return '$gap vor dem nächsten Tauchgang';
+  }
+
+  @override
+  String media_photoPicker_files_reasonAfterDive(String gap) {
+    return '$gap nach dem nächsten Tauchgang';
+  }
+
+  @override
+  String get media_photoPicker_files_reasonNoDives =>
+      'Keine Tauchgänge zum Abgleichen';
+
+  @override
+  String get media_photoPicker_files_offsetLabel =>
+      'Aufnahmezeiten verschieben um';
+
+  @override
+  String get media_photoPicker_files_offsetResetTooltip =>
+      'Verschiebung zurücksetzen';
+
+  @override
+  String media_photoPicker_files_offsetBackTooltip(String amount) {
+    return 'Um $amount früher verschieben';
+  }
+
+  @override
+  String media_photoPicker_files_offsetForwardTooltip(String amount) {
+    return 'Um $amount später verschieben';
+  }
+
+  @override
+  String media_photoPicker_files_linkedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente verknüpft',
+      one: '1 Element verknüpft',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_photoPicker_files_attachedToSiteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente diesem Tauchplatz zugeordnet',
+      one: '1 Element diesem Tauchplatz zugeordnet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_photoPicker_files_undo => 'Rückgängig';
 
   @override
   String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
@@ -12754,6 +13857,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Originalvideo beibehalten';
 
   @override
+  String get media_writeMetadata_livePhotoUnsupported =>
+      'Live Photos werden noch nicht unterstützt. Dupliziere dieses Foto als Standbild und schreibe die Tauchdaten dann in die Kopie.';
+
+  @override
   String get media_writeMetadata_noDataAvailable =>
       'Keine Tauchdaten zum Schreiben verfügbar.';
 
@@ -12817,8 +13924,47 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_import_launch => 'Medien importieren...';
 
   @override
+  String get media_import_review_title => 'Import prüfen';
+
+  @override
+  String media_import_review_confirm(int count) {
+    return '$count Elemente importieren';
+  }
+
+  @override
+  String media_import_review_result(int linked, int skipped, int failed) {
+    return '$linked verknüpft, $skipped übersprungen, $failed fehlgeschlagen';
+  }
+
+  @override
+  String get media_import_review_chooseSite => 'Tauchplatz wählen';
+
+  @override
+  String get media_import_review_ambiguous => 'Mehrere Tauchgänge passen';
+
+  @override
+  String get media_import_review_noMatch => 'Kein passender Tauchgang';
+
+  @override
+  String get media_import_review_skipped => 'Nicht importiert';
+
+  @override
+  String media_import_review_linkChip(int number) {
+    return 'Mit #$number verknüpfen';
+  }
+
+  @override
+  String get media_import_review_linkToDive => 'Mit Tauchgang verknüpfen';
+
+  @override
+  String get media_import_review_linkToSite => 'Mit Tauchplatz verknüpfen';
+
+  @override
+  String get media_import_review_chooseDive => 'Tauchgang wählen';
+
+  @override
   String get media_import_intro =>
-      'Importierte Medien bleiben in Ihrer Bibliothek und können automatisch mit Tauchgängen verknüpft werden.';
+      'Fotos werden beim Import mit einem Tauchgang oder Tauchplatz verknüpft.';
 
   @override
   String get media_console_sources => 'Quellen';
@@ -12932,9 +14078,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get media_console_missing => 'Fehlend';
-
-  @override
   String get media_missing_empty => 'Keine fehlenden Dateien';
 
   @override
@@ -12997,45 +14140,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get media_console_unlinked => 'Nicht verknüpft';
-
-  @override
-  String get media_import_linkTitle => 'Importierte Medien verknüpfen';
-
-  @override
-  String media_import_linkConfirm(int count) {
-    return '$count Elemente verknüpfen';
-  }
-
-  @override
-  String get media_import_staysUnlinked => 'Bleibt unter Nicht verknüpft';
-
-  @override
-  String media_import_linkedResult(int count) {
-    return '$count Elemente verknüpft';
-  }
-
-  @override
-  String get media_inbox_chooseDive => 'Tauchgang wählen';
-
-  @override
-  String get media_inbox_empty => 'Keine nicht verknüpften Medien';
-
-  @override
-  String get media_inbox_keep => 'Behalten';
-
-  @override
-  String media_inbox_linkChip(int number) {
-    return 'Mit #$number verknüpfen';
-  }
-
-  @override
-  String get media_inbox_linkToDive => 'Mit Tauchgang verknüpfen';
-
-  @override
-  String get media_inbox_linkToSite => 'Mit Tauchplatz verknüpfen';
-
-  @override
   String get media_library_empty => 'Noch keine Medien';
 
   @override
@@ -13051,13 +14155,39 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_library_filter_site => 'Tauchplatz';
 
   @override
+  String get media_library_filter_species => 'Art';
+
+  @override
   String get media_library_filter_trip => 'Reise';
 
   @override
   String get media_library_filter_dates => 'Zeitraum';
 
   @override
+  String get media_library_filter_missing => 'Fehlende Dateien';
+
+  @override
+  String media_library_filter_missingCount(int count) {
+    return 'Fehlende Dateien ($count)';
+  }
+
+  @override
   String get media_library_filter_clear => 'Filter zurücksetzen';
+
+  @override
+  String get media_library_filter_any => 'Beliebig';
+
+  @override
+  String get media_library_filter_title => 'Medien filtern';
+
+  @override
+  String get media_library_filter_apply => 'Übernehmen';
+
+  @override
+  String get media_library_sort_title => 'Medien sortieren';
+
+  @override
+  String get media_smartAlbum_load => 'Album laden';
 
   @override
   String get media_divePicker_title => 'Zu Tauchgang verschieben';
@@ -13066,22 +14196,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_divePicker_search => 'Tauchgänge durchsuchen';
 
   @override
-  String get media_library_deleteConfirmBody =>
-      'Dies entfernt sie aus der App und aus jedem Medienspeicher. Dies kann nicht rückgängig gemacht werden.';
-
-  @override
-  String media_library_deleteConfirmTitle(int count) {
-    return '$count Elemente löschen?';
-  }
-
-  @override
   String get media_library_moveToDive => 'Zu Tauchgang verschieben';
 
   @override
-  String get media_library_unlinkFromSite => 'Vom Tauchplatz lösen';
-
-  @override
-  String get media_library_unlinkSelected => 'Lösen';
+  String get media_library_unlinkSelected => 'Trennen';
 
   @override
   String media_library_selectedCount(int count) {
@@ -13129,6 +14247,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get nav_sites => 'Tauchplätze';
+
+  @override
+  String get nav_species => 'Arten';
 
   @override
   String get nav_statistics => 'Statistiken';
@@ -13792,6 +14913,76 @@ class AppLocalizationsDe extends AppLocalizations {
   String get safetyReview_restore => 'Wiederherstellen';
 
   @override
+  String get safetyReview_dismissAll => 'Alle ausblenden';
+
+  @override
+  String get safetyReview_restoreAll => 'Alle wiederherstellen';
+
+  @override
+  String get safetySettings_dismissAll => 'Alle Beobachtungen ausblenden';
+
+  @override
+  String get safetySettings_dismissAll_subtitle =>
+      'Alle Beobachtungen in diesem Logbuch als geprüft markieren';
+
+  @override
+  String get safetySettings_dismissAll_confirmTitle =>
+      'Alle Beobachtungen ausblenden?';
+
+  @override
+  String get safetySettings_dismissAll_confirmBody =>
+      'Jede Beobachtung zu jedem analysierten Tauchgang wird als geprüft markiert. Du kannst sie im Abschnitt Sicherheitsüberprüfung eines Tauchgangs einzeln wiederherstellen.';
+
+  @override
+  String get safetySettings_dismissAll_confirm => 'Alle ausblenden';
+
+  @override
+  String get safetySettings_dismissAll_cancel => 'Abbrechen';
+
+  @override
+  String safetySettings_dismissAll_progress(int done, int total) {
+    return '$done von $total Tauchgängen geprüft';
+  }
+
+  @override
+  String safetySettings_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Beobachtungen ausgeblendet',
+      one: '1 Beobachtung ausgeblendet',
+      zero: 'Keine Beobachtungen zum Ausblenden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String safetySettings_dismissAll_doneWithErrors(int count, int failed) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Beobachtungen ausgeblendet',
+      one: '1 Beobachtung ausgeblendet',
+      zero: 'Keine Beobachtungen ausgeblendet',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      failed,
+      locale: localeName,
+      other: '$failed Tauchgänge konnten nicht aktualisiert werden',
+      one: '1 Tauchgang konnte nicht aktualisiert werden',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String get safetySettings_dismissAll_failed =>
+      'Die Tauchgangsliste konnte nicht gelesen werden. Es wurde nichts geändert.';
+
+  @override
+  String get safetySettings_analyzeAll_failed =>
+      'Die Tauchgänge konnten nicht analysiert werden.';
+
+  @override
   String get safetyReview_details => 'Details';
 
   @override
@@ -13882,11 +15073,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveDetailSection_sacSegments_name => 'AMV nach Segment';
+  String get diveDetailSection_sacSegments_name => 'Gasverbrauch nach Segment';
 
   @override
   String get diveDetailSection_sacSegments_description =>
-      'AMV-Segmentierung nach Phase/Zeit';
+      'Druckverbrauch und AMV nach Phase oder Zeit';
 
   @override
   String get diveDetailSection_details_name => 'Details';
@@ -14059,6 +15250,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Verknüpfe einen Tauchanzug mit diesem Tauchgang für ein vollständigeres Bild';
 
   @override
+  String get buoyancy_noLeadHint =>
+      'Kein Blei erfasst: Füge diesem Tauchgang Blei hinzu oder trage bei deiner Bleiausrüstung ein Trockengewicht ein';
+
+  @override
   String get buoyancy_chartNet => 'Netto';
 
   @override
@@ -14114,7 +15309,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Flaschenliste, Gasmischungen, Drucke, Flaschen-AMV';
+      'Flaschenliste, Gasmischungen, Drucke, Flaschen-Verbrauch';
 
   @override
   String get diveDetailSection_buddies_name => 'Buddies';
@@ -14137,7 +15332,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Beim Tauchgang verwendete Ausrüstung';
 
   @override
-  String get diveDetailSection_sightings_name => 'Meereslebewesen-Sichtungen';
+  String get diveDetailSection_sightings_name => 'Artensichtungen';
 
   @override
   String get diveDetailSection_sightings_description =>
@@ -14252,6 +15447,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_appearance_metric_events => 'Ereignisse';
 
   @override
+  String get settings_appearance_metric_estimatedTankPressure =>
+      'Geschätzter Flaschendruck';
+
+  @override
   String get settings_appearance_metric_gasDensity => 'Gasdichte';
 
   @override
@@ -14279,7 +15478,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_appearance_metric_pressure => 'Druck';
 
   @override
-  String get settings_appearance_metric_sacRate => 'AMV';
+  String get settings_appearance_metric_sacRate => 'Gasverbrauch';
 
   @override
   String get settings_appearance_metric_surfaceGf => 'Oberflächenfaktor GF';
@@ -14289,6 +15488,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_tts => 'TTS (Zeit zur Oberfläche)';
+
+  @override
+  String get settings_appearance_metric_gtr => 'GTR (Verbleibende Gaszeit)';
 
   @override
   String get settings_appearance_metric_cns => 'CNS% (O2-Toxizität)';
@@ -14644,6 +15846,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_cloudSync_peerNeedsAdopt_listLastSeparator => ' und ';
 
   @override
+  String settings_cloudSync_peerReadFailed_banner(Object deviceList) {
+    return 'Änderungen von $deviceList konnten bei der letzten Synchronisierung nicht gelesen werden und wurden daher nicht zusammengeführt. Die nächste Synchronisierung versucht es automatisch erneut.';
+  }
+
+  @override
+  String settings_cloudSync_peerReadFailed_bannerPlural(Object deviceList) {
+    return 'Änderungen von $deviceList konnten bei der letzten Synchronisierung nicht gelesen werden und wurden daher nicht zusammengeführt. Die nächste Synchronisierung versucht es automatisch erneut.';
+  }
+
+  @override
   String settings_cloudSync_peerRequiresUpdate_bannerNamed(Object deviceList) {
     return '$deviceList synchronisiert von einer neueren Version von Submersion, daher werden die neuesten Änderungen vorerst zurückgehalten.';
   }
@@ -14966,6 +16178,118 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_previous_tooltip => 'Vorheriger Konflikt';
+
+  @override
+  String get settings_conflict_ref_buddy => 'Tauchpartner';
+
+  @override
+  String get settings_conflict_ref_certification => 'Zertifizierung';
+
+  @override
+  String get settings_conflict_ref_checklistTemplate => 'Checklisten-Vorlage';
+
+  @override
+  String get settings_conflict_ref_connectedAccount => 'Verbundenes Konto';
+
+  @override
+  String get settings_conflict_ref_course => 'Kurs';
+
+  @override
+  String get settings_conflict_ref_courseRequirement => 'Kursanforderung';
+
+  @override
+  String get settings_conflict_ref_cylinderConfig => 'Flaschenkonfiguration';
+
+  @override
+  String get settings_conflict_ref_dataSource => 'Datenquelle';
+
+  @override
+  String get settings_conflict_ref_dive => 'Tauchgang';
+
+  @override
+  String get settings_conflict_ref_diveCenter => 'Tauchbasis';
+
+  @override
+  String get settings_conflict_ref_diveComputer => 'Tauchcomputer';
+
+  @override
+  String get settings_conflict_ref_divePlan => 'Tauchplan';
+
+  @override
+  String get settings_conflict_ref_diveSite => 'Tauchplatz';
+
+  @override
+  String get settings_conflict_ref_diveType => 'Tauchgangart';
+
+  @override
+  String get settings_conflict_ref_diver => 'Taucher';
+
+  @override
+  String get settings_conflict_ref_equipment => 'Ausrüstung';
+
+  @override
+  String get settings_conflict_ref_equipmentSet => 'Ausrüstungsset';
+
+  @override
+  String get settings_conflict_ref_finding => 'Befund';
+
+  @override
+  String get settings_conflict_ref_instructor => 'Instructor';
+
+  @override
+  String get settings_conflict_ref_linkedDive => 'Verknüpfter Tauchgang';
+
+  @override
+  String get settings_conflict_ref_media => 'Medien';
+
+  @override
+  String get settings_conflict_ref_mediaSubscription => 'Medien-Abonnement';
+
+  @override
+  String get settings_conflict_ref_missing => 'Nicht mehr in dieser Bibliothek';
+
+  @override
+  String settings_conflict_ref_named(Object name, Object date) {
+    return '$name ($date)';
+  }
+
+  @override
+  String get settings_conflict_ref_plannedTank => 'Geplante Flasche';
+
+  @override
+  String get settings_conflict_ref_preDiveChecklistTemplate =>
+      'Vorlage für Checkliste vor dem Tauchgang';
+
+  @override
+  String get settings_conflict_ref_preDiveSession =>
+      'Checkliste vor dem Tauchgang';
+
+  @override
+  String get settings_conflict_ref_relatedDive => 'Zugehöriger Tauchgang';
+
+  @override
+  String get settings_conflict_ref_serviceKind => 'Wartungsart';
+
+  @override
+  String get settings_conflict_ref_sighting => 'Sichtung';
+
+  @override
+  String get settings_conflict_ref_signer => 'Unterschrieben von';
+
+  @override
+  String get settings_conflict_ref_sourceDive => 'Quell-Tauchgang';
+
+  @override
+  String get settings_conflict_ref_species => 'Art';
+
+  @override
+  String get settings_conflict_ref_tag => 'Tag';
+
+  @override
+  String get settings_conflict_ref_tank => 'Flasche';
+
+  @override
+  String get settings_conflict_ref_trip => 'Reise';
 
   @override
   String get settings_conflict_remoteVersion => 'Remote-Version';
@@ -15532,8 +16856,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_manage_species => 'Arten';
 
   @override
-  String get settings_manage_species_subtitle =>
-      'Meeresbewohner-Artenkatalog verwalten';
+  String get settings_manage_species_subtitle => 'Artenkatalog verwalten';
 
   @override
   String get settings_manage_tags => 'Tags';
@@ -16127,9 +17450,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_units_dialog_pressureUnit => 'Druckeinheit';
 
   @override
-  String get settings_units_dialog_sacRateUnit => 'AMV-Einheit';
-
-  @override
   String get settings_units_gasModel => 'Gasberechnungen';
 
   @override
@@ -16193,27 +17513,34 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_units_quickSelect => 'Schnellauswahl';
 
   @override
-  String get settings_units_sacRate => 'AMV';
+  String get settings_units_gasConsumption_both_subtitle =>
+      'Druckverbrauch und AMV nebeneinander anzeigen.';
+
+  @override
+  String get settings_units_gasConsumption_both => 'Beide';
+
+  @override
+  String settings_units_gasConsumption_rmv_subtitle(String unit) {
+    return 'An der Oberfläche geatmetes Gasvolumen pro Minute ($unit). Erfordert ein Flaschenvolumen.';
+  }
+
+  @override
+  String settings_units_gasConsumption_sac_subtitle(String unit) {
+    return 'Flaschendruckabfall pro Minute ($unit). Funktioniert mit allen protokollierten Drücken.';
+  }
+
+  @override
+  String get settings_units_dialog_gasConsumption =>
+      'Anzeige des Gasverbrauchs';
+
+  @override
+  String get settings_units_gasConsumption => 'Gasverbrauch';
 
   @override
   String get settings_units_defaultCurrency => 'Standardwährung';
 
   @override
   String get settings_units_dialog_defaultCurrency => 'Standardwährung';
-
-  @override
-  String get settings_units_sac_pressurePerMinute => 'Druck pro Minute';
-
-  @override
-  String get settings_units_sac_pressurePerMinute_subtitle =>
-      'Kein Flaschenvolumen erforderlich (bar/min oder psi/min)';
-
-  @override
-  String get settings_units_sac_volumePerMinute => 'Volumen pro Minute';
-
-  @override
-  String get settings_units_sac_volumePerMinute_subtitle =>
-      'Erfordert Flaschenvolumen (L/min oder cuft/min)';
 
   @override
   String get settings_units_temperature => 'Temperatur';
@@ -16396,6 +17723,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bitte geben Sie den Namen des Unterzeichners ein';
 
   @override
+  String get signatures_error_saveFailed =>
+      'Die Unterschrift konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.';
+
+  @override
   String get signatures_field_instructorName => 'Tauchlehrername';
 
   @override
@@ -16461,7 +17792,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get statistics_category_equipment_title => 'Ausrüstung';
 
   @override
-  String get statistics_category_gas_subtitle => 'AMV & Gasgemische';
+  String get statistics_category_gas_subtitle => 'Gasverbrauch & Gasgemische';
 
   @override
   String get statistics_category_gas_title => 'Luftverbrauch';
@@ -16476,7 +17807,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get statistics_category_marineLife_subtitle => 'Artensichtungen';
 
   @override
-  String get statistics_category_marineLife_title => 'Meeresbewohner';
+  String get statistics_category_marineLife_title => 'Arten';
 
   @override
   String get statistics_category_overview_title => 'Overview';
@@ -16583,11 +17914,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_conditions_temperature_subtitle =>
-      'Min/Durchschn./Max Temperaturen';
+      'Min, Mittel und Max nach Kalendermonat, über alle Jahre';
 
   @override
   String get statistics_conditions_temperature_title =>
-      'Wassertemperatur nach Monat';
+      'Saisonale Wassertemperatur';
 
   @override
   String get statistics_conditions_visibility_error =>
@@ -16632,7 +17963,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_equipment_weightTrend_subtitle =>
-      'Durchschnittliches Gewicht im Zeitverlauf';
+      'Gesamtes Blei pro Tauchgang';
 
   @override
   String get statistics_equipment_weightTrend_title => 'Gewichtstrend';
@@ -16674,46 +18005,52 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_gas_sacByRole_error =>
-      'AMV nach Rolle konnte nicht geladen werden';
+      'Verbrauch nach Rolle konnte nicht geladen werden';
 
   @override
   String get statistics_gas_sacByRole_subtitle =>
       'Durchschnittlicher Verbrauch nach Flaschentyp';
 
   @override
-  String get statistics_gas_sacByRole_title => 'AMV nach Flaschenrolle';
-
-  @override
-  String get statistics_gas_sacRecords_best => 'Bestes AMV';
+  String get statistics_gas_sacByRole_title =>
+      'Gasverbrauch nach Flaschenrolle';
 
   @override
   String get statistics_gas_sacRecords_empty =>
-      'Noch keine AMV-Daten verfügbar';
+      'Noch keine Verbrauchsdaten verfügbar';
 
   @override
   String get statistics_gas_sacRecords_error =>
-      'AMV-Rekorde konnten nicht geladen werden';
+      'Verbrauchsrekorde konnten nicht geladen werden';
 
   @override
-  String get statistics_gas_sacRecords_highest => 'Höchstes AMV';
+  String get statistics_gas_sacRecords_highestRmv => 'Höchstes AMV';
+
+  @override
+  String get statistics_gas_sacRecords_highestSac => 'Höchster Druckverbrauch';
+
+  @override
+  String get statistics_gas_sacRecords_bestRmv => 'Bestes AMV';
+
+  @override
+  String get statistics_gas_sacRecords_bestSac => 'Niedrigster Druckverbrauch';
 
   @override
   String get statistics_gas_sacRecords_subtitle =>
       'Bester und schlechtester Luftverbrauch';
 
   @override
-  String get statistics_gas_sacRecords_title => 'AMV-Rekorde';
+  String get statistics_gas_sacRecords_title => 'Gasverbrauchsrekorde';
 
   @override
   String get statistics_gas_sacTrend_error =>
-      'AMV-Trend konnte nicht geladen werden';
+      'Verbrauchstrend konnte nicht geladen werden';
 
   @override
-  String get statistics_gas_sacTrend_subtitle =>
-      'Monatlicher Durchschnitt über 5 Jahre';
+  String get statistics_gas_sacTrend_subtitle => 'Jeder Tauchgang im Zeitraum';
 
   @override
-  String get statistics_gas_sacTrend_title => 'AMV-Trend';
+  String get statistics_gas_sacTrend_title => 'Gasverbrauchstrend';
 
   @override
   String get statistics_gas_tankRole_backGas => 'Rückengas';
@@ -16815,7 +18152,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get statistics_listContent_selectedSuffix => ', ausgewählt';
 
   @override
-  String get statistics_marineLife_appBar_title => 'Meeresbewohner';
+  String get statistics_marineLife_appBar_title => 'Arten';
 
   @override
   String get statistics_marineLife_bestSites_empty => 'Keine Platzdaten';
@@ -16838,8 +18175,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get statistics_marineLife_bestSites_title =>
-      'Beste Plätze für Meeresbewohner';
+  String get statistics_marineLife_bestSites_title => 'Beste Plätze';
 
   @override
   String get statistics_marineLife_mostCommon_empty => 'Keine Sichtungsdaten';
@@ -16866,6 +18202,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_marineLife_speciesSpotted => 'Gesichtete Arten';
+
+  @override
+  String get statistics_marineLife_seeAllSpecies_title => 'Alle Arten anzeigen';
+
+  @override
+  String get statistics_marineLife_seeAllSpecies_subtitle =>
+      'Alle Arten, die Sie protokolliert haben, durchsuchbar';
 
   @override
   String get statistics_profile_appBar_title => 'Profilanalyse';
@@ -16959,7 +18302,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_progression_bottomTime_subtitle =>
-      'Durchschnittliche Dauer nach Monat';
+      'Jeder Tauchgang im Zeitraum';
 
   @override
   String get statistics_progression_bottomTime_title => 'Grundzeit-Trend';
@@ -16982,7 +18325,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_progression_depthProgression_subtitle =>
-      'Monatliche Maximaltiefe über 5 Jahre';
+      'Jeder Tauchgang im Zeitraum';
 
   @override
   String get statistics_progression_depthProgression_title =>
@@ -17653,6 +18996,39 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tags_action_createTag => 'Tag erstellen';
 
   @override
+  String get tags_action_browse => 'Durchsuchen';
+
+  @override
+  String get tags_picker_title => 'Tags auswählen';
+
+  @override
+  String get tags_picker_empty =>
+      'Noch keine Tags. Gib einen Tag-Namen ein, um deinen ersten zu erstellen.';
+
+  @override
+  String tags_picker_errorLoading(String error) {
+    return 'Fehler beim Laden der Tags: $error';
+  }
+
+  @override
+  String get tags_picker_allAdded => 'Alle Tags sind bereits hinzugefügt.';
+
+  @override
+  String get tags_picker_noMatches => 'Keine Tags entsprechen deiner Suche.';
+
+  @override
+  String tags_picker_addCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tags hinzufügen',
+      one: '1 Tag hinzufügen',
+      zero: 'Tags hinzufügen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tags_action_deleteTag => 'Tag löschen';
 
   @override
@@ -17672,6 +19048,42 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get importWizard_tagsLabel => 'Tags';
+
+  @override
+  String get importWizard_photos_stepLabel => 'Fotos';
+
+  @override
+  String importWizard_photos_foundCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos in diesem Logbuch referenziert',
+      one: '1 Foto in diesem Logbuch referenziert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importWizard_photos_chooseFolder => 'Fotoordner wählen...';
+
+  @override
+  String get importWizard_photos_scanning => 'Ordner wird durchsucht...';
+
+  @override
+  String importWizard_photos_matchSummary(
+    int matched,
+    int byName,
+    int missing,
+  ) {
+    return '$matched zugeordnet, $byName nur über den Dateinamen, $missing nicht gefunden';
+  }
+
+  @override
+  String get importWizard_photos_skip => 'Fotos überspringen';
+
+  @override
+  String get importWizard_photos_mobileUnsupported =>
+      'Für den Fotoimport wird ein Ordner auf dem Speicher dieses Geräts benötigt. Führe diesen Import an einem Computer aus, um Fotos einzuschließen. Tauchgänge und Tauchplätze werden normal importiert.';
 
   @override
   String importWizard_review_olderDivesSkipped(int count) {
@@ -18350,13 +19762,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transfer_section_exportSubtitle => 'CSV, UDDF, PDF-Logbuch';
 
   @override
-  String get transfer_section_exportTitle => 'Exportieren';
+  String get transfer_section_exportTitle => 'Dateiexport';
 
   @override
   String get transfer_section_importSubtitle => 'CSV-, UDDF-Dateien';
 
   @override
-  String get transfer_section_importTitle => 'Importieren';
+  String get transfer_section_importTitle => 'Dateiimport';
 
   @override
   String get transfer_summary_description =>
@@ -19177,12 +20589,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get units_profileMetric_millivolts => 'mV';
 
   @override
-  String get units_sac_litersPerMin => 'L/min';
-
-  @override
-  String get units_sac_pressurePerMin => 'Druck/min';
-
-  @override
   String get units_temperature_celsius => 'C';
 
   @override
@@ -19294,6 +20700,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get universalImport_summary_filesTitle => 'Dateien';
+
+  @override
+  String get universalImport_summary_noticesTitle => 'Nicht in der Datei';
+
+  @override
+  String get universalImport_summary_noticeNoTankPressureTitle =>
+      'Flaschendruck nicht aufgezeichnet';
+
+  @override
+  String get universalImport_summary_noticeNoTankPressureBody =>
+      'Luftverbrauch und AMV können nicht berechnet werden. Anfangs- und Enddruck lassen sich beim Bearbeiten des Tauchgangs ergänzen.';
+
+  @override
+  String universalImport_summary_noticeAffectedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Betrifft $count Tauchgänge',
+      one: 'Betrifft 1 Tauchgang',
+    );
+    return '$_temp0';
+  }
 
   @override
   String universalImport_summary_fileImported(num count) {
@@ -19798,6 +21226,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveComputer_detail_lastDownload => 'Letzter Download';
 
   @override
+  String get diveComputer_detail_linkedGear => 'Ausrüstungsteil';
+
+  @override
   String get diveComputer_detail_notesTitle => 'Notizen';
 
   @override
@@ -20081,6 +21512,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveComputer_download_noSerialPortsFound =>
       'Keine USB-Seriellports gefunden. Ist der Tauchcomputer angeschlossen und eingeschaltet?';
+
+  @override
+  String diveComputer_download_noUsbDeviceFound(Object model) {
+    return 'Kein $model über USB gefunden. Ist er mit diesem Computer verbunden und eingeschaltet?';
+  }
 
   @override
   String get diveComputer_download_stalePairing =>
@@ -20721,6 +22157,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveImport_uddf_tags => 'Tags';
 
   @override
+  String get diveImport_uddf_media => 'Fotos';
+
+  @override
   String get diveImport_uddf_title => 'Aus UDDF importieren';
 
   @override
@@ -21024,6 +22463,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get gpsLogger_summary_tracks => 'Tracks';
+
+  @override
+  String get gpsLogger_summary_recordedTime => 'Aufgezeichnete Zeit';
+
+  @override
+  String get gpsLogger_summary_divesCovered => 'Erfasste Tauchgänge';
+
+  @override
   String gpsLogger_trackSubtitle(num count, String duration) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -21121,6 +22569,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get gpsTrack_importError_badData =>
       'Diese Datei enthält eine Position oder einen Zeitstempel, die diese App nicht lesen kann.';
+
+  @override
+  String get gpsTrack_importError_tooLarge =>
+      'Diese Datei enthält zu viele Positionen für einen einzelnen Track. Teile sie in kürzere Tracks auf und importiere sie einzeln.';
 
   @override
   String get gpsTrack_export_saved => 'Track gespeichert';
@@ -21683,6 +23135,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_siteMatch_subtitle =>
       'Wie aggressiv heruntergeladene Tauchgänge Tauchplätzen zugeordnet werden';
+
+  @override
+  String get settings_tankPressureAtSurfacing_title =>
+      'Flaschendruck beim Auftauchen';
+
+  @override
+  String get settings_tankPressureAtSurfacing_subtitle =>
+      'Enddruck beim Erreichen der Oberfläche übernehmen, nicht am Ende der Aufzeichnung';
 
   @override
   String get settings_siteMatch_strict => 'Streng';
@@ -22412,6 +23872,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_mediaStorage_saved => 'Medienspeicher verbunden';
 
   @override
+  String get settings_mediaStorage_error_notReady =>
+      'Der Cloud-Speicher konnte noch nicht gelesen werden. Warte einen Moment und versuche es erneut.';
+
+  @override
   String get settings_mediaStorage_action_disconnect => 'Trennen';
 
   @override
@@ -22460,6 +23924,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'Fehlgeschlagen';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_title =>
+      'Übertragungen angehalten';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_subtitle =>
+      'Dieses Gerät und der Cloud-Speicher sind sich nicht mehr einig, welcher Speicher verwendet wird. Beim erneuten Verbinden wird der Speicher übernommen, den die Cloud jetzt enthält.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count in Warteschlange';
   }
@@ -22479,11 +23951,32 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String settings_mediaStorage_verify_summary(
     int checked,
+    int originals,
+    int thumbs,
+    int renditions,
     int removed,
     int repaired,
     int aborted,
   ) {
-    return '$checked Objekte geprüft: $removed verwaiste entfernt, $repaired Reparaturen eingereiht, $aborted veraltete Uploads abgebrochen';
+    String _temp0 = intl.Intl.pluralLogic(
+      originals,
+      locale: localeName,
+      other: '$originals Originale',
+      one: '1 Original',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      thumbs,
+      locale: localeName,
+      other: '$thumbs Miniaturansichten',
+      one: '1 Miniaturansicht',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      renditions,
+      locale: localeName,
+      other: '$renditions komprimierte Versionen',
+      one: '1 komprimierte Version',
+    );
+    return '$checked Cloud-Objekte geprüft ($_temp0, $_temp1, $_temp2): $removed verwaiste entfernt, $repaired Reparaturen eingereiht, $aborted veraltete Uploads abgebrochen';
   }
 
   @override
@@ -22908,6 +24401,52 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dive3d_metric_tankPressure => 'Druck';
 
   @override
+  String get dive3d_zAxis => 'Z-Achse';
+
+  @override
+  String get dive3d_zAxis_none => 'Keine';
+
+  @override
+  String get dive3d_overlay_shadows => 'Wandschatten';
+
+  @override
+  String get dive3d_metric_tts => 'TTS';
+
+  @override
+  String dive3d_axis_depth(String unitSymbol) {
+    return 'Tiefe ($unitSymbol)';
+  }
+
+  @override
+  String get dive3d_axis_time => 'Laufzeit (min)';
+
+  @override
+  String get dive3d_pose_menu => 'Kamera';
+
+  @override
+  String get dive3d_pose_default => 'Standardansicht';
+
+  @override
+  String get dive3d_pose_front => 'Vorne (Tiefe vs. Zeit)';
+
+  @override
+  String get dive3d_pose_side => 'Seite (Tiefe vs. Messwert)';
+
+  @override
+  String get dive3d_pose_top => 'Oben (Messwert vs. Zeit)';
+
+  @override
+  String get dive3d_readout_runTime => 'Laufzeit';
+
+  @override
+  String get dive3d_readout_ceiling => 'Ceiling';
+
+  @override
+  String dive3d_readout_tank(int n) {
+    return 'Flasche $n';
+  }
+
+  @override
   String get dive3d_scene_dive => 'Tauchgang';
 
   @override
@@ -23082,6 +24621,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_photosMedia_accountsHeader => 'Konten';
 
   @override
+  String get settings_photosMedia_displayHeader => 'Anzeige';
+
+  @override
   String get settings_photosMedia_guidedSetup => 'Geführte Einrichtung';
 
   @override
@@ -23180,6 +24722,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'Volume nicht eingebunden';
+
+  @override
+  String get media_unavailablePlaceholder_stillFetching =>
+      'Wird noch geladen. Zum Wiederholen tippen.';
+
+  @override
+  String get media_unavailablePlaceholder_accessDenied =>
+      'Kein Zugriff auf die Fotomediathek';
 
   @override
   String get attrLabel_size => 'Größe';
@@ -23684,6 +25234,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Für diesen Platz ist eine Höhe hinterlegt, der Tauchgang hat jedoch keine, daher ging die Deko-Analyse von Meereshöhe aus. Höhe des Tauchgangs setzen, um dies zu korrigieren.';
 
   @override
+  String diveLog_detail_sacVolumeHint(String unit) {
+    return 'Flaschenvolumen eintragen, um den AMV in $unit/min anzuzeigen';
+  }
+
+  @override
   String safetyHub_alert_noFly(String remaining) {
     return 'Flugverbot: noch $remaining';
   }
@@ -23744,6 +25299,69 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String emergencyCard_chamberVerified(String date) {
     return 'Angaben geprüft $date';
+  }
+
+  @override
+  String get emergencyCard_chambersNearby => 'Nächstgelegene Druckkammern';
+
+  @override
+  String emergencyCard_chamberViewAll(int count) {
+    return 'Alle $count Druckkammern anzeigen';
+  }
+
+  @override
+  String get emergencyCard_chambersNoneNearby =>
+      'Keine Druckkammer in Reichweite gelistet. Rufen Sie die Notfall-Hotline für Taucher an: Sie vermittelt Ihnen die nächste Einrichtung, die Sie behandeln kann.';
+
+  @override
+  String get emergencyCard_chamberCapability_divingEmergency =>
+      'Behandelt Tauchunfälle';
+
+  @override
+  String get emergencyCard_chamberCapability_hyperbaricUnit =>
+      'Klinische Druckkammer';
+
+  @override
+  String get emergencyCard_chamberCapability_elective =>
+      'Nur elektive Therapie';
+
+  @override
+  String get emergencyCard_chamberCapability_unknown =>
+      'Leistungsumfang unbestätigt';
+
+  @override
+  String get emergencyCard_chamberAvailability_h24 => '24 Std.';
+
+  @override
+  String get emergencyCard_chamberAvailability_onCall => 'Rufbereitschaft';
+
+  @override
+  String get emergencyCard_chamberAvailability_businessHours =>
+      'Geschäftszeiten';
+
+  @override
+  String get emergencyCard_chamberUnverified =>
+      'Nicht mit der Einrichtung bestätigt';
+
+  @override
+  String get chambersDirectory_title => 'Druckkammern';
+
+  @override
+  String get chambersDirectory_search => 'Nach Name, Stadt oder Land suchen';
+
+  @override
+  String get chambersDirectory_empty =>
+      'Keine Druckkammer entspricht dieser Suche.';
+
+  @override
+  String chambersDirectory_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Druckkammern',
+      one: '1 Druckkammer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -24620,6 +26238,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get reef_species_addToExpected => 'Zu erwarteten Arten hinzufügen';
 
   @override
+  String get reef_species_addFromLookup =>
+      'Nachschlagen und zu Ihren Arten hinzufügen';
+
+  @override
   String reef_species_showAll(int count) {
     return 'Alle $count anzeigen';
   }
@@ -24679,6 +26301,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_coordinateFormat_subtitle =>
       'Wie GPS-Positionen angezeigt und eingegeben werden';
+
+  @override
+  String get settings_placeNameLanguage_title => 'Sprache der Ortsnamen';
+
+  @override
+  String get settings_placeNameLanguage_subtitle =>
+      'Wird verwendet, wenn Land, Region, Ort und Gewässer aus Koordinaten ermittelt werden. Bestehende Tauchplätze werden nicht geändert.';
 
   @override
   String get settings_coordinateFormat_decimalDegrees => 'Dezimalgrad';
@@ -24889,7 +26518,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_diveField_endPressure => 'Enddruck';
 
   @override
-  String get enum_diveField_sacRate => 'AMV';
+  String get enum_diveField_rmv => 'AMV';
+
+  @override
+  String get enum_diveField_sac => 'Druckverbrauch';
 
   @override
   String get enum_diveField_gasConsumed => 'Gasverbrauch';
@@ -25063,7 +26695,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_diveField_endPressure_short => 'End-Dr.';
 
   @override
-  String get enum_diveField_sacRate_short => 'AMV';
+  String get enum_diveField_rmv_short => 'AMV';
+
+  @override
+  String get enum_diveField_sac_short => 'Druckverbr.';
 
   @override
   String get enum_diveField_gasConsumed_short => 'Gasverbr.';
@@ -25294,6 +26929,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_siteField_longitude_short => 'Länge';
 
   @override
+  String get enum_siteField_depthRange => 'Tiefenbereich';
+
+  @override
+  String get enum_siteField_depthRange_short => 'Tiefe';
+
+  @override
+  String get enum_siteField_lastDived => 'Zuletzt getaucht';
+
+  @override
+  String get enum_siteField_lastDived_short => 'Zuletzt';
+
+  @override
+  String get enum_siteField_maxDepthReached => 'Deine max. Tiefe';
+
+  @override
+  String get enum_siteField_maxDepthReached_short => 'Dein Max.';
+
+  @override
   String get enum_buddyField_buddyName => 'Name';
 
   @override
@@ -25334,6 +26987,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_buddyField_notes_short => 'Notizen';
+
+  @override
+  String get enum_buddyField_lastDive => 'Letzter Tauchgang';
+
+  @override
+  String get enum_buddyField_lastDive_short => 'Letzter TG';
 
   @override
   String get enum_tripField_tripName => 'Name';
@@ -29352,6 +31011,1232 @@ class AppLocalizationsDe extends AppLocalizations {
       'Größtes lebendes Reptil, in Küsten- und Ästuargewässern des Indopazifiks.';
 
   @override
+  String get species_northern_pike_name => 'Hecht';
+
+  @override
+  String get species_northern_pike_desc =>
+      'Langgestreckter Lauerjäger mit entenschnabelartigem Maul, der reglos zwischen Wasserpflanzen am Seeufer steht.';
+
+  @override
+  String get species_muskellunge_name => 'Muskellunge';
+
+  @override
+  String get species_muskellunge_desc =>
+      'Der größte Hecht, ein gestreifter oder gefleckter Riese klarer nördlicher Seen, selten gesehen und unvergesslich.';
+
+  @override
+  String get species_chain_pickerel_name => 'Kettenhecht';
+
+  @override
+  String get species_chain_pickerel_desc =>
+      'Schlanker Hecht verkrauteter Teiche im Osten Nordamerikas, benannt nach dem kettenartigen Muster seiner Flanken.';
+
+  @override
+  String get species_walleye_name => 'Amerikanischer Zander';
+
+  @override
+  String get species_walleye_desc =>
+      'Goldoliv gefärbter Barschverwandter mit großen reflektierenden Augen, jagt in der Dämmerung über Fels- und Sandgrund.';
+
+  @override
+  String get species_sauger_name => 'Kanadische Zander';
+
+  @override
+  String get species_sauger_desc =>
+      'Kleinerer, fleckigerer Vetter des Glasaugenbarschs, der trübe Flüsse und Stauseen bevorzugt.';
+
+  @override
+  String get species_yellow_perch_name => 'Amerikanischer Flussbarsch';
+
+  @override
+  String get species_yellow_perch_desc =>
+      'Schwarmbildender goldgelber Barsch mit dunklen Querbinden, häufig an Stegen und Krautbetten in ganz Nordamerika.';
+
+  @override
+  String get species_european_perch_name => 'Flussbarsch';
+
+  @override
+  String get species_european_perch_desc =>
+      'Gestreifter Barsch mit stacheliger Rückenflosse und rot-orangen Bauchflossen, in fast jedem See und langsamen Fluss Europas.';
+
+  @override
+  String get species_zander_name => 'Zander';
+
+  @override
+  String get species_zander_desc =>
+      'Großer, blasser Raubfisch mit glasigen Augen und Fangzähnen, der nachts trübe europäische Seen und Flüsse durchstreift.';
+
+  @override
+  String get species_ruffe_name => 'Kaulbarsch';
+
+  @override
+  String get species_ruffe_desc =>
+      'Kleiner, marmorierter Barsch mit durchgehender stacheliger Rückenflosse, häufig auf weichen Böden europäischer Seen.';
+
+  @override
+  String get species_largemouth_bass_name => 'Forellenbarsch';
+
+  @override
+  String get species_largemouth_bass_desc =>
+      'Grünrückiger Barsch mit dunklem Seitenstreifen und riesigem Maul, lauert an Baumstämmen und Krautkanten warmer Seen.';
+
+  @override
+  String get species_smallmouth_bass_name => 'Großer Schwarzbarsch';
+
+  @override
+  String get species_smallmouth_bass_desc =>
+      'Bronzefarbener Barsch mit schwachen Querbinden, steht über Fels und Kies in klaren, kühlen Seen und Flüssen.';
+
+  @override
+  String get species_rock_bass_name => 'Steinbarsch';
+
+  @override
+  String get species_rock_bass_desc =>
+      'Gedrungener rotäugiger Sonnenbarsch mit Reihen dunkler Flecken, versteckt sich zwischen Felsblöcken klarer Bäche und Seen.';
+
+  @override
+  String get species_bluegill_name => 'Blauer Sonnenbarsch';
+
+  @override
+  String get species_bluegill_desc =>
+      'Scheibenförmiger Sonnenbarsch mit blauschwarzem Kiemenlappen und oranger Brust, nistet in Kolonien auf flachen Sandböden.';
+
+  @override
+  String get species_pumpkinseed_name => 'Gemeiner Sonnenbarsch';
+
+  @override
+  String get species_pumpkinseed_desc =>
+      'Bunt gesprenkelter Sonnenbarsch mit rot gesäumtem Kiemenlappen und welligen blauen Wangenlinien, häufig im krautigen Flachwasser.';
+
+  @override
+  String get species_black_crappie_name => 'Schwarzflecken-Sonnenbarsch';
+
+  @override
+  String get species_black_crappie_desc =>
+      'Silbriger, hochrückiger Sonnenbarsch mit schwarzen Sprenkeln, schwärmt um versunkenes Geäst und Pfähle.';
+
+  @override
+  String get species_white_crappie_name => 'Ringel-Sonnenbarsch';
+
+  @override
+  String get species_white_crappie_desc =>
+      'Blasserer Crappie mit schwachen Querbändern, bevorzugt trübe Stauseen und langsame Flüsse.';
+
+  @override
+  String get species_brown_trout_name => 'Forelle';
+
+  @override
+  String get species_brown_trout_desc =>
+      'Goldbraune Forelle mit roten und schwarzen Punkten, steht in der Strömung kühler, klarer Flüsse und Seen.';
+
+  @override
+  String get species_rainbow_trout_name => 'Regenbogenforelle';
+
+  @override
+  String get species_rainbow_trout_desc =>
+      'Silbrige Forelle mit rosafarbenem Seitenband und feiner schwarzer Sprenkelung, besetzt und wild in kalten Gewässern weltweit.';
+
+  @override
+  String get species_brook_trout_name => 'Bachsaibling';
+
+  @override
+  String get species_brook_trout_desc =>
+      'Saibling mit wurmartiger Rückenzeichnung, roten Punkten in blauen Höfen und weiß gesäumten Flossen, in kalten Quellbächen.';
+
+  @override
+  String get species_lake_trout_name => 'Amerikanischer Seesaibling';
+
+  @override
+  String get species_lake_trout_desc =>
+      'Großer grauer Saibling mit hellen Flecken und gegabelter Schwanzflosse, zieht durch das tiefe kalte Wasser nördlicher Seen.';
+
+  @override
+  String get species_arctic_char_name => 'Wandersaibling';
+
+  @override
+  String get species_arctic_char_desc =>
+      'Nördlichster Süßwasserfisch, ein schlanker Saibling, dessen Bauch sich zur Herbstlaichzeit orangerot färbt.';
+
+  @override
+  String get species_atlantic_salmon_name => 'Atlantischer Lachs';
+
+  @override
+  String get species_atlantic_salmon_desc =>
+      'Silberner Wanderlachs mit schwarzen X-förmigen Punkten, überspringt Wasserfälle auf dem Rückweg in seine Geburtsflüsse.';
+
+  @override
+  String get species_chinook_salmon_name => 'Königslachs';
+
+  @override
+  String get species_chinook_salmon_desc =>
+      'Der größte Pazifiklachs, blaugrüner Rücken und schwarzes Zahnfleisch, steigt zum Laichen in große westliche Flüsse auf.';
+
+  @override
+  String get species_sockeye_salmon_name => 'Rotlachs';
+
+  @override
+  String get species_sockeye_salmon_desc =>
+      'Lachs, der zur Laichzeit leuchtend rot mit grünem Kopf wird und die Kiesbetten seengespeister Flüsse füllt.';
+
+  @override
+  String get species_coho_salmon_name => 'Silberlachs';
+
+  @override
+  String get species_coho_salmon_desc =>
+      'Silberlachs mit weißem Zahnfleisch und Punkten nur auf der oberen Schwanzhälfte, laicht in kleinen Küstenbächen.';
+
+  @override
+  String get species_lake_whitefish_name => 'Nordamerikanische Renke';
+
+  @override
+  String get species_lake_whitefish_desc =>
+      'Silbrige, kleinmäulige Renke tiefer kalter Seen, frisst in großen Schwärmen am Grund.';
+
+  @override
+  String get species_cisco_name => 'Cisco-Renke';
+
+  @override
+  String get species_cisco_desc =>
+      'Schlanke, heringsähnliche Renke, die im Freiwasser kalter nördlicher Seen schwärmt, Beute des Seesaiblings.';
+
+  @override
+  String get species_european_grayling_name => 'Europäische Äsche';
+
+  @override
+  String get species_european_grayling_desc =>
+      'Silbergrauer Flussfisch mit hoher, segelartiger, purpurn gesäumter Rückenflosse, steht in schnellen sauberen Kiesläufen.';
+
+  @override
+  String get species_common_carp_name => 'Karpfen';
+
+  @override
+  String get species_common_carp_desc =>
+      'Schwerer bronzefarbener Karpfen mit großen Schuppen und zwei Barteln, wühlt in weichen Böden warmer Seen und Flüsse.';
+
+  @override
+  String get species_grass_carp_name => 'Graskarpfen';
+
+  @override
+  String get species_grass_carp_desc =>
+      'Torpedoförmiger asiatischer Karpfen, weltweit zur Beweidung von Wasserpflanzen eingeführt, oft in klaren Baggerseen zu sehen.';
+
+  @override
+  String get species_tench_name => 'Schleie';
+
+  @override
+  String get species_tench_desc =>
+      'Olivgrüner Fisch mit winzigen Schuppen, roten Augen und abgerundeten Flossen, gleitet durch Schlamm und Schilf stiller Gewässer.';
+
+  @override
+  String get species_common_bream_name => 'Brachse';
+
+  @override
+  String get species_common_bream_desc =>
+      'Hochrückiger, seitlich abgeflachter Bronzefisch, der kopfüber in schlammigen Schwärmen frisst, häufig im europäischen Flachland.';
+
+  @override
+  String get species_roach_name => 'Rotauge';
+
+  @override
+  String get species_roach_desc =>
+      'Silberner Schwarmfisch mit roten Flossen und roter Iris, der häufigste Fisch in vielen europäischen Seen und Kanälen.';
+
+  @override
+  String get species_rudd_name => 'Rotfeder';
+
+  @override
+  String get species_rudd_desc =>
+      'Goldflankiger Verwandter des Rotauges mit leuchtend roten Flossen und oberständigem Maul, frisst knapp unter der Oberfläche.';
+
+  @override
+  String get species_chub_name => 'Döbel';
+
+  @override
+  String get species_chub_desc =>
+      'Gedrungener Flussfisch mit breitem Kopf, großen dunkel gerandeten Schuppen und großem Maul, steht unter überhängenden Bäumen.';
+
+  @override
+  String get species_barbel_name => 'Barbe';
+
+  @override
+  String get species_barbel_desc =>
+      'Stromlinienförmiger Grundfisch mit vier Barteln und unterständigem Maul, hält sich am Kies schneller europäischer Flüsse.';
+
+  @override
+  String get species_european_eel_name => 'Europäischer Aal';
+
+  @override
+  String get species_european_eel_desc =>
+      'Schlangenförmiger Fisch, der Jahrzehnte in Flüssen und Seen lebt, bevor er zum einmaligen Laichen in die Sargassosee zieht.';
+
+  @override
+  String get species_american_eel_name => 'Amerikanischer Aal';
+
+  @override
+  String get species_american_eel_desc =>
+      'Nordamerikanischer Aal, der sich tagsüber in Flüssen und Seen unter Steinen versteckt und zum Laichen in die Sargassosee zurückkehrt.';
+
+  @override
+  String get species_burbot_name => 'Quappe';
+
+  @override
+  String get species_burbot_desc =>
+      'Der einzige Süßwasserdorsch, ein marmorierter aalähnlicher Fisch mit einer Kinnbartel, versteckt sich tagsüber im kalten Tiefenwasser.';
+
+  @override
+  String get species_channel_catfish_name => 'Getüpfelter Gabelwels';
+
+  @override
+  String get species_channel_catfish_desc =>
+      'Grauer Wels mit verstreuten dunklen Flecken, gegabelter Schwanzflosse und acht Barteln, häufig in Flüssen und Stauseen Nordamerikas.';
+
+  @override
+  String get species_flathead_catfish_name => 'Flachkopfwels';
+
+  @override
+  String get species_flathead_catfish_desc =>
+      'Riesiger, braun marmorierter Wels mit abgeflachtem Kopf und vorstehendem Unterkiefer, liegt in tiefen Flusskolken.';
+
+  @override
+  String get species_brown_bullhead_name => 'Zwergwels';
+
+  @override
+  String get species_brown_bullhead_desc =>
+      'Kleiner, gedrungener Zwergwels mit dunklen Barteln und gerader Schwanzflosse, verträgt schlammige, warme und sauerstoffarme Teiche.';
+
+  @override
+  String get species_wels_catfish_name => 'Europäischer Wels';
+
+  @override
+  String get species_wels_catfish_desc =>
+      'Europas größter Süßwasserfisch, ein schuppenloser Riese mit breitem flachem Kopf und langen Barteln, liegt in tiefen Flusskolken.';
+
+  @override
+  String get species_white_sturgeon_name => 'Weißer Stör';
+
+  @override
+  String get species_white_sturgeon_desc =>
+      'Nordamerikas größter Süßwasserfisch, ein gepanzerter grauer Riese mit haiähnlicher Schwanzflosse in großen westlichen Flüssen.';
+
+  @override
+  String get species_lake_sturgeon_name => 'Seestör';
+
+  @override
+  String get species_lake_sturgeon_desc =>
+      'Langsam wachsender gepanzerter Stör der Großen Seen und des Mississippi-Beckens, saugt mit seinem Rüsselmaul den Grund ab.';
+
+  @override
+  String get species_european_sturgeon_name => 'Europäischer Stör';
+
+  @override
+  String get species_european_sturgeon_desc =>
+      'Vom Aussterben bedrohter gepanzerter Stör atlantischer Flüsse, heute in Garonne und Elbe nachgezüchtet und ausgesetzt.';
+
+  @override
+  String get species_alligator_gar_name => 'Alligatorhecht';
+
+  @override
+  String get species_alligator_gar_desc =>
+      'Urzeitlicher Riese mit breiter, zahnbewehrter Schnauze und rautenförmigen Panzerschuppen, taucht in südlichen Flüssen zum Luftschnappen auf.';
+
+  @override
+  String get species_longnose_gar_name => 'Gemeiner Knochenhecht';
+
+  @override
+  String get species_longnose_gar_desc =>
+      'Schlanker gepanzerter Fisch mit nadelartiger Schnauze, steht reglos knapp unter der Oberfläche warmer Flüsse.';
+
+  @override
+  String get species_bowfin_name => 'Kahlhecht';
+
+  @override
+  String get species_bowfin_desc =>
+      'Lebendes Fossil mit langer wellenförmiger Rückenflosse und knöchernem Kopf, bewacht seine Brut in verkrauteten Altwassern.';
+
+  @override
+  String get species_american_paddlefish_name => 'Löffelstör';
+
+  @override
+  String get species_american_paddlefish_desc =>
+      'Filtrierender Riese mit paddelförmiger Schnauze von einem Drittel seiner Länge, schwimmt mit offenem Maul durch große Flüsse.';
+
+  @override
+  String get species_sea_lamprey_name => 'Meerneunauge';
+
+  @override
+  String get species_sea_lamprey_desc =>
+      'Kieferloser aalähnlicher Parasit mit zahnbewehrtem Saugmaul, laicht in Kiesbächen nach dem Fressen im Meer oder in Seen.';
+
+  @override
+  String get species_freshwater_drum_name => 'Süßwassertrommler';
+
+  @override
+  String get species_freshwater_drum_desc =>
+      'Silbriger Buckelfisch, der hörbar grunzt und Muscheln mit Schlundzähnen knackt, häufig in großen Flüssen und Seen.';
+
+  @override
+  String get species_white_sucker_name => 'Weißer Sauger';
+
+  @override
+  String get species_white_sucker_desc =>
+      'Zylindrischer Grundfisch mit fleischigem, nach unten gerichtetem Maul, zieht im Frühjahr in Laichscharen die Bäche hinauf.';
+
+  @override
+  String get species_common_minnow_name => 'Elritze';
+
+  @override
+  String get species_common_minnow_desc =>
+      'Winziger gestreifter Schwarmfisch klarer kühler Bäche und Seen, die Männchen färben sich im Frühjahr rot und grün.';
+
+  @override
+  String get species_three_spined_stickleback_name =>
+      'Dreistachliger Stichling';
+
+  @override
+  String get species_three_spined_stickleback_desc =>
+      'Winziger gepanzerter Fisch mit drei Rückenstacheln, dessen rotkehlige Männchen Nester aus Pflanzenfasern bauen und bewachen.';
+
+  @override
+  String get species_alewife_name => 'Maifisch';
+
+  @override
+  String get species_alewife_desc =>
+      'Silberner Hering, der im Frühjahr die Flüsse hinaufzieht und heute die Großen Seen in riesigen Schwärmen füllt.';
+
+  @override
+  String get species_nile_perch_name => 'Nilbarsch';
+
+  @override
+  String get species_nile_perch_desc =>
+      'Massiger silberner Raubfisch mit schwarz umrandetem Auge, in den Victoriasee eingeführt, wo er das Freiwasser beherrscht.';
+
+  @override
+  String get species_nile_tilapia_name => 'Nil-Tilapie';
+
+  @override
+  String get species_nile_tilapia_desc =>
+      'Grauer Buntbarsch mit senkrechten Schwanzstreifen, der seine Jungen im Maul ausbrütet, weltweit in warmen Gewässern gezüchtet und verwildert.';
+
+  @override
+  String get species_african_tigerfish_name => 'Tigersalmler';
+
+  @override
+  String get species_african_tigerfish_desc =>
+      'Gestreifter silberner Raubfisch mit ineinandergreifenden Dolchzähnen, jagt in schnellen afrikanischen Flüssen wie dem Sambesi.';
+
+  @override
+  String get species_marbled_lungfish_name => 'Äthiopischer Lungenfisch';
+
+  @override
+  String get species_marbled_lungfish_desc =>
+      'Aalförmiger luftatmender Fisch mit fadenförmigen Flossen, der Dürren in einem Schlammkokon eingeschlossen übersteht.';
+
+  @override
+  String get species_electric_catfish_name => 'Zitterwels';
+
+  @override
+  String get species_electric_catfish_desc =>
+      'Plumper grauer Wels aus Nil und Kongo, der Beute mit Stromstößen von mehreren hundert Volt betäubt.';
+
+  @override
+  String get species_zebra_mbuna_name => 'Zebra-Mbuna';
+
+  @override
+  String get species_zebra_mbuna_desc =>
+      'Blau gebänderter Felsenbuntbarsch des Malawisees, weidet in dichten territorialen Scharen Algen von Felsblöcken.';
+
+  @override
+  String get species_malawi_butterfly_peacock_name => 'Feenbuntbarsch';
+
+  @override
+  String get species_malawi_butterfly_peacock_desc =>
+      'Schillernd blauer Pfauenbuntbarsch aus den Höhlen des Malawisees, die Männchen leuchten mit weiß gesäumten Flossen.';
+
+  @override
+  String get species_fuelleborn_cichlid_name => 'Schabemundbuntbarsch';
+
+  @override
+  String get species_fuelleborn_cichlid_desc =>
+      'Stumpfnasiger Mbuna aus dem Malawisee mit fleischiger, überhängender Schnauze zum Abschaben von Algen in der Brandungszone.';
+
+  @override
+  String get species_princess_of_burundi_name => 'Prinzessin von Burundi';
+
+  @override
+  String get species_princess_of_burundi_desc =>
+      'Eleganter Tanganjikasee-Buntbarsch mit leierförmigen Flossen, lebt in Großfamilien, die sich die Brutpflege teilen.';
+
+  @override
+  String get species_frontosa_name => 'Tanganjika-Beulenkopf';
+
+  @override
+  String get species_frontosa_desc =>
+      'Tiefwasser-Buntbarsch des Tanganjikasees mit kräftigen blauweißen Bändern und Stirnbuckel, zieht langsam in Gruppen über Felsen.';
+
+  @override
+  String get species_tropheus_moorii_name => 'Brabantbuntbarsch';
+
+  @override
+  String get species_tropheus_moorii_desc =>
+      'Gedrungener Felsenbuntbarsch des Tanganjikasees in Dutzenden Farbformen, jede auf ihren eigenen Uferabschnitt beschränkt.';
+
+  @override
+  String get species_arapaima_name => 'Piracurù';
+
+  @override
+  String get species_arapaima_desc =>
+      'Einer der größten Süßwasserfische, ein gepanzerter Amazonasriese mit rot gesprenkeltem Schwanz, der zum Luftholen auftaucht.';
+
+  @override
+  String get species_silver_arowana_name => 'Arowana';
+
+  @override
+  String get species_silver_arowana_desc =>
+      'Bandförmiger silberner Amazonasfisch mit zwei Kinnbarteln, der aus dem Wasser springt, um Insekten von Zweigen zu schnappen.';
+
+  @override
+  String get species_red_bellied_piranha_name => 'Diamant-Piranha';
+
+  @override
+  String get species_red_bellied_piranha_desc =>
+      'Hochrückiger silberner Fisch mit karmesinrotem Bauch und messerscharfen Zähnen, zieht in Schwärmen durch Amazonas-Altwasser.';
+
+  @override
+  String get species_black_piranha_name => 'Roter Piranha';
+
+  @override
+  String get species_black_piranha_desc =>
+      'Große einzelgängerische Piranha mit roten Augen und dunklem rautenförmigem Körper, lauert in klaren felsigen Amazonas-Nebenflüssen.';
+
+  @override
+  String get species_red_bellied_pacu_name => 'Gamitana-Scheibensalmler';
+
+  @override
+  String get species_red_bellied_pacu_desc =>
+      'Piranhaähnlicher Früchtefresser mit flachen Mahlzähnen und rotem Bauch, sammelt sich unter überfluteten Waldbäumen.';
+
+  @override
+  String get species_tambaqui_name => 'Schwarzer Pacu';
+
+  @override
+  String get species_tambaqui_desc =>
+      'Riesiger dunkler Pacu des Amazonas, der unter dem Blätterdach überfluteter Wälder herabgefallene Nüsse und Samen knackt.';
+
+  @override
+  String get species_electric_eel_name => 'Zitteraal';
+
+  @override
+  String get species_electric_eel_desc =>
+      'Kein Aal, sondern ein Messerfisch, ein langer dunkler Luftatmer, der Beute mit bis zu 600 Volt betäubt.';
+
+  @override
+  String get species_redtail_catfish_name => 'Rotflossen-Antennenwels';
+
+  @override
+  String get species_redtail_catfish_desc =>
+      'Großer Amazonaswels mit dunklem Rücken, weißem Bauch und leuchtend orangerotem Schwanz, ruht in tiefen Flusskolken.';
+
+  @override
+  String get species_tiger_shovelnose_catfish_name => 'Tigerspatelwels';
+
+  @override
+  String get species_tiger_shovelnose_catfish_desc =>
+      'Schlanker gestreifter Wels mit langer abgeflachter Schnauze, jagt nachts entlang sandiger südamerikanischer Flussrinnen.';
+
+  @override
+  String get species_peacock_bass_name => 'Grüner Augenfleck-Kammbarsch';
+
+  @override
+  String get species_peacock_bass_desc =>
+      'Aggressiver Amazonas-Buntbarsch mit drei dunklen Querbinden und Augenfleck am Schwanz, lauert Fischen an versunkenem Holz auf.';
+
+  @override
+  String get species_oscar_name => 'Pfauenaugenbuntbarsch';
+
+  @override
+  String get species_oscar_desc =>
+      'Kräftiger dunkler Buntbarsch mit oranger Marmorierung und Augenfleck am Schwanz, durchstreift langsame Amazonasgewässer und überflutete Ufer.';
+
+  @override
+  String get species_freshwater_angelfish_name => 'Skalar';
+
+  @override
+  String get species_freshwater_angelfish_desc =>
+      'Hoher, scheibenförmiger Amazonas-Buntbarsch mit langen Flossen und senkrechten Streifen, treibt zwischen versunkenen Wurzeln.';
+
+  @override
+  String get species_discus_name => 'Diskusfisch';
+
+  @override
+  String get species_discus_desc =>
+      'Runder, seitlich abgeflachter Buntbarsch mit welligen blauen Linien, der seine Brut mit Hautschleim füttert.';
+
+  @override
+  String get species_sailfin_pleco_name => 'Segelflossen-Harnischwels';
+
+  @override
+  String get species_sailfin_pleco_desc =>
+      'Gepanzerter Saugwels mit hoher Rückenflosse und Leopardenflecken, raspelt Algen von Holz und Fels.';
+
+  @override
+  String get species_cardinal_tetra_name => 'Roter Neon';
+
+  @override
+  String get species_cardinal_tetra_desc =>
+      'Winziger Salmler mit neonblauem Streifen über einem durchgehenden roten Band, schwärmt im dunklen Wasser des Rio Negro.';
+
+  @override
+  String get species_mexican_tetra_name => 'Mexikanischer Streifensalmler';
+
+  @override
+  String get species_mexican_tetra_desc =>
+      'Silberner Salmler mexikanischer Flüsse, dessen Höhlenpopulationen blind und blass sind, ein Liebling der Cenote-Taucher.';
+
+  @override
+  String get species_mekong_giant_catfish_name => 'Mekongwels';
+
+  @override
+  String get species_mekong_giant_catfish_desc =>
+      'Vom Aussterben bedrohter zahnloser Riese des Mekong, grau und ohne Barteln, einst bis zu drei Meter lang.';
+
+  @override
+  String get species_giant_barb_name => 'Riesenbarbe';
+
+  @override
+  String get species_giant_barb_desc =>
+      'Der größte Karpfen der Welt, ein großschuppiger Mekong-Riese mit gewaltigem Kopf, heute selten in tiefen Flusskolken.';
+
+  @override
+  String get species_asian_arowana_name => 'Asiatischer Gabelbart';
+
+  @override
+  String get species_asian_arowana_desc =>
+      'Metallisch roter oder goldener Drachenfisch südostasiatischer Schwarzwasserflüsse, gleitet knapp unter der Oberfläche.';
+
+  @override
+  String get species_striped_snakehead_name => 'Quergestreifter Schlangenkopf';
+
+  @override
+  String get species_striped_snakehead_desc =>
+      'Torpedoförmiger luftatmender Raubfisch mit flachem schlangenartigem Kopf, bewacht seine Brut in verkrauteten asiatischen Teichen.';
+
+  @override
+  String get species_giant_snakehead_name => 'Riesenschlangenkopf';
+
+  @override
+  String get species_giant_snakehead_desc =>
+      'Großer, aggressiver Schlangenkopffisch, gestreift als Jungfisch und dunkel als Erwachsener, verteidigt seine leuchtend roten Jungen in südostasiatischen Seen.';
+
+  @override
+  String get species_climbing_perch_name => 'Kletterfisch';
+
+  @override
+  String get species_climbing_perch_desc =>
+      'Robuster olivfarbener Fisch, der Luft atmet und auf seinen stacheligen Kiemendeckeln über Land zwischen austrocknenden Tümpeln kriecht.';
+
+  @override
+  String get species_golden_mahseer_name => 'Riesen barbe';
+
+  @override
+  String get species_golden_mahseer_desc =>
+      'Goldschuppiger Karpfen der Himalaya-Flüsse, ein kraftvoller Schwimmer, der in schnellen klaren Kolken unterhalb von Stromschnellen steht.';
+
+  @override
+  String get species_koi_name => 'Koi-Karpfen';
+
+  @override
+  String get species_koi_desc =>
+      'Zierkarpfen, in Japan in weißen, roten, schwarzen und goldenen Mustern gezüchtet, zu Hause in Teichen und warmen klaren Seen.';
+
+  @override
+  String get species_goldfish_name => 'Goldfisch';
+
+  @override
+  String get species_goldfish_desc =>
+      'Domestizierter asiatischer Karpfen, der in freier Wildbahn olivbronze wird und in warmen Seen große verwilderte Schwärme bildet.';
+
+  @override
+  String get species_giant_gourami_name => 'Speisegurami';
+
+  @override
+  String get species_giant_gourami_desc =>
+      'Breiter, buckliger südostasiatischer Fisch mit fadenförmigen Bauchflossen, der in langsamem krautigem Wasser Schaumnester baut.';
+
+  @override
+  String get species_clown_knifefish_name => 'Tausenddollarfisch';
+
+  @override
+  String get species_clown_knifefish_desc =>
+      'Silberner klingenförmiger Fisch mit Augenflecken entlang einer langen wellenden Afterflosse, schwebt unter Totholz asiatischer Flüsse.';
+
+  @override
+  String get species_walking_catfish_name => 'Wanderwels';
+
+  @override
+  String get species_walking_catfish_desc =>
+      'Schlanker luftatmender Wels, der sich zwischen Teichen über feuchten Boden schlängelt, heute in Florida verwildert.';
+
+  @override
+  String get species_japanese_eel_name => 'Japanischer Aal';
+
+  @override
+  String get species_japanese_eel_desc =>
+      'Ostasiatischer Aal, der in Flüssen und Seen heranwächst und zum Laichen in den westlichen Pazifik zieht.';
+
+  @override
+  String get species_ayu_name => 'Ayu';
+
+  @override
+  String get species_ayu_desc =>
+      'Schlanker silberner japanischer Ayu, der in klaren Flüssen Algen von Steinen weidet und ein Fressrevier verteidigt.';
+
+  @override
+  String get species_baikal_omul_name => 'Baikal-Omul';
+
+  @override
+  String get species_baikal_omul_desc =>
+      'Silberne Renke, die nur im Baikalsee vorkommt, schwärmt im kalten Freiwasser und zieht zum Laichen die Flüsse hinauf.';
+
+  @override
+  String get species_baikal_oilfish_name => 'Baikalgroppe';
+
+  @override
+  String get species_baikal_oilfish_desc =>
+      'Durchscheinender, schuppenloser Fisch aus den Tiefen des Baikalsees, so ölreich, dass er fast durchsichtig ist, und lebendgebärend.';
+
+  @override
+  String get species_murray_cod_name => 'Murray-Dorsch';
+
+  @override
+  String get species_murray_cod_desc =>
+      'Australiens größter Süßwasserfisch, ein grün marmorierter Riese mit weißem Bauch, steht neben Totholz im Murray-Darling.';
+
+  @override
+  String get species_golden_perch_name => 'Goldbarsch';
+
+  @override
+  String get species_golden_perch_desc =>
+      'Hochrückiger goldoliv gefärbter Barsch australischer Binnenflüsse, sucht Schutz an umgestürzten Bäumen und Felsvorsprüngen.';
+
+  @override
+  String get species_australian_bass_name => 'Australischer Barsch';
+
+  @override
+  String get species_australian_bass_desc =>
+      'Bronzegrüner Barsch der Küstenflüsse Ostaustraliens, der zum Laichen flussabwärts in brackige Ästuare zieht.';
+
+  @override
+  String get species_barramundi_name => 'Barramundi';
+
+  @override
+  String get species_barramundi_desc =>
+      'Silberner, buckliger Barsch der Flüsse und Ästuare Nordaustraliens, der mit dem Alter das Geschlecht von männlich zu weiblich wechselt.';
+
+  @override
+  String get species_silver_perch_name => 'Silberbarsch';
+
+  @override
+  String get species_silver_perch_desc =>
+      'Silbergrauer Grunzbarsch des Murray-Darling mit kleinem Maul und gegabelter Schwanzflosse, früher in riesigen Schwärmen.';
+
+  @override
+  String get species_gulf_saratoga_name => 'Nördlicher Saratoga';
+
+  @override
+  String get species_gulf_saratoga_desc =>
+      'Bronzefarbener australischer Arowana mit rot gesprenkelten Schuppen, der seine Eier in nördlichen Billabongs im Maul ausbrütet.';
+
+  @override
+  String get species_sooty_grunter_name => 'Rußgrunzer';
+
+  @override
+  String get species_sooty_grunter_desc =>
+      'Dunkler, gedrungener Grunzbarsch nordaustralischer Flüsse, weidet Algen und Früchte um Felsen und Stromschnellen.';
+
+  @override
+  String get species_eel_tailed_catfish_name => 'Aalschwanzwels';
+
+  @override
+  String get species_eel_tailed_catfish_desc =>
+      'Australischer Wels mit spitz zulaufendem aalartigem Schwanz, der im klaren Flachwasser ein Kiesnest baut und bewacht.';
+
+  @override
+  String get species_spangled_perch_name => 'Flitterbarsch';
+
+  @override
+  String get species_spangled_perch_desc =>
+      'Kleiner, silbern gesprenkelter Grunzbarsch im gesamten australischen Binnenland, besiedelt jedes Wasserloch, das eine Flut verbindet.';
+
+  @override
+  String get species_eastern_rainbowfish_name => 'Östlicher Regenbogenfisch';
+
+  @override
+  String get species_eastern_rainbowfish_desc =>
+      'Kleiner schillernder Fisch ostaustralischer Bäche, die Männchen blitzen in der Sonne mit roten und blauen Streifen.';
+
+  @override
+  String get species_signal_crayfish_name => 'Signalkrebs';
+
+  @override
+  String get species_signal_crayfish_desc =>
+      'Großer brauner Flusskrebs mit weißem Fleck am Scherengelenk, eine invasive nordamerikanische Art, die sich in europäischen Flüssen ausbreitet.';
+
+  @override
+  String get species_red_swamp_crayfish_name =>
+      'Roter Amerikanischer Sumpfkrebs';
+
+  @override
+  String get species_red_swamp_crayfish_desc =>
+      'Dunkelroter Flusskrebs mit höckerigen Scheren aus den Sümpfen Louisianas, gräbt sich heute in warme Feuchtgebiete auf allen Kontinenten ein.';
+
+  @override
+  String get species_noble_crayfish_name => 'Edelkrebs';
+
+  @override
+  String get species_noble_crayfish_desc =>
+      'Europas heimischer Edelkrebs, dunkelbraun mit rot unterseitigen Scheren, versteckt sich in Uferhöhlen sauberer kühler Bäche und Seen.';
+
+  @override
+  String get species_white_clawed_crayfish_name => 'Dohlenkrebs';
+
+  @override
+  String get species_white_clawed_crayfish_desc =>
+      'Kleiner olivfarbener Flusskrebs mit hellen Scherenunterseiten, ein bedrohter Bewohner sauberer Kalksteinbäche Westeuropas.';
+
+  @override
+  String get species_tasmanian_giant_freshwater_crayfish_name =>
+      'Tasmanischer Riesenflusskrebs';
+
+  @override
+  String get species_tasmanian_giant_freshwater_crayfish_desc =>
+      'Das größte Süßwasser-Wirbellose der Welt, ein langsam wachsender blaubrauner Flusskrebs beschatteter tasmanischer Flüsse.';
+
+  @override
+  String get species_zebra_mussel_name => 'Wandermuschel';
+
+  @override
+  String get species_zebra_mussel_desc =>
+      'Daumennagelgroße gestreifte Muschel, die Felsen, Wracks und Rohre zu Tausenden überzieht und das Wasser klärt, während sie sich ausbreitet.';
+
+  @override
+  String get species_quagga_mussel_name => 'Quagga-Muschel';
+
+  @override
+  String get species_quagga_mussel_desc =>
+      'Rundere, blassere Verwandte der Zebramuschel, die weiche Böden und tiefes kaltes Wasser besiedelt, wo die Zebramuschel nicht kann.';
+
+  @override
+  String get species_freshwater_pearl_mussel_name => 'Flussperlmuschel';
+
+  @override
+  String get species_freshwater_pearl_mussel_desc =>
+      'Dunkle, längliche Muschel, die über ein Jahrhundert halb eingegraben im sauberen Kies schneller Lachsflüsse leben kann.';
+
+  @override
+  String get species_swan_mussel_name => 'Große Teichmuschel';
+
+  @override
+  String get species_swan_mussel_desc =>
+      'Große dünnschalige Muschel schlammiger Seen und Kanäle, filtert mit ihren Siphonen knapp über dem Schlick das Wasser.';
+
+  @override
+  String get species_chinese_pond_mussel_name => 'Chinesische Teichmuschel';
+
+  @override
+  String get species_chinese_pond_mussel_desc =>
+      'Sehr große invasive asiatische Muschel mit glänzend brauner Schale, mit Zuchtfischen eingeschleppt und in warmen Seen verbreitet.';
+
+  @override
+  String get species_freshwater_sponge_name => 'Geweihschwamm';
+
+  @override
+  String get species_freshwater_sponge_desc =>
+      'Grüner oder grauer verzweigter Schwamm, der Äste und Steine in klaren Seen überzieht, gefärbt von Algen, die in ihm leben.';
+
+  @override
+  String get species_freshwater_jellyfish_name => 'Süßwasserqualle';
+
+  @override
+  String get species_freshwater_jellyfish_desc =>
+      'Münzgroße durchsichtige Qualle, die im Spätsommer in Schwärmen in warmen Baggerseen und Stauseen auftaucht.';
+
+  @override
+  String get species_great_pond_snail_name => 'Spitzschlammschnecke';
+
+  @override
+  String get species_great_pond_snail_desc =>
+      'Große Schnecke mit spitzem Gehäuse, gleitet über Pflanzen und glasklare Flächen stiller europäischer Gewässer und atmet Luft an der Oberfläche.';
+
+  @override
+  String get species_great_ramshorn_snail_name => 'Posthornschnecke';
+
+  @override
+  String get species_great_ramshorn_snail_desc =>
+      'Flache, spiralig gewundene Schnecke wie ein winziges Widderhorn, weidet Algen von Blättern und Steinen in verkrauteten Teichen.';
+
+  @override
+  String get species_channeled_apple_snail_name => 'Gefurchte Apfelschnecke';
+
+  @override
+  String get species_channeled_apple_snail_desc =>
+      'Große goldbraune Schnecke, die leuchtend rosa Eigelege über der Wasserlinie ablegt, invasiv in warmen Feuchtgebieten und Reisfeldern.';
+
+  @override
+  String get species_magnificent_bryozoan_name => 'Prächtiges Moostierchen';
+
+  @override
+  String get species_magnificent_bryozoan_desc =>
+      'Gallertartige Kolonie von Fußballgröße, besetzt mit winzigen Tieren, haftet an Ästen und Seilen in warmem stillem Wasser.';
+
+  @override
+  String get species_chinese_mitten_crab_name => 'Chinesische Wollhandkrabbe';
+
+  @override
+  String get species_chinese_mitten_crab_desc =>
+      'Grabende Krabbe mit behaarten Scheren, die Jahre in Flüssen verbringt, bevor sie flussabwärts zum Laichen in Ästuare wandert.';
+
+  @override
+  String get species_giant_freshwater_prawn_name => 'Riesensüßwassergarnele';
+
+  @override
+  String get species_giant_freshwater_prawn_desc =>
+      'Große Garnele mit blauen Scheren aus asiatischen und australischen Flüssen, deren alte Männchen Scheren länger als der Körper haben.';
+
+  @override
+  String get species_common_snapping_turtle_name => 'Schnappschildkröte';
+
+  @override
+  String get species_common_snapping_turtle_desc =>
+      'Schwere Schildkröte mit rauem Panzer und langem gezacktem Schwanz, liegt mit herausgestrecktem Kopf im Schlamm von Teichen und langsamen Flüssen.';
+
+  @override
+  String get species_alligator_snapping_turtle_name => 'Geierschildkröte';
+
+  @override
+  String get species_alligator_snapping_turtle_desc =>
+      'Urzeitlich wirkender Riese mit drei gezackten Kielen und wurmartigem Zungenköder, wartet mit offenem Maul auf südlichen Flussgründen.';
+
+  @override
+  String get species_painted_turtle_name => 'Zierschildkröte';
+
+  @override
+  String get species_painted_turtle_desc =>
+      'Glatte dunkle Schildkröte mit roten und gelben Streifen an Hals und Panzerrand, sonnt sich in Reihen auf Baumstämmen in ganz Nordamerika.';
+
+  @override
+  String get species_red_eared_slider_name => 'Rotwangen-Schmuckschildkröte';
+
+  @override
+  String get species_red_eared_slider_desc =>
+      'Grün gestreifte Wasserschildkröte mit rotem Streifen hinter jedem Auge, die Heimtierschildkröte, heute weltweit in warmen Gewässern verwildert.';
+
+  @override
+  String get species_northern_map_turtle_name => 'Landkarten-Höckerschildkröte';
+
+  @override
+  String get species_northern_map_turtle_desc =>
+      'Olivfarbene Schildkröte mit landkartenartigen gelben Linien auf dem Panzer und niedrigem Kiel, sonnt sich auf Felsen an klaren Flüssen und großen Seen.';
+
+  @override
+  String get species_spiny_softshell_turtle_name => 'Dornrand-Weichschildkröte';
+
+  @override
+  String get species_spiny_softshell_turtle_desc =>
+      'Flache, lederartige Pfannkuchenschildkröte mit Schnorchelschnauze, im Sand flacher Flüsse eingegraben, nur der Kopf schaut heraus.';
+
+  @override
+  String get species_florida_softshell_turtle_name =>
+      'Florida-Weichschildkröte';
+
+  @override
+  String get species_florida_softshell_turtle_desc =>
+      'Große dunkle Weichschildkröte mit langer röhrenförmiger Schnauze, häufig in Floridas Quellen, Kanälen und Seen.';
+
+  @override
+  String get species_pig_nosed_turtle_name => 'Neuguinea-Weichschildkröte';
+
+  @override
+  String get species_pig_nosed_turtle_desc =>
+      'Einzigartige Flussschildkröte Neuguineas und Nordaustraliens mit Meeresschildkrötenflossen und fleischiger schweineartiger Schnauze.';
+
+  @override
+  String get species_mary_river_turtle_name => 'Mary-River-Schildkröte';
+
+  @override
+  String get species_mary_river_turtle_desc =>
+      'Seltene australische Schildkröte, die über ihre Kloake atmet und einen grünen Algen-Irokesenschnitt trägt, nur in einem einzigen Fluss in Queensland.';
+
+  @override
+  String get species_yellow_spotted_river_turtle_name =>
+      'Terekay-Schienenschildkröte';
+
+  @override
+  String get species_yellow_spotted_river_turtle_desc =>
+      'Amazonas-Halswender-Schildkröte mit gelben Kopfflecken, sonnt sich in Gruppen auf Baumstämmen und Sandbänken großer Flüsse.';
+
+  @override
+  String get species_european_pond_turtle_name =>
+      'Europäische Sumpfschildkröte';
+
+  @override
+  String get species_european_pond_turtle_desc =>
+      'Dunkle, gelb gepunktete Schildkröte, Europas heimische Sumpfschildkröte, gleitet von sonnigen Ufern in verkrautete Teiche.';
+
+  @override
+  String get species_american_alligator_name => 'Mississippi-Alligator';
+
+  @override
+  String get species_american_alligator_desc =>
+      'Breitschnauziges gepanzertes Reptil der Sümpfe, Quellen und Flüsse im Südosten der USA, treibt mit nur Augen und Nasenlöchern über Wasser.';
+
+  @override
+  String get species_spectacled_caiman_name => 'Krokodilkaiman';
+
+  @override
+  String get species_spectacled_caiman_desc =>
+      'Kleiner olivfarbener Kaiman mit knöchernem Grat zwischen den Augen, häufig in langsamen Flüssen und Lagunen Mittel- und Südamerikas.';
+
+  @override
+  String get species_black_caiman_name => 'Schwarzer Kaiman';
+
+  @override
+  String get species_black_caiman_desc =>
+      'Der größte Räuber des Amazonas, ein schwarzer gepanzerter Kaiman von bis zu fünf Metern, jagt nachts in Seen und überflutetem Wald.';
+
+  @override
+  String get species_freshwater_crocodile_name => 'Australien-Krokodil';
+
+  @override
+  String get species_freshwater_crocodile_desc =>
+      'Schmalschnauziges australisches Krokodil der nördlichen Flüsse und Schluchten, scheu und weit kleiner als das Leistenkrokodil.';
+
+  @override
+  String get species_northern_water_snake_name => 'Siegelring-Schwimmnatter';
+
+  @override
+  String get species_northern_water_snake_desc =>
+      'Dickleibige, gebänderte braune Schlange, sonnt sich auf Felsen und Ästen über Bächen im Osten Nordamerikas, harmlos, aber bissig.';
+
+  @override
+  String get species_green_anaconda_name => 'Große Anakonda';
+
+  @override
+  String get species_green_anaconda_desc =>
+      'Die schwerste Schlange der Erde, ein olivfarbener Riese mit schwarzen Flecken, liegt untergetaucht in Sümpfen und langsamen Flüssen des Amazonas.';
+
+  @override
+  String get species_hellbender_name => 'Schlammteufel';
+
+  @override
+  String get species_hellbender_desc =>
+      'Riesiger flachköpfiger Salamander mit faltiger Haut, versteckt sich unter großen Steinen in kalten klaren Flüssen der Appalachen.';
+
+  @override
+  String get species_mudpuppy_name => 'Gefleckter Furchenmolch';
+
+  @override
+  String get species_mudpuppy_desc =>
+      'Brauner gefleckter Salamander, der seine gefiederten roten Kiemen lebenslang behält und nachts über See- und Flussgründe kriecht.';
+
+  @override
+  String get species_axolotl_name => 'Axolotl';
+
+  @override
+  String get species_axolotl_desc =>
+      'Lächelnder Kiemensalamander, der das Wasser nie verlässt, vom Aussterben bedroht in den Kanälen von Xochimilco bei Mexiko-Stadt.';
+
+  @override
+  String get species_chinese_giant_salamander_name =>
+      'Chinesischer Riesensalamander';
+
+  @override
+  String get species_chinese_giant_salamander_desc =>
+      'Die größte lebende Amphibie, ein faltiger brauner Riese von fast zwei Metern, versteckt sich in kühlen felsigen Gebirgsbächen.';
+
+  @override
+  String get species_smooth_newt_name => 'Teichmolch';
+
+  @override
+  String get species_smooth_newt_desc =>
+      'Kleiner olivfarbener Molch, der jedes Frühjahr in die Teiche zurückkehrt, die Männchen bilden einen gewellten Kamm und einen gefleckten orangen Bauch.';
+
+  @override
+  String get species_great_crested_newt_name => 'Nördlicher Kammmolch';
+
+  @override
+  String get species_great_crested_newt_desc =>
+      'Großer schwarzer warziger Molch mit feuerorangem Bauch, die Männchen tragen zur Paarungszeit einen gezackten drachenartigen Kamm.';
+
+  @override
+  String get species_american_bullfrog_name => 'Amerikanischer Ochsenfrosch';
+
+  @override
+  String get species_american_bullfrog_desc =>
+      'Riesiger grüner Frosch mit tiefem Brüllen, sitzt zwischen Seerosenblättern warmer Teiche und ist heute auf mehreren Kontinenten invasiv.';
+
+  @override
+  String get species_common_frog_name => 'Grasfrosch';
+
+  @override
+  String get species_common_frog_desc =>
+      'Brauner Frosch mit dunkler Augenmaske, versammelt sich im Frühjahr in lauten Scharen zum Laichen in europäischen Teichen und Gräben.';
+
+  @override
+  String get species_north_american_river_otter_name =>
+      'Nordamerikanischer Fischotter';
+
+  @override
+  String get species_north_american_river_otter_desc =>
+      'Schlanker verspielter Otter, der in Flüssen und Seen Nordamerikas Fische und Krebse jagt und Schlammrutschen an den Ufern hinterlässt.';
+
+  @override
+  String get species_eurasian_otter_name => 'Fischotter';
+
+  @override
+  String get species_eurasian_otter_desc =>
+      'Scheuer brauner Fischotter europäischer Flüsse, Seen und Küsten, erholt sich nach Jahrzehnten des Rückgangs in seinem gesamten Verbreitungsgebiet.';
+
+  @override
+  String get species_giant_otter_name => 'Riesenotter';
+
+  @override
+  String get species_giant_otter_desc =>
+      'Fast zwei Meter langer Otter mit cremefarbenem Kehlfleck, lebt in lauten Familiengruppen an Amazonasflüssen und Altwasserseen.';
+
+  @override
+  String get species_north_american_beaver_name => 'Kanadischer Biber';
+
+  @override
+  String get species_north_american_beaver_desc =>
+      'Großes Nagetier mit flachem Schwanz, das Bäche zu Teichen aufstaut und unter dem Eis schwimmt, mit einer Burg aus Ästen als Unterschlupf.';
+
+  @override
+  String get species_eurasian_beaver_name => 'Europäischer Biber';
+
+  @override
+  String get species_eurasian_beaver_desc =>
+      'Europas größtes Nagetier, auf dem ganzen Kontinent wieder angesiedelt, fällt Uferbäume und baut Dämme und Burgen.';
+
+  @override
+  String get species_muskrat_name => 'Bisamratte';
+
+  @override
+  String get species_muskrat_desc =>
+      'Rattengroßes braunes Nagetier mit schuppigem, seitlich abgeflachtem Schwanz, schwimmt durch Rohrkolbensümpfe und baut kuppelförmige Schilfburgen.';
+
+  @override
+  String get species_platypus_name => 'Schnabeltier';
+
+  @override
+  String get species_platypus_desc =>
+      'Eierlegendes Säugetier mit Entenschnabel und Schwimmfüßen, sucht mit geschlossenen Augen in der Dämmerung an ostaustralischen Bächen nach Nahrung.';
+
+  @override
+  String get species_amazonian_manatee_name => 'Amazonasseekuh';
+
+  @override
+  String get species_amazonian_manatee_desc =>
+      'Die kleinste Seekuh, ein glatter dunkler Pflanzenfresser mit weißem Brustfleck, weidet Wasserpflanzen in Seen und Flüssen des Amazonas.';
+
+  @override
+  String get species_amazon_river_dolphin_name => 'Amazonasdelfin';
+
+  @override
+  String get species_amazon_river_dolphin_desc =>
+      'Rosafarbener Delfin mit langer Schnauze und beweglichem Hals, schlängelt sich in Amazonas und Orinoco zwischen Stämmen überfluteter Wälder.';
+
+  @override
+  String get species_baikal_seal_name => 'Baikalrobbe';
+
+  @override
+  String get species_baikal_seal_desc =>
+      'Die einzige Süßwasserrobbe der Welt, eine kleine silbergraue Robbe, die sich auf dem Eis und den Felsufern des Baikalsees ausruht.';
+
+  @override
+  String get species_capybara_name => 'Wasserschwein';
+
+  @override
+  String get species_capybara_desc =>
+      'Das größte Nagetier, ein tonnenförmiger Pflanzenfresser, der in ruhigen Herden in südamerikanischen Flüssen und Feuchtgebieten watet und schwimmt.';
+
+  @override
+  String get species_hippopotamus_name => 'Flusspferd';
+
+  @override
+  String get species_hippopotamus_desc =>
+      'Massiger afrikanischer Flussriese, der den Tag in Gruppen untergetaucht verbringt und über den Grund läuft statt zu schwimmen; gefährlich in der Nähe.';
+
+  @override
+  String get species_white_water_lily_name => 'Weiße Seerose';
+
+  @override
+  String get species_white_water_lily_desc =>
+      'Schwimmende runde Blätter und große weiße Blüten, die aus dicken, im Schlamm stiller europäischer Gewässer verwurzelten Rhizomen aufsteigen.';
+
+  @override
+  String get species_yellow_pond_lily_name => 'Gelbe Teichrose';
+
+  @override
+  String get species_yellow_pond_lily_desc =>
+      'Herzförmige Schwimmblätter und becherförmige gelbe Blüten, mit großen durchscheinenden Unterwasserblättern, die Taucher von unten sehen.';
+
+  @override
+  String get species_american_eelgrass_name => 'Amerikanische Wasserschraube';
+
+  @override
+  String get species_american_eelgrass_desc =>
+      'Bandförmige, bis zu zwei Meter lange Blätter, die in der Strömung klarer Flüsse und Quellen wiegen, ein Lieblingsfutter der Seekühe.';
+
+  @override
+  String get species_coontail_name => 'Raues Hornblatt';
+
+  @override
+  String get species_coontail_desc =>
+      'Wurzellose Unterwasserpflanze mit Quirlen steifer gegabelter Blätter wie ein Waschbärschwanz, treibt in dichten Massen in stillem Wasser.';
+
+  @override
+  String get species_eurasian_watermilfoil_name => 'Ähriges Tausendblatt';
+
+  @override
+  String get species_eurasian_watermilfoil_desc =>
+      'Federartige Unterwasserpflanze mit Quirlen fein geteilter Blätter, die dichte Matten nahe der Oberfläche bildet, in vielen Seen invasiv.';
+
+  @override
+  String get species_muskgrass_name => 'Gemeine Armleuchteralge';
+
+  @override
+  String get species_muskgrass_desc =>
+      'Brüchige, moschusartig riechende Grünalge mit quirligen Ästen, oft mit Kalk überkrustet, bedeckt den Grund klarer kalkreicher Seen.';
+
+  @override
+  String get species_canadian_waterweed_name => 'Kanadische Wasserpest';
+
+  @override
+  String get species_canadian_waterweed_desc =>
+      'Dichte Unterwasserpflanze mit Quirlen aus drei kleinen dunkelgrünen Blättern, verbreitet sich durch Bruchstücke in kühlen Seen und Kanälen weltweit.';
+
+  @override
+  String get species_curly_leaf_pondweed_name => 'Krauses Laichkraut';
+
+  @override
+  String get species_curly_leaf_pondweed_desc =>
+      'Unterwasserpflanze mit wellig gerandeten rötlich-grünen Blättern wie gekräuselte Lasagne, wächst im zeitigen Frühjahr vor anderen Wasserpflanzen.';
+
+  @override
+  String get species_water_hyacinth_name => 'Dickstielige Wasserhyazinthe';
+
+  @override
+  String get species_water_hyacinth_desc =>
+      'Schwimmpflanze mit glänzenden Blättern an luftgefüllten Stielen und Ähren lavendelfarbener Blüten, verstopft warme Wasserwege weltweit.';
+
+  @override
+  String get species_common_reed_name => 'Schilfrohr';
+
+  @override
+  String get species_common_reed_desc =>
+      'Hohes Gras mit federartigen Rispen, das dichte Bestände an Seeufern bildet; seine untergetauchten Halme beherbergen Brut und Libellenlarven.';
+
+  @override
   String get common_action_done => 'Fertig';
 
   @override
@@ -29737,6 +32622,33 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count Elemente aktualisiert',
       one: '$count Element aktualisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_mediaSources_checkAll => 'Alle Medien prüfen';
+
+  @override
+  String settings_mediaSources_checkAllResult(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente aktualisiert',
+      one: '$count Element aktualisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_mediaSources_checkAllBlocked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Keines der $count Elemente konnte geprüft werden. Ihre Quellen sind derzeit nicht erreichbar.',
+      one:
+          'Das Element konnte nicht geprüft werden. Seine Quelle ist derzeit nicht erreichbar.',
     );
     return '$_temp0';
   }
@@ -30172,6 +33084,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_decompression_ttsSource => 'TTS-Quelle';
 
   @override
+  String get settings_decompression_gtrSource => 'GTR-Quelle';
+
+  @override
+  String get settings_decompression_gtrReserve => 'GTR-Reservedruck';
+
+  @override
+  String get settings_decompression_gtrReserve_subtitle =>
+      'Flaschendruck, auf den die verbleibende Gaszeit herunterzählt. Die berechnete GTR geht von einem direkten Aufstieg mit 10 m/min ohne Stopps aus.';
+
+  @override
   String settings_fixDiveTimes_applied(int count, String hours, int hoursAbs) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30481,6 +33403,35 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_syncMaintenance_phase_publishingLibrary =>
       'Bibliothek wird veröffentlicht';
+
+  @override
+  String get settings_cloudSync_adopt_progressTitle =>
+      'Wiederhergestellte Bibliothek wird übernommen';
+
+  @override
+  String get settings_cloudSync_replaceLibrary_progressTitle =>
+      'Cloud-Bibliothek wird ersetzt';
+
+  @override
+  String settings_syncDevices_nameWithId(String name, String shortId) {
+    return '$name ($shortId)';
+  }
+
+  @override
+  String get settings_syncMaintenance_phase_applyingLibrary =>
+      'Bibliothek wird angewendet';
+
+  @override
+  String get settings_syncMaintenance_phase_backingUp =>
+      'Dieses Gerät wird gesichert';
+
+  @override
+  String get settings_syncMaintenance_phase_repairing =>
+      'Lokaler Sync-Status wird gelöscht';
+
+  @override
+  String get settings_troubleshootSync_repair_progressTitle =>
+      'Synchronisierung wird repariert';
 
   @override
   String get settings_syncMaintenance_phase_working => 'Wird ausgeführt...';
@@ -32067,6 +35018,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get backup_operation_restoreSourceMissing =>
+      'Es wurde nichts wiederhergestellt: Die Sicherungsdatei wurde nicht gefunden. Ihre aktuellen Daten sind unverändert.';
+
+  @override
   String get backup_operation_deleting => 'Sicherung wird gelöscht...';
 
   @override
@@ -32252,6 +35207,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die ersetzte Bibliothek wird noch hochgeladen. Versuchen Sie es in Kürze erneut.';
 
   @override
+  String get settings_cloudSync_result_cloudLibraryNewerSchema =>
+      'Die Cloud-Bibliothek wurde von einer neueren Version von Submersion veröffentlicht. Aktualisieren Sie dieses Gerät und versuchen Sie es dann erneut.';
+
+  @override
   String settings_cloudSync_result_recordsFailed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32322,6 +35281,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_info_title => 'Medieninfo';
 
   @override
+  String get media_species_actionTooltip => 'Arten';
+
+  @override
+  String get media_species_sheetTitle => 'Arten auf diesem Foto';
+
+  @override
+  String get media_species_sightedOnDive => 'Bei diesem Tauchgang gesichtet';
+
+  @override
+  String get media_species_otherSpecies => 'Andere Arten...';
+
+  @override
+  String get media_species_noDiveHint =>
+      'Dieses Foto ist keinem Tauchgang zugeordnet. Suchen Sie eine Art, um es zu markieren.';
+
+  @override
+  String get media_species_chipsLabel => 'Artenmarkierungen';
+
+  @override
   String get media_info_fileSection => 'Datei';
 
   @override
@@ -32379,6 +35357,45 @@ class AppLocalizationsDe extends AppLocalizations {
   String media_info_lastChecked(String date) {
     return 'Zuletzt geprüft $date';
   }
+
+  @override
+  String get media_timeInDive_label => 'Zeitpunkt im Tauchgang';
+
+  @override
+  String get media_timeInDive_unknown => 'Zeitpunkt im Tauchgang unbekannt';
+
+  @override
+  String get media_timeInDive_setAction => 'Zeitpunkt im Tauchgang festlegen';
+
+  @override
+  String media_timeInDive_manual(String time) {
+    return '$time (manuell festgelegt)';
+  }
+
+  @override
+  String get media_timeInDive_fieldLabel => 'Zeit seit Tauchgangsbeginn';
+
+  @override
+  String get media_timeInDive_fieldHint => 'mm:ss';
+
+  @override
+  String media_timeInDive_range(String max) {
+    return 'Zwischen 0:00 und $max';
+  }
+
+  @override
+  String media_timeInDive_invalid(String max) {
+    return 'Gib eine Zeit zwischen 0:00 und $max ein';
+  }
+
+  @override
+  String get media_timeInDive_save => 'Speichern';
+
+  @override
+  String get media_timeInDive_cancel => 'Abbrechen';
+
+  @override
+  String get media_timeInDive_reset => 'Auf automatisch zurücksetzen';
 
   @override
   String get media_info_backupSection => 'Sicherung';
@@ -32528,6 +35545,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_status_broken => 'Fehlt und nicht gesichert';
 
   @override
+  String get media_servedFrom_localDisk => 'Auf diesem Gerät';
+
+  @override
+  String get media_servedFrom_platformGallery => 'Fotomediathek';
+
+  @override
+  String get media_servedFrom_storeCache =>
+      'Cloud-Speicher, hier zwischengespeichert';
+
+  @override
+  String get media_servedFrom_storeNetwork => 'Cloud-Speicher';
+
+  @override
+  String get media_servedFrom_networkUrl => 'Weblink';
+
+  @override
+  String get media_servedFrom_connectorCache =>
+      'Verbundener Dienst, hier zwischengespeichert';
+
+  @override
+  String get media_servedFrom_connectorNetwork => 'Verbundener Dienst';
+
+  @override
+  String get media_servedFrom_embedded => 'In diesem Logbuch gespeichert';
+
+  @override
+  String get settings_media_provenanceBadges =>
+      'Quellen-Badges auf Miniaturen anzeigen';
+
+  @override
+  String get settings_media_provenanceBadgesSubtitle =>
+      'Ein kleines Symbol, das zeigt, woher jedes Element geladen wird. Problem-Badges werden immer angezeigt.';
+
+  @override
   String get media_status_transferFailed => 'Upload fehlgeschlagen';
 
   @override
@@ -32568,4 +35619,350 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_permissionUnsupported =>
       'HealthKit ist auf diesem Gerät nicht verfügbar';
+
+  @override
+  String get statistics_trend_aggregation_monthly => 'Monatlicher Durchschnitt';
+
+  @override
+  String get statistics_trend_aggregation_perDive => 'Jeder Tauchgang';
+
+  @override
+  String get statistics_trend_aggregation_tooltip =>
+      'Wie Tauchgänge gruppiert werden';
+
+  @override
+  String get statistics_trend_aggregation_weekly =>
+      'Wöchentlicher Durchschnitt';
+
+  @override
+  String get statistics_trend_band_semanticLabel =>
+      'Der schattierte Bereich umfasst den niedrigsten und höchsten Wert jeder Gruppe';
+
+  @override
+  String get statistics_trend_legend_rate => 'Gesamttrend';
+
+  @override
+  String get statistics_trend_legend_rollingAverage =>
+      'Gleitender Durchschnitt';
+
+  @override
+  String statistics_trend_rate_perYear(String value) {
+    return '$value/Jahr';
+  }
+
+  @override
+  String get statistics_conditions_tempTrend_title =>
+      'Wassertemperatur-Verlauf';
+
+  @override
+  String get statistics_conditions_tempTrend_subtitle =>
+      'Jeder Tauchgang im Zeitraum';
+
+  @override
+  String get statistics_conditions_tempTrend_empty =>
+      'Keine Temperaturdaten verfügbar';
+
+  @override
+  String get statistics_conditions_tempTrend_error =>
+      'Temperaturverlauf konnte nicht geladen werden';
+
+  @override
+  String get diveLog_filter_presetLast5Years => 'Letzte 5 Jahre';
+
+  @override
+  String get diveLog_filter_presetLast10Years => 'Letzte 10 Jahre';
+
+  @override
+  String get statistics_trend_tooltip_lowest => 'Niedrigster';
+
+  @override
+  String get statistics_trend_tooltip_highest => 'Höchster';
+
+  @override
+  String get diveLog_edit_excludeFromStats => 'Von Statistiken ausschließen';
+
+  @override
+  String get diveLog_edit_excludeFromStatsHelp =>
+      'Behalte diesen Tauchgang im Logbuch, lasse ihn aber aus jeder Statistik heraus, einschließlich der Tauchgangszahl.';
+
+  @override
+  String get diveLog_edit_excludeFromGasStats =>
+      'Von Gasstatistiken ausschließen';
+
+  @override
+  String get diveLog_edit_excludeFromGasStatsHelp =>
+      'Lasse diesen Tauchgang nur aus AMV-, RMV- und Gasgemisch-Statistiken heraus. Nützlich, wenn der Gaswert nicht repräsentativ ist.';
+
+  @override
+  String get diveLog_badge_excludedFromStats =>
+      'Von Statistiken ausgeschlossen';
+
+  @override
+  String get diveLog_badge_excludedFromGasStats =>
+      'Von Gasstatistiken ausgeschlossen';
+
+  @override
+  String get diveLog_bulkEdit_fieldExcludeFromStats =>
+      'Von Statistiken ausschließen';
+
+  @override
+  String get diveLog_bulkEdit_fieldExcludeFromGasStats =>
+      'Von Gasstatistiken ausschließen';
+
+  @override
+  String get diveLog_filter_excludedOnly =>
+      'Nur von Statistiken ausgeschlossene';
+
+  @override
+  String get diveLog_edit_summary_excluded => 'Ausgeschlossen';
+
+  @override
+  String statistics_excludedDivesFootnote(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge von Statistiken ausgeschlossen',
+      one: '1 Tauchgang von Statistiken ausgeschlossen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_group_statistics => 'Statistiken';
+
+  @override
+  String get diveLog_edit_summary_gasExcluded => 'Gas ausgeschlossen';
+
+  @override
+  String get diveLog_edit_statisticsIncludedHint =>
+      'In allen Statistiken enthalten';
+
+  @override
+  String get suuntoCloud_signIn_title => 'Bei Suunto anmelden';
+
+  @override
+  String get suuntoCloud_signIn_description =>
+      'Melde dich mit deinem app.suunto.com-Konto an, um deine Tauchgänge direkt zu importieren. Dein Passwort wird nie gespeichert, nur die daraus entstehende Sitzung.';
+
+  @override
+  String get suuntoCloud_signIn_emailLabel => 'E-Mail';
+
+  @override
+  String get suuntoCloud_signIn_emailRequired => 'E-Mail ist erforderlich';
+
+  @override
+  String get suuntoCloud_signIn_passwordLabel => 'Passwort';
+
+  @override
+  String get suuntoCloud_signIn_passwordRequired => 'Passwort ist erforderlich';
+
+  @override
+  String get suuntoCloud_signIn_button => 'Anmelden';
+
+  @override
+  String get suuntoCloud_signIn_signingIn => 'Anmeldung läuft…';
+
+  @override
+  String suuntoCloud_signIn_signedInAs(String email) {
+    return 'Angemeldet als $email';
+  }
+
+  @override
+  String get suuntoCloud_fetch_listing => 'Tauchgänge werden aufgelistet…';
+
+  @override
+  String suuntoCloud_fetch_fetchingDiveOf(int current, int total) {
+    return 'Tauchgang $current von $total wird geladen…';
+  }
+
+  @override
+  String get suuntoCloud_fetch_failedTitle =>
+      'Tauchgänge konnten nicht geladen werden';
+
+  @override
+  String get suuntoCloud_fetch_retry => 'Wiederholen';
+
+  @override
+  String suuntoCloud_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge gefunden',
+      one: '1 Tauchgang gefunden',
+      zero: 'Keine Tauchgänge gefunden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String suuntoCloud_fetch_someFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge konnten nicht konvertiert werden und wurden übersprungen.',
+      one:
+          '1 Tauchgang konnte nicht konvertiert werden und wurde übersprungen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importWizard_review_sortTooltip => 'Sortieren';
+
+  @override
+  String get importWizard_review_sortByDate => 'Datum';
+
+  @override
+  String get importWizard_review_sortByDepth => 'Tiefe';
+
+  @override
+  String get importWizard_review_sortByDuration => 'Zeit';
+
+  @override
+  String get transfer_importCloud_suuntoTitle => 'Suunto';
+
+  @override
+  String get transfer_importCloud_suuntoSubtitle =>
+      'Tauchgänge aus deiner Suunto-App / deinem app.suunto.com-Konto importieren';
+
+  @override
+  String get transfer_section_cloudTitle => 'Cloud';
+
+  @override
+  String get transfer_section_cloudSubtitle => 'Aus der Cloud importieren';
+
+  @override
+  String get settings_storageUsage_appBar_title => 'Speichernutzung';
+
+  @override
+  String get settings_storageUsage_tile_title => 'Speichernutzung';
+
+  @override
+  String get settings_storageUsage_tile_subtitle =>
+      'Sehen Sie, was auf diesem Gerät Speicherplatz belegt';
+
+  @override
+  String get settings_storageUsage_total => 'Gesamt';
+
+  @override
+  String get settings_storageUsage_totalPartial => 'Bisher gesamt';
+
+  @override
+  String get settings_storageUsage_refresh_tooltip => 'Neu berechnen';
+
+  @override
+  String get settings_storageUsage_unavailable => 'Nicht verfügbar';
+
+  @override
+  String get settings_storageUsage_measureFailed => 'Messung nicht möglich';
+
+  @override
+  String get settings_storageUsage_group_appData => 'App-Daten';
+
+  @override
+  String get settings_storageUsage_group_mediaCache => 'Medien-Cache';
+
+  @override
+  String get settings_storageUsage_group_caches => 'Caches';
+
+  @override
+  String get settings_storageUsage_group_backups => 'Sicherungen';
+
+  @override
+  String get settings_storageUsage_group_temporary => 'Temporäre Dateien';
+
+  @override
+  String get settings_storageUsage_group_exports => 'Exportierte Dateien';
+
+  @override
+  String get settings_storageUsage_category_database => 'Tauchbuch-Datenbank';
+
+  @override
+  String get settings_storageUsage_category_localCache =>
+      'Lokale Cache-Datenbank';
+
+  @override
+  String get settings_storageUsage_category_mediaCacheOriginals =>
+      'Original-Fotos und -Videos';
+
+  @override
+  String get settings_storageUsage_category_mediaCacheThumbs =>
+      'Miniaturansichten';
+
+  @override
+  String get settings_storageUsage_category_mediaCacheRenditions =>
+      'Video-Versionen';
+
+  @override
+  String get settings_storageUsage_category_mediaCacheStaging =>
+      'Bereitgestellte Übertragungen';
+
+  @override
+  String get settings_storageUsage_category_mediaCacheTranscode =>
+      'Transkodierte Videos';
+
+  @override
+  String get settings_storageUsage_category_mapTiles => 'Kartenkacheln';
+
+  @override
+  String get settings_storageUsage_category_networkImages => 'Netzwerkbilder';
+
+  @override
+  String get settings_storageUsage_category_videoThumbnails =>
+      'Video-Miniaturansichten';
+
+  @override
+  String get settings_storageUsage_category_pdfThumbnails =>
+      'Dokument-Miniaturansichten';
+
+  @override
+  String get settings_storageUsage_category_backups => 'Sicherungsdateien';
+
+  @override
+  String get settings_storageUsage_category_temporary => 'Temporäre Dateien';
+
+  @override
+  String get settings_storageUsage_category_exports => 'Exportierte Dateien';
+
+  @override
+  String get profilePhoto_sheet_title => 'Profilfoto';
+
+  @override
+  String get profilePhoto_source_camera => 'Foto aufnehmen';
+
+  @override
+  String get profilePhoto_source_library => 'Aus Mediathek wählen';
+
+  @override
+  String get profilePhoto_source_file => 'Datei wählen';
+
+  @override
+  String get profilePhoto_source_contacts => 'Aus Kontakten wählen';
+
+  @override
+  String get profilePhoto_action_remove => 'Foto entfernen';
+
+  @override
+  String get profilePhoto_crop_title => 'Foto anpassen';
+
+  @override
+  String get profilePhoto_crop_hint =>
+      'Zum Verschieben ziehen, zum Zoomen zwei Finger';
+
+  @override
+  String get profilePhoto_error_tooLarge =>
+      'Dieses Bild ist zu groß. Bitte ein kleineres wählen.';
+
+  @override
+  String get profilePhoto_error_undecodable =>
+      'Diese Datei konnte nicht als Bild gelesen werden.';
+
+  @override
+  String get profilePhoto_error_contactNoPhoto =>
+      'Dieser Kontakt hat kein Foto.';
+
+  @override
+  String get profilePhoto_error_contactPermission =>
+      'Für die Auswahl eines Fotos wird die Kontaktberechtigung benötigt.';
 }

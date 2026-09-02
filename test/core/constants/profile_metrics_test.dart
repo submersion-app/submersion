@@ -36,8 +36,10 @@ void main() {
         ttsActual: MetricDataSource.computer,
         cnsActual: MetricDataSource.calculated,
         decoStopActual: MetricDataSource.calculated,
+        gtrActual: MetricDataSource.computer,
       );
       expect(info.ndlActual, MetricDataSource.computer);
+      expect(info.gtrActual, MetricDataSource.computer);
       expect(info.ceilingActual, MetricDataSource.calculated);
       expect(info.ttsActual, MetricDataSource.computer);
       expect(info.cnsActual, MetricDataSource.calculated);
@@ -51,8 +53,29 @@ void main() {
         ttsActual: MetricDataSource.calculated,
         cnsActual: MetricDataSource.calculated,
         decoStopActual: MetricDataSource.calculated,
+        gtrActual: MetricDataSource.calculated,
       );
       expect(info.ndlActual, MetricDataSource.calculated);
+      expect(info.gtrActual, MetricDataSource.calculated);
+    });
+  });
+
+  group('ProfileRightAxisMetric.gtr', () {
+    test('is a gas-analysis metric measured in minutes', () {
+      const gtr = ProfileRightAxisMetric.gtr;
+      expect(gtr.category, ProfileMetricCategory.gasAnalysis);
+      expect(gtr.unitSuffix, 'min');
+      expect(gtr.shortName, 'GTR');
+      expect(gtr.color, isNotNull);
+    });
+
+    test('is not in the automatic fallback chain', () {
+      // Fallbacks are for metrics nearly every dive has; GTR needs an
+      // air-integrated pressure track.
+      expect(
+        ProfileRightAxisMetric.fallbackPriority,
+        isNot(contains(ProfileRightAxisMetric.gtr)),
+      );
     });
   });
 

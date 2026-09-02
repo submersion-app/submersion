@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
@@ -49,6 +53,12 @@ Widget _buildPicker({
       ),
     ),
   );
+}
+
+Uint8List _jpeg() {
+  final image = img.Image(width: 32, height: 32);
+  img.fill(image, color: img.ColorRgb8(10, 20, 30));
+  return Uint8List.fromList(img.encodeJpg(image, quality: 80));
 }
 
 void _useTallScreen(WidgetTester tester) {
@@ -138,5 +148,50 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(changed, isNull);
+  });
+
+  testWidgets('Me chip shows the diver photo when they have one', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildPicker(
+        diverRoleId: DiveRole.rearGuardId,
+        onDiverRoleChanged: (_) {},
+        diver: Diver(
+          id: 'diver-1',
+          name: 'Eric G',
+          photo: _jpeg(),
+          createdAt: _now,
+          updatedAt: _now,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
+    expect(avatar.photo, isNotNull);
+  });
+
+  testWidgets('Me chip keeps the person icon when the diver has no photo', (
+    tester,
+  ) async {
+    // Deliberately NOT initials: this chip has always shown a generic icon,
+    // and only a real photo should change its appearance.
+    await tester.pumpWidget(
+      _buildPicker(
+        diverRoleId: DiveRole.rearGuardId,
+        onDiverRoleChanged: (_) {},
+        diver: Diver(
+          id: 'diver-1',
+          name: 'Eric G',
+          createdAt: _now,
+          updatedAt: _now,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.person), findsOneWidget);
+    expect(find.byType(ProfileAvatar), findsNothing);
   });
 }

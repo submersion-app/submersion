@@ -13,12 +13,16 @@ import 'package:submersion/features/dive_sites/data/services/dive_site_api_servi
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
+import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/domain/models/entry_exit_suggestion.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 // ============================================================================
 // Site Filter State
@@ -199,6 +203,11 @@ final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((
   );
   ref.invalidateSelfWhen(repository.watchSitesChanges());
   ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  // Feature chips on the list card come from site_features, so a feature
+  // placed on the site map must refresh the list too.
+  ref.invalidateSelfWhen(
+    ref.read(siteFeatureRepositoryProvider).watchFeatureChanges(),
+  );
   return repository.getSitesWithDiveCounts(diverId: validatedDiverId);
 });
 
@@ -227,11 +236,11 @@ final sortedSitesWithCountsProvider =
       final sitesAsync = ref.watch(filteredSitesWithCountsProvider);
       final sort = ref.watch(siteSortProvider);
 
-      return sitesAsync.whenData((sites) => _applySiteSorting(sites, sort));
+      return sitesAsync.whenData((sites) => applySiteSorting(sites, sort));
     });
 
 /// Apply sorting to a list of sites
-List<SiteWithDiveCount> _applySiteSorting(
+List<SiteWithDiveCount> applySiteSorting(
   List<SiteWithDiveCount> sites,
   SortState<SiteSortField> sort,
 ) {
@@ -256,6 +265,27 @@ List<SiteWithDiveCount> _applySiteSorting(
           comparison = (a.site.maxDepth ?? 0).compareTo(b.site.maxDepth ?? 0);
         case SiteSortField.diveCount:
           comparison = a.diveCount.compareTo(b.diveCount);
+        case SiteSortField.lastDived:
+          // Sites never dived always sort last regardless of direction, and
+          // ties (including the never-dived group) always break A->Z for
+          // determinism, independent of direction. Both cases return early,
+          // before the direction inversion below, so neither is flipped.
+          final aDate = a.lastDivedAt;
+          final bDate = b.lastDivedAt;
+          if (aDate == null || bDate == null) {
+            if (aDate == null && bDate == null) {
+              return a.site.name.toLowerCase().compareTo(
+                b.site.name.toLowerCase(),
+              );
+            }
+            return aDate == null ? 1 : -1;
+          }
+          comparison = aDate.compareTo(bDate);
+          if (comparison == 0) {
+            return a.site.name.toLowerCase().compareTo(
+              b.site.name.toLowerCase(),
+            );
+          }
       }
 
       if (invertForText) {
@@ -343,6 +373,28 @@ final siteEntryExitSuggestionProvider =
       );
     });
 
+/// Auto-computed dive statistics (depth range, duration, first/last dive) for
+/// the dives logged at [siteId] (submersion-app/submersion#1018, #1038).
+///
+/// Distinct from the manually entered [domain.DiveSite.minDepth]/`maxDepth`
+/// shown in the "Depth Range" card - this is derived from the dives
+/// themselves and never written back to the site row.
+///
+/// Takes the dives tick for the same reason [siteEntryExitSuggestionProvider]
+/// does: site merges, bulk edits, and sync pulls change which dives belong to
+/// a site without touching the site row itself.
+final siteDiveStatisticsProvider =
+    FutureProvider.family<SiteDiveStatistics, String>((ref, siteId) async {
+      final diveRepository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      if (diverId == null) return SiteDiveStatistics.empty;
+
+      final stats = ref.watch(statisticsRepositoryProvider);
+      return stats.getSiteDiveStatistics(siteId: siteId, diverId: diverId);
+    });
+
 /// Site list notifier for mutations
 class SiteListNotifier
     extends StateNotifier<AsyncValue<List<domain.DiveSite>>> {
@@ -352,7 +404,7 @@ class SiteListNotifier
 
   SiteListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(_initializeAndLoad(), SiteListNotifier, 'initialize and load');
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -361,7 +413,11 @@ class SiteListNotifier
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(sitesProvider);
         _ref.invalidate(sitesWithCountsProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          SiteListNotifier,
+          'initialize and load',
+        );
       }
     });
   }
@@ -407,6 +463,29 @@ class SiteListNotifier
 
   Future<void> updateSite(domain.DiveSite site) async {
     await _repository.updateSite(site);
+    await _loadSites();
+  }
+
+  /// Altitude write-back for a looked-up site altitude. Patches the one
+  /// column; never send a copied entity through [updateSite] for this
+  /// (issue #1187).
+  Future<void> updateSiteAltitude(String siteId, double altitudeMeters) async {
+    await _repository.updateSiteAltitude(siteId, altitudeMeters);
+    await _loadSites();
+  }
+
+  /// Coordinates (and optionally altitude) write-back, e.g. from a photo's
+  /// GPS. Patches only those columns.
+  Future<void> updateSiteCoordinates(
+    String siteId,
+    domain.GeoPoint location, {
+    double? altitude,
+  }) async {
+    await _repository.updateSiteCoordinates(
+      siteId,
+      location,
+      altitude: altitude,
+    );
     await _loadSites();
   }
 
@@ -733,29 +812,53 @@ final siteTableConfigProvider =
 // Site Card View Config
 // ============================================================================
 
-/// Default card slot configuration for the detailed site card view.
+/// Detailed site card slots. Persisted per diver under `card_detailed_sites`.
 final siteDetailedCardConfigProvider =
-    StateProvider<EntityCardViewConfig<SiteField>>(
-      (ref) => const EntityCardViewConfig<SiteField>(
-        slots: [
-          EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
-          EntityCardSlotConfig(slotId: 'subtitle', field: SiteField.location),
-          EntityCardSlotConfig(slotId: 'stat1', field: SiteField.maxDepth),
-          EntityCardSlotConfig(slotId: 'stat2', field: SiteField.diveCount),
-        ],
-        extraFields: [],
-      ),
-    );
+    StateNotifierProvider<
+      EntityCardConfigNotifier<SiteField>,
+      EntityCardViewConfig<SiteField>
+    >((ref) {
+      final notifier = EntityCardConfigNotifier<SiteField>(
+        defaultConfig: const EntityCardViewConfig<SiteField>(
+          slots: [
+            EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
+            EntityCardSlotConfig(slotId: 'subtitle', field: SiteField.location),
+            EntityCardSlotConfig(slotId: 'stat1', field: SiteField.depthRange),
+            EntityCardSlotConfig(slotId: 'stat2', field: SiteField.diveCount),
+          ],
+          extraFields: [SiteField.lastDived, SiteField.maxDepthReached],
+        ),
+        fieldFromName: SiteFieldAdapter.instance.fieldFromName,
+      );
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
+        notifier.init(repo, diverId, 'card_detailed_sites');
+      }
+      return notifier;
+    });
 
-/// Default card slot configuration for the compact site card view.
+/// Compact site card slots. Persisted per diver under `card_compact_sites`.
 final siteCompactCardConfigProvider =
-    StateProvider<EntityCardViewConfig<SiteField>>(
-      (ref) => const EntityCardViewConfig<SiteField>(
-        slots: [
-          EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
-          EntityCardSlotConfig(slotId: 'subtitle', field: SiteField.location),
-          EntityCardSlotConfig(slotId: 'stat1', field: SiteField.maxDepth),
-          EntityCardSlotConfig(slotId: 'stat2', field: SiteField.diveCount),
-        ],
-      ),
-    );
+    StateNotifierProvider<
+      EntityCardConfigNotifier<SiteField>,
+      EntityCardViewConfig<SiteField>
+    >((ref) {
+      final notifier = EntityCardConfigNotifier<SiteField>(
+        defaultConfig: const EntityCardViewConfig<SiteField>(
+          slots: [
+            EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
+            EntityCardSlotConfig(slotId: 'subtitle', field: SiteField.location),
+            EntityCardSlotConfig(slotId: 'stat1', field: SiteField.diveCount),
+            EntityCardSlotConfig(slotId: 'stat2', field: SiteField.depthRange),
+          ],
+        ),
+        fieldFromName: SiteFieldAdapter.instance.fieldFromName,
+      );
+      final diverId = ref.watch(currentDiverIdProvider);
+      if (diverId != null) {
+        final repo = ref.watch(viewConfigRepositoryProvider);
+        notifier.init(repo, diverId, 'card_compact_sites');
+      }
+      return notifier;
+    });

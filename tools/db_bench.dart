@@ -108,10 +108,43 @@ const _searchSql = '''
     'SELECT diver_id, COUNT(*) AS n FROM dives '
     'GROUP BY diver_id ORDER BY n DESC LIMIT 1',
   );
+  // Samples live in packed series blobs since v182, so the densest dive is
+  // the one whose series carry the most samples between them, not the one
+  // with the most rows.
+  if (diver.isEmpty) {
+    stderr.writeln('This database has no dives; nothing to benchmark.');
+    exit(65);
+  }
+  // Both tables, not just the profile one: the benchmark reads
+  // tank_pressure_series too, and the two are created independently
+  // (_assertProfileSeriesSchema waits for each one's own foreign key
+  // parents, and tank_pressure_series needs dive_tanks while
+  // dive_profile_series does not). A database with one and not the other
+  // would clear a single-table check and then die mid-run.
+  for (final table in const ['dive_profile_series', 'tank_pressure_series']) {
+    final present = db.select(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+      [table],
+    ).isNotEmpty;
+    if (present) continue;
+    stderr.writeln(
+      'No $table table: this benchmark measures the packed series reads, so '
+      'it needs a database migrated to v182 or later. Open it in the app '
+      'once to run the migration, or point at a newer copy.',
+    );
+    exit(65);
+  }
   final dense = db.select(
-    'SELECT dive_id, COUNT(*) AS n FROM dive_profiles '
+    'SELECT dive_id, SUM(sample_count) AS n FROM dive_profile_series '
     'GROUP BY dive_id ORDER BY n DESC LIMIT 1',
   );
+  if (dense.isEmpty || dense.first['dive_id'] == null) {
+    stderr.writeln(
+      'dive_profile_series is empty: this database has no packed profiles '
+      'to read, so the profile benchmarks would measure nothing.',
+    );
+    exit(65);
+  }
   return (
     diverId: diver.first['diver_id'] as String,
     denseDiveId: dense.first['dive_id'] as String,
@@ -131,17 +164,17 @@ List<({String label, String sql, List<Object?> params})> _queries(
   final inList = List.filled(pageIds.length, '?').join(',');
   return [
     (
-      label: 'profile_fetch_densest (${t.denseSamples} rows)',
+      label: 'profile_fetch_densest (${t.denseSamples} samples)',
       sql:
-          'SELECT * FROM dive_profiles WHERE dive_id = ? '
-          'ORDER BY timestamp ASC',
+          'SELECT * FROM dive_profile_series WHERE dive_id = ? '
+          'ORDER BY start_timestamp ASC, id ASC',
       params: [t.denseDiveId],
     ),
     (
       label: 'pressure_fetch_densest',
       sql:
-          'SELECT * FROM tank_pressure_profiles WHERE dive_id = ? '
-          'ORDER BY timestamp ASC',
+          'SELECT * FROM tank_pressure_series WHERE dive_id = ? '
+          'ORDER BY start_timestamp ASC, id ASC',
       params: [t.denseDiveId],
     ),
     (
@@ -211,12 +244,13 @@ void _bench(Database db, String term, bool asJson) {
     final sw = Stopwatch()..start();
     for (final id in hydrateIds) {
       db.select(
-        'SELECT * FROM dive_profiles WHERE dive_id = ? ORDER BY timestamp ASC',
+        'SELECT * FROM dive_profile_series WHERE dive_id = ? '
+        'ORDER BY start_timestamp ASC, id ASC',
         [id],
       );
       db.select(
-        'SELECT * FROM tank_pressure_profiles WHERE dive_id = ? '
-        'ORDER BY timestamp ASC',
+        'SELECT * FROM tank_pressure_series WHERE dive_id = ? '
+        'ORDER BY start_timestamp ASC, id ASC',
         [id],
       );
       db.select('SELECT * FROM dive_tanks WHERE dive_id = ?', [id]);

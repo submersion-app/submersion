@@ -23,7 +23,7 @@
   * [O2 Tracking](features/oxygen-tracking.md)
   * [Multi-Gas Diving](features/multi-gas.md)
   * [Buddies & Certs](features/buddies.md)
-  * [Marine Life](features/marine-life.md)
+  * [Species](features/marine-life.md)
   * [Trips](features/trips.md)
   * [Tags](features/tags.md)
 
@@ -34,6 +34,7 @@
   * [State Management](developer/state-management.md)
   * [Navigation](developer/navigation.md)
   * [Testing](developer/testing.md)
+  * [Local Test Performance](developer/local-test-performance.md)
   * [Building](developer/building.md)
   * [Release Process](developer/release-process.md)
 

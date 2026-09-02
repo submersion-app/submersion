@@ -6,6 +6,10 @@ import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_3d/application/compare_providers.dart';
 import 'package:submersion/features/dive_3d/application/providers.dart';
 import 'package:submersion/features/dive_3d/application/tissue_providers.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/axis_labels.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/dive_hover_tooltip.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_3d/domain/compare/comparison_profile.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/subsurface_tissue_builder.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
@@ -95,7 +99,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.layers));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.byType(CheckedPopupMenuItem<SceneOverlay>), findsNWidgets(4));
+    expect(find.byType(CheckedPopupMenuItem<SceneOverlay>), findsNWidgets(5));
     await tester.tap(find.text('Temperature layers'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
@@ -109,7 +113,7 @@ void main() {
         matching: find.byType(CheckedPopupMenuItem<SceneOverlay>),
       ),
     );
-    expect(item.checked, isFalse);
+    expect(item.checked, isTrue);
     await tester.tapAt(const Offset(5, 400)); // dismiss menu
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpWidget(const SizedBox.shrink());
@@ -286,6 +290,7 @@ void main() {
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.text('Computers'), findsOneWidget);
     await tester.tap(find.text('Computers'));
@@ -319,5 +324,114 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets(
+    'Z menu lists None plus Z-capable metrics, temperature is the default',
+    (tester) async {
+      await pumpPage(tester);
+      expect(find.text('Z axis: Temp'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('dive3dZAxisMenu')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(CheckedPopupMenuItem<String>), findsNWidgets(2));
+      await tester.tap(find.text('None'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Z axis: None'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'overlay defaults: ceiling, markers, shadows on; strata, curtain off',
+    (tester) async {
+      await pumpPage(tester);
+      await tester.tap(find.byIcon(Icons.layers));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      bool checked(String label) => tester
+          .widget<CheckedPopupMenuItem<SceneOverlay>>(
+            find.ancestor(
+              of: find.text(label),
+              matching: find.byType(CheckedPopupMenuItem<SceneOverlay>),
+            ),
+          )
+          .checked;
+      expect(checked('Deco ceiling'), isTrue);
+      expect(checked('Markers'), isTrue);
+      expect(checked('Wall shadows'), isTrue);
+      expect(checked('Temperature layers'), isFalse);
+      expect(checked('Depth curtain'), isFalse);
+    },
+  );
+
+  testWidgets('viewport is framed with pose presets and unit-aware titles', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    final viewport = tester.widget<Dive3dInteractiveViewport>(
+      find.byType(Dive3dInteractiveViewport),
+    );
+    expect(viewport.chromeMode, SceneChromeMode.framed);
+    expect(viewport.showPosePresets, isTrue);
+    final titles = viewport.axisLabels!.labels
+        .where((l) => l.kind == AxisLabelKind.title)
+        .map((l) => l.text)
+        .toList();
+    expect(titles, ['Depth (m)', 'Run time (min)', 'Temp (°C)']);
+  });
+
+  testWidgets('imperial settings relabel the axes', (tester) async {
+    final overrides = await getBaseOverrides(
+      settingsNotifier: MockSettingsNotifier(
+        const AppSettings(
+          depthUnit: DepthUnit.feet,
+          temperatureUnit: TemperatureUnit.fahrenheit,
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          dive3dSceneDataProvider(
+            'd1',
+          ).overrideWith((ref) async => readoutSceneData()),
+        ],
+        child: const Dive3dPage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+    final viewport = tester.widget<Dive3dInteractiveViewport>(
+      find.byType(Dive3dInteractiveViewport),
+    );
+    final titles = viewport.axisLabels!.labels
+        .where((l) => l.kind == AxisLabelKind.title)
+        .map((l) => l.text)
+        .toList();
+    expect(titles, ['Depth (ft)', 'Run time (min)', 'Temp (°F)']);
+  });
+
+  testWidgets('hovering the path shows the dive tooltip', (tester) async {
+    await pumpPage(tester);
+    final viewportFinder = find.byType(Dive3dInteractiveViewport);
+    final viewport = tester.widget<Dive3dInteractiveViewport>(viewportFinder);
+    final path = viewport.scene.scrubPath!;
+    final projector = SceneProjector(
+      size: tester.getSize(viewportFinder),
+      bounds: viewport.scene.bounds,
+    );
+    final target =
+        tester.getTopLeft(viewportFinder) +
+        projector.project(path.xs[1], path.ys[1], path.zs![1]);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset.zero);
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(target);
+    await tester.pump();
+    expect(find.byType(DiveHoverTooltip), findsOneWidget);
+    expect(find.text('1:40'), findsOneWidget); // sample 1 of 2 = t = 100 s
   });
 }

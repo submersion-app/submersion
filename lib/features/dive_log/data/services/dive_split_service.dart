@@ -6,6 +6,11 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
+    as series;
+import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 
 /// Splits one data source's computer data out of a dive into a new dive —
 /// the inverse of DiveConsolidationService. The source's profile rows,
@@ -27,6 +32,8 @@ class DiveSplitService {
 
   final _uuid = const Uuid();
   final _sync = SyncRepository();
+  final _profileSeries = ProfileSeriesRepository();
+  final _tankSeries = TankPressureSeriesRepository();
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -51,6 +58,19 @@ class DiveSplitService {
       throw ArgumentError('cannot split the only source of dive $diveId');
     }
 
+    // Every series of this dive has to decode before anything moves. Split
+    // deletes the tanks it moves, and tank_pressure_series cascades on
+    // tank_id, so a series the reads answer with null (an unreadable blob)
+    // is invisible to the reference check below, gets its tank moved out
+    // from under it, and is cascade-deleted with no tombstone: gone here
+    // and kept forever by every peer. Merge and consolidate open with the
+    // same guard.
+    final unreadable = [
+      ...await _profileSeries.unreadableSeriesIds([diveId]),
+      ...await _tankSeries.unreadableSeriesIds([diveId]),
+    ];
+    if (unreadable.isNotEmpty) throw UnreadableSeriesException(unreadable);
+
     final diveRow = await (_db.select(
       _db.dives,
     )..where((t) => t.id.equals(diveId))).getSingle();
@@ -58,17 +78,45 @@ class DiveSplitService {
     final newDiveId = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    // Rows move by computer attribution. A computer-less source cannot be
-    // attributed at the row level, so only non-primary null-computerId
-    // profile rows follow it (never user-edited isPrimary rows) and no
-    // tanks, pressures, or events move — the retired unlinkComputer's
+    // Series move by computer attribution. A computer-less source cannot be
+    // attributed at the row level, so only non-primary null-computer series
+    // follow it (never user-edited isPrimary series) and no tanks,
+    // pressures, or events move. This follows the retired unlinkComputer's
     // convention.
-    Expression<bool> ownedBySource(GeneratedColumn<String> computerId) =>
-        source.computerId == null
-        ? computerId.isNull()
-        : computerId.equals(source.computerId!);
+
+    bool ownedByComputer(String? computerId) =>
+        source.computerId != null && computerId == source.computerId;
+    // The legacy row rule, applied to whole series: not owned by another
+    // source by FK, then the computer convention for the source's primacy.
+    bool profileBelongsToSource(series.ProfileSeries s) {
+      final notOwnedByAnotherSource =
+          s.sourceId == null || s.sourceId == source.id;
+      final byLegacyRule = source.computerId == null
+          ? s.computerId == null && !s.isPrimary
+          : source.isPrimary
+          ? ownedByComputer(s.computerId) || s.computerId == null
+          : ownedByComputer(s.computerId);
+      return notOwnedByAnotherSource && byLegacyRule;
+    }
 
     await _db.transaction(() async {
+      // Read INSIDE the transaction, and before step 13's deletes: the
+      // legacy path read its rows inside too, and a read outside is a torn
+      // one, deciding what moves from a snapshot another writer can change
+      // before the moves are applied. Before the deletes because
+      // dive_profile_series.source_id is ON DELETE SET NULL, so reading
+      // after would lose the FK ownership signal this rule needs.
+      final allProfileSeries = await _profileSeries.getSeriesForDive(diveId);
+      final allPressureSeries = await _tankSeries.getSeriesForDive(diveId);
+      final movingProfiles = [
+        for (final s in allProfileSeries)
+          if (profileBelongsToSource(s)) s,
+      ];
+      final movingPressures = [
+        for (final s in allPressureSeries)
+          if (ownedByComputer(s.computerId)) s,
+      ];
+
       // 1. New dive: copy the original row, attribute it to the source's
       // computer, override summary fields with the source's snapshot, and
       // leave the logbook entry (site, notes, number) behind.
@@ -160,9 +208,6 @@ class DiveSplitService {
       final allTanks = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get();
-      final allPressures = await (_db.select(
-        _db.tankPressureProfiles,
-      )..where((t) => t.diveId.equals(diveId))).get();
       final allEvents = await (_db.select(
         _db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -170,22 +215,20 @@ class DiveSplitService {
         _db.gasSwitches,
       )..where((t) => t.diveId.equals(diveId))).get();
 
-      bool owned(String? computerId) =>
-          source.computerId != null && computerId == source.computerId;
-
-      final pressureRows = allPressures
-          .where((r) => owned(r.computerId))
+      final eventRows = allEvents
+          .where((r) => ownedByComputer(r.computerId))
           .toList();
-      final eventRows = allEvents.where((r) => owned(r.computerId)).toList();
 
       final tankIdMap = <String, String>{};
       final movedTankIds = <String>[];
-      for (final tank in allTanks.where((t) => owned(t.computerId))) {
+      for (final tank in allTanks.where((t) => ownedByComputer(t.computerId))) {
         final hasRemainingRefs =
-            allPressures.any(
-              (r) => r.tankId == tank.id && !owned(r.computerId),
+            allPressureSeries.any(
+              (r) => r.tankId == tank.id && !ownedByComputer(r.computerId),
             ) ||
-            allEvents.any((r) => r.tankId == tank.id && !owned(r.computerId)) ||
+            allEvents.any(
+              (r) => r.tankId == tank.id && !ownedByComputer(r.computerId),
+            ) ||
             switchRows.any((r) => r.tankId == tank.id);
 
         final freshId = _uuid.v4();
@@ -218,9 +261,9 @@ class DiveSplitService {
 
       // Shared tanks the departing computer recorded pressures on but
       // never owned: clone them so the moved rows have a home.
-      for (final row in pressureRows) {
-        if (tankIdMap.containsKey(row.tankId)) continue;
-        final tank = allTanks.where((t) => t.id == row.tankId).firstOrNull;
+      for (final s in movingPressures) {
+        if (tankIdMap.containsKey(s.tankId)) continue;
+        final tank = allTanks.where((t) => t.id == s.tankId).firstOrNull;
         if (tank == null) continue;
         final freshId = _uuid.v4();
         tankIdMap[tank.id] = freshId;
@@ -242,72 +285,44 @@ class DiveSplitService {
         );
       }
 
-      // 5. Profile rows. A primary source with a computer takes its whole
-      // family: its computer's rows AND the null-computerId rows (the
+      // 5. Profile series. A primary source with a computer takes its whole
+      // family: its computer's series AND the null-computer series (the
       // schema's null-means-primary convention covers user-edited profiles
-      // and pre-consolidation samples), preserving each row's isPrimary
+      // and pre-consolidation samples), preserving each series' isPrimary
       // flag so edited-vs-original semantics survive the split. Secondary
-      // sources take their computer's rows, promoted to primary on the new
-      // dive. A computer-less source moves only non-primary null rows
-      // (user-edited primary rows stay with the original dive).
-      // Every branch below is additionally gated on the row not being spoken
-      // for by a DIFFERENT source (issue #1149). The computerId rules cannot
-      // separate two file-imported sources -- both sides are null -- so on a
-      // dive carrying two of them the null-family branch swept up the other
-      // source's samples and carried them onto the new dive, taking them off
-      // the dive being split from entirely. A row whose sourceId names
-      // another source is never this source's to move; rows with no sourceId
-      // still fall through to the legacy rules below.
-      final profileRows =
-          await (_db.select(_db.diveProfiles)..where((t) {
-                final notOwnedByAnotherSource =
-                    t.sourceId.isNull() | t.sourceId.equals(source.id);
-                final byLegacyRule = source.computerId == null
-                    ? t.computerId.isNull() & t.isPrimary.equals(false)
-                    : source.isPrimary
-                    ? ownedBySource(t.computerId) | t.computerId.isNull()
-                    : ownedBySource(t.computerId);
-                return t.diveId.equals(diveId) &
-                    notOwnedByAnotherSource &
-                    byLegacyRule;
-              }))
-              .get();
-      await _db.batch((batch) {
-        for (final row in profileRows) {
-          batch.insert(
-            _db.diveProfiles,
-            row
-                .toCompanion(false)
-                .copyWith(
-                  id: Value(_uuid.v4()),
-                  diveId: Value(newDiveId),
-                  // Follow the source to its row on the new dive (issue
-                  // #1149); the original row is deleted at step 8, and
-                  // ON DELETE SET NULL would otherwise strip attribution.
-                  sourceId: Value(newSourceId),
-                  isPrimary: source.isPrimary
-                      ? Value(row.isPrimary)
-                      : const Value(true),
-                ),
-          );
-        }
-      });
+      // sources take their computer's series, promoted to primary on the
+      // new dive. A computer-less source moves only non-primary null
+      // series (user-edited primary series stay with the original dive).
+      // Every branch is additionally gated on the series not being spoken
+      // for by a DIFFERENT source (issue #1149). The computerId rules
+      // cannot separate two file-imported sources (both sides are null),
+      // so on a dive carrying two of them the null-family branch swept up
+      // the other source's samples and carried them onto the new dive,
+      // taking them off the dive being split from entirely. A series whose
+      // sourceId names another source is never this source's to move;
+      // series with no sourceId still fall through to the legacy rules
+      // above (see [profileBelongsToSource]).
+      for (final s in movingProfiles) {
+        await _profileSeries.insertSeries(
+          diveId: newDiveId,
+          computerId: s.computerId,
+          sourceId: newSourceId,
+          isPrimary: source.isPrimary ? s.isPrimary : true,
+          samples: s.samples,
+          now: now,
+        );
+      }
 
-      // 6. Tank pressures, re-pointed at the moved or cloned tanks.
-      await _db.batch((batch) {
-        for (final row in pressureRows) {
-          batch.insert(
-            _db.tankPressureProfiles,
-            row
-                .toCompanion(false)
-                .copyWith(
-                  id: Value(_uuid.v4()),
-                  diveId: Value(newDiveId),
-                  tankId: Value(tankIdMap[row.tankId] ?? row.tankId),
-                ),
-          );
-        }
-      });
+      // 6. Tank pressure series, re-pointed at the moved or cloned tanks.
+      for (final s in movingPressures) {
+        await _tankSeries.insertSeries(
+          diveId: newDiveId,
+          tankId: tankIdMap[s.tankId] ?? s.tankId,
+          computerId: s.computerId,
+          samples: s.samples,
+          now: now,
+        );
+      }
 
       // 7. Profile events.
       for (final row in eventRows) {
@@ -338,17 +353,8 @@ class DiveSplitService {
       // row (the original dive survives; without explicit tombstones peers
       // that already pulled these rows keep them forever). Gas switches
       // never move, and only unreferenced tanks were moved.
-      for (final row in pressureRows) {
-        await _sync.logDeletion(
-          entityType: 'tankPressureProfiles',
-          recordId: row.id,
-        );
-      }
-      if (pressureRows.isNotEmpty) {
-        await (_db.delete(
-          _db.tankPressureProfiles,
-        )..where((t) => t.id.isIn([for (final r in pressureRows) r.id]))).go();
-      }
+      await _tankSeries.deleteByIds([for (final s in movingPressures) s.id]);
+      await _profileSeries.deleteByIds([for (final s in movingProfiles) s.id]);
       for (final row in eventRows) {
         await _sync.logDeletion(
           entityType: 'diveProfileEvents',
@@ -359,14 +365,6 @@ class DiveSplitService {
         await (_db.delete(
           _db.diveProfileEvents,
         )..where((t) => t.id.isIn([for (final r in eventRows) r.id]))).go();
-      }
-      for (final row in profileRows) {
-        await _sync.logDeletion(entityType: 'diveProfiles', recordId: row.id);
-      }
-      if (profileRows.isNotEmpty) {
-        await (_db.delete(
-          _db.diveProfiles,
-        )..where((t) => t.id.isIn([for (final r in profileRows) r.id]))).go();
       }
       for (final id in movedTankIds) {
         await _sync.logDeletion(entityType: 'diveTanks', recordId: id);
@@ -392,33 +390,22 @@ class DiveSplitService {
           localUpdatedAt: now,
         );
 
-        // Promote the remaining source's profile rows so getDiveProfile
+        // Promote the remaining source's profile series so getDiveProfile
         // (which filters isPrimary) still returns a profile — unless
-        // primary rows (e.g. a user-edited profile) already remain.
-        final remainingPrimary =
-            await (_db.select(_db.diveProfiles)
-                  ..where(
-                    (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
-                  )
-                  ..limit(1))
-                .get();
-        if (remainingPrimary.isEmpty) {
-          // Match on the owning-source FK first, and only fall back to the
-          // pre-v154 computerId convention for rows that carry none. The
-          // old code gated the whole promote on `promoted.computerId !=
-          // null`, so a file-imported source promoted nothing and left the
-          // remaining dive with zero is_primary rows -- the same stranding
-          // as issue #1149.
-          await (_db.update(_db.diveProfiles)..where(
-                (t) =>
-                    t.diveId.equals(diveId) &
-                    (t.sourceId.equals(promoted.id) |
-                        (t.sourceId.isNull() &
-                            (promoted.computerId != null
-                                ? t.computerId.equals(promoted.computerId!)
-                                : t.computerId.isNull()))),
-              ))
-              .write(const DiveProfilesCompanion(isPrimary: Value(true)));
+        // primary series (e.g. a user-edited profile) already remain.
+        // promoteOwnedBy matches on the owning-source FK first, and only
+        // falls back to the pre-v154 computerId convention for series that
+        // carry none. The old code gated the whole promote on
+        // `promoted.computerId != null`, so a file-imported source promoted
+        // nothing and left the remaining dive with zero is_primary series --
+        // the same stranding as issue #1149.
+        if (!await _profileSeries.hasPrimarySeries(diveId)) {
+          await _profileSeries.promoteOwnedBy(
+            diveId,
+            sourceId: promoted.id,
+            computerId: promoted.computerId,
+            now: now,
+          );
         }
 
         diveUpdate = diveUpdate.copyWith(

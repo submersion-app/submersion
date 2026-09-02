@@ -105,7 +105,6 @@ final _now = DateTime.now();
 const _emptySnapshot = DiveMergeSnapshot(
   mergedDiveId: 'target-dive',
   diveRows: [],
-  profileRows: [],
   tankRows: [],
   weightRows: [],
   customFieldRows: [],
@@ -116,7 +115,6 @@ const _emptySnapshot = DiveMergeSnapshot(
   sightingRows: [],
   eventRows: [],
   gasSwitchRows: [],
-  tankPressureRows: [],
   dataSourceRows: [],
   tideRows: [],
   mediaDiveIds: {},
@@ -436,12 +434,15 @@ void main() {
       );
     });
 
-    testWidgets('acquisitionSteps has three steps', (tester) async {
+    testWidgets('acquisitionSteps has four steps', (tester) async {
       await _runWithAdapter(
         tester,
         overrides: _buildBundleOverrides(),
         callback: (adapter) async {
-          expect(adapter.acquisitionSteps, hasLength(3));
+          // Select File, Confirm Source, Map Fields, Photos. The Photos step
+          // auto-advances away when the payload references no photos.
+          expect(adapter.acquisitionSteps, hasLength(4));
+          expect(adapter.acquisitionSteps.last.label, 'Photos');
         },
       );
     });

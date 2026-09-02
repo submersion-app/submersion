@@ -11,6 +11,8 @@ extern "C" {
 #include "libdc_wrapper.h"
 #include "serial_io_stream.h"
 #include "serial_scanner.h"
+#include "usbhid_enumerator.h"
+#include "usbhid_io_stream.h"
 }
 
 // Context passed as user_data through the VTable.
@@ -21,6 +23,7 @@ struct HostApiContext {
   SerialScanner* serial_scanner;
   BleIoStream* ble_stream;
   SerialIoStream* serial_stream;
+  UsbHidIoStream* usbhid_stream;
   libdc_download_session_t* session;
   GThread* download_thread;
   // When true, on_dive_downloaded buffers dives instead of dispatching them
@@ -40,6 +43,10 @@ static void host_api_context_free(gpointer data) {
   }
   if (ctx->ble_stream != nullptr) {
     ble_io_stream_free(ctx->ble_stream);
+  }
+  if (ctx->usbhid_stream != nullptr) {
+    usbhid_io_stream_free(ctx->usbhid_stream);
+    ctx->usbhid_stream = nullptr;
   }
   if (ctx->serial_stream != nullptr) {
     serial_io_stream_free(ctx->serial_stream);
@@ -67,12 +74,15 @@ static FlValue* transports_to_fl_value(unsigned int transports) {
             129, fl_value_new_int(LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_BLE),
             (GDestroyNotify)fl_value_unref));
   }
-  // USBHID is deliberately NOT surfaced as USB: no platform build
-  // implements a USB HID transport (HAVE_HIDAPI is off), so
-  // advertising it sent HID-only devices (Suunto EON Steel family)
-  // into the serial path's "No USB serial ports found" dead end
-  // (#143). BLE is the working path for those devices.
-  if (transports & LIBDC_TRANSPORT_USB) {
+  // USB HID is reported as USB, which is the cable the user is holding; the
+  // app has no separate HID transfer mode and does not want one.
+  //
+  // It was suppressed until issue #1271, because advertising a transport with
+  // nothing behind it sent HID-only devices (the Suunto EON Steel family) into
+  // the serial path's "No USB serial ports found" dead end (#143).
+  // usbhid_io_stream.c is that missing transport, so the bit can be told the
+  // truth again.
+  if (transports & (LIBDC_TRANSPORT_USB | LIBDC_TRANSPORT_USBHID)) {
     fl_value_append_take(
         list,
         fl_value_new_custom(
@@ -139,6 +149,20 @@ struct DownloadThreadData {
   gchar* fingerprint;
   LibdivecomputerPluginTransportType transport;
 };
+
+// Whether a plugged-in HID device belongs to the model this download selected.
+//
+// Which HID device belongs to which dive computer is libdivecomputer's
+// knowledge, held in the vendor and product id tables inside dc_filter_uwatec
+// and dc_filter_suunto, so the question goes to libdc_usbhid_match rather than
+// to a table kept here (issue #1271).
+static gboolean usbhid_matches_selected_model(unsigned short vendor_id,
+                                              unsigned short product_id,
+                                              gpointer user_data) {
+  auto* td = static_cast<DownloadThreadData*>(user_data);
+  return libdc_usbhid_match(td->vendor, td->product, td->model, vendor_id,
+                            product_id) != 0;
+}
 
 static void download_thread_data_free(DownloadThreadData* data) {
   g_free(data->vendor);
@@ -377,7 +401,90 @@ static gpointer download_thread_func(gpointer data) {
     // openable but are not the target dive computer.
     gboolean found = FALSE;
     gchar* probe_msg = NULL;
-    if (g_str_has_prefix(td->address, "/dev/")) {
+
+    // USB HID computers first. A HID-only model (the Scubapro G2 family, the
+    // Suunto EON Steel family) has no serial port to find, and probing
+    // unrelated ports before it would write dive-computer handshake bytes at
+    // hardware that is not the target (issue #1271).
+    const unsigned int descriptor_transports =
+        libdc_descriptor_transports(td->vendor, td->product, td->model);
+    const gboolean hid_capable =
+        (descriptor_transports & LIBDC_TRANSPORT_USBHID) != 0;
+    gboolean hid_succeeded = FALSE;
+    g_autoptr(GString) hid_probe_log = g_string_new(NULL);
+
+    if (hid_capable) {
+      g_autoptr(GPtrArray) hid_devices =
+          usb_hid_enumerate_matching(usbhid_matches_selected_model, td);
+      // Buffer dives so a device that answers but is not the target cannot
+      // dispatch phantom dives to Flutter, exactly as the serial probe does.
+      ctx->buffer_dives = TRUE;
+      for (guint i = 0; i < hid_devices->len; i++) {
+        UsbHidDevice* hid =
+            static_cast<UsbHidDevice*>(g_ptr_array_index(hid_devices, i));
+        g_autofree gchar* label = usb_hid_device_display_name(hid);
+        clear_buffered_dives(ctx);
+
+        ctx->usbhid_stream = usbhid_io_stream_new();
+        g_autofree gchar* reason =
+            usbhid_io_stream_open(ctx->usbhid_stream, hid);
+        if (reason != NULL) {
+          g_string_append_printf(hid_probe_log, "  %s: %s\n", label, reason);
+          usbhid_io_stream_free(ctx->usbhid_stream);
+          ctx->usbhid_stream = nullptr;
+          continue;
+        }
+
+        io_callbacks = usbhid_io_stream_make_callbacks(ctx->usbhid_stream);
+        serial_number = 0;
+        firmware_version = 0;
+        memset(error_buf, 0, sizeof(error_buf));
+
+        rc = libdc_download_run(
+            ctx->session,
+            td->vendor, td->product, td->model,
+            LIBDC_TRANSPORT_USBHID,
+            &io_callbacks,
+            fp_data, fp_size,
+            &dl_callbacks,
+            &serial_number, &firmware_version,
+            error_buf, sizeof(error_buf));
+
+        usbhid_io_stream_free(ctx->usbhid_stream);
+        ctx->usbhid_stream = nullptr;
+
+        if (rc == 0 || rc == LIBDC_STATUS_CANCELLED) {
+          hid_succeeded = TRUE;
+          break;
+        }
+        g_string_append_printf(hid_probe_log, "  %s: download failed (rc=%d)\n",
+                               label, rc);
+      }
+
+      if (hid_succeeded) {
+        flush_buffered_dives(ctx);
+      } else {
+        clear_buffered_dives(ctx);
+      }
+      ctx->buffer_dives = FALSE;
+    }
+
+    if (hid_succeeded) {
+      found = TRUE;
+    } else if (hid_capable && !(descriptor_transports &
+                                (LIBDC_TRANSPORT_SERIAL | LIBDC_TRANSPORT_USB))) {
+      // HID-only hardware. There is no serial port to fall back to, so the
+      // serial wording would send the user hunting for the wrong thing.
+      if (hid_probe_log->len > 0) {
+        probe_msg = g_strdup_printf("No dive computer found. Tried:\n%s",
+                                    hid_probe_log->str);
+      } else {
+        probe_msg = g_strdup_printf(
+            "No %s found over USB. Is it connected to this computer and "
+            "powered on?",
+            td->product);
+      }
+    } else if (g_str_has_prefix(td->address, "/dev/")) {
       ctx->serial_stream = serial_io_stream_new();
       if (serial_io_stream_open(ctx->serial_stream, td->address)) {
         io_callbacks = serial_io_stream_make_callbacks(ctx->serial_stream);

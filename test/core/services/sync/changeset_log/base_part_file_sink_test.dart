@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 
@@ -99,6 +100,67 @@ void main() {
     await sink.deleteQuietly(f.path);
     expect(f.existsSync(), isFalse);
     await sink.deleteQuietly('${dir.path}/does-not-exist'); // no throw
+  });
+
+  // Issue #1327: the temp path was built by interpolating a literal '/' into
+  // a directory that is backslashed on Windows, producing the exact
+  // mixed-separator shape that killed every Windows base publish in #1304 once
+  // something split it on Platform.pathSeparator. Nothing splits these paths
+  // today, so the bug was latent -- these tests keep it that way by pinning the
+  // Windows style, which is the only way a POSIX CI host can see the
+  // difference at all.
+  group('temp path construction (#1327)', () {
+    final windows = p.Context(style: p.Style.windows);
+
+    test('joins with the platform separator, never a literal /', () {
+      final path = basePartTempPath(
+        r'C:\Users\diver\AppData\Local\Temp',
+        'ssv1_base_devA_7',
+        'a1b2c3',
+        context: windows,
+      );
+      expect(
+        path,
+        r'C:\Users\diver\AppData\Local\Temp\ssv1_base_devA_7.a1b2c3.base',
+      );
+      expect(path, isNot(contains('/')));
+    });
+
+    test('survives the #1304 basename split on Windows', () {
+      final path = basePartTempPath(
+        r'C:\Users\diver\AppData\Local\Temp',
+        'ssv1_base_devA_7',
+        'a1b2c3',
+        context: windows,
+      );
+      // The #1304 consumer pattern: split on the Windows separator only. With
+      // a mixed path this yielded 'Temp/ssv1_base_devA_7.a1b2c3.base'.
+      expect(path.split(r'\').last, 'ssv1_base_devA_7.a1b2c3.base');
+      expect(windows.basename(path), 'ssv1_base_devA_7.a1b2c3.base');
+    });
+
+    test('defaults to the host context', () {
+      final path = basePartTempPath('/tmp/sync', 'base', 'u');
+      expect(path, p.join('/tmp/sync', 'base.u.base'));
+    });
+
+    test(
+      'assemble returns a path the host context accepts as joined',
+      () async {
+        final part = bytes('payload');
+        final path = await sink.assemble(
+          name: 'ssv1_base_devA_7',
+          partCount: 1,
+          wholeChecksum: BaseChunker.checksum(part),
+          partChecksums: [BaseChunker.checksum(part)],
+          downloadPart: (_) async => part,
+        );
+        expect(path, isNotNull);
+        expect(p.dirname(path!), dir.path);
+        expect(p.basename(path), startsWith('ssv1_base_devA_7.'));
+        expect(p.basename(path), endsWith('.base'));
+      },
+    );
   });
 
   // Issue #509: with no injected temp dir, the sink must default to the

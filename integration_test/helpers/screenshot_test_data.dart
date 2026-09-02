@@ -3,6 +3,10 @@ import 'dart:math';
 import 'package:drift/drift.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:uuid/uuid.dart';
 
 /// Seeds the database with realistic test data for App Store screenshots.
@@ -463,11 +467,12 @@ class ScreenshotTestDataSeeder {
           );
 
       // Create tank entry
+      final tankId = _uuid.v4();
       await db
           .into(db.diveTanks)
           .insert(
             DiveTanksCompanion.insert(
-              id: _uuid.v4(),
+              id: tankId,
               diveId: diveId,
               volume: const Value(11.1),
               workingPressure: const Value(207.0),
@@ -483,6 +488,7 @@ class ScreenshotTestDataSeeder {
         durationSeconds * 60, // duration in seconds for profile
         maxDepth,
         waterTemp + random.nextDouble() * 2,
+        tankId,
       );
     }
   }
@@ -492,11 +498,19 @@ class ScreenshotTestDataSeeder {
     int duration,
     double maxDepth,
     double temp,
+    String tankId,
   ) async {
     final random = Random();
 
     // Create profile points every 10 seconds
     final numPoints = duration ~/ 10;
+    final samples = <ProfileSample>[];
+    // Cylinder pressure is its own series (the app reads tank pressure from
+    // tank_pressure_series, and ProfileSample.pressure is a legacy
+    // per-sample column that the ProfileSample -> DiveProfilePoint
+    // conversion drops), so the consumption curve below is written there
+    // instead of into the profile blob.
+    final pressures = <TankPressureSample>[];
 
     for (var i = 0; i < numPoints; i++) {
       final timestamp = i * 10;
@@ -539,21 +553,26 @@ class ScreenshotTestDataSeeder {
       final pressure = (200 - depthAdjustedConsumption + breathingVariation)
           .clamp(40.0, 210.0);
 
-      await db
-          .into(db.diveProfiles)
-          .insert(
-            DiveProfilesCompanion.insert(
-              id: _uuid.v4(),
-              diveId: diveId,
-              timestamp: timestamp,
-              depth: depth,
-              temperature: Value(
-                temp - (depth * 0.1),
-              ), // Temp decreases with depth
-              pressure: Value(pressure), // Realistic gas consumption
-            ),
-          );
+      samples.add(
+        ProfileSample(
+          timestamp: timestamp,
+          depth: depth,
+          // Temp decreases with depth
+          temperature: temp - (depth * 0.1),
+        ),
+      );
+      pressures.add(
+        TankPressureSample(timestamp: timestamp, pressure: pressure),
+      );
     }
+
+    if (samples.isEmpty) return;
+    await ProfileSeriesRepository(
+      database: db,
+    ).insertSeries(diveId: diveId, samples: samples);
+    await TankPressureSeriesRepository(
+      database: db,
+    ).insertSeries(diveId: diveId, tankId: tankId, samples: pressures);
   }
 
   String _generateDiveNotes(String diveType, String siteName) {

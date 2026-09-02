@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "species": [
     {
       "id": "sp_whale_shark",
@@ -4088,6 +4088,1398 @@
       "category": "other",
       "taxonomyClass": "Reptilia",
       "description": "Largest living reptile, found in coastal and estuarine waters of the Indo-Pacific."
+    },
+    {
+      "id": "sp_northern_pike",
+      "commonName": "Northern Pike",
+      "scientificName": "Esox lucius",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Long-bodied ambush predator with a duckbill snout, hanging motionless among weeds at lake margins."
+    },
+    {
+      "id": "sp_muskellunge",
+      "commonName": "Muskellunge",
+      "scientificName": "Esox masquinongy",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "The largest pike, a barred or spotted giant of clear northern lakes, rarely seen and never forgotten."
+    },
+    {
+      "id": "sp_chain_pickerel",
+      "commonName": "Chain Pickerel",
+      "scientificName": "Esox niger",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Slender pike of weedy eastern North American ponds, named for the chain-like pattern along its flanks."
+    },
+    {
+      "id": "sp_walleye",
+      "commonName": "Walleye",
+      "scientificName": "Sander vitreus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Golden-olive perch relative with large reflective eyes, hunting at dusk over rocky and sandy lake bottoms."
+    },
+    {
+      "id": "sp_sauger",
+      "commonName": "Sauger",
+      "scientificName": "Sander canadensis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Smaller, blotchier cousin of the walleye that favours turbid rivers and reservoirs."
+    },
+    {
+      "id": "sp_yellow_perch",
+      "commonName": "Yellow Perch",
+      "scientificName": "Perca flavescens",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Schooling golden perch with dark vertical bars, common around docks and weed beds across North America."
+    },
+    {
+      "id": "sp_european_perch",
+      "commonName": "European Perch",
+      "scientificName": "Perca fluviatilis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Striped, spiny-finned perch with red-orange lower fins, found in nearly every European lake and slow river."
+    },
+    {
+      "id": "sp_zander",
+      "commonName": "Zander",
+      "scientificName": "Sander lucioperca",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large pale predator with glassy eyes and fanged jaws, patrolling murky European lakes and rivers after dark."
+    },
+    {
+      "id": "sp_ruffe",
+      "commonName": "Ruffe",
+      "scientificName": "Gymnocephalus cernua",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small mottled perch with a spiny joined dorsal fin, abundant on soft bottoms of European lakes."
+    },
+    {
+      "id": "sp_largemouth_bass",
+      "commonName": "Largemouth Bass",
+      "scientificName": "Micropterus nigricans",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Green-backed bass with a dark side stripe and a huge mouth, lurking beside logs and weed edges in warm lakes."
+    },
+    {
+      "id": "sp_smallmouth_bass",
+      "commonName": "Smallmouth Bass",
+      "scientificName": "Micropterus dolomieu",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bronze bass with faint vertical bars, holding over rock and gravel in clear, cool lakes and rivers."
+    },
+    {
+      "id": "sp_rock_bass",
+      "commonName": "Rock Bass",
+      "scientificName": "Ambloplites rupestris",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Chunky red-eyed sunfish with rows of dark spots, sheltering among boulders in clear streams and lakes."
+    },
+    {
+      "id": "sp_bluegill",
+      "commonName": "Bluegill",
+      "scientificName": "Lepomis macrochirus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Disc-shaped sunfish with a blue-black ear flap and orange breast, nesting in colonies on shallow sandy bottoms."
+    },
+    {
+      "id": "sp_pumpkinseed",
+      "commonName": "Pumpkinseed",
+      "scientificName": "Lepomis gibbosus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Brightly speckled sunfish with a red-tipped ear flap and wavy blue cheek lines, common in weedy shallows."
+    },
+    {
+      "id": "sp_black_crappie",
+      "commonName": "Black Crappie",
+      "scientificName": "Pomoxis nigromaculatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silvery, deep-bodied panfish speckled with black, schooling around submerged brush and pilings."
+    },
+    {
+      "id": "sp_white_crappie",
+      "commonName": "White Crappie",
+      "scientificName": "Pomoxis annularis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Paler crappie with faint vertical bands, favouring turbid reservoirs and slow rivers."
+    },
+    {
+      "id": "sp_brown_trout",
+      "commonName": "Brown Trout",
+      "scientificName": "Salmo trutta",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Golden-brown trout with red and black spots, holding in the current of cool, clear rivers and lakes."
+    },
+    {
+      "id": "sp_rainbow_trout",
+      "commonName": "Rainbow Trout",
+      "scientificName": "Oncorhynchus mykiss",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silvery trout with a pink lateral band and fine black speckling, stocked and wild in cold waters worldwide."
+    },
+    {
+      "id": "sp_brook_trout",
+      "commonName": "Brook Trout",
+      "scientificName": "Salvelinus fontinalis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Char with worm-like markings on its back, red spots in blue halos and white-edged fins, in cold headwater streams."
+    },
+    {
+      "id": "sp_lake_trout",
+      "commonName": "Lake Trout",
+      "scientificName": "Salvelinus namaycush",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Big grey char covered in pale spots with a forked tail, cruising the deep cold water of northern lakes."
+    },
+    {
+      "id": "sp_arctic_char",
+      "commonName": "Arctic Char",
+      "scientificName": "Salvelinus alpinus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Northernmost freshwater fish, a slender char whose belly flushes orange-red in autumn spawning colours."
+    },
+    {
+      "id": "sp_atlantic_salmon",
+      "commonName": "Atlantic Salmon",
+      "scientificName": "Salmo salar",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver sea-run salmon with black X-shaped spots, leaping falls on its return to natal rivers to spawn."
+    },
+    {
+      "id": "sp_chinook_salmon",
+      "commonName": "Chinook Salmon",
+      "scientificName": "Oncorhynchus tshawytscha",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "The largest Pacific salmon, blue-green backed with black gums, ascending big western rivers to spawn."
+    },
+    {
+      "id": "sp_sockeye_salmon",
+      "commonName": "Sockeye Salmon",
+      "scientificName": "Oncorhynchus nerka",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Salmon that turns brilliant red with a green head at spawning, crowding gravel beds of lake-fed rivers."
+    },
+    {
+      "id": "sp_coho_salmon",
+      "commonName": "Coho Salmon",
+      "scientificName": "Oncorhynchus kisutch",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver salmon with white gums and spots only on the upper tail, spawning in small coastal streams."
+    },
+    {
+      "id": "sp_lake_whitefish",
+      "commonName": "Lake Whitefish",
+      "scientificName": "Coregonus clupeaformis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silvery, small-mouthed whitefish of deep cold lakes, feeding on the bottom in large schools."
+    },
+    {
+      "id": "sp_cisco",
+      "commonName": "Cisco",
+      "scientificName": "Coregonus artedi",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Slender herring-like whitefish that shoals in open water of cold northern lakes, prey for lake trout."
+    },
+    {
+      "id": "sp_european_grayling",
+      "commonName": "European Grayling",
+      "scientificName": "Thymallus thymallus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver-grey river fish with a tall, sail-like dorsal fin edged in purple, holding in fast clean gravel runs."
+    },
+    {
+      "id": "sp_common_carp",
+      "commonName": "Common Carp",
+      "scientificName": "Cyprinus carpio",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Heavy bronze carp with large scales and two barbels, rooting through soft bottoms of warm lakes and rivers."
+    },
+    {
+      "id": "sp_grass_carp",
+      "commonName": "Grass Carp",
+      "scientificName": "Ctenopharyngodon idella",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Torpedo-shaped Asian carp introduced worldwide to graze on aquatic weeds, often seen in clear quarry lakes."
+    },
+    {
+      "id": "sp_tench",
+      "commonName": "Tench",
+      "scientificName": "Tinca tinca",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Olive-green fish with tiny scales, red eyes and rounded fins, sliding through mud and reeds of still waters."
+    },
+    {
+      "id": "sp_common_bream",
+      "commonName": "Common Bream",
+      "scientificName": "Abramis brama",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Deep, laterally flattened bronze fish that feeds head-down in muddy shoals, common across European lowlands."
+    },
+    {
+      "id": "sp_roach",
+      "commonName": "Roach",
+      "scientificName": "Rutilus rutilus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver shoaling fish with red fins and a red iris, the most abundant fish in many European lakes and canals."
+    },
+    {
+      "id": "sp_rudd",
+      "commonName": "Rudd",
+      "scientificName": "Scardinius erythrophthalmus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Golden-flanked relative of the roach with bright red fins and an upturned mouth, feeding just under the surface."
+    },
+    {
+      "id": "sp_chub",
+      "commonName": "Chub",
+      "scientificName": "Squalius cephalus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Thick-set river fish with a broad head, large dark-edged scales and a big mouth, holding under overhanging trees."
+    },
+    {
+      "id": "sp_barbel",
+      "commonName": "Barbel",
+      "scientificName": "Barbus barbus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Streamlined bottom-dweller with four barbels and an underslung mouth, hugging gravel in fast European rivers."
+    },
+    {
+      "id": "sp_european_eel",
+      "commonName": "European Eel",
+      "scientificName": "Anguilla anguilla",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Snake-like fish that spends decades in rivers and lakes before migrating to the Sargasso Sea to spawn once."
+    },
+    {
+      "id": "sp_american_eel",
+      "commonName": "American Eel",
+      "scientificName": "Anguilla rostrata",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "North American eel that hides under rocks by day in rivers and lakes and returns to the Sargasso Sea to breed."
+    },
+    {
+      "id": "sp_burbot",
+      "commonName": "Burbot",
+      "scientificName": "Lota lota",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "The only freshwater cod, a mottled eel-like fish with a single chin barbel, hiding in cold deep water by day."
+    },
+    {
+      "id": "sp_channel_catfish",
+      "commonName": "Channel Catfish",
+      "scientificName": "Ictalurus punctatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Grey catfish with scattered dark spots, a forked tail and eight barbels, common in rivers and reservoirs across North America."
+    },
+    {
+      "id": "sp_flathead_catfish",
+      "commonName": "Flathead Catfish",
+      "scientificName": "Pylodictis olivaris",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Huge mottled brown catfish with a flattened head and protruding lower jaw, lying in deep river holes."
+    },
+    {
+      "id": "sp_brown_bullhead",
+      "commonName": "Brown Bullhead",
+      "scientificName": "Ameiurus nebulosus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small stocky catfish with dark barbels and a squared tail, tolerating muddy, warm and low-oxygen ponds."
+    },
+    {
+      "id": "sp_wels_catfish",
+      "commonName": "Wels Catfish",
+      "scientificName": "Silurus glanis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Europe's largest freshwater fish, a scaleless giant with a broad flat head and long whiskers, lying in deep river holes."
+    },
+    {
+      "id": "sp_white_sturgeon",
+      "commonName": "White Sturgeon",
+      "scientificName": "Acipenser transmontanus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "North America's largest freshwater fish, an armoured grey giant with a shark-like tail cruising big western rivers."
+    },
+    {
+      "id": "sp_lake_sturgeon",
+      "commonName": "Lake Sturgeon",
+      "scientificName": "Acipenser fulvescens",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Slow-growing armoured sturgeon of the Great Lakes and Mississippi basin, vacuuming the bottom with its tube mouth."
+    },
+    {
+      "id": "sp_european_sturgeon",
+      "commonName": "European Sturgeon",
+      "scientificName": "Acipenser sturio",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Critically endangered armoured sturgeon of Atlantic rivers, now bred and released in the Garonne and Elbe."
+    },
+    {
+      "id": "sp_alligator_gar",
+      "commonName": "Alligator Gar",
+      "scientificName": "Atractosteus spatula",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Prehistoric giant with a broad toothy snout and diamond-shaped armour scales, surfacing to gulp air in southern rivers."
+    },
+    {
+      "id": "sp_longnose_gar",
+      "commonName": "Longnose Gar",
+      "scientificName": "Lepisosteus osseus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Slender armoured fish with a needle-like snout, hanging motionless just below the surface of warm rivers."
+    },
+    {
+      "id": "sp_bowfin",
+      "commonName": "Bowfin",
+      "scientificName": "Amia calva",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Living fossil with a long undulating dorsal fin and a bony head, guarding its fry in weedy backwaters."
+    },
+    {
+      "id": "sp_american_paddlefish",
+      "commonName": "American Paddlefish",
+      "scientificName": "Polyodon spathula",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Filter-feeding giant with a paddle-shaped snout a third of its length, swimming open-mouthed through big rivers."
+    },
+    {
+      "id": "sp_sea_lamprey",
+      "commonName": "Sea Lamprey",
+      "scientificName": "Petromyzon marinus",
+      "category": "fish",
+      "taxonomyClass": "Petromyzontida",
+      "description": "Jawless eel-like parasite with a sucker mouth ringed with teeth, spawning in gravel streams after feeding at sea or in lakes."
+    },
+    {
+      "id": "sp_freshwater_drum",
+      "commonName": "Freshwater Drum",
+      "scientificName": "Aplodinotus grunniens",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silvery humpbacked fish that grunts audibly and crushes mussels with throat teeth, common in big rivers and lakes."
+    },
+    {
+      "id": "sp_white_sucker",
+      "commonName": "White Sucker",
+      "scientificName": "Catostomus commersonii",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Cylindrical bottom-feeder with a fleshy downturned mouth, running up streams in spring spawning crowds."
+    },
+    {
+      "id": "sp_common_minnow",
+      "commonName": "Common Minnow",
+      "scientificName": "Phoxinus phoxinus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny striped shoaling fish of clear cool streams and lakes, the males turning red and green in spring."
+    },
+    {
+      "id": "sp_three_spined_stickleback",
+      "commonName": "Three-spined Stickleback",
+      "scientificName": "Gasterosteus aculeatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny armoured fish with three dorsal spines whose red-throated males build and guard nests of plant fibres."
+    },
+    {
+      "id": "sp_alewife",
+      "commonName": "Alewife",
+      "scientificName": "Alosa pseudoharengus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver herring that runs up rivers in spring and now fills the Great Lakes in vast schools."
+    },
+    {
+      "id": "sp_nile_perch",
+      "commonName": "Nile Perch",
+      "scientificName": "Lates niloticus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Massive silver predator with a black-rimmed eye, introduced into Lake Victoria where it dominates open water."
+    },
+    {
+      "id": "sp_nile_tilapia",
+      "commonName": "Nile Tilapia",
+      "scientificName": "Oreochromis niloticus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Grey cichlid with vertical tail bars that broods its young in its mouth, farmed and feral in warm waters worldwide."
+    },
+    {
+      "id": "sp_african_tigerfish",
+      "commonName": "African Tigerfish",
+      "scientificName": "Hydrocynus vittatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Striped silver predator with interlocking dagger teeth, hunting in fast African rivers such as the Zambezi."
+    },
+    {
+      "id": "sp_marbled_lungfish",
+      "commonName": "Marbled Lungfish",
+      "scientificName": "Protopterus aethiopicus",
+      "category": "fish",
+      "taxonomyClass": "Sarcopterygii",
+      "description": "Eel-shaped air-breathing fish with thread-like fins that survives droughts sealed in a mud cocoon."
+    },
+    {
+      "id": "sp_electric_catfish",
+      "commonName": "Electric Catfish",
+      "scientificName": "Malapterurus electricus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Plump grey catfish of the Nile and Congo that stuns prey with shocks of several hundred volts."
+    },
+    {
+      "id": "sp_zebra_mbuna",
+      "commonName": "Zebra Mbuna",
+      "scientificName": "Maylandia zebra",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Blue-barred rock cichlid of Lake Malawi, grazing algae from boulders in dense territorial crowds."
+    },
+    {
+      "id": "sp_malawi_butterfly_peacock",
+      "commonName": "Malawi Butterfly Peacock",
+      "scientificName": "Aulonocara jacobfreibergi",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Iridescent blue peacock cichlid of Lake Malawi caves, the males glowing with white-edged fins."
+    },
+    {
+      "id": "sp_fuelleborn_cichlid",
+      "commonName": "Fuelleborn's Cichlid",
+      "scientificName": "Labeotropheus fuelleborni",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Blunt-nosed Lake Malawi mbuna with a fleshy overhanging snout for scraping algae in the surf zone."
+    },
+    {
+      "id": "sp_princess_of_burundi",
+      "commonName": "Princess of Burundi",
+      "scientificName": "Neolamprologus brichardi",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Elegant Lake Tanganyika cichlid with lyre-shaped fins, living in extended families that share nest duties."
+    },
+    {
+      "id": "sp_frontosa",
+      "commonName": "Frontosa",
+      "scientificName": "Cyphotilapia frontosa",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Deep-water Tanganyika cichlid with bold blue-white bands and a humped forehead, moving slowly in groups over rocks."
+    },
+    {
+      "id": "sp_tropheus_moorii",
+      "commonName": "Blunthead Cichlid",
+      "scientificName": "Tropheus moorii",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Stocky Tanganyika rock cichlid in dozens of colour forms, each confined to its own stretch of shore."
+    },
+    {
+      "id": "sp_arapaima",
+      "commonName": "Arapaima",
+      "scientificName": "Arapaima gigas",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "One of the largest freshwater fish, an armoured Amazon giant with a red-flecked tail that rises to gulp air."
+    },
+    {
+      "id": "sp_silver_arowana",
+      "commonName": "Silver Arowana",
+      "scientificName": "Osteoglossum bicirrhosum",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Ribbon-like silver Amazon fish with two chin barbels that leaps clear of the water to snatch insects from branches."
+    },
+    {
+      "id": "sp_red_bellied_piranha",
+      "commonName": "Red-bellied Piranha",
+      "scientificName": "Pygocentrus nattereri",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Deep-bodied silver fish with a crimson belly and razor teeth, moving in shoals through Amazon backwaters."
+    },
+    {
+      "id": "sp_black_piranha",
+      "commonName": "Black Piranha",
+      "scientificName": "Serrasalmus rhombeus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large solitary piranha with red eyes and a dark diamond-shaped body, lurking in clear rocky Amazon tributaries."
+    },
+    {
+      "id": "sp_red_bellied_pacu",
+      "commonName": "Red-bellied Pacu",
+      "scientificName": "Piaractus brachypomus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Piranha-like fruit eater with flat crushing teeth and a red belly, gathering under flooded forest trees."
+    },
+    {
+      "id": "sp_tambaqui",
+      "commonName": "Tambaqui",
+      "scientificName": "Colossoma macropomum",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Huge dark pacu of the Amazon that crunches fallen nuts and seeds beneath flooded forest canopy."
+    },
+    {
+      "id": "sp_electric_eel",
+      "commonName": "Electric Eel",
+      "scientificName": "Electrophorus electricus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Not an eel but a knifefish, a long dark air-breather that stuns prey with shocks of up to 600 volts."
+    },
+    {
+      "id": "sp_redtail_catfish",
+      "commonName": "Redtail Catfish",
+      "scientificName": "Phractocephalus hemioliopterus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Big Amazon catfish with a dark back, white belly and bright orange-red tail, resting in deep river pools."
+    },
+    {
+      "id": "sp_tiger_shovelnose_catfish",
+      "commonName": "Tiger Shovelnose Catfish",
+      "scientificName": "Pseudoplatystoma fasciatum",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Sleek striped catfish with a long flattened snout, hunting along sandy South American river channels at night."
+    },
+    {
+      "id": "sp_peacock_bass",
+      "commonName": "Peacock Bass",
+      "scientificName": "Cichla ocellaris",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Aggressive Amazon cichlid with three dark bars and a tail eyespot, ambushing fish along sunken timber."
+    },
+    {
+      "id": "sp_oscar",
+      "commonName": "Oscar",
+      "scientificName": "Astronotus ocellatus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Stout dark cichlid with orange marbling and a tail eyespot, patrolling slow Amazon waters and flooded margins."
+    },
+    {
+      "id": "sp_freshwater_angelfish",
+      "commonName": "Freshwater Angelfish",
+      "scientificName": "Pterophyllum scalare",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tall, disc-shaped Amazon cichlid with trailing fins and vertical stripes, drifting among submerged roots."
+    },
+    {
+      "id": "sp_discus",
+      "commonName": "Discus",
+      "scientificName": "Symphysodon discus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Round, laterally flattened cichlid with wavy blue lines that feeds its fry on mucus from its own skin."
+    },
+    {
+      "id": "sp_sailfin_pleco",
+      "commonName": "Sailfin Pleco",
+      "scientificName": "Pterygoplichthys pardalis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Armoured suckermouth catfish with a tall dorsal fin and leopard spots, rasping algae from wood and rock."
+    },
+    {
+      "id": "sp_cardinal_tetra",
+      "commonName": "Cardinal Tetra",
+      "scientificName": "Paracheirodon axelrodi",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Tiny tetra with a neon blue stripe over a full-length red band, shoaling in the dark waters of the Rio Negro."
+    },
+    {
+      "id": "sp_mexican_tetra",
+      "commonName": "Mexican Tetra",
+      "scientificName": "Astyanax mexicanus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver tetra of Mexican rivers whose cave populations are blind and pale, a favourite of cenote divers."
+    },
+    {
+      "id": "sp_mekong_giant_catfish",
+      "commonName": "Mekong Giant Catfish",
+      "scientificName": "Pangasianodon gigas",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Critically endangered toothless giant of the Mekong, grey and barbel-less, once reaching three metres."
+    },
+    {
+      "id": "sp_giant_barb",
+      "commonName": "Giant Barb",
+      "scientificName": "Catlocarpio siamensis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "The largest carp in the world, a big-scaled Mekong giant with a huge head, now rare in deep river pools."
+    },
+    {
+      "id": "sp_asian_arowana",
+      "commonName": "Asian Arowana",
+      "scientificName": "Scleropages formosus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Metallic red or gold dragon fish of Southeast Asian blackwater rivers, gliding just under the surface."
+    },
+    {
+      "id": "sp_striped_snakehead",
+      "commonName": "Striped Snakehead",
+      "scientificName": "Channa striata",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Torpedo-shaped air-breathing predator with a flat snake-like head, guarding its fry in weedy Asian ponds."
+    },
+    {
+      "id": "sp_giant_snakehead",
+      "commonName": "Giant Snakehead",
+      "scientificName": "Channa micropeltes",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Large fierce snakehead, striped when young and dark when grown, defending its bright red fry in Southeast Asian lakes."
+    },
+    {
+      "id": "sp_climbing_perch",
+      "commonName": "Climbing Perch",
+      "scientificName": "Anabas testudineus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Hardy olive fish that breathes air and crawls overland on its spiny gill covers between drying pools."
+    },
+    {
+      "id": "sp_golden_mahseer",
+      "commonName": "Golden Mahseer",
+      "scientificName": "Tor putitora",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Golden-scaled carp of Himalayan rivers, a powerful swimmer holding in fast clear pools below rapids."
+    },
+    {
+      "id": "sp_koi",
+      "commonName": "Koi",
+      "scientificName": "Cyprinus rubrofuscus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Ornamental carp bred in Japan in white, red, black and gold patterns, at home in ponds and warm clear lakes."
+    },
+    {
+      "id": "sp_goldfish",
+      "commonName": "Goldfish",
+      "scientificName": "Carassius auratus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Domesticated Asian carp that reverts to olive-bronze in the wild, forming large feral schools in warm lakes."
+    },
+    {
+      "id": "sp_giant_gourami",
+      "commonName": "Giant Gourami",
+      "scientificName": "Osphronemus goramy",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Broad, humped Southeast Asian fish with thread-like pelvic fins that builds bubble nests in slow weedy water."
+    },
+    {
+      "id": "sp_clown_knifefish",
+      "commonName": "Clown Knifefish",
+      "scientificName": "Chitala ornata",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver blade-shaped fish with ocellated spots along a long rippling anal fin, hovering under Asian river snags."
+    },
+    {
+      "id": "sp_walking_catfish",
+      "commonName": "Walking Catfish",
+      "scientificName": "Clarias batrachus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Slender air-breathing catfish that wriggles across wet ground between ponds, now feral in Florida."
+    },
+    {
+      "id": "sp_japanese_eel",
+      "commonName": "Japanese Eel",
+      "scientificName": "Anguilla japonica",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "East Asian eel that grows up in rivers and lakes and migrates to the western Pacific to spawn."
+    },
+    {
+      "id": "sp_ayu",
+      "commonName": "Ayu",
+      "scientificName": "Plecoglossus altivelis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Slender silver Japanese sweetfish that grazes algae from stones in clear rivers and defends a feeding territory."
+    },
+    {
+      "id": "sp_baikal_omul",
+      "commonName": "Baikal Omul",
+      "scientificName": "Coregonus migratorius",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver whitefish found only in Lake Baikal, schooling in the cold open water and running up rivers to spawn."
+    },
+    {
+      "id": "sp_baikal_oilfish",
+      "commonName": "Baikal Oilfish",
+      "scientificName": "Comephorus baikalensis",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Translucent, scaleless fish of Lake Baikal's depths, so rich in oil it is nearly see-through, giving birth to live young."
+    },
+    {
+      "id": "sp_murray_cod",
+      "commonName": "Murray Cod",
+      "scientificName": "Maccullochella peelii",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Australia's largest freshwater fish, a mottled green giant with a white belly, holding beside snags in the Murray-Darling."
+    },
+    {
+      "id": "sp_golden_perch",
+      "commonName": "Golden Perch",
+      "scientificName": "Macquaria ambigua",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Deep-bodied golden-olive perch of Australian inland rivers, sheltering by fallen timber and rock ledges."
+    },
+    {
+      "id": "sp_australian_bass",
+      "commonName": "Australian Bass",
+      "scientificName": "Macquaria novemaculeata",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bronze-green bass of eastern Australian coastal rivers that migrates downstream to spawn in brackish estuaries."
+    },
+    {
+      "id": "sp_barramundi",
+      "commonName": "Barramundi",
+      "scientificName": "Lates calcarifer",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver, hump-backed perch of northern Australian rivers and estuaries, changing sex from male to female with age."
+    },
+    {
+      "id": "sp_silver_perch",
+      "commonName": "Silver Perch",
+      "scientificName": "Bidyanus bidyanus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Silver-grey grunter of the Murray-Darling with a small mouth and forked tail, once schooling in huge numbers."
+    },
+    {
+      "id": "sp_gulf_saratoga",
+      "commonName": "Gulf Saratoga",
+      "scientificName": "Scleropages jardinii",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Bronze Australian arowana with red-flecked scales that broods its eggs in its mouth in northern billabongs."
+    },
+    {
+      "id": "sp_sooty_grunter",
+      "commonName": "Sooty Grunter",
+      "scientificName": "Hephaestus fuliginosus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Dark, thickset grunter of northern Australian rivers, grazing algae and fruit around rocks and rapids."
+    },
+    {
+      "id": "sp_eel_tailed_catfish",
+      "commonName": "Eel-tailed Catfish",
+      "scientificName": "Tandanus tandanus",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Australian catfish with a tapering eel-like tail that builds and guards a gravel nest in clear river shallows."
+    },
+    {
+      "id": "sp_spangled_perch",
+      "commonName": "Spangled Perch",
+      "scientificName": "Leiopotherapon unicolor",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small silver-spotted grunter found across inland Australia, colonising any waterhole a flood connects."
+    },
+    {
+      "id": "sp_eastern_rainbowfish",
+      "commonName": "Eastern Rainbowfish",
+      "scientificName": "Melanotaenia splendida",
+      "category": "fish",
+      "taxonomyClass": "Actinopterygii",
+      "description": "Small iridescent fish of eastern Australian creeks, the males flashing red and blue stripes in the sun."
+    },
+    {
+      "id": "sp_signal_crayfish",
+      "commonName": "Signal Crayfish",
+      "scientificName": "Pacifastacus leniusculus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Large brown crayfish with a white patch at the claw joint, an invasive North American species spreading through European rivers."
+    },
+    {
+      "id": "sp_red_swamp_crayfish",
+      "commonName": "Red Swamp Crayfish",
+      "scientificName": "Procambarus clarkii",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Dark red crayfish with bumpy claws from Louisiana marshes, now burrowing into warm wetlands on every continent."
+    },
+    {
+      "id": "sp_noble_crayfish",
+      "commonName": "Noble Crayfish",
+      "scientificName": "Astacus astacus",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Europe's native crayfish, dark brown with red-undersided claws, hiding in bank burrows of clean cool streams and lakes."
+    },
+    {
+      "id": "sp_white_clawed_crayfish",
+      "commonName": "White-clawed Crayfish",
+      "scientificName": "Austropotamobius pallipes",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Small olive crayfish with pale claw undersides, a threatened native of clean limestone streams in western Europe."
+    },
+    {
+      "id": "sp_tasmanian_giant_freshwater_crayfish",
+      "commonName": "Tasmanian Giant Freshwater Crayfish",
+      "scientificName": "Astacopsis gouldi",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "The world's largest freshwater invertebrate, a slow-growing blue-brown crayfish of shaded Tasmanian rivers."
+    },
+    {
+      "id": "sp_zebra_mussel",
+      "commonName": "Zebra Mussel",
+      "scientificName": "Dreissena polymorpha",
+      "category": "invertebrate",
+      "taxonomyClass": "Bivalvia",
+      "description": "Thumbnail-sized striped mussel that carpets rocks, wrecks and pipes by the thousand, clearing the water as it spreads."
+    },
+    {
+      "id": "sp_quagga_mussel",
+      "commonName": "Quagga Mussel",
+      "scientificName": "Dreissena bugensis",
+      "category": "invertebrate",
+      "taxonomyClass": "Bivalvia",
+      "description": "Rounder, paler relative of the zebra mussel that colonises soft bottoms and deep cold water the zebra cannot."
+    },
+    {
+      "id": "sp_freshwater_pearl_mussel",
+      "commonName": "Freshwater Pearl Mussel",
+      "scientificName": "Margaritifera margaritifera",
+      "category": "invertebrate",
+      "taxonomyClass": "Bivalvia",
+      "description": "Dark, elongated mussel that can live over a century half-buried in clean gravel of fast salmon rivers."
+    },
+    {
+      "id": "sp_swan_mussel",
+      "commonName": "Swan Mussel",
+      "scientificName": "Anodonta cygnea",
+      "category": "invertebrate",
+      "taxonomyClass": "Bivalvia",
+      "description": "Large thin-shelled mussel of muddy lakes and canals, filtering water with its siphons just above the silt."
+    },
+    {
+      "id": "sp_chinese_pond_mussel",
+      "commonName": "Chinese Pond Mussel",
+      "scientificName": "Sinanodonta woodiana",
+      "category": "invertebrate",
+      "taxonomyClass": "Bivalvia",
+      "description": "Very large invasive Asian mussel with a glossy brown shell, arriving with farmed fish and spreading through warm lakes."
+    },
+    {
+      "id": "sp_freshwater_sponge",
+      "commonName": "Freshwater Sponge",
+      "scientificName": "Spongilla lacustris",
+      "category": "invertebrate",
+      "taxonomyClass": "Demospongiae",
+      "description": "Green or grey branching sponge encrusting sticks and stones in clear lakes, coloured by algae living inside it."
+    },
+    {
+      "id": "sp_freshwater_jellyfish",
+      "commonName": "Freshwater Jellyfish",
+      "scientificName": "Craspedacusta sowerbii",
+      "category": "invertebrate",
+      "taxonomyClass": "Hydrozoa",
+      "description": "Coin-sized transparent jellyfish that appears in swarms in warm quarry lakes and reservoirs in late summer."
+    },
+    {
+      "id": "sp_great_pond_snail",
+      "commonName": "Great Pond Snail",
+      "scientificName": "Lymnaea stagnalis",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Large pointed-shelled snail gliding over plants and glass-clear surfaces of still European waters, breathing air at the surface."
+    },
+    {
+      "id": "sp_great_ramshorn_snail",
+      "commonName": "Great Ramshorn Snail",
+      "scientificName": "Planorbarius corneus",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Flat, coiled snail like a tiny ram's horn, grazing algae from leaves and stones in weedy ponds."
+    },
+    {
+      "id": "sp_channeled_apple_snail",
+      "commonName": "Channeled Apple Snail",
+      "scientificName": "Pomacea canaliculata",
+      "category": "invertebrate",
+      "taxonomyClass": "Gastropoda",
+      "description": "Large golden-brown snail that lays bright pink egg clusters above the waterline, invasive in warm wetlands and rice fields."
+    },
+    {
+      "id": "sp_magnificent_bryozoan",
+      "commonName": "Magnificent Bryozoan",
+      "scientificName": "Pectinatella magnifica",
+      "category": "invertebrate",
+      "taxonomyClass": "Phylactolaemata",
+      "description": "Jelly-like colony the size of a football, studded with tiny animals, clinging to branches and ropes in warm still water."
+    },
+    {
+      "id": "sp_chinese_mitten_crab",
+      "commonName": "Chinese Mitten Crab",
+      "scientificName": "Eriocheir sinensis",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Burrowing crab with furry claws that spends years in rivers before walking downstream to breed in estuaries."
+    },
+    {
+      "id": "sp_giant_freshwater_prawn",
+      "commonName": "Giant Freshwater Prawn",
+      "scientificName": "Macrobrachium rosenbergii",
+      "category": "invertebrate",
+      "taxonomyClass": "Malacostraca",
+      "description": "Big blue-clawed prawn of Asian and Australian rivers with claws longer than its body in old males."
+    },
+    {
+      "id": "sp_common_snapping_turtle",
+      "commonName": "Common Snapping Turtle",
+      "scientificName": "Chelydra serpentina",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Heavy, rough-shelled turtle with a long saw-toothed tail, lying in the mud of ponds and slow rivers with its head out."
+    },
+    {
+      "id": "sp_alligator_snapping_turtle",
+      "commonName": "Alligator Snapping Turtle",
+      "scientificName": "Macrochelys temminckii",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Prehistoric-looking giant with three ridged keels and a worm-like tongue lure, waiting open-mouthed on southern river bottoms."
+    },
+    {
+      "id": "sp_painted_turtle",
+      "commonName": "Painted Turtle",
+      "scientificName": "Chrysemys picta",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Smooth dark turtle with red and yellow stripes on its neck and shell rim, basking in rows on logs across North America."
+    },
+    {
+      "id": "sp_red_eared_slider",
+      "commonName": "Red-eared Slider",
+      "scientificName": "Trachemys scripta elegans",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Green-striped pond turtle with a red stripe behind each eye, the pet-trade turtle now feral in warm waters worldwide."
+    },
+    {
+      "id": "sp_northern_map_turtle",
+      "commonName": "Northern Map Turtle",
+      "scientificName": "Graptemys geographica",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Olive turtle with map-like yellow lines on its shell and a low keel, basking on rocks along clear rivers and large lakes."
+    },
+    {
+      "id": "sp_spiny_softshell_turtle",
+      "commonName": "Spiny Softshell Turtle",
+      "scientificName": "Apalone spinifera",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Flat, leathery pancake of a turtle with a snorkel snout, buried in sand in shallow rivers with only its head showing."
+    },
+    {
+      "id": "sp_florida_softshell_turtle",
+      "commonName": "Florida Softshell Turtle",
+      "scientificName": "Apalone ferox",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Large dark softshell with a long tubular snout, common in Florida springs, canals and lakes."
+    },
+    {
+      "id": "sp_pig_nosed_turtle",
+      "commonName": "Pig-nosed Turtle",
+      "scientificName": "Carettochelys insculpta",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Unique river turtle of New Guinea and northern Australia with sea-turtle flippers and a fleshy pig-like snout."
+    },
+    {
+      "id": "sp_mary_river_turtle",
+      "commonName": "Mary River Turtle",
+      "scientificName": "Elusor macrurus",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Rare Australian turtle that breathes through its cloaca and grows a green algae mohawk, found in a single Queensland river."
+    },
+    {
+      "id": "sp_yellow_spotted_river_turtle",
+      "commonName": "Yellow-spotted River Turtle",
+      "scientificName": "Podocnemis unifilis",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Amazon side-necked turtle with yellow head spots, basking in groups on logs and sandbanks of large rivers."
+    },
+    {
+      "id": "sp_european_pond_turtle",
+      "commonName": "European Pond Turtle",
+      "scientificName": "Emys orbicularis",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Dark turtle speckled with yellow dots, Europe's native freshwater turtle, slipping off sunny banks into weedy ponds."
+    },
+    {
+      "id": "sp_american_alligator",
+      "commonName": "American Alligator",
+      "scientificName": "Alligator mississippiensis",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Broad-snouted armoured reptile of southeastern US swamps, springs and rivers, floating with only eyes and nostrils showing."
+    },
+    {
+      "id": "sp_spectacled_caiman",
+      "commonName": "Spectacled Caiman",
+      "scientificName": "Caiman crocodilus",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Small olive caiman with a bony ridge between its eyes, abundant in slow rivers and lagoons across Central and South America."
+    },
+    {
+      "id": "sp_black_caiman",
+      "commonName": "Black Caiman",
+      "scientificName": "Melanosuchus niger",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "The Amazon's largest predator, a black armoured caiman up to five metres long, hunting at night in lakes and flooded forest."
+    },
+    {
+      "id": "sp_freshwater_crocodile",
+      "commonName": "Freshwater Crocodile",
+      "scientificName": "Crocodylus johnstoni",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Slender-snouted Australian crocodile of northern rivers and gorges, shy and far smaller than the saltwater crocodile."
+    },
+    {
+      "id": "sp_northern_water_snake",
+      "commonName": "Northern Water Snake",
+      "scientificName": "Nerodia sipedon",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "Thick-bodied banded brown snake basking on rocks and branches over eastern North American streams, harmless but quick to bite."
+    },
+    {
+      "id": "sp_green_anaconda",
+      "commonName": "Green Anaconda",
+      "scientificName": "Eunectes murinus",
+      "category": "other",
+      "taxonomyClass": "Reptilia",
+      "description": "The heaviest snake on earth, an olive giant with black blotches, lying submerged in Amazon swamps and slow rivers."
+    },
+    {
+      "id": "sp_hellbender",
+      "commonName": "Hellbender",
+      "scientificName": "Cryptobranchus alleganiensis",
+      "category": "other",
+      "taxonomyClass": "Amphibia",
+      "description": "Giant flat-headed salamander with wrinkled skin folds, hiding under big rocks in cold clear Appalachian rivers."
+    },
+    {
+      "id": "sp_mudpuppy",
+      "commonName": "Mudpuppy",
+      "scientificName": "Necturus maculosus",
+      "category": "other",
+      "taxonomyClass": "Amphibia",
+      "description": "Brown spotted salamander that keeps its feathery red gills for life, crawling over lake and river bottoms at night."
+    },
+    {
+      "id": "sp_axolotl",
+      "commonName": "Axolotl",
+      "scientificName": "Ambystoma mexicanum",
+      "category": "other",
+      "taxonomyClass": "Amphibia",
+      "description": "Smiling gilled salamander that never leaves the water, critically endangered in the canals of Xochimilco near Mexico City."
+    },
+    {
+      "id": "sp_chinese_giant_salamander",
+      "commonName": "Chinese Giant Salamander",
+      "scientificName": "Andrias davidianus",
+      "category": "other",
+      "taxonomyClass": "Amphibia",
+      "description": "The largest amphibian alive, a wrinkled brown giant nearly two metres long, hiding in cool rocky mountain streams."
+    },
+    {
+      "id": "sp_smooth_newt",
+      "commonName": "Smooth Newt",
+      "scientificName": "Lissotriton vulgaris",
+      "category": "other",
+      "taxonomyClass": "Amphibia",
+      "description": "Small olive newt that returns to ponds each spring, the males growing a wavy crest and spotted orange belly."
+    },
+    {
+      "id": "sp_great_crested_newt",
+      "commonName": "Great Crested Newt",
+      "scientificName": "Triturus cristatus",
+      "category": "other",
+      "taxonomyClass": "Amphibia",
+      "description": "Large black warty newt with a fiery orange belly, the breeding males sporting a jagged dragon-like crest."
+    },
+    {
+      "id": "sp_american_bullfrog",
+      "commonName": "American Bullfrog",
+      "scientificName": "Lithobates catesbeianus",
+      "category": "other",
+      "taxonomyClass": "Amphibia",
+      "description": "Huge green frog with a bass bellow, sitting among lily pads in warm ponds and now invasive on several continents."
+    },
+    {
+      "id": "sp_common_frog",
+      "commonName": "Common Frog",
+      "scientificName": "Rana temporaria",
+      "category": "other",
+      "taxonomyClass": "Amphibia",
+      "description": "Brown frog with a dark eye mask that gathers in noisy spring crowds to spawn in European ponds and ditches."
+    },
+    {
+      "id": "sp_north_american_river_otter",
+      "commonName": "North American River Otter",
+      "scientificName": "Lontra canadensis",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Sleek playful otter that hunts fish and crayfish in rivers and lakes across North America, leaving mud slides on banks."
+    },
+    {
+      "id": "sp_eurasian_otter",
+      "commonName": "Eurasian Otter",
+      "scientificName": "Lutra lutra",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Shy brown otter of European rivers, lakes and coasts, recovering across its range after decades of decline."
+    },
+    {
+      "id": "sp_giant_otter",
+      "commonName": "Giant Otter",
+      "scientificName": "Pteronura brasiliensis",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Nearly two-metre otter with a cream throat patch, living in noisy family groups on Amazon rivers and oxbow lakes."
+    },
+    {
+      "id": "sp_north_american_beaver",
+      "commonName": "North American Beaver",
+      "scientificName": "Castor canadensis",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Large flat-tailed rodent that dams streams into ponds and swims beneath the ice with a lodge of sticks for shelter."
+    },
+    {
+      "id": "sp_eurasian_beaver",
+      "commonName": "Eurasian Beaver",
+      "scientificName": "Castor fiber",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Europe's largest rodent, reintroduced across the continent, felling riverside trees and building dams and lodges."
+    },
+    {
+      "id": "sp_muskrat",
+      "commonName": "Muskrat",
+      "scientificName": "Ondatra zibethicus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Rat-sized brown rodent with a scaly flattened tail, swimming through cattail marshes and building domed reed lodges."
+    },
+    {
+      "id": "sp_platypus",
+      "commonName": "Platypus",
+      "scientificName": "Ornithorhynchus anatinus",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Egg-laying mammal with a duck bill and webbed feet, foraging with closed eyes along eastern Australian creeks at dawn and dusk."
+    },
+    {
+      "id": "sp_amazonian_manatee",
+      "commonName": "Amazonian Manatee",
+      "scientificName": "Trichechus inunguis",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "The smallest manatee, a smooth dark grazer with a white chest patch, browsing water plants in Amazon lakes and rivers."
+    },
+    {
+      "id": "sp_amazon_river_dolphin",
+      "commonName": "Amazon River Dolphin",
+      "scientificName": "Inia geoffrensis",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Pink long-beaked dolphin with a flexible neck, weaving between trunks of flooded forest in the Amazon and Orinoco."
+    },
+    {
+      "id": "sp_baikal_seal",
+      "commonName": "Baikal Seal",
+      "scientificName": "Pusa sibirica",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "The world's only freshwater seal, a small silver-grey seal that hauls out on Lake Baikal's ice and rocky shores."
+    },
+    {
+      "id": "sp_capybara",
+      "commonName": "Capybara",
+      "scientificName": "Hydrochoerus hydrochaeris",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "The largest rodent, a barrel-shaped grazer that wades and swims in South American rivers and wetlands in calm herds."
+    },
+    {
+      "id": "sp_hippopotamus",
+      "commonName": "Hippopotamus",
+      "scientificName": "Hippopotamus amphibius",
+      "category": "mammal",
+      "taxonomyClass": "Mammalia",
+      "description": "Massive African river giant that spends the day submerged in pods and walks the bottom rather than swims; dangerous to approach."
+    },
+    {
+      "id": "sp_white_water_lily",
+      "commonName": "White Water Lily",
+      "scientificName": "Nymphaea alba",
+      "category": "plant",
+      "taxonomyClass": "Magnoliopsida",
+      "description": "Floating round leaves and large white flowers rising from thick rhizomes rooted in the mud of still European waters."
+    },
+    {
+      "id": "sp_yellow_pond_lily",
+      "commonName": "Yellow Pond Lily",
+      "scientificName": "Nuphar lutea",
+      "category": "plant",
+      "taxonomyClass": "Magnoliopsida",
+      "description": "Heart-shaped floating leaves and cup-like yellow flowers, with large translucent underwater leaves visible to divers below."
+    },
+    {
+      "id": "sp_american_eelgrass",
+      "commonName": "American Eelgrass",
+      "scientificName": "Vallisneria americana",
+      "category": "plant",
+      "taxonomyClass": "Liliopsida",
+      "description": "Ribbon-like leaves up to two metres long swaying in the current of clear rivers and springs, a favourite of manatees."
+    },
+    {
+      "id": "sp_coontail",
+      "commonName": "Coontail",
+      "scientificName": "Ceratophyllum demersum",
+      "category": "plant",
+      "taxonomyClass": "Magnoliopsida",
+      "description": "Rootless submerged plant with whorls of stiff forked leaves like a raccoon's tail, drifting in dense masses in still water."
+    },
+    {
+      "id": "sp_eurasian_watermilfoil",
+      "commonName": "Eurasian Watermilfoil",
+      "scientificName": "Myriophyllum spicatum",
+      "category": "plant",
+      "taxonomyClass": "Magnoliopsida",
+      "description": "Feathery submerged plant with whorls of finely divided leaves that forms thick mats near the surface, invasive in many lakes."
+    },
+    {
+      "id": "sp_muskgrass",
+      "commonName": "Muskgrass",
+      "scientificName": "Chara vulgaris",
+      "category": "plant",
+      "taxonomyClass": "Charophyceae",
+      "description": "Brittle, musky-smelling green alga with whorled branches, often crusted with lime, carpeting the bottom of clear hard-water lakes."
+    },
+    {
+      "id": "sp_canadian_waterweed",
+      "commonName": "Canadian Waterweed",
+      "scientificName": "Elodea canadensis",
+      "category": "plant",
+      "taxonomyClass": "Liliopsida",
+      "description": "Dense submerged plant with whorls of three small dark green leaves, spreading by fragments through cool lakes and canals worldwide."
+    },
+    {
+      "id": "sp_curly_leaf_pondweed",
+      "commonName": "Curly-leaf Pondweed",
+      "scientificName": "Potamogeton crispus",
+      "category": "plant",
+      "taxonomyClass": "Liliopsida",
+      "description": "Submerged plant with wavy-edged reddish-green leaves like crinkled lasagne, growing early in spring before other weeds."
+    },
+    {
+      "id": "sp_water_hyacinth",
+      "commonName": "Water Hyacinth",
+      "scientificName": "Pontederia crassipes",
+      "category": "plant",
+      "taxonomyClass": "Liliopsida",
+      "description": "Floating plant with glossy leaves on air-filled stalks and spikes of lavender flowers, choking warm waterways worldwide."
+    },
+    {
+      "id": "sp_common_reed",
+      "commonName": "Common Reed",
+      "scientificName": "Phragmites australis",
+      "category": "plant",
+      "taxonomyClass": "Liliopsida",
+      "description": "Tall feathery-headed grass forming dense beds along lake shores, its submerged stems sheltering fry and dragonfly larvae."
     }
   ]
 }

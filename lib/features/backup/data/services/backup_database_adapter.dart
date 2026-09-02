@@ -15,6 +15,9 @@ abstract class BackupDatabaseAdapter {
   /// [onMigrationProgress] fires per migration step when the restored file
   /// carries an older schema and the reopen runs the upgrade ladder — the only
   /// long-running phase of the swap, and otherwise invisible to the user.
+  ///
+  /// Throws `RestoreSourceMissingException` when [backupPath] does not exist;
+  /// the live database is left untouched and nothing was restored.
   Future<void> restore(
     String backupPath, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,

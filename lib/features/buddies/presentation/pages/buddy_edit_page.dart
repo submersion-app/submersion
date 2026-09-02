@@ -1,4 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:submersion/features/buddies/data/services/contact_photo_loader.dart';
+import 'package:submersion/shared/widgets/profile_photo/profile_photo_picker.dart';
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
+import 'package:submersion/shared/utils/contact_import_support.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -19,6 +25,9 @@ class BuddyEditPage extends ConsumerStatefulWidget {
   final String? initialEmail;
   final String? initialPhone;
 
+  /// Profile photo carried in from a contact import.
+  final Uint8List? initialPhoto;
+
   /// When true, renders without Scaffold wrapper for use in master-detail layout.
   final bool embedded;
 
@@ -38,6 +47,7 @@ class BuddyEditPage extends ConsumerStatefulWidget {
     this.initialName,
     this.initialEmail,
     this.initialPhone,
+    this.initialPhoto,
     this.embedded = false,
     this.onSaved,
     this.onCancel,
@@ -71,6 +81,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   bool _isSaving = false;
   bool _hasChanges = false;
   Buddy? _originalBuddy;
+  Uint8List? _photo;
 
   BuddyMergeFormController? _mergeCtrl;
 
@@ -100,6 +111,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       _nameController.text = widget.initialName ?? '';
       _emailController.text = widget.initialEmail ?? '';
       _phoneController.text = widget.initialPhone ?? '';
+      _photo = widget.initialPhoto;
       // Mark as having changes since we have pre-filled data
       _hasChanges = true;
     }
@@ -107,6 +119,20 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     _emailController.addListener(_onFieldChanged);
     _phoneController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
+  }
+
+  Future<void> _pickPhoto() async {
+    final result = await pickProfilePhoto(
+      context: context,
+      hasPhoto: _photo != null,
+      allowContacts: isContactImportSupported,
+      contactPhotoLoader: loadContactPhoto,
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _photo = result.removed ? null : result.bytes;
+      _hasChanges = true;
+    });
   }
 
   void _onFieldChanged() {
@@ -127,6 +153,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             .getCertificationsByBuddy(widget.buddyId!);
         if (!mounted) return;
         _originalBuddy = buddy;
+        _photo = buddy.photo;
         _nameController.text = buddy.name;
         _emailController.text = buddy.email ?? '';
         _phoneController.text = buddy.phone ?? '';
@@ -304,50 +331,47 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Profile photo placeholder
             Center(
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer,
-                    child: Text(
-                      _nameController.text.isNotEmpty
-                          ? _getInitials(_nameController.text)
-                          : '?',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: ExcludeSemantics(
-                      child: CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        child: Icon(
-                          Icons.camera_alt,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onPrimary,
+              child: Semantics(
+                button: true,
+                label: context.l10n.profilePhoto_sheet_title,
+                child: GestureDetector(
+                  onTap: _pickPhoto,
+                  child: Stack(
+                    children: [
+                      ProfileAvatar(
+                        photo: _photo,
+                        initials: _nameController.text.isNotEmpty
+                            ? _getInitials(_nameController.text)
+                            : '?',
+                        radius: 50,
+                        textStyle: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                         ),
                       ),
-                    ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: ExcludeSemantics(
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Center(
-              child: Text(
-                context.l10n.buddies_label_photoComingSoon,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
@@ -431,7 +455,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.card_membership),
                   title: Text(certificationTitle(cert)),
-                  subtitle: Text(cert.agency.displayName),
+                  subtitle: Text(certificationAgencyAndLevel(cert)),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -701,7 +725,12 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         photoPath: widget.isMerging
             ? _mergeCtrl?.mergedPhotoPath
             : _originalBuddy?.photoPath,
+        photo: widget.isMerging ? _mergeCtrl?.mergedPhoto : _photo,
         notes: _notesController.text.trim(),
+        // Preserve favorite status (issue #638): this form has no favorite
+        // control, so a full-constructor rebuild would otherwise silently
+        // reset it to false on every save.
+        isFavorite: _originalBuddy?.isFavorite ?? false,
         createdAt: _originalBuddy?.createdAt ?? now,
         updatedAt: now,
       );

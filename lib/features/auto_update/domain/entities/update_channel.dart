@@ -25,12 +25,32 @@ class UpdateChannelConfig {
     return UpdateChannel.github;
   }
 
-  /// Whether in-app auto-update is enabled.
-  /// Always false on iOS and Android (store-only platforms).
-  /// Store-distributed builds rely on the store's own update mechanism.
-  static bool get isAutoUpdateEnabled {
-    if (Platform.isIOS || Platform.isAndroid) return false;
-    return !isStoreChannel(current);
+  /// Whether in-app update checking is enabled.
+  ///
+  /// iOS is the one genuinely store-only platform: every iOS build reaches a
+  /// device through the App Store or TestFlight, both of which deliver
+  /// updates themselves, so no compile-time channel can turn the updater on
+  /// there. Every other platform follows [current], which store builds set
+  /// via the UPDATE_CHANNEL dart-define.
+  ///
+  /// Android is deliberately not special-cased (#1258). The sideloaded APK is
+  /// built with UPDATE_CHANNEL=github and polls GitHub Releases exactly as
+  /// Linux does; the Play bundle is built with UPDATE_CHANNEL=playstore and
+  /// turns the updater off. Treating Android as store-only left every APK
+  /// install with no update path at all while Submersion is not on Play.
+  static bool get isAutoUpdateEnabled =>
+      isAutoUpdateEnabledFor(isIOS: Platform.isIOS, channel: current);
+
+  /// The rule behind [isAutoUpdateEnabled], with the host platform and the
+  /// distribution channel passed in rather than read from the environment.
+  /// [isAutoUpdateEnabled] binds them to the running build; tests use this
+  /// form to reach combinations the host platform cannot produce.
+  static bool isAutoUpdateEnabledFor({
+    required bool isIOS,
+    required UpdateChannel channel,
+  }) {
+    if (isIOS) return false;
+    return !isStoreChannel(channel);
   }
 
   /// Returns true for every channel except [UpdateChannel.github].

@@ -316,6 +316,11 @@ class DiveMergeBuilder {
       isPlanned: first.isPlanned,
       notes: _mergedNotes(sorted),
       isFavorite: sorted.any((d) => d.isFavorite),
+      // An explicit exclusion on any source survives the merge. Dropping it
+      // would silently re-admit a dive the diver deliberately took out of
+      // their statistics, which is the harder error to notice of the two.
+      excludedFromStats: sorted.any((d) => d.excludedFromStats),
+      excludedFromGasStats: sorted.any((d) => d.excludedFromGasStats),
       entryLocation: _firstNonNull(sorted, (d) => d.entryLocation),
       exitLocation: _lastNonNull(sorted, (d) => d.exitLocation),
       site: _firstNonNull(sorted, (d) => d.site),

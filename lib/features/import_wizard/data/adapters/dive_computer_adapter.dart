@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -60,11 +61,21 @@ enum _ConsolidateOutcome {
   /// reject with `ArgumentError('sameComputer...')`.
   skippedSameComputer,
 
+  /// The download was imported as a standalone dive and KEPT that way: the
+  /// fold refused because the PRE-EXISTING target holds a series this build
+  /// cannot decode. The download itself is sound, so deleting it would lose
+  /// it for good.
+  keptStandalone,
+
   /// The download was imported as a standalone dive, but folding it into
   /// the target failed unexpectedly. The orphaned standalone dive was
   /// deleted to avoid stranding it.
   failed,
 }
+
+/// What a `_consolidateDive` call did, plus the id of the standalone dive it
+/// left behind (only [_ConsolidateOutcome.keptStandalone] leaves one).
+typedef _ConsolidateResult = ({_ConsolidateOutcome outcome, String? diveId});
 
 /// Import source adapter for dive computer downloads.
 ///
@@ -546,14 +557,17 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         final diveGroup = bundle.groups[ImportEntityType.dives];
         final matchResult = diveGroup?.matchResults?[index];
         if (matchResult != null) {
-          final outcome = await _consolidateDive(
-            dive,
-            matchResult.diveId,
-            comp,
-          );
-          switch (outcome) {
+          final result = await _consolidateDive(dive, matchResult.diveId, comp);
+          switch (result.outcome) {
             case _ConsolidateOutcome.consolidated:
               consolidated++;
+            case _ConsolidateOutcome.keptStandalone:
+              // The fold refused, but the download survived as its own dive,
+              // so it counts as imported. Reporting it as skipped would hide
+              // a dive the fingerprint is about to advance past.
+              imported++;
+              final keptId = result.diveId;
+              if (keptId != null) importedDiveIds.add(keptId);
             case _ConsolidateOutcome.skippedSameComputer:
             case _ConsolidateOutcome.failed:
               skipped++;
@@ -679,14 +693,20 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   ///   ("sameComputer...") when the secondary shares [targetDiveId]'s
   ///   `computerId`. Checking that up front avoids importing a dive that is
   ///   guaranteed to fail the fold.
+  /// - **Refusal about the TARGET (kept):** [UnreadableSeriesException] says
+  ///   the pre-existing target dive holds a profile or pressure series this
+  ///   build cannot decode, so `apply` refused before writing anything. The
+  ///   download is not at fault and is the only copy of this dive: the
+  ///   fingerprint advances past it on the way out of `performImport`, so
+  ///   deleting it would lose it for good. It is kept standalone instead.
   /// - **Unexpected failure (compensated):** if the import succeeds but
   ///   `apply` throws for any other reason, the freshly-imported dive is
   ///   deleted via [DiveRepository.bulkDeleteDives] (tombstone-honoring)
   ///   instead of being left as a bare, unconsolidated duplicate.
   ///
-  /// Returns a [_ConsolidateOutcome] describing what happened so the caller
+  /// Returns a [_ConsolidateResult] describing what happened so the caller
   /// can adjust the import summary's counters instead of aborting the loop.
-  Future<_ConsolidateOutcome> _consolidateDive(
+  Future<_ConsolidateResult> _consolidateDive(
     DownloadedDive dive,
     String targetDiveId,
     DiveComputer comp,
@@ -695,7 +715,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       targetDiveId,
     );
     if (targetComputerId != null && targetComputerId == comp.id) {
-      return _ConsolidateOutcome.skippedSameComputer;
+      return (outcome: _ConsolidateOutcome.skippedSameComputer, diveId: null);
     }
 
     String? newDiveId;
@@ -713,7 +733,20 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         targetDiveId: targetDiveId,
         secondaryDiveIds: [newDiveId],
       );
-      return _ConsolidateOutcome.consolidated;
+      return (outcome: _ConsolidateOutcome.consolidated, diveId: newDiveId);
+    } on UnreadableSeriesException catch (e) {
+      final keptId = newDiveId;
+      if (keptId != null) {
+        _log.warning(
+          'Kept downloaded dive $keptId standalone instead of folding it '
+          'into $targetDiveId: that dive holds ${e.seriesIds.length} '
+          'series this build cannot decode',
+        );
+        return (outcome: _ConsolidateOutcome.keptStandalone, diveId: keptId);
+      }
+      // Nothing was imported, so there is nothing to keep or compensate.
+      _log.error('Consolidation fold refused for $targetDiveId', error: e);
+      return (outcome: _ConsolidateOutcome.failed, diveId: null);
     } catch (e, st) {
       _log.error(
         'Consolidation fold failed for dive into $targetDiveId',
@@ -735,7 +768,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           );
         }
       }
-      return _ConsolidateOutcome.failed;
+      return (outcome: _ConsolidateOutcome.failed, diveId: null);
     }
   }
 

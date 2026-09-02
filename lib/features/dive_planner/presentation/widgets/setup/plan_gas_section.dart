@@ -11,8 +11,8 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Gas settings for the Setup accordion: SAC (with one-tap logged average)
-/// and reserve pressure. Bottom/deco SAC split and SAC factor land here in
+/// Gas settings for the Setup accordion: RMV (with one-tap logged average)
+/// and reserve pressure. Bottom/deco RMV split and RMV factor land here in
 /// later phases (spec G25).
 class PlanGasSection extends ConsumerWidget {
   const PlanGasSection({super.key});
@@ -61,7 +61,7 @@ class PlanGasSection extends ConsumerWidget {
             ),
           ],
         ),
-        _LoggedSacButton(currentSac: planState.sacRate, units: units),
+        _LoggedRmvButton(currentRmv: planState.sacRate, units: units),
         const SizedBox(height: 12),
         _ReservePressureInput(
           reservePressure: planState.reservePressure,
@@ -82,23 +82,23 @@ class PlanGasSection extends ConsumerWidget {
   }
 }
 
-/// One-tap SAC auto-fill from the diver's logged average ("from your log").
+/// One-tap RMV auto-fill from the diver's logged average ("from your log").
 /// Hidden when no logged average exists or it already matches the plan.
-class _LoggedSacButton extends ConsumerWidget {
-  const _LoggedSacButton({required this.currentSac, required this.units});
+class _LoggedRmvButton extends ConsumerWidget {
+  const _LoggedRmvButton({required this.currentRmv, required this.units});
 
-  final double currentSac;
+  final double currentRmv;
   final UnitFormatter units;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final loggedSac = ref.watch(loggedAverageSacProvider).valueOrNull;
-    if (loggedSac == null || (loggedSac - currentSac).abs() < 0.5) {
+    final loggedRmv = ref.watch(loggedAverageSacProvider).valueOrNull;
+    if (loggedRmv == null || (loggedRmv - currentRmv).abs() < 0.5) {
       return const SizedBox.shrink();
     }
 
     final display =
-        '${units.convertVolume(loggedSac).toStringAsFixed(1)} '
+        '${units.convertVolume(loggedRmv).toStringAsFixed(1)} '
         '${units.volumeSymbol}/min';
     return Align(
       alignment: Alignment.centerLeft,
@@ -107,7 +107,7 @@ class _LoggedSacButton extends ConsumerWidget {
         label: Text(context.l10n.plannerCanvas_sac_useLogged(display)),
         onPressed: () => ref
             .read(divePlanNotifierProvider.notifier)
-            .updateSacRate(loggedSac.clamp(8.0, 30.0)),
+            .updateSacRate(loggedRmv.clamp(8.0, 30.0)),
       ),
     );
   }

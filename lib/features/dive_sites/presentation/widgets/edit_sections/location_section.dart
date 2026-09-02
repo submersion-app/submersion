@@ -30,6 +30,7 @@ class LocationSection extends StatelessWidget {
     required this.isGettingLocation,
     required this.onUseMyLocation,
     required this.onPickFromMap,
+    required this.onLookupFromCoordinates,
     required this.units,
     this.coordinatesExtras,
     this.altitudeExtras,
@@ -52,6 +53,10 @@ class LocationSection extends StatelessWidget {
   final bool isGettingLocation;
   final VoidCallback onUseMyLocation;
   final VoidCallback onPickFromMap;
+
+  /// Reverse-geocodes the typed coordinates (issue #1187). Null while the
+  /// coordinates do not parse, which disables the button.
+  final VoidCallback? onLookupFromCoordinates;
   final UnitFormatter units;
   final MergeFieldExtras? coordinatesExtras;
   final MergeFieldExtras? altitudeExtras;
@@ -95,7 +100,9 @@ class LocationSection extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 2, 14, 6),
-              child: Row(
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 4,
                 children: [
                   TextButton.icon(
                     onPressed: isGettingLocation ? null : onUseMyLocation,
@@ -112,11 +119,17 @@ class LocationSection extends StatelessWidget {
                           : l10n.diveSites_edit_gps_useMyLocation,
                     ),
                   ),
-                  const SizedBox(width: 12),
                   TextButton.icon(
                     onPressed: onPickFromMap,
                     icon: const Icon(Icons.map, size: 16),
                     label: Text(l10n.diveSites_edit_gps_pickFromMap),
+                  ),
+                  TextButton.icon(
+                    onPressed: isGettingLocation
+                        ? null
+                        : onLookupFromCoordinates,
+                    icon: const Icon(Icons.travel_explore, size: 16),
+                    label: Text(l10n.diveSites_edit_gps_lookupFromCoordinates),
                   ),
                 ],
               ),

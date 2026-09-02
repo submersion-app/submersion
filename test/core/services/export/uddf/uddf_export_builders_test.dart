@@ -71,19 +71,16 @@ void main() {
         final tankPressures = {
           'tank-1': [
             const TankPressurePoint(
-              id: 'tp1',
               tankId: 'tank-1',
               timestamp: 0,
               pressure: 200.0,
             ),
             const TankPressurePoint(
-              id: 'tp2',
               tankId: 'tank-1',
               timestamp: 60,
               pressure: 190.0,
             ),
             const TankPressurePoint(
-              id: 'tp3',
               tankId: 'tank-1',
               timestamp: 120,
               pressure: 180.0,
@@ -141,7 +138,6 @@ void main() {
         final tankPressures = {
           'tank-1': [
             const TankPressurePoint(
-              id: 'tp1',
               tankId: 'tank-1',
               timestamp: 61, // 1 second off - should match
               pressure: 195.0,
@@ -190,7 +186,6 @@ void main() {
         final tankPressures = {
           'tank-1': [
             const TankPressurePoint(
-              id: 'tp1',
               tankId: 'tank-1',
               timestamp: 65, // 5 seconds off - should NOT match
               pressure: 195.0,
@@ -282,13 +277,11 @@ void main() {
           final tankPressures = {
             'tank-1': [
               const TankPressurePoint(
-                id: 'tp1',
                 tankId: 'tank-1',
                 timestamp: 58, // diff=2
                 pressure: 190.0,
               ),
               const TankPressurePoint(
-                id: 'tp2',
                 tankId: 'tank-1',
                 timestamp: 61, // diff=1 - closer
                 pressure: 188.0,
@@ -341,7 +334,6 @@ void main() {
         final tankPressures = {
           'tank-1': [
             const TankPressurePoint(
-              id: 'tp1',
               tankId: 'tank-1',
               timestamp: 60,
               pressure: 200.0,
@@ -349,7 +341,6 @@ void main() {
           ],
           'tank-2': [
             const TankPressurePoint(
-              id: 'tp2',
               tankId: 'tank-2',
               timestamp: 60,
               pressure: 150.0,

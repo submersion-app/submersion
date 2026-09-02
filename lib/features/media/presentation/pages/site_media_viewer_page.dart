@@ -6,6 +6,7 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
@@ -211,7 +212,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage> {
                     currentIndex: currentIndex,
                     totalCount: mediaList.length,
                     onClose: () => Navigator.of(context).pop(),
-                    onShare: () => _shareCurrentItem(currentItem),
+                    onShare: (anchor) => _shareCurrentItem(currentItem, anchor),
                   ),
                   // Previous / next controls. Mounted with the rest of the
                   // chrome, so the tap-to-hide gesture takes them away too.
@@ -249,7 +250,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage> {
     );
   }
 
-  Future<void> _shareCurrentItem(MediaItem item) async {
+  Future<void> _shareCurrentItem(MediaItem item, Rect? anchor) async {
     final l10n = context.l10n;
 
     // Show loading indicator
@@ -277,7 +278,10 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage> {
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
 
       await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path, mimeType: item.shareMimeType)]),
+        ShareParams(
+          files: [XFile(file.path, mimeType: item.shareMimeType)],
+          sharePositionOrigin: anchor,
+        ),
       );
     } catch (e) {
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
@@ -335,7 +339,7 @@ class _TopOverlay extends StatelessWidget {
   final int currentIndex;
   final int totalCount;
   final VoidCallback onClose;
-  final VoidCallback onShare;
+  final void Function(Rect? anchor) onShare;
 
   const _TopOverlay({
     required this.currentIndex,
@@ -384,10 +388,15 @@ class _TopOverlay extends StatelessWidget {
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.share, color: Colors.white),
-                  tooltip: context.l10n.media_photoViewer_shareTooltip,
-                  onPressed: onShare,
+                // Builder so the iPad share popover anchors to this
+                // button: findRenderObject from a Builder's context descends
+                // to the IconButton rather than yielding the whole overlay.
+                Builder(
+                  builder: (buttonContext) => IconButton(
+                    icon: const Icon(Icons.share, color: Colors.white),
+                    tooltip: context.l10n.media_photoViewer_shareTooltip,
+                    onPressed: () => onShare(shareAnchorFrom(buttonContext)),
+                  ),
                 ),
               ],
             ),

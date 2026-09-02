@@ -99,8 +99,8 @@ void main() {
         ),
         diveTypesProvider.overrideWith((ref) async => types ?? loadedTypes),
       ],
-      // The resolver is built through the production helper, so these cases
-      // still cover the provider -> label seam the tile no longer owns.
+      // The resolvers are built through the production helpers, so these
+      // cases still cover the provider -> label seam the tile no longer owns.
       child: Consumer(
         builder: (context, ref, _) => DiveListTile(
           diveId: 'd1',
@@ -112,6 +112,10 @@ void main() {
           summary: summary,
           fullDive: fullDive,
           diveTypeLabelResolver: watchDiveTypeLabelResolver(ref, context.l10n),
+          diveTypeShortLabelResolver: watchDiveTypeShortLabelResolver(
+            ref,
+            context.l10n,
+          ),
         ),
       ),
     );
@@ -223,7 +227,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Muck'), findsOneWidget);
+      // A custom type has no short form, so the slot and the type-badge row
+      // both fall back to the diver's own name -- both are expected here.
+      expect(find.text('Muck'), findsWidgets);
     });
 
     testWidgets(
@@ -238,7 +244,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Hausriff-Wrack'), findsOneWidget);
+        expect(find.text('Hausriff-Wrack'), findsWidgets);
         expect(find.text('Wracktauchen'), findsNothing);
       },
     );
@@ -267,7 +273,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Wreck'), findsOneWidget);
+      // The slot renders "Wreck" and the new type-badge row (issue #1269)
+      // renders its own short label alongside it, which for this built-in
+      // slug happens to be the same English word -- so both are expected.
+      expect(find.text('Wreck'), findsWidgets);
     });
   });
 }

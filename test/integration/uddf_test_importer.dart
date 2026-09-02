@@ -439,7 +439,11 @@ class UddfTestImporter {
 
       // If coordinates exist but country/region are missing, use reverse geolocation
       if (lat != null && lon != null && (country == null || country.isEmpty)) {
-        final geoResult = await locationService.reverseGeocode(lat, lon);
+        final geoResult = await locationService.reverseGeocode(
+          lat,
+          lon,
+          languageCode: LocationService.defaultLanguageCode,
+        );
         country = geoResult.country;
         region = geoResult.region;
       }

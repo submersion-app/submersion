@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -22,12 +23,13 @@ class _RecordingLocationService implements LocationService {
   ({double lat, double lng})? geocodedWith;
 
   @override
-  Future<({String? country, String? region, String? locality})> reverseGeocode(
+  Future<PlaceLookup> reverseGeocode(
     double latitude,
-    double longitude,
-  ) async {
+    double longitude, {
+    required String languageCode,
+  }) async {
     geocodedWith = (lat: latitude, lng: longitude);
-    return (country: 'Testland', region: 'Test Region', locality: null);
+    return const PlaceLookup(country: 'Testland', region: 'Test Region');
   }
 
   @override

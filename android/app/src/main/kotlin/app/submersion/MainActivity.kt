@@ -9,6 +9,7 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterFragmentActivity() {
     private var metadataHandler: MetadataWriteHandler? = null
     private var localMediaHandler: LocalMediaHandler? = null
+    private var deviceNameHandler: DeviceNameHandler? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -24,5 +25,11 @@ class MainActivity : FlutterFragmentActivity() {
             LocalMediaHandler.CHANNEL,
         )
         localMediaHandler = LocalMediaHandler(applicationContext, localMediaChannel)
+
+        val deviceNameChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            DeviceNameHandler.CHANNEL,
+        )
+        deviceNameHandler = DeviceNameHandler(applicationContext, deviceNameChannel)
     }
 }

@@ -49,24 +49,41 @@ class MediaItemVerifier {
     }
     final stamp = _now();
 
-    // A volume that is not mounted, or a file that is present but
-    // momentarily unreadable, is a recoverable condition rather than a dead
-    // pointer. The orphan flag is sticky, so setting it here would leave the
-    // row marked missing after the share came back.
+    // An unmounted volume, a momentarily unreadable file, a photo library
+    // this app may not read, a disconnected connector account, and a row
+    // whose bytes live on another machine are all reachability problems
+    // rather than dead pointers. The orphan flag is sticky and syncs, so
+    // setting it for any of them would leave the row marked missing after
+    // the share came back, permission was granted, or the account was
+    // reconnected, and would push that claim to every other device.
     // A write failure must not surface as a crash either. The check itself
     // succeeded, but its outcome was not persisted, so reporting a transient
     // failure is the honest answer rather than claiming a durable result.
     try {
-      if (result == VerifyResult.volumeOffline ||
-          result == VerifyResult.transientError) {
-        await _repository.updateMedia(item.copyWith(lastVerifiedAt: stamp));
+      // Inverted deliberately: match the results that MAY move the flag
+      // rather than the ones that may not. Written the other way round, a new
+      // VerifyResult defaults to orphaning, and this method's blast radius is
+      // a sticky flag that syncs to every other device.
+      //
+      // notFound is the only positive finding of absence. unauthenticated and
+      // fromOtherDevice both mean "this device cannot reach it": the first
+      // fires for every Lightroom row when the account is disconnected, the
+      // second for a row whose bytes live on another machine. Orphaning
+      // either would report a reachability problem as data loss.
+      //
+      // Narrow writes, never `updateMedia`: [item] is the caller's snapshot,
+      // and an upload finishing after it was taken has stamped the row since.
+      // Writing the snapshot back would roll those stamps to null and sync
+      // the rollback, which is how a second device ends up believing a
+      // backed-up photo has no backup.
+      if (result != VerifyResult.available && result != VerifyResult.notFound) {
+        await _repository.stampVerification(item.id, verifiedAt: stamp);
         return result;
       }
-      await _repository.updateMedia(
-        item.copyWith(
-          isOrphaned: result != VerifyResult.available,
-          lastVerifiedAt: stamp,
-        ),
+      await _repository.stampVerification(
+        item.id,
+        verifiedAt: stamp,
+        isOrphaned: result == VerifyResult.notFound,
       );
     } on Object {
       return VerifyResult.transientError;

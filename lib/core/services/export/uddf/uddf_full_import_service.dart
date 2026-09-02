@@ -156,6 +156,9 @@ class UddfFullImportService {
                 'model': model ?? '',
                 'serial': serial ?? '',
                 'firmware': firmware ?? '',
+                'manufacturer':
+                    UddfImportParsers.getManufacturerName(computerElement) ??
+                    '',
               };
             }
           }
@@ -863,6 +866,23 @@ class UddfFullImportService {
         diveData['isFavorite'] = true;
       }
 
+      // Statistics exclusion. Absent means included, so a document from
+      // another application never arrives pre-excluded.
+      final excludedFromStats = UddfImportParsers.getElementText(
+        afterElement,
+        'excludedfromstats',
+      );
+      if (excludedFromStats?.toLowerCase() == 'true') {
+        diveData['excludedFromStats'] = true;
+      }
+      final excludedFromGasStats = UddfImportParsers.getElementText(
+        afterElement,
+        'excludedfromgasstats',
+      );
+      if (excludedFromGasStats?.toLowerCase() == 'true') {
+        diveData['excludedFromGasStats'] = true;
+      }
+
       // Parse additional weights (app-specific, beyond single weight)
       final weightsElement = afterElement.findElements('weights').firstOrNull;
       if (weightsElement != null) {
@@ -1290,6 +1310,9 @@ class UddfFullImportService {
             if (computer['firmware']?.isNotEmpty == true) {
               diveData['diveComputerFirmware'] = computer['firmware'];
             }
+            if (computer['manufacturer']?.isNotEmpty == true) {
+              diveData['diveComputerManufacturer'] = computer['manufacturer'];
+            }
           }
         }
       }
@@ -1308,6 +1331,9 @@ class UddfFullImportService {
             }
             if (computer['firmware']?.isNotEmpty == true) {
               diveData['diveComputerFirmware'] = computer['firmware'];
+            }
+            if (computer['manufacturer']?.isNotEmpty == true) {
+              diveData['diveComputerManufacturer'] = computer['manufacturer'];
             }
           }
         }

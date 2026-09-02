@@ -3,6 +3,7 @@ import 'package:pdfrx/pdfrx.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
@@ -40,10 +41,15 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            tooltip: context.l10n.media_photoViewer_shareTooltip,
-            onPressed: () => _share(context),
+          // Builder so the share popover anchors to this button on iPad:
+          // findRenderObject from a Builder's context descends to the
+          // IconButton, whereas the page's context would yield the whole page.
+          Builder(
+            builder: (buttonContext) => IconButton(
+              icon: const Icon(Icons.share),
+              tooltip: context.l10n.media_photoViewer_shareTooltip,
+              onPressed: () => _share(buttonContext),
+            ),
           ),
         ],
       ),
@@ -82,6 +88,8 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
 
   Future<void> _share(BuildContext context) async {
     final l10n = context.l10n;
+    // Resolved before the awaits below: the button is guaranteed mounted now.
+    final anchor = shareAnchorFrom(context);
     try {
       final resolved = await ref.read(mediaBytesProvider(widget.item).future);
       if (resolved.isUnavailable || resolved.bytes == null) {
@@ -96,6 +104,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path, mimeType: widget.item.shareMimeType)],
+          sharePositionOrigin: anchor,
         ),
       );
     } catch (e) {

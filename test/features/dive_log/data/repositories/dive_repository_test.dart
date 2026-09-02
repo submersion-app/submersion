@@ -8,6 +8,8 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -455,18 +457,13 @@ void main() {
         expect(createdDive!.tanks.length, equals(1));
         final tankId = createdDive.tanks[0].id;
 
-        // Insert tank pressure profiles
-        await database
-            .into(database.tankPressureProfiles)
-            .insert(
-              db.TankPressureProfilesCompanion(
-                id: const Value('profile1'),
-                diveId: Value(dive.id),
-                tankId: Value(tankId),
-                timestamp: const Value(0),
-                pressure: const Value(200.0),
-              ),
-            );
+        // Insert the tank's pressure series
+        final tankSeries = TankPressureSeriesRepository();
+        await tankSeries.insertSeries(
+          diveId: dive.id,
+          tankId: tankId,
+          samples: const [TankPressureSample(timestamp: 0, pressure: 200.0)],
+        );
 
         // Insert gas switches
         await database
@@ -482,10 +479,8 @@ void main() {
             );
 
         // Verify initial data
-        var pressureProfiles = await (database.select(
-          database.tankPressureProfiles,
-        )..where((t) => t.diveId.equals(dive.id))).get();
-        expect(pressureProfiles.length, equals(1));
+        var pressureSeries = await tankSeries.getSeriesForDive(dive.id);
+        expect(pressureSeries.length, equals(1));
 
         var gasSwitches = await (database.select(
           database.gasSwitches,
@@ -501,15 +496,13 @@ void main() {
 
         await repository.updateDive(updatedDive);
 
-        // Verify that tank_pressure_profiles and gas_switches are still present
-        pressureProfiles = await (database.select(
-          database.tankPressureProfiles,
-        )..where((t) => t.diveId.equals(dive.id))).get();
+        // Verify that the pressure series and gas_switches are still present
+        pressureSeries = await tankSeries.getSeriesForDive(dive.id);
         expect(
-          pressureProfiles.length,
+          pressureSeries.length,
           equals(1),
           reason:
-              'Tank pressure profiles should not be deleted when updating dive',
+              'Tank pressure series should not be deleted when updating dive',
         );
 
         gasSwitches = await (database.select(
@@ -522,7 +515,7 @@ void main() {
         );
 
         // Verify the data is unchanged
-        expect(pressureProfiles[0].pressure, equals(200.0));
+        expect(pressureSeries[0].samples.single.pressure, equals(200.0));
         expect(gasSwitches[0].timestamp, equals(300));
       });
     });

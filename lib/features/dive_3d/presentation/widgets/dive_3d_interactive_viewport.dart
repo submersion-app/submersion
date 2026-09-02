@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_3d/domain/geometry/axis_frame.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_grid.dart';
-import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/axis_labels.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/camera_pose.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/preview_painter.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/scrub_cursor.dart';
@@ -22,6 +24,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// spatial scenes), or a vertical time-plane sweeping every ribbon at once
 /// (the comparison scene).
 enum ScrubCursorStyle { dot, timePlane }
+
+/// Which chrome the viewport composes around the scene painter.
+/// `tissue`: frame behind + wireframe/overlay painters (needs surfaceGrid).
+/// `axesOnly`: axes, labels, compass, contour labels in front (seascape).
+/// `framed`: frame grid behind + axes/labels/guides in front (dive path).
+enum SceneChromeMode { none, tissue, axesOnly, framed }
 
 /// Interactive 3D viewport rendered entirely with CustomPaint: the scene
 /// paints via [Dive3dScenePainter] (Canvas.drawVertices, GPU-rasterized by
@@ -36,19 +44,26 @@ class Dive3dInteractiveViewport extends StatefulWidget {
   final void Function(SceneMarker marker)? onMarkerTap;
   final ScrubCursorStyle scrubCursor;
 
-  /// Tissue-only chrome. All null for the dive/computers scenes, in which case
-  /// the viewport behaves exactly as before (no axes/grid/tooltip picking).
+  /// Chrome composition around the scene; see [SceneChromeMode]. Every mode
+  /// but `none` needs [axisFrame] and [chromeStyle]; `tissue` also needs
+  /// [surfaceGrid] and [hoverPick].
+  final SceneChromeMode chromeMode;
+
+  /// The tissue surface lattice, consumed by the tissue wireframe and
+  /// overlay painters only.
   final TissueSurfaceGrid? surfaceGrid;
   final AxisFrame? axisFrame;
   final AxisLabelSet? axisLabels;
   final TissueChromeStyle? chromeStyle;
-  final ValueNotifier<TissuePick?>? hoverPick;
 
-  /// True for the seascape views: axes + hover picking WITHOUT the tissue
-  /// wireframe/overlay painters (which would otherwise activate once all
-  /// four tissue-chrome inputs are supplied) and with the scrub cursor
-  /// kept on the scene's own foreground painter.
-  final bool axisChromeOnly;
+  /// Hover picking, in any chrome mode: [picker] finds what sits under the
+  /// cursor and [hoverPick] publishes it (screenPos in viewport-local,
+  /// pan-included coordinates) for tooltips and the chrome ring.
+  final HoverPicker? picker;
+  final ValueNotifier<ScenePick?>? hoverPick;
+
+  /// Shows the camera preset menu under the zoom controls (the path scene).
+  final bool showPosePresets;
 
   /// Chart mode: a locked plan-view camera (from above, north-up,
   /// east-right via the mirrored chart pose). One-finger drag pans instead
@@ -77,8 +92,10 @@ class Dive3dInteractiveViewport extends StatefulWidget {
     this.axisFrame,
     this.axisLabels,
     this.chromeStyle,
+    this.picker,
     this.hoverPick,
-    this.axisChromeOnly = false,
+    this.chromeMode = SceneChromeMode.none,
+    this.showPosePresets = false,
     this.chartMode = false,
     this.contourLabels,
     this.terrainImagery,
@@ -91,15 +108,19 @@ class Dive3dInteractiveViewport extends StatefulWidget {
 }
 
 class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
-  static const double _initialYaw = -32;
-  static const double _initialPitch = 22;
-  double _yaw = _initialYaw;
-  double _pitch = _initialPitch;
+  static const double _minZoom = 0.4;
+  static const double _maxZoom = 8.0;
+  CameraPose _pose = CameraPose.defaultView;
+  double _yaw = CameraPose.defaultView.yawDegrees;
+  double _pitch = CameraPose.defaultView.pitchDegrees;
   double _zoom = 1.0;
   // Screen-space translation from panning (two-finger trackpad drag). Applied
   // as a Transform on the painted output; picks subtract it from the cursor.
   Offset _pan = Offset.zero;
   double _panZoomBaseZoom = 1.0;
+  // Zoom at the moment the active touch pinch began; ScaleUpdateDetails.scale
+  // is cumulative against the gesture start, not the previous tick.
+  double _scaleGestureBaseZoom = 1.0;
   // Last laid-out size, captured in build so camera-change handlers (which lack
   // the LayoutBuilder constraints) can re-project the hover pick.
   Size? _lastLayoutSize;
@@ -111,11 +132,19 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       _yaw = chartYawDegrees;
       _pitch = chartPitchDegrees;
     } else {
-      _yaw = _initialYaw;
-      _pitch = _initialPitch;
+      _yaw = _pose.yawDegrees;
+      _pitch = _pose.pitchDegrees;
     }
     _zoom = 1.0;
     _pan = Offset.zero;
+  }
+
+  void _selectPose(CameraPose pose) {
+    setState(() {
+      _pose = pose;
+      _applyPose();
+    });
+    _refreshHoverAfterCameraChange();
   }
 
   @override
@@ -133,24 +162,68 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     }
   }
 
-  void _onPanUpdate(DragUpdateDetails details) {
+  void _onScaleStart(ScaleStartDetails _) {
+    _scaleGestureBaseZoom = _zoom;
+  }
+
+  /// One recognizer serves both touch gestures, because Flutter cannot run a
+  /// pan and a scale recognizer in the same arena without one starving the
+  /// other. Pointer count decides the meaning: one finger orbits (or pans the
+  /// locked plan view in chart mode), two fingers pinch-zoom and pan. That is
+  /// the mapping issue #1188 asked for, and it is the only zoom a touchscreen
+  /// can reach -- pan/zoom pointer events are trackpad-only.
+  void _onScaleUpdate(Size size, ScaleUpdateDetails details) {
+    final delta = details.focalPointDelta;
+    if (details.pointerCount < 2) {
+      setState(() {
+        if (widget.chartMode) {
+          _pan += delta;
+        } else {
+          // Drag follows the object: dragging right spins it clockwise (yaw
+          // up), dragging down tilts it toward the viewer.
+          _yaw += delta.dx * 0.4;
+          _pitch = (_pitch + delta.dy * 0.4).clamp(-80.0, 80.0);
+        }
+      });
+      _refreshHoverAfterCameraChange();
+      return;
+    }
     setState(() {
-      if (widget.chartMode) {
-        // Chart mode is a locked plan view: one-finger drag pans the map.
-        _pan += details.delta;
-      } else {
-        // Drag follows the object: dragging right spins it clockwise (yaw
-        // up), dragging down tilts it toward the viewer.
-        _yaw += details.delta.dx * 0.4;
-        _pitch = (_pitch + details.delta.dy * 0.4).clamp(-80.0, 80.0);
-      }
+      _setZoomAnchored(
+        size,
+        (_scaleGestureBaseZoom * details.scale).clamp(_minZoom, _maxZoom),
+        focalPoint: details.localFocalPoint,
+        focalDelta: delta,
+      );
     });
     _refreshHoverAfterCameraChange();
   }
 
+  /// Scales the camera to [next] while keeping the scene point that sat under
+  /// the pinch's PREVIOUS focal point ([focalPoint] - [focalDelta]) welded to
+  /// the fingers, then carries the focal point's own travel as a pan.
+  ///
+  /// [SceneProjector] scales the scene about the canvas center, and the pan
+  /// Transform is applied on top, so a projected point lands at
+  /// `center + zoom * v + pan`. Solving that for the pan that pins one point
+  /// across a zoom change gives the single expression below; with
+  /// `next == _zoom` it degenerates to a plain `_pan += focalDelta`.
+  void _setZoomAnchored(
+    Size size,
+    double next, {
+    required Offset focalPoint,
+    Offset focalDelta = Offset.zero,
+  }) {
+    final ratio = next / _zoom;
+    final center = Offset(size.width / 2, size.height / 2);
+    _pan =
+        focalPoint - center - (focalPoint - focalDelta - center - _pan) * ratio;
+    _zoom = next;
+  }
+
   void _zoomBy(double factor) {
     setState(() {
-      _zoom = (_zoom * factor).clamp(0.4, 8.0);
+      _zoom = (_zoom * factor).clamp(_minZoom, _maxZoom);
     });
     _refreshHoverAfterCameraChange();
   }
@@ -164,126 +237,75 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
   void _onPanZoomUpdate(PointerPanZoomUpdateEvent event) {
     setState(() {
       _pan += event.panDelta;
-      _zoom = (_panZoomBaseZoom * event.scale).clamp(0.4, 8.0);
+      _zoom = (_panZoomBaseZoom * event.scale).clamp(_minZoom, _maxZoom);
     });
     _refreshHoverAfterCameraChange();
   }
 
   void _resetCamera() {
-    setState(_applyPose);
+    setState(() {
+      _pose = CameraPose.defaultView;
+      _applyPose();
+    });
     _refreshHoverAfterCameraChange();
   }
 
-  // The marker ring re-projects the hovered vertex from its (col, comp) every
-  // paint, so it tracks the camera. The tooltip overlay lives outside the paint
-  // transform and is placed from the pick's cached screenPos, so a camera change
-  // with a stationary cursor (wheel/button zoom, trackpad pan-pinch, rotate)
-  // would strand it. Re-derive screenPos for the current camera so both stay
-  // locked to the vertex.
+  // The ring re-projects the pick's world anchor every paint, but the
+  // tooltip overlay lives outside the paint transform and is placed from the
+  // published screenPos, so a camera change with a stationary cursor would
+  // strand it. Re-derive screenPos so both stay locked to the point.
   void _refreshHoverAfterCameraChange() {
     final size = _lastLayoutSize;
     final notifier = widget.hoverPick;
-    final grid = widget.surfaceGrid;
     final pick = notifier?.value;
-    if (size == null ||
-        notifier == null ||
-        grid == null ||
-        grid.isEmpty ||
-        pick == null) {
-      return;
-    }
-    if (pick.col >= grid.columns || pick.comp >= grid.compartments) {
-      notifier.value = null; // pick went stale against a smaller grid
-      return;
-    }
-    // Only the picked vertex needs re-projecting -- reprojecting the whole grid
-    // (220x16) every drag/zoom tick is wasted work here; the marker ring and the
-    // next real pick reproject the full grid independently when they need it.
-    final (x, y, z) = grid.positionAt(pick.col, pick.comp);
-    notifier.value = TissuePick(
-      col: pick.col,
-      comp: pick.comp,
-      screenPos: _projectorFor(size).project(x, y, z) + _pan,
+    if (size == null || notifier == null || pick == null) return;
+    notifier.value = pick.withScreenPos(
+      _projectorFor(size).project(pick.x, pick.y, pick.z) + _pan,
     );
   }
 
-  SceneProjector _projectorFor(Size size) => SceneProjector(
-    size: size,
-    bounds: widget.scene.bounds,
-    yawDegrees: _yaw,
-    pitchDegrees: _pitch,
-    zoom: _zoom,
-  );
+  // One projector per (camera, size, bounds): pickers cache projections by
+  // projector identity, so a fresh instance per call would defeat them.
+  SceneProjector? _projector;
+  double? _projYaw, _projPitch, _projZoom;
+  Size? _projSize;
+  SceneBounds? _projBounds;
 
-  // Cached screen projections of the surface grid, recomputed when the camera,
-  // size, OR the grid itself changes (a new surface reuses stale projections
-  // otherwise, so hover picks would point at the wrong vertex).
-  List<Offset>? _projected;
-  List<double>? _viewDepths;
-  double? _cacheYaw, _cachePitch, _cacheZoom;
-  Size? _cacheSize;
-  TissueSurfaceGrid? _cacheGrid;
-
-  void _ensureProjection(Size size) {
-    final grid = widget.surfaceGrid;
-    if (grid == null || grid.isEmpty) {
-      _projected = null;
-      _viewDepths = null;
-      _cacheGrid = null;
-      return;
+  SceneProjector _projectorFor(Size size) {
+    final cached = _projector;
+    if (cached != null &&
+        _projYaw == _yaw &&
+        _projPitch == _pitch &&
+        _projZoom == _zoom &&
+        _projSize == size &&
+        identical(_projBounds, widget.scene.bounds)) {
+      return cached;
     }
-    if (_projected != null &&
-        identical(_cacheGrid, grid) &&
-        _cacheYaw == _yaw &&
-        _cachePitch == _pitch &&
-        _cacheZoom == _zoom &&
-        _cacheSize == size) {
-      return;
-    }
-    final p = _projectorFor(size);
-    final n = grid.columns * grid.compartments;
-    final proj = List<Offset>.filled(n, Offset.zero);
-    final depths = List<double>.filled(n, 0);
-    for (var col = 0; col < grid.columns; col++) {
-      for (var comp = 0; comp < grid.compartments; comp++) {
-        final (x, y, z) = grid.positionAt(col, comp);
-        final i = col * grid.compartments + comp;
-        proj[i] = p.project(x, y, z);
-        depths[i] = p.viewDepth(x, y, z);
-      }
-    }
-    _projected = proj;
-    _viewDepths = depths;
-    _cacheGrid = grid;
-    _cacheYaw = _yaw;
-    _cachePitch = _pitch;
-    _cacheZoom = _zoom;
-    _cacheSize = size;
+    final p = SceneProjector(
+      size: size,
+      bounds: widget.scene.bounds,
+      yawDegrees: _yaw,
+      pitchDegrees: _pitch,
+      zoom: _zoom,
+    );
+    _projector = p;
+    _projYaw = _yaw;
+    _projPitch = _pitch;
+    _projZoom = _zoom;
+    _projSize = size;
+    _projBounds = widget.scene.bounds;
+    return p;
   }
 
   void _pickAt(Size size, Offset local) {
     final notifier = widget.hoverPick;
-    final grid = widget.surfaceGrid;
-    if (notifier == null || grid == null || grid.isEmpty) return;
-    _ensureProjection(size);
-    final pick = pickNearestTissueVertex(
-      // Projections are computed without pan; the painted output is translated
-      // by _pan, so map the cursor back into untranslated projection space.
-      cursor: local - _pan,
-      projected: _projected!,
-      viewDepths: _viewDepths!,
-      columns: grid.columns,
-      compartments: grid.compartments,
-    );
-    // Republish screenPos in viewport-local (painted) space so the tooltip
-    // overlay -- which lives OUTSIDE the pan Transform -- sits on the vertex.
-    notifier.value = pick == null
-        ? null
-        : TissuePick(
-            col: pick.col,
-            comp: pick.comp,
-            screenPos: pick.screenPos + _pan,
-          );
+    final picker = widget.picker;
+    if (notifier == null || picker == null) return;
+    // Projections are computed without pan; the painted output is translated
+    // by _pan, so map the cursor back into untranslated projection space and
+    // republish screenPos in viewport-local (painted) space for the tooltip.
+    final pick = picker.pick(_projectorFor(size), local - _pan);
+    notifier.value = pick?.withScreenPos(pick.screenPos + _pan);
   }
 
   void _handleTapUp(Size size, TapUpDetails details) {
@@ -318,21 +340,26 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       builder: (context, constraints) {
         final size = constraints.biggest;
         _lastLayoutSize = size;
-        final hasChrome =
-            !widget.axisChromeOnly &&
-            widget.surfaceGrid != null &&
-            widget.axisFrame != null &&
-            widget.chromeStyle != null &&
-            widget.hoverPick != null;
-        // Axis-only chrome (seascape views): frame + labels + optional
-        // hover ring without the tissue painters, scrub cursor untouched.
-        final hasAxisChrome =
-            !hasChrome &&
-            widget.axisFrame != null &&
-            widget.chromeStyle != null;
-        // Hover picking works in both chrome modes.
-        final hasHover = widget.surfaceGrid != null && widget.hoverPick != null;
+        // Without a frame there is nothing to draw: a seascape whose axes are
+        // not ready yet (or a synthesized fallback) degrades to no chrome.
+        final mode = widget.axisFrame == null || widget.chromeStyle == null
+            ? SceneChromeMode.none
+            : widget.chromeMode;
+        final hasHover = widget.picker != null && widget.hoverPick != null;
+        assert(
+          mode != SceneChromeMode.tissue ||
+              (widget.surfaceGrid != null && widget.hoverPick != null),
+          'tissue chrome needs surfaceGrid and hoverPick',
+        );
 
+        final cursorPainter = _ScrubCursorPainter(
+          scene: widget.scene,
+          yawDegrees: _yaw,
+          pitchDegrees: _pitch,
+          zoom: _zoom,
+          scrubPosition: widget.scrubPosition,
+          style: widget.scrubCursor,
+        );
         final scenePaint = CustomPaint(
           painter: Dive3dScenePainter(
             scene: widget.scene,
@@ -343,7 +370,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
             terrainImagery: widget.terrainImagery,
             imageryWhiteTexel: widget.imageryWhiteTexel,
           ),
-          foregroundPainter: hasChrome
+          foregroundPainter: mode == SceneChromeMode.tissue
               ? TissueChromePainter(
                   scene: widget.scene,
                   grid: widget.surfaceGrid!,
@@ -355,70 +382,81 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                   labels: widget.axisLabels,
                   textDirection: Directionality.of(context),
                 )
-              : _ScrubCursorPainter(
-                  scene: widget.scene,
-                  yawDegrees: _yaw,
-                  pitchDegrees: _pitch,
-                  zoom: _zoom,
-                  scrubPosition: widget.scrubPosition,
-                  style: widget.scrubCursor,
-                ),
+              : cursorPainter,
           child: const SizedBox.expand(),
         );
 
-        // Frame grid draws behind the surface (paint order gives occlusion);
-        // the moving marker + cursor draw on top via the overlay foreground.
-        final painted = hasChrome
-            ? CustomPaint(
-                painter: TissueFramePainter(
-                  bounds: widget.scene.bounds,
-                  frame: widget.axisFrame!,
-                  style: widget.chromeStyle!,
-                  yawDegrees: _yaw,
-                  pitchDegrees: _pitch,
-                  zoom: _zoom,
-                ),
-                foregroundPainter: TissueOverlayPainter(
-                  scene: widget.scene,
-                  grid: widget.surfaceGrid!,
-                  style: widget.chromeStyle!,
-                  yawDegrees: _yaw,
-                  pitchDegrees: _pitch,
-                  zoom: _zoom,
-                  scrubPosition: widget.scrubPosition,
-                  hoverPick: widget.hoverPick!,
-                ),
-                child: scenePaint,
-              )
-            : hasAxisChrome
-            ? CustomPaint(
-                foregroundPainter: AxisChromePainter(
-                  bounds: widget.scene.bounds,
-                  frame: widget.axisFrame!,
-                  labels: widget.axisLabels,
-                  style: widget.chromeStyle!,
-                  yawDegrees: _yaw,
-                  pitchDegrees: _pitch,
-                  zoom: _zoom,
-                  textDirection: Directionality.of(context),
-                  surfaceGrid: hasHover ? widget.surfaceGrid : null,
-                  hoverPick: hasHover ? widget.hoverPick : null,
-                  contourLabels: widget.contourLabels,
-                  panOffset: _pan,
-                ),
-                child: scenePaint,
-              )
-            : scenePaint;
+        TissueFramePainter framePainter() => TissueFramePainter(
+          bounds: widget.scene.bounds,
+          frame: widget.axisFrame!,
+          style: widget.chromeStyle!,
+          yawDegrees: _yaw,
+          pitchDegrees: _pitch,
+          zoom: _zoom,
+        );
+        AxisChromePainter axisPainter({
+          required bool guides,
+          required bool compass,
+        }) => AxisChromePainter(
+          bounds: widget.scene.bounds,
+          frame: widget.axisFrame!,
+          labels: widget.axisLabels,
+          style: widget.chromeStyle!,
+          yawDegrees: _yaw,
+          pitchDegrees: _pitch,
+          zoom: _zoom,
+          textDirection: Directionality.of(context),
+          hoverPick: hasHover ? widget.hoverPick : null,
+          hoverGuides: guides,
+          showCompass: compass,
+          markerLabels:
+              guides && widget.visibleOverlays.contains(SceneOverlay.markers)
+              ? widget.scene.markers
+              : null,
+          contourLabels: widget.contourLabels,
+          panOffset: _pan,
+        );
+
+        final painted = switch (mode) {
+          SceneChromeMode.none => scenePaint,
+          // Frame grid draws behind the surface (paint order gives
+          // occlusion); the hover marker + cursor draw on top.
+          SceneChromeMode.tissue => CustomPaint(
+            painter: framePainter(),
+            foregroundPainter: TissueOverlayPainter(
+              scene: widget.scene,
+              grid: widget.surfaceGrid!,
+              style: widget.chromeStyle!,
+              yawDegrees: _yaw,
+              pitchDegrees: _pitch,
+              zoom: _zoom,
+              scrubPosition: widget.scrubPosition,
+              hoverPick: widget.hoverPick!,
+            ),
+            child: scenePaint,
+          ),
+          SceneChromeMode.axesOnly => CustomPaint(
+            foregroundPainter: axisPainter(guides: false, compass: true),
+            child: scenePaint,
+          ),
+          SceneChromeMode.framed => CustomPaint(
+            painter: framePainter(),
+            foregroundPainter: axisPainter(guides: true, compass: false),
+            child: scenePaint,
+          ),
+        };
 
         final gestures = RawGestureDetector(
           behavior: HitTestBehavior.opaque,
           gestures: <Type, GestureRecognizerFactory>{
-            // Rotate: one-finger drag from mouse/touch/stylus. Trackpad
-            // two-finger pans are handled as pan by the Listener below, so we
-            // exclude trackpad here to avoid rotating while panning.
-            PanGestureRecognizer:
-                GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
-                  () => PanGestureRecognizer(
+            // Rotate (one finger) and pinch-zoom + pan (two fingers) from
+            // mouse/touch/stylus. Trackpad pan-zoom pointers stay with the
+            // Listener below.
+            _TouchScaleGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<
+                  _TouchScaleGestureRecognizer
+                >(
+                  () => _TouchScaleGestureRecognizer(
                     supportedDevices: const {
                       PointerDeviceKind.touch,
                       PointerDeviceKind.mouse,
@@ -427,7 +465,9 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                       PointerDeviceKind.unknown,
                     },
                   ),
-                  (r) => r.onUpdate = _onPanUpdate,
+                  (r) => r
+                    ..onStart = _onScaleStart
+                    ..onUpdate = (details) => _onScaleUpdate(size, details),
                 ),
             TapGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
@@ -487,7 +527,9 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
   }
 
   Widget _zoomControls(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Column(
+      key: const ValueKey('dive3dZoomControls'),
       mainAxisSize: MainAxisSize.min,
       children: [
         _zoomButton(
@@ -510,6 +552,36 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
           _resetCamera,
           tooltip: context.l10n.dive3d_resetView,
         ),
+        if (widget.showPosePresets) ...[
+          const SizedBox(height: 6),
+          Material(
+            color: scheme.surface.withValues(alpha: 0.7),
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: PopupMenuButton<CameraPose>(
+              key: const ValueKey('dive3dPoseMenu'),
+              position: PopupMenuPosition.over,
+              icon: const Icon(Icons.threed_rotation, size: 20),
+              tooltip: context.l10n.dive3d_pose_menu,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+              onSelected: _selectPose,
+              itemBuilder: (context) => [
+                for (final pose in CameraPose.values)
+                  PopupMenuItem(
+                    value: pose,
+                    child: Text(switch (pose) {
+                      CameraPose.defaultView =>
+                        context.l10n.dive3d_pose_default,
+                      CameraPose.front => context.l10n.dive3d_pose_front,
+                      CameraPose.side => context.l10n.dive3d_pose_side,
+                      CameraPose.top => context.l10n.dive3d_pose_top,
+                    }),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -535,6 +607,21 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       ),
     );
   }
+}
+
+/// A scale recognizer that ignores trackpad pan/zoom pointers.
+///
+/// `supportedDevices` filters pointer-DOWN events only:
+/// [GestureRecognizer.isPointerPanZoomAllowed] returns true unconditionally,
+/// so a trackpad gesture reaches every recognizer no matter what devices it
+/// declares. The viewport handles trackpads on a [Listener], and without this
+/// refusal both paths would fire and every trackpad pan would move the camera
+/// twice.
+class _TouchScaleGestureRecognizer extends ScaleGestureRecognizer {
+  _TouchScaleGestureRecognizer({super.supportedDevices});
+
+  @override
+  bool isPointerPanZoomAllowed(PointerPanZoomStartEvent event) => false;
 }
 
 /// Foreground layer: only the scrub cursor. Repaints on every scrub tick

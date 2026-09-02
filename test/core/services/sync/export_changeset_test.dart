@@ -3,6 +3,8 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 
 import '../../../helpers/test_database.dart';
 import '../../../helpers/mock_providers.dart';
@@ -18,28 +20,33 @@ void main() {
   });
 
   test(
-    'includes only dives with hlc > watermark, plus their profiles',
+    'includes only dives with hlc > watermark, plus their profile series',
     () async {
       // Created through the repo so each dive gets a stamped, increasing hlc.
+      // Profile points are series-first now (plan 2c): dive_profiles is
+      // inbound-only, so a dive's profile is carried as a diveProfileSeries
+      // row, which stamps its own hlc after the dive's.
       await DiveRepository().createDive(
-        createTestDiveWithBottomTime(id: 'old', diveNumber: 1),
+        createTestDiveWithBottomTime(id: 'old', diveNumber: 1).copyWith(
+          profile: const [domain.DiveProfilePoint(timestamp: 0, depth: 1.0)],
+        ),
       );
       await DiveRepository().createDive(
-        createTestDiveWithBottomTime(id: 'new', diveNumber: 2),
+        createTestDiveWithBottomTime(id: 'new', diveNumber: 2).copyWith(
+          profile: const [domain.DiveProfilePoint(timestamp: 0, depth: 1.0)],
+        ),
       );
       final db = DatabaseService.instance.database;
-      await db.customStatement(
-        "INSERT INTO dive_profiles (id, dive_id, timestamp, depth) "
-        "VALUES ('p_old', 'old', 0, 1.0)",
-      );
-      await db.customStatement(
-        "INSERT INTO dive_profiles (id, dive_id, timestamp, depth) "
-        "VALUES ('p_new', 'new', 0, 1.0)",
-      );
 
-      final oldHlc =
+      // The watermark is 'old's series hlc (stamped after 'old's own dive
+      // hlc, in the same createDive call), not the dive's own hlc: unlike
+      // legacy diveProfiles (a clockless child gathered by its parent's hlc),
+      // diveProfileSeries carries its own hlc and is filtered by it directly.
+      final oldWatermark =
           (await db
-                  .customSelect("SELECT hlc FROM dives WHERE id = 'old'")
+                  .customSelect(
+                    "SELECT hlc FROM dive_profile_series WHERE dive_id = 'old'",
+                  )
                   .getSingle())
               .read<String>('hlc');
 
@@ -47,7 +54,7 @@ void main() {
       final deviceId = await SyncRepository().getDeviceId();
       final changeset = await serializer.exportChangeset(
         deviceId: deviceId,
-        hlcWatermark: oldHlc,
+        hlcWatermark: oldWatermark,
         deletions: const [],
       );
 
@@ -59,17 +66,17 @@ void main() {
         reason: 'dive at the watermark must not be re-sent',
       );
 
-      final profileDiveIds = changeset.data.diveProfiles
+      final seriesDiveIds = changeset.data.diveProfileSeries
           .map((p) => p['diveId'])
           .toSet();
-      expect(profileDiveIds.contains('new'), isTrue);
+      expect(seriesDiveIds.contains('new'), isTrue);
       expect(
-        profileDiveIds.contains('old'),
+        seriesDiveIds.contains('old'),
         isFalse,
-        reason: "unchanged dive's profile must not be re-sent",
+        reason: "unchanged dive's profile series must not be re-sent",
       );
 
-      expect(changeset.sinceHlc, oldHlc);
+      expect(changeset.sinceHlc, oldWatermark);
       expect(changeset.toHlc, isNotNull);
     },
   );

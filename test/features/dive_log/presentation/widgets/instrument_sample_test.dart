@@ -69,8 +69,8 @@ ProfileAnalysis _techAnalysis() {
 
 Map<String, List<TankPressurePoint>> _techTankPressures() => {
   't1': const [
-    TankPressurePoint(id: 'p1', tankId: 't1', timestamp: 0, pressure: 200),
-    TankPressurePoint(id: 'p2', tankId: 't1', timestamp: 600, pressure: 50),
+    TankPressurePoint(tankId: 't1', timestamp: 0, pressure: 200),
+    TankPressurePoint(tankId: 't1', timestamp: 600, pressure: 50),
   ],
 };
 

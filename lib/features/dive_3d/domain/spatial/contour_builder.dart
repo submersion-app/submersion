@@ -8,7 +8,7 @@ import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/nice_step.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/terrain_ceiling.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';

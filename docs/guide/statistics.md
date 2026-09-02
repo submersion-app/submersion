@@ -109,7 +109,7 @@ Where you've been diving:
   <em>World map with dive distribution</em>
 </div>
 
-### Marine Life
+### Species
 
 Species sighting statistics:
 

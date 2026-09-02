@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/match_sites_map.dart';
+import 'package:submersion/features/media/presentation/widgets/quick_site_from_gps_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Staged review: compute proposals, choose a site per dive (list or map),
@@ -35,6 +36,7 @@ class SiteMatchReviewPage extends ConsumerWidget {
             l10n.siteMatchReview_appliedSnack(
               result.divesLinked,
               result.sitesCreated,
+              result.sitesLocated,
             ),
           ),
         ),
@@ -65,6 +67,28 @@ class SiteMatchReviewPage extends ConsumerWidget {
         ),
       );
       if (discard == true && context.mounted) Navigator.of(context).pop();
+    }
+
+    Future<void> createHere(MatchProposal p) async {
+      final point = p.point;
+      if (point == null) return;
+      final draft = await QuickSiteFromGpsDialog.show(
+        context,
+        latitude: point.latitude,
+        longitude: point.longitude,
+      );
+      if (draft == null || !context.mounted) return;
+      final created = await notifier.createSiteHere(p.dive.id, draft);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            created == null
+                ? l10n.siteMatchReview_applyError
+                : l10n.diveLog_edit_createdSite(created.name),
+          ),
+        ),
+      );
     }
 
     return Scaffold(
@@ -106,6 +130,7 @@ class SiteMatchReviewPage extends ConsumerWidget {
                       showInlineCards: !wide,
                       onFocus: () => notifier.focusDive(p.dive.id),
                       onSelect: (cid) => notifier.select(p.dive.id, cid),
+                      onCreateHere: () => createHere(p),
                     ),
                 ],
               );
@@ -176,7 +201,7 @@ class _MapPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = state.focusedProposal;
-    final point = p?.dive.entryLocation ?? p?.dive.exitLocation;
+    final point = p?.point;
     if (p == null || point == null) {
       return const SizedBox(height: 200);
     }
@@ -201,6 +226,7 @@ class _DiveRow extends StatelessWidget {
     required this.showInlineCards,
     required this.onFocus,
     required this.onSelect,
+    required this.onCreateHere,
   });
 
   final MatchProposal proposal;
@@ -209,6 +235,7 @@ class _DiveRow extends StatelessWidget {
   final bool showInlineCards;
   final VoidCallback onFocus;
   final void Function(String candidateId) onSelect;
+  final VoidCallback onCreateHere;
 
   @override
   Widget build(BuildContext context) {
@@ -228,9 +255,11 @@ class _DiveRow extends StatelessWidget {
     final subtitle = switch (proposal.status) {
       ProposalStatus.none => l10n.siteMatchReview_noNearbySite,
       _ =>
-        selected != null
-            ? '${selected.name} · ${l10n.siteMatchReview_awayMeters(selected.distanceMeters.round())}'
-            : l10n.siteMatchReview_tapToChoose,
+        selected == null
+            ? l10n.siteMatchReview_tapToChoose
+            : selected.isCurrentSite
+            ? '${selected.name} · ${l10n.siteMatchReview_currentSiteCard}'
+            : '${selected.name} · ${l10n.siteMatchReview_awayMeters(selected.distanceMeters.round())}',
     };
 
     return Column(
@@ -250,6 +279,36 @@ class _DiveRow extends StatelessWidget {
           subtitle: Text(subtitle),
           onTap: onFocus,
         ),
+        if (focused)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+            child: OverflowBar(
+              alignment: MainAxisAlignment.spaceBetween,
+              spacing: 8,
+              overflowSpacing: 4,
+              children: [
+                Chip(
+                  avatar: Icon(
+                    proposal.pointSource == PointSource.photo
+                        ? Icons.photo_camera_outlined
+                        : Icons.watch_outlined,
+                    size: 16,
+                  ),
+                  label: Text(
+                    proposal.pointSource == PointSource.photo
+                        ? l10n.siteMatchReview_sourcePhoto
+                        : l10n.siteMatchReview_sourceDiveComputer,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
+                TextButton.icon(
+                  onPressed: onCreateHere,
+                  icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+                  label: Text(l10n.siteMatchReview_createHereButton),
+                ),
+              ],
+            ),
+          ),
         if (focused && showInlineCards && proposal.candidates.isNotEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -287,7 +346,8 @@ class _CandidateCard extends StatelessWidget {
     final c = candidate;
 
     final meta = <String>[
-      l10n.siteMatchReview_awayMeters(c.distanceMeters.round()),
+      if (!c.isCurrentSite)
+        l10n.siteMatchReview_awayMeters(c.distanceMeters.round()),
       if (c.minDepth != null && c.maxDepth != null)
         l10n.siteMatchReview_depthRange(
           c.minDepth!.round(),
@@ -315,11 +375,16 @@ class _CandidateCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                   ),
-                  Text(
-                    c.isExisting
-                        ? l10n.siteMatchReview_sourceExisting
-                        : l10n.siteMatchReview_sourceBundled,
-                    style: TextStyle(color: scheme.onSurfaceVariant),
+                  Flexible(
+                    child: Text(
+                      c.isCurrentSite
+                          ? l10n.siteMatchReview_currentSiteCard
+                          : c.isExisting
+                          ? l10n.siteMatchReview_sourceExisting
+                          : l10n.siteMatchReview_sourceBundled,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(color: scheme.onSurfaceVariant),
+                    ),
                   ),
                 ],
               ),

@@ -73,6 +73,23 @@ void main() {
     expect(find.textContaining('g/L'), findsWidgets);
   });
 
+  testWidgets(
+    'PlanResultsSheet disables its own scrolling and keeps the shared '
+    'controller when shrinkWrap is set',
+    (tester) async {
+      final controller = ScrollController();
+      await tester.pumpWidget(
+        _harness(PlanResultsSheet(controller: controller, shrinkWrap: true)),
+      );
+      await _seedDecoPlan(tester, find.byType(PlanResultsSheet));
+
+      final listView = tester.widget<ListView>(find.byType(ListView));
+      expect(listView.shrinkWrap, isTrue);
+      expect(listView.physics, isA<NeverScrollableScrollPhysics>());
+      expect(listView.controller, same(controller));
+    },
+  );
+
   testWidgets('ContingencyPreviewChip renders nothing without a selection', (
     tester,
   ) async {

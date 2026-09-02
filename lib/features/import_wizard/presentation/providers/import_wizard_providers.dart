@@ -21,6 +21,9 @@ class PendingLocation {
   final int index;
 }
 
+/// Fields the dive review list's non-duplicate rows can be sorted by.
+enum DiveReviewSortField { date, depth, duration }
+
 /// Match score threshold at or above which a cross-computer duplicate is
 /// auto-suggested for consolidation instead of being left for the user to
 /// decide.
@@ -43,6 +46,8 @@ class ImportWizardState {
     this.duplicateActions = const {},
     this.pendingDuplicateReview = const {},
     this.retainSourceDiveNumbers = false,
+    this.diveSortField = DiveReviewSortField.date,
+    this.diveSortAscending = false,
     this.importTags = const [],
     this.importPhase,
     this.importCurrent = 0,
@@ -77,6 +82,13 @@ class ImportWizardState {
   /// When true, imported dives keep their original dive numbers from the
   /// source file instead of being auto-assigned sequential numbers.
   final bool retainSourceDiveNumbers;
+
+  /// Which field the dive tab's non-duplicate rows are sorted by.
+  final DiveReviewSortField diveSortField;
+
+  /// Sort direction for [diveSortField]. Defaults to descending so the
+  /// newest dive (or deepest/longest, depending on field) appears first.
+  final bool diveSortAscending;
 
   /// Tags to apply to all imported dives.
   final List<TagSelection> importTags;
@@ -113,6 +125,8 @@ class ImportWizardState {
     Map<ImportEntityType, Map<int, DuplicateAction>>? duplicateActions,
     Map<ImportEntityType, Set<int>>? pendingDuplicateReview,
     bool? retainSourceDiveNumbers,
+    DiveReviewSortField? diveSortField,
+    bool? diveSortAscending,
     List<TagSelection>? importTags,
     ImportPhase? importPhase,
     bool clearImportPhase = false,
@@ -134,6 +148,8 @@ class ImportWizardState {
           pendingDuplicateReview ?? this.pendingDuplicateReview,
       retainSourceDiveNumbers:
           retainSourceDiveNumbers ?? this.retainSourceDiveNumbers,
+      diveSortField: diveSortField ?? this.diveSortField,
+      diveSortAscending: diveSortAscending ?? this.diveSortAscending,
       importTags: importTags ?? this.importTags,
       importPhase: clearImportPhase ? null : (importPhase ?? this.importPhase),
       importCurrent: importCurrent ?? this.importCurrent,
@@ -447,6 +463,19 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// the source file.
   void setRetainSourceDiveNumbers(bool value) {
     state = state.copyWith(retainSourceDiveNumbers: value);
+  }
+
+  /// Change the dive review list's sort field.
+  ///
+  /// Tapping the field that is already active flips the sort direction
+  /// (ascending/descending); picking a different field switches to it with
+  /// the default descending direction (newest/deepest/longest first).
+  void setDiveSortField(DiveReviewSortField field) {
+    if (state.diveSortField == field) {
+      state = state.copyWith(diveSortAscending: !state.diveSortAscending);
+    } else {
+      state = state.copyWith(diveSortField: field, diveSortAscending: false);
+    }
   }
 
   // -------------------------------------------------------------------------

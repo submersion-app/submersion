@@ -8,3 +8,6 @@ overpy>=0.6
 requests>=2.31.0
 tenacity>=8.2.0
 tqdm>=4.66.0
+
+# chamber_harvester.py - recompression chamber directory
+pypdf>=4.0.0

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
@@ -9,14 +10,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
+import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_logger_page.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_thumbnail.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 
 import '../../helpers/test_database.dart';
 
@@ -115,6 +119,12 @@ void main() {
     GpsTrackRecorder? recorder,
     GpsTrackMatchService? matchService,
     Stream<GpsRecorderState>? recorderState,
+    // The page branches on MediaQuery width (>=1100 is the list + map split).
+    // Left null the test binding's default surface is a phone-class width.
+    Size? size,
+    // Overview-map geometry per track id; without it a track resolves to an
+    // empty polyline and the map draws nothing.
+    Map<String, List<GpsTrackPoint>> geometry = const {},
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -150,15 +160,36 @@ void main() {
           gpsTrackMatchServiceProvider.overrideWithValue(matchService),
         if (recorderState != null)
           gpsRecorderStateProvider.overrideWith((ref) => recorderState),
+        for (final entry in geometry.entries)
+          gpsTrackGeometryProvider((
+            entry.key,
+            TrackLod.thumbnail,
+          )).overrideWith((ref) async => entry.value),
       ],
       child: MaterialApp.router(
         routerConfig: router,
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        // Matching gps_track_map_page_test: the breakpoint reads MediaQuery,
+        // and setSurfaceSize alone does not update what the page sees.
+        builder: size == null
+            ? null
+            : (context, child) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(size: size),
+                child: child!,
+              ),
       ),
     );
   }
+
+  /// Two fixes a few hundred metres apart: enough for the overview map to
+  /// frame a camera and draw a polyline.
+  const twoFixes = [
+    GpsTrackPoint(timestamp: 1700000000, latitude: 1, longitude: 2),
+    GpsTrackPoint(timestamp: 1700000600, latitude: 1.003, longitude: 2.003),
+  ];
+  const desktop = Size(1400, 900);
 
   Future<String> seedCompletedTrack() async {
     final id = await repo.startTrack(
@@ -407,5 +438,150 @@ void main() {
     );
     // The recovered track now renders as a completed tile.
     expect(find.byType(GpsTrackThumbnail), findsOneWidget);
+  });
+
+  group('summary strip', () {
+    testWidgets('reports track count, recorded time and dives covered', (
+      tester,
+    ) async {
+      await seedCompletedTrack();
+      await tester.pumpWidget(await app());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tracks'), findsOneWidget);
+      expect(find.text('Recorded time'), findsOneWidget);
+      expect(find.text('Dives covered'), findsOneWidget);
+      // The seeded track spans 1h 30m and no dive falls inside it.
+      expect(find.text('1h 30m'), findsOneWidget);
+    });
+
+    testWidgets('the empty state explains what the logger is for', (
+      tester,
+    ) async {
+      await tester.pumpWidget(await app());
+      await tester.pumpAndSettle();
+
+      expect(find.text('No GPS tracks recorded yet'), findsOneWidget);
+      expect(
+        find.text(
+          'Record your position during a dive day and match imported dives '
+          'to GPS locations automatically.',
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('desktop split layout', () {
+    testWidgets('renders the track list beside the overview map', (
+      tester,
+    ) async {
+      final id = await seedCompletedTrack();
+      await tester.pumpWidget(
+        await app(size: desktop, geometry: {id: twoFixes}),
+      );
+      await tester.pumpAndSettle();
+
+      // Only the overview map emits a PolylineLayer<String>; thumbnails use
+      // the untyped layer.
+      expect(find.byType(PolylineLayer<String>), findsOneWidget);
+      expect(find.text('Match dives to GPS logs'), findsOneWidget);
+      expect(find.byType(GpsTrackThumbnail), findsOneWidget);
+      // The map is already on screen, so the "Show map" action is redundant.
+      expect(find.byTooltip('Show map'), findsNothing);
+    });
+
+    testWidgets('a phone-width surface keeps the single column', (
+      tester,
+    ) async {
+      final id = await seedCompletedTrack();
+      await tester.pumpWidget(
+        await app(size: const Size(390, 844), geometry: {id: twoFixes}),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PolylineLayer<String>), findsNothing);
+      expect(find.byTooltip('Show map'), findsOneWidget);
+    });
+
+    testWidgets('tapping a row selects it and shows an info card', (
+      tester,
+    ) async {
+      final id = await seedCompletedTrack();
+      await tester.pumpWidget(
+        await app(size: desktop, geometry: {id: twoFixes}),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(MapInfoCard), findsNothing);
+
+      await tester.tap(find.text('1 point, 1h 30m'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MapInfoCard), findsOneWidget);
+      // Selected: drawn last, thicker.
+      final layer = tester.widget<PolylineLayer<String>>(
+        find.byType(PolylineLayer<String>),
+      );
+      expect(layer.polylines.last.hitValue, id);
+      expect(layer.polylines.last.strokeWidth, 4.0);
+      // The row did not navigate away.
+      expect(find.text('TRACK-DETAIL-PAGE'), findsNothing);
+    });
+
+    testWidgets('the info card details action opens the track', (tester) async {
+      final id = await seedCompletedTrack();
+      await tester.pumpWidget(
+        await app(size: desktop, geometry: {id: twoFixes}),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('1 point, 1h 30m'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('View details'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('TRACK-DETAIL-PAGE'), findsOneWidget);
+    });
+
+    testWidgets('the row delete action still confirms and removes', (
+      tester,
+    ) async {
+      final id = await seedCompletedTrack();
+      await tester.pumpWidget(
+        await app(size: desktop, geometry: {id: twoFixes}),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      expect(find.text('Delete track?'), findsOneWidget);
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No GPS tracks recorded yet'), findsOneWidget);
+      expect(find.byType(PolylineLayer<String>), findsNothing);
+    });
+
+    testWidgets('the empty state shows in the list pane and the map pane', (
+      tester,
+    ) async {
+      await tester.pumpWidget(await app(size: desktop));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No GPS tracks recorded yet'), findsOneWidget);
+      expect(find.text('No recorded tracks to show.'), findsOneWidget);
+      // The pane is not left blank: an empty basemap sits behind the notice.
+      expect(find.byType(FlutterMap), findsOneWidget);
+    });
+
+    // A landscape iPad is wider than the split breakpoint and can record.
+    testWidgets('a tablet wide enough for the split still shows record '
+        'controls', (tester) async {
+      await tester.pumpWidget(await app(size: desktop));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PolylineLayer<String>), findsNothing);
+      expect(find.text('Start logging'), findsOneWidget);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
   });
 }

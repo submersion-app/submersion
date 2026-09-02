@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
@@ -144,7 +145,7 @@ void main() {
     await tapUnit('setup-unit-volume-cuft');
     await tapUnit('setup-unit-weight-lbs');
     await tapUnit('setup-unit-altitude-ft');
-    await tapUnit('setup-unit-sac-pressuremin');
+    await tapUnit('setup-unit-gasconsumption-sac');
 
     final s = container
         .read(setupWizardProvider(SetupWizardMode.firstRun))
@@ -155,7 +156,7 @@ void main() {
     expect(s.volumeUnit, VolumeUnit.cubicFeet);
     expect(s.weightUnit, WeightUnit.pounds);
     expect(s.altitudeUnit, AltitudeUnit.feet);
-    expect(s.sacUnit, SacUnit.pressurePerMin);
+    expect(s.gasConsumptionDisplay, GasConsumptionDisplay.sac);
 
     // Date-format dropdown fires its onChanged too.
     final dropdown = find.byType(DropdownButton<DateFormatPreference>);

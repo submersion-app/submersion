@@ -43,6 +43,7 @@ abstract final class EquipmentAttrKeys {
   static const bcdStyle = 'bcd_style';
   static const liftCapacityKg = 'lift_capacity_kg';
   static const gloveType = 'glove_type';
+  static const weightStyle = 'weight_style';
 }
 
 class EquipmentAttributeDef {
@@ -247,7 +248,7 @@ abstract final class EquipmentAttributeCatalog {
     ],
     EquipmentType.weights: [
       EquipmentAttributeDef(
-        key: 'weight_style',
+        key: EquipmentAttrKeys.weightStyle,
         kind: AttributeKind.choice,
         choiceKeys: ['belt', 'integrated', 'trim', 'ankle'],
       ),

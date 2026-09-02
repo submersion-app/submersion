@@ -71,12 +71,17 @@ class _StubPlatform implements LocalMediaPlatform {
       throw UnimplementedError('${invocation.memberName} should not be called');
 }
 
-MediaItem _localFile({String? localPath, String? bookmarkRef}) => MediaItem(
+MediaItem _localFile({
+  String? localPath,
+  String? bookmarkRef,
+  String? originDeviceId,
+}) => MediaItem(
   id: 'x',
   mediaType: MediaType.photo,
   sourceType: MediaSourceType.localFile,
   localPath: localPath,
   bookmarkRef: bookmarkRef,
+  originDeviceId: originDeviceId,
   takenAt: DateTime.utc(2024, 1, 1),
   createdAt: DateTime.utc(2024, 1, 1),
   updatedAt: DateTime.utc(2024, 1, 1),
@@ -102,11 +107,34 @@ LocalFileResolver _bookmarkResolver({
   usesSecurityScopedBookmarks: () => true,
 );
 
+/// A temp directory that is genuinely on the boot volume.
+///
+/// [Directory.systemTemp] follows `$TMPDIR`, and this repo's own speed guide
+/// (docs/developer/local-test-performance.md) tells developers to point that
+/// at a RAM disk. On macOS a RAM disk must mount under `/Volumes/`, which is
+/// exactly the pattern `VolumeStatus.volumeRootOf` uses to identify a
+/// removable drive. Tests here assert that a temp path needs no mount probe,
+/// so on such a machine the premise inverts and they fail for a reason that
+/// has nothing to do with the code under test.
+///
+/// Anchoring to the home directory keeps the real heuristics in play while
+/// guaranteeing the boot volume. CI is unaffected either way.
+Future<Directory> _bootVolumeTemp(String prefix) async {
+  if (Platform.isMacOS) {
+    final home = Platform.environment['HOME'];
+    if (home != null && home.isNotEmpty && !home.startsWith('/Volumes/')) {
+      final base = Directory('$home/Library/Caches');
+      if (base.existsSync()) return base.createTemp(prefix);
+    }
+  }
+  return Directory.systemTemp.createTemp(prefix);
+}
+
 void main() {
   late Directory tempDir;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('local_resolver_test_');
+    tempDir = await _bootVolumeTemp('local_resolver_test_');
   });
 
   tearDown(() async {
@@ -554,8 +582,9 @@ void main() {
         bookmarkStorage: _NullBookmarkStorage(),
         platform: LocalMediaPlatform(),
         exifExtractor: ExifExtractor(),
-        // The REAL volume-root heuristics: a temp path lives on the system
-        // volume on every platform the app ships to.
+        // The REAL volume-root heuristics. tempDir is anchored to the boot
+        // volume by _bootVolumeTemp, because $TMPDIR may point at a RAM disk
+        // under /Volumes on a developer machine.
         volumeStatus: VolumeStatus(
           directoryExists: (path) async {
             probes.add(path);
@@ -762,6 +791,140 @@ void main() {
       await r
           .extractMetadata(_localFile(localPath: f.path))
           .timeout(const Duration(seconds: 5));
+    });
+  });
+
+  /// Only notFound and unauthenticated flip `MediaItem.isOrphaned`, so a slow
+  /// share must never reach either. The gate answers stillFetching once a read
+  /// outlives its budget, which is a statement about time, not about whether
+  /// the file exists.
+  group('verify does not orphan a row for being slow', () {
+    test('a still-fetching read reports transientError', () async {
+      final platform = _StubPlatform()
+        // Never completes: the shape of a read against a hung-but-mounted
+        // share, which is exactly what the budget exists to bound.
+        ..onReadBookmarkBytes = ((_) => Completer<Uint8List>().future);
+
+      final resolver = LocalFileResolver(
+        bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2, 3])),
+        platform: platform,
+        exifExtractor: ExifExtractor(),
+        usesSecurityScopedBookmarks: () => true,
+        gate: MediaFetchGate(
+          maxConcurrent: 1,
+          slotBudget: Duration.zero,
+          totalBudget: Duration.zero,
+        ),
+      );
+
+      final data = await resolver
+          .resolve(_localFile(bookmarkRef: 'ref'))
+          .timeout(const Duration(seconds: 5));
+      expect(
+        (data as UnavailableData).kind,
+        UnavailableKind.stillFetching,
+        reason: 'precondition: the budget produced the state under test',
+      );
+
+      final result = await resolver
+          .verify(_localFile(bookmarkRef: 'ref'))
+          .timeout(const Duration(seconds: 5));
+      expect(
+        result,
+        VerifyResult.transientError,
+        reason: 'notFound here would flag a reachable file missing, stickily',
+      );
+    });
+  });
+
+  group('origin device', () {
+    // Every localFile row records the device that imported it
+    // (MediaItem.originDeviceId). On any other device the path is a pointer
+    // into a filesystem this machine does not have, so a failed read there
+    // means "lives elsewhere", never "gone". The difference matters because
+    // notFound is the one verdict that orphans a row, and the orphan flag
+    // syncs back to the device that actually has the file.
+    LocalFileResolver phone() => LocalFileResolver(
+      bookmarkStorage: _NullBookmarkStorage(),
+      platform: LocalMediaPlatform(),
+      exifExtractor: ExifExtractor(),
+      localDeviceId: () async => 'phone',
+    );
+
+    MediaItem desktopRow() => _localFile(
+      localPath: '${tempDir.path}/on-the-desktop.jpg',
+      originDeviceId: 'desktop',
+    );
+
+    test('a missing file another device imported reads fromOtherDevice, '
+        'not notFound', () async {
+      final data = await phone().resolve(desktopRow());
+      expect(data, isA<UnavailableData>());
+      expect((data as UnavailableData).kind, UnavailableKind.fromOtherDevice);
+    });
+
+    test('verify reports fromOtherDevice for that row', () async {
+      expect(await phone().verify(desktopRow()), VerifyResult.fromOtherDevice);
+    });
+
+    test('a file another device imported still reads when the path exists '
+        'here (shared volume)', () async {
+      final f = File('${tempDir.path}/shared.jpg')..writeAsBytesSync([1]);
+      final data = await phone().resolve(
+        _localFile(localPath: f.path, originDeviceId: 'desktop'),
+      );
+      expect(data, isA<FileData>());
+    });
+
+    test('a missing file this device imported stays notFound', () async {
+      final data = await phone().resolve(
+        _localFile(
+          localPath: '${tempDir.path}/gone.jpg',
+          originDeviceId: 'phone',
+        ),
+      );
+      expect((data as UnavailableData).kind, UnavailableKind.notFound);
+    });
+
+    test('a row with no origin device stays notFound', () async {
+      // Rows from before origin tracking: nothing says they belong
+      // elsewhere, so the pre-existing verdict stands.
+      final data = await phone().resolve(
+        _localFile(localPath: '${tempDir.path}/legacy.jpg'),
+      );
+      expect((data as UnavailableData).kind, UnavailableKind.notFound);
+    });
+
+    test('an unknown local id leaves the verdict at notFound', () async {
+      // The id source failing (no database yet) must degrade to today's
+      // behaviour, never to a crash on a grid tile.
+      final r = LocalFileResolver(
+        bookmarkStorage: _NullBookmarkStorage(),
+        platform: LocalMediaPlatform(),
+        exifExtractor: ExifExtractor(),
+        localDeviceId: () async => throw StateError('no database'),
+      );
+      final data = await r.resolve(desktopRow());
+      expect((data as UnavailableData).kind, UnavailableKind.notFound);
+    });
+
+    test('canResolveOnThisDevice is false for another device\'s row once '
+        'the local id is known', () async {
+      final r = phone();
+      final foreign = desktopRow();
+      // Optimistic until a resolution has fetched the id (the check is
+      // synchronous, the id is not)...
+      expect(r.canResolveOnThisDevice(foreign), isTrue);
+      await r.resolve(foreign);
+      // ...and authoritative from then on.
+      expect(r.canResolveOnThisDevice(foreign), isFalse);
+      expect(
+        r.canResolveOnThisDevice(
+          _localFile(localPath: '/x.jpg', originDeviceId: 'phone'),
+        ),
+        isTrue,
+      );
+      expect(r.canResolveOnThisDevice(_localFile(localPath: '/x.jpg')), isTrue);
     });
   });
 }

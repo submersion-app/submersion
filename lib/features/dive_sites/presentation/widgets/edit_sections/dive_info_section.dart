@@ -162,6 +162,7 @@ class DiveInfoSection extends StatelessWidget {
               value: rating,
               onChanged: onRatingChanged,
               onClear: onRatingCleared,
+              clearTooltip: l10n.common_action_clearRating,
             ),
           ],
         ),

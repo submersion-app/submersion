@@ -1,3 +1,5 @@
+import 'package:submersion/features/gps_log/domain/track_point_codec.dart';
+
 /// One fix as it came out of a file, before any timezone reinterpretation.
 typedef ParsedFix = ({DateTime utc, double lat, double lon, double? accuracy});
 
@@ -62,6 +64,9 @@ enum TrackParseReason {
 
   /// Has positions, but a coordinate or timestamp in them is unusable.
   badData,
+
+  /// Readable, but with more positions than a track can store.
+  tooLarge,
 }
 
 /// A file could not be understood as a track.
@@ -79,6 +84,22 @@ class TrackParseException implements Exception {
 
   @override
   String toString() => 'TrackParseException: $message';
+}
+
+/// Rejects a file with more positions than a track can store.
+///
+/// The real cap lives on [encodeTrackPoints], which refuses to write a blob
+/// no read could load back. Checking it here turns that refusal into a
+/// message a diver can act on, raised before anything is written and while
+/// they still have the file in front of them.
+void validateFixCount(int count) {
+  if (count > kMaxTrackPointCount) {
+    throw TrackParseException(
+      'file has $count position(s), over the $kMaxTrackPointCount '
+      'a track can store',
+      reason: TrackParseReason.tooLarge,
+    );
+  }
 }
 
 /// Rejects coordinates outside the valid range.

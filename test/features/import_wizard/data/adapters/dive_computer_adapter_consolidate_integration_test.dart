@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
     hide DiveMatchResult;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -386,5 +387,143 @@ void main() {
       db.deletionLog,
     )..where((t) => t.entityType.equals('dives'))).get();
     expect(deletionLogAfter.length, equals(deletionLogBefore.length + 1));
+  });
+
+  test('when the PRE-EXISTING target holds a series this build cannot '
+      'decode, the freshly downloaded dive is KEPT standalone instead of '
+      'being deleted', () async {
+    // The target dive was downloaded from another computer some time ago and
+    // its stored profile series has since bit-rotted (or was written by a
+    // newer peer's codec). DiveConsolidationService.apply refuses the fold
+    // with UnreadableSeriesException before touching anything.
+    await computerRepository.createComputer(
+      DiveComputer.create(
+        id: 'primary-computer-unreadable',
+        name: 'Primary Computer',
+        diverId: diverId,
+      ),
+    );
+
+    final entryTime = DateTime.utc(2026, 7, 4, 9);
+    await diveRepository.createDive(
+      domain.Dive(
+        id: 'target-dive-unreadable',
+        dateTime: entryTime,
+        entryTime: entryTime,
+        runtime: const Duration(minutes: 40),
+        maxDepth: 25.0,
+        diverId: diverId,
+        profile: const [
+          domain.DiveProfilePoint(timestamp: 0, depth: 0),
+          domain.DiveProfilePoint(timestamp: 600, depth: 25),
+          domain.DiveProfilePoint(timestamp: 1200, depth: 0),
+        ],
+      ),
+    );
+    await (db.update(
+      db.dives,
+    )..where((t) => t.id.equals('target-dive-unreadable'))).write(
+      const DivesCompanion(computerId: Value('primary-computer-unreadable')),
+    );
+
+    // Corrupt the target's stored blob in place, the way storage bit-rot
+    // would: the row and its summary scalars still look sound.
+    final seriesRow = (await ProfileSeriesRepository().getRowsForDives([
+      'target-dive-unreadable',
+    ])).single;
+    final broken = Uint8List.fromList(seriesRow.samples)..[3] ^= 0xFF;
+    await db.customStatement(
+      'UPDATE dive_profile_series SET samples = ? WHERE id = ?',
+      [broken, seriesRow.id],
+    );
+
+    final secondaryComputer = await computerRepository.createComputer(
+      DiveComputer.create(
+        id: 'secondary-computer-unreadable',
+        name: 'Secondary Computer',
+        diverId: diverId,
+      ),
+    );
+
+    final downloadedDive = DownloadedDive(
+      startTime: entryTime,
+      durationSeconds: 2400,
+      maxDepth: 24.5,
+      profile: [
+        const ProfileSample(timeSeconds: 0, depth: 0.0),
+        const ProfileSample(timeSeconds: 60, depth: 24.5),
+      ],
+      tanks: const [],
+      events: const [],
+    );
+
+    final importService = DiveImportService(
+      repository: computerRepository,
+      diveRepository: diveRepository,
+    );
+
+    final adapter = DiveComputerAdapter(
+      importService: importService,
+      computerRepository: computerRepository,
+      diveRepository: diveRepository,
+      consolidationService: consolidationService,
+      diverId: diverId,
+      knownComputer: secondaryComputer,
+    );
+    adapter.setDownloadedDives([downloadedDive]);
+
+    final rawBundle = await adapter.buildBundle();
+    final bundleWithDupes = ImportBundle(
+      source: rawBundle.source,
+      groups: {
+        ImportEntityType.dives: EntityGroup(
+          items: rawBundle.groups[ImportEntityType.dives]!.items,
+          duplicateIndices: {0},
+          matchResults: const {
+            0: DiveMatchResult(
+              diveId: 'target-dive-unreadable',
+              score: 0.9,
+              timeDifferenceMs: 0,
+              matchedComputerId: 'primary-computer-unreadable',
+            ),
+          },
+        ),
+      },
+    );
+
+    final deletionLogBefore = await (db.select(
+      db.deletionLog,
+    )..where((t) => t.entityType.equals('dives'))).get();
+
+    final result = await adapter.performImport(
+      bundleWithDupes,
+      {
+        ImportEntityType.dives: {0},
+      },
+      {
+        ImportEntityType.dives: {0: DuplicateAction.consolidate},
+      },
+    );
+
+    // The fold did not happen, but the download is good data and the
+    // computer's fingerprint advances past it on the way out of
+    // performImport, so it counts as imported rather than skipped.
+    expect(result.consolidatedCount, equals(0));
+    expect(result.skippedCount, equals(0));
+    expect(result.importedCounts[ImportEntityType.dives], equals(1));
+    expect(result.importedDiveIds, hasLength(1));
+
+    // Both dives are still there: the target untouched, the download kept
+    // standalone rather than compensated away.
+    final allDives = await db.select(db.dives).get();
+    expect(allDives.map((d) => d.id), contains('target-dive-unreadable'));
+    expect(allDives, hasLength(2));
+    expect(allDives.map((d) => d.id), contains(result.importedDiveIds.single));
+
+    // Nothing was tombstoned.
+    final deletionLogAfter = await (db.select(
+      db.deletionLog,
+    )..where((t) => t.entityType.equals('dives'))).get();
+    expect(deletionLogAfter.length, equals(deletionLogBefore.length));
   });
 }

@@ -33,7 +33,8 @@ enum SiteSortField {
   rating('Rating', Icons.star),
   difficulty('Difficulty', Icons.trending_up),
   depth('Max Depth', Icons.vertical_align_bottom),
-  diveCount('Dive Count', Icons.scuba_diving);
+  diveCount('Dive Count', Icons.scuba_diving),
+  lastDived('Last Dived', Icons.history);
 
   final String displayName;
   final IconData icon;
@@ -67,7 +68,8 @@ enum EquipmentSortField {
 /// Sort fields for Buddies
 enum BuddySortField {
   name('Name', Icons.sort_by_alpha),
-  diveCount('Dive Count', Icons.scuba_diving);
+  diveCount('Dive Count', Icons.scuba_diving),
+  lastDive('Last Dive', Icons.history);
 
   final String displayName;
   final IconData icon;
@@ -105,4 +107,16 @@ enum CourseSortField {
   final String displayName;
   final IconData icon;
   const CourseSortField(this.displayName, this.icon);
+}
+
+/// Sort fields for library media. `dateTaken` is the historical default and
+/// resolves to COALESCE(taken_at, created_at) in the repository.
+enum MediaSortField {
+  dateTaken('Date Taken', Icons.calendar_today),
+  fileName('File Name', Icons.sort_by_alpha),
+  fileSize('File Size', Icons.data_usage);
+
+  final String displayName;
+  final IconData icon;
+  const MediaSortField(this.displayName, this.icon);
 }

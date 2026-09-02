@@ -1,0 +1,210 @@
+{
+  "chambers": [
+    {
+      "id": "eg-sharm",
+      "name": "Sharm el-Sheikh Hyperbaric Medical Center",
+      "country": "EG",
+      "city": "Sharm el-Sheikh",
+      "phone": "+20-69-366-0922",
+      "emergencyPhone": "+20-12-2212-4292",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://hmc-sharm.com/"}
+    },
+    {
+      "id": "eg-dahab",
+      "name": "Dahab Hyperbaric Medical Centre",
+      "country": "EG",
+      "city": "Dahab",
+      "phone": "+20-69-364-0536",
+      "emergencyPhone": "+20-10-143-3325",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.redsea-diving.com/diving-safety/"}
+    },
+    {
+      "id": "eg-hurghada",
+      "name": "Hypermed Diving Medicine Center",
+      "country": "EG",
+      "city": "Hurghada",
+      "phone": "+20-65-346-2576",
+      "emergencyPhone": "+20-10-0218-7550",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://hypermed-redsea.net/contact"}
+    },
+    {
+      "id": "eg-hurghada-naval",
+      "name": "Naval Hyperbaric Medical Center",
+      "country": "EG",
+      "city": "Hurghada",
+      "phone": "+20-65-344-9150",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.redsea-diving.com/diving-safety/"}
+    },
+    {
+      "id": "eg-elgouna",
+      "name": "DECO International, El Gouna Hospital",
+      "country": "EG",
+      "city": "El Gouna",
+      "phone": "+20-65-3850-0118",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.redsea-diving.com/diving-safety/"}
+    },
+    {
+      "id": "eg-safaga",
+      "name": "DECO International, Safaga General Hospital",
+      "country": "EG",
+      "city": "Safaga",
+      "phone": "+20-12-2219-0383",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.deco-international.com/"}
+    },
+    {
+      "id": "eg-marsaalam",
+      "name": "Baromedical Marsa Shagra",
+      "country": "EG",
+      "city": "Marsa Alam",
+      "phone": "+20-12-2243-3116",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://baromedical-redsea.com/contact"}
+    },
+    {
+      "id": "eg-portghalib",
+      "name": "DECO International, Port Ghalib Hospital",
+      "country": "EG",
+      "city": "Marsa Alam",
+      "phone": "+20-12-2219-0383",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.deco-international.com/"}
+    },
+    {
+      "id": "il-eilat",
+      "name": "Yoseftal Hospital Hyperbaric Unit",
+      "country": "IL",
+      "city": "Eilat",
+      "phone": "+972-8-635-8023",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=34"}
+    },
+    {
+      "id": "il-zerifin",
+      "name": "Assaf Harofeh (Asaf Harofe) Institute of Hyperbaric Medicine",
+      "country": "IL",
+      "city": "Be'er Ya'akov",
+      "phone": "+972-8-920-5194",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=34"}
+    },
+    {
+      "id": "jo-aqaba",
+      "name": "Aqaba Diving Chamber, Princess Haya Hospital",
+      "country": "JO",
+      "city": "Aqaba",
+      "phone": "+962-3-201-4114",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=72"}
+    },
+    {
+      "id": "sa-jubail",
+      "name": "Diving and Hyperbaric Medicine Department, Armed Forces Hospital",
+      "country": "SA",
+      "city": "Jubail",
+      "phone": "+966-3-362-1234",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=53"}
+    },
+    {
+      "id": "ae-dubai",
+      "name": "Aqua Marine Diving Services Hyperbaric Chamber",
+      "country": "AE",
+      "city": "Dubai",
+      "phone": "+971-4-323-3100",
+      "emergencyPhone": "+971-50-885-8172",
+      "capability": "diving_emergency",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=62"}
+    },
+    {
+      "id": "ae-abudhabi",
+      "name": "Zayed Military Hospital Hyperbaric Unit",
+      "country": "AE",
+      "city": "Abu Dhabi",
+      "phone": "+971-2-444-8100",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=6&country=62"}
+    },
+    {
+      "id": "za-capetown",
+      "name": "Tygerberg Hospital Hyperbaric Unit",
+      "country": "ZA",
+      "city": "Cape Town",
+      "phone": "+27-21-938-4911",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.westerncape.gov.za/health-wellness/facility/tygerberg-hospital"}
+    },
+    {
+      "id": "za-cape-national",
+      "name": "National Hyperbarics",
+      "country": "ZA",
+      "city": "Cape Town",
+      "phone": "+27-21-671-8655",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=1&country=56"}
+    },
+    {
+      "id": "za-durban",
+      "name": "Hyperbaric Medicine Centre",
+      "country": "ZA",
+      "city": "Durban",
+      "phone": "+27-31-268-5255",
+      "emergencyPhone": "+27-31-268-5000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=1&country=56"}
+    },
+    {
+      "id": "za-johannesburg",
+      "name": "Hyperbaric Treatment Centre",
+      "country": "ZA",
+      "city": "Johannesburg",
+      "phone": "+27-11-480-5660",
+      "emergencyPhone": "+27-83-284-4415",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=1&country=56"}
+    },
+    {
+      "id": "na-walvisbay",
+      "name": "Welwitschia Hospital Hyperbaric Unit (Erongo Primary Health Services)",
+      "country": "NA",
+      "city": "Walvis Bay",
+      "phone": "+264-64-218-914",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=1&country=81"}
+    },
+    {
+      "id": "tz-zanzibar",
+      "name": "Zanzibar Hyperbaric Chamber, Fairmont Zanzibar",
+      "country": "TZ",
+      "city": "Matemwe, Zanzibar",
+      "phone": "+255-777-788-500",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://midlandsdivingchamber.co.uk/index.php?id=contact&page=11&region=1&country=103"}
+    }
+  ]
+}

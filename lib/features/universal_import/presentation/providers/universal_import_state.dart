@@ -5,6 +5,7 @@ import 'package:submersion/features/universal_import/data/models/field_mapping.d
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/domain/services/import_media_resolver.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
@@ -39,6 +40,9 @@ class UniversalImportState {
     this.files = const [],
     this.photoPathsByBaseName = const {},
     this.unmatchedPhotoCount = 0,
+    this.photoFolderPath,
+    this.photoResolution,
+    this.photosSkipped = false,
     this.zipTempDirPaths = const [],
     this.additionalFileBytes,
     this.additionalFileName,
@@ -79,6 +83,18 @@ class UniversalImportState {
   /// Photos in an imported ZIP that matched no dive file (surfaced as an
   /// import warning count).
   final int unmatchedPhotoCount;
+
+  /// Folder the user picked to resolve a logbook's referenced photos against.
+  /// Null until the Photos step runs, and on mobile where it cannot be picked.
+  final String? photoFolderPath;
+
+  /// Outcome of resolving the payload's media entries against
+  /// [photoFolderPath]. Null when no folder has been picked.
+  final ImportMediaResolution? photoResolution;
+
+  /// True once the user has explicitly chosen to import without photos.
+  /// Distinct from a null [photoResolution], which only means undecided.
+  final bool photosSkipped;
 
   /// Temp directories holding files extracted from imported ZIP archives.
   /// The notifier deletes these on reset or when superseded by a new import,
@@ -171,6 +187,11 @@ class UniversalImportState {
     bool clearFiles = false,
     Map<String, List<String>>? photoPathsByBaseName,
     int? unmatchedPhotoCount,
+    String? photoFolderPath,
+    bool clearPhotoFolderPath = false,
+    ImportMediaResolution? photoResolution,
+    bool clearPhotoResolution = false,
+    bool? photosSkipped,
     List<String>? zipTempDirPaths,
     int? parseCurrent,
     int? parseTotal,
@@ -209,6 +230,13 @@ class UniversalImportState {
       files: clearFiles ? const [] : (files ?? this.files),
       photoPathsByBaseName: photoPathsByBaseName ?? this.photoPathsByBaseName,
       unmatchedPhotoCount: unmatchedPhotoCount ?? this.unmatchedPhotoCount,
+      photoFolderPath: clearPhotoFolderPath
+          ? null
+          : (photoFolderPath ?? this.photoFolderPath),
+      photoResolution: clearPhotoResolution
+          ? null
+          : (photoResolution ?? this.photoResolution),
+      photosSkipped: photosSkipped ?? this.photosSkipped,
       zipTempDirPaths: zipTempDirPaths ?? this.zipTempDirPaths,
       parseCurrent: parseCurrent ?? this.parseCurrent,
       parseTotal: parseTotal ?? this.parseTotal,

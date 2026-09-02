@@ -1,7 +1,7 @@
 name: submersion
 description: An open-source dive logging application for scuba divers.
 publish_to: 'none'
-version: 1.7.5+122
+version: 1.7.7+124
 
 environment:
   sdk: ^3.10.0
@@ -150,6 +150,9 @@ dependencies:
   flutter_web_auth_2: ^5.0.3
   local_auth: ^3.0.2
   pdfrx: ^2.4.7
+  # Keeps the screen awake while a blocking sync-maintenance dialog is up: a
+  # phone that locks mid-wipe suspends the work behind it (issue #1194).
+  wakelock_plus: ^1.7.0
 
 dev_dependencies:
   flutter_test:
@@ -228,3 +231,11 @@ flutter:
     - family: Material Design Icons
       fonts:
         - asset: assets/fonts/materialdesignicons-webfont.ttf
+    # Dive-gear glyphs that no icon font has (wetsuit, drysuit, BCD,
+    # rebreather, hood, gloves, bootie, reel, DPV, regulator). Drawn in
+    # tool/equipment_glyphs.py and compiled by
+    # tool/build_equipment_icon_font.py; referenced via
+    # lib/core/icons/submersion_icons.dart.
+    - family: Submersion Equipment
+      fonts:
+        - asset: assets/fonts/submersion-equipment.ttf

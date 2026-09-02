@@ -23,6 +23,25 @@ enum UnavailableKind {
   /// The file's volume (network share, external disk) is not mounted right
   /// now. Recovers by itself when the volume comes back; never orphaned.
   volumeOffline,
+
+  /// The fetch is still running and outlived the caller's budget.
+  ///
+  /// Distinct from every other kind because nothing is wrong: the bytes exist
+  /// and are on their way. It exists so a slow source (a network share, a cold
+  /// store object, an iCloud asset still coming down) can stop occupying a
+  /// concurrency slot without the tile claiming the item is missing. Always
+  /// recoverable by retrying, and the underlying fetch may well have finished
+  /// by the time the user does.
+  stillFetching,
+
+  /// The source refused to answer, so nothing is known about the item. The
+  /// gallery case is a revoked or not-yet-granted photo permission.
+  ///
+  /// Never evidence of absence, and deliberately distinct from [notFound]:
+  /// `reconciledOrphanFlag` leaves the orphan flag alone for this kind. It is
+  /// the difference between "your photo is gone" and "let me look at your
+  /// photos", and only one of those is safe to write down and sync.
+  accessDenied,
 }
 
 /// Which concrete source produced a [MediaSourceData]'s bytes.

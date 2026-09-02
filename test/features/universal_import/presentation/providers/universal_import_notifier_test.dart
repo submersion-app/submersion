@@ -13,6 +13,7 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
+import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 import '../../../../fixtures/macdive_sqlite/build_synthetic_db.dart';
@@ -1432,6 +1433,105 @@ void main() {
 
           expect(payload.entitiesOf(ImportEntityType.dives).length, 3);
           expect(payload.entitiesOf(ImportEntityType.tags).length, 2);
+        },
+      );
+    });
+    group('photo folder resolution', () {
+      ImportPayload payloadWithOnePicture(String filename) => ImportPayload(
+        entities: {
+          ImportEntityType.dives: [
+            {'uddfId': 'd0', 'dateTime': DateTime(2025, 1, 15)},
+          ],
+          ImportEntityType.media: [
+            {'filename': filename, '_diveIndex': 0},
+          ],
+        },
+      );
+
+      test('resolvePhotosIn stores the root and the resolution', () async {
+        final root = await Directory.systemTemp.createTemp('wizard_photos_');
+        addTearDown(() async {
+          if (root.existsSync()) await root.delete(recursive: true);
+        });
+        final photo = File('${root.path}/dive042.jpg')
+          ..writeAsStringSync('bytes');
+
+        notifier.state = notifier.state.copyWith(
+          payload: payloadWithOnePicture('/home/jai/Pictures/dive042.jpg'),
+        );
+
+        await notifier.resolvePhotosIn(root.path);
+
+        expect(notifier.state.photoFolderPath, root.path);
+        expect(notifier.state.photoResolution?.matchedCount, 1);
+        expect(
+          notifier.state.photoResolution?.resolvedPathByIndex[0],
+          photo.path,
+        );
+        expect(notifier.state.photosSkipped, isFalse);
+        expect(notifier.state.isLoading, isFalse);
+      });
+
+      test(
+        'resolvePhotosIn is a no-op when the payload has no pictures',
+        () async {
+          notifier.state = notifier.state.copyWith(
+            payload: const ImportPayload(entities: {}),
+          );
+
+          await notifier.resolvePhotosIn('/nowhere');
+
+          expect(notifier.state.photoFolderPath, isNull);
+          expect(notifier.state.photoResolution, isNull);
+        },
+      );
+
+      test(
+        'skipPhotos clears any resolution and marks the step done',
+        () async {
+          notifier.state = notifier.state.copyWith(
+            payload: payloadWithOnePicture('/home/jai/Pictures/dive042.jpg'),
+            photoFolderPath: '/some/folder',
+          );
+
+          notifier.skipPhotos();
+
+          expect(notifier.state.photosSkipped, isTrue);
+          expect(notifier.state.photoResolution, isNull);
+          expect(notifier.state.photoFolderPath, isNull);
+          expect(container.read(universalAdapterPhotosReadyProvider), isTrue);
+        },
+      );
+
+      test(
+        'the step gate is open with no pictures and shut with unhandled ones',
+        () {
+          notifier.state = notifier.state.copyWith(
+            payload: const ImportPayload(entities: {}),
+          );
+          expect(container.read(universalAdapterNoPhotosProvider), isTrue);
+          expect(container.read(universalAdapterPhotosReadyProvider), isTrue);
+
+          notifier.state = notifier.state.copyWith(
+            payload: payloadWithOnePicture('/p/a.jpg'),
+          );
+          expect(container.read(universalAdapterNoPhotosProvider), isFalse);
+          expect(container.read(universalAdapterPhotosReadyProvider), isFalse);
+        },
+      );
+
+      test(
+        'a missing folder resolves to zero matches without throwing',
+        () async {
+          notifier.state = notifier.state.copyWith(
+            payload: payloadWithOnePicture('/home/jai/Pictures/dive042.jpg'),
+          );
+
+          await notifier.resolvePhotosIn('/definitely/not/a/folder');
+
+          expect(notifier.state.photoResolution?.matchedCount, 0);
+          expect(notifier.state.photoResolution?.notFoundCount, 1);
+          expect(container.read(universalAdapterPhotosReadyProvider), isTrue);
         },
       );
     });

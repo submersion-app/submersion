@@ -1,11 +1,14 @@
 import 'package:drift/drift.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
+    show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 
 /// Repository for managing per-tank time-series pressure data
 ///
@@ -14,115 +17,95 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 class TankPressureRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
-  final _uuid = const Uuid();
+  final TankPressureSeriesRepository _tankSeries =
+      TankPressureSeriesRepository();
 
   /// Get all tank pressure data for a dive, grouped by tank ID
   ///
   /// Returns a map where keys are tank IDs and values are lists of
-  /// pressure points sorted by timestamp.
+  /// pressure points sorted by timestamp. The series tables are the only
+  /// store: v183 dropped `tank_pressure_profiles`.
   Future<Map<String, List<TankPressurePoint>>> getTankPressuresForDive(
     String diveId,
   ) async {
-    final rows =
-        await (_db.select(_db.tankPressureProfiles)
-              ..where((t) => t.diveId.equals(diveId))
-              ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
-            .get();
-
-    final result = <String, List<TankPressurePoint>>{};
-    for (final row in rows) {
-      result
-          .putIfAbsent(row.tankId, () => [])
-          .add(
-            TankPressurePoint(
-              id: row.id,
-              tankId: row.tankId,
-              timestamp: row.timestamp,
-              pressure: row.pressure,
-            ),
-          );
+    final series = await _tankSeries.getSeriesForDive(diveId);
+    if (series.isEmpty) return const <String, List<TankPressurePoint>>{};
+    final byTank = <String, List<dynamic>>{};
+    for (final s in series) {
+      byTank.putIfAbsent(s.tankId, () => []).add(s);
     }
-
+    final result = <String, List<TankPressurePoint>>{};
+    for (final entry in byTank.entries) {
+      result[entry.key] = mergeTankSeriesPoints(entry.value.cast());
+    }
     return result;
   }
 
-  /// Get pressure data for a specific tank
+  /// Get pressure data for a specific tank.
+  ///
+  /// This read gates on the TANK's series while [getTankPressuresForDive]
+  /// gates on the dive's; the two can only disagree for a tank the packer
+  /// skipped as an orphan (no `dive_tanks` parent), which nothing renders.
   Future<List<TankPressurePoint>> getPressuresForTank(
     String diveId,
     String tankId,
   ) async {
-    final rows =
-        await (_db.select(_db.tankPressureProfiles)
-              ..where((t) => t.diveId.equals(diveId) & t.tankId.equals(tankId))
-              ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
-            .get();
-
-    return rows
-        .map(
-          (row) => TankPressurePoint(
-            id: row.id,
-            tankId: row.tankId,
-            timestamp: row.timestamp,
-            pressure: row.pressure,
-          ),
-        )
-        .toList();
+    final series = await _tankSeries.getSeriesForTank(diveId, tankId);
+    if (series.isEmpty) return const <TankPressurePoint>[];
+    return mergeTankSeriesPoints(series);
   }
 
   /// Bulk insert tank pressure data for a dive
   ///
-  /// [pressuresByTank] maps tank IDs to lists of (timestamp, pressure) tuples
-  /// Uses batch insert for performance - no individual sync records needed
-  /// since parent dive sync covers all child data.
+  /// [pressuresByTank] maps tank IDs to lists of (timestamp, pressure) tuples.
+  /// Each tank's samples become one series; the repository marks it pending
+  /// and stamps it with an hlc, so no separate per-sample sync bookkeeping is
+  /// needed here.
   Future<void> insertTankPressures(
     String diveId,
     Map<String, List<({int timestamp, double pressure})>> pressuresByTank,
   ) async {
     if (pressuresByTank.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.batch((batch) {
+    // One transaction for the whole pressure set. Each insertSeries commits
+    // and marks itself pending on its own, so a tank that cannot be written
+    // (an encode the codec refuses, a constraint) would otherwise leave the
+    // tanks before it committed and pending, and half a dive's pressures
+    // would publish to peers as if they were all of them. The legacy
+    // row-per-sample write was one batch and had the same all-or-nothing
+    // behaviour.
+    await _db.transaction(() async {
       for (final entry in pressuresByTank.entries) {
-        final tankId = entry.key;
-        for (final point in entry.value) {
-          batch.insert(
-            _db.tankPressureProfiles,
-            TankPressureProfilesCompanion.insert(
-              id: _uuid.v4(),
-              diveId: diveId,
-              tankId: tankId,
-              timestamp: point.timestamp,
-              pressure: point.pressure,
-            ),
-          );
-        }
+        if (entry.value.isEmpty) continue;
+        await _tankSeries.insertSeries(
+          diveId: diveId,
+          tankId: entry.key,
+          samples: [
+            for (final point in entry.value)
+              TankPressureSample(
+                timestamp: point.timestamp,
+                pressure: point.pressure,
+              ),
+          ],
+          now: now,
+        );
       }
+      // Only mark parent dive as pending - child data syncs with it
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
     });
-    // Only mark parent dive as pending - child data syncs with it
-    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-      DivesCompanion(updatedAt: Value(now)),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'dives',
-      recordId: diveId,
-      localUpdatedAt: now,
-    );
     SyncEventBus.notifyLocalChange();
   }
 
   /// Delete all tank pressure data for a dive
   Future<void> deleteTankPressuresForDive(String diveId) async {
-    final existing = await (_db.select(
-      _db.tankPressureProfiles,
-    )..where((t) => t.diveId.equals(diveId))).get();
-    await (_db.delete(
-      _db.tankPressureProfiles,
-    )..where((t) => t.diveId.equals(diveId))).go();
-    for (final row in existing) {
-      await _syncRepository.logDeletion(
-        entityType: 'tankPressureProfiles',
-        recordId: row.id,
-      );
-    }
+    await _tankSeries.deleteForDive(diveId);
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
       DivesCompanion(updatedAt: Value(now)),
@@ -156,9 +139,7 @@ class TankPressureRepository {
     required String toTankId,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.tankPressureProfiles)
-          ..where((t) => t.diveId.equals(diveId) & t.tankId.equals(fromTankId)))
-        .write(TankPressureProfilesCompanion(tankId: Value(toTankId)));
+    await _tankSeries.reassignTank(diveId, fromTankId, toTankId, now: now);
     await _touchDive(diveId, now);
   }
 
@@ -169,35 +150,7 @@ class TankPressureRepository {
     required String tankIdB,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final aIds = [
-      for (final r
-          in await (_db.select(_db.tankPressureProfiles)..where(
-                (t) => t.diveId.equals(diveId) & t.tankId.equals(tankIdA),
-              ))
-              .get())
-        r.id,
-    ];
-    final bIds = [
-      for (final r
-          in await (_db.select(_db.tankPressureProfiles)..where(
-                (t) => t.diveId.equals(diveId) & t.tankId.equals(tankIdB),
-              ))
-              .get())
-        r.id,
-    ];
-    // Snapshot the row ids first so the two writes can't feed into each other.
-    // Guard empty lists: skip the write when a tank has no pressure series
-    // rather than issuing an update whose id filter matches no rows.
-    if (aIds.isNotEmpty) {
-      await (_db.update(_db.tankPressureProfiles)
-            ..where((t) => t.id.isIn(aIds)))
-          .write(TankPressureProfilesCompanion(tankId: Value(tankIdB)));
-    }
-    if (bIds.isNotEmpty) {
-      await (_db.update(_db.tankPressureProfiles)
-            ..where((t) => t.id.isIn(bIds)))
-          .write(TankPressureProfilesCompanion(tankId: Value(tankIdA)));
-    }
+    await _tankSeries.swapTanks(diveId, tankIdA, tankIdB, now: now);
     await _touchDive(diveId, now);
   }
 
@@ -214,14 +167,6 @@ class TankPressureRepository {
   }
 
   /// Check if a dive has any per-tank pressure data
-  Future<bool> hasTankPressures(String diveId) async {
-    final count =
-        await (_db.selectOnly(_db.tankPressureProfiles)
-              ..addColumns([_db.tankPressureProfiles.id.count()])
-              ..where(_db.tankPressureProfiles.diveId.equals(diveId)))
-            .map((row) => row.read(_db.tankPressureProfiles.id.count()))
-            .getSingle();
-
-    return (count ?? 0) > 0;
-  }
+  Future<bool> hasTankPressures(String diveId) =>
+      _tankSeries.hasSeriesForDive(diveId);
 }

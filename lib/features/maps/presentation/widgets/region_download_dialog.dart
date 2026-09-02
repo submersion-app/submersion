@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
@@ -71,6 +72,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
       final result = await LocationService.instance.reverseGeocode(
         centerLat,
         centerLng,
+        languageCode: ref.read(placeNameLanguageProvider),
       );
 
       if (mounted && _nameController.text.isEmpty) {

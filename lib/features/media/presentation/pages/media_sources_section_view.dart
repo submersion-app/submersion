@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/repair/watched_folder_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -57,18 +58,6 @@ class MediaSourcesSectionView extends ConsumerWidget {
   /// Test seam for the platform directory picker.
   @visibleForTesting
   final Future<String?> Function()? pickFolderOverride;
-
-  String _sourceLabel(BuildContext context, MediaSourceType type) {
-    return switch (type) {
-      MediaSourceType.platformGallery => context.l10n.media_source_gallery,
-      MediaSourceType.localFile => context.l10n.media_source_localFile,
-      MediaSourceType.networkUrl => context.l10n.media_source_networkUrl,
-      MediaSourceType.manifestEntry => context.l10n.media_source_manifest,
-      MediaSourceType.serviceConnector => context.l10n.media_source_connector,
-      MediaSourceType.mediaStore => context.l10n.media_source_mediaStore,
-      MediaSourceType.signature => context.l10n.media_source_signature,
-    };
-  }
 
   Future<void> _addRoot(BuildContext context, WidgetRef ref) async {
     final path =
@@ -126,7 +115,7 @@ class MediaSourcesSectionView extends ConsumerWidget {
         for (final MapEntry(:key, :value) in counts.entries)
           ListTile(
             leading: const Icon(Icons.perm_media_outlined),
-            title: Text(_sourceLabel(context, key)),
+            title: Text(mediaSourceLabel(context, key)),
             trailing: Text('$value'),
             onTap: () {
               final notifier = ref.read(mediaLibraryFilterProvider.notifier);

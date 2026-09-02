@@ -42,4 +42,39 @@ void main() {
     expect(de.transfer_computers_lastDownloadHoursAgo(1), 'vor 1 Stunde');
     expect(de.transfer_computers_lastDownloadHoursAgo(3), 'vor 3 Stunden');
   });
+
+  test('the transfer sections are labelled File Import / File Export', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    expect(en.transfer_section_importTitle, 'File Import');
+    expect(en.transfer_section_exportTitle, 'File Export');
+  });
+
+  test('every supported locale translates the transfer section titles', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    for (final locale in AppLocalizations.supportedLocales) {
+      final l10n = lookupAppLocalizations(locale);
+      expect(
+        l10n.transfer_section_importTitle,
+        isNotEmpty,
+        reason: 'locale $locale',
+      );
+      expect(
+        l10n.transfer_section_exportTitle,
+        isNotEmpty,
+        reason: 'locale $locale',
+      );
+      if (locale.languageCode != 'en') {
+        expect(
+          l10n.transfer_section_importTitle,
+          isNot(en.transfer_section_importTitle),
+          reason: 'locale $locale falls back to English',
+        );
+        expect(
+          l10n.transfer_section_exportTitle,
+          isNot(en.transfer_section_exportTitle),
+          reason: 'locale $locale falls back to English',
+        );
+      }
+    }
+  });
 }

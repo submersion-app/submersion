@@ -514,6 +514,12 @@ class SyncState {
   /// page renders the localized `device <shortId>` label instead -- resolving
   /// it here is impossible because a notifier has no BuildContext.
   final List<({String? name, String shortId})> skippedPeerLabels;
+
+  /// Peers whose changeset read threw during the last pull, as (name,
+  /// shortId) pairs. Their data did not merge this run; the cursor stayed put
+  /// so the next sync retries. Drives the read-failed banner; cleared when a
+  /// fresh sync starts. Same null-name contract as [skippedPeerLabels].
+  final List<({String? name, String shortId})> readFailedPeerLabels;
   final bool isAuthenticated;
   final bool firstSyncAwaitingConfirmation;
 
@@ -557,6 +563,7 @@ class SyncState {
     this.conflicts = 0,
     this.newerSchemaPeerLabels = const [],
     this.skippedPeerLabels = const [],
+    this.readFailedPeerLabels = const [],
     this.isAuthenticated = false,
     this.firstSyncAwaitingConfirmation = false,
     this.postRestoreSyncing = false,
@@ -576,6 +583,7 @@ class SyncState {
     int? conflicts,
     List<({String? name, String shortId})>? newerSchemaPeerLabels,
     List<({String? name, String shortId})>? skippedPeerLabels,
+    List<({String? name, String shortId})>? readFailedPeerLabels,
     bool? isAuthenticated,
     bool? firstSyncAwaitingConfirmation,
     bool? postRestoreSyncing,
@@ -597,6 +605,7 @@ class SyncState {
       newerSchemaPeerLabels:
           newerSchemaPeerLabels ?? this.newerSchemaPeerLabels,
       skippedPeerLabels: skippedPeerLabels ?? this.skippedPeerLabels,
+      readFailedPeerLabels: readFailedPeerLabels ?? this.readFailedPeerLabels,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       firstSyncAwaitingConfirmation:
           firstSyncAwaitingConfirmation ?? this.firstSyncAwaitingConfirmation,
@@ -1226,6 +1235,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         progress: 0.0,
         newerSchemaPeerLabels: const [],
         skippedPeerLabels: const [],
+        readFailedPeerLabels: const [],
         firstSyncAwaitingConfirmation: false,
         replaceAwaitingAdoption: false,
         needsPassphrase: false,
@@ -1301,6 +1311,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
               result.newerSchemaPeerNames,
             ),
             skippedPeerLabels: skippedPeerLabels(result),
+            readFailedPeerLabels: heldPeerLabels(
+              result.readFailedPeerDeviceIds,
+              result.readFailedPeerNames,
+            ),
             progress: 1.0,
           );
           // Mark this provider established and consume any post-restore intent:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/log_entry_tile.dart';
@@ -129,14 +130,22 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
         child: Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  final l10n = context.l10n;
-                  final service = ref.read(logFileServiceProvider);
-                  await shareLogFile(service, l10n);
-                },
-                icon: const Icon(Icons.share, size: 18),
-                label: Text(context.l10n.common_action_share),
+              // Builder so the iPad share popover anchors to this button;
+              // shareLogFile lives in the provider layer and has no context.
+              child: Builder(
+                builder: (buttonContext) => OutlinedButton.icon(
+                  onPressed: () async {
+                    final l10n = context.l10n;
+                    final service = ref.read(logFileServiceProvider);
+                    await shareLogFile(
+                      service,
+                      l10n,
+                      sharePositionOrigin: shareAnchorFrom(buttonContext),
+                    );
+                  },
+                  icon: const Icon(Icons.share, size: 18),
+                  label: Text(context.l10n.common_action_share),
+                ),
               ),
             ),
             const SizedBox(width: 8),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/icons/submersion_icons.dart';
 
 /// The glyph that stands for [type] everywhere it appears: the equipment list,
 /// the equipment detail header, the dive-edit gear row, and the equipment
@@ -11,38 +12,42 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 /// new equipment type silently rendered as a backpack in half the app while
 /// the compiler stayed quiet. With no default arm, the next type added to
 /// [EquipmentType] is a build error here instead.
+///
+/// Issue #1189 reported that the glyphs "don't really fit the equipment": most
+/// types pointed at a metaphor rather than the object, and the two exposure
+/// suits shared one hanger. Ten shapes that no icon font has are now drawn in
+/// [SubmersionIcons]; five more moved to dive glyphs that were already present
+/// in the bundled Material Design Icons font but never exposed.
 IconData equipmentTypeIcon(EquipmentType type) {
   switch (type) {
     case EquipmentType.regulator:
-      return Icons.air;
+      return SubmersionIcons.regulator;
     case EquipmentType.bcd:
-      return Icons.checkroom;
-    // One glyph for both exposure suits: they are the same silhouette, and
-    // the item's own name carries the wet/dry distinction.
+      return SubmersionIcons.bcd;
+    // The two suits share a silhouette but not a glyph: the drysuit carries
+    // the attached hood and boots that distinguish it in the water.
     case EquipmentType.wetsuit:
+      return SubmersionIcons.wetsuit;
     case EquipmentType.drysuit:
-      return Icons.dry_cleaning;
+      return SubmersionIcons.drysuit;
     case EquipmentType.mask:
-      return Icons.visibility;
+      return MdiIcons.divingScubaMask;
     case EquipmentType.fins:
-      return Icons.water;
+      return MdiIcons.divingFlippers;
     case EquipmentType.boots:
-      return Icons.hiking;
+      return SubmersionIcons.boots;
     case EquipmentType.gloves:
-      return Icons.pan_tool;
+      return SubmersionIcons.gloves;
     case EquipmentType.hood:
-      return Icons.face;
+      return SubmersionIcons.hood;
     case EquipmentType.tank:
       return MdiIcons.divingScubaTank;
-    // A closed circuit recycles the breathing loop; the vendored MdiIcons
-    // subset has no rebreather glyph, and the tank glyph already means
-    // "tank".
     case EquipmentType.rebreather:
-      return Icons.recycling;
+      return SubmersionIcons.rebreather;
     case EquipmentType.transmitter:
       return Icons.sensors;
     case EquipmentType.weights:
-      return Icons.fitness_center;
+      return MdiIcons.weight;
     case EquipmentType.computer:
       return Icons.watch;
     case EquipmentType.light:
@@ -50,13 +55,15 @@ IconData equipmentTypeIcon(EquipmentType type) {
     case EquipmentType.camera:
       return Icons.camera_alt;
     case EquipmentType.knife:
-      return Icons.content_cut;
+      return MdiIcons.knifeMilitary;
+    // A diver-down flag rather than a literal sausage buoy: it is the closest
+    // dive-domain shape in the bundled font, and it beats a generic pennant.
     case EquipmentType.smb:
-      return Icons.flag;
+      return MdiIcons.divingScubaFlag;
     case EquipmentType.reel:
-      return Icons.all_inclusive;
+      return SubmersionIcons.reel;
     case EquipmentType.dpv:
-      return Icons.electric_scooter;
+      return SubmersionIcons.dpv;
     case EquipmentType.other:
       return Icons.build;
   }

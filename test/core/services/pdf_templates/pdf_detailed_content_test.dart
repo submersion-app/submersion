@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -77,11 +78,12 @@ void main() {
     List<Dive> extra = const [],
     Map<String, PdfProfileSeries>? profiles,
     bool verification = false,
+    UnitFormatter unitFormatter = units,
   }) => PdfTemplateDetailed().buildPdf(
     dives: [d, ...extra],
     pageSize: PdfPageSize.a4,
     dates: dates,
-    units: units,
+    units: unitFormatter,
     profiles: profiles,
     includeVerificationAreas: verification,
   );
@@ -171,10 +173,51 @@ void main() {
       );
     });
 
-    test('renders SAC (AMV), which #1017 asks for by name', () async {
+    test('renders gas consumption, which #1017 asks for by name', () async {
+      // SAC and RMV are separate quantities since #1322, so the default
+      // `both` display prints a row for each rather than one relabelled
+      // value.
       final text = pdfVisibleText(await render(dive));
       expect(text, contains('SAC'));
-      expect(text, contains('AMV'));
+      expect(text, contains('RMV'));
+    });
+
+    test('follows the gas-consumption display preference', () async {
+      const sacOnly = UnitFormatter(
+        AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.sac),
+      );
+      final text = pdfVisibleText(await render(dive, unitFormatter: sacOnly));
+      expect(text, contains('SAC'));
+      expect(
+        text,
+        isNot(contains('RMV')),
+        reason: 'a SAC-only diver asked not to see the volume lane',
+      );
+    });
+
+    test('prints SAC when an RMV-only diver has no cylinder volumes', () async {
+      // Issue #386: dropping consumption from the page entirely is worse
+      // than showing the lane the dive can supply. The page has no room for
+      // the tappable volume hint the detail page shows in its place.
+      const rmvOnly = UnitFormatter(
+        AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.rmv),
+      );
+      // Built rather than copyWith'd: `volume: null` reads as "unchanged".
+      final noVolumes = dive.copyWith(
+        tanks: const [
+          DiveTank(
+            id: 't1',
+            name: 'AL80',
+            startPressure: 192,
+            endPressure: 119,
+          ),
+        ],
+      );
+
+      final text = pdfVisibleText(
+        await render(noVolumes, unitFormatter: rmvOnly),
+      );
+      expect(text, contains('SAC'));
     });
 
     test('renders the recorded weather fields', () async {

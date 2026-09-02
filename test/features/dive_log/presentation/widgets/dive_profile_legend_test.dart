@@ -84,7 +84,6 @@ void main() {
               tankPressures: {
                 'tank-1': [
                   TankPressurePoint(
-                    id: 'e0',
                     tankId: 'tank-1',
                     timestamp: 0,
                     pressure: 200,
@@ -219,7 +218,7 @@ void main() {
     ) async {
       await openDialog(tester);
       expect(_inDialog(find.text('Heart Rate')), findsOneWidget);
-      expect(_inDialog(find.text('SAC Rate')), findsOneWidget);
+      expect(_inDialog(find.text('Consumption')), findsOneWidget);
     });
 
     testWidgets('Overlays section shows both ascent-rate toggles', (
@@ -353,7 +352,6 @@ void main() {
               tankPressures: {
                 'tank-1': [
                   TankPressurePoint(
-                    id: 'tp-1',
                     tankId: 'tank-1',
                     timestamp: 10,
                     pressure: 210,
@@ -361,7 +359,6 @@ void main() {
                 ],
                 'tank-2': [
                   TankPressurePoint(
-                    id: 'tp-2',
                     tankId: 'tank-2',
                     timestamp: 700,
                     pressure: 150,
@@ -717,7 +714,6 @@ void main() {
               tankPressures: {
                 'tank-1': [
                   TankPressurePoint(
-                    id: 'tp-1',
                     tankId: 'tank-1',
                     timestamp: 0,
                     pressure: 200,
@@ -762,7 +758,7 @@ void main() {
 
       expect(find.text('Temp'), findsOneWidget);
       expect(find.text('Heart Rate'), findsNothing);
-      expect(find.text('SAC Rate'), findsNothing);
+      expect(find.text('Consumption'), findsNothing);
       expect(
         tester.getSize(find.byType(DiveProfileLegend)).height,
         lessThanOrEqualTo(56),
@@ -773,7 +769,7 @@ void main() {
     testWidgets('wide width fills remaining space with inactive toggles', (
       tester,
     ) async {
-      // Heart Rate and SAC Rate default OFF; at 1200px they are admitted as
+      // Heart Rate and Consumption default OFF; at 1200px they are admitted as
       // inactive fillers after the active toggles.
       await _pumpLegendAt(
         tester,
@@ -787,7 +783,7 @@ void main() {
       );
 
       expect(find.text('Heart Rate'), findsOneWidget);
-      expect(find.text('SAC Rate'), findsOneWidget);
+      expect(find.text('Consumption'), findsOneWidget);
       expect(
         tester.getSize(find.byType(DiveProfileLegend)).height,
         lessThanOrEqualTo(56),
@@ -881,20 +877,10 @@ void main() {
           tanks: _testTanks,
           tankPressures: {
             'tank-1': [
-              TankPressurePoint(
-                id: 'tp-1',
-                tankId: 'tank-1',
-                timestamp: 0,
-                pressure: 200,
-              ),
+              TankPressurePoint(tankId: 'tank-1', timestamp: 0, pressure: 200),
             ],
             'tank-2': [
-              TankPressurePoint(
-                id: 'tp-2',
-                tankId: 'tank-2',
-                timestamp: 0,
-                pressure: 200,
-              ),
+              TankPressurePoint(tankId: 'tank-2', timestamp: 0, pressure: 200),
             ],
           },
         ),

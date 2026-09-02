@@ -105,7 +105,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
                         icon: Icons.air,
                         label: context.l10n.gasCalculators_sacRate,
                         value: sac,
-                        axis: UnitAxis.normalSac(units),
+                        axis: UnitAxis.normalRmv(units),
                         onChanged: (v) =>
                             ref.read(consumptionSacProvider.notifier).state = v,
                       ),

@@ -73,6 +73,7 @@ class ImportSummaryStep extends ConsumerWidget {
       ImportEntityType.tags => Icons.label_outline,
       ImportEntityType.diveTypes => Icons.category_outlined,
       ImportEntityType.serviceRecords => Icons.handyman_outlined,
+      ImportEntityType.media => Icons.photo_library_outlined,
     };
   }
 }

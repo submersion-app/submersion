@@ -73,6 +73,7 @@ domain.MediaItem mediaItemFromRow(
         ? DateTime.fromMillisecondsSinceEpoch(row.remoteCompressedUploadedAt!)
         : null,
     retainInLibrary: row.retainInLibrary,
+    manualElapsedSeconds: row.manualElapsedSeconds,
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     enrichment: enrichmentRow != null
@@ -97,14 +98,21 @@ domain.MediaEnrichment mediaEnrichmentFromRow(MediaEnrichmentData row) {
   );
 }
 
-/// Every file_type spelling that means "instructor signature".
+/// Every file_type spelling that means "this row is a signature".
 ///
 /// Signatures are excluded from every library surface, so the exclusion has
 /// to know about the legacy camelCase spelling [parseMediaType] still
 /// accepts -- filtering on the snake_case value alone lets old rows through.
+///
+/// 'buddy_signature' is here because buddy signatures are signatures too.
+/// It was absent while `SignatureStorageService.saveBuddySignature` could
+/// never actually write a row (issue #1358), which hid the gap: with the
+/// insert fixed, a buddy signature that is not listed here parses as
+/// `MediaType.photo` and shows up as a dive photo.
 const List<String> kSignatureFileTypes = [
   'instructor_signature',
   'instructorSignature',
+  'buddy_signature',
 ];
 
 /// Parses database file_type string to MediaType enum.

@@ -63,3 +63,16 @@ String certificationTitle(Certification cert) =>
 /// remove.
 String? certificationSubtitle(Certification cert) =>
     customNameOrNull(cert) == null ? null : cert.level?.displayName;
+
+/// The agency line that list surfaces put beneath [certificationTitle],
+/// carrying the level as well whenever the title is a custom name.
+///
+/// A card stored as "Bill Ansell" takes the whole title, so without this the
+/// level it was actually issued for (Divemaster) would appear nowhere on the
+/// tile. [certificationSubtitle] returns null for a derived title, which
+/// already names the level, so this never says it twice.
+String certificationAgencyAndLevel(Certification cert) {
+  final level = certificationSubtitle(cert);
+  final agency = cert.agency.displayName;
+  return level == null ? agency : '$agency - $level';
+}

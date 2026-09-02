@@ -13,11 +13,24 @@ import 'package:submersion/features/media/domain/value_objects/media_source_meta
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_pane.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 ExtractedFile _ef(String path) => ExtractedFile(
   sourcePath: path,
   file: File(path),
   metadata: const MediaSourceMetadata(mimeType: 'image/jpeg'),
+);
+
+/// Wraps the widget under test in a localized [MaterialApp].
+///
+/// The review pane now renders [CaptureTimeOffsetBar], which reads
+/// `context.l10n`, so a bare MaterialApp without delegates throws. The locale
+/// is pinned to English because these tests assert on English labels.
+Widget _host(Widget child) => MaterialApp(
+  locale: const Locale('en'),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: Scaffold(body: child),
 );
 
 /// Hand-rolled fakes for tests that don't exercise the commit path.
@@ -60,20 +73,12 @@ class _SeededFilesTabNotifier extends FilesTabNotifier {
 
 void main() {
   testWidgets('renders Pick files action', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: Scaffold(body: FilesTab())),
-      ),
-    );
+    await tester.pumpWidget(ProviderScope(child: _host(const FilesTab())));
     expect(find.textContaining('Pick files'), findsAtLeastNWidgets(1));
   });
 
   testWidgets('shows empty-state hint when no files picked', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: Scaffold(body: FilesTab())),
-      ),
-    );
+    await tester.pumpWidget(ProviderScope(child: _host(const FilesTab())));
     expect(find.textContaining('Pick files or'), findsOneWidget);
   });
 
@@ -92,7 +97,7 @@ void main() {
             (ref) => _SeededFilesTabNotifier(seeded),
           ),
         ],
-        child: const MaterialApp(home: Scaffold(body: FilesTab())),
+        child: _host(const FilesTab()),
       ),
     );
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
@@ -111,7 +116,7 @@ void main() {
             (ref) => _SeededFilesTabNotifier(seeded),
           ),
         ],
-        child: const MaterialApp(home: Scaffold(body: FilesTab())),
+        child: _host(const FilesTab()),
       ),
     );
     expect(find.byType(FileReviewPane), findsOneWidget);
@@ -122,11 +127,7 @@ void main() {
   testWidgets('renders both Pick files and Pick a folder buttons', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: Scaffold(body: FilesTab())),
-      ),
-    );
+    await tester.pumpWidget(ProviderScope(child: _host(const FilesTab())));
     expect(find.text('Pick files…'), findsOneWidget);
     expect(find.text('Pick a folder…'), findsOneWidget);
   });
@@ -134,11 +135,7 @@ void main() {
   testWidgets('renders auto-match Checkbox checked when autoMatchByDate=true', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: Scaffold(body: FilesTab())),
-      ),
-    );
+    await tester.pumpWidget(ProviderScope(child: _host(const FilesTab())));
     final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
     expect(checkbox.value, isTrue);
   });
@@ -155,7 +152,7 @@ void main() {
               ),
             ),
           ],
-          child: const MaterialApp(home: Scaffold(body: FilesTab())),
+          child: _host(const FilesTab()),
         ),
       );
       final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
@@ -170,7 +167,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [filesTabNotifierProvider.overrideWith((ref) => notifier)],
-          child: const MaterialApp(home: Scaffold(body: FilesTab())),
+          child: _host(const FilesTab()),
         ),
       );
 
@@ -196,7 +193,7 @@ void main() {
             (ref) => _SeededFilesTabNotifier(seeded),
           ),
         ],
-        child: const MaterialApp(home: Scaffold(body: FilesTab())),
+        child: _host(const FilesTab()),
       ),
     );
 
@@ -221,7 +218,7 @@ void main() {
             (ref) => _SeededFilesTabNotifier(seeded),
           ),
         ],
-        child: const MaterialApp(home: Scaffold(body: FilesTab())),
+        child: _host(const FilesTab()),
       ),
     );
     expect(find.text('Link 0 items'), findsOneWidget);
@@ -234,11 +231,7 @@ void main() {
   ) async {
     // A permanently-greyed button over an empty canvas is noise; the button
     // earns its place only once there is something staged to act on.
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: Scaffold(body: FilesTab())),
-      ),
-    );
+    await tester.pumpWidget(ProviderScope(child: _host(const FilesTab())));
     expect(find.textContaining('Link '), findsNothing);
   });
 
@@ -257,7 +250,7 @@ void main() {
               (ref) => _SeededFilesTabNotifier(seeded),
             ),
           ],
-          child: const MaterialApp(home: Scaffold(body: FilesTab())),
+          child: _host(const FilesTab()),
         ),
       );
       final progress = tester.widget<LinearProgressIndicator>(
@@ -282,7 +275,7 @@ void main() {
             (ref) => _SeededFilesTabNotifier(seeded),
           ),
         ],
-        child: const MaterialApp(home: Scaffold(body: FilesTab())),
+        child: _host(const FilesTab()),
       ),
     );
     final progress = tester.widget<LinearProgressIndicator>(
@@ -302,12 +295,8 @@ void main() {
           (ref) => _SeededFilesTabNotifier(seed),
         ),
       ],
-      child: MaterialApp(
-        home: Scaffold(
-          body: FilesTab(
-            target: diveId == null ? null : DiveAttachTarget(diveId),
-          ),
-        ),
+      child: _host(
+        FilesTab(target: diveId == null ? null : DiveAttachTarget(diveId)),
       ),
     );
 
@@ -343,9 +332,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [filesTabNotifierProvider.overrideWith((ref) => notifier)],
-          child: const MaterialApp(
-            home: Scaffold(body: FilesTab(target: DiveAttachTarget('d1'))),
-          ),
+          child: _host(const FilesTab(target: DiveAttachTarget('d1'))),
         ),
       );
 
@@ -371,7 +358,7 @@ void main() {
 
       // Without an assign affordance the unchecked checkbox made the whole
       // tab a no-op: nothing could ever reach commit().
-      expect(find.text('Add all 1 to this dive'), findsOneWidget);
+      expect(find.text('Add 1 to this dive'), findsOneWidget);
     });
   });
 
@@ -386,9 +373,7 @@ void main() {
           (ref) => _SeededFilesTabNotifier(seed),
         ),
       ],
-      child: const MaterialApp(
-        home: Scaffold(body: FilesTab(target: SiteAttachTarget('site-1'))),
-      ),
+      child: _host(const FilesTab(target: SiteAttachTarget('site-1'))),
     );
 
     FilesTabState staged(List<ExtractedFile> files) =>
@@ -439,6 +424,10 @@ void main() {
 
       expect(find.textContaining('to this dive'), findsNothing);
       expect(find.text('Unmatched'), findsNothing);
+      // The assign affordances are icon buttons carrying only a tooltip, so a
+      // visible-text assertion alone passes vacuously.
+      expect(find.byTooltip('Choose a dive'), findsNothing);
+      expect(find.byTooltip('Add to this dive'), findsNothing);
     });
 
     testWidgets('counts staged files as items, not photos', (tester) async {

@@ -51,7 +51,6 @@ class _StubMergeService implements DiveMergeService {
         snapshot: DiveMergeSnapshot(
           mergedDiveId: mergedDiveId,
           diveRows: const [],
-          profileRows: const [],
           tankRows: const [],
           weightRows: const [],
           customFieldRows: const [],
@@ -62,7 +61,6 @@ class _StubMergeService implements DiveMergeService {
           sightingRows: const [],
           eventRows: const [],
           gasSwitchRows: const [],
-          tankPressureRows: const [],
           dataSourceRows: const [],
           tideRows: const [],
           mediaDiveIds: const {},

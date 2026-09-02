@@ -11,6 +11,8 @@ enum BulkField {
   course,
   rating,
   isFavorite,
+  excludedFromStats,
+  excludedFromGasStats,
   waterType,
   visibility,
   currentDirection,
@@ -39,6 +41,11 @@ enum BulkField {
   diluentGas,
   scrubberType,
   scrubberDuration,
+
+  /// The active diver's own role on the dive. Lives in the Buddies group of
+  /// the form even though it is a scalar column, because that is where the
+  /// single-dive editor puts it (#1220).
+  diverRole,
   notes,
 }
 
@@ -62,6 +69,8 @@ class BulkScalarInputs {
     this.courseId,
     this.rating,
     this.isFavorite,
+    this.excludedFromStats,
+    this.excludedFromGasStats,
     this.waterType,
     this.visibilityMeters,
     this.currentDirection,
@@ -91,6 +100,7 @@ class BulkScalarInputs {
     this.diluentHe,
     this.scrubberType,
     this.scrubberDuration,
+    this.diverRoleId,
     this.notes,
   });
 
@@ -99,6 +109,11 @@ class BulkScalarInputs {
   final String? courseId;
   final int? rating;
   final bool? isFavorite;
+
+  /// Statistics exclusion (#526 / #1272). Null means the diver never
+  /// touched the gate, so the field is left alone on every selected dive.
+  final bool? excludedFromStats;
+  final bool? excludedFromGasStats;
   final String? waterType;
 
   /// Measured visibility in meters. Replaces the pre-v144 bucket string:
@@ -132,6 +147,9 @@ class BulkScalarInputs {
   final double? diluentHe;
   final String? scrubberType;
   final int? scrubberDuration;
+
+  /// dive_roles id for the active diver's own role, or null to clear it.
+  final String? diverRoleId;
   final String? notes;
 }
 
@@ -148,6 +166,12 @@ DivesCompanion buildScalarCompanion(
       BulkField.trip => c.copyWith(tripId: Value(i.tripId)),
       BulkField.course => c.copyWith(courseId: Value(i.courseId)),
       BulkField.rating => c.copyWith(rating: Value(i.rating)),
+      BulkField.excludedFromStats => c.copyWith(
+        excludedFromStats: Value(i.excludedFromStats ?? false),
+      ),
+      BulkField.excludedFromGasStats => c.copyWith(
+        excludedFromGasStats: Value(i.excludedFromGasStats ?? false),
+      ),
       BulkField.isFavorite => c.copyWith(
         isFavorite: Value(i.isFavorite ?? false),
       ),
@@ -213,6 +237,7 @@ DivesCompanion buildScalarCompanion(
       BulkField.scrubberDuration => c.copyWith(
         scrubberDurationMinutes: Value(i.scrubberDuration),
       ),
+      BulkField.diverRole => c.copyWith(diverRole: Value(i.diverRoleId)),
       BulkField.notes => c.copyWith(notes: Value(i.notes ?? '')),
     };
   }

@@ -1,8 +1,10 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
@@ -18,6 +20,7 @@ import 'package:submersion/features/statistics/data/repositories/statistics_repo
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/universal_import/data/repositories/csv_preset_repository.dart';
+import 'package:submersion/features/weight_planner/data/repositories/weight_history_repository.dart';
 
 import '../helpers/test_database.dart';
 
@@ -159,7 +162,7 @@ void main() {
   group('silence before a write', () {
     // Regression guard for #1175: MediaLibraryRepository.watchMediaChanges was
     // a watched COUNT query, so subscribing to it emitted immediately. Fed to
-    // invalidateSelfWhen by unlinkedCountProvider, missingCountProvider and
+    // invalidateSelfWhen by missingCountProvider and
     // sourceCountsProvider, that turned opening the Media section into an
     // unbounded rebuild loop, one COUNT(*) over `media` per event-loop turn.
     //
@@ -187,8 +190,12 @@ void main() {
           AppSettingsRepository().watchSettingsChanges,
       'ManifestSubscriptionRepository.watchSubscriptionsChanges':
           ManifestSubscriptionRepository().watchSubscriptionsChanges,
+      'WeightHistoryRepository.watchGearLeadChanges':
+          WeightHistoryRepository().watchGearLeadChanges,
       'CsvPresetRepository.watchPresetsChanges':
           CsvPresetRepository().watchPresetsChanges,
+      'DiveRepository.watchAnalysisInputChanges':
+          DiveRepository().watchAnalysisInputChanges,
     };
 
     for (final entry in ticks.entries) {
@@ -313,6 +320,36 @@ void main() {
         isTrue,
       );
     });
+
+    test(
+      'watchGearLeadChanges fires on an equipment_attributes write',
+      () async {
+        await seedParents();
+        // Not the headline table: since #1103 a weight observation's carriedKg
+        // also comes from weights-type gear, whose mass lives in
+        // equipment_attributes. saveAttributes writes that table ALONE, so a
+        // tick watching only `equipment` would be inert for an attribute-only
+        // write and leave the calibration refitting against stale ballast.
+        expect(
+          await fires(
+            WeightHistoryRepository().watchGearLeadChanges(),
+            () => db
+                .into(db.equipmentAttributes)
+                .insert(
+                  EquipmentAttributesCompanion.insert(
+                    id: 'attr_e1_dry_weight_kg',
+                    equipmentId: 'e1',
+                    attrKey: 'dry_weight_kg',
+                    valueNum: const Value(3.63),
+                    createdAt: now,
+                    updatedAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      },
+    );
 
     test('watchSchedulesChanges fires on a diver_settings write', () async {
       await seedParents();
@@ -556,6 +593,61 @@ void main() {
       );
     });
 
+    // Every read behind this tick (getMediaById, getMediaForDive, the library
+    // page) LEFT JOINs media_enrichment, so the enrichment table is part of
+    // the answer, not a detail of some other feature. Watching only `media`
+    // made the depth/elapsed chips, the mini profile and the dive computer
+    // stay absent after a backfill computed them: the row was written, the
+    // provider never re-read it, and the overlays only appeared if the viewer
+    // was closed and reopened. Newly linked media hit this every time, since
+    // linking is exactly when the enrichment does not exist yet.
+    test('watchMediaChanges fires on an enrichment-only write', () async {
+      await seedParents();
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'd1',
+              diveDateTime: now,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              id: 'm1',
+              diveId: const Value('d1'),
+              filePath: '/photos/m1.jpg',
+              fileType: const Value('photo'),
+              sourceType: const Value('localFile'),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+
+      expect(
+        await fires(
+          MediaRepository().watchMediaChanges(),
+          () => db
+              .into(db.mediaEnrichment)
+              .insert(
+                MediaEnrichmentCompanion.insert(
+                  id: 'e1',
+                  mediaId: 'm1',
+                  diveId: 'd1',
+                  createdAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+        reason:
+            'a media read joins media_enrichment, so an enrichment write '
+            'changes what the consumers of this tick would return',
+      );
+    });
+
     test('watchStoresChanges fires', () async {
       expect(
         await fires(
@@ -615,6 +707,72 @@ void main() {
               ),
         ),
         isTrue,
+      );
+    });
+  });
+
+  group('analysis inputs', () {
+    Future<void> seedDive(String id) => db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: id,
+            diveDateTime: now,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+    test(
+      'watchAnalysisInputChanges fires on a dive_profile_events write',
+      () async {
+        // The coupling watchDiveDetailChanges never had: dive_profile_events is
+        // read by diveComputerEventsProvider and merged into every analysis,
+        // but the broad detail tick does not include the table at all.
+        await seedDive('d1');
+        expect(
+          await fires(
+            DiveRepository().watchAnalysisInputChanges(),
+            () => db
+                .into(db.diveProfileEvents)
+                .insert(
+                  DiveProfileEventsCompanion.insert(
+                    id: 'ev1',
+                    diveId: 'd1',
+                    timestamp: 120,
+                    eventType: 'gasSwitch',
+                    createdAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test('watchAnalysisInputChanges stays silent on a media write', () async {
+      // The other half of the contract, and the reason this tick exists.
+      // media IS in watchDiveDetailChanges, so the analysis chain used to be
+      // discarded by every media write (orphan reconcile, enrichment
+      // backfill) -- re-running the Buhlmann cascade after merely viewing a
+      // photo. The analysis reads nothing from media; its tick must not
+      // fire for it.
+      await seedDive('d1');
+      expect(
+        await fires(
+          DiveRepository().watchAnalysisInputChanges(),
+          () => db
+              .into(db.media)
+              .insert(
+                MediaCompanion.insert(
+                  id: 'm1',
+                  filePath: '/tmp/m1.jpg',
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              ),
+        ),
+        isFalse,
       );
     });
   });

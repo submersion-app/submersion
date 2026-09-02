@@ -133,6 +133,19 @@ class TripStoryDayWeather extends Equatable {
     this.precipitation,
   });
 
+  /// True when the day header's badge would actually draw something.
+  ///
+  /// [Precipitation.none] does not count, and that is the whole point of this
+  /// getter. `WeatherMapper.mapPrecipitation` never returns null: a missing
+  /// reading becomes `none`, so a dive whose weather lookup resolved nothing
+  /// still stores `none`. `weatherIconFor` gives `none` no glyph of its own,
+  /// so such a day renders as blank. Treating it as "this day has weather"
+  /// would leave the day badge-free forever.
+  bool get isRenderable =>
+      airTemp != null ||
+      cloudCover != null ||
+      (precipitation != null && precipitation != Precipitation.none);
+
   @override
   List<Object?> get props => [airTemp, cloudCover, precipitation];
 }

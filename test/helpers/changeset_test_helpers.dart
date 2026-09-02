@@ -240,3 +240,32 @@ Future<SyncManifest?> _readManifest(
     return null;
   }
 }
+
+/// Rewrite [peerId]'s published manifest so its compatibility floor reads as
+/// [schemaVersion]; null strips the field, as on a manifest written before it
+/// existed. Lets a test stand in for a peer on a newer (or legacy) build
+/// without touching AppDatabase.currentSchemaVersion.
+Future<void> restampPeerSchemaVersion(
+  CloudStorageProvider cloud,
+  String peerId, {
+  required int? schemaVersion,
+}) async {
+  final folder = await cloud.getOrCreateSyncFolder();
+  final manifestFile = (await cloud.listFiles(
+    folderId: folder,
+    namePattern: ChangesetLogLayout.manifestName(peerId),
+  )).single;
+  final manifest =
+      jsonDecode(utf8.decode(await cloud.downloadFile(manifestFile.id)))
+          as Map<String, dynamic>;
+  if (schemaVersion == null) {
+    manifest.remove('schemaVersion');
+  } else {
+    manifest['schemaVersion'] = schemaVersion;
+  }
+  await cloud.uploadFile(
+    Uint8List.fromList(utf8.encode(jsonEncode(manifest))),
+    manifestFile.name,
+    folderId: folder,
+  );
+}

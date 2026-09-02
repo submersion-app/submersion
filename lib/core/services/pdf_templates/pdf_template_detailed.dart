@@ -5,7 +5,6 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_front_matter.dart';
@@ -277,39 +276,36 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       if (dive.exitTime != null) _Field('Out', dates.time(dive.exitTime!)),
       if (dive.surfaceInterval != null)
         _Field('Surface Interval', _duration(dive.surfaceInterval!)),
-      if (_sacText(dive, units) case final sac?) _Field('SAC (AMV)', sac),
+      ..._gasConsumptionFields(dive, units),
     ];
   }
 
-  /// Air consumption, in whichever SAC unit the diver reads.
+  /// The diver's gas-consumption lanes, following
+  /// `AppSettings.gasConsumptionDisplay` as the dive detail page does.
   ///
-  /// [Dive.sacPressure] is bar/min. Scaling it by the cylinder volume gives
-  /// L/min, the relation `CylinderSac.sacVolume` documents, so a diver who
-  /// prefers volume SAC gets it whenever the cylinder size is known.
-  String? _sacText(Dive dive, UnitFormatter units) {
-    final pressurePerMin = dive.sacPressure;
-    if (pressurePerMin == null) return null;
+  /// SAC and RMV are two quantities rather than one value in two units
+  /// (discussions #354, #803): [Dive.sac] is a bar/min pressure drop on the
+  /// reference cylinder, [Dive.rmvFor] is L/min summed over every cylinder
+  /// that carries pressures and a volume. So RMV is read from the entity, not
+  /// scaled from SAC by a cylinder volume -- bar/min from a 12 L back gas and
+  /// a 7 L stage cannot be averaged.
+  ///
+  /// A lane the dive cannot supply is omitted. The one exception mirrors the
+  /// detail page: an RMV-only diver whose cylinders have no volumes still
+  /// gets the SAC row, because a page that silently drops gas consumption is
+  /// worse than one showing the other lane (issue #386). The page has no
+  /// place for the tappable volume hint the app shows there.
+  List<_Field> _gasConsumptionFields(Dive dive, UnitFormatter units) {
+    final display = units.settings.gasConsumptionDisplay;
+    final sac = dive.sac;
+    final rmv = display.showsRmv ? dive.rmvFor(units.settings.gasModel) : null;
+    final sacFallback = display.showsRmv && !display.showsSac && rmv == null;
 
-    if (units.settings.sacUnit == SacUnit.litersPerMin) {
-      final volume = _sacCylinder(dive)?.volume;
-      if (volume == null) return null;
-      final litersPerMin = pressurePerMin * volume;
-      return '${units.convertSac(litersPerMin).toStringAsFixed(1)} '
-          '${units.sacSymbol}';
-    }
-
-    return '${units.convertSac(pressurePerMin).toStringAsFixed(1)} '
-        '${units.sacSymbol}';
-  }
-
-  /// The cylinder [Dive.sacPressure] was derived from: back gas, else the
-  /// first one, matching that getter's own rule.
-  DiveTank? _sacCylinder(Dive dive) {
-    if (dive.tanks.isEmpty) return null;
-    for (final tank in dive.tanks) {
-      if (tank.role == TankRole.backGas) return tank;
-    }
-    return dive.tanks.first;
+    return [
+      if ((display.showsSac || sacFallback) && sac != null)
+        _Field('SAC', units.formatSac(sac)),
+      if (rmv != null) _Field('RMV', units.formatRmv(rmv)),
+    ];
   }
 
   /// Every cylinder, not just the first: a technical dive carries stage and

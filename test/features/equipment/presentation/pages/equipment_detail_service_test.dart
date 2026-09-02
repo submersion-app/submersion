@@ -61,9 +61,6 @@ void main() {
           serviceRecordNotifierProvider(
             item.id,
           ).overrideWith((ref) => _MockServiceRecordNotifier()),
-          serviceRecordTotalCostProvider(
-            item.id,
-          ).overrideWith((ref) async => <String, double>{}),
           serviceClockStatusesProvider(
             item.id,
           ).overrideWith((ref) async => clockStatuses),

@@ -9,7 +9,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/global_error_handler.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/windows_app_data_migration.dart';
 
 import 'package:submersion/app.dart';
 import 'package:submersion/core/services/database_location_service.dart';
@@ -55,6 +57,17 @@ Future<void> _bootstrap() async {
   // image decode honours the 75 MB ceiling.
   applyMediaCacheCaps();
 
+  // Relocate the Windows app-data trees off the legacy "Eric Griffin" company
+  // directory. MUST precede SharedPreferences.getInstance(): on Windows
+  // shared_preferences resolves its file through
+  // PathProviderWindows.getApplicationSupportPath(), so reading prefs first
+  // would strand the user's real settings under the old company name. Never
+  // throws; the reports are logged once file logging is up.
+  // (Windows-only and inside main(), so not reachable from the test host.)
+  // coverage:ignore-start
+  final appDataMigrations = await migrateWindowsAppDataDirectories();
+  // coverage:ignore-end
+
   // Initialize SharedPreferences first (needed for storage config)
   final prefs = await SharedPreferences.getInstance();
 
@@ -73,7 +86,28 @@ Future<void> _bootstrap() async {
   final debugEnabled = prefs.getBool('debug_mode_enabled') ?? false;
   if (debugEnabled) {
     LoggerService.setFileService(logFileService);
+    // Stamp the build and device at the top of the session so a log file that
+    // spans several app versions attributes each run to the build that wrote
+    // it (issue #1246). Not awaited: startup must not block on a platform
+    // channel, and the write is serialized behind LoggerService's queue.
+    unawaited(logSessionEnvironment());
   }
+
+  // Now that file logging is wired, report what the app-data migration did.
+  // Anything other than "no legacy data" is worth a line in a shared log:
+  // a failure here is the difference between a user's settings surviving an
+  // upgrade and appearing to reset.
+  // coverage:ignore-start
+  const migrationLogger = LoggerService('AppDataMigration');
+  for (final report in appDataMigrations) {
+    if (report.outcome == AppDataMigrationOutcome.noLegacyData) continue;
+    if (report.outcome == AppDataMigrationOutcome.failed) {
+      migrationLogger.error('Windows app-data migration failed', error: report);
+    } else {
+      migrationLogger.info('Windows app-data migration: $report');
+    }
+  }
+  // coverage:ignore-end
 
   // Create location service and get storage config
   final locationService = DatabaseLocationService(prefs);

@@ -67,7 +67,11 @@ void main() {
   );
 
   Widget harness({
-    required Widget Function(DiveTypeLabelResolver resolve) builder,
+    required Widget Function(
+      DiveTypeLabelResolver resolve,
+      DiveTypeLabelResolver resolveShort,
+    )
+    builder,
     required Locale locale,
     List<DiveTypeEntity>? types,
   }) {
@@ -77,11 +81,13 @@ void main() {
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
         diveTypesProvider.overrideWith((ref) async => types ?? loadedTypes),
       ],
-      // The resolver is built through the production helper, so these cases
-      // still cover the provider -> label seam the tiles no longer own.
+      // The resolvers are built through the production helpers, so these
+      // cases still cover the provider -> label seam the tiles no longer own.
       child: Consumer(
-        builder: (context, ref, _) =>
-            builder(watchDiveTypeLabelResolver(ref, context.l10n)),
+        builder: (context, ref, _) => builder(
+          watchDiveTypeLabelResolver(ref, context.l10n),
+          watchDiveTypeShortLabelResolver(ref, context.l10n),
+        ),
       ),
     );
   }
@@ -97,7 +103,7 @@ void main() {
     }) => harness(
       locale: locale,
       types: types,
-      builder: (resolve) => CompactDiveListTile(
+      builder: (resolve, resolveShort) => CompactDiveListTile(
         diveId: 'd1',
         diveNumber: 7,
         dateTime: DateTime(2026, 3, 15),
@@ -110,6 +116,7 @@ void main() {
         stat1Field: stat1Field,
         onTap: () {},
         diveTypeLabelResolver: resolve,
+        diveTypeShortLabelResolver: resolveShort,
       ),
     );
 
@@ -178,7 +185,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Muck'), findsOneWidget);
+      // A custom type has no short form, so the slot and the type-badge row
+      // both fall back to the diver's own name -- both are expected here.
+      expect(find.textContaining('Muck'), findsWidgets);
     });
 
     testWidgets(
@@ -196,7 +205,9 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.textContaining('Hausriff-Wrack'), findsOneWidget);
+        // A custom type has no short form, so the slot and the type-badge
+        // row both fall back to the diver's own name -- both are expected.
+        expect(find.textContaining('Hausriff-Wrack'), findsWidgets);
         expect(find.textContaining('Wracktauchen'), findsNothing);
       },
     );
@@ -210,7 +221,7 @@ void main() {
         harness(
           locale: const Locale('de'),
           types: const [],
-          builder: (resolve) => CompactDiveListTile(
+          builder: (resolve, resolveShort) => CompactDiveListTile(
             diveId: 'd1',
             diveNumber: 7,
             dateTime: DateTime(2026, 3, 15),
@@ -219,6 +230,7 @@ void main() {
             stat1Field: DiveField.diveTypeName,
             onTap: () {},
             diveTypeLabelResolver: resolve,
+            diveTypeShortLabelResolver: resolveShort,
           ),
         ),
       );
@@ -235,7 +247,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Deep wreck'), findsOneWidget);
+      // An unknown slug has no short form either, so the slot and the
+      // type-badge row both fall back to the same slug capitalization.
+      expect(find.textContaining('Deep wreck'), findsWidgets);
     });
 
     testWidgets('English still shows the English built-in label', (
@@ -246,7 +260,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Wreck'), findsOneWidget);
+      // The slot renders "Wreck" and the new type-badge row (issue #1269)
+      // renders its own short label alongside it, which for this built-in
+      // slug happens to be the same English word -- so both are expected.
+      expect(find.textContaining('Wreck'), findsWidgets);
       expect(find.textContaining('Wracktauchen'), findsNothing);
     });
 
@@ -259,7 +276,7 @@ void main() {
       await tester.pumpWidget(
         harness(
           locale: const Locale('de'),
-          builder: (resolve) => CompactDiveListTile(
+          builder: (resolve, resolveShort) => CompactDiveListTile(
             diveId: 'd1',
             diveNumber: 7,
             dateTime: DateTime(2026, 3, 15),
@@ -269,6 +286,7 @@ void main() {
             stat1Field: DiveField.waterTemp,
             onTap: () {},
             diveTypeLabelResolver: resolve,
+            diveTypeShortLabelResolver: resolveShort,
           ),
         ),
       );
@@ -289,7 +307,7 @@ void main() {
     }) => harness(
       locale: locale,
       types: types,
-      builder: (resolve) => DenseDiveListTile(
+      builder: (resolve, _) => DenseDiveListTile(
         diveId: 'd1',
         diveNumber: 7,
         dateTime: DateTime(2026, 3, 15),
@@ -383,7 +401,7 @@ void main() {
       await tester.pumpWidget(
         harness(
           locale: const Locale('de'),
-          builder: (resolve) => DenseDiveListTile(
+          builder: (resolve, _) => DenseDiveListTile(
             diveId: 'd1',
             diveNumber: 7,
             dateTime: DateTime(2026, 3, 15),

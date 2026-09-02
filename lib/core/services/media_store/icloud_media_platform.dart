@@ -90,8 +90,13 @@ class DirectoryICloudMediaPlatform implements ICloudMediaPlatform {
     return true;
   }
 
+  /// Always true, matching the native answer for a path that is not a
+  /// ubiquitous item: a plain directory has nothing to download, and a
+  /// missing file is reported by the adapter's own exists() check. A false
+  /// answer is reserved for a placeholder whose download did not finish, so
+  /// a fake that wants that case overrides this explicitly.
   @override
-  Future<bool> ensureDownloaded(String path) => File(path).exists();
+  Future<bool> ensureDownloaded(String path) async => true;
 
   @override
   Future<void> refreshFolder(String path) async {}

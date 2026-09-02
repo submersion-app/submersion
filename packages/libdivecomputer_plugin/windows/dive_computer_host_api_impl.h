@@ -14,6 +14,7 @@
 #include "dive_computer_api.g.h"
 #include "serial_io_stream.h"
 #include "serial_scanner.h"
+#include "usbhid_io_stream.h"
 
 extern "C" {
 #include "libdc_wrapper.h"
@@ -64,6 +65,7 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
   std::unique_ptr<SerialScanner> serial_scanner_;
   std::unique_ptr<BleIoStream> ble_stream_;
   std::unique_ptr<SerialIoStream> serial_stream_;
+  std::unique_ptr<UsbHidIoStream> usbhid_stream_;
   libdc_download_session_t* download_session_ = nullptr;
   std::thread download_thread_;
 };

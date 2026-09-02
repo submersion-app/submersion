@@ -99,11 +99,13 @@ class MediaStoreService {
     required MediaStoresRepository storesRepository,
     ConnectedAccountsRepository? accountsRepository,
     AccountCredentialsStore? accountCredentials,
+    List<Duration>? markerRetryBackoff,
     MediaObjectStore Function(S3Config config)? storeFactory,
     Future<MediaObjectStore?> Function()? dropboxStoreFactory,
     Future<MediaObjectStore?> Function()? googleDriveStoreFactory,
     Future<MediaObjectStore?> Function()? icloudStoreFactory,
-  }) : _credentials = credentials,
+  }) : _markerRetryBackoff = markerRetryBackoff ?? defaultMarkerRetryBackoff,
+       _credentials = credentials,
        _attachState = attachState,
        _storesRepository = storesRepository,
        _accounts = accountsRepository ?? ConnectedAccountsRepository(),
@@ -119,6 +121,21 @@ class MediaStoreService {
            icloudStoreFactory ??
            (() => buildMediaObjectStore(CloudProviderType.icloud));
 
+  /// How long to wait between attempts at the identity marker when the store
+  /// answers that it cannot serve it yet.
+  ///
+  /// Connecting is a deliberate foreground action the user is watching, and
+  /// on iCloud the container's copy of `store.json` may still be coming down
+  /// when they tap Connect. Failing on the first attempt would refuse a
+  /// connect that succeeds seconds later, which is the shape issue #1356
+  /// leaves behind now that an unreadable marker is no longer mistaken for
+  /// an absent one.
+  static const List<Duration> defaultMarkerRetryBackoff = [
+    Duration(seconds: 2),
+    Duration(seconds: 4),
+  ];
+
+  final List<Duration> _markerRetryBackoff;
   final MediaStoreCredentialsStore _credentials;
   final MediaStoreAttachState _attachState;
   final MediaStoresRepository _storesRepository;
@@ -198,7 +215,7 @@ class MediaStoreService {
     _validate(config);
     final built = _buildS3Store(config);
     try {
-      final ensured = await StoreMarkerStore(store: built.store).ensure();
+      final ensured = await _ensureMarker(built.store);
       // Reuse the given account (only when it really is an S3 account:
       // attaching S3 credentials under another kind's keychain key would
       // corrupt that account), else resolve the endpoint to its
@@ -253,9 +270,14 @@ class MediaStoreService {
     _googleDriveStoreFactory,
   );
 
+  static const String _icloudDisplayHint = 'iCloud';
+
   /// Connects through the signed-in Apple ID's iCloud container.
-  Future<MediaStoreConnectResult> connectICloud() =>
-      _connectManaged(CloudProviderType.icloud, 'iCloud', _icloudStoreFactory);
+  Future<MediaStoreConnectResult> connectICloud() => _connectManaged(
+    CloudProviderType.icloud,
+    _icloudDisplayHint,
+    _icloudStoreFactory,
+  );
 
   /// Shared managed-provider flow: no credentials-store write - managed
   /// providers keep credentials in their own auth stores.
@@ -271,7 +293,7 @@ class MediaStoreService {
         kind: MediaStoreErrorKind.auth,
       );
     }
-    final ensured = await StoreMarkerStore(store: store).ensure();
+    final ensured = await _ensureMarker(store);
     // Ensure an account row for the kind (single-instance for managed
     // providers). Dropbox adopts the sync-era auth blob when the
     // per-account key is still empty: a user who linked Dropbox sync
@@ -309,6 +331,26 @@ class MediaStoreService {
       storeId: ensured.marker.storeId,
       createdNewStore: ensured.created,
     );
+  }
+
+  /// Reads or creates the store's identity marker, waiting out a store that
+  /// says it cannot serve it yet. Only [MediaStoreErrorKind.transient] is
+  /// retried: an auth or fatal answer will not improve by asking again.
+  Future<({StoreMarker marker, bool created})> _ensureMarker(
+    MediaObjectStore store,
+  ) async {
+    final markers = StoreMarkerStore(store: store);
+    for (var attempt = 0; ; attempt++) {
+      try {
+        return await markers.ensure();
+      } on MediaStoreException catch (e) {
+        if (e.kind != MediaStoreErrorKind.transient ||
+            attempt >= _markerRetryBackoff.length) {
+          rethrow;
+        }
+        await Future<void>.delayed(_markerRetryBackoff[attempt]);
+      }
+    }
   }
 
   /// Detaches this device. Credentials and attach state are cleared; the

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -12,6 +13,27 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 /// same list rows outside a split view (the dashboard's recent dives, for
 /// one) has to match it or the same card appears at two different widths.
 const double kMasterPaneWidth = 440;
+
+/// Minimum width the master pane can be resized to.
+const double _kMasterPaneMinWidth = 280;
+
+/// Maximum width the master pane can be resized to.
+const double _kMasterPaneMaxWidth = 700;
+
+/// Width of the space reserved for the detail pane, subtracted from the
+/// available width when computing the resize maximum so the detail pane
+/// always keeps a usable minimum width.
+const double _kDetailPaneReservedWidth = 400;
+
+/// Width of the draggable divider between the master and detail panes.
+const double _kResizeHandleWidth = 8;
+
+/// Master pane width, user-resizable via the divider and shared across every
+/// [MasterDetailScaffold] instance for the lifetime of the app session (not
+/// persisted to disk, so it resets on restart).
+final masterPaneWidthProvider = StateProvider<double>(
+  (ref) => kMasterPaneWidth,
+);
 
 /// Mode for the detail pane in master-detail layout.
 enum DetailPaneMode {
@@ -310,49 +332,71 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
       );
     }
 
-    // Desktop: Split view with fixed-width master pane
+    // Desktop: Split view with a user-resizable master pane
     return Scaffold(
-      body: Row(
-        children: [
-          // Master pane (list) with fixed width
-          SizedBox(
-            width: widget.masterWidth,
-            child: ExcludeFocusTraversal(
-              excluding: isEditingDetail,
-              child: _MasterPane(
-                floatingActionButton: widget.floatingActionButton != null
-                    ? _wrapFabForCreate(widget.floatingActionButton!)
-                    : null,
-                child: widget.masterBuilder(
-                  context,
-                  _onItemSelected,
-                  selectedId,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth =
+              (constraints.maxWidth -
+                      _kDetailPaneReservedWidth -
+                      _kResizeHandleWidth)
+                  .clamp(_kMasterPaneMinWidth, _kMasterPaneMaxWidth);
+          final width = ref
+              .watch(masterPaneWidthProvider)
+              .clamp(_kMasterPaneMinWidth, maxWidth);
+
+          return Row(
+            children: [
+              // Master pane (list), user-resizable
+              SizedBox(
+                key: const Key('master-detail-master-pane'),
+                width: width,
+                child: ExcludeFocusTraversal(
+                  excluding: isEditingDetail,
+                  child: _MasterPane(
+                    floatingActionButton: widget.floatingActionButton != null
+                        ? _wrapFabForCreate(widget.floatingActionButton!)
+                        : null,
+                    child: widget.masterBuilder(
+                      context,
+                      _onItemSelected,
+                      selectedId,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          // Vertical divider
-          const VerticalDivider(width: 1, thickness: 1),
-          // Detail pane (or map view)
-          Expanded(
-            child: widget.mapBuilder != null && _isMapView
-                ? widget.mapBuilder!(context, selectedId, _onItemSelected)
-                : _DetailPane(
-                    selectedId: selectedId,
-                    mode: mode,
-                    detailBuilder: widget.detailBuilder,
-                    summaryBuilder: widget.summaryBuilder,
-                    editBuilder: widget.editBuilder,
-                    createBuilder: widget.createBuilder,
-                    onClose: () => _onItemSelected(null),
-                    onSaved: _onSaved,
-                    onCancel: _onCancel,
-                    detailScrollOffset: _detailScrollOffset,
-                    onDetailScrollOffsetChanged: (offset) =>
-                        _detailScrollOffset = offset,
-                  ),
-          ),
-        ],
+              // Draggable divider
+              _ResizeHandle(
+                onDrag: (delta) {
+                  final notifier = ref.read(masterPaneWidthProvider.notifier);
+                  notifier.state = (notifier.state + delta).clamp(
+                    _kMasterPaneMinWidth,
+                    maxWidth,
+                  );
+                },
+              ),
+              // Detail pane (or map view)
+              Expanded(
+                child: widget.mapBuilder != null && _isMapView
+                    ? widget.mapBuilder!(context, selectedId, _onItemSelected)
+                    : _DetailPane(
+                        selectedId: selectedId,
+                        mode: mode,
+                        detailBuilder: widget.detailBuilder,
+                        summaryBuilder: widget.summaryBuilder,
+                        editBuilder: widget.editBuilder,
+                        createBuilder: widget.createBuilder,
+                        onClose: () => _onItemSelected(null),
+                        onSaved: _onSaved,
+                        onCancel: _onCancel,
+                        detailScrollOffset: _detailScrollOffset,
+                        onDetailScrollOffsetChanged: (offset) =>
+                            _detailScrollOffset = offset,
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -378,6 +422,32 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
       child: GestureDetector(
         onTap: handler,
         child: AbsorbPointer(child: fab),
+      ),
+    );
+  }
+}
+
+/// Draggable divider between the master and detail panes.
+class _ResizeHandle extends StatelessWidget {
+  final ValueChanged<double> onDrag;
+
+  const _ResizeHandle({required this.onDrag});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: context.l10n.accessibility_label_resizeMasterPane,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.resizeColumn,
+        child: GestureDetector(
+          key: const Key('master-detail-resize-handle'),
+          behavior: HitTestBehavior.opaque,
+          onHorizontalDragUpdate: (details) => onDrag(details.delta.dx),
+          child: const SizedBox(
+            width: _kResizeHandleWidth,
+            child: Center(child: VerticalDivider(width: 1, thickness: 1)),
+          ),
+        ),
       ),
     );
   }

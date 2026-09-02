@@ -32,6 +32,16 @@ void main() {
     expect(all.single.filter.mediaType, MediaType.video);
   });
 
+  test('a species facet survives the album round trip', () async {
+    await repo.create(
+      name: 'Groupers',
+      filter: const MediaLibraryFilter(speciesId: 'sp1'),
+    );
+
+    final all = await repo.getAll();
+    expect(all.single.filter.speciesId, 'sp1');
+  });
+
   test('create marks the row pending for sync', () async {
     final album = await repo.create(name: 'x', filter: MediaLibraryFilter.none);
 

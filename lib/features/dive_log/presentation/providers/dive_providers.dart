@@ -45,12 +45,62 @@ final diveSortProvider = StateProvider<SortState<DiveSortField>>(
   ),
 );
 
+/// The ids of every dive matching one polarity of the decompression filter.
+///
+/// The deco axis cannot be evaluated in memory: [DiveRepository.getAllDives]
+/// deliberately skips profile hydration for list views, and deco-stop events
+/// never reach the [domain.Dive] entity at all, so
+/// [DiveFilterState.apply] has nothing to classify from. Resolving the ids in
+/// SQL instead keeps the entity-backed surfaces (table view, activity and heat
+/// maps) in exact agreement with the paginated list, which reads the same
+/// `decoSignalCondition`.
+///
+/// Keyed on the wanted polarity so flipping Yes/No lands on a fresh instance
+/// rather than briefly reusing the other polarity's cached ids.
+final decoFilteredDiveIdsProvider = FutureProvider.family<Set<String>, bool>((
+  ref,
+  wantDeco,
+) async {
+  final diverId = ref.watch(currentDiverIdProvider);
+  final repository = ref.watch(diveRepositoryProvider);
+  // Profile rows and deco-stop events both feed the classification, so the
+  // dives tick alone is not enough to keep this fresh.
+  ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
+  return repository.getDiveIdsWithDecoSignal(
+    wantDeco: wantDeco,
+    diverId: diverId,
+  );
+});
+
 /// Filtered dives provider - applies current filter to dive list
 final filteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
   final divesAsync = ref.watch(diveListNotifierProvider);
   final filter = ref.watch(diveFilterProvider);
 
-  return divesAsync.whenData((dives) => filter.apply(dives));
+  final decoOnly = filter.decoOnly;
+  if (decoOnly == null) {
+    return divesAsync.whenData((dives) => filter.apply(dives));
+  }
+
+  final decoAsync = ref.watch(decoFilteredDiveIdsProvider(decoOnly));
+  // Built-in AsyncValue.value, not the repo's valueOrNull polyfill: it retains
+  // the previous ids across a reload, so a profile write does not blank the
+  // list. Null means first load (or a failure), never a stale answer.
+  final decoIds = decoAsync.value;
+  if (decoIds == null) {
+    if (decoAsync.hasError) {
+      return AsyncValue.error(
+        decoAsync.error!,
+        decoAsync.stackTrace ?? StackTrace.empty,
+      );
+    }
+    return const AsyncValue.loading();
+  }
+
+  return divesAsync.whenData(
+    (dives) =>
+        filter.apply(dives).where((d) => decoIds.contains(d.id)).toList(),
+  );
 });
 
 /// Sorted and filtered dives provider - applies sort after filter
@@ -232,7 +282,10 @@ final sourceProfilesProvider =
       diveId,
     ) async {
       final repository = ref.watch(diveRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
+      // Analysis-input tick: this hydration feeds sourceProfileAnalysisProvider
+      // and reads only profile/source tables, so the broad detail tick (which
+      // includes media) re-ran the per-source analysis after viewing a photo.
+      ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
       return repository.getProfilesByDataSource(diveId);
     });
 
@@ -1031,8 +1084,11 @@ final tankPressuresProvider =
       diveId,
     ) async {
       final repository = ref.watch(tankPressureRepositoryProvider);
+      // Analysis-input tick covers tank_pressure_series (and the dives
+      // cascade); the broad detail tick made every pressure curve re-query
+      // on unrelated writes such as media.
       ref.invalidateSelfWhen(
-        ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+        ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
       );
       return repository.getTankPressuresForDive(diveId);
     });
@@ -1048,9 +1104,26 @@ final estimatedTankPressuresProvider =
       final realFuture = ref.watch(tankPressuresProvider(diveId).future);
       final diveFuture = ref.watch(diveProvider(diveId).future);
       final switchesFuture = ref.watch(gasSwitchesProvider(diveId).future);
+      // Read synchronously, before the first await, so the dependency is
+      // registered while the provider is certainly still alive.
+      final showEstimates = ref.watch(
+        settingsProvider.select((s) => s.defaultShowEstimatedTankPressure),
+      );
       final real = await realFuture;
       final dive = await diveFuture;
       if (dive == null) {
+        return EstimatedTankPressures(real, const <String>{});
+      }
+      // A gauge (bottom-timer) dive models no gas at all, so a synthesized
+      // pressure trace would be fabricated rather than measured (issue #731).
+      // Real transmitter samples, if the dive has any, still pass through.
+      if (dive.isGauge) {
+        return EstimatedTankPressures(real, const <String>{});
+      }
+      // The diver can switch estimates off entirely (issue #731). Gating here
+      // rather than at the chart means the series never exists, so no legend
+      // chip, tooltip row, or "(est.)" label survives anywhere.
+      if (!showEstimates) {
         return EstimatedTankPressures(real, const <String>{});
       }
       final switches = await switchesFuture;
@@ -1072,7 +1145,10 @@ final estimatedTankPressuresProvider =
 final diveDataSourcesProvider =
     FutureProvider.family<List<DiveDataSource>, String>((ref, diveId) async {
       final repository = ref.watch(diveRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
+      // Analysis-input tick: reads dive_data_sources/dive_computers only, and
+      // sourceProfileAnalysisProvider watches this, so the broad detail tick
+      // re-ran the per-source analysis on unrelated writes such as media.
+      ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
       return repository.getDataSources(diveId);
     });
 

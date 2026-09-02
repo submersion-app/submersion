@@ -32,9 +32,12 @@ Future<void> _pump(
   WidgetTester tester, {
   Size size = const Size(1400, 900),
   List<GpsTrack>? tracks,
+  // Thumbnail-LOD geometry per track; defaults to the track's own points.
+  Future<List<GpsTrackPoint>> Function(GpsTrack track)? geometry,
 }) async {
   final base = await getBaseOverrides();
   final data = tracks ?? [_track('t1', 20.0), _track('t2', 25.0)];
+  final resolve = geometry ?? (t) async => t.points;
   await tester.binding.setSurfaceSize(size);
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -47,7 +50,7 @@ Future<void> _pump(
           gpsTrackGeometryProvider((
             t.id,
             TrackLod.thumbnail,
-          )).overrideWith((ref) async => t.points),
+          )).overrideWith((ref) => resolve(t)),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -91,10 +94,14 @@ void main() {
     expect(find.byType(FlutterMap), findsOneWidget);
   });
 
-  testWidgets('shows an empty state when there are no tracks', (tester) async {
+  testWidgets('shows an empty basemap when there are no tracks', (
+    tester,
+  ) async {
     await _pump(tester, tracks: const []);
     expect(find.text('No recorded tracks to show.'), findsOneWidget);
-    expect(find.byType(FlutterMap), findsNothing);
+    // A map still fills the pane; it just has nothing drawn on it.
+    expect(find.byType(FlutterMap), findsOneWidget);
+    expect(find.byType(PolylineLayer<String>), findsNothing);
   });
 
   testWidgets('selecting a track promotes it to a thicker stroke', (
@@ -116,6 +123,62 @@ void main() {
     expect(layer.polylines.last.hitValue, 't1');
     expect(layer.polylines.last.strokeWidth, 4.0);
     expect(layer.polylines.first.strokeWidth, 2.0);
+  });
+
+  testWidgets('selecting a track frames the map on that track alone', (
+    tester,
+  ) async {
+    await _pump(tester);
+    // Thumbnails are FlutterMaps too; only the overview map has a controller.
+    FlutterMap overview() => tester.widget<FlutterMap>(
+      find.byWidgetPredicate((w) => w is FlutterMap && w.mapController != null),
+    );
+    double centreLat() => overview().mapController!.camera.center.latitude;
+    // Nothing selected: the whole library is framed, midway between t1 at
+    // 20 degrees and t2 at 25.
+    expect(centreLat(), closeTo(22.5, 1.0));
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(GpsTrackMapPage)),
+    );
+    container
+        .read(mapListSelectionProvider('gps-tracks').notifier)
+        .select('t2');
+    await tester.pumpAndSettle();
+
+    expect(centreLat(), closeTo(25.0, 0.1));
+
+    // Clearing the selection frames the library again.
+    container.read(mapListSelectionProvider('gps-tracks').notifier).deselect();
+    await tester.pumpAndSettle();
+    expect(centreLat(), closeTo(22.5, 1.0));
+  });
+
+  testWidgets('mounts the basemap before geometry arrives and frames once it '
+      'does', (tester) async {
+    // A cold cache decodes and simplifies every track in an isolate; until
+    // the first one lands there is nothing to frame.
+    final pending = Completer<List<GpsTrackPoint>>();
+    final track = _track('t2', 25.0);
+    await _pump(tester, tracks: [track], geometry: (_) => pending.future);
+
+    FlutterMap overview() => tester.widget<FlutterMap>(
+      find.byWidgetPredicate((w) => w is FlutterMap && w.mapController != null),
+    );
+    // The map is already on screen, drawing nothing yet.
+    expect(overview, returnsNormally);
+    final layer = tester.widget<PolylineLayer<String>>(
+      find.byType(PolylineLayer<String>),
+    );
+    expect(layer.polylines, isEmpty);
+
+    pending.complete(track.points);
+    await tester.pumpAndSettle();
+
+    expect(
+      overview().mapController!.camera.center.latitude,
+      closeTo(25.0, 0.1),
+    );
   });
 
   testWidgets('the date filter starts unbounded', (tester) async {

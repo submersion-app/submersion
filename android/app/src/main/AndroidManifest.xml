@@ -1,4 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+        Cloud sync, media upload, and the GitHub update check (#1258).
+        Release builds already carry this permission: the manifest merger
+        unions it in from a library manifest, and apkanalyzer confirms it in
+        the shipped v1.7.5.6772 APK. Declared here so it stops depending on
+        which plugins happen to be in the tree, since the only pub package
+        supplying it is google_sign_in_android, a transitive dependency.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Biometric unlock for App Lock (local_auth) -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <!-- Photo library access for attaching dive photos -->

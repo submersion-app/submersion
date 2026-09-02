@@ -49,12 +49,22 @@ void main() {
 
   tearDown(() => db.close());
 
-  Widget app(List<MediaTransferQueueEntry> entries) => ProviderScope(
+  Widget app(
+    List<MediaTransferQueueEntry> entries, {
+    Map<String, String> labels = const {},
+    bool suspended = false,
+  }) => ProviderScope(
     overrides: [
       mediaTransferQueueRepositoryProvider.overrideWithValue(repo),
       localAssetCacheRepositoryProvider.overrideWithValue(assetCache),
       mediaTransferEntriesProvider.overrideWith((ref) => Stream.value(entries)),
       mediaStoreRuntimeProvider.overrideWith((ref) async => null),
+      // The rows name their media; without this the lookup would reach for
+      // an uninitialised database.
+      mediaTransferLabelsProvider.overrideWith((ref) async => labels),
+      mediaTransfersSuspendedProvider.overrideWith(
+        (ref) => Stream.value(suspended),
+      ),
     ],
     child: const MaterialApp(
       // Pinned: these tests find widgets by their English strings.
@@ -418,5 +428,94 @@ void main() {
     );
     await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  // Issue #1270: the dashboard's "N uploads pending" chip pushes straight
+  // here, and go_router builds this route with a plain `builder` nested under
+  // media-storage, so MediaStoragePage - the one screen whose build resolves
+  // the runtime, and therefore the app's only reliable drain trigger - never
+  // runs on the way in. Opening Transfers showed the stuck rows without doing
+  // anything about them, which is precisely what the reporter expected it to
+  // fix. Resolving the runtime here kicks the drain (see the unawaited
+  // worker.drain() at the end of mediaStoreRuntimeProvider).
+  testWidgets('opening the page resolves the runtime, which drains the queue', (
+    tester,
+  ) async {
+    var builds = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mediaTransferQueueRepositoryProvider.overrideWithValue(repo),
+          localAssetCacheRepositoryProvider.overrideWithValue(assetCache),
+          mediaTransferEntriesProvider.overrideWith(
+            (ref) => Stream.value(const <MediaTransferQueueEntry>[]),
+          ),
+          mediaStoreRuntimeProvider.overrideWith((ref) async {
+            builds++;
+            return null;
+          }),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TransfersPage(),
+        ),
+      ),
+    );
+    await pumpRoute(tester);
+
+    expect(builds, 1);
+  });
+
+  // Issue #1356: the reporter's queue read as a column of bare UUIDs. The row
+  // carries only the media id; the file name lives on the media row.
+  testWidgets('rows name the media file rather than its id', (tester) async {
+    late List<MediaTransferQueueEntry> snapshot;
+    await tester.runAsync(() async {
+      await repo.enqueueUpload(mediaId: 'm-a');
+      snapshot = await repo.watchEntries().first;
+    });
+
+    await tester.pumpWidget(app(snapshot, labels: {'m-a': 'IMG_0042.HEIC'}));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('IMG_0042.HEIC'), findsOneWidget);
+    expect(find.text('m-a'), findsNothing);
+  });
+
+  testWidgets('a row whose media is unknown falls back to the id', (
+    tester,
+  ) async {
+    late List<MediaTransferQueueEntry> snapshot;
+    await tester.runAsync(() async {
+      await repo.enqueueUpload(mediaId: 'm-a');
+      snapshot = await repo.watchEntries().first;
+    });
+
+    await tester.pumpWidget(app(snapshot));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('m-a'), findsOneWidget);
+  });
+
+  testWidgets('a suspended queue shows the paused notice above the list', (
+    tester,
+  ) async {
+    late List<MediaTransferQueueEntry> snapshot;
+    await tester.runAsync(() async {
+      await repo.enqueueUpload(mediaId: 'm-a');
+      snapshot = await repo.watchEntries().first;
+    });
+
+    await tester.pumpWidget(app(snapshot, suspended: true));
+    // Two frames: the list, then the suspension stream's first value.
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Transfers paused'), findsOneWidget);
+    expect(find.text('Waiting'), findsOneWidget);
   });
 }

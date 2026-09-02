@@ -11,6 +11,7 @@ import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Page for selecting photos from the device gallery within a date range.
 ///
@@ -61,7 +62,11 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
   void initState() {
     super.initState();
     Future.microtask(_clearStaleStaging);
-    _checkPermissionAndLoad();
+    logFailure(
+      _checkPermissionAndLoad(),
+      _PhotoPickerPageState,
+      'check permission and load',
+    );
   }
 
   /// Drops files staged by an earlier session that was abandoned rather than
@@ -86,7 +91,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
 
     final state = ref.read(photoPickerNotifierProvider);
     if (state.hasPermission) {
-      _loadAssets();
+      logFailure(_loadAssets(), _PhotoPickerPageState, 'load assets');
     }
   }
 

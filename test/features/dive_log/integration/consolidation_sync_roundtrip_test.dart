@@ -8,7 +8,10 @@ import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -199,6 +202,11 @@ void main() {
         );
   }
 
+  /// Seeds one single-sample tank pressure series (plan 2c rule R1: writes go
+  /// through the series repository, never the legacy row-per-sample table).
+  /// Bound explicitly to [db] since this test switches [DatabaseService]
+  /// between two devices and a zero-arg repository would resolve whichever
+  /// database happens to be active when this runs.
   Future<void> seedTankPressure(
     AppDatabase db,
     String id, {
@@ -207,17 +215,17 @@ void main() {
     required int timestamp,
     required double pressure,
   }) async {
-    await db
-        .into(db.tankPressureProfiles)
-        .insert(
-          TankPressureProfilesCompanion.insert(
-            id: id,
-            diveId: diveId,
-            tankId: tankId,
-            timestamp: timestamp,
-            pressure: pressure,
-          ),
-        );
+    await TankPressureSeriesRepository(
+      database: db,
+      syncRepository: SyncRepository(database: db),
+    ).insertSeries(
+      diveId: diveId,
+      tankId: tankId,
+      computerId: null,
+      id: id,
+      samples: [TankPressureSample(timestamp: timestamp, pressure: pressure)],
+      now: 0,
+    );
   }
 
   Future<void> seedEvent(
@@ -395,11 +403,11 @@ void main() {
       reason: 're-parented secondary tank must carry its source computer id',
     );
 
-    final pressuresOnB = await (dbB.select(
-      dbB.tankPressureProfiles,
-    )..where((t) => t.diveId.equals('t'))).get();
+    final pressureSeriesOnB = await TankPressureSeriesRepository(
+      database: dbB,
+    ).getSeriesForDive('t');
     expect(
-      pressuresOnB.any((p) => p.computerId == 'comp-s'),
+      pressureSeriesOnB.any((s) => s.computerId == 'comp-s'),
       isTrue,
       reason: "the secondary's tank pressure series must be re-parented",
     );
@@ -413,11 +421,11 @@ void main() {
       reason: "the secondary's profile events must be re-parented",
     );
 
-    final profilesOnB = await (dbB.select(
-      dbB.diveProfiles,
-    )..where((t) => t.diveId.equals('t'))).get();
+    final profileSeriesOnB = await ProfileSeriesRepository(
+      database: dbB,
+    ).getSeriesForDive('t');
     expect(
-      profilesOnB.any((p) => p.computerId == 'comp-s'),
+      profileSeriesOnB.any((s) => s.computerId == 'comp-s'),
       isTrue,
       reason: "the secondary's profile points must be re-parented",
     );
@@ -496,8 +504,10 @@ void main() {
     );
     expect(sourcesAfterUndo.map((s) => s.diveId).toSet(), {'t', 's'});
 
-    final pressuresAfterUndo = await dbB.select(dbB.tankPressureProfiles).get();
-    expect(pressuresAfterUndo.map((p) => p.id).toSet(), {
+    final pressureRowsAfterUndo = await TankPressureSeriesRepository(
+      database: dbB,
+    ).getRowsForDives(['t', 's']);
+    expect(pressureRowsAfterUndo.map((p) => p.id).toSet(), {
       'tp-t1',
       'tp-s1',
     }, reason: 'undo must not leave orphaned tank-pressure rows on B');

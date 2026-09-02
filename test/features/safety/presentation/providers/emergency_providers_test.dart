@@ -65,6 +65,9 @@ DiveSummary _summary({String? country, double? lat, double? lon}) {
   );
 }
 
+/// A chamber the diver added themselves. `EmergencyChamberRepository` always
+/// builds these with `isBuiltIn: false`, and the ordering bands rely on that
+/// to keep a diver's own entries at the top.
 EmergencyChamber _chamber(
   String id,
   String country, {
@@ -78,6 +81,26 @@ EmergencyChamber _chamber(
     phone: '+1',
     latitude: lat,
     longitude: lon,
+    isBuiltIn: false,
+  );
+}
+
+EmergencyChamber _bundled({
+  required String id,
+  String country = 'AU',
+  ChamberCapability capability = ChamberCapability.divingEmergency,
+  double? lat,
+  double? lon,
+}) {
+  return EmergencyChamber(
+    id: id,
+    name: 'Chamber $id',
+    country: country,
+    phone: '+61-7-0000-0000',
+    latitude: lat,
+    longitude: lon,
+    capability: capability,
+    lastVerified: DateTime.utc(2026, 8, 1),
     isBuiltIn: true,
   );
 }
@@ -175,9 +198,9 @@ void main() {
     addTearDown(container.dispose);
 
     final data = await container.read(emergencyCardDataProvider.future);
-    final userIds = data.chambers
-        .where((c) => c.id == 'near' || c.id == 'far')
-        .map((c) => c.id)
+    final userIds = data.nearbyChambers
+        .map((l) => l.chamber.id)
+        .where((id) => id == 'near' || id == 'far')
         .toList();
     expect(userIds, ['near', 'far']);
   });
@@ -189,10 +212,10 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final data = await container.read(emergencyCardDataProvider.future);
-    final ids = data.chambers
-        .where((c) => c.id == 'home' || c.id == 'other')
-        .map((c) => c.id)
+    final listings = await container.read(chamberListingsProvider.future);
+    final ids = listings
+        .map((l) => l.chamber.id)
+        .where((id) => id == 'home' || id == 'other')
         .toList();
     expect(ids.first, 'home');
   });
@@ -200,16 +223,162 @@ void main() {
   test('hidden bundled chambers are filtered out', () async {
     final container0 = _container(summaries: const []);
     addTearDown(container0.dispose);
-    final all = await container0.read(emergencyCardDataProvider.future);
-    final bundledId = all.chambers.firstWhere((c) => c.isBuiltIn).id;
+    final all = await container0.read(chamberListingsProvider.future);
+    final bundledId = all.firstWhere((l) => l.chamber.isBuiltIn).chamber.id;
 
     final settings = MockSettingsNotifier();
     await settings.setChamberHidden(bundledId, true);
     final container = _container(summaries: const [], settings: settings);
     addTearDown(container.dispose);
 
-    final data = await container.read(emergencyCardDataProvider.future);
-    expect(data.chambers.where((c) => c.id == bundledId), isEmpty);
+    final listings = await container.read(chamberListingsProvider.future);
+    expect(listings.where((l) => l.chamber.id == bundledId), isEmpty);
+  });
+
+  group('chamber ordering', () {
+    test(
+      'an elective clinic never outranks a dive chamber, however close',
+      () async {
+        // Sydney Harbour. The elective clinic is next door, the dive chamber
+        // is a couple of hundred kilometres up the coast.
+        EmergencyDataService.setBundledChambersForTesting([
+          _bundled(
+            id: 'elective-near',
+            capability: ChamberCapability.elective,
+            lat: -33.86,
+            lon: 151.21,
+          ),
+          _bundled(
+            id: 'dive-far',
+            capability: ChamberCapability.divingEmergency,
+            lat: -32.0,
+            lon: 150.0,
+          ),
+        ]);
+        final container = _container(
+          summaries: [_summary(country: 'Australia', lat: -33.85, lon: 151.21)],
+        );
+        addTearDown(container.dispose);
+
+        final listings = await container.read(chamberListingsProvider.future);
+        final order = listings.map((l) => l.chamber.id).toList();
+
+        expect(
+          order.indexOf('dive-far'),
+          lessThan(order.indexOf('elective-near')),
+        );
+      },
+    );
+
+    test('user chambers stay at the top', () async {
+      // The bundled chamber is on the dive site; the diver's own entry is on
+      // the other side of the planet. Theirs still leads.
+      EmergencyDataService.setBundledChambersForTesting([
+        _bundled(id: 'bundled-near', lat: -33.85, lon: 151.21),
+      ]);
+      final container = _container(
+        summaries: [_summary(country: 'Australia', lat: -33.85, lon: 151.21)],
+        userChambers: [_chamber('mine', 'AU', lat: 40.0, lon: -74.0)],
+      );
+      addTearDown(container.dispose);
+
+      final listings = await container.read(chamberListingsProvider.future);
+      expect(listings.first.chamber.id, 'mine');
+    });
+
+    test('within a band, the nearer chamber wins', () async {
+      EmergencyDataService.setBundledChambersForTesting([
+        _bundled(id: 'far', lat: -32.0, lon: 150.0),
+        _bundled(id: 'near', lat: -33.85, lon: 151.2),
+      ]);
+      final container = _container(
+        summaries: [_summary(country: 'Australia', lat: -33.85, lon: 151.21)],
+      );
+      addTearDown(container.dispose);
+
+      final listings = await container.read(chamberListingsProvider.future);
+      expect(listings.map((l) => l.chamber.id).toList(), ['near', 'far']);
+    });
+
+    test('chambers without coordinates sort last within their band', () async {
+      EmergencyDataService.setBundledChambersForTesting([
+        _bundled(id: 'nowhere'),
+        _bundled(id: 'somewhere', lat: -33.85, lon: 151.21),
+      ]);
+      final container = _container(
+        summaries: [_summary(country: 'Australia', lat: -33.85, lon: 151.21)],
+      );
+      addTearDown(container.dispose);
+
+      final listings = await container.read(chamberListingsProvider.future);
+      expect(listings.map((l) => l.chamber.id).toList(), [
+        'somewhere',
+        'nowhere',
+      ]);
+    });
+  });
+
+  group('card selection', () {
+    test('the card shows at most five chambers', () async {
+      EmergencyDataService.setBundledChambersForTesting([
+        for (var i = 0; i < 8; i++)
+          _bundled(id: 'c$i', lat: -33.85 + i * 0.01, lon: 151.21),
+      ]);
+      final container = _container(
+        summaries: [_summary(country: 'Australia', lat: -33.85, lon: 151.21)],
+      );
+      addTearDown(container.dispose);
+
+      final data = await container.read(emergencyCardDataProvider.future);
+      expect(data.nearbyChambers, hasLength(chamberCardLimit));
+      expect(data.totalChamberCount, 8);
+    });
+
+    test('chambers beyond 500 km are left off the card', () async {
+      // Sydney dive, chamber in Perth.
+      EmergencyDataService.setBundledChambersForTesting([
+        _bundled(id: 'perth', lat: -31.95, lon: 115.86),
+      ]);
+      final container = _container(
+        summaries: [_summary(country: 'Australia', lat: -33.85, lon: 151.21)],
+      );
+      addTearDown(container.dispose);
+
+      final data = await container.read(emergencyCardDataProvider.future);
+      expect(data.nearbyChambers, isEmpty);
+      expect(data.totalChamberCount, 1);
+    });
+
+    test('without GPS, the card falls back to same-country chambers', () async {
+      EmergencyDataService.setBundledChambersForTesting([
+        _bundled(id: 'german', country: 'DE'),
+        _bundled(id: 'french', country: 'FR'),
+      ]);
+      final container = _container(
+        summaries: [_summary(country: 'Germany')], // -> DE, no GPS
+      );
+      addTearDown(container.dispose);
+
+      final data = await container.read(emergencyCardDataProvider.future);
+      expect(data.nearbyChambers.map((l) => l.chamber.id).toList(), ['german']);
+    });
+
+    test('the full directory keeps every chamber the card omits', () async {
+      EmergencyDataService.setBundledChambersForTesting([
+        _bundled(id: 'perth', lat: -31.95, lon: 115.86),
+        _bundled(id: 'sydney', lat: -33.86, lon: 151.21),
+      ]);
+      final container = _container(
+        summaries: [_summary(country: 'Australia', lat: -33.85, lon: 151.21)],
+      );
+      addTearDown(container.dispose);
+
+      final data = await container.read(emergencyCardDataProvider.future);
+      final listings = await container.read(chamberListingsProvider.future);
+
+      expect(data.nearbyChambers.map((l) => l.chamber.id).toList(), ['sydney']);
+      expect(listings.map((l) => l.chamber.id).toList(), ['sydney', 'perth']);
+    });
   });
 
   test('the diver id scopes chamber and dive lookups', () async {

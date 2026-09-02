@@ -4,13 +4,18 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
-import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_gas_lane_provider.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_bar.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_action.dart';
+import 'package:submersion/features/statistics/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsGasPage extends ConsumerWidget {
@@ -22,12 +27,17 @@ class StatisticsGasPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    final display = settings.gasConsumptionDisplay;
 
     final content = SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (display == GasConsumptionDisplay.both) ...[
+            _buildLaneSelector(context, ref),
+            const SizedBox(height: 16),
+          ],
           _buildSacTrendSection(context, ref, units),
           const SizedBox(height: 16),
           _buildGasMixSection(context, ref),
@@ -44,8 +54,44 @@ class StatisticsGasPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.statistics_gas_appBar_title)),
-      body: content,
+      appBar: AppBar(
+        title: Text(context.l10n.statistics_gas_appBar_title),
+        actions: const [StatisticsFilterAction()],
+      ),
+      // Expanded is required: content is a SingleChildScrollView, and a
+      // Column would otherwise hand it unbounded height.
+      body: Column(
+        children: [
+          const StatisticsFilterBar(),
+          Expanded(child: content),
+        ],
+      ),
+    );
+  }
+
+  /// SAC | RMV for the whole page, shown only when the preference displays
+  /// both lanes. Three sections with two lanes each would be six charts.
+  Widget _buildLaneSelector(BuildContext context, WidgetRef ref) {
+    final lane = ref.watch(statisticsGasLaneProvider);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: SegmentedButton<GasConsumptionLane>(
+        segments: [
+          ButtonSegment(
+            value: GasConsumptionLane.sac,
+            label: Text(context.l10n.gasConsumption_sac),
+          ),
+          ButtonSegment(
+            value: GasConsumptionLane.rmv,
+            label: Text(context.l10n.gasConsumption_rmv),
+          ),
+        ],
+        selected: {lane},
+        showSelectedIcon: false,
+        onSelectionChanged: (selection) =>
+            ref.read(statisticsGasLaneOverrideProvider.notifier).state =
+                selection.first,
+      ),
     );
   }
 
@@ -54,41 +100,29 @@ class StatisticsGasPage extends ConsumerWidget {
     WidgetRef ref,
     UnitFormatter units,
   ) {
-    final sacTrendAsync = ref.watch(sacTrendProvider);
-    final sacUnit = ref.watch(sacUnitProvider);
+    final lane = ref.watch(statisticsGasLaneProvider);
+    final isRmv = lane == GasConsumptionLane.rmv;
+    final unitSymbol = isRmv ? units.rmvSymbol : units.sacSymbol;
+    String format(double v) => isRmv ? units.formatRmv(v) : units.formatSac(v);
+    double convert(double v) =>
+        isRmv ? units.convertRmv(v) : units.convertSac(v);
+    // The axis draws the bare number, so it has to round the way the
+    // tooltip's labelled value does or the two disagree (an imperial RMV
+    // tick read 0.5 where its tooltip said 0.53).
+    final decimals = isRmv ? units.rmvDecimals : units.sacDecimals;
 
-    // Determine unit symbol based on SAC calculation method
-    final unitSymbol = sacUnit == SacUnit.litersPerMin
-        ? '${units.volumeSymbol}/min'
-        : '${units.pressureSymbol}/min';
-
-    return StatSectionCard(
+    return TrendChartSection(
+      chartId: TrendChartIds.sac,
+      onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: context.l10n.statistics_gas_sacTrend_title,
       subtitle: context.l10n.statistics_gas_sacTrend_subtitle,
-      child: sacTrendAsync.when(
-        data: (data) {
-          double convert(double v) => sacUnit == SacUnit.litersPerMin
-              ? units.convertVolume(v)
-              : units.convertPressure(v);
-
-          return TrendLineChart(
-            data: data,
-            lineColor: Colors.blue,
-            yAxisLabel: unitSymbol,
-            valueFormatter: (value) =>
-                '${convert(value).toStringAsFixed(1)} $unitSymbol',
-            yAxisFormatter: (value) => convert(value).toStringAsFixed(1),
-          );
-        },
-        loading: () => const SizedBox(
-          height: 200,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (_, _) => StatEmptyState(
-          icon: Icons.error_outline,
-          message: context.l10n.statistics_gas_sacTrend_error,
-        ),
-      ),
+      pointsAsync: ref.watch(sacTrendProvider),
+      errorMessage: context.l10n.statistics_gas_sacTrend_error,
+      lineColor: Colors.blue,
+      yAxisLabel: unitSymbol,
+      valueFormatter: format,
+      yAxisFormatter: (value) => convert(value).toStringAsFixed(decimals),
+      rateFormatter: format,
     );
   }
 
@@ -125,12 +159,9 @@ class StatisticsGasPage extends ConsumerWidget {
     UnitFormatter units,
   ) {
     final sacByRoleAsync = ref.watch(sacByTankRoleProvider);
-    final sacUnit = ref.watch(sacUnitProvider);
-
-    // Determine unit symbol based on SAC calculation method
-    final unitSymbol = sacUnit == SacUnit.litersPerMin
-        ? '${units.volumeSymbol}/min'
-        : '${units.pressureSymbol}/min';
+    final lane = ref.watch(statisticsGasLaneProvider);
+    final isRmv = lane == GasConsumptionLane.rmv;
+    String format(double v) => isRmv ? units.formatRmv(v) : units.formatSac(v);
 
     // Map tank role keys to display names
     String getRoleDisplayName(String role) {
@@ -166,10 +197,7 @@ class StatisticsGasPage extends ConsumerWidget {
               final sac = entry.value;
               final isFirst = entry.key == data.keys.first;
               final displayName = getRoleDisplayName(role);
-              final convertedSac = sacUnit == SacUnit.litersPerMin
-                  ? units.convertVolume(sac)
-                  : units.convertPressure(sac);
-              final sacValue = '${convertedSac.toStringAsFixed(1)} $unitSymbol';
+              final sacValue = format(sac);
 
               return Semantics(
                 label: statLabel(name: displayName, value: sacValue),
@@ -223,12 +251,10 @@ class StatisticsGasPage extends ConsumerWidget {
     UnitFormatter units,
   ) {
     final sacRecordsAsync = ref.watch(sacRecordsProvider);
-    final sacUnit = ref.watch(sacUnitProvider);
-
-    // Determine unit symbol based on SAC calculation method
-    final unitSymbol = sacUnit == SacUnit.litersPerMin
-        ? '${units.volumeSymbol}/min'
-        : '${units.pressureSymbol}/min';
+    final lane = ref.watch(statisticsGasLaneProvider);
+    final isRmv = lane == GasConsumptionLane.rmv;
+    final unitSymbol = isRmv ? units.rmvSymbol : units.sacSymbol;
+    String format(double v) => isRmv ? units.formatRmv(v) : units.formatSac(v);
 
     return StatSectionCard(
       title: context.l10n.statistics_gas_sacRecords_title,
@@ -242,19 +268,16 @@ class StatisticsGasPage extends ConsumerWidget {
             );
           }
 
-          String formatSacRecord(double? value) {
-            if (value == null) return '-- $unitSymbol';
-            final converted = sacUnit == SacUnit.litersPerMin
-                ? units.convertVolume(value)
-                : units.convertPressure(value);
-            return '${converted.toStringAsFixed(1)} $unitSymbol';
-          }
+          String formatSacRecord(double? value) =>
+              value == null ? '-- $unitSymbol' : format(value);
 
           return Column(
             children: [
               if (records.best != null)
                 ValueRankingCard(
-                  title: context.l10n.statistics_gas_sacRecords_best,
+                  title: isRmv
+                      ? context.l10n.statistics_gas_sacRecords_bestRmv
+                      : context.l10n.statistics_gas_sacRecords_bestSac,
                   value: formatSacRecord(records.best!.value),
                   subtitle: units.formatDate(records.best!.date),
                   icon: Icons.emoji_events,
@@ -265,7 +288,9 @@ class StatisticsGasPage extends ConsumerWidget {
                 const SizedBox(height: 8),
               if (records.worst != null)
                 ValueRankingCard(
-                  title: context.l10n.statistics_gas_sacRecords_highest,
+                  title: isRmv
+                      ? context.l10n.statistics_gas_sacRecords_highestRmv
+                      : context.l10n.statistics_gas_sacRecords_highestSac,
                   value: formatSacRecord(records.worst!.value),
                   subtitle: units.formatDate(records.worst!.date),
                   icon: Icons.speed,

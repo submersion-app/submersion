@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -95,7 +96,7 @@ class _CertificationShareSheetState
     );
   }
 
-  Future<void> _shareAsCard() async {
+  Future<void> _shareAsCard(Rect? anchor) async {
     setState(() => _isExporting = true);
 
     try {
@@ -122,7 +123,10 @@ class _CertificationShareSheetState
 
       // Share the file
       await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path, mimeType: 'image/png')]),
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'image/png')],
+          sharePositionOrigin: anchor,
+        ),
       );
     } catch (e) {
       if (mounted) {
@@ -132,7 +136,7 @@ class _CertificationShareSheetState
     }
   }
 
-  Future<void> _shareAsCertificate() async {
+  Future<void> _shareAsCertificate(Rect? anchor) async {
     setState(() => _isExporting = true);
 
     try {
@@ -161,7 +165,10 @@ class _CertificationShareSheetState
 
       // Share the file
       await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path, mimeType: 'image/png')]),
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'image/png')],
+          sharePositionOrigin: anchor,
+        ),
       );
     } catch (e) {
       if (mounted) {
@@ -196,7 +203,11 @@ class _ShareOptionTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final VoidCallback? onTap;
+
+  /// Receives the tile's screen rect, so the iPad share popover can anchor to
+  /// the tapped option. Captured at tap time because this sheet dismisses
+  /// itself before the share sheet opens.
+  final void Function(Rect? anchor)? onTap;
   final bool isLoading;
 
   const _ShareOptionTile({
@@ -217,7 +228,7 @@ class _ShareOptionTile extends StatelessWidget {
       child: Card(
         margin: EdgeInsets.zero,
         child: InkWell(
-          onTap: onTap,
+          onTap: onTap == null ? null : () => onTap!(shareAnchorFrom(context)),
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16),

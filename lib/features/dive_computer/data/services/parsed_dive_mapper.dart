@@ -3,9 +3,17 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
+import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 
 /// Convert a Pigeon ParsedDive to the app's DownloadedDive format.
-DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
+///
+/// [trimAtSurfacing] carries the diver's preference for reading cylinder end
+/// pressure at the moment of surfacing rather than at the end of the recording
+/// (issue #1092); see [resolveParsedTanks].
+DownloadedDive parsedDiveToDownloaded(
+  pigeon.ParsedDive parsed, {
+  bool trimAtSurfacing = true,
+}) {
   // Some computers (e.g. Shearwater) don't provide top-level min/max
   // temperature — derive from profile samples when missing.
   final sampleTemps = parsed.samples
@@ -56,12 +64,13 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
             temperature: s.temperatureCelsius,
             pressure: s.pressureBar,
             tankIndex: s.tankIndex,
+            tankPressures: s.tankPressuresBar,
             heartRate: s.heartRate,
             heading: s.heading,
             setpoint: s.setpoint,
             ppo2: s.ppo2,
             cns: s.cns,
-            rbt: s.rbt,
+            rbt: libdcRbtToSeconds(s.rbt),
             decoType: s.decoType,
             decoTime: s.decoTime,
             decoDepth: s.decoDepth,
@@ -85,7 +94,7 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
         .toList(),
     // Gas-mix linking, tankless synthesis, and gas-switch derivation live in
     // the shared resolver so the download and reparse paths cannot drift apart.
-    tanks: resolveParsedTanks(parsed),
+    tanks: resolveParsedTanks(parsed, trimAtSurfacing: trimAtSurfacing),
     gasSwitches: resolveGasSwitches(parsed),
     events: parsed.events
         .map(

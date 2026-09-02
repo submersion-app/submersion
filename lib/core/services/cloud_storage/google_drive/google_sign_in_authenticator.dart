@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
-import 'package:googleapis_auth/googleapis_auth.dart' as gapis_auth;
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
+import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 /// google_sign_in-backed authenticator for iOS, macOS, and Android.
@@ -29,7 +29,12 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
   // hints.
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _initialized = false;
-  gapis_auth.AuthClient? _authClient;
+
+  /// The authorized client, wrapped in [TimeoutHttpClient]. Held as a plain
+  /// [http.Client] because that wrapper is what everything downstream uses:
+  /// the provider builds its DriveApi from it and the media store sends raw
+  /// REST over it, and neither needs the AuthClient surface.
+  http.Client? _authClient;
   GoogleSignInAccount? _currentUser;
 
   @override
@@ -110,7 +115,10 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
     GoogleSignInClientAuthorization authorization,
   ) {
     _authClient?.close();
-    _authClient = authorization.authClient(scopes: _scopes);
+    // google_sign_in builds the authorized client over a transport this app
+    // never gets to configure, so the deadlines go on the outside. Closing
+    // the wrapper closes the client underneath it (#1279).
+    _authClient = TimeoutHttpClient(authorization.authClient(scopes: _scopes));
     _currentUser = account;
   }
 

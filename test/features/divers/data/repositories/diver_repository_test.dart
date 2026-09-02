@@ -1,17 +1,21 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 
 void main() {
   late DiverRepository repository;
+  late ProfileSeriesRepository profileSeries;
   late AppDatabase db;
 
   setUp(() async {
     db = await setUpTestDatabase();
     repository = DiverRepository();
+    profileSeries = ProfileSeriesRepository();
   });
 
   tearDown(() async {
@@ -151,26 +155,6 @@ void main() {
         );
   }
 
-  Future<void> insertDiveProfile(
-    String id, {
-    required String diveId,
-    String? computerId,
-    int timestamp = 0,
-    double depth = 10.0,
-  }) async {
-    await db
-        .into(db.diveProfiles)
-        .insert(
-          DiveProfilesCompanion(
-            id: Value(id),
-            diveId: Value(diveId),
-            computerId: Value(computerId),
-            timestamp: Value(timestamp),
-            depth: Value(depth),
-          ),
-        );
-  }
-
   Future<void> insertDiveDataSource(
     String id, {
     required String diveId,
@@ -209,9 +193,6 @@ void main() {
 
   Future<List<DiverSetting>> getDiverSettings() =>
       db.select(db.diverSettings).get();
-
-  Future<List<DiveProfile>> getDiveProfiles() =>
-      db.select(db.diveProfiles).get();
 
   Future<List<DiveDataSourcesData>> getDiveDataSources() =>
       db.select(db.diveDataSources).get();
@@ -320,26 +301,30 @@ void main() {
       expect(dives.first.computerId, isNull);
     });
 
-    test('nulls cross-diver computer references in dive_profiles', () async {
-      await insertDiver('diver-a');
-      await insertDiver('diver-b');
-      await insertDiverSettings('diver-a');
-      await insertDiverSettings('diver-b');
-      await insertDiveComputer('comp-a', diverId: 'diver-a');
-      await insertDive('dive-b', diverId: 'diver-b');
-      await insertDiveProfile(
-        'profile-b',
-        diveId: 'dive-b',
-        computerId: 'comp-a',
-      );
+    test(
+      'nulls cross-diver computer references in the profile series',
+      () async {
+        await insertDiver('diver-a');
+        await insertDiver('diver-b');
+        await insertDiverSettings('diver-a');
+        await insertDiverSettings('diver-b');
+        await insertDiveComputer('comp-a', diverId: 'diver-a');
+        await insertDive('dive-b', diverId: 'diver-b');
+        final seriesId = await profileSeries.insertSeries(
+          diveId: 'dive-b',
+          computerId: 'comp-a',
+          samples: const [ProfileSample(timestamp: 0, depth: 10.0)],
+          now: 1000,
+        );
 
-      await repository.deleteDiver('diver-a');
+        await repository.deleteDiver('diver-a');
 
-      final profiles = await getDiveProfiles();
-      expect(profiles, hasLength(1));
-      expect(profiles.first.id, equals('profile-b'));
-      expect(profiles.first.computerId, isNull);
-    });
+        final series = (await profileSeries.getRowsForDives([
+          'dive-b',
+        ])).firstWhere((r) => r.id == seriesId);
+        expect(series.computerId, isNull);
+      },
+    );
 
     test(
       'nulls cross-diver computer references in dive_data_sources',

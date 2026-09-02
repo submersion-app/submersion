@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/dive_search.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/map_tile_config.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/slippy_tiles.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -18,16 +20,21 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
+import 'package:submersion/features/weather/presentation/widgets/fetch_all_conditions_flow.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -35,6 +42,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -94,6 +102,18 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           context.push('/dives/new');
         }
       },
+    );
+  }
+
+  /// Backfills missing conditions across the logbook. The list refreshes on
+  /// its own: the fill writes through Drift, so the dive streams tick.
+  Future<void> _fetchAllConditions() async {
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (!mounted) return;
+    await showFetchAllConditionsFlow(
+      context: context,
+      service: ref.read(bulkConditionsServiceProvider),
+      diverId: diverId,
     );
   }
 
@@ -245,6 +265,12 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                 showDiveNumberingDialog(context);
               } else if (value == 'data_quality') {
                 context.push('/dives/quality');
+              } else if (value == 'fetch_conditions') {
+                logFailure(
+                  _fetchAllConditions(),
+                  _DiveListPageState,
+                  'fetch conditions for all dives',
+                );
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -294,6 +320,20 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                       Flexible(
                         child: Text(
                           context.l10n.diveLog_listPage_menuMatchSites,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'fetch_conditions',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.cloud_download_outlined, size: 20),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          context.l10n.diveLog_listPage_menuFetchConditions,
                         ),
                       ),
                     ],
@@ -699,6 +739,15 @@ class DiveListTile extends ConsumerWidget {
   /// English slug capitalization, matching the locale-independent export path.
   final DiveTypeLabelResolver? diveTypeLabelResolver;
 
+  /// Resolves a dive-type slug to its short-form abbreviation, for the badge
+  /// row on the stat line (mirrors the dive detail header's type badges).
+  /// When omitted, badges fall back to the slug's capitalization.
+  final DiveTypeLabelResolver? diveTypeShortLabelResolver;
+
+  /// Whether a dive-type slug's badge should appear in the badge row
+  /// (issue #1269 follow-up). When omitted, every type is shown.
+  final DiveTypeListVisibilityPredicate? diveTypeListVisibilityPredicate;
+
   const DiveListTile({
     super.key,
     required this.diveId,
@@ -728,6 +777,8 @@ class DiveListTile extends ConsumerWidget {
     this.summary,
     this.fullDive,
     this.diveTypeLabelResolver,
+    this.diveTypeShortLabelResolver,
+    this.diveTypeListVisibilityPredicate,
   });
 
   /// Calculate background color based on the active color attribute
@@ -814,6 +865,12 @@ class DiveListTile extends ConsumerWidget {
     final titleField = slotField('title', DiveField.siteName);
     final dateField = slotField('date', DiveField.dateTime);
 
+    final diveTypeLabels = [
+      for (final id in summary?.diveTypeIds ?? const <String>[])
+        if (diveTypeListVisibilityPredicate?.call(id) ?? true)
+          (diveTypeShortLabelResolver ?? Dive.diveTypeDisplayName)(id),
+    ];
+
     // Resolve the title and date lines from their slot assignments, keeping
     // the legacy rendering when the slot holds its default field (mirrors
     // CompactDiveListTile).
@@ -850,6 +907,7 @@ class DiveListTile extends ConsumerWidget {
           final chartWidth = availableWidth < 400
               ? (availableWidth * 0.25).clamp(60.0, 120.0)
               : (availableWidth * 0.20).clamp(80.0, 120.0);
+          final titleStyle = Theme.of(context).textTheme.titleMedium;
 
           return Padding(
             padding: const EdgeInsets.all(12),
@@ -903,12 +961,24 @@ class DiveListTile extends ConsumerWidget {
                               Expanded(
                                 child: Text(
                                   buildTitleText(),
-                                  style: Theme.of(context).textTheme.titleMedium
+                                  // Same ink-centering fix as DiveModeBadge
+                                  // and the header's rating number, but
+                                  // without shrinking the space this line
+                                  // occupies: strutStyle pins the reserved
+                                  // line height to titleMedium's own natural
+                                  // value (so the date line below doesn't
+                                  // shift up) while textHeightBehavior only
+                                  // repositions the ink within that space.
+                                  style: titleStyle
                                       ?.copyWith(
                                         fontWeight: FontWeight.w600,
                                         color: primaryTextColor,
-                                      ),
+                                      )
+                                      .inkCentered,
                                   overflow: TextOverflow.ellipsis,
+                                  textHeightBehavior:
+                                      inkCenteredTextHeightBehavior,
+                                  strutStyle: titleStyle?.preservingStrut,
                                 ),
                               ),
                               if (isFavorite) ...[
@@ -918,6 +988,30 @@ class DiveListTile extends ConsumerWidget {
                                     Icons.favorite,
                                     size: 18,
                                     color: Colors.red.shade400,
+                                  ),
+                                ),
+                              ],
+                              // Statistics exclusion (#526 / #1272). Explains
+                              // why this dive is missing from the totals
+                              // without the diver having to open it.
+                              if (summary?.excludedFromStats == true ||
+                                  summary?.excludedFromGasStats == true) ...[
+                                const SizedBox(width: 6),
+                                Tooltip(
+                                  key: const Key('dive-excluded-badge'),
+                                  message: summary!.excludedFromStats
+                                      ? context
+                                            .l10n
+                                            .diveLog_badge_excludedFromStats
+                                      : context
+                                            .l10n
+                                            .diveLog_badge_excludedFromGasStats,
+                                  child: Icon(
+                                    summary!.excludedFromStats
+                                        ? Icons.bar_chart_outlined
+                                        : Icons.local_gas_station_outlined,
+                                    size: 16,
+                                    color: colorScheme.outline,
                                   ),
                                 ),
                               ],
@@ -957,6 +1051,11 @@ class DiveListTile extends ConsumerWidget {
                                       ),
                                 ),
                               ],
+                              const SizedBox(width: 8),
+                              DiveModeBadge(
+                                mode: summary?.diveMode ?? DiveMode.oc,
+                                dense: true,
+                              ),
                             ],
                           ),
                           // Site location (country/region)
@@ -1004,15 +1103,16 @@ class DiveListTile extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                // Stats row plus tags. Tags flow onto the same line as the
-                // stats (in the space under the mini chart) when they fit, and
-                // wrap to the next line otherwise, keeping cards compact.
+                // Stat row (protected: sized to its own content first) plus
+                // the dive-type badges, right-aligned on the same line. Tags
+                // get their own line below instead of sharing this one, so
+                // neither can squeeze the other -- DiveTypeBadgeRow still
+                // collapses into a single "+N" badge if the stat row alone
+                // leaves it little room.
                 Padding(
                   padding: const EdgeInsetsDirectional.only(start: 52),
-                  child: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 16,
-                    runSpacing: 6,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -1036,11 +1136,32 @@ class DiveListTile extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      if (tags.isNotEmpty && detailedConfig.showTags)
-                        TagChips(tags: tags, maxTags: 3),
+                      if (diveTypeLabels.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Align(
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: DiveTypeBadgeRow(
+                              labels: diveTypeLabels,
+                              dense: true,
+                            ),
+                          ),
+                        ),
+                      ] else
+                        const Spacer(),
                     ],
                   ),
                 ),
+                // Tags, on their own line so a long tag name never competes
+                // with the stat row or the type badges for width (each chip
+                // is itself capped with an ellipsis as a defensive backstop).
+                if (tags.isNotEmpty && detailedConfig.showTags) ...[
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(start: 52),
+                    child: TagChips(tags: tags, maxTags: 3),
+                  ),
+                ],
                 // Extra configurable fields area
                 if (extraFields.isNotEmpty &&
                     (fullDive != null || summary != null)) ...[
@@ -1057,7 +1178,6 @@ class DiveListTile extends ConsumerWidget {
                             final value = fullDive != null
                                 ? field.extractFromDive(
                                     fullDive!,
-                                    sacUnit: units.sacUnit,
                                     gasModel: units.settings.gasModel,
                                     diveTypeLabel: diveTypeLabelResolver,
                                   )
@@ -1210,7 +1330,6 @@ class DiveListTile extends ConsumerWidget {
     dynamic value = fullDive != null
         ? field.extractFromDive(
             fullDive!,
-            sacUnit: units.sacUnit,
             gasModel: units.settings.gasModel,
             diveTypeLabel: diveTypeLabelResolver,
           )

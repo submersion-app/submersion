@@ -167,6 +167,13 @@ class BuoyancySection extends ConsumerWidget {
     if (outcome.result.input.suit.kind == TwinSuitKind.none) {
       hints.add(context.l10n.buoyancy_linkSuitHint);
     }
+    // Lead can be recorded in two places: the dive's Weights section, or a
+    // dry weight on weights-type gear. Zero here means neither was filled in,
+    // and the modeled net will read far too buoyant -- the confusion behind
+    // issue #1103.
+    if (outcome.result.input.leadKg <= 0) {
+      hints.add(context.l10n.buoyancy_noLeadHint);
+    }
     return [
       for (final text in hints) ...[
         const SizedBox(height: 8),

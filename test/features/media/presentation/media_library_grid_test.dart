@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/media/presentation/widgets/media_library_gri
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
@@ -90,6 +92,10 @@ void main() {
             MediaSourceType.localFile: _UnavailableResolver(),
           }),
         ),
+        // The filter sheet reads both; without overrides they reach real
+        // repositories that have no database under flutter test.
+        sitesProvider.overrideWith((ref) async => []),
+        allTripsProvider.overrideWith((ref) async => []),
       ],
       child: const MaterialApp(
         locale: Locale('en'),
@@ -154,28 +160,46 @@ void main() {
     expect(find.byType(MediaLibraryGroupedList), findsOneWidget);
   });
 
-  testWidgets('type filter chips update mediaLibraryFilterProvider', (
+  testWidgets('the toolbar filter button reaches the sheet and applies', (
     tester,
   ) async {
+    // End to end through the real view: the type facet now lives in the
+    // filter sheet, so this proves the view mounts the toolbar and the
+    // toolbar opens a sheet that writes the shared filter provider.
+    tester.view.physicalSize = const Size(1200, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final notifier = _SeededLibraryNotifier(
       MediaLibraryState(entries: [entry('a')]),
     );
     await tester.pumpWidget(host(notifier));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Videos'));
-    await tester.pumpAndSettle();
-
     final container = ProviderScope.containerOf(
       tester.element(find.byType(MediaLibraryView)),
     );
+
+    await tester.tap(find.byIcon(Icons.filter_list));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Videos'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Apply'));
+    await tester.pumpAndSettle();
+
     expect(
       container.read(mediaLibraryFilterProvider).mediaType,
       MediaType.video,
     );
 
+    await tester.tap(find.byIcon(Icons.filter_list));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('All'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Apply'));
+    await tester.pumpAndSettle();
+
     expect(container.read(mediaLibraryFilterProvider).mediaType, isNull);
   });
 }

@@ -801,6 +801,109 @@ void main() {
       expect(find.text('match sites page'), findsOneWidget);
     });
 
+    testWidgets('table mode popup menu fetch conditions runs the flow', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // The real bulkConditionsServiceProvider is exercised here, so the flow
+      // needs a database to count candidates against. An empty one has none,
+      // which is what the assertion below checks for.
+      await setUpTestDatabase();
+      addTearDown(tearDownTestDatabase);
+
+      final overrides = await buildBranchOverrides(
+        viewMode: ListViewMode.table,
+      );
+
+      final router = GoRouter(
+        initialLocation: '/dives',
+        routes: [
+          GoRoute(
+            path: '/dives',
+            builder: (context, state) => const DiveListPage(),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Fetch Conditions'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No dives are missing conditions.'), findsOneWidget);
+    });
+
+    testWidgets('table mode popup menu data quality navigates', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await buildBranchOverrides(
+        viewMode: ListViewMode.table,
+      );
+
+      final router = GoRouter(
+        initialLocation: '/dives',
+        routes: [
+          GoRoute(
+            path: '/dives',
+            builder: (context, state) => const DiveListPage(),
+          ),
+          GoRoute(
+            path: '/dives/quality',
+            builder: (_, _) => const Scaffold(body: Text('data quality page')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.rule));
+      await tester.pumpAndSettle();
+
+      expect(find.text('data quality page'), findsOneWidget);
+    });
+
     testWidgets('table mode detail builder invoked via selected query param', (
       tester,
     ) async {

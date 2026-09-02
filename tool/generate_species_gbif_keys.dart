@@ -28,7 +28,29 @@ const Set<String> _straddlingTaxa = {
   'Elapidae',
   // The marine iguana, alongside the green iguana and its tree-dwelling kin.
   'Iguanidae',
+  // Freshwater catalog members whose families or orders hold land relatives.
+  // The beaver and capybara, alongside every rat, squirrel and porcupine.
+  'Rodentia',
+  // The capybara's own family, shared with the guinea pig and the mara.
+  'Caviidae',
+  // The muskrat, alongside voles, lemmings and hamsters.
+  'Cricetidae',
+  // Pond turtles and sliders, alongside the box turtles.
+  'Emydidae',
+  // Water snakes, alongside most of the world's land snakes.
+  'Colubridae',
+  // The anaconda, alongside the tree and ground boas.
+  'Boidae',
+  // Newts, alongside the fire salamander and its land-dwelling kin.
+  'Salamandridae',
+  // The axolotl, alongside the burrowing mole salamanders.
+  'Ambystomatidae',
+  // The common reed, alongside every grass; the whitelist takes the genus.
+  'Poaceae',
 };
+
+/// GBIF ranks a usage key may carry to count as a species key.
+const Set<String> _speciesRanks = {'SPECIES', 'SUBSPECIES', 'VARIETY', 'FORM'};
 
 Future<void> main() async {
   final catalog =
@@ -65,6 +87,16 @@ Future<void> main() async {
 
       final match = jsonDecode(body) as Map<String, dynamic>;
       final usageKey = match['usageKey'];
+
+      // A name GBIF does not know comes back as a HIGHERRANK match on the
+      // nearest ancestor (Micropterus nigricans resolved to Animalia, key
+      // 1); only a species-level usage is a species key, and such a match
+      // contributes nothing to the whitelist either.
+      if (match['matchType'] == 'HIGHERRANK' ||
+          !_speciesRanks.contains(match['rank'])) {
+        unmatched.add(scientificName);
+        continue;
+      }
 
       if (usageKey is int) {
         // The catalog contains a handful of duplicate scientific names whose

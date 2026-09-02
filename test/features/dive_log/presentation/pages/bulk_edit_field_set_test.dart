@@ -38,6 +38,7 @@ void main() {
       diveCenterId: 'dc',
       tripId: 't',
       courseId: 'c',
+      diverRoleId: 'dive_master',
       rating: 4,
       isFavorite: true,
       waterType: 'salt',
@@ -84,5 +85,20 @@ void main() {
     expect(c.scrubberType.present, isTrue);
     expect(c.scrubberDurationMinutes.present, isTrue);
     expect(c.notes.present, isTrue);
+    expect(c.diverRole.present, isTrue);
+  });
+
+  test('the diverRole gate writes the active diver\'s own role (#1220)', () {
+    final c = buildScalarCompanion({
+      BulkField.diverRole,
+    }, BulkScalarInputs(diverRoleId: 'instructor'));
+    expect(c.diverRole.present, isTrue);
+    expect(c.diverRole.value, 'instructor');
+  });
+
+  test('an enabled diverRole gate with no role clears the column', () {
+    final c = buildScalarCompanion({BulkField.diverRole}, BulkScalarInputs());
+    expect(c.diverRole.present, isTrue);
+    expect(c.diverRole.value, isNull);
   });
 }

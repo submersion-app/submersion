@@ -63,6 +63,49 @@ void main() {
       );
     }
 
+    // --- Tank pressure at surfacing (issue #1092) ---
+
+    /// A CCR oxygen cylinder still bleeding through the constant mass flow
+    /// orifice while the computer records on the surface.
+    pigeon.ParsedDive bleedingOxygenDive() => makeParsedDive(
+      gasMixes: [pigeon.GasMix(index: 0, o2Percent: 100.0, hePercent: 0.0)],
+      tanks: [
+        pigeon.TankInfo(
+          index: 0,
+          gasMixIndex: 0,
+          startPressureBar: 200.0,
+          endPressureBar: 4.0,
+        ),
+      ],
+      samples: [
+        pigeon.ProfileSample(
+          timeSeconds: 3970,
+          depthMeters: 1.2,
+          pressureBar: 41.0,
+          tankIndex: 0,
+        ),
+        pigeon.ProfileSample(
+          timeSeconds: 4140,
+          depthMeters: 0.0,
+          pressureBar: 4.0,
+          tankIndex: 0,
+        ),
+      ],
+    );
+
+    test('trims tank end pressure to the surfacing reading by default', () {
+      final downloaded = parsedDiveToDownloaded(bleedingOxygenDive());
+      expect(downloaded.tanks.single.endPressure, 41.0);
+    });
+
+    test('keeps the computer end pressure when trimming is off', () {
+      final downloaded = parsedDiveToDownloaded(
+        bleedingOxygenDive(),
+        trimAtSurfacing: false,
+      );
+      expect(downloaded.tanks.single.endPressure, 4.0);
+    });
+
     // --- Dive mode ---
 
     test('maps gauge mode and imports no tanks', () {
@@ -615,7 +658,8 @@ void main() {
       expect(sample.setpoint, 1.3);
       expect(sample.ppo2, 1.28);
       expect(sample.cns, 15.5);
-      expect(sample.rbt, 45);
+      // libdc reports RBT in minutes; the app stores seconds.
+      expect(sample.rbt, 45 * 60);
       expect(sample.decoType, 2);
       expect(sample.decoTime, 180);
       expect(sample.decoDepth, 6.0);

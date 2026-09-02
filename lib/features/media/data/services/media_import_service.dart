@@ -65,20 +65,38 @@ class MediaImportService {
   final void Function(String mediaId)? onMediaCreated;
 
   /// Copies [sourceFile] into the app documents directory (subdir
-  /// 'scanned_logs/') and creates a localFile media row linked to
-  /// [diveId]. Used by the OCR scan flow to attach the source page photo.
+  /// [subdirectory]) and creates a localFile media row linked to [diveId].
+  ///
+  /// [subdirectory] defaults to 'scanned_logs' for the OCR scan flow that
+  /// introduced this method; file imports pass their own so an imported
+  /// logbook's photos are not filed as scanned pages.
+  ///
+  /// [latitude] and [longitude] are the photo's own coordinates when the
+  /// source recorded them, which is not the same as the dive site's.
   Future<MediaItem> importLocalFileForDive({
     required File sourceFile,
     required String diveId,
     DateTime? takenAt,
+    double? latitude,
+    double? longitude,
+    String subdirectory = 'scanned_logs',
   }) async {
     final docs = await _documentsDirectory();
-    final dir = Directory(p.join(docs.path, 'scanned_logs'));
+    final dir = Directory(p.join(docs.path, subdirectory));
     await dir.create(recursive: true);
     final sourceExt = p.extension(sourceFile.path);
     final ext = sourceExt.isEmpty ? '.jpg' : sourceExt;
-    final destName = '${DateTime.now().millisecondsSinceEpoch}$ext';
-    final dest = await sourceFile.copy(p.join(dir.path, destName));
+    // A millisecond stamp alone collides when a batch import copies two
+    // photos inside the same millisecond, and the second copy would
+    // overwrite the first. Disambiguate with a counter.
+    var destName = '${DateTime.now().millisecondsSinceEpoch}$ext';
+    var destPath = p.join(dir.path, destName);
+    var counter = 1;
+    while (File(destPath).existsSync()) {
+      destName = '${DateTime.now().millisecondsSinceEpoch}_${counter++}$ext';
+      destPath = p.join(dir.path, destName);
+    }
+    final dest = await sourceFile.copy(destPath);
     final now = DateTime.now();
     final item = MediaItem(
       id: '',
@@ -87,6 +105,8 @@ class MediaImportService {
       sourceType: MediaSourceType.localFile,
       filePath: dest.path,
       originalFilename: p.basename(sourceFile.path),
+      latitude: latitude,
+      longitude: longitude,
       takenAt: takenAt ?? now,
       createdAt: now,
       updatedAt: now,
@@ -249,61 +269,10 @@ class MediaImportService {
     );
   }
 
-  /// Library import (Media section Phase 4): no dive context, rows are
-  /// retained so the orphan sweep never GCs deliberately imported media,
-  /// and enrichment is skipped (it is a join product of media x a dive
-  /// profile; there is no dive yet). Linking happens on the batch confirm
-  /// screen or later in the Unlinked inbox.
-  ///
-  /// Dedupe is LIBRARY-WIDE, unlike [importPhotosForSite] and
-  /// [importPhotosForDive], which scope it to the thing being attached to:
-  /// there is no link to scope by here, and a second copy of an asset
-  /// already in the library is a duplicate no matter what it is linked to.
-  Future<ImportResult> importPhotosToLibrary({
-    required List<AssetInfo> selectedAssets,
-  }) async {
-    final List<MediaItem> imported = [];
-    final Map<String, String> failures = {};
-
-    bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
-    final existingAssetIds = selectedAssets.any((a) => !hasPath(a))
-        ? await _mediaRepository.getAllPlatformAssetIds()
-        : const <String>{};
-    final existingPaths = selectedAssets.any(hasPath)
-        ? await _mediaRepository.getAllLocalPaths()
-        : const <String>{};
-
-    final newAssets = selectedAssets.where((a) {
-      if (hasPath(a)) return !existingPaths.contains(a.filePath);
-      return !existingAssetIds.contains(a.id);
-    }).toList();
-    final skipped = selectedAssets.length - newAssets.length;
-
-    for (final asset in newAssets) {
-      try {
-        final item = _createMediaItemFromAsset(asset, retainInLibrary: true);
-        final saved = await _mediaRepository.createMedia(item);
-        imported.add(saved);
-        // Library rows are unlinked, but the store queue keys on the media
-        // id alone, never on a dive. Skipping the enqueue would sync the
-        // row to other devices while its bytes stayed on this one.
-        onMediaCreated?.call(saved.id);
-      } catch (e) {
-        failures[asset.id] = e.toString();
-      }
-    }
-    return ImportResult(
-      imported: imported,
-      failures: failures,
-      skippedDuplicates: skipped,
-    );
-  }
-
   MediaItem _createMediaItemFromAsset(
     AssetInfo asset, {
     String? diveId,
     String? siteId,
-    bool retainInLibrary = false,
   }) {
     final now = DateTime.now();
 
@@ -353,7 +322,6 @@ class MediaImportService {
       width: asset.width,
       height: asset.height,
       durationSeconds: asset.durationSeconds,
-      retainInLibrary: retainInLibrary,
       createdAt: now,
       updatedAt: now,
     );

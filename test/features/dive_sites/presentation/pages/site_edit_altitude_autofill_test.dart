@@ -7,6 +7,7 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -21,10 +22,11 @@ import '../../../../helpers/test_database.dart';
 /// Stub geocoder: the altitude path must not depend on reverse geocoding.
 class _StubLocationService implements LocationService {
   @override
-  Future<({String? country, String? region, String? locality})> reverseGeocode(
+  Future<PlaceLookup> reverseGeocode(
     double latitude,
-    double longitude,
-  ) async => (country: null, region: null, locality: null);
+    double longitude, {
+    required String languageCode,
+  }) async => const PlaceLookup.empty();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

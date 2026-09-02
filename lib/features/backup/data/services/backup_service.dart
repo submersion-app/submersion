@@ -27,7 +27,9 @@ import 'package:submersion/features/backup/data/services/backup_encryption_key_s
 import 'package:submersion/core/services/database_service.dart'
     show DatabaseService;
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
+import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
 import 'package:submersion/features/backup/data/services/backup_saf_port.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
@@ -109,6 +111,10 @@ class BackupService {
   /// `_activeBackupKey` fails closed when the flag is on but the store is null.
   final BackupEncryptionKeyStore? _backupEncryptionKeyStore;
 
+  /// Cleared after a restore so the next launch re-applies the bundled
+  /// species catalog to the restored rows.
+  final BuiltInSpeciesSeedVersionStore? _seedVersionStore;
+
   /// SAF write/read/delete seam for Android custom (`content://`) backup
   /// locations. Defaults to the real platform channel; injectable for tests.
   final BackupSafPort _safPort;
@@ -129,6 +135,7 @@ class BackupService {
     EncryptionKeyStore? encryptionKeyStore,
     SyncPreferences? syncPreferences,
     BackupEncryptionKeyStore? backupEncryptionKeyStore,
+    BuiltInSpeciesSeedVersionStore? seedVersionStore,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
@@ -138,7 +145,8 @@ class BackupService {
        _safPort = safPort ?? const MethodChannelBackupSafPort(),
        _encryptionKeyStore = encryptionKeyStore,
        _syncPreferences = syncPreferences,
-       _backupEncryptionKeyStore = backupEncryptionKeyStore;
+       _backupEncryptionKeyStore = backupEncryptionKeyStore,
+       _seedVersionStore = seedVersionStore;
 
   // ===========================================================================
   // Backup
@@ -168,7 +176,7 @@ class BackupService {
     BackupTarget target, {
     required bool isAutomatic,
   }) async {
-    final filename = _generateFilename();
+    final filename = await _generateFilename();
     final encKey = await _activeBackupKey();
 
     final String ref;
@@ -347,7 +355,7 @@ class BackupService {
     _log.info('Exporting backup to temp for sharing');
 
     final encKey = await _activeBackupKey();
-    final filename = _generateFilename();
+    final filename = await _generateFilename();
     final tempDir = await resolveSyncTempDir();
 
     if (encKey == null) {
@@ -913,6 +921,20 @@ class BackupService {
       onMigrationProgress: onMigrationProgress,
     );
 
+    // The restored file carries whatever built-in species rows its backup
+    // had; forgetting the applied catalog version makes the next launch run
+    // the upgrade pass again (diver-edited rows keep their hlc and are
+    // skipped by it).
+    try {
+      await _seedVersionStore?.clear();
+    } catch (e, st) {
+      _log.warning(
+        'Could not clear the built-in species seed version after restore',
+        error: e,
+        stackTrace: st,
+      );
+    }
+
     try {
       await _syncRepository.rebaselineAfterRestore(
         preserveDeviceId: liveDeviceId,
@@ -1283,10 +1305,46 @@ class BackupService {
   // Private Helpers
   // ===========================================================================
 
-  String _generateFilename() {
+  /// Names a new backup, tagging it with the device that wrote it.
+  ///
+  /// The tag lives in the filename rather than only in the [BackupRecord]
+  /// because an orphaned backup is one whose record has been lost, so a device
+  /// id in the record is exactly the information already missing. Attribution
+  /// is what makes it safe to offer a forgotten backup for deletion in a
+  /// shared cloud folder, where another device's backups sit in the same
+  /// directory and are equally absent from this device's history.
+  ///
+  /// Falls back to the historic unattributed name if the device id cannot be
+  /// read. An unattributed backup is never offered for deletion, so degrading
+  /// this way costs reclaimable space, never someone's only copy.
+  Future<String> _generateFilename() async {
     final dateFormat = DateFormat('yyyy-MM-dd_HHmmss');
     final timestamp = dateFormat.format(DateTime.now());
-    return 'submersion_backup_$timestamp.db';
+    final unattributed = 'submersion_backup_$timestamp.db';
+    try {
+      final deviceId = await _syncRepository.getDeviceId();
+      if (deviceId.isEmpty) {
+        // An empty id is not an id, and it is not harmless to hash: sha1('')
+        // is a constant, so every device in this state would mint the SAME
+        // tag and claim each other's backups in a shared folder. Only the
+        // read side's empty-id guard stops that today, and safety that
+        // depends on the far end of the system checking for you is worth
+        // making local. Unreadable and empty are one condition.
+        _log.warning(
+          'Backup device attribution unavailable (empty device id); '
+          'writing an unattributed name',
+        );
+        return unattributed;
+      }
+      return buildBackupFilename(timestamp: timestamp, deviceId: deviceId);
+    } catch (e, st) {
+      _log.warning(
+        'Backup device attribution unavailable; writing an unattributed name',
+        error: e,
+        stackTrace: st,
+      );
+      return unattributed;
+    }
   }
 
   Future<({int diveCount, int siteCount})> _getDiveSiteCounts() async {

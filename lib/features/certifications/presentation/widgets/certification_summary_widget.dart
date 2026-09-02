@@ -222,7 +222,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
                   ),
                 ),
                 title: Text(certificationTitle(cert)),
-                subtitle: Text(cert.agency.displayName),
+                subtitle: Text(certificationAgencyAndLevel(cert)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   final state = GoRouterState.of(context);

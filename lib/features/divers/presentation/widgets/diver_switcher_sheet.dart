@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -52,14 +53,15 @@ Future<void> showDiverSwitcherSheet(BuildContext context) {
                         final isActive = diver.id == currentDiverId;
 
                         return ListTile(
-                          leading: CircleAvatar(
+                          leading: ProfileAvatar(
+                            photo: diver.photo,
+                            initials: diver.initials,
                             backgroundColor: Theme.of(
                               sheetContext,
                             ).colorScheme.primaryContainer,
                             foregroundColor: Theme.of(
                               sheetContext,
                             ).colorScheme.onPrimaryContainer,
-                            child: Text(diver.initials),
                           ),
                           title: Text(diver.name),
                           trailing: isActive

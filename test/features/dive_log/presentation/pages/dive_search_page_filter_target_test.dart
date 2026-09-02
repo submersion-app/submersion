@@ -100,9 +100,16 @@ void main() {
   /// from both seeds, making the write target unambiguous.
   Future<void> tapFiveStars(WidgetTester tester) async {
     // The Organization section auto-expands because both seeds set a rating,
-    // but the star row still sits below the viewport on a phone-sized surface.
+    // but the star row sits far enough below the viewport that the plain
+    // ListView hasn't built its element yet, so `ensureVisible` (which needs
+    // an existing element) can't find it. Scroll incrementally instead so
+    // the list keeps building content as it goes.
     final fiveStars = find.byTooltip('5 stars');
-    await tester.ensureVisible(fiveStars);
+    await tester.scrollUntilVisible(
+      fiveStars,
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(fiveStars);
     await tester.pumpAndSettle();

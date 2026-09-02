@@ -71,4 +71,50 @@ class SampleDecoderTest {
         a[22] = 0.0
         assertEquals(0L, decodeProfileSample(a).o2SensorMv1)
     }
+
+    /** Issue #1223: a sample can carry one pressure per air-integrated
+     * transmitter, packed one slot per tank from index 28. */
+    @Test
+    fun `tank pressures decode from index 28 onward`() {
+        val a = sampleArray()
+        a[28] = 192.6 // tank 0 (O2)
+        a[29] = 191.4 // tank 1 (diluent)
+        assertEquals(listOf(192.6, 191.4), decodeProfileSample(a).tankPressuresBar)
+    }
+
+    /** A transmitter out of comms leaves a hole, not a zero. */
+    @Test
+    fun `a tank with no reading decodes as null within the list`() {
+        val a = sampleArray()
+        a[29] = 191.4
+        assertEquals(listOf(null, 191.4), decodeProfileSample(a).tankPressuresBar)
+    }
+
+    /** Trailing empty slots are trimmed, so a single-transmitter dive carries a
+     * one-element list rather than a full LIBDC_MAX_TANKS one. */
+    @Test
+    fun `trailing empty tanks are trimmed`() {
+        val a = sampleArray()
+        a[28] = 200.0
+        assertEquals(listOf(200.0), decodeProfileSample(a).tankPressuresBar)
+    }
+
+    /** A sample with no pressure at all carries no list. */
+    @Test
+    fun `all-NaN tank pressures decode as null`() {
+        assertNull(decodeProfileSample(sampleArray()).tankPressuresBar)
+    }
+
+    /** A stale .so returns the pre-#1223 28-wide array; the Dart layer then
+     * falls back to pressureBar/tankIndex rather than seeing a bogus list. */
+    @Test
+    fun `short array yields null tank pressures`() {
+        val a = sampleArray()
+        a[3] = 190.0 // pressure
+        a[4] = 0.0 // tank
+        val s = decodeProfileSample(a.copyOf(28))
+        assertNull(s.tankPressuresBar)
+        assertEquals(190.0, s.pressureBar!!, 1e-9)
+        assertEquals(0L, s.tankIndex)
+    }
 }

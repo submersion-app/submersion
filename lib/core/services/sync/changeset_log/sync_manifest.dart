@@ -48,9 +48,8 @@ class SyncManifest {
 
   /// Display name of the publishing device, used to name peers in the "still
   /// needs to adopt" banner. Null on manifests written before this field
-  /// existed, and on devices whose hostname identifies nothing (see
-  /// SyncDeviceMetadata.sanitizeDeviceName), so readers must fall back to the
-  /// device id.
+  /// existed, and on devices that nothing identifies by name (see
+  /// DeviceDisplayNameService), so readers must fall back to the device id.
   final String? deviceName;
   final String deviceId;
   final String provider;

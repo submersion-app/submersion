@@ -20,6 +20,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_selector_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -30,6 +33,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -40,6 +44,7 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -62,6 +67,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_menu.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/statistics_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/tank_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/the_dive_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/trip_section.dart';
@@ -84,9 +90,6 @@ import 'package:submersion/features/weather/presentation/providers/weather_provi
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_picker.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/photo_gps_suggestion_banner.dart';
-import 'package:submersion/features/media/presentation/widgets/quick_site_from_gps_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_multi_select_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/add_section_row.dart';
@@ -109,6 +112,7 @@ import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 const _createNewSiteSentinel = '__create_new__';
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
@@ -195,6 +199,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   List<String> _selectedDiveTypeIds = const ['recreational'];
   Visibility _selectedVisibility = Visibility.unknown;
   int _rating = 0;
+  // Statistics exclusion (#526 / #1272). Kept independent: unticking the
+  // master flag must restore the diver's own gas-only choice rather than
+  // having silently overwritten it.
+  bool _excludedFromStats = false;
+  bool _excludedFromGasStats = false;
+  bool _bulkExcludedFromStats = false;
+  bool _bulkExcludedFromGasStats = false;
   DiveSite? _selectedSite;
   Trip? _selectedTrip;
   DiveCenter? _selectedDiveCenter;
@@ -289,7 +300,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   bool _isCapturingLocation = false;
 
   // GPS suggestion from photos
-  bool _gpsSuggestionDismissed = false;
 
   /// Smart-collapse expansion state, keyed by group. Defaults are computed
   /// at the call sites (new dive vs editing); user toggles override them
@@ -368,7 +378,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _entryTime = TimeOfDay.now();
 
     // Eagerly resolve built-in presets (sync), async for custom
-    _loadDefaultPreset();
+    logFailure(_loadDefaultPreset(), _DiveEditPageState, 'load default preset');
 
     // New single dive: auto-apply the diver's default/geofenced equipment set
     // once the form is up, only when no gear is present.
@@ -402,9 +412,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // default would make enabling the collection silently operate on it.
       _selectedDiveTypeIds = <String>[];
       _suppressDirty = false;
-      _loadBulkMembers();
+      logFailure(_loadBulkMembers(), _DiveEditPageState, 'load bulk members');
     } else if (widget.isEditing) {
-      _loadExistingDive();
+      logFailure(_loadExistingDive(), _DiveEditPageState, 'load existing dive');
     } else {
       // For new dives, capture GPS in the background to suggest nearby sites
       _captureLocationForNearby();
@@ -663,6 +673,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? _seedDecimal(units.convertDepth(dive.visibilityMeters!), 0)
               : '';
           _rating = dive.rating ?? 0;
+          _excludedFromStats = dive.excludedFromStats;
+          _excludedFromGasStats = dive.excludedFromGasStats;
           _selectedSite = dive.site;
           _selectedTrip = dive.trip;
           _selectedDiveCenter = dive.diveCenter;
@@ -892,6 +904,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 _buildExperienceSection(),
                 if (_showCourseSection) _buildCourseGroupSection(),
                 if (_showCustomFieldsSection) _buildCustomFieldsGroupSection(),
+                _buildStatisticsSection(),
                 AddSectionRow(
                   entries: [
                     if (!_showCourseSection)
@@ -1045,6 +1058,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   label: l10n.diveLog_edit_section_rating,
                   value: _rating,
                   onChanged: (v) => setState(() => _rating = v),
+                  clearTooltip: l10n.common_action_clearRating,
                 ),
               ),
               _gatedRow(
@@ -1053,6 +1067,23 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   label: context.l10n.diveLog_bulkEdit_fieldFavorite,
                   value: _bulkFavorite,
                   onChanged: (v) => setState(() => _bulkFavorite = v),
+                ),
+              ),
+              _gatedRow(
+                BulkField.excludedFromStats,
+                FormRow.toggle(
+                  label: context.l10n.diveLog_bulkEdit_fieldExcludeFromStats,
+                  value: _bulkExcludedFromStats,
+                  onChanged: (v) => setState(() => _bulkExcludedFromStats = v),
+                ),
+              ),
+              _gatedRow(
+                BulkField.excludedFromGasStats,
+                FormRow.toggle(
+                  label: context.l10n.diveLog_bulkEdit_fieldExcludeFromGasStats,
+                  value: _bulkExcludedFromGasStats,
+                  onChanged: (v) =>
+                      setState(() => _bulkExcludedFromGasStats = v),
                 ),
               ),
             ],
@@ -1104,8 +1135,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       diveCenterId: _selectedDiveCenter?.id,
       tripId: _selectedTrip?.id,
       courseId: _selectedCourse?.id,
+      diverRoleId: _diverRoleId,
       rating: _rating > 0 ? _rating : null,
       isFavorite: _bulkFavorite,
+      excludedFromStats: _bulkExcludedFromStats,
+      excludedFromGasStats: _bulkExcludedFromGasStats,
       waterType: _waterType?.name,
       visibilityMeters: _visibilityMetersInput(units),
       currentDirection: _currentDirection?.name,
@@ -1186,6 +1220,82 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         if (mode != null) editor,
       ],
     );
+  }
+
+  /// Localized name of the role currently staged for the bulk "My role" gate,
+  /// or null when no role is staged (the row then shows its placeholder).
+  String? _bulkDiverRoleLabel() {
+    // Watched before the null check so the row stays subscribed while no role
+    // is staged and relabels itself once the role list resolves.
+    final rolesById =
+        ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
+    final id = _diverRoleId;
+    if (id == null) return null;
+    return (rolesById[id] ?? DiveRole.synthetic(id)).localizedName(
+      context.l10n,
+    );
+  }
+
+  Future<void> _showBulkDiverRolePicker() async {
+    // Awaited rather than read off the AsyncValue: nothing here watches the
+    // role list, so a plain read can hand back a still-loading empty list.
+    final roles = await ref.read(allDiveRolesProvider.future);
+    if (!mounted) return;
+    final selection = await showDiveRoleSelector(
+      context,
+      title: context.l10n.buddies_picker_selectMyRole,
+      roles: roles,
+      allowNone: true,
+      selectedRoleId: _diverRoleId,
+    );
+    if (selection == null || !mounted) return;
+    setState(() {
+      _markDirty();
+      _diverRoleId = selection.role?.id;
+    });
+  }
+
+  /// The role id to show for a buddy row, or null when the selection has no
+  /// single answer: the buddy's links disagree across the selected dives, so
+  /// [_existingBuddyRoleIds] (unanimous only) has nothing for them.
+  String? _bulkBuddyRoleId(String id) {
+    final picked = _buddyRoleById[id];
+    if (picked != null) return picked.id;
+    final existing = _existingBuddyRoleIds[id];
+    if (existing != null) return existing;
+    // Not on any selected dive yet (a fresh picker add): the link the save
+    // will create defaults to Buddy, so say so rather than "Mixed".
+    return (_buddyCounts[id] ?? 0) == 0 ? DiveRole.buddyId : null;
+  }
+
+  String _bulkBuddyRoleLabel(String id) {
+    final rolesById =
+        ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
+    final roleId = _bulkBuddyRoleId(id);
+    if (roleId == null) return context.l10n.diveLog_bulkEdit_buddyRoleMixed;
+    return (rolesById[roleId] ?? DiveRole.synthetic(roleId)).localizedName(
+      context.l10n,
+    );
+  }
+
+  Future<void> _showBulkBuddyRolePicker(BulkMembershipItem item) async {
+    final roles = await ref.read(allDiveRolesProvider.future);
+    if (!mounted) return;
+    final selection = await showDiveRoleSelector(
+      context,
+      title: context.l10n.buddies_picker_selectRole(item.label),
+      roles: roles,
+      selectedRoleId: _bulkBuddyRoleId(item.id),
+      onCreateCustomRole: (name) => ref
+          .read(diveRoleListNotifierProvider.notifier)
+          .addDiveRoleByName(name),
+    );
+    final role = selection?.role;
+    if (role == null || !mounted) return;
+    setState(() {
+      _markDirty();
+      _buddyRoleById[item.id] = role;
+    });
   }
 
   Widget _bulkTanksEditor(UnitFormatter units) {
@@ -1282,6 +1392,31 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           counts: _buddyCounts,
           onAdd: _bulkAddBuddies,
           onChanged: (d) => setState(() => _buddyDelta = d),
+          // Each dive_buddies link carries a role, so the row needs an
+          // affordance membership alone cannot express (#1220).
+          trailingBuilder: (item) => TextButton(
+            key: ValueKey('buddy-role-${item.id}'),
+            onPressed: () => _showBulkBuddyRolePicker(item),
+            child: Text(_bulkBuddyRoleLabel(item.id)),
+          ),
+        ),
+        // The diver's own role is a scalar column, not a membership row, so it
+        // rides the gate lane. It sits with Buddies because that is where the
+        // single-dive editor keeps it (#1220).
+        _gatedRow(
+          BulkField.diverRole,
+          FormRow.picker(
+            label: l10n.diveLog_bulkEdit_fieldMyRole,
+            value: _bulkDiverRoleLabel(),
+            placeholder: l10n.diveLog_edit_row_notSet,
+            onTap: _showBulkDiverRolePicker,
+            onClear: _diverRoleId == null
+                ? null
+                : () => setState(() {
+                    _markDirty();
+                    _diverRoleId = null;
+                  }),
+          ),
         ),
         _collectionEntry(
           type: BulkCollectionType.weights,
@@ -1353,18 +1488,27 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       );
     }
     // Membership and role are separate instructions. A row the user only
-    // ticked on must not rewrite the role of links that already exist, while a
-    // role picked in the picker applies even when membership does not change
-    // because the buddy is already on every selected dive (#893).
+    // ticked on must not rewrite the role of links that already exist (#893).
     final membershipOnlyAdds = _buddyDelta.addIds
         .where((id) => !_buddyRoleById.containsKey(id))
         .toList();
+    // A picked role on a buddy who is also being added rides the add, so the
+    // links it creates carry that role from the start.
     final pickedRoleAdds = _buddyRoleById.keys
         .where(
           (id) =>
               !_buddyDelta.removeIds.contains(id) &&
-              (_buddyDelta.addIds.contains(id) ||
-                  _buddyOnEverySelectedDive(id)),
+              _buddyDelta.addIds.contains(id),
+        )
+        .toList();
+    // A picked role with no membership change is role-only: rewrite the links
+    // that exist and create none, so changing the role of a buddy who is on
+    // some of the selection cannot add them to the rest (#1220).
+    final roleOnlyUpdates = _buddyRoleById.keys
+        .where(
+          (id) =>
+              !_buddyDelta.removeIds.contains(id) &&
+              !_buddyDelta.addIds.contains(id),
         )
         .toList();
     if (membershipOnlyAdds.isNotEmpty) {
@@ -1381,6 +1525,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         BuddiesOp(
           mode: BulkCollectionMode.add,
           buddies: pickedRoleAdds.map(_buddyWithRole).toList(),
+        ),
+      );
+    }
+    if (roleOnlyUpdates.isNotEmpty) {
+      ops.add(
+        BuddiesOp(
+          mode: BulkCollectionMode.update,
+          buddies: roleOnlyUpdates.map(_buddyWithRole).toList(),
         ),
       );
     }
@@ -2064,14 +2216,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
       );
     }
-    if (widget.diveId != null && !_gpsSuggestionDismissed) {
+    if (widget.diveId != null) {
       children.add(
-        PhotoGpsSuggestionBanner(
+        SiteSuggestionCard(
           diveId: widget.diveId!,
           currentSite: _selectedSite,
-          onCreateSite: () => _createSiteFromPhotoGps(),
-          onUpdateSite: (gps) => _updateSiteWithPhotoGps(gps),
-          onDismiss: () => setState(() => _gpsSuggestionDismissed = true),
+          onSiteChanged: (site) => setState(() => _assignSite(site)),
         ),
       );
     }
@@ -2083,74 +2233,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         children: children,
       ),
     );
-  }
-
-  Future<void> _createSiteFromPhotoGps() async {
-    final gps = await ref.read(divePhotoGpsProvider(widget.diveId!).future);
-    if (gps == null || !mounted) return;
-
-    final newSite = await QuickSiteFromGpsDialog.show(
-      context,
-      latitude: gps.latitude,
-      longitude: gps.longitude,
-    );
-
-    if (newSite != null && mounted) {
-      // Create the site via the notifier
-      final siteNotifier = ref.read(siteListNotifierProvider.notifier);
-      final createdSite = await siteNotifier.addSite(newSite);
-
-      setState(() {
-        _assignSite(createdSite);
-        _gpsSuggestionDismissed = true;
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.diveLog_edit_createdSite(createdSite.name),
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _updateSiteWithPhotoGps(GeoPoint gps) async {
-    if (_selectedSite == null) return;
-
-    var updatedSite = _selectedSite!.copyWith(location: gps);
-    // A site gaining coordinates should also gain its altitude, so later dives
-    // there resolve locally without a lookup.
-    if (updatedSite.altitude == null) {
-      final meters = await ref
-          .read(elevationServiceProvider)
-          .fetchElevation(latitude: gps.latitude, longitude: gps.longitude);
-      if (!mounted) return;
-      if (meters != null) {
-        updatedSite = updatedSite.copyWith(altitude: meters);
-      }
-    }
-
-    // Update the site via the notifier
-    final siteNotifier = ref.read(siteListNotifierProvider.notifier);
-    await siteNotifier.updateSite(updatedSite);
-
-    setState(() {
-      _selectedSite = updatedSite;
-      _gpsSuggestionDismissed = true;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.diveLog_edit_addedGps(updatedSite.name)),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
   }
 
   /// Assigns [site] to the dive and snaps the water type and the entry/exit
@@ -2437,6 +2519,42 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
+  Widget _buildStatisticsSection() {
+    return StatisticsSection(
+      // Collapsed unless this dive is already excluded, so the setting stays
+      // out of the way of the dives that are just dives.
+      expanded: _isExpanded(
+        'statistics',
+        defaultValue: _excludedFromStats || _excludedFromGasStats,
+      ),
+      onToggle: () => _toggleSection(
+        'statistics',
+        defaultValue: _excludedFromStats || _excludedFromGasStats,
+      ),
+      excludedFromStats: _excludedFromStats,
+      excludedFromGasStats: _excludedFromGasStats,
+      onExcludedFromStatsChanged: (v) {
+        _markDirty();
+        setState(() {
+          _excludedFromStats = v;
+          _pinStatisticsOpen();
+        });
+      },
+      onExcludedFromGasStatsChanged: (v) {
+        _markDirty();
+        setState(() {
+          _excludedFromGasStats = v;
+          _pinStatisticsOpen();
+        });
+      },
+    );
+  }
+
+  /// The section's default expansion follows the two flags, so clearing the
+  /// last one would otherwise shut the group under the diver's finger. Once
+  /// they have touched a toggle, expansion is theirs to decide.
+  void _pinStatisticsOpen() => _expanded['statistics'] = true;
+
   Widget _buildExperienceSection() {
     return ExperienceSection(
       expanded: _isExpanded('experience', defaultValue: false),
@@ -2468,29 +2586,82 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _tagsChild() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            context.l10n.diveLog_edit_section_tags,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FormOverline(
+          label: context.l10n.diveLog_edit_section_tags,
+          actions: [
+            FormOverlineAction(
+              label: context.l10n.tags_action_browse,
+              icon: Icons.label_outline,
+              onPressed: _showTagPicker,
             ),
-          ),
-          const SizedBox(height: 8),
-          TagInputWidget(
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+          child: TagInputWidget(
             selectedTags: _selectedTags,
             onTagsChanged: (tags) {
               _markDirty();
               setState(() => _selectedTags = tags);
             },
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  /// Opens the previously-used-tag picker (#1171) over [selected], so tagging
+  /// stays consistent without having to recall earlier spellings. Reports the
+  /// merged list (existing plus newly picked) through [onPicked].
+  ///
+  /// [host] is the context the sheet is pushed from, so it decides which
+  /// navigator owns the picker. It defaults to the page, which is right when
+  /// Browse sits on the form itself. A caller whose Browse action lives inside
+  /// a dialog must pass that dialog's context instead: `showDialog` defaults
+  /// to the root navigator while `showModalBottomSheet` defaults to the
+  /// nearest one, which under the app's `ShellRoute` is the shell navigator
+  /// sitting *below* the dialog. Pushed from the page, the picker would open
+  /// behind the dialog with the dialog's barrier eating every tap (#1366).
+  void _showTagPickerFor({
+    required List<Tag> selected,
+    required ValueChanged<List<Tag>> onPicked,
+    BuildContext? host,
+  }) {
+    showModalBottomSheet<void>(
+      context: host ?? context,
+      isScrollControlled: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, scrollController) => TagPickerSheet(
+          scrollController: scrollController,
+          selectedTagIds: selected.map((t) => t.id).toSet(),
+          onTagsPicked: (tags) {
+            // The sheet already excludes selected tags, but guard anyway so a
+            // stale list can never produce a duplicate chip.
+            final additions = tags.where(
+              (tag) => !selected.any((t) => t.id == tag.id),
+            );
+            if (additions.isNotEmpty) onPicked([...selected, ...additions]);
+            Navigator.of(sheetContext).pop();
+          },
+        ),
       ),
     );
   }
+
+  void _showTagPicker() => _showTagPickerFor(
+    selected: _selectedTags,
+    onPicked: (tags) {
+      _markDirty();
+      setState(() => _selectedTags = tags);
+    },
+  );
 
   /// Opens the profile editor, optionally prompting the user to choose which
   /// computer's profile to start from when the dive has multiple computers.
@@ -3386,27 +3557,39 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     var picked = <Tag>[];
     showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.diveLog_edit_section_tags),
-        content: StatefulBuilder(
-          builder: (ctx, setSt) => TagInputWidget(
+      // The StatefulBuilder wraps the whole dialog, not just its content, so
+      // the Browse action in the button row can restage `picked` too.
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSt) => AlertDialog(
+          title: Text(context.l10n.diveLog_edit_section_tags),
+          content: TagInputWidget(
             selectedTags: picked,
             onTagsChanged: (t) => setSt(() => picked = t),
           ),
+          actions: [
+            TextButton(
+              // `ctx` is inside the dialog route, so the picker lands on the
+              // same (root) navigator and opens above the dialog (#1366).
+              onPressed: () => _showTagPickerFor(
+                host: ctx,
+                selected: picked,
+                onPicked: (tags) => setSt(() => picked = tags),
+              ),
+              child: Text(context.l10n.tags_action_browse),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(context.l10n.diveLog_edit_cancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                _addTagMembers(picked);
+                Navigator.pop(ctx);
+              },
+              child: Text(context.l10n.diveLog_edit_add),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(context.l10n.diveLog_edit_cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              _addTagMembers(picked);
-              Navigator.pop(ctx);
-            },
-            child: Text(context.l10n.diveLog_edit_add),
-          ),
-        ],
       ),
     );
   }
@@ -3539,13 +3722,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
     role: _roleForBuddy(id),
   );
-
-  /// Mirrors BulkMembershipEditor's "on all" presence, which is what makes a
-  /// picked role a no-op for the membership delta.
-  bool _buddyOnEverySelectedDive(String id) {
-    final total = widget.bulkDiveIds!.length;
-    return total > 0 && (_buddyCounts[id] ?? 0) >= total;
-  }
 
   /// A picked role wins; otherwise reuse the role the buddy already has across
   /// the selection so a membership-only add cannot demote them to Buddy. Only
@@ -3933,12 +4109,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
     if (!mounted) return;
 
-    final writeBack = resolution.siteWriteBack;
+    final writeBack = resolution.siteAltitudeWriteBack;
     if (writeBack != null) {
-      await ref.read(siteListNotifierProvider.notifier).updateSite(writeBack);
+      await ref
+          .read(siteListNotifierProvider.notifier)
+          .updateSiteAltitude(writeBack.siteId, writeBack.altitudeMeters);
       if (!mounted) return;
-      if (_selectedSite?.id == writeBack.id) {
-        _selectedSite = writeBack;
+      if (_selectedSite?.id == writeBack.siteId) {
+        _selectedSite = _selectedSite?.copyWith(
+          altitude: writeBack.altitudeMeters,
+        );
       }
     }
 
@@ -4779,6 +4959,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             .toList(),
         // Preserve favorite status when editing
         isFavorite: _existingDive?.isFavorite ?? false,
+        excludedFromStats: _excludedFromStats,
+        excludedFromGasStats: _excludedFromGasStats,
         // Preserve dive profile data (time series from dive computer)
         profile: _existingDive?.profile ?? const [],
         // Preserve photo associations
@@ -4786,6 +4968,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         // Preserve legacy buddy/divemaster text fields
         buddy: _existingDive?.buddy,
         diveMaster: _existingDive?.diveMaster,
+        // Fields this form has no widget for. Every column updateDive does
+        // write, it writes unconditionally, with no merge against the stored
+        // row, so anything not carried through here is reset to the entity
+        // default on every save (issue #1392). Columns it deliberately omits
+        // (computerId, the entry/exit location pair) are not at risk and are
+        // not listed. The census test in dive_edit_save_field_census_test.dart
+        // fails when a new field is added to the writer without a carry here.
+        isPlanned: _existingDive?.isPlanned ?? false,
+        diveComputerModel: _existingDive?.diveComputerModel,
+        diveComputerSerial: _existingDive?.diveComputerSerial,
+        diveComputerFirmware: _existingDive?.diveComputerFirmware,
+        decoAlgorithm: _existingDive?.decoAlgorithm,
+        decoConservatism: _existingDive?.decoConservatism,
+        gradientFactorLow: _existingDive?.gradientFactorLow,
+        gradientFactorHigh: _existingDive?.gradientFactorHigh,
+        weatherCode: _existingDive?.weatherCode,
+        importId: _existingDive?.importId,
+        surfaceInterval: _existingDive?.surfaceInterval,
         diverRoleId: _diverRoleId,
         // CCR/SCR rebreather settings
         diveMode: _diveMode,

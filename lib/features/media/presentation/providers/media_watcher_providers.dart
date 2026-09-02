@@ -11,6 +11,7 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 final watchedFolderRepositoryProvider = Provider<WatchedFolderRepository>(
   (ref) => WatchedFolderRepository(),
@@ -53,7 +54,7 @@ const String kWatcherAutoApplySettingKey = 'media_watcher_auto_apply';
 
 class WatcherAutoApplyNotifier extends StateNotifier<bool> {
   WatcherAutoApplyNotifier(this._settings) : super(true) {
-    _prime();
+    logFailure(_prime(), WatcherAutoApplyNotifier, 'prime');
   }
 
   final AppSettingsRepository _settings;

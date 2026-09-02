@@ -294,7 +294,8 @@ void main() {
         expect(s1['ppO2'], 1.1);
         expect(s1['heartRate'], 80);
         expect(s1['cns'], 5.0);
-        expect(s1['rbt'], 60);
+        // libdc reports RBT in minutes; profile points store seconds.
+        expect(s1['rbt'], 60 * 60);
         expect(s1['tts'], 120);
         expect(s1['decoType'], 0);
         expect(s1.containsKey('ceiling'), isFalse);

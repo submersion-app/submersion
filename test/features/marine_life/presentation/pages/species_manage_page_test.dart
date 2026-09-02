@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -36,6 +37,7 @@ void main() {
         speciesListNotifierProvider.overrideWith(
           (ref) => _MockSpeciesNotifier(ref.watch(_visibleSpeciesProvider)),
         ),
+        speciesTagCountsProvider.overrideWith((ref) async => const {}),
         speciesSightingCountsProvider.overrideWith(
           (ref) async => sightingCounts,
         ),
@@ -86,6 +88,7 @@ void main() {
         overrides: [
           _visibleSpeciesProvider.overrideWith((ref) => all),
           speciesListNotifierProvider.overrideWith((ref) => notifier),
+          speciesTagCountsProvider.overrideWith((ref) async => const {}),
           speciesSightingCountsProvider.overrideWith((ref) async => const {}),
         ],
         child: const SpeciesManagePage(),
@@ -117,6 +120,7 @@ void main() {
         overrides: [
           _visibleSpeciesProvider.overrideWith((ref) => all),
           speciesListNotifierProvider.overrideWith((ref) => notifier),
+          speciesTagCountsProvider.overrideWith((ref) async => const {}),
           speciesSightingCountsProvider.overrideWith((ref) async => const {}),
         ],
         child: const SpeciesManagePage(),

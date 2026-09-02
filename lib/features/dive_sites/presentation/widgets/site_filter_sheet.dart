@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Bottom sheet for filtering dive sites.
 ///
@@ -51,11 +53,14 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
 
     _countryController = TextEditingController(text: _country ?? '');
     _regionController = TextEditingController(text: _region ?? '');
+    // Depth bounds are held in meters, matching the stored site depths they
+    // are compared against, but the diver reads and edits them in their unit.
+    final units = UnitFormatter(widget.ref.read(settingsProvider));
     _minDepthController = TextEditingController(
-      text: _minDepth?.toStringAsFixed(0) ?? '',
+      text: _depthInputText(units, _minDepth),
     );
     _maxDepthController = TextEditingController(
-      text: _maxDepth?.toStringAsFixed(0) ?? '',
+      text: _depthInputText(units, _maxDepth),
     );
   }
 
@@ -257,7 +262,22 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     );
   }
 
+  /// Render a meters-valued bound as whole units of the diver's depth unit.
+  String _depthInputText(UnitFormatter units, double? meters) {
+    if (meters == null) return '';
+    return formatDecimalForInput(units.convertDepth(meters).roundToDouble());
+  }
+
+  /// Convert a depth the diver typed in their own unit back to the meters the
+  /// filter compares against.
+  double? _depthInputToMeters(String value) {
+    final typed = parseUserDecimal(value);
+    if (typed == null) return null;
+    return UnitFormatter(ref.read(settingsProvider)).depthToMeters(typed);
+  }
+
   Widget _buildDepthSection() {
+    final depthSymbol = UnitFormatter(ref.watch(settingsProvider)).depthSymbol;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -274,12 +294,12 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveSites_filter_depth_min_label,
-                  suffixText: 'm',
+                  suffixText: depthSymbol,
                   border: const OutlineInputBorder(),
                 ),
                 onChanged: (value) {
                   setState(() {
-                    _minDepth = parseUserDecimal(value);
+                    _minDepth = _depthInputToMeters(value);
                   });
                 },
               ),
@@ -294,12 +314,12 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: context.l10n.diveSites_filter_depth_max_label,
-                  suffixText: 'm',
+                  suffixText: depthSymbol,
                   border: const OutlineInputBorder(),
                 ),
                 onChanged: (value) {
                   setState(() {
-                    _maxDepth = parseUserDecimal(value);
+                    _maxDepth = _depthInputToMeters(value);
                   });
                 },
               ),

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/capture_time_offset_bar.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Review pane shown in the Files tab once one or more files have been
 /// staged via the picker.
@@ -47,11 +49,11 @@ class FileReviewPane extends ConsumerWidget {
     final theme = Theme.of(context);
     if (flat) return _buildFlat(context, theme);
 
-    // TODO(media): l10n
-    final summary =
-        '${state.files.length} photos → '
-        '${state.match.diveCount} dive${state.match.diveCount == 1 ? '' : 's'}, '
-        '${state.match.unmatched.length} unmatched';
+    final summary = context.l10n.media_photoPicker_files_summary(
+      state.files.length,
+      state.match.diveCount,
+      state.match.unmatched.length,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -60,13 +62,27 @@ class FileReviewPane extends ConsumerWidget {
           padding: const EdgeInsets.all(8),
           child: Text(summary, style: theme.textTheme.titleMedium),
         ),
+        // Shown whenever files are staged and auto-match is on, including when
+        // everything already matched: gating on unmatched.isNotEmpty would make
+        // the control disappear the instant a shift worked, stranding the user
+        // with a correction they could no longer see or undo.
+        if (state.files.isNotEmpty && state.autoMatchByDate)
+          CaptureTimeOffsetBar(state: state),
         Expanded(
           child: ListView(
             children: [
               for (final entry in state.match.matched.entries)
                 ExpansionTile(
-                  title: Text('Dive ${entry.key}'),
-                  subtitle: Text('${entry.value.length} photos'),
+                  title: Text(
+                    context.l10n.media_photoPicker_files_diveGroupTitle(
+                      entry.key,
+                    ),
+                  ),
+                  subtitle: Text(
+                    context.l10n.media_photoPicker_files_groupCount(
+                      entry.value.length,
+                    ),
+                  ),
                   initiallyExpanded: true,
                   children: [
                     for (final f in entry.value)
@@ -74,13 +90,20 @@ class FileReviewPane extends ConsumerWidget {
                         file: f,
                         targetDiveId: entry.key,
                         assignableDiveId: assignableDiveId,
+                        captureTimeOffset: state.captureTimeOffset,
                       ),
                   ],
                 ),
               if (state.match.unmatched.isNotEmpty)
                 ExpansionTile(
-                  title: const Text('Unmatched'),
-                  subtitle: Text('${state.match.unmatched.length} photos'),
+                  title: Text(
+                    context.l10n.media_photoPicker_files_unmatchedGroupTitle,
+                  ),
+                  subtitle: Text(
+                    context.l10n.media_photoPicker_files_groupCount(
+                      state.match.unmatched.length,
+                    ),
+                  ),
                   initiallyExpanded: true,
                   // Without this the only thing a user could do with a photo
                   // the matcher rejected was remove it -- commit() never sees
@@ -92,8 +115,9 @@ class FileReviewPane extends ConsumerWidget {
                               .read(filesTabNotifierProvider.notifier)
                               .assignAllUnmatched(assignableDiveId!),
                           child: Text(
-                            'Add all ${state.match.unmatched.length} '
-                            'to this dive',
+                            context.l10n.media_photoPicker_files_addAllToDive(
+                              state.match.unmatched.length,
+                            ),
                           ),
                         ),
                   children: [
@@ -102,6 +126,8 @@ class FileReviewPane extends ConsumerWidget {
                         file: f,
                         targetDiveId: null,
                         assignableDiveId: assignableDiveId,
+                        diagnostic: state.match.diagnostics[f.sourcePath],
+                        captureTimeOffset: state.captureTimeOffset,
                       ),
                   ],
                 ),
@@ -124,9 +150,8 @@ class FileReviewPane extends ConsumerWidget {
           // "item", not "photo": the Files tab picks with FileType.media and
           // the folder scan admits .mp4/.mov/.m4v, so a staged set can be all
           // video. Matches the commit button's wording.
-          // TODO(media): l10n, pluralization
           child: Text(
-            '$count item${count == 1 ? '' : 's'}',
+            context.l10n.media_photoPicker_files_itemCount(count),
             style: theme.textTheme.titleMedium,
           ),
         ),
@@ -134,7 +159,16 @@ class FileReviewPane extends ConsumerWidget {
           child: ListView(
             children: [
               for (final f in state.files)
-                FileReviewCard(file: f, targetDiveId: null),
+                FileReviewCard(
+                  file: f,
+                  targetDiveId: null,
+                  captureTimeOffset: state.captureTimeOffset,
+                  // A site owns every staged file, so there is no dive to
+                  // route one to. Without this the card falls through to its
+                  // "choose a dive" branch, contradicting this method's
+                  // contract below.
+                  allowDiveAssignment: false,
+                ),
             ],
           ),
         ),

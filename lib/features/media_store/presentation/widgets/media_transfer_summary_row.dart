@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/presentation/widgets/media_transfers_suspended_notice.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Outstanding transfer work on the Media Storage page.
@@ -24,12 +25,20 @@ class MediaTransferSummaryRow extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final summary = ref.watch(mediaTransferSummaryProvider).value;
-    if (summary == null || summary.isEmpty) return const SizedBox.shrink();
+    if (summary == null || summary.isEmpty) {
+      // Still render the notice: a suspension can outlast the work that was
+      // queued when it started, and watchSummary counts only pending and
+      // transferring rows.
+      return const MediaTransfersSuspendedNotice(
+        contentPadding: EdgeInsets.zero,
+      );
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const MediaTransfersSuspendedNotice(contentPadding: EdgeInsets.zero),
         if (summary.transferring > 0)
           Padding(
             key: const Key('media-transfer-progress'),

@@ -11,7 +11,12 @@ class SignatureCaptureWidget extends StatefulWidget {
   final String? initialSignerName;
 
   /// Callback when signature is saved
-  final void Function(List<List<Offset>> strokes, String signerName)? onSave;
+  final void Function(
+    List<List<Offset>> strokes,
+    String signerName,
+    Size canvasSize,
+  )?
+  onSave;
 
   /// Callback when cancelled
   final VoidCallback? onCancel;
@@ -48,6 +53,14 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
   List<Offset> _currentStroke = [];
   late final TextEditingController _nameController;
 
+  /// Laid-out size of the drawing surface, recorded by the [LayoutBuilder]
+  /// that wraps it. The canvas stretches to the available width, so it is
+  /// only known after layout -- and the strokes mean nothing without it.
+  ///
+  /// The placeholder is never read: a stroke requires a laid-out canvas, so
+  /// the builder has always run by the time a save can happen.
+  Size _canvasSize = Size.zero;
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +72,11 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
     _nameController.dispose();
     super.dispose();
   }
+
+  /// Whether anything drawable has been captured. Mirrors what the painter
+  /// and the PNG encoder accept, so an enabled button always means there is
+  /// a signature to save.
+  bool get _hasDrawing => _strokes.isNotEmpty || _currentStroke.length >= 2;
 
   void _clear() {
     setState(() {
@@ -83,7 +101,7 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
       return;
     }
 
-    widget.onSave?.call(_strokes, name);
+    widget.onSave?.call(_strokes, name, _canvasSize);
   }
 
   @override
@@ -129,51 +147,7 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
         // Signature canvas
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Container(
-            height: widget.canvasHeight,
-            decoration: BoxDecoration(
-              color: canvasBackground,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: colorScheme.outline.withValues(alpha: 0.5),
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(11),
-              child: Semantics(
-                label: context.l10n.signatures_drawSignatureSemantics,
-                child: GestureDetector(
-                  onPanStart: (details) {
-                    setState(() {
-                      _currentStroke = [details.localPosition];
-                    });
-                  },
-                  onPanUpdate: (details) {
-                    setState(() {
-                      _currentStroke.add(details.localPosition);
-                    });
-                  },
-                  onPanEnd: (details) {
-                    setState(() {
-                      if (_currentStroke.isNotEmpty) {
-                        _strokes.add(List.from(_currentStroke));
-                      }
-                      _currentStroke = [];
-                    });
-                  },
-                  child: CustomPaint(
-                    painter: _SignaturePainter(
-                      strokes: _strokes,
-                      currentStroke: _currentStroke,
-                      strokeColor: widget.strokeColor,
-                      strokeWidth: widget.strokeWidth,
-                    ),
-                    size: Size.infinite,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          child: _buildCanvas(context, canvasBackground, colorScheme),
         ),
 
         const SizedBox(height: 8),
@@ -198,9 +172,7 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
             children: [
               // Clear button
               OutlinedButton.icon(
-                onPressed: _strokes.isEmpty && _currentStroke.isEmpty
-                    ? null
-                    : _clear,
+                onPressed: !_hasDrawing ? null : _clear,
                 icon: const Icon(Icons.clear),
                 label: Text(context.l10n.signatures_action_clear),
               ),
@@ -213,9 +185,7 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
               const SizedBox(width: 8),
               // Save button
               FilledButton.icon(
-                onPressed: _strokes.isEmpty && _currentStroke.isEmpty
-                    ? null
-                    : _handleSave,
+                onPressed: !_hasDrawing ? null : _handleSave,
                 icon: const Icon(Icons.check),
                 label: Text(context.l10n.signatures_action_saveSignature),
               ),
@@ -223,6 +193,74 @@ class _SignatureCaptureWidgetState extends State<SignatureCaptureWidget> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCanvas(
+    BuildContext context,
+    Color canvasBackground,
+    ColorScheme colorScheme,
+  ) {
+    return Container(
+      height: widget.canvasHeight,
+      decoration: BoxDecoration(
+        color: canvasBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(11),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Recorded, not applied, and measured HERE rather than around
+            // the Container: the border insets this surface by 1px a side,
+            // and `details.localPosition` is relative to it. Measuring the
+            // outer box would report a canvas 2px larger than the space the
+            // strokes actually live in.
+            _canvasSize = constraints.biggest;
+            return _buildGestureSurface(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGestureSurface(BuildContext context) {
+    return Semantics(
+      label: context.l10n.signatures_drawSignatureSemantics,
+      child: GestureDetector(
+        onPanStart: (details) {
+          setState(() {
+            _currentStroke = [details.localPosition];
+          });
+        },
+        onPanUpdate: (details) {
+          setState(() {
+            _currentStroke.add(details.localPosition);
+          });
+        },
+        onPanEnd: (details) {
+          setState(() {
+            // Only strokes with a segment to draw. A plain tap wins the
+            // gesture arena uncontested and lands here with a single point,
+            // which the painter and the PNG encoder both skip -- so storing
+            // it would light up Save and store a blank signature.
+            if (_currentStroke.length >= 2) {
+              _strokes.add(List.from(_currentStroke));
+            }
+            _currentStroke = [];
+          });
+        },
+        child: CustomPaint(
+          painter: _SignaturePainter(
+            strokes: _strokes,
+            currentStroke: _currentStroke,
+            strokeColor: widget.strokeColor,
+            strokeWidth: widget.strokeWidth,
+          ),
+          size: Size.infinite,
+        ),
+      ),
     );
   }
 }
@@ -284,7 +322,12 @@ class _SignaturePainter extends CustomPainter {
 /// Full-screen signature capture sheet
 class SignatureCaptureSheet extends StatelessWidget {
   final String? initialSignerName;
-  final void Function(List<List<Offset>> strokes, String signerName)? onSave;
+  final void Function(
+    List<List<Offset>> strokes,
+    String signerName,
+    Size canvasSize,
+  )?
+  onSave;
 
   const SignatureCaptureSheet({super.key, this.initialSignerName, this.onSave});
 
@@ -331,8 +374,8 @@ class SignatureCaptureSheet extends StatelessWidget {
             // Signature capture widget
             SignatureCaptureWidget(
               initialSignerName: initialSignerName,
-              onSave: (strokes, name) {
-                onSave?.call(strokes, name);
+              onSave: (strokes, name, canvasSize) {
+                onSave?.call(strokes, name, canvasSize);
                 Navigator.of(context).pop();
               },
               onCancel: () => Navigator.of(context).pop(),
@@ -350,7 +393,12 @@ class SignatureCaptureSheet extends StatelessWidget {
 Future<void> showSignatureCaptureSheet({
   required BuildContext context,
   String? initialSignerName,
-  required void Function(List<List<Offset>> strokes, String signerName) onSave,
+  required void Function(
+    List<List<Offset>> strokes,
+    String signerName,
+    Size canvasSize,
+  )
+  onSave,
 }) {
   return showModalBottomSheet(
     context: context,

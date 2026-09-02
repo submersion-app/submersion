@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Modal dive picker used by "Move to dive" and inbox linking. Resolves to
 /// the chosen dive id, or null on dismiss.
@@ -31,7 +32,7 @@ class _DivePickerSheetState extends ConsumerState<_DivePickerSheet> {
   @override
   void initState() {
     super.initState();
-    _load();
+    logFailure(_load(), _DivePickerSheetState, 'load');
   }
 
   Future<void> _load() async {

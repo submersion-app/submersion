@@ -151,6 +151,11 @@ void main() {
     expect(report.orphansRemoved, 3);
     expect(report.bytesReclaimed, 11); // 3 + 5 + 3
     expect(report.objectsChecked, 6); // marker is outside the namespaces
+    // The total counts every stored object, so a library of N photos reads
+    // as 2N or 3N; the breakdown is what makes that number explainable.
+    expect(report.originalsChecked, 4);
+    expect(report.thumbsChecked, 1);
+    expect(report.renditionsChecked, 1);
     expect(report.repairsQueued, 0);
   });
 

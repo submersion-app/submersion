@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -73,12 +74,11 @@ void main() {
         expect(tank.computerId, computerId);
       }
 
-      final pressures = await (db.select(
-        db.tankPressureProfiles,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      expect(pressures, isNotEmpty);
-      for (final pressure in pressures) {
-        expect(pressure.computerId, computerId);
+      final pressureSeries = await TankPressureSeriesRepository()
+          .getSeriesForDive(diveId);
+      expect(pressureSeries, isNotEmpty);
+      for (final series in pressureSeries) {
+        expect(series.computerId, computerId);
       }
 
       final events = await (db.select(

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart'
+    show BuddyWithDiveCount;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
@@ -45,8 +47,10 @@ Widget _buildPicker({
       validatedCurrentDiverIdProvider.overrideWith(
         (ref) async => validatedDiverId,
       ),
-      allBuddiesProvider.overrideWith((ref) async => [_alice]),
-      buddySearchProvider.overrideWith((ref, q) async => const []),
+      allBuddiesWithDiveCountProvider.overrideWith(
+        (ref) async => [BuddyWithDiveCount(buddy: _alice, diveCount: 0)],
+      ),
+      buddySearchWithDiveCountProvider.overrideWith((ref, q) async => const []),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,

@@ -292,7 +292,7 @@ class UddfExportService {
                                             .toString(),
                                       ); // Kelvin
                                     }
-                                    // Tank pressure from tank_pressure_profiles
+                                    // Tank pressure from tank_pressure_series
                                     final divePressures =
                                         diveTankPressures?[dive.id];
                                     if (divePressures != null) {

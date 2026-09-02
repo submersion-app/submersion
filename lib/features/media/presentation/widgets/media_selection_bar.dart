@@ -4,28 +4,75 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/media/presentation/providers/media_selection_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
+import 'package:submersion/shared/selection/selection_app_bar.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 
-/// Action bar shown above the library while a selection is active: count,
-/// Share, Delete (with confirm), and a clear affordance.
+/// The library's contextual bar while a selection is active.
+///
+/// The chrome -- count, close, select all, deselect all, and the overflow --
+/// comes from the shared [SelectionAppBar], so the library cannot drift from
+/// every other selectable surface. This widget contributes only the
+/// media-specific bulk actions and the logic behind them.
 class MediaSelectionBar extends ConsumerWidget {
-  const MediaSelectionBar({super.key, required this.selectedItems});
+  const MediaSelectionBar({
+    super.key,
+    required this.controller,
+    required this.selectableIds,
+    required this.selectedItems,
+  });
+
+  /// The library's selection state machine, shared with the view that hosts
+  /// this bar.
+  final SelectionController controller;
+
+  /// Every id currently on screen, which is what Select All checks.
+  final List<String> selectableIds;
 
   /// The currently selected items, resolved by the caller from the visible
-  /// entries so share/delete operate on real MediaItems.
+  /// entries so share/unlink operate on real MediaItems.
   final List<MediaItem> selectedItems;
 
-  Future<void> _deleteSelected(BuildContext context, WidgetRef ref) async {
+  List<String> get _ids => selectedItems.map((m) => m.id).toList();
+
+  /// The library's one destructive action.
+  ///
+  /// A dive or a site can unlink from its own side and leave the row alive
+  /// for the other one, but the library IS every side at once: unlinking
+  /// here clears every link the row has, and a row with no link cannot stay
+  /// in the library. So the row, its cloud proxies and its thumbnails go,
+  /// and only the original source file is left alone. That single outcome is
+  /// why this surface no longer carries an unlink-per-link pair alongside a
+  /// separate Delete.
+  ///
+  /// Routed through the deletion coordinator so the remote-blob delete
+  /// intent is enqueued before the rows die (orphan-prevention spec 5.2).
+  Future<void> _unlinkSelected(BuildContext context, WidgetRef ref) async {
+    final ids = _ids;
+    if (ids.isEmpty) return;
+
+    // Everything else an unlink discards is derived and rebuilds from the
+    // source file on a re-link. A caption and the favorite flag live only in
+    // Submersion's own row, so they are the part worth naming.
+    final atRisk = await ref
+        .read(mediaRepositoryProvider)
+        .idsWithUserMetadata(ids);
+    if (!context.mounted) return;
+
     final l10n = context.l10n;
-    final count = selectedItems.length;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.media_library_deleteConfirmTitle(count)),
-        content: Text(l10n.media_library_deleteConfirmBody),
+        title: Text(l10n.media_library_unlinkConfirmTitle(ids.length)),
+        content: Text(
+          atRisk.isEmpty
+              ? l10n.media_library_unlinkConfirmBody
+              : '${l10n.media_library_unlinkConfirmBody}\n\n'
+                    '${l10n.media_library_unlinkMetadataNote(atRisk.length)}',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -33,119 +80,62 @@ class MediaSelectionBar extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.common_action_delete),
+            child: Text(l10n.media_library_unlinkSelected),
           ),
         ],
       ),
     );
     if (confirmed != true) return;
 
-    // Routed through the deletion coordinator so the remote-blob delete
-    // intent is enqueued before the rows die (orphan-prevention spec 5.2).
-    await ref
-        .read(mediaDeletionCoordinatorProvider)
-        .deleteMultipleMedia(selectedItems.map((m) => m.id).toList());
-    ref.read(mediaSelectionProvider.notifier).clear();
+    await ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids);
+    controller.exit();
   }
-
-  List<String> get _ids => selectedItems.map((m) => m.id).toList();
-
-  /// Ids of the selection that actually carry a dive link. The unlink ops
-  /// latch `retainInLibrary`, which permanently excludes a row from the
-  /// orphan sweep - so they must only ever see rows the action applies to.
-  List<String> get _diveLinkedIds =>
-      selectedItems.where((m) => m.diveId != null).map((m) => m.id).toList();
-
-  /// Same guard for the site link.
-  List<String> get _siteLinkedIds =>
-      selectedItems.where((m) => m.siteId != null).map((m) => m.id).toList();
 
   Future<void> _moveToDive(BuildContext context, WidgetRef ref) async {
     final diveId = await showDivePickerSheet(context);
     if (diveId == null) return;
     await ref.read(mediaRepositoryProvider).reassignMediaToDive(_ids, diveId);
-    ref.read(mediaSelectionProvider.notifier).clear();
+    controller.exit();
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final anyDiveLinked = selectedItems.any((m) => m.diveId != null);
-    final anySiteLinked = selectedItems.any((m) => m.siteId != null);
+    final l10n = context.l10n;
 
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.close),
-              tooltip: context.l10n.common_action_cancel,
-              onPressed: () =>
-                  ref.read(mediaSelectionProvider.notifier).clear(),
-            ),
-            Text(
-              context.l10n.media_library_selectedCount(selectedItems.length),
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(width: 8),
-            // The action set grows with selection context; scroll instead of
-            // overflowing on narrow layouts.
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    if (anyDiveLinked)
-                      TextButton.icon(
-                        icon: const Icon(Icons.link_off),
-                        label: Text(context.l10n.media_library_unlinkSelected),
-                        onPressed: () async {
-                          await ref
-                              .read(mediaRepositoryProvider)
-                              .unlinkFromDive(_diveLinkedIds);
-                          ref.read(mediaSelectionProvider.notifier).clear();
-                        },
-                      ),
-                    if (anySiteLinked)
-                      TextButton.icon(
-                        icon: const Icon(Icons.location_off),
-                        label: Text(context.l10n.media_library_unlinkFromSite),
-                        onPressed: () async {
-                          await ref
-                              .read(mediaRepositoryProvider)
-                              .unlinkFromSite(_siteLinkedIds);
-                          ref.read(mediaSelectionProvider.notifier).clear();
-                        },
-                      ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.drive_file_move_outline),
-                      label: Text(context.l10n.media_library_moveToDive),
-                      onPressed: selectedItems.isEmpty
-                          ? null
-                          : () => _moveToDive(context, ref),
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.share),
-                      label: Text(context.l10n.common_action_share),
-                      onPressed: selectedItems.isEmpty
-                          ? null
-                          : () => shareMediaItems(context, ref, selectedItems),
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.delete_outline),
-                      label: Text(context.l10n.common_action_delete),
-                      onPressed: selectedItems.isEmpty
-                          ? null
-                          : () => _deleteSelected(context, ref),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+    // [onDelete] is null and Unlink is an ordinary action because this
+    // surface has no control named Delete: unlinking here destroys the rows,
+    // but calling it Delete would claim the source files go too, and they do
+    // not. The shared bar's safety property is kept by other means --
+    // [maxInlineActions] is 2, so the two benign actions hold the inline
+    // slots and the destructive one is reached by open-then-choose, the same
+    // deliberate gesture the baseline delete entry requires.
+    return SelectionAppBar(
+      controller: controller,
+      selectableIds: selectableIds,
+      shell: SelectionBarShell.pane,
+      onDelete: null,
+      maxInlineActions: 2,
+      actions: [
+        BulkAction(
+          id: 'share',
+          icon: Icons.share,
+          label: l10n.common_action_share,
+          onInvoke: () => shareMediaItems(context, ref, selectedItems),
         ),
-      ),
+        BulkAction(
+          id: 'move_to_dive',
+          icon: Icons.drive_file_move_outline,
+          label: l10n.media_library_moveToDive,
+          onInvoke: () => _moveToDive(context, ref),
+        ),
+        BulkAction(
+          id: 'unlink',
+          icon: Icons.link_off,
+          label: l10n.media_library_unlinkSelected,
+          isDestructive: true,
+          onInvoke: () => _unlinkSelected(context, ref),
+        ),
+      ],
     );
   }
 }

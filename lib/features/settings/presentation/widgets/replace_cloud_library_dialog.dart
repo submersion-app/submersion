@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync_maintenance_progress_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Confirmation for making this device's library authoritative everywhere.
@@ -137,6 +138,7 @@ Future<void> showReplaceCloudLibraryDialog(
   WidgetRef ref,
   ReplacePreflight preflight,
 ) async {
+  final l10n = context.l10n;
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (_) => ReplaceCloudLibraryDialog(
@@ -144,10 +146,21 @@ Future<void> showReplaceCloudLibraryDialog(
       peerFileCount: preflight.peerFileCount,
     ),
   );
-  if (confirmed != true) return;
-  // Safety backup of this device BEFORE the cloud library is overwritten.
-  await ref.read(backupServiceProvider).performBackup(isAutomatic: true);
-  await ref
-      .read(syncStateProvider.notifier)
-      .replaceCloudLibraryFromThisDevice();
+  if (confirmed != true || !context.mounted) return;
+  // A safety backup followed by a whole-library republish runs for minutes on
+  // a large library. Both used to happen behind a live page, so the user saw
+  // nothing and their phone was free to lock mid-replace (issue #1194).
+  await runWithSyncMaintenanceProgress<void>(
+    context: context,
+    title: l10n.settings_cloudSync_replaceLibrary_progressTitle,
+    task: (report) async {
+      // Safety backup of this device BEFORE the cloud library is overwritten.
+      report(0, 0, l10n.settings_syncMaintenance_phase_backingUp);
+      await ref.read(backupServiceProvider).performBackup(isAutomatic: true);
+      report(0, 0, l10n.settings_syncMaintenance_phase_publishingLibrary);
+      await ref
+          .read(syncStateProvider.notifier)
+          .replaceCloudLibraryFromThisDevice();
+    },
+  );
 }

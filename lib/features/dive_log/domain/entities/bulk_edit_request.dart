@@ -89,7 +89,7 @@ enum TankSpecField {
 /// Unlike [TanksOp] this carries a field mask rather than a list of tanks:
 /// [specs] is a template whose values are read only for the fields named in
 /// [fields]. Dives with no tanks are skipped; nothing is inserted or deleted,
-/// so tank_pressure_profiles and gas_switches keep their rows.
+/// so tank_pressure_series and gas_switches keep their rows.
 class TankSpecsOp extends BulkCollectionOp {
   final DiveTank specs;
   final Set<TankSpecField> fields;

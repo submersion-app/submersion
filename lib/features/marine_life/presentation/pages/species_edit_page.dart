@@ -4,7 +4,10 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/domain/entities/species_lookup.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_lookup_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class SpeciesEditPage extends ConsumerStatefulWidget {
@@ -140,6 +143,15 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
                         return null;
                       },
                     ),
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: TextButton.icon(
+                        key: const ValueKey('species_lookup_online'),
+                        icon: const Icon(Icons.travel_explore),
+                        label: Text(context.l10n.marineLife_lookup_button),
+                        onPressed: _lookUpOnline,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _scientificNameController,
@@ -154,6 +166,7 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<SpeciesCategory>(
+                      key: ValueKey('species_category_${_category.name}'),
                       initialValue: _category,
                       decoration: InputDecoration(
                         labelText:
@@ -203,34 +216,77 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
     );
   }
 
+  Future<void> _lookUpOnline() async {
+    final result = await showSpeciesLookupSheet(
+      context,
+      initialQuery: _commonNameController.text.trim(),
+    );
+    if (result is SpeciesLookupChosen && mounted) _applyLookup(result.result);
+  }
+
+  /// Fills what the lookup knows and leaves the description alone; the
+  /// diver can still edit any field before saving.
+  void _applyLookup(SpeciesLookupResult result) {
+    setState(() {
+      _commonNameController.text = result.commonName;
+      _scientificNameController.text = result.scientificName;
+      _taxonomyClassController.text = result.taxonomyClass ?? '';
+      _category = result.category;
+    });
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
 
     try {
-      final notifier = ref.read(speciesListNotifierProvider.notifier);
+      // Write through the repository, not through the species list notifier.
+      // That notifier is autoDispose and this page never watches it, so a
+      // `read` of it would be disposed at the end of the frame while the save
+      // was still in flight. The list refreshes off the `species` table tick.
+      final repository = ref.read(speciesRepositoryProvider);
       final commonName = _commonNameController.text.trim();
       final scientificName = _scientificNameController.text.trim();
       final taxonomyClass = _taxonomyClassController.text.trim();
       final description = _descriptionController.text.trim();
 
       if (widget.isEditing) {
-        final repository = ref.read(speciesRepositoryProvider);
         final existing = await repository.getSpeciesById(widget.speciesId!);
-        if (existing != null) {
-          await notifier.updateSpecies(
-            existing.copyWith(
-              commonName: commonName,
-              scientificName: scientificName.isEmpty ? null : scientificName,
-              category: _category,
-              taxonomyClass: taxonomyClass.isEmpty ? null : taxonomyClass,
-              description: description.isEmpty ? null : description,
-            ),
-          );
+        if (existing == null) {
+          // The row went away while the editor was open, e.g. a sync applied
+          // a deletion from another device. Say so instead of reporting an
+          // update that never happened.
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  context.l10n.marineLife_speciesEdit_notFoundMessage,
+                ),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+          return;
         }
+        // Built by hand rather than with copyWith, which reads a null as
+        // "keep this value" and so could never blank an optional field the
+        // diver had cleared. Everything the form does not show is carried
+        // over from the stored row.
+        await repository.updateSpecies(
+          Species(
+            id: existing.id,
+            commonName: commonName,
+            scientificName: scientificName.isEmpty ? null : scientificName,
+            category: _category,
+            taxonomyClass: taxonomyClass.isEmpty ? null : taxonomyClass,
+            description: description.isEmpty ? null : description,
+            photoPath: existing.photoPath,
+            isBuiltIn: existing.isBuiltIn,
+          ),
+        );
       } else {
-        await notifier.addSpecies(
+        await repository.createSpecies(
           commonName: commonName,
           scientificName: scientificName.isEmpty ? null : scientificName,
           category: _category,

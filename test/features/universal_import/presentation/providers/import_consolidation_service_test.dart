@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
+import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/presentation/providers/import_consolidation_service.dart';
 
@@ -14,7 +15,6 @@ import 'import_consolidation_service_test.mocks.dart';
 const _emptySnapshot = DiveMergeSnapshot(
   mergedDiveId: 'target-dive',
   diveRows: [],
-  profileRows: [],
   tankRows: [],
   weightRows: [],
   customFieldRows: [],
@@ -25,7 +25,6 @@ const _emptySnapshot = DiveMergeSnapshot(
   sightingRows: [],
   eventRows: [],
   gasSwitchRows: [],
-  tankPressureRows: [],
   dataSourceRows: [],
   tideRows: [],
   mediaDiveIds: {},
@@ -252,6 +251,45 @@ void main() {
     // -------------------------------------------------------------------
     // Non-atomic import+consolidate hardening (Task 8, PR review finding 2)
     // -------------------------------------------------------------------
+
+    test('when apply() reports the PRE-EXISTING target holds an undecodable '
+        'series, the freshly-imported dive is KEPT standalone', () async {
+      when(
+        mockConsolidationService.apply(
+          targetDiveId: 'existing-dive-a',
+          secondaryDiveIds: ['new-dive-0'],
+        ),
+      ).thenThrow(const UnreadableSeriesException(['series-1']));
+
+      final summary = await performConsolidations(
+        indices: {0, 1},
+        diveIdByIndex: {0: 'new-dive-0', 1: 'new-dive-1'},
+        duplicateResult: const ImportDuplicateResult(
+          diveMatches: {
+            0: DiveMatchResult(
+              diveId: 'existing-dive-a',
+              score: 0.9,
+              timeDifferenceMs: 100,
+            ),
+            1: DiveMatchResult(
+              diveId: 'existing-dive-b',
+              score: 0.95,
+              timeDifferenceMs: 50,
+            ),
+          },
+        ),
+        consolidationService: mockConsolidationService,
+        diveRepository: mockDiveRepository,
+      );
+
+      expect(summary.consolidated, 1);
+      expect(summary.failed, 0);
+      expect(summary.keptStandalone, 1);
+      // new-dive-0 is still in the DB as its own dive, so it must NOT be
+      // reported as removed; only the folded new-dive-1 is.
+      expect(summary.removedDiveIds, {'new-dive-1'});
+      verifyNever(mockDiveRepository.bulkDeleteDives(any));
+    });
 
     test('when apply() throws, the freshly-imported standalone dive is '
         'deleted and the loop continues to remaining indices', () async {

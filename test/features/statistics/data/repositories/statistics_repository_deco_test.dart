@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 
@@ -9,10 +11,12 @@ import '../../../../helpers/test_database.dart';
 void main() {
   late AppDatabase db;
   late StatisticsRepository repo;
+  late ProfileSeriesRepository seriesRepository;
 
   setUp(() async {
     db = await setUpTestDatabase();
     repo = StatisticsRepository();
+    seriesRepository = ProfileSeriesRepository();
   });
   tearDown(() async {
     await tearDownTestDatabase();
@@ -33,26 +37,24 @@ void main() {
         );
   }
 
-  /// Inserts profile samples as (timestamp, depth, decoType, ceiling) tuples.
+  /// Inserts one series from (timestamp, depth, decoType, ceiling) tuples.
   Future<void> profile(
     String diveId,
     List<(int, double, int?, double?)> samples,
   ) async {
-    var index = 0;
-    for (final (ts, depth, decoType, ceiling) in samples) {
-      await db
-          .into(db.diveProfiles)
-          .insert(
-            DiveProfilesCompanion(
-              id: Value('$diveId-row-${index++}'),
-              diveId: Value(diveId),
-              timestamp: Value(ts),
-              depth: Value(depth),
-              decoType: Value(decoType),
-              ceiling: Value(ceiling),
-            ),
-          );
-    }
+    await seriesRepository.insertSeries(
+      diveId: diveId,
+      samples: [
+        for (final (ts, depth, decoType, ceiling) in samples)
+          ProfileSample(
+            timestamp: ts,
+            depth: depth,
+            decoType: decoType,
+            ceiling: ceiling,
+          ),
+      ],
+      now: now,
+    );
   }
 
   Future<void> decoStopEvent(String diveId) async {

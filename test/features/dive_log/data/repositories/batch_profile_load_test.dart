@@ -1,7 +1,9 @@
-import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -9,12 +11,15 @@ import '../../../../helpers/test_database.dart';
 /// `getAllDives` deliberately skips profile hydration for performance, so the
 /// export path loads them itself.
 ///
-/// It must not reach for `getDiveProfile`: that filters `isPrimary = true`,
-/// and per #623 `setPrimaryDataSource` can leave a file-imported dive with no
-/// primary rows at all. Those dives would silently render a blank chart. The
-/// batch loader mirrors `getMergedProfile` instead.
+/// It must not reach for `getDiveProfile`, nor for the `primaryOnly` series
+/// read: both keep only `is_primary`, and per #623 `setPrimaryDataSource` can
+/// leave a file-imported dive with no primary series at all. Those dives would
+/// silently render a blank chart. The batch loader shares `_pointsForSeries`
+/// with `getMergedProfile` instead, so the export and the on-screen chart
+/// cannot drift apart.
 void main() {
   late DiveRepository repository;
+  late ProfileSeriesRepository seriesRepository;
   late AppDatabase db;
 
   const now = 1750000000000;
@@ -32,32 +37,34 @@ void main() {
         );
   }
 
-  var rowCounter = 0;
-  Future<void> insertProfileRow({
-    required String diveId,
-    required int timestamp,
-    required double depth,
+  var seriesCounter = 0;
+
+  /// One series row carrying [samples], the way a download or an import
+  /// writes it. Samples are `(timestamp, depth)` pairs.
+  Future<void> insertSeries(
+    String diveId,
+    List<(int, double)> samples, {
     String? computerId,
     bool isPrimary = true,
   }) async {
-    await db
-        .into(db.diveProfiles)
-        .insert(
-          DiveProfilesCompanion(
-            id: Value('prof-${rowCounter++}'),
-            diveId: Value(diveId),
-            computerId: Value(computerId),
-            isPrimary: Value(isPrimary),
-            timestamp: Value(timestamp),
-            depth: Value(depth),
-          ),
-        );
+    await seriesRepository.insertSeries(
+      id: 'series-${seriesCounter++}',
+      diveId: diveId,
+      computerId: computerId,
+      isPrimary: isPrimary,
+      now: now,
+      samples: [
+        for (final (timestamp, depth) in samples)
+          ProfileSample(timestamp: timestamp, depth: depth),
+      ],
+    );
   }
 
   setUp(() async {
     db = await setUpTestDatabase();
     repository = DiveRepository();
-    rowCounter = 0;
+    seriesRepository = ProfileSeriesRepository();
+    seriesCounter = 0;
   });
 
   tearDown(() async {
@@ -67,10 +74,8 @@ void main() {
   test('returns profiles for several dives in one call', () async {
     await insertDive('diveA');
     await insertDive('diveB');
-    await insertProfileRow(diveId: 'diveA', timestamp: 0, depth: 0);
-    await insertProfileRow(diveId: 'diveA', timestamp: 60, depth: 12);
-    await insertProfileRow(diveId: 'diveB', timestamp: 0, depth: 0);
-    await insertProfileRow(diveId: 'diveB', timestamp: 60, depth: 30);
+    await insertSeries('diveA', [(0, 0), (60, 12)]);
+    await insertSeries('diveB', [(0, 0), (60, 30)]);
 
     final result = await repository.getMergedProfilesForDives([
       'diveA',
@@ -82,20 +87,9 @@ void main() {
     expect(result['diveB']!.last.depth, 30);
   });
 
-  test('returns rows for a dive whose samples are all non-primary', () async {
+  test('returns samples for a dive whose series are all non-primary', () async {
     await insertDive('imported');
-    await insertProfileRow(
-      diveId: 'imported',
-      timestamp: 0,
-      depth: 0,
-      isPrimary: false,
-    );
-    await insertProfileRow(
-      diveId: 'imported',
-      timestamp: 60,
-      depth: 18,
-      isPrimary: false,
-    );
+    await insertSeries('imported', [(0, 0), (60, 18)], isPrimary: false);
 
     final result = await repository.getMergedProfilesForDives(['imported']);
 
@@ -110,40 +104,26 @@ void main() {
 
   test('drops the originals a saved edit superseded', () async {
     await insertDive('edited');
-    // Demoted originals, as saveEditedProfile leaves them.
-    await insertProfileRow(
-      diveId: 'edited',
-      timestamp: 0,
-      depth: 0,
-      isPrimary: false,
-    );
-    await insertProfileRow(
-      diveId: 'edited',
-      timestamp: 60,
-      depth: 10,
-      isPrimary: false,
-    );
-    await insertProfileRow(
-      diveId: 'edited',
-      timestamp: 120,
-      depth: 20,
-      isPrimary: false,
-    );
+    // The demoted original, as saveEditedProfile leaves it.
+    await insertSeries('edited', [
+      (0, 0),
+      (60, 10),
+      (120, 20),
+    ], isPrimary: false);
     // The edited replacement, promoted: a trim that removed the tail.
-    await insertProfileRow(diveId: 'edited', timestamp: 0, depth: 0);
-    await insertProfileRow(diveId: 'edited', timestamp: 60, depth: 10);
+    await insertSeries('edited', [(0, 0), (60, 10)]);
 
     final result = await repository.getMergedProfilesForDives(['edited']);
 
     expect(
       result['edited'],
       hasLength(2),
-      reason: 'the demoted originals must not be unioned back in',
+      reason: 'the demoted original must not be unioned back in',
     );
     expect(result['edited']!.map((p) => p.timestamp), [0, 60]);
   });
 
-  test('omits dives that have no profile rows', () async {
+  test('omits dives that have no profile series', () async {
     await insertDive('bare');
     final result = await repository.getMergedProfilesForDives(['bare']);
     expect(result['bare'], anyOf(isNull, isEmpty));
@@ -153,8 +133,7 @@ void main() {
     final ids = List.generate(120, (i) => 'dive$i');
     for (final id in ids) {
       await insertDive(id);
-      await insertProfileRow(diveId: id, timestamp: 0, depth: 0);
-      await insertProfileRow(diveId: id, timestamp: 60, depth: 15);
+      await insertSeries(id, [(0, 0), (60, 15)]);
     }
 
     final result = await repository.getMergedProfilesForDives(ids);

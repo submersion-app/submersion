@@ -113,6 +113,8 @@ PODS:
   - video_player_avfoundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - wakelock_plus (0.0.1):
+    - FlutterMacOS
   - window_to_front (0.0.4):
     - FlutterMacOS
   - workmanager_apple (0.0.1):
@@ -150,6 +152,7 @@ DEPENDENCIES:
   - submersion_transcoder (from `Flutter/ephemeral/.symlinks/plugins/submersion_transcoder/darwin`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - video_player_avfoundation (from `Flutter/ephemeral/.symlinks/plugins/video_player_avfoundation/darwin`)
+  - wakelock_plus (from `Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos`)
   - window_to_front (from `Flutter/ephemeral/.symlinks/plugins/window_to_front/macos`)
   - workmanager_apple (from `Flutter/ephemeral/.symlinks/plugins/workmanager_apple/macos`)
 
@@ -228,6 +231,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
   video_player_avfoundation:
     :path: Flutter/ephemeral/.symlinks/plugins/video_player_avfoundation/darwin
+  wakelock_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos
   window_to_front:
     :path: Flutter/ephemeral/.symlinks/plugins/window_to_front/macos
   workmanager_apple:
@@ -274,6 +279,7 @@ SPEC CHECKSUMS:
   submersion_transcoder: c0bc7bb59ce039c73dcd24cb7797b390cfd2dab6
   url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
   video_player_avfoundation: 3453f792138786248960ca029747fcd9f318ef52
+  wakelock_plus: 917609be14d812ddd9e9528876538b2263aaa03b
   window_to_front: 2d7d31f268d0b13b7e63b26e31eb0a2e9612239e
   workmanager_apple: 573f1503f9752eadd70a35bb478dfd2a103c4d18
 

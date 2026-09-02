@@ -1,0 +1,969 @@
+{
+  "sp_northern_pike": {
+    "ar": "الكراكي الشمالي",
+    "he": "זאב מים צפוני"
+  },
+  "sp_muskellunge": {
+    "de": "Muskellunge",
+    "it": "Muskellunge",
+    "pt": "Muskellunge",
+    "nl": "Muskellunge",
+    "hu": "Muskellunge csuka",
+    "ar": "ماسكلانج",
+    "he": "מסקלנג'"
+  },
+  "sp_chain_pickerel": {
+    "it": "Luccio catena",
+    "pt": "Lúcio-corrente",
+    "nl": "Kettingsnoek",
+    "hu": "Láncos csuka",
+    "ar": "الكراكي المسلسل",
+    "he": "זאב מים שרשרת"
+  },
+  "sp_walleye": {
+    "it": "Walleye",
+    "hu": "Walleye",
+    "ar": "الوالاي",
+    "he": "וואליי"
+  },
+  "sp_sauger": {
+    "it": "Sauger",
+    "hu": "Sauger",
+    "ar": "الساوغر",
+    "he": "סאוגר"
+  },
+  "sp_yellow_perch": {
+    "it": "Persico giallo",
+    "hu": "Sárga sügér",
+    "ar": "الفرخ الأصفر",
+    "he": "דקר צהוב"
+  },
+  "sp_european_perch": {
+    "ar": "الفرخ الأوروبي",
+    "he": "דקר אירופי"
+  },
+  "sp_zander": {
+    "de": "Zander",
+    "ar": "الزاندر",
+    "he": "זנדר"
+  },
+  "sp_ruffe": {
+    "ar": "الرف",
+    "he": "רוף"
+  },
+  "sp_largemouth_bass": {
+    "ar": "القاروص كبير الفم",
+    "he": "בס גדול פה"
+  },
+  "sp_smallmouth_bass": {
+    "it": "Persico trota bocca piccola",
+    "hu": "Kisszájú sügér",
+    "ar": "القاروص صغير الفم",
+    "he": "בס קטן פה"
+  },
+  "sp_rock_bass": {
+    "it": "Persico di roccia",
+    "hu": "Sziklasügér",
+    "ar": "قاروص الصخور",
+    "he": "בס סלעים"
+  },
+  "sp_bluegill": {
+    "it": "Pesce sole bluegill",
+    "nl": "Blauwkieuwzonnebaars",
+    "hu": "Kékkopoltyús naphal",
+    "ar": "البلوجيل",
+    "he": "דג שמש כחול זימים"
+  },
+  "sp_pumpkinseed": {
+    "ar": "سمكة الشمس القرعية",
+    "he": "דג שמש זרע דלעת"
+  },
+  "sp_black_crappie": {
+    "it": "Crappie nero",
+    "nl": "Zwarte crappie",
+    "hu": "Fekete crappie",
+    "ar": "الكرابي الأسود",
+    "he": "קראפי שחור"
+  },
+  "sp_white_crappie": {
+    "it": "Crappie bianco",
+    "nl": "Witte crappie",
+    "hu": "Fehér crappie",
+    "ar": "الكرابي الأبيض",
+    "he": "קראפי לבן"
+  },
+  "sp_brown_trout": {
+    "ar": "التروتة البنية",
+    "he": "פורל חום"
+  },
+  "sp_brook_trout": {
+    "ar": "تروتة الجداول",
+    "he": "פורל נחלים"
+  },
+  "sp_lake_trout": {
+    "it": "Trota di lago",
+    "hu": "Tavi szaibling",
+    "ar": "تروتة البحيرات",
+    "he": "פורל אגמים"
+  },
+  "sp_arctic_char": {
+    "hu": "Sarki szaibling",
+    "ar": "الشار القطبي",
+    "he": "שאר ארקטי"
+  },
+  "sp_atlantic_salmon": {
+    "hu": "Atlanti lazac",
+    "ar": "سلمون الأطلسي",
+    "he": "סלמון אטלנטי"
+  },
+  "sp_chinook_salmon": {
+    "hu": "Királylazac",
+    "ar": "سلمون الشينوك",
+    "he": "סלמון צ'ינוק"
+  },
+  "sp_sockeye_salmon": {
+    "hu": "Vörös lazac",
+    "ar": "السلمون الأحمر",
+    "he": "סלמון אדום"
+  },
+  "sp_coho_salmon": {
+    "hu": "Ezüstlazac",
+    "ar": "سلمون الكوهو",
+    "he": "סלמון קוהו"
+  },
+  "sp_lake_whitefish": {
+    "de": "Nordamerikanische Renke",
+    "es": "Corégono de lago",
+    "it": "Coregone di lago",
+    "pt": "Peixe-branco-de-lago",
+    "hu": "Tavi maréna",
+    "ar": "السمك الأبيض البحيري",
+    "he": "דג לבן אגמים"
+  },
+  "sp_cisco": {
+    "de": "Cisco-Renke",
+    "es": "Cisco",
+    "it": "Cisco",
+    "pt": "Cisco",
+    "nl": "Cisco",
+    "hu": "Cisco maréna",
+    "ar": "السيسكو",
+    "he": "סיסקו"
+  },
+  "sp_european_grayling": {
+    "ar": "الغرايلينغ الأوروبي",
+    "he": "גרייילינג אירופי"
+  },
+  "sp_grass_carp": {
+    "pt": "Carpa-capim",
+    "he": "קרפיון עשב"
+  },
+  "sp_tench": {
+    "ar": "التنش",
+    "he": "טנץ'"
+  },
+  "sp_common_bream": {
+    "he": "אברמיס מצוי"
+  },
+  "sp_roach": {
+    "ar": "الروش",
+    "he": "רואץ'"
+  },
+  "sp_rudd": {
+    "ar": "الرود",
+    "he": "ראד"
+  },
+  "sp_chub": {
+    "ar": "الشوب الأوروبي",
+    "he": "צ'אב אירופי"
+  },
+  "sp_barbel": {
+    "he": "ברבל מצוי"
+  },
+  "sp_european_eel": {
+    "ar": "ثعبان الماء الأوروبي",
+    "he": "צלופח אירופי"
+  },
+  "sp_american_eel": {
+    "hu": "Amerikai angolna",
+    "ar": "ثعبان الماء الأمريكي",
+    "he": "צלופח אמריקאי"
+  },
+  "sp_burbot": {
+    "ar": "البربوت",
+    "he": "בורבוט"
+  },
+  "sp_channel_catfish": {
+    "hu": "Pettyes harcsa",
+    "ar": "سلور القنوات",
+    "he": "שפמנון תעלות"
+  },
+  "sp_flathead_catfish": {
+    "fr": "Poisson-chat à tête plate",
+    "it": "Pesce gatto testapiatta",
+    "pt": "Bagre-cabeça-chata",
+    "nl": "Platkopmeerval",
+    "hu": "Laposfejű harcsa",
+    "ar": "السلور مسطح الرأس",
+    "he": "שפמנון שטוח ראש"
+  },
+  "sp_brown_bullhead": {
+    "ar": "البولهيد البني",
+    "he": "בולהד חום"
+  },
+  "sp_white_sturgeon": {
+    "de": "Weißer Stör",
+    "es": "Esturión blanco",
+    "fr": "Esturgeon blanc",
+    "it": "Storione bianco",
+    "pt": "Esturjão-branco",
+    "nl": "Witte steur",
+    "hu": "Fehér tok",
+    "zh": "白鲟",
+    "ar": "الحفش الأبيض",
+    "he": "חדקן לבן"
+  },
+  "sp_lake_sturgeon": {
+    "de": "Seestör",
+    "es": "Esturión de lago",
+    "fr": "Esturgeon jaune",
+    "it": "Storione di lago",
+    "pt": "Esturjão-de-lago",
+    "nl": "Meersteur",
+    "hu": "Tavi tok",
+    "zh": "湖鲟",
+    "ar": "حفش البحيرات",
+    "he": "חדקן אגמים"
+  },
+  "sp_european_sturgeon": {
+    "he": "חדקן אירופי"
+  },
+  "sp_alligator_gar": {
+    "it": "Luccio alligatore",
+    "nl": "Alligatorkaaimansnoek",
+    "hu": "Aligátor kajmánhal",
+    "he": "גאר תנין"
+  },
+  "sp_longnose_gar": {
+    "hu": "Hosszúorrú kajmánhal",
+    "ar": "الغار طويل الأنف",
+    "he": "גאר ארוך חרטום"
+  },
+  "sp_bowfin": {
+    "hu": "Iszaphal",
+    "ar": "البوفين",
+    "he": "בואופין"
+  },
+  "sp_american_paddlefish": {
+    "pt": "Peixe-espátula-americano",
+    "hu": "Amerikai lapátorrú hal",
+    "he": "דג משוט אמריקאי"
+  },
+  "sp_sea_lamprey": {
+    "it": "Lampreda di mare",
+    "he": "לימפרית ים"
+  },
+  "sp_freshwater_drum": {
+    "it": "Tamburo d'acqua dolce",
+    "nl": "Zoetwatertrommelvis",
+    "hu": "Édesvízi dobhal",
+    "ar": "الطبال النهري",
+    "he": "דג תוף מים מתוקים"
+  },
+  "sp_white_sucker": {
+    "de": "Weißer Sauger",
+    "it": "Succhiatore bianco",
+    "pt": "Sugador-branco",
+    "nl": "Witte zuigkarper",
+    "hu": "Fehér szívóhal",
+    "ar": "الماص الأبيض",
+    "he": "מוצץ לבן"
+  },
+  "sp_common_minnow": {
+    "pt": "Vairão",
+    "ar": "المنوة الأوروبية",
+    "he": "מינו אירופי"
+  },
+  "sp_three_spined_stickleback": {
+    "ar": "أبو شوكة ثلاثي الأشواك",
+    "he": "דג הקוצים תלת קוצי"
+  },
+  "sp_alewife": {
+    "hu": "Alewife hering",
+    "ar": "الألوايف",
+    "he": "אלווייף"
+  },
+  "sp_nile_perch": {
+    "fr": "Perche du Nil",
+    "hu": "Nílusi sügér",
+    "zh": "尼罗河鲈"
+  },
+  "sp_nile_tilapia": {
+    "hu": "Nílusi tilápia",
+    "he": "אמנון הנילוס"
+  },
+  "sp_african_tigerfish": {
+    "fr": "Poisson-tigre africain",
+    "it": "Pesce tigre africano",
+    "pt": "Peixe-tigre-africano",
+    "hu": "Afrikai tigrishal",
+    "ar": "سمكة النمر الأفريقية",
+    "he": "דג נמר אפריקאי"
+  },
+  "sp_marbled_lungfish": {
+    "it": "Pesce polmonato marmorizzato",
+    "nl": "Gemarmerde longvis",
+    "hu": "Márványos tüdőshal",
+    "he": "דג ריאות משויש"
+  },
+  "sp_electric_catfish": {
+    "de": "Zitterwels",
+    "es": "Siluro eléctrico",
+    "fr": "Poisson-chat électrique",
+    "it": "Pesce gatto elettrico",
+    "nl": "Sidderemeerval",
+    "hu": "Elektromos harcsa",
+    "ar": "السلور الكهربائي",
+    "he": "שפמנון חשמלי"
+  },
+  "sp_zebra_mbuna": {
+    "de": "Zebra-Mbuna",
+    "es": "Mbuna cebra",
+    "fr": "Mbuna zèbre",
+    "it": "Mbuna zebra",
+    "nl": "Zebra-mbuna",
+    "hu": "Zebra mbuna",
+    "zh": "斑马岩栖慈鲷",
+    "ar": "مبونا الزرد",
+    "he": "מבונה זברה"
+  },
+  "sp_malawi_butterfly_peacock": {
+    "es": "Cíclido pavo real mariposa",
+    "fr": "Cichlidé paon papillon",
+    "it": "Ciclide pavone farfalla",
+    "pt": "Ciclídeo pavão borboleta",
+    "nl": "Vlinderpauwcichlide",
+    "hu": "Pillangó pávacichlida",
+    "zh": "蝴蝶孔雀慈鲷",
+    "ar": "بلطي الطاووس الفراشي",
+    "he": "ציקליד טווס פרפר"
+  },
+  "sp_fuelleborn_cichlid": {
+    "es": "Cíclido de Fuelleborn",
+    "fr": "Cichlidé de Fuelleborn",
+    "it": "Ciclide di Fuelleborn",
+    "nl": "Fuelleborns cichlide",
+    "hu": "Fuelleborn-cichlida",
+    "zh": "蓝岩栖慈鲷",
+    "ar": "بلطي فولبورن",
+    "he": "ציקליד פילבורן"
+  },
+  "sp_princess_of_burundi": {
+    "de": "Prinzessin von Burundi",
+    "es": "Princesa de Burundi",
+    "fr": "Princesse du Burundi",
+    "it": "Principessa del Burundi",
+    "pt": "Princesa do Burundi",
+    "nl": "Prinses van Burundi",
+    "hu": "Burundi hercegnő",
+    "zh": "布隆迪公主慈鲷",
+    "ar": "أميرة بوروندي",
+    "he": "נסיכת בורונדי"
+  },
+  "sp_frontosa": {
+    "es": "Frontosa",
+    "fr": "Frontosa",
+    "it": "Frontosa",
+    "nl": "Frontosa",
+    "hu": "Frontosa",
+    "zh": "六间慈鲷",
+    "ar": "الفرونتوزا",
+    "he": "פרונטוזה"
+  },
+  "sp_tropheus_moorii": {
+    "de": "Brabantbuntbarsch",
+    "es": "Tropheus moorii",
+    "fr": "Tropheus de Moore",
+    "it": "Tropheus moorii",
+    "pt": "Tropheus moorii",
+    "nl": "Tropheus moorii",
+    "hu": "Moore-cichlida",
+    "zh": "蓝岩慈鲷",
+    "ar": "تروفيوس موري",
+    "he": "טרופאוס מורי"
+  },
+  "sp_arapaima": {
+    "fr": "Arapaïma"
+  },
+  "sp_silver_arowana": {
+    "hu": "Ezüst arowana",
+    "he": "ארוואנה כסופה"
+  },
+  "sp_red_bellied_piranha": {
+    "hu": "Vöröshasú piranha",
+    "ar": "البيرانا حمراء البطن",
+    "he": "פיראנה אדומת בטן"
+  },
+  "sp_black_piranha": {
+    "fr": "Piranha noir",
+    "it": "Piranha nero",
+    "hu": "Fekete piranha",
+    "ar": "البيرانا السوداء",
+    "he": "פיראנה שחורה"
+  },
+  "sp_red_bellied_pacu": {
+    "fr": "Pacu à ventre rouge",
+    "it": "Pacu ventre rosso",
+    "nl": "Roodbuikpacu",
+    "hu": "Vöröshasú pacu",
+    "ar": "الباكو أحمر البطن",
+    "he": "פאקו אדום בטן"
+  },
+  "sp_tambaqui": {
+    "it": "Tambaqui",
+    "pt": "Tambaqui",
+    "hu": "Tambaqui",
+    "ar": "التامباكي",
+    "he": "טמבקי"
+  },
+  "sp_electric_eel": {
+    "it": "Anguilla elettrica"
+  },
+  "sp_redtail_catfish": {
+    "nl": "Roodstaartmeerval",
+    "hu": "Vörösfarkú harcsa",
+    "ar": "السلور أحمر الذيل",
+    "he": "שפמנון אדום זנב"
+  },
+  "sp_tiger_shovelnose_catfish": {
+    "it": "Pesce gatto tigre",
+    "nl": "Tijgerschoffelneusmeerval",
+    "hu": "Tigrisharcsa",
+    "zh": "虎皮鸭嘴鲶",
+    "ar": "السلور النمري",
+    "he": "שפמנון נמר"
+  },
+  "sp_peacock_bass": {
+    "it": "Persico pavone",
+    "nl": "Pauwbaars",
+    "hu": "Pávasügér",
+    "ar": "قاروص الطاووس",
+    "he": "בס טווס"
+  },
+  "sp_oscar": {
+    "fr": "Oscar",
+    "it": "Oscar",
+    "nl": "Oscar",
+    "hu": "Oszkár",
+    "he": "אוסקר"
+  },
+  "sp_freshwater_angelfish": {
+    "it": "Pesce angelo d'acqua dolce",
+    "hu": "Vitorláshal",
+    "ar": "سمكة الملاك النهرية",
+    "he": "דג מלאך מים מתוקים"
+  },
+  "sp_discus": {
+    "de": "Diskusfisch",
+    "es": "Pez disco",
+    "fr": "Discus",
+    "it": "Discus",
+    "nl": "Discusvis",
+    "hu": "Diszkoszhal",
+    "zh": "七彩神仙鱼",
+    "ar": "سمكة الديسكس",
+    "he": "דיסקוס"
+  },
+  "sp_sailfin_pleco": {
+    "de": "Segelflossen-Harnischwels",
+    "fr": "Pléco à voile",
+    "it": "Pleco velifero",
+    "nl": "Zeilvinharnasmeerval",
+    "hu": "Vitorlás algaevő harcsa",
+    "ar": "البليكو الشراعي",
+    "he": "פלקו מפרש"
+  },
+  "sp_cardinal_tetra": {
+    "it": "Tetra cardinale",
+    "hu": "Kardinálishal",
+    "ar": "التترا الكاردينال",
+    "he": "טטרה קרדינל"
+  },
+  "sp_mexican_tetra": {
+    "fr": "Tétra aveugle du Mexique",
+    "it": "Tetra messicano",
+    "nl": "Blinde grottetra",
+    "hu": "Vak barlangi hal",
+    "he": "טטרה מקסיקנית"
+  },
+  "sp_mekong_giant_catfish": {
+    "it": "Pesce gatto gigante del Mekong",
+    "pt": "Bagre-gigante-do-Mekong",
+    "nl": "Mekong-reuzenmeerval",
+    "hu": "Mekongi óriásharcsa",
+    "zh": "湄公河巨鲶",
+    "ar": "سلور الميكونغ العملاق",
+    "he": "שפמנון המקונג הענק"
+  },
+  "sp_giant_barb": {
+    "de": "Riesenbarbe",
+    "es": "Barbo gigante",
+    "fr": "Barbeau géant",
+    "it": "Barbo gigante",
+    "pt": "Barbo-gigante",
+    "nl": "Reuzenbarbeel",
+    "hu": "Óriásmárna",
+    "zh": "巨暹罗鲤",
+    "ar": "البربل العملاق",
+    "he": "ברבל ענק"
+  },
+  "sp_asian_arowana": {
+    "nl": "Aziatische arowana",
+    "he": "ארוואנה אסייתית"
+  },
+  "sp_striped_snakehead": {
+    "it": "Testa di serpente striato",
+    "nl": "Gestreepte slangenkopvis",
+    "hu": "Csíkos kígyófejű hal",
+    "ar": "رأس الثعبان المخطط",
+    "he": "ראש נחש מפוספס"
+  },
+  "sp_giant_snakehead": {
+    "de": "Riesenschlangenkopf",
+    "it": "Testa di serpente gigante",
+    "hu": "Óriás kígyófejű hal",
+    "ar": "رأس الثعبان العملاق",
+    "he": "ראש נחש ענק"
+  },
+  "sp_climbing_perch": {
+    "it": "Persico arrampicatore",
+    "pt": "Perca-trepadora",
+    "nl": "Klimbaars",
+    "hu": "Kúszó sügér",
+    "he": "דקר מטפס"
+  },
+  "sp_golden_mahseer": {
+    "nl": "Gouden mahseer",
+    "ar": "الماهسير الذهبي",
+    "he": "מהסיר זהוב"
+  },
+  "sp_koi": {
+    "nl": "Koi",
+    "hu": "Koi",
+    "he": "קוי"
+  },
+  "sp_giant_gourami": {
+    "es": "Gurami gigante",
+    "it": "Gurami gigante",
+    "hu": "Óriásgurámi",
+    "ar": "الغورامي العملاق",
+    "he": "גוראמי ענק"
+  },
+  "sp_clown_knifefish": {
+    "es": "Pez cuchillo payaso",
+    "fr": "Poisson-couteau clown",
+    "hu": "Bohóc késhal",
+    "ar": "سمكة السكين المهرج",
+    "he": "דג סכין ליצן"
+  },
+  "sp_walking_catfish": {
+    "de": "Wanderwels",
+    "fr": "Poisson-chat marcheur",
+    "it": "Pesce gatto camminatore",
+    "nl": "Wandelmeerval",
+    "hu": "Vándorló harcsa",
+    "ar": "السلور الماشي",
+    "he": "שפמנון מהלך"
+  },
+  "sp_japanese_eel": {
+    "de": "Japanischer Aal",
+    "it": "Anguilla giapponese",
+    "hu": "Japán angolna",
+    "ar": "ثعبان الماء الياباني",
+    "he": "צלופח יפני"
+  },
+  "sp_ayu": {
+    "de": "Ayu",
+    "fr": "Ayu",
+    "it": "Ayu",
+    "pt": "Ayu",
+    "hu": "Ayu",
+    "ar": "الآيو",
+    "he": "איו"
+  },
+  "sp_baikal_omul": {
+    "es": "Omul del Baikal",
+    "fr": "Omoul du Baïkal",
+    "it": "Omul del Baikal",
+    "pt": "Omul-do-Baikal",
+    "nl": "Baikal-omoel",
+    "hu": "Bajkáli omul",
+    "ar": "أومول بايكال",
+    "he": "אומול באיקל"
+  },
+  "sp_baikal_oilfish": {
+    "es": "Golomianka",
+    "fr": "Golomianka",
+    "it": "Golomianka",
+    "pt": "Golomianka",
+    "nl": "Golomjanka",
+    "hu": "Golomjanka",
+    "zh": "贝加尔油鱼",
+    "ar": "غولوميانكا",
+    "he": "גולומיאנקה"
+  },
+  "sp_murray_cod": {
+    "de": "Murray-Dorsch",
+    "fr": "Morue de Murray",
+    "pt": "Bacalhau-do-Murray",
+    "nl": "Murraykabeljauw",
+    "hu": "Murray-tőkehal",
+    "ar": "قد نهر موراي",
+    "he": "קוד המורי"
+  },
+  "sp_golden_perch": {
+    "de": "Goldbarsch",
+    "fr": "Perche dorée",
+    "nl": "Goudbaars",
+    "hu": "Aranysügér",
+    "ar": "الفرخ الذهبي",
+    "he": "דקר זהוב"
+  },
+  "sp_australian_bass": {
+    "de": "Australischer Barsch",
+    "es": "Lubina australiana",
+    "fr": "Bar australien",
+    "it": "Persico australiano",
+    "pt": "Perca-australiana",
+    "nl": "Australische baars",
+    "hu": "Ausztrál sügér",
+    "zh": "澳洲鲈",
+    "ar": "القاروص الأسترالي",
+    "he": "בס אוסטרלי"
+  },
+  "sp_barramundi": {
+    "de": "Barramundi",
+    "it": "Barramundi",
+    "nl": "Barramundi",
+    "hu": "Barramundi",
+    "ar": "الباراموندي"
+  },
+  "sp_silver_perch": {
+    "de": "Silberbarsch",
+    "fr": "Perche argentée",
+    "it": "Persico argentato",
+    "pt": "Perca-prateada",
+    "nl": "Zilverbaars",
+    "hu": "Ezüstsügér",
+    "ar": "الفرخ الفضي",
+    "he": "דקר כסוף"
+  },
+  "sp_gulf_saratoga": {
+    "de": "Nördlicher Saratoga",
+    "es": "Saratoga del norte",
+    "fr": "Saratoga du nord",
+    "it": "Saratoga settentrionale",
+    "nl": "Noordelijke saratoga",
+    "hu": "Északi saratoga",
+    "he": "סרטוגה צפונית"
+  },
+  "sp_sooty_grunter": {
+    "de": "Rußgrunzer",
+    "fr": "Grogneur noir",
+    "it": "Grugnitore nero",
+    "pt": "Roncador-preto",
+    "nl": "Zwarte knorvis",
+    "hu": "Fekete morgóhal",
+    "zh": "黑鲈鳉",
+    "ar": "المزمجر الأسود",
+    "he": "נוהם שחור"
+  },
+  "sp_eel_tailed_catfish": {
+    "de": "Aalschwanzwels",
+    "es": "Bagre cola de anguila",
+    "fr": "Poisson-chat à queue d'anguille",
+    "it": "Pesce gatto coda d'anguilla",
+    "nl": "Palingstaartmeerval",
+    "hu": "Angolnafarkú harcsa",
+    "zh": "鳗尾鲶",
+    "ar": "السلور ثعباني الذيل",
+    "he": "שפמנון זנב צלופח"
+  },
+  "sp_spangled_perch": {
+    "de": "Flitterbarsch",
+    "fr": "Perche pailletée",
+    "it": "Persico lustrino",
+    "pt": "Perca-lantejoula",
+    "nl": "Glitterbaars",
+    "hu": "Flitteres sügér",
+    "zh": "亮片鲈",
+    "ar": "الفرخ المرصع",
+    "he": "דקר נוצץ"
+  },
+  "sp_eastern_rainbowfish": {
+    "de": "Östlicher Regenbogenfisch",
+    "es": "Pez arcoíris oriental",
+    "fr": "Poisson arc-en-ciel oriental",
+    "it": "Pesce arcobaleno orientale",
+    "nl": "Oostelijke regenboogvis",
+    "hu": "Keleti szivárványhal",
+    "zh": "东部彩虹鱼",
+    "ar": "سمكة قوس قزح الشرقية",
+    "he": "דג קשת מזרחי"
+  },
+  "sp_signal_crayfish": {
+    "ar": "جراد النهر الإشاري",
+    "he": "סרטן נהרות סימן"
+  },
+  "sp_red_swamp_crayfish": {
+    "ar": "جراد المستنقعات الأحمر"
+  },
+  "sp_noble_crayfish": {
+    "es": "Cangrejo de río europeo",
+    "pt": "Lagostim-europeu",
+    "ar": "جراد النهر النبيل",
+    "he": "סרטן נהרות אציל"
+  },
+  "sp_white_clawed_crayfish": {
+    "es": "Cangrejo de patas blancas",
+    "hu": "Fehérkarmú rák",
+    "ar": "جراد النهر أبيض المخالب",
+    "he": "סרטן נהרות לבן צבתות"
+  },
+  "sp_tasmanian_giant_freshwater_crayfish": {
+    "de": "Tasmanischer Riesenflusskrebs",
+    "es": "Cangrejo gigante de Tasmania",
+    "fr": "Écrevisse géante de Tasmanie",
+    "it": "Gambero gigante della Tasmania",
+    "pt": "Lagostim-gigante-da-Tasmânia",
+    "nl": "Tasmaanse reuzenrivierkreeft",
+    "hu": "Tasmán óriásrák",
+    "ar": "جراد النهر التسماني العملاق",
+    "he": "סרטן הנהרות הענק של טסמניה"
+  },
+  "sp_zebra_mussel": {
+    "he": "צדפת זברה"
+  },
+  "sp_quagga_mussel": {
+    "it": "Cozza quagga",
+    "pt": "Mexilhão-quagga",
+    "ar": "بلح البحر الكواجا",
+    "he": "צדפת קוואגה"
+  },
+  "sp_freshwater_pearl_mussel": {
+    "it": "Cozza perlifera d'acqua dolce",
+    "hu": "Folyami gyöngykagyló",
+    "ar": "بلح المياه العذبة اللؤلؤي",
+    "he": "צדפת פנינים מים מתוקים"
+  },
+  "sp_swan_mussel": {
+    "it": "Cozza cigno",
+    "ar": "بلح البجع",
+    "he": "צדפת ברבור"
+  },
+  "sp_chinese_pond_mussel": {
+    "pt": "Mexilhão-chinês",
+    "he": "צדפת בריכות סינית"
+  },
+  "sp_freshwater_sponge": {
+    "es": "Esponja de agua dulce",
+    "it": "Spugna d'acqua dolce",
+    "pt": "Esponja-de-água-doce",
+    "hu": "Édesvízi szivacs",
+    "ar": "الإسفنج النهري",
+    "he": "ספוג מים מתוקים"
+  },
+  "sp_freshwater_jellyfish": {
+    "es": "Medusa de agua dulce",
+    "hu": "Édesvízi medúza",
+    "he": "מדוזת מים מתוקים"
+  },
+  "sp_great_pond_snail": {
+    "ar": "حلزون البرك الكبير",
+    "he": "חילזון בריכות גדול"
+  },
+  "sp_great_ramshorn_snail": {
+    "ar": "حلزون قرن الكبش الكبير",
+    "he": "חילזון קרן איל גדול"
+  },
+  "sp_channeled_apple_snail": {
+    "it": "Lumaca mela",
+    "nl": "Appelslak",
+    "hu": "Almacsiga",
+    "he": "חילזון תפוח"
+  },
+  "sp_magnificent_bryozoan": {
+    "de": "Prächtiges Moostierchen",
+    "es": "Briozoo magnífico",
+    "it": "Briozoo magnifico",
+    "pt": "Briozoário-magnífico",
+    "ar": "الطحلبيات الرائعة",
+    "he": "טחביון מפואר"
+  },
+  "sp_chinese_mitten_crab": {
+    "hu": "Kínai gyapjasollós rák",
+    "he": "סרטן כפפות סיני"
+  },
+  "sp_giant_freshwater_prawn": {
+    "de": "Riesensüßwassergarnele",
+    "it": "Gambero gigante d'acqua dolce",
+    "hu": "Óriás édesvízi garnéla",
+    "ar": "الروبيان النهري العملاق",
+    "he": "שרימפס נהר ענק"
+  },
+  "sp_common_snapping_turtle": {
+    "he": "צב נושך מצוי"
+  },
+  "sp_alligator_snapping_turtle": {
+    "it": "Tartaruga alligatore",
+    "pt": "Tartaruga-aligátor",
+    "he": "צב נושך תנין"
+  },
+  "sp_painted_turtle": {
+    "he": "צב מצויר"
+  },
+  "sp_red_eared_slider": {
+    "de": "Rotwangen-Schmuckschildkröte",
+    "es": "Tortuga de orejas rojas",
+    "fr": "Tortue de Floride",
+    "it": "Tartaruga dalle orecchie rosse",
+    "pt": "Tartaruga-de-orelhas-vermelhas",
+    "nl": "Roodwangschildpad",
+    "hu": "Vörösfülű ékszerteknős",
+    "zh": "红耳龟",
+    "ar": "سلحفاة حمراء الأذنين",
+    "he": "צב אדום אוזן"
+  },
+  "sp_northern_map_turtle": {
+    "it": "Tartaruga mappa",
+    "he": "צב מפה צפוני"
+  },
+  "sp_spiny_softshell_turtle": {
+    "it": "Tartaruga dal guscio molle spinosa",
+    "nl": "Stekelweekschildpad",
+    "he": "צב רך קוצני"
+  },
+  "sp_florida_softshell_turtle": {
+    "it": "Tartaruga dal guscio molle della Florida",
+    "nl": "Florida-weekschildpad",
+    "he": "צב רך פלורידה"
+  },
+  "sp_pig_nosed_turtle": {
+    "fr": "Tortue à nez de cochon",
+    "it": "Tartaruga dal naso di maiale",
+    "pt": "Tartaruga-nariz-de-porco",
+    "nl": "Varkensneusschildpad"
+  },
+  "sp_mary_river_turtle": {
+    "es": "Tortuga del río Mary",
+    "fr": "Tortue de la rivière Mary",
+    "it": "Tartaruga del fiume Mary",
+    "pt": "Tartaruga-do-rio-Mary",
+    "nl": "Mary River-schildpad",
+    "hu": "Mary-folyói teknős",
+    "ar": "سلحفاة نهر ماري",
+    "he": "צב נהר מרי"
+  },
+  "sp_yellow_spotted_river_turtle": {
+    "it": "Tartaruga di fiume dalle macchie gialle",
+    "he": "צב נהר צהוב כתמים"
+  },
+  "sp_american_alligator": {
+    "he": "אליגטור אמריקאי"
+  },
+  "sp_spectacled_caiman": {
+    "he": "קיימן משקפיים"
+  },
+  "sp_black_caiman": {
+    "he": "קיימן שחור"
+  },
+  "sp_freshwater_crocodile": {
+    "he": "תנין מים מתוקים"
+  },
+  "sp_northern_water_snake": {
+    "nl": "Noordelijke waterslang",
+    "hu": "Északi vízisikló",
+    "ar": "ثعبان الماء الشمالي",
+    "he": "נחש מים צפוני"
+  },
+  "sp_green_anaconda": {
+    "ar": "الأناكوندا الخضراء",
+    "he": "אנקונדה ירוקה"
+  },
+  "sp_hellbender": {
+    "it": "Salamandra gigante americana",
+    "nl": "Hellbender"
+  },
+  "sp_mudpuppy": {
+    "it": "Necturo",
+    "pt": "Mudpuppy",
+    "nl": "Modderduivel",
+    "hu": "Iszapkutya",
+    "he": "כלב בוץ"
+  },
+  "sp_axolotl": {
+    "de": "Axolotl",
+    "fr": "Axolotl",
+    "it": "Axolotl",
+    "nl": "Axolotl"
+  },
+  "sp_chinese_giant_salamander": {
+    "it": "Salamandra gigante cinese",
+    "hu": "Kínai óriásszalamandra"
+  },
+  "sp_smooth_newt": {
+    "ar": "السمندل الأملس",
+    "he": "טריטון חלק"
+  },
+  "sp_great_crested_newt": {
+    "pt": "Tritão-de-crista"
+  },
+  "sp_american_bullfrog": {
+    "ar": "ضفدع الثور الأمريكي"
+  },
+  "sp_common_frog": {
+    "ar": "الضفدع الشائع",
+    "he": "צפרדע מצויה"
+  },
+  "sp_giant_otter": {
+    "he": "לוטרה ענקית"
+  },
+  "sp_amazonian_manatee": {
+    "he": "פרת ים אמזונית"
+  },
+  "sp_amazon_river_dolphin": {
+    "he": "דולפין נהר האמזונס"
+  },
+  "sp_baikal_seal": {
+    "pt": "Foca-do-Baikal",
+    "he": "כלב ים באיקל"
+  },
+  "sp_white_water_lily": {
+    "ar": "زنبق الماء الأبيض"
+  },
+  "sp_yellow_pond_lily": {
+    "ar": "زنبق الماء الأصفر"
+  },
+  "sp_american_eelgrass": {
+    "es": "Vallisneria americana",
+    "it": "Vallisneria americana",
+    "pt": "Valisnéria-americana",
+    "nl": "Amerikaans vallisneria",
+    "hu": "Amerikai vízicsavar",
+    "ar": "الفاليسنيريا الأمريكية",
+    "he": "ואליסנריה אמריקאית"
+  },
+  "sp_muskgrass": {
+    "it": "Chara",
+    "pt": "Chara",
+    "hu": "Csillárka",
+    "ar": "الخارا",
+    "he": "כארה"
+  },
+  "sp_canadian_waterweed": {
+    "ar": "الإيلوديا الكندية"
+  },
+  "sp_curly_leaf_pondweed": {
+    "ar": "عشب البرك مجعد الأوراق"
+  }
+}

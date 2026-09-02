@@ -488,7 +488,7 @@ void main() {
       expect(on.hashCode, isNot(equals(off.hashCode)));
     });
 
-    test('toggleO2CellMv flips the state, session-only', () {
+    test('toggleO2CellMv flips the state', () {
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith(
@@ -497,10 +497,37 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
-      // No persisted default setting backs this one, so it always starts off.
       expect(container.read(profileLegendProvider).showO2CellMv, isFalse);
       container.read(profileLegendProvider.notifier).toggleO2CellMv();
       expect(container.read(profileLegendProvider).showO2CellMv, isTrue);
+    });
+
+    test('showO2CellMv seeds from defaultShowO2CellMv when true', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(
+              const AppSettings(defaultShowO2CellMv: true),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(profileLegendProvider).showO2CellMv, isTrue);
+    });
+
+    test('showO2CellMv seeds from defaultShowO2CellMv when false', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(
+              const AppSettings(defaultShowO2CellMv: false),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(profileLegendProvider).showO2CellMv, isFalse);
     });
   });
 }

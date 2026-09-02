@@ -10,6 +10,21 @@ class DiveTypeEntity extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Abbreviated form for space-constrained surfaces like the dive detail
+  /// header's type badges (e.g. "Wreck" -> "Wreck", "Search & Recovery" ->
+  /// "S&R"). Only settable on custom types -- built-ins use the fixed
+  /// translated abbreviation in [builtInDiveTypeShortName] instead. Null
+  /// means the diver hasn't set one, so callers fall back to [name].
+  final String? shortName;
+
+  /// Whether this type's badge appears in the dive detail header's
+  /// type-badge row. Defaults to shown.
+  final bool showInDetailHeader;
+
+  /// Whether this type's badge appears in the dive list card's type-badge
+  /// row. Independent of [showInDetailHeader]. Defaults to shown.
+  final bool showInListView;
+
   const DiveTypeEntity({
     required this.id,
     this.diverId,
@@ -18,6 +33,9 @@ class DiveTypeEntity extends Equatable {
     this.sortOrder = 0,
     required this.createdAt,
     required this.updatedAt,
+    this.shortName,
+    this.showInDetailHeader = true,
+    this.showInListView = true,
   });
 
   /// Create a new custom dive type
@@ -26,6 +44,9 @@ class DiveTypeEntity extends Equatable {
     required String name,
     String? diverId,
     int sortOrder = 0,
+    String? shortName,
+    bool showInDetailHeader = true,
+    bool showInListView = true,
   }) {
     final now = DateTime.now();
     return DiveTypeEntity(
@@ -36,6 +57,9 @@ class DiveTypeEntity extends Equatable {
       sortOrder: sortOrder,
       createdAt: now,
       updatedAt: now,
+      shortName: shortName,
+      showInDetailHeader: showInDetailHeader,
+      showInListView: showInListView,
     );
   }
 
@@ -48,6 +72,16 @@ class DiveTypeEntity extends Equatable {
         .replaceAll(RegExp(r'\s+'), '_');
   }
 
+  /// Sentinel marking a `copyWith` parameter as "not provided". Lets callers
+  /// distinguish omitting [shortName] (keep the current value) from passing
+  /// `null` (clear it) -- plain `value ?? this.value` cannot express a clear,
+  /// which broke the edit dialog's "remove an existing short name" flow.
+  /// Mirrors [Diver.copyWith]'s `_unset`/`_resolve` pattern.
+  static const Object _unset = Object();
+
+  static T _resolve<T>(Object? value, T current) =>
+      identical(value, _unset) ? current : value as T;
+
   DiveTypeEntity copyWith({
     String? id,
     String? diverId,
@@ -56,6 +90,9 @@ class DiveTypeEntity extends Equatable {
     int? sortOrder,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Object? shortName = _unset,
+    bool? showInDetailHeader,
+    bool? showInListView,
   }) {
     return DiveTypeEntity(
       id: id ?? this.id,
@@ -65,6 +102,9 @@ class DiveTypeEntity extends Equatable {
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      shortName: _resolve<String?>(shortName, this.shortName),
+      showInDetailHeader: showInDetailHeader ?? this.showInDetailHeader,
+      showInListView: showInListView ?? this.showInListView,
     );
   }
 
@@ -77,5 +117,8 @@ class DiveTypeEntity extends Equatable {
     sortOrder,
     createdAt,
     updatedAt,
+    shortName,
+    showInDetailHeader,
+    showInListView,
   ];
 }

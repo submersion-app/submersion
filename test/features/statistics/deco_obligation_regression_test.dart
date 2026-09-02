@@ -6,7 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 
 import '../../helpers/mock_providers.dart';
@@ -101,21 +103,16 @@ void main() {
             );
 
         final (depths, times) = square(depth, minutes);
-        await db.batch((batch) {
-          for (var s = 0; s < depths.length; s++) {
-            batch.insert(
-              db.diveProfiles,
-              DiveProfilesCompanion(
-                id: Value('$id-row-$s'),
-                diveId: Value(id),
-                timestamp: Value(times[s]),
-                depth: Value(depths[s]),
-                // Deliberately no decoType, ceiling, ndl or tts: this is the
-                // shape the reporter's import source produced.
-              ),
-            );
-          }
-        });
+        // Deliberately no decoType, ceiling, ndl or tts: this is the shape
+        // the reporter's import source produced.
+        await ProfileSeriesRepository().insertSeries(
+          diveId: id,
+          samples: [
+            for (var s = 0; s < depths.length; s++)
+              ProfileSample(timestamp: times[s], depth: depths[s]),
+          ],
+          now: when.millisecondsSinceEpoch,
+        );
 
         if (service
             .analyze(diveId: id, depths: depths, timestamps: times)

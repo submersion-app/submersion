@@ -54,6 +54,21 @@ abstract interface class EntityField {
   bool get isRightAligned;
 }
 
+/// The string every [EntityFieldAdapter.formatValue] renders for a value it
+/// has nothing to show: a null, or a non-null but empty String.
+const String kFieldValuePlaceholder = '--';
+
+/// Whether a formatted field value carries nothing worth rendering.
+///
+/// A table cell wants [kFieldValuePlaceholder]: the column has a header, so
+/// the placeholder marks the row as empty and keeps the grid aligned. A card
+/// has no header, so the same string is noise ("Notes: --"), and card
+/// renderers drop these fields instead.
+bool isBlankFieldValue(String formatted) {
+  final trimmed = formatted.trim();
+  return trimmed.isEmpty || trimmed == kFieldValuePlaceholder;
+}
+
 /// Adapter that bridges an entity type [T] with its field enum [F],
 /// providing entity-specific value extraction and formatting.
 ///

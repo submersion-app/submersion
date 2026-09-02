@@ -30,6 +30,8 @@ class DiveParser {
           heading: sample.heading,
           // Preserve tank index for multi-tank pressure tracking
           tankIndex: sample.tankIndex,
+          // Every transmitter's reading at this sample (issue #1223)
+          tankPressures: sample.tankPressures,
           // Decompression and rebreather data
           setpoint: sample.setpoint,
           ppO2: sample.ppo2,

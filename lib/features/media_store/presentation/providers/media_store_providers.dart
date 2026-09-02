@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:submersion/core/providers/provider.dart';
+import 'package:flutter/foundation.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -15,7 +17,6 @@ import 'package:submersion/core/services/media_store/media_store_credentials_sto
 import 'package:submersion/core/services/media_store/media_store_policies.dart';
 import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/core/services/media_store/network_status_service.dart';
-import 'package:submersion/core/services/media_store/store_marker.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -24,6 +25,7 @@ import 'package:submersion/features/media_store/data/media_backfill_service.dart
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_delete_processor.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
+import 'package:submersion/features/media_store/data/media_store_preflight.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
@@ -109,6 +111,69 @@ final FutureProvider<void> mediaTransferQueueReclaimProvider =
       await ref.read(mediaTransferQueueRepositoryProvider).requeueStale();
     });
 
+Future<Directory>? _mediaCacheRootFuture;
+
+/// The on-disk root of the media cache: originals, thumbs, renditions, plus
+/// the staging and transcode scratch directories.
+///
+/// Memoized for the process. Five call sites resolve this (the runtime, the
+/// eviction pass, and the three media cache rows on the storage usage page)
+/// and each one costs a platform channel round trip that returns the same
+/// immutable path every time. Caching the Directory is safe in a way that
+/// caching a MediaCacheStore is not: the store captures the LocalCacheDatabase
+/// at construction and would go stale after a database location migration,
+/// whereas the support directory does not move while the process lives.
+///
+/// A failed lookup is deliberately not cached, so the next caller retries
+/// rather than inheriting a permanent failure from one bad moment at boot.
+Future<Directory> mediaCacheRoot() async {
+  final cached = _mediaCacheRootFuture;
+  if (cached != null) return cached;
+
+  final pending = _resolveMediaCacheRoot();
+  _mediaCacheRootFuture = pending;
+  try {
+    return await pending;
+  } catch (_) {
+    _mediaCacheRootFuture = null;
+    rethrow;
+  }
+}
+
+Future<Directory> _resolveMediaCacheRoot() async {
+  final support = await getApplicationSupportDirectory();
+  return Directory(p.join(support.path, 'Submersion', 'media_cache'));
+}
+
+/// Drops the memoized [mediaCacheRoot], so a test that overrides the
+/// path_provider platform channel is not served another test's directory.
+@visibleForTesting
+void resetMediaCacheRootForTesting() => _mediaCacheRootFuture = null;
+
+/// Brings the media cache back inside its LRU caps once per process.
+///
+/// [MediaCacheStore.evictIfNeeded] is public but was only ever called from
+/// inside `put()`, so eviction needed a write to happen. A store that went
+/// over cap and then went idle stayed over cap indefinitely, waiting on a
+/// download that might never come. Running the same pass on the way up means
+/// a library that has stopped fetching still settles back under budget.
+///
+/// Cached like [mediaTransferQueueReclaimProvider] so a runtime rebuild does
+/// not repeat it. Unlike that one it is deliberately NOT awaited by the
+/// runtime: reclaim must precede any drain for correctness, whereas eviction
+/// is housekeeping and must never delay one.
+// no-tick: recomputing is the bug, not the fix. The cached result is what
+// keeps this to one pass per process.
+final FutureProvider<void> mediaCacheEvictionProvider = FutureProvider<void>((
+  ref,
+) async {
+  final cache = MediaCacheStore(
+    database: LocalCacheDatabaseService.instance.database,
+    root: await mediaCacheRoot(),
+  );
+  await cache.evictIfNeeded();
+});
+
 /// Deletion entry point for UI flows: enqueue-before-delete per the
 /// orphan-prevention spec (5.2). The queue and runtime are read lazily
 /// (never watched) so consumer widget tests without a media store runtime
@@ -158,6 +223,51 @@ final mediaVerifyRunnerProvider =
       };
     });
 
+/// Resumes an outstanding transfer queue at app launch and on app resume
+/// (issue #1270).
+///
+/// Every other drain trigger is downstream of [mediaStoreRuntimeProvider]
+/// already existing: the runtime is what kicks the first drain, subscribes to
+/// connectivity changes, and lets the worker arm its retry wakeup. Nothing in
+/// the launch path ever built it, and the display surfaces cannot stand in for
+/// one - the media grid only reaches the store for a row that is already
+/// backed up (`MediaItemView`'s storeConfirmed gate), which on a device that
+/// has never finished an upload is never true. So a queue that stopped for any
+/// reason - the app quit mid-import, a moment offline, a policy hold - had no
+/// way back, and the reporter's 196 rows survived every restart untouched.
+///
+/// Two cheap guards run before anything expensive, because building the
+/// runtime opens the keychain and reads the store marker out of the bucket:
+/// [mediaStoreAttachedProvider] is one SharedPreferences read (and is
+/// documented never to error, which is exactly why it exists), and
+/// [MediaTransferQueueRepository.nextPending] is one indexed local read that
+/// means precisely "there is work a drain could take right now". A queue
+/// holding only deferred rows is left to the worker's own wakeup timer.
+///
+/// Contains its own failures rather than propagating them: both call sites are
+/// fire-and-forget, so an escaping throw would land in the zone handler with
+/// nothing to catch it - the shape of #942.
+// no-tick: the value is a CLOSURE, not a query result. Every read happens
+// inside it at call time via ref.read, so there is no cached row to go stale.
+final mediaTransferResumeProvider = Provider<Future<void> Function()>((ref) {
+  return () async {
+    try {
+      if (!await ref.read(mediaStoreAttachedProvider.future)) return;
+      final queue = ref.read(mediaTransferQueueRepositoryProvider);
+      if (await queue.nextPending(DateTime.now()) == null) return;
+      // Building the runtime is the kick: see the unawaited drain at the end
+      // of mediaStoreRuntimeProvider.
+      await ref.read(mediaStoreRuntimeProvider.future);
+    } on Object catch (e, stackTrace) {
+      LoggerService.forClass(MediaStoreWorker).warning(
+        'Could not resume media transfers',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  };
+});
+
 final mediaBackfillServiceProvider = Provider<MediaBackfillService>(
   (ref) => MediaBackfillService(
     mediaRepository: ref.watch(mediaRepositoryProvider),
@@ -176,6 +286,58 @@ final mediaTransferEntriesProvider =
     StreamProvider<List<MediaTransferQueueEntry>>(
       (ref) => ref.watch(mediaTransferQueueRepositoryProvider).watchEntries(),
     );
+
+/// Display labels (file name, else caption) for every media row the transfer
+/// queue names, in one lean query.
+///
+/// Keyed on the SET of media ids, not the rows: progress ticks and state
+/// changes re-emit the rows many times per transfer without changing which
+/// media the queue names, and none of those should touch the media table.
+/// A lookup per visible row was the first shape; it hydrated a full
+/// MediaItem (imageData BLOB included) into a non-autoDispose family per
+/// row and re-ran for every visible row on every media write.
+// no-tick: a file name does not change while its upload sits in the queue,
+// and the media table ticks on every stamp the upload pipeline writes - about
+// three a second through a drain - each of which would re-run the whole label
+// query. autoDispose re-resolves the labels the next time the page is built,
+// which is the only moment a stale name could be seen.
+final mediaTransferLabelsProvider =
+    FutureProvider.autoDispose<Map<String, String>>((ref) async {
+      final queued = ref.watch(
+        mediaTransferEntriesProvider.select((entries) {
+          final rows = entries.value;
+          return rows == null
+              ? null
+              : _QueuedMediaIds(rows.map((e) => e.mediaId));
+        }),
+      );
+      if (queued == null || queued.ids.isEmpty) return const {};
+      return ref.watch(mediaRepositoryProvider).getDisplayLabels(queued.ids);
+    });
+
+/// The set of media ids the transfer queue names, as a value: `select`
+/// compares successive results with `==`, and a List or Set compares by
+/// identity, so a fresh collection per emission would defeat the point.
+class _QueuedMediaIds {
+  _QueuedMediaIds(Iterable<String> ids)
+    : ids = List.unmodifiable(ids.toSet().toList()..sort());
+
+  final List<String> ids;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _QueuedMediaIds || other.ids.length != ids.length) {
+      return false;
+    }
+    for (var i = 0; i < ids.length; i++) {
+      if (ids[i] != other.ids[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hashAll(ids);
+}
 
 /// Whether this device has any media store attached. Deliberately not
 /// mediaStoreRuntimeProvider: that constructs the full runtime and kicks a
@@ -216,21 +378,6 @@ void invalidateMediaStoreAttachment(WidgetRef ref) {
   ref.invalidate(mediaStoreAttachedProvider);
 }
 
-/// Per-tile badge status. Transient transfer state outranks persistent
-/// backup state: failed > transferring > queued > notBackedUp > none.
-///
-/// A failed, transferring, or pending queue row maps straight through. A
-/// done or absent row is a settled item, and settles to notBackedUp only
-/// when a store is attached, the source is uploadable, and the item has no
-/// upload stamps.
-///
-/// The settled check re-reads the row rather than trusting [item]: the
-/// tile's snapshot comes from mediaForDiveProvider, a FutureProvider that
-/// an upload's stamp write does not invalidate, so the snapshot goes stale
-/// the moment an upload completes. Re-reading is race-free because the
-/// pipeline calls stampRemoteUploaded before markDone, so the emission
-/// reporting done always follows the stamp write.
-///
 final mediaStoresRepositoryProvider = Provider<MediaStoresRepository>(
   (ref) => MediaStoresRepository(),
 );
@@ -261,6 +408,7 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       final attachState = ref.watch(mediaStoreAttachStateProvider);
       final attachedId = await attachState.attachedStoreId();
       if (attachedId == null) return null;
+      final providerType = await attachState.attachedProviderType();
 
       // Account-first: attachments made through the Connected Accounts
       // layer resolve their store via the account's adapter. Legacy
@@ -277,23 +425,21 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
           ref.watch(accountProviderRegistryProvider),
         );
       } else {
-        final providerType =
-            await attachState.attachedProviderType() ?? CloudProviderType.s3;
-        final s3Config = providerType == CloudProviderType.s3
+        final legacyType = providerType ?? CloudProviderType.s3;
+        final s3Config = legacyType == CloudProviderType.s3
             ? await ref.watch(mediaStoreCredentialsStoreProvider).load()
             : null;
         builtStore = await buildMediaObjectStore(
-          providerType,
+          legacyType,
           s3Config: s3Config,
         );
       }
       final store = builtStore;
       if (store == null) return null;
 
-      final supportDir = await getApplicationSupportDirectory();
       final cache = MediaCacheStore(
         database: LocalCacheDatabaseService.instance.database,
-        root: Directory(p.join(supportDir.path, 'Submersion', 'media_cache')),
+        root: await mediaCacheRoot(),
       );
       final resolver = MediaStoreResolver(store: store, cache: cache);
 
@@ -314,20 +460,19 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         store: store,
         mediaRepository: mediaRepository,
       );
+      // Suspend all transfers when this device detached or when the store no
+      // longer carries the marker this device attached to (wiped or
+      // repointed; spec section 13).
+      final preflight = MediaStorePreflight(
+        attachState: attachState,
+        store: store,
+        attachedStoreId: attachedId,
+      );
       final worker = MediaStoreWorker(
         queue: MediaTransferQueueRepository(),
         pipeline: pipeline,
         deleteProcessor: deleteProcessor,
-        preflight: () async {
-          // Suspend all transfers when this device detached (attach state
-          // re-read, not captured: disconnect can land while a drain is
-          // running) or when the bucket no longer carries the store this
-          // device attached to (wiped or repointed; spec section 13).
-          final currentId = await attachState.attachedStoreId();
-          if (currentId == null || currentId != attachedId) return false;
-          final marker = await StoreMarkerStore(store: store).read();
-          return marker != null && marker.storeId == currentId;
-        },
+        preflight: preflight.call,
         gate: (entry) async {
           // Network policies (design spec section 9): offline halts the
           // drain; cellular defers anything the policy disallows.
@@ -357,6 +502,20 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       // cannot reclaim a row a still-running worker from the previous runtime
       // owns; the cache makes it run only once.
       await ref.read(mediaTransferQueueReclaimProvider.future);
+
+      // Fire-and-forget: housekeeping must not delay the drain below.
+      //
+      // catchError is load-bearing, not decoration. A FutureProvider records
+      // the failure in its own AsyncError state, but the future handed back by
+      // .future still completes with that error, so an unawaited one surfaces
+      // as an unhandled async exception. Same shape as the tile sweep in
+      // startup_page.dart. Nothing surfaces this to the user and the retry is
+      // a whole launch away, so the log is the only diagnostic there will be.
+      unawaited(
+        ref.read(mediaCacheEvictionProvider.future).catchError((Object e) {
+          debugPrint('Media cache eviction failed (will retry): $e');
+        }),
+      );
 
       final connectivitySub = network.changes.listen((kind) {
         if (kind != NetworkKind.offline) unawaited(worker.drain());
@@ -420,6 +579,23 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         worker: worker,
       );
     });
+
+/// Whether the worker's last preflight suspended the transfer queue (issue
+/// #1356). False without a runtime, and it follows the live worker from then
+/// on: the queue rows carry no trace of a suspension, so this is the only
+/// way the settings pages can tell "paused" from "queued".
+// no-tick: mirrors an in-memory worker flag, not a query result.
+final mediaTransfersSuspendedProvider = StreamProvider<bool>((ref) async* {
+  final runtime = await ref.watch(mediaStoreRuntimeProvider.future);
+  final worker = runtime?.worker;
+  if (worker == null) {
+    yield false;
+    return;
+  }
+  // suspensionChanges opens with the current value, so there is no window
+  // between sampling it and subscribing.
+  yield* worker.suspensionChanges;
+});
 
 /// The store-fallback resolver for display surfaces, or null when no store
 /// runtime exists yet. Synchronous accessor over the async runtime.

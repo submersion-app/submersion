@@ -30,6 +30,9 @@ class _RecordingMediaImportService implements MediaImportService {
     required File sourceFile,
     required String diveId,
     DateTime? takenAt,
+    double? latitude,
+    double? longitude,
+    String subdirectory = 'scanned_logs',
   }) async {
     localFileCalls++;
     if (shouldThrow) {

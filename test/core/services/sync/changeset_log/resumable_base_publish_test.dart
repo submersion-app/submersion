@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -249,6 +250,63 @@ void main() {
 
       expect(await File(mine).exists(), isFalse);
       expect(await File(theirs).exists(), isTrue);
+    });
+  });
+
+  /// Issue #1304: every base publish on Windows died with
+  /// `PathNotFoundException` because the export's basename was taken by
+  /// splitting on `Platform.pathSeparator`. Export paths are assembled by
+  /// interpolation, so on Windows they mix separators and the backslash split
+  /// left a leading `Temp/` on the name -- moving the export into a
+  /// subdirectory of the publish dir that nothing ever creates.
+  ///
+  /// The host running these tests is POSIX, so the Windows style is pinned
+  /// explicitly rather than inherited from the platform.
+  group('basePublishTargetPath', () {
+    final windows = p.Context(style: p.Style.windows);
+    const name =
+        'ssv1_base_11d9442e-c184-4e1f-8fd1-8f6dc8ff8f05_1.'
+        '7dd38a42-104f-495a-937d-48ced42d37bd.json';
+
+    const publishDirPath =
+        'C:\\Users\\chaeh\\AppData\\Roaming\\Eric Griffin\\submersion'
+        '\\sync_base_publish';
+
+    test('lands a mixed-separator Windows export in the publish dir', () {
+      // Exactly the shapes from the #1304 report: the temp dir carries
+      // backslashes, the filename was appended with a literal '/'.
+      final target = basePublishTargetPath(
+        publishDirPath,
+        'C:\\Users\\chaeh\\AppData\\Local\\Temp/$name',
+        context: windows,
+      );
+
+      expect(windows.basename(target), name);
+      expect(
+        windows.dirname(target),
+        publishDirPath,
+        reason: 'a "Temp" segment here is a directory that never gets created',
+      );
+    });
+
+    test('lands a pure-backslash Windows export in the publish dir', () {
+      final target = basePublishTargetPath(
+        publishDirPath,
+        'C:\\Users\\chaeh\\AppData\\Local\\Temp\\$name',
+        context: windows,
+      );
+
+      expect(target, '$publishDirPath\\$name');
+    });
+
+    test('leaves POSIX paths flat in the publish dir', () {
+      final target = basePublishTargetPath(
+        '/var/support/sync_base_publish',
+        '/var/folders/t7/T/$name',
+        context: p.Context(style: p.Style.posix),
+      );
+
+      expect(target, '/var/support/sync_base_publish/$name');
     });
   });
 

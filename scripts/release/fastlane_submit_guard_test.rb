@@ -92,28 +92,69 @@ module Spaceship
 end
 
 FakeVersion = Struct.new(:version_string, :app_version_state, :app_store_state)
-FakeSubmission = Struct.new(:app_store_version_for_review)
+
+# A review submission as the guard sees it: a state, the version it covers, and
+# a cancel that the guard is allowed to call on exactly one of those states.
+class FakeSubmission
+  attr_reader :cancel_calls
+
+  def initialize(state: 'IN_REVIEW', version: nil)
+    @state = state
+    @version = version
+    @cancel_calls = 0
+  end
+
+  def state
+    @state
+  end
+
+  def app_store_version_for_review
+    @version
+  end
+
+  def cancel_submission
+    @cancel_calls += 1
+    self
+  end
+end
 
 # Stands in for a submission fetched without the relationship included, which
 # is what makes the version unreadable in the first place.
-class UnreadableSubmission
+class UnreadableSubmission < FakeSubmission
   def app_store_version_for_review
     raise StandardError, 'relationship not included'
   end
 end
 
-class FakeApp
-  attr_reader :review_calls, :edit_calls
+# A submission whose STATE cannot be read. Deliberately distinct from the
+# above: an unreadable version only costs a vaguer message, while an unreadable
+# state is the difference between "Apple is holding this build" and "Apple
+# already rejected it", so it must fail closed and must never be cancelled.
+class UnreadableStateSubmission < FakeSubmission
+  def state
+    raise StandardError, 'state not returned'
+  end
+end
 
-  def initialize(submission: nil, edit_version: nil)
+class FakeApp
+  attr_reader :review_calls, :edit_calls, :submission
+
+  # clears_after_cancel models App Store Connect retiring a cancelled
+  # submission, which is what lets the guard go on to submit. false models it
+  # lingering, which must not be mistaken for a clear road.
+  def initialize(submission: nil, edit_version: nil, clears_after_cancel: true)
     @submission = submission
     @edit_version = edit_version
+    @clears_after_cancel = clears_after_cancel
     @review_calls = []
     @edit_calls = []
   end
 
   def get_in_progress_review_submission(platform:, includes: nil)
     @review_calls << { platform: platform, includes: includes }
+    return nil if @submission.nil?
+    return nil if @clears_after_cancel && @submission.cancel_calls.positive?
+
     @submission
   end
 
@@ -210,6 +251,67 @@ def assert_guard_behaviour(label)
           "#{label}: the live version state #{live} was treated as blocking " \
           "(got #{reason.inspect}); that would stop every future release")
   end
+
+  # 8. The rejection this guard used to trap, from promote run 32779335838.
+  #    Apple reviewed 1.7.4 and rejected it, but the REVIEW SUBMISSION stays
+  #    open in UNRESOLVED_ISSUES, so the version-agnostic check above read it
+  #    as "a review is in progress" and skipped 1.7.5. Nobody is holding the
+  #    build; a dead submission is. Resubmitting after a rejection is this
+  #    lane's whole job, so it must proceed.
+  reason = submission_skip_reason(
+    app_version: '1.7.5',
+    review_in_progress: true,
+    review_state: 'UNRESOLVED_ISSUES',
+    review_version: '1.7.4',
+    edit_version: '1.7.4',
+    edit_state: 'REJECTED',
+  )
+  check(reason.nil?,
+        "#{label}: a rejected (UNRESOLVED_ISSUES) submission blocked the " \
+        "resubmission it exists to allow (got #{reason.inspect})")
+
+  # 9. The states where Apple genuinely holds the build still block. This is
+  #    the protection from run 31903095751 and it must survive case 8.
+  %w[WAITING_FOR_REVIEW IN_REVIEW].each do |held|
+    reason = submission_skip_reason(
+      app_version: '1.7.5',
+      review_in_progress: true,
+      review_state: held,
+      review_version: '1.7.4',
+    )
+    check(!reason.nil?,
+          "#{label}: a submission in #{held} stopped blocking; that is the " \
+          'exact hole that renamed an in-review version')
+  end
+
+  # 10. Fail CLOSED on a state we cannot read or do not recognise. Only an
+  #     explicit UNRESOLVED_ISSUES may lower the block: if Apple adds a state
+  #     or the field goes unread, the safe answer is the old behaviour.
+  [nil, '', 'SOME_NEW_APPLE_STATE'].each do |unknown|
+    reason = submission_skip_reason(
+      app_version: '1.7.5',
+      review_in_progress: true,
+      review_state: unknown,
+      review_version: '1.7.4',
+    )
+    check(!reason.nil?,
+          "#{label}: an unrecognised review state #{unknown.inspect} did not " \
+          'block; unknown must never weaken the guard')
+  end
+
+  # 11. A rejection lowers the FIRST check only. If the editable version is
+  #     somehow already handed over, the second check still stops the lane.
+  reason = submission_skip_reason(
+    app_version: '1.7.5',
+    review_in_progress: true,
+    review_state: 'UNRESOLVED_ISSUES',
+    review_version: '1.7.4',
+    edit_version: '1.7.5',
+    edit_state: 'WAITING_FOR_REVIEW',
+  )
+  check(!reason.nil?,
+        "#{label}: UNRESOLVED_ISSUES let a version that is already " \
+        'WAITING_FOR_REVIEW be submitted again')
 end
 
 # --- The App Store Connect wrapper ------------------------------------------
@@ -223,7 +325,10 @@ def assert_wrapper_behaviour(label, platform_arg)
   # A review under way for a different version blocks, and the version it
   # covers is read through the relationship the request asked for.
   $stub_app = FakeApp.new(
-    submission: FakeSubmission.new(FakeVersion.new('1.7.3', 'WAITING_FOR_REVIEW', nil)),
+    submission: FakeSubmission.new(
+      state: 'WAITING_FOR_REVIEW',
+      version: FakeVersion.new('1.7.3', 'WAITING_FOR_REVIEW', nil),
+    ),
     edit_version: FakeVersion.new('1.7.3', 'WAITING_FOR_REVIEW', nil),
   )
   reason = submission_blocker('1.7.4', platform_arg)
@@ -249,7 +354,7 @@ def assert_wrapper_behaviour(label, platform_arg)
         'already in progress; that is an avoidable way to fail the lane')
 
   # An unreadable relationship must not weaken the block.
-  $stub_app = FakeApp.new(submission: UnreadableSubmission.new)
+  $stub_app = FakeApp.new(submission: UnreadableSubmission.new(state: 'IN_REVIEW'))
   reason = submission_blocker('1.7.4', platform_arg)
   check(!reason.nil?,
         "#{label}: a submission whose version could not be read stopped blocking")
@@ -283,6 +388,73 @@ def assert_wrapper_behaviour(label, platform_arg)
   $stub_app = nil
   check(submission_blocker('1.7.4', platform_arg).nil?,
         "#{label}: a missing app record did not fall through")
+
+  # A rejection left open: the dead submission is cancelled and the lane goes
+  # on to read the editable version, which is REJECTED and therefore
+  # submittable. Both halves matter - cancelling without proceeding leaves the
+  # release stuck, and proceeding without cancelling hits deliver's own
+  # in-progress check (deliver/submit_for_review.rb) AFTER it has renamed the
+  # version and uploaded metadata.
+  rejected = FakeSubmission.new(
+    state: 'UNRESOLVED_ISSUES',
+    version: FakeVersion.new('1.7.4', 'REJECTED', nil),
+  )
+  $stub_app = FakeApp.new(
+    submission: rejected,
+    edit_version: FakeVersion.new('1.7.4', 'REJECTED', nil),
+  )
+  reason = submission_blocker('1.7.5', platform_arg)
+  check(reason.nil?,
+        "#{label}: a rejected submission still blocked (got #{reason.inspect})")
+  check(rejected.cancel_calls == 1,
+        "#{label}: expected the rejected submission to be cancelled exactly " \
+        "once, got #{rejected.cancel_calls} cancels")
+  check($stub_app.edit_calls.length == 1,
+        "#{label}: the editable version was not consulted after the cancel; " \
+        'the second check is what allows the rename-forward')
+
+  # The cancel is confined to rejections. A build actually with Apple must
+  # never be withdrawn by CI.
+  %w[WAITING_FOR_REVIEW IN_REVIEW].each do |held|
+    live = FakeSubmission.new(
+      state: held,
+      version: FakeVersion.new('1.7.4', held, nil),
+    )
+    $stub_app = FakeApp.new(submission: live)
+    check(!submission_blocker('1.7.5', platform_arg).nil?,
+          "#{label}: a submission in #{held} did not block the wrapper")
+    check(live.cancel_calls.zero?,
+          "#{label}: CI cancelled a live #{held} submission; that pulls a " \
+          'build out of Apple review')
+  end
+
+  # An unreadable state fails closed AND keeps its hands off the submission.
+  opaque = UnreadableStateSubmission.new(state: 'UNRESOLVED_ISSUES')
+  $stub_app = FakeApp.new(submission: opaque)
+  check(!submission_blocker('1.7.5', platform_arg).nil?,
+        "#{label}: a submission whose state could not be read stopped blocking")
+  check(opaque.cancel_calls.zero?,
+        "#{label}: a submission whose state could not be read was cancelled")
+
+  # A cancel that does not take effect must block rather than fall through.
+  # poll_interval 0 keeps the retry loop instant here.
+  stuck = FakeSubmission.new(
+    state: 'UNRESOLVED_ISSUES',
+    version: FakeVersion.new('1.7.4', 'REJECTED', nil),
+  )
+  $stub_app = FakeApp.new(
+    submission: stuck,
+    edit_version: FakeVersion.new('1.7.4', 'REJECTED', nil),
+    clears_after_cancel: false,
+  )
+  reason = submission_blocker('1.7.5', platform_arg, poll_interval: 0)
+  check(!reason.nil?,
+        "#{label}: a cancel that never took effect was treated as a clear road")
+  check(stuck.cancel_calls == 1,
+        "#{label}: expected a single cancel attempt, got #{stuck.cancel_calls}")
+  check($stub_app.edit_calls.empty?,
+        "#{label}: the lane carried on to the editable version after the " \
+        'cancel failed to clear the submission')
 end
 
 # --- Both platform Fastfiles ------------------------------------------------

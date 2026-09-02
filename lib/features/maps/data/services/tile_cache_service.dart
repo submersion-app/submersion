@@ -85,20 +85,53 @@ class TileCacheService {
 
   TileCacheService._();
 
-  static const String _defaultStoreName = 'submersion_tiles';
+  /// Downloaded offline regions. Never capped and never swept by age.
+  ///
+  /// Keeps its original name so an existing install's tiles stay exactly where
+  /// they are: this is the store every version before the split wrote to, and
+  /// designating it the offline store means the upgrade deletes nothing. Its
+  /// legacy contents are a mix of downloaded regions and old browse tiles, and
+  /// they stay put, because there is no way to tell after the fact which tile
+  /// a diver deliberately downloaded for a trip.
+  ///
+  /// Eviction cannot make that distinction either. FMTC's
+  /// removeOldestTilesAboveLimit orders by lastModified across a whole store,
+  /// so a cap or an age sweep here would delete a region downloaded weeks
+  /// before a trip, in the one situation where it cannot be re-fetched.
+  static const String _offlineStoreName = 'submersion_tiles';
+
+  /// Incidental browse caching. Capped and swept.
+  static const String _browseStoreName = 'submersion_tiles_browse';
 
   static final LoggerService _log = LoggerService.forClass(TileCacheService);
 
   bool _initialized = false;
   FMTCStore? _store;
+  FMTCStore? _browseStore;
   StreamSubscription<DownloadProgress>? _activeDownloadSubscription;
   Object? _activeDownloadId;
 
   /// Whether the service has been initialized.
   bool get isInitialized => _initialized;
 
-  /// The name of the tile store.
-  String get storeName => _defaultStoreName;
+  /// The name of the offline (downloaded region) tile store.
+  String get storeName => _offlineStoreName;
+
+  /// The name of the browse cache store.
+  String get browseStoreName => _browseStoreName;
+
+  /// Tile-count cap on the browse store.
+  ///
+  /// FMTC counts tiles, not bytes. At a typical 20 to 50 KB per tile this is
+  /// roughly 100 to 250 MB of incidental map browsing, which is generous for
+  /// a dive log and still bounded. Applies ONLY to the browse store: see
+  /// [_offlineStoreName] for why the downloaded regions must never be capped.
+  static const int browseStoreMaxTiles = 5000;
+
+  /// How long an incidentally browsed tile is kept.
+  ///
+  /// Applies ONLY to the browse store, for the same reason as the cap.
+  static const Duration browseTileMaxAge = Duration(days: 30);
 
   /// App Group identifier for macOS sandbox compatibility.
   /// Must match the group in entitlements and be under 20 characters.
@@ -109,6 +142,14 @@ class TileCacheService {
   /// This must be called before using any other methods.
   /// Typically called once at app startup.
   Future<void> initialize() async {
+    // coverage:ignore-start
+    //
+    // This and the other FMTC-calling methods below need a live
+    // ObjectBox backend, which flutter test has no way to stand up.
+    // The routing that decides which store is written, which is where
+    // the risk of evicting a downloaded region actually lives, was
+    // extracted into browseStoreStrategies and offlineStoreStrategies
+    // precisely so it is asserted in tests rather than ignored here.
     if (_initialized) return;
 
     // For macOS: use App Group container for sandbox compatibility.
@@ -127,10 +168,46 @@ class TileCacheService {
       await FMTCObjectBoxBackend().initialise(rootDirectory: tileCacheDir.path);
     }
 
-    _store = const FMTCStore(_defaultStoreName);
+    _store = const FMTCStore(_offlineStoreName);
     await _store!.manage.create();
+
+    _browseStore = const FMTCStore(_browseStoreName);
+    await _browseStore!.manage.create(maxLength: browseStoreMaxTiles);
+    // create() does nothing when the store already exists (PutMode.insert,
+    // swallowing UniqueViolationException), so the maxLength above never
+    // reaches a store created by an earlier build. setMaxLength is the call
+    // that actually applies, and it is idempotent.
+    await _browseStore!.manage.setMaxLength(browseStoreMaxTiles);
+
     _initialized = true;
+    // coverage:ignore-end
   }
+
+  /// Which stores a browsing map reads and writes, and how.
+  ///
+  /// The load-bearing invariant is that the offline store is `read` and never
+  /// `readUpdateCreate`: browsing must never add to the store that holds
+  /// downloaded regions, or the cap on the browse store would be meaningless
+  /// and the offline regions would grow without bound.
+  ///
+  /// A tile already present in the offline store is served from there and is
+  /// NOT duplicated into the browse store, because FMTC only reaches its
+  /// write-selection step after a network fetch and an existing tile returns
+  /// before that (see `internal_tile_browser.dart`). Static and
+  /// [visibleForTesting] so the routing can be asserted without standing up an
+  /// ObjectBox backend.
+  @visibleForTesting
+  static Map<String, BrowseStoreStrategy> browseStoreStrategies() => {
+    _browseStoreName: BrowseStoreStrategy.readUpdateCreate,
+    _offlineStoreName: BrowseStoreStrategy.read,
+  };
+
+  /// Read-only across both stores, for the offline-only map view.
+  @visibleForTesting
+  static Map<String, BrowseStoreStrategy> offlineStoreStrategies() => {
+    _browseStoreName: BrowseStoreStrategy.read,
+    _offlineStoreName: BrowseStoreStrategy.read,
+  };
 
   /// Get the tile store for advanced operations.
   ///
@@ -159,14 +236,16 @@ class TileCacheService {
   /// }
   /// ```
   FMTCTileProvider getTileProvider({
+    // coverage:ignore-start
     BrowseLoadingStrategy loadingStrategy = BrowseLoadingStrategy.cacheFirst,
   }) {
     _ensureInitialized();
     return FMTCTileProvider(
-      stores: {_defaultStoreName: BrowseStoreStrategy.readUpdateCreate},
+      stores: browseStoreStrategies(),
       loadingStrategy: loadingStrategy,
       errorHandler: handleTileError,
     );
+    // coverage:ignore-end
   }
 
   /// Handles a tile fetch failure: logs it (offline misses at info, real
@@ -226,11 +305,13 @@ class TileCacheService {
   /// This provider will only use cached tiles and will not make network
   /// requests.
   FMTCTileProvider getOfflineTileProvider() {
+    // coverage:ignore-start
     _ensureInitialized();
     return FMTCTileProvider(
-      stores: {_defaultStoreName: BrowseStoreStrategy.read},
+      stores: offlineStoreStrategies(),
       loadingStrategy: BrowseLoadingStrategy.cacheOnly,
     );
+    // coverage:ignore-end
   }
 
   /// Estimate the number of tiles in a rectangular region.
@@ -352,28 +433,40 @@ class TileCacheService {
 
   /// Get statistics about the tile cache.
   Future<CacheStats> getCacheStats() async {
+    // coverage:ignore-start
     _ensureInitialized();
 
-    final stats = await _store!.stats.all;
+    final offline = await _store!.stats.all;
+    final browse = await _browseStore!.stats.all;
     return CacheStats(
-      tileCount: stats.length,
-      sizeKiB: stats.size,
-      hits: stats.hits,
-      misses: stats.misses,
+      tileCount: offline.length + browse.length,
+      sizeKiB: offline.size + browse.size,
+      hits: offline.hits + browse.hits,
+      misses: offline.misses + browse.misses,
     );
+    // coverage:ignore-end
   }
 
   /// Clear all cached tiles from the store.
   Future<void> clearCache() async {
+    // coverage:ignore-start
     _ensureInitialized();
     await _store!.manage.reset();
+    await _browseStore!.manage.reset();
+    // coverage:ignore-end
   }
 
-  /// Remove tiles older than the specified duration.
+  /// Remove browse-cached tiles older than [maxAge].
+  ///
+  /// Deliberately scoped to the browse store. Running this across the offline
+  /// store would delete a region a diver downloaded before a trip, which is
+  /// exactly the data the offline feature exists to guarantee.
   Future<void> removeOldTiles(Duration maxAge) async {
+    // coverage:ignore-start
     _ensureInitialized();
     final expiry = DateTime.now().subtract(maxAge);
-    await _store!.manage.removeTilesOlderThan(expiry: expiry);
+    await _browseStore!.manage.removeTilesOlderThan(expiry: expiry);
+    // coverage:ignore-end
   }
 
   /// Get the list of all available stores.
@@ -395,15 +488,18 @@ class TileCacheService {
   /// clean up resources.
   Future<void> dispose() async {
     if (!_initialized) return;
+    // coverage:ignore-start
 
     await cancelDownload();
     await FMTCObjectBoxBackend().uninitialise();
     _store = null;
+    _browseStore = null;
     _initialized = false;
+    // coverage:ignore-end
   }
 
   void _ensureInitialized() {
-    if (!_initialized || _store == null) {
+    if (!_initialized || _store == null || _browseStore == null) {
       throw StateError(
         'TileCacheService not initialized. Call initialize() first.',
       );

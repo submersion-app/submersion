@@ -35,6 +35,10 @@ class ProfileLegendConfig {
   final bool hasSurfaceGfData;
   final bool hasMeanDepthData;
   final bool hasTtsData;
+
+  /// Whether any sample has a gas time remaining value (calculated or from
+  /// the computer); a curve of nothing but blanks does not count.
+  final bool hasGtrData;
   final bool hasCnsData;
   final bool hasOtuData;
 
@@ -68,6 +72,7 @@ class ProfileLegendConfig {
     this.hasSurfaceGfData = false,
     this.hasMeanDepthData = false,
     this.hasTtsData = false,
+    this.hasGtrData = false,
     this.hasCnsData = false,
     this.hasOtuData = false,
     this.hasO2CellMvData = false,
@@ -100,6 +105,7 @@ class ProfileLegendConfig {
       hasSurfaceGfData ||
       hasMeanDepthData ||
       hasTtsData ||
+      hasGtrData ||
       hasCnsData ||
       hasOtuData ||
       hasO2CellMvData;

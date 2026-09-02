@@ -1,0 +1,9 @@
+Submersion has no user accounts: no sign-up, no login, no demo account, and no backend service operated by us. All data is stored locally on the device.
+
+"CREATE YOUR PROFILE" (guideline 5.1.1(v)): the first-launch step creates a local diver profile, a name used to label dive logs when several people share a device. It is not an account and is never transmitted. Profiles are deleted in-app at Settings > Diver Profile > Manage Divers > select the diver > Delete (type "Delete <name>" to confirm). This permanently removes the profile and all of its dive logs, equipment, certifications and sites, and works for the only profile on the device.
+
+"SIGN IN": these options connect to a third-party storage account the user already owns (iCloud, Dropbox, Google Drive, or a user-supplied S3 bucket) so the user can sync or back up their own data to their own storage. We never receive it. Connections are removed at Settings > Photos & Media > Connected Accounts.
+
+App Lock (Settings > Security, a password or biometric unlock for the app) and backup encryption (a password on exported backup files) are optional device-local protections, not accounts, and can be turned off from the same screens.
+
+No demo credentials are needed; entering any name in the profile step reaches every feature.

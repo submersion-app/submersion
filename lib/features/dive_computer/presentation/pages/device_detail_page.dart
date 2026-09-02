@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/reparse
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
 /// Page displaying details about a specific dive computer.
 class DeviceDetailPage extends ConsumerWidget {
@@ -180,6 +181,8 @@ class DeviceDetailPage extends ConsumerWidget {
               context.l10n.diveComputer_detail_labelConnection,
               _getConnectionName(context, computer.connectionType),
             ),
+            if (computer.equipmentId != null)
+              _LinkedGearRow(equipmentId: computer.equipmentId!),
           ],
         ),
       ),
@@ -653,5 +656,53 @@ class DeviceDetailPage extends ConsumerWidget {
       default:
         return l10n.diveComputer_connectionType_unknown;
     }
+  }
+}
+
+/// The equipment row representing this device as gear, its gear twin (v175).
+///
+/// Absent when the computer has no `equipmentId`, which is what deleting the
+/// gear item leaves behind and is permanent by design: only a genuine
+/// registration mints a twin.
+class _LinkedGearRow extends ConsumerWidget {
+  const _LinkedGearRow({required this.equipmentId});
+
+  final String equipmentId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final item = ref.watch(equipmentItemProvider(equipmentId)).valueOrNull;
+    if (item == null) return const SizedBox.shrink();
+
+    return InkWell(
+      onTap: () => context.push('/equipment/$equipmentId'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              context.l10n.diveComputer_detail_linkedGear,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(item.name, style: theme.textTheme.bodyMedium),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

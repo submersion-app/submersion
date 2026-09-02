@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_3d/domain/geometry/axis_frame.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/subsurface_tissue_builder.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/axis_labels.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/tissue_chrome_painters.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 
@@ -79,8 +80,19 @@ void main() {
   test(
     'overlay painter paints (with a hover pick + scrub) without throwing',
     () {
-      final pick = ValueNotifier<TissuePick?>(
-        const TissuePick(col: 1, comp: 3, screenPos: Offset(200, 150)),
+      final (px, py, pz) = result.grid.positionAt(1, 3);
+      final pick = ValueNotifier<ScenePick?>(
+        ScenePick(
+          x: px,
+          y: py,
+          z: pz,
+          screenPos: const Offset(200, 150),
+          payload: const TissuePick(
+            col: 1,
+            comp: 3,
+            screenPos: Offset(200, 150),
+          ),
+        ),
       );
       final painter = TissueOverlayPainter(
         scene: result.scene,
@@ -142,7 +154,7 @@ void main() {
 
   test('overlay painter repaints on camera and style changes', () {
     final scrub = ValueNotifier<double>(0);
-    final pick = ValueNotifier<TissuePick?>(null);
+    final pick = ValueNotifier<ScenePick?>(null);
     TissueOverlayPainter make({
       double yaw = -32,
       TissueChromeStyle s = style,

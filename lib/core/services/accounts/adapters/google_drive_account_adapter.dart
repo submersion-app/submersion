@@ -9,11 +9,14 @@ import 'package:submersion/core/services/media_store/google_drive_media_object_s
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_provider_instances.dart';
 
-/// The Google login as a session-managed, single-instance account. Auth
-/// lives in GoogleSignIn.instance (OS/SDK session) -- there is no keychain
-/// blob to re-key -- so this adapter delegates to the shared core-level
-/// provider singleton (cloud_provider_instances) for session reuse,
-/// avoiding a presentation -> core import cycle.
+/// The Google login as a session-managed, single-instance account. Auth is
+/// owned by whichever authenticator the provider selected -- the SDK session
+/// in GoogleSignIn.instance on mobile and the sandboxed macOS build, or a
+/// refresh token in GoogleDriveTokenStore wherever the loopback flow is used
+/// (Windows, Linux, and the Developer ID macOS build). Either way this
+/// adapter holds no credential of its own, so it delegates to the shared
+/// core-level provider singleton (cloud_provider_instances) for session
+/// reuse, avoiding a presentation -> core import cycle.
 class GoogleDriveAccountAdapter extends AccountProviderAdapter
     implements SyncCapable, MediaStoreCapable {
   GoogleDriveAccountAdapter({GoogleDriveStorageProvider? provider})

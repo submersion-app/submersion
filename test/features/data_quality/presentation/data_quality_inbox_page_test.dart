@@ -791,6 +791,46 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 6));
   });
 
+  testWidgets('split-source repair reports a failure through a SnackBar', (
+    tester,
+  ) async {
+    // DiveSplitService.split() throws for a source that does not belong to
+    // the dive, and it also refuses a dive whose stored series this build
+    // cannot decode. Either way the diver must be told: the repair used to
+    // run outside any try/catch, so the tap silently did nothing and the
+    // finding stayed open forever.
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'r-splitsource',
+            detectorId: 'source_conflict',
+            category: QualityCategory.source,
+            params: const {
+              'sourceId': 's1',
+              'primaryMaxDepth': 30.0,
+              'sourceMaxDepth': 28.0,
+            },
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Split is not the card's primary action; expand the card to reach it.
+    // Tap the title rather than the tile's center: the trailing primary
+    // button is wide enough to sit under it.
+    await tester.tap(find.text('Conflicting sources'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Split into separate dives'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Split failed'), findsOneWidget);
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
   testWidgets('combine-split repair opens the combine dialog', (tester) async {
     final prefs = await _prefs();
     await tester.pumpWidget(

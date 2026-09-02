@@ -31,6 +31,17 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
   }
 
+  test('the console has exactly four destinations', () {
+    // Unlinked media no longer exists and Missing files is a Library chip,
+    // so neither gets a sidebar entry.
+    expect(MediaConsoleSection.values, [
+      MediaConsoleSection.library,
+      MediaConsoleSection.sources,
+      MediaConsoleSection.transfers,
+      MediaConsoleSection.importMedia,
+    ]);
+  });
+
   testWidgets('wide layout shows sidebar entries, no tabs', (tester) async {
     setWidth(tester, 1100);
     await tester.pumpWidget(

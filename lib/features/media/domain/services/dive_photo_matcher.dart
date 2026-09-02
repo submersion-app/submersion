@@ -1,5 +1,7 @@
+import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
+import 'package:submersion/features/media/domain/value_objects/unmatched_diagnostic.dart';
 
 /// Lightweight value type representing a dive's time bounds for matching.
 ///
@@ -29,33 +31,52 @@ class DiveBounds {
 /// Tie-breaker for overlapping windows: the dive whose [entryTime] is
 /// closest to the file's [takenAt] in absolute Duration.
 ///
-/// Files with no [takenAt] or no matching dive go to [MatchedSelection.unmatched].
+/// Files with no [takenAt] or no matching dive go to [MatchedSelection.unmatched],
+/// each with an [UnmatchedDiagnostic] recording which of the two it was.
+///
+/// [match] also accepts an `offset` that shifts every file's capture time
+/// before comparison, which is how the Files tab corrects a camera clock left
+/// on the wrong timezone (issue #312).
 class DivePhotoMatcher {
   const DivePhotoMatcher();
 
   /// Pre-dive buffer applied before [DiveBounds.entryTime] when computing
   /// the match window. Catches photos taken at the boat / dock / on the
   /// surface before the descent.
-  static const Duration preBuffer = Duration(minutes: 30);
+  static const Duration preBuffer = MediaDiveWindow.before;
 
   /// Post-dive buffer applied after [DiveBounds.exitTime] when computing
   /// the match window. Catches surface-interval shots, debrief photos.
-  static const Duration postBuffer = Duration(minutes: 60);
+  static const Duration postBuffer = MediaDiveWindow.after;
 
-  /// Routes [files] to [dives] by EXIF date.
+  /// Routes [files] to [dives] by capture date.
+  ///
+  /// [offset] is added to each file's `takenAt` before comparison and is not
+  /// written back to the file. The caller owns applying the same offset when
+  /// persisting, so a shift-rescued photo enriches against the same corrected
+  /// time it matched on.
+  ///
+  /// Files that match nothing land in [MatchedSelection.unmatched] with an
+  /// [UnmatchedDiagnostic] in [MatchedSelection.diagnostics] saying why.
   MatchedSelection match({
     required List<ExtractedFile> files,
     required List<DiveBounds> dives,
+    Duration offset = Duration.zero,
   }) {
     final matched = <String, List<ExtractedFile>>{};
     final unmatched = <ExtractedFile>[];
+    final diagnostics = <String, UnmatchedDiagnostic>{};
 
     for (final file in files) {
-      final takenAt = file.metadata.takenAt;
-      if (takenAt == null) {
+      final rawTakenAt = file.metadata.takenAt;
+      if (rawTakenAt == null) {
         unmatched.add(file);
+        diagnostics[file.sourcePath] = const UnmatchedDiagnostic(
+          reason: UnmatchedReason.noTimestamp,
+        );
         continue;
       }
+      final takenAt = rawTakenAt.add(offset);
 
       DiveBounds? best;
       Duration? bestDelta;
@@ -74,12 +95,47 @@ class DivePhotoMatcher {
 
       if (best == null) {
         unmatched.add(file);
+        diagnostics[file.sourcePath] = _outsideDiagnostic(takenAt, dives);
       } else {
         matched.putIfAbsent(best.diveId, () => []).add(file);
       }
     }
 
-    return MatchedSelection(matched: matched, unmatched: unmatched);
+    return MatchedSelection(
+      matched: matched,
+      unmatched: unmatched,
+      diagnostics: diagnostics,
+    );
+  }
+
+  /// Finds the dive whose match window [takenAt] came closest to.
+  ///
+  /// The distance is measured to the window edge rather than to entry time, so
+  /// the reported gap is the amount of shift that would actually bring the
+  /// file into range. Measuring to entry time would overstate the required
+  /// correction by the whole pre- or post-buffer.
+  static UnmatchedDiagnostic _outsideDiagnostic(
+    DateTime takenAt,
+    List<DiveBounds> dives,
+  ) {
+    String? nearestDiveId;
+    Duration? nearestGap;
+    for (final dive in dives) {
+      final windowStart = dive.entryTime.subtract(preBuffer);
+      final windowEnd = dive.exitTime.add(postBuffer);
+      final gap = takenAt.isBefore(windowStart)
+          ? takenAt.difference(windowStart)
+          : takenAt.difference(windowEnd);
+      if (nearestGap == null || gap.abs() < nearestGap.abs()) {
+        nearestGap = gap;
+        nearestDiveId = dive.diveId;
+      }
+    }
+    return UnmatchedDiagnostic(
+      reason: UnmatchedReason.outsideAllWindows,
+      nearestDiveId: nearestDiveId,
+      gapToNearest: nearestGap,
+    );
   }
 
   /// Confidence-bearing match of a single timestamp against dive windows

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -253,6 +254,14 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
         configProvider: detailed
             ? siteDetailedCardConfigProvider
             : siteCompactCardConfigProvider,
+        onChanged: (ref, config) => ref
+            .read(
+              (detailed
+                      ? siteDetailedCardConfigProvider
+                      : siteCompactCardConfigProvider)
+                  .notifier,
+            )
+            .replace(config),
         allFields: SiteField.values,
         fieldsByCategory: SiteFieldAdapter.instance.fieldsByCategory,
         showExtraFields: detailed,
@@ -261,6 +270,14 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
         configProvider: detailed
             ? buddyDetailedCardConfigProvider
             : buddyCompactCardConfigProvider,
+        onChanged: (ref, config) => ref
+            .read(
+              (detailed
+                      ? buddyDetailedCardConfigProvider
+                      : buddyCompactCardConfigProvider)
+                  .notifier,
+            )
+            .replace(config),
         allFields: BuddyField.values,
         fieldsByCategory: BuddyFieldAdapter.instance.fieldsByCategory,
         showExtraFields: detailed,
@@ -269,6 +286,16 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
         configProvider: detailed
             ? tripDetailedCardConfigProvider
             : tripCompactCardConfigProvider,
+        onChanged: (ref, config) =>
+            ref
+                    .read(
+                      (detailed
+                              ? tripDetailedCardConfigProvider
+                              : tripCompactCardConfigProvider)
+                          .notifier,
+                    )
+                    .state =
+                config,
         allFields: TripField.values,
         fieldsByCategory: TripFieldAdapter.instance.fieldsByCategory,
         showExtraFields: detailed,
@@ -277,6 +304,16 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
         configProvider: detailed
             ? equipmentDetailedCardConfigProvider
             : equipmentCompactCardConfigProvider,
+        onChanged: (ref, config) =>
+            ref
+                    .read(
+                      (detailed
+                              ? equipmentDetailedCardConfigProvider
+                              : equipmentCompactCardConfigProvider)
+                          .notifier,
+                    )
+                    .state =
+                config,
         allFields: EquipmentField.values,
         fieldsByCategory: EquipmentFieldAdapter.instance.fieldsByCategory,
         showExtraFields: detailed,
@@ -285,18 +322,33 @@ class _ColumnConfigPageState extends ConsumerState<ColumnConfigPage> {
         configProvider: detailed
             ? diveCenterDetailedCardConfigProvider
             : diveCenterCompactCardConfigProvider,
+        onChanged: (ref, config) =>
+            ref
+                    .read(
+                      (detailed
+                              ? diveCenterDetailedCardConfigProvider
+                              : diveCenterCompactCardConfigProvider)
+                          .notifier,
+                    )
+                    .state =
+                config,
         allFields: DiveCenterField.values,
         fieldsByCategory: DiveCenterFieldAdapter.instance.fieldsByCategory,
         showExtraFields: detailed,
       ),
       'certifications' => _EntityCardConfigSection<CertificationField>(
         configProvider: certificationDetailedCardConfigProvider,
+        onChanged: (ref, config) =>
+            ref.read(certificationDetailedCardConfigProvider.notifier).state =
+                config,
         allFields: CertificationField.values,
         fieldsByCategory: CertificationFieldAdapter.instance.fieldsByCategory,
         showExtraFields: detailed,
       ),
       'courses' => _EntityCardConfigSection<CourseField>(
         configProvider: courseDetailedCardConfigProvider,
+        onChanged: (ref, config) =>
+            ref.read(courseDetailedCardConfigProvider.notifier).state = config,
         allFields: CourseField.values,
         fieldsByCategory: CourseFieldAdapter.instance.fieldsByCategory,
         showExtraFields: detailed,
@@ -920,13 +972,19 @@ class _EntityTableConfigSection<F extends EntityField> extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 
 class _EntityCardConfigSection<F extends EntityField> extends ConsumerWidget {
-  final StateProvider<EntityCardViewConfig<F>> configProvider;
+  /// Read source. A `StateProvider` for the entities whose card config is
+  /// still in-memory, a `StateNotifierProvider` for the persisted ones.
+  final ProviderListenable<EntityCardViewConfig<F>> configProvider;
+
+  /// Write sink; the section edits a copy and hands it back here.
+  final void Function(WidgetRef ref, EntityCardViewConfig<F> config) onChanged;
   final List<F> allFields;
   final Map<String, List<F>> fieldsByCategory;
   final bool showExtraFields;
 
   const _EntityCardConfigSection({
     required this.configProvider,
+    required this.onChanged,
     required this.allFields,
     required this.fieldsByCategory,
     required this.showExtraFields,
@@ -951,14 +1009,17 @@ class _EntityCardConfigSection<F extends EntityField> extends ConsumerWidget {
               underline: const SizedBox(),
               onChanged: (value) {
                 if (value != null) {
-                  ref.read(configProvider.notifier).state = config.copyWith(
-                    slots: config.slots
-                        .map(
-                          (s) => s.slotId == slot.slotId
-                              ? s.copyWith(field: value)
-                              : s,
-                        )
-                        .toList(),
+                  onChanged(
+                    ref,
+                    config.copyWith(
+                      slots: config.slots
+                          .map(
+                            (s) => s.slotId == slot.slotId
+                                ? s.copyWith(field: value)
+                                : s,
+                          )
+                          .toList(),
+                    ),
                   );
                 }
               },
@@ -995,10 +1056,13 @@ class _EntityCardConfigSection<F extends EntityField> extends ConsumerWidget {
                 icon: const Icon(Icons.remove_circle_outline),
                 tooltip: context.l10n.common_action_remove,
                 onPressed: () {
-                  ref.read(configProvider.notifier).state = config.copyWith(
-                    extraFields: config.extraFields
-                        .where((f) => f != field)
-                        .toList(),
+                  onChanged(
+                    ref,
+                    config.copyWith(
+                      extraFields: config.extraFields
+                          .where((f) => f != field)
+                          .toList(),
+                    ),
                   );
                 },
               ),
@@ -1035,8 +1099,11 @@ class _EntityCardConfigSection<F extends EntityField> extends ConsumerWidget {
                     icon: const Icon(Icons.add_circle_outline),
                     tooltip: context.l10n.common_action_add,
                     onPressed: () {
-                      ref.read(configProvider.notifier).state = config.copyWith(
-                        extraFields: [...config.extraFields, field],
+                      onChanged(
+                        ref,
+                        config.copyWith(
+                          extraFields: [...config.extraFields, field],
+                        ),
                       );
                     },
                   ),

@@ -155,6 +155,8 @@ add_library(${PLUGIN_NAME} SHARED
     ble_io_stream.c
     serial_scanner.c
     serial_io_stream.c
+    usbhid_enumerator.c
+    usbhid_io_stream.c
     dive_computer_api.g.cc
     ${WRAPPER_DIR}/libdc_wrapper.c
     ${WRAPPER_DIR}/libdc_download.c

@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dar
 import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_legend_config.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 
 /// Persistent dialog for chart toggle options.
 ///
@@ -338,6 +339,17 @@ class ChartOptionsDialog extends StatelessWidget {
           onTap: legendNotifier.toggleTts,
           currentSource: legendState.ttsSource,
           onSourceChanged: legendNotifier.setTtsSource,
+          segments: sourceSegments(context),
+        ),
+      if (config.hasGtrData)
+        buildToggleWithSource(
+          context,
+          label: context.l10n.diveLog_legend_label_gtr,
+          color: ProfileRightAxisMetric.gtr.color!,
+          isEnabled: legendState.showGtr,
+          onTap: legendNotifier.toggleGtr,
+          currentSource: legendState.gtrSource,
+          onSourceChanged: legendNotifier.setGtrSource,
           segments: sourceSegments(context),
         ),
       if (config.hasCnsData)

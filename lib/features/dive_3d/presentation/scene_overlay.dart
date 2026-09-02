@@ -4,6 +4,7 @@ enum SceneOverlay {
   ceiling,
   curtain,
   markers,
+  shadows,
   paths,
   contours,
   water,

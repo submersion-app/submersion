@@ -11,6 +11,7 @@ import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -20,10 +21,14 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
+import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
+import 'package:submersion/features/media/presentation/helpers/set_time_seed.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
@@ -32,6 +37,9 @@ import 'package:submersion/features/media/presentation/widgets/perdix_overlay/pe
 import 'package:submersion/features/media/presentation/widgets/write_metadata_dialog.dart';
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_sheet.dart';
+import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
+import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
+import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_reupload_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -88,6 +96,10 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
 
   bool _showOverlay = true;
 
+  /// Dives whose enrichment backfill has already been attempted this session,
+  /// so a swipe through several un-enriched items of one dive runs it once.
+  final Set<String> _enrichAttempted = {};
+
   /// Live video controllers hoisted from _VideoItem, keyed by media id, so
   /// the Perdix overlay (mounted at page level) can follow playback. Entries
   /// come and go as gallery pages initialize/dispose.
@@ -110,6 +122,80 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
     } else {
       setState(() => _videoControllers[mediaId] = controller);
     }
+  }
+
+  /// Resolves the live record for the item on screen when the caller passed a
+  /// lean one.
+  ///
+  /// Two things make the passed item untrustworthy for dive context. The
+  /// Media section's library query hydrates rows without the enrichment join
+  /// on purpose (grids never render photo-time depth), so its items always
+  /// carry `enrichment == null`. And [MediaViewerPage.mediaList] is an
+  /// immutable snapshot taken when the route was pushed, so a re-link since
+  /// then leaves it reporting the *old* dive link, or none at all.
+  ///
+  /// Reading the one item actually on screen straight from the database
+  /// settles both: the library keeps its lean grid, and the viewer keeps
+  /// showing the truth. [mediaByIdProvider] self-invalidates on media and
+  /// enrichment changes, so a re-link or a backfill that happens while the
+  /// viewer is open lands too.
+  ///
+  /// Deliberately unconditional. Skipping the read for a snapshot that
+  /// already carries an enrichment would save one keyed lookup on the
+  /// dive-detail path, but a snapshot holding an enrichment is no more
+  /// current than one holding none: both were captured when the route was
+  /// pushed. Trusting it is what produced this class of bug twice already,
+  /// so the rule is that the on-screen item always comes from the database.
+  /// The passed item stands in only while the read is in flight.
+  MediaItem _hydrate(MediaItem item) =>
+      ref.watch(mediaByIdProvider(item.id)).value ?? item;
+
+  /// Opens the Set-time dialog for [item] and applies the diver's choice
+  /// (issue #1090). The viewer re-reads the row on the media tick the write
+  /// raises, so the chips, the mini profile and the face all move at once.
+  Future<void> _setTimeInDive(
+    MediaItem item,
+    List<DiveProfilePoint> profile,
+    AppSettings settings,
+  ) async {
+    final choice = await showSetMediaTimeDialog(
+      context,
+      profile: profile,
+      initialElapsedSeconds: setTimeSeedFor(
+        item,
+        profileLengthSeconds: MediaDiveWindow.profileLengthSeconds(profile),
+      ),
+      isPinned: item.manualElapsedSeconds != null,
+      settings: settings,
+    );
+    if (choice == null || !mounted) return;
+    await ref.read(mediaTimePinnerProvider).apply(item, choice);
+  }
+
+  /// Computes and saves the missing [MediaEnrichment] rows for [diveId], the
+  /// same idempotent backfill dive detail runs on open.
+  ///
+  /// Media linked from a local file gets a row but no enrichment, and until
+  /// now only dive detail ever closed that gap: a photo could show its depth
+  /// and profile marker there and nothing at all in the Media section.
+  void _backfillEnrichment(String diveId) {
+    if (!_enrichAttempted.add(diveId)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // The callback can fire after this state is disposed; touching `ref`
+      // then throws, so bail before using it.
+      if (!mounted) return;
+      try {
+        // Nothing to invalidate by hand: saving an enrichment ticks
+        // watchMediaChanges, and mediaByIdProvider self-invalidates on it, so
+        // the overlays pick the row up on the next frame. An invalidate here
+        // would also have to guess which ids were affected, and guessing from
+        // widget.mediaList is exactly what failed -- the snapshot still says
+        // diveId == null for the media that was just linked.
+        await ref.read(diveMediaEnricherProvider).enrichMissingForDive(diveId);
+      } catch (_) {
+        // Best-effort: a failure just leaves the overlays absent this session.
+      }
+    });
   }
 
   @override
@@ -202,9 +288,14 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
     final currentIndex = mediaList.isEmpty
         ? 0
         : _currentIndex.clamp(0, mediaList.length - 1);
-    final currentDiveId = mediaList.isEmpty
+    // Resolve the live record BEFORE reading any dive context off it. Taking
+    // the dive link from the snapshot instead is what left a freshly
+    // re-linked photo looking unlinked: no Go-to-dive, no depth chips, no
+    // mini profile, no dive computer.
+    final hydratedItem = mediaList.isEmpty
         ? null
-        : mediaList[currentIndex].diveId;
+        : _hydrate(mediaList[currentIndex]);
+    final currentDiveId = hydratedItem?.diveId;
     final diveAsync = currentDiveId == null
         ? const AsyncValue<Dive?>.data(null)
         : ref.watch(diveProvider(currentDiveId));
@@ -223,8 +314,15 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
             );
           }
 
-          final currentItem = mediaList[currentIndex];
+          // Non-null once mediaList is known non-empty. Every consumer below
+          // reads the hydrated record: the mini profile, the Perdix gate, the
+          // toolbar's Go-to-dive and hasEnrichment flags, the bottom
+          // depth/temp/elapsed chips and the info sheet.
+          final currentItem = hydratedItem!;
           final enrichment = currentItem.enrichment;
+          if (enrichment == null && currentDiveId != null) {
+            _backfillEnrichment(currentDiveId);
+          }
 
           // Get dive profile for the mini chart overlay
           final diveProfile = diveAsync.whenOrNull(
@@ -232,21 +330,38 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
           );
 
           final dive = diveAsync.value;
+          final profileLength = MediaDiveWindow.profileLengthSeconds(
+            diveProfile ?? const [],
+          );
+          // Whether this item is synced to a moment in the profile, decided
+          // from the enrichment alone (inside the dive-window tolerance, or
+          // pinned by the diver). Media that is not synced can never show
+          // the Perdix face, whatever the analysis would say.
+          final positioned =
+              enrichment != null &&
+              enrichment.isWithinDiveWindow(profileLength);
+          final perdixPrecondition = positioned;
+
           // Same source-aware profile/analysis pairing as the fullscreen
           // profile page: analysis curves are read by index, so the profile
           // passed to the resolver must be the one the analysis was computed
-          // over (multi-computer dives). Skipped entirely for items with no
-          // dive link — there is no profile to resolve against.
-          final PerdixFaceResolver perdixResolver;
-          if (currentDiveId == null) {
-            perdixResolver = PerdixFaceResolver(
-              profile: const [],
-              analysis: null,
-              tanks: const [],
-              gasSwitches: const [],
-              tankPressures: null,
-            );
-          } else {
+          // over (multi-computer dives).
+          //
+          // Built ONLY when the face can actually render: a dive-linked,
+          // profile-synced item with the overlay turned on. The watches
+          // below start the per-source profile analysis, and through it the
+          // full Buhlmann pipeline with its recursive residual-CNS/tissue
+          // lookback across the surrounding dives. Watching that
+          // unconditionally ran the whole cascade on the UI isolate for
+          // every dive-linked item the viewer showed, with the result
+          // discarded whenever the overlay was off -- the first ingredient
+          // of the app-wide freeze after viewing media (2026-08 hang
+          // reports). Toggling the overlay on simply rebuilds and starts the
+          // watches then.
+          PerdixFaceResolver? perdixResolver;
+          if (currentDiveId != null &&
+              perdixPrecondition &&
+              settings.perdixOverlayEnabled) {
             final activeSourceId = ref.watch(
               activeDiveSourceProvider(currentDiveId),
             );
@@ -296,10 +411,18 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
               tankPressures: tankPressures,
             );
           }
-          final perdixAvailable =
-              enrichment?.elapsedSeconds != null &&
-              enrichment!.matchConfidence != MatchConfidence.noProfile &&
-              perdixResolver.isAvailable;
+          // Toolbar-toggle visibility, decided the same cheap way in BOTH
+          // toggle states: a synced item and a non-empty merged profile.
+          // Deliberately NOT the resolver's answer. On a multi-computer dive
+          // whose ACTIVE source is metadata-only, the resolver scopes to an
+          // empty bucket and reports unavailable; a toggle that followed it
+          // would vanish the moment the user turned it on, stranding the
+          // setting with no control on this page to turn it back off. The
+          // cheap test's cost is an inert toggle in that case, never a
+          // vanished one. The resolver's own availability still gates the
+          // face mount below.
+          final perdixToggleAvailable =
+              perdixPrecondition && (diveProfile?.isNotEmpty ?? false);
 
           final viewer = GestureDetector(
             // Swipe down to close (common pattern for fullscreen viewers)
@@ -354,8 +477,11 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
                     currentIndex: currentIndex,
                     totalCount: mediaList.length,
                     onClose: () => Navigator.of(context).pop(),
-                    onShare: () => _shareCurrentPhoto(currentItem),
+                    onShare: (anchor) =>
+                        _shareCurrentPhoto(currentItem, anchor),
                     onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
+                    onTagSpecies: () =>
+                        showMediaSpeciesSheet(context, currentItem),
                     // The viewer is deliberately NOT popped first: leaving it
                     // on the stack is what lets Back return the user to the
                     // photo they launched from, with its page index, zoom and
@@ -364,7 +490,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
                         ? () => context.pushOrReturnTo('/dives/$currentDiveId')
                         : null,
                     hasEnrichment: enrichment?.depthMeters != null,
-                    showPerdixToggle: perdixAvailable,
+                    showPerdixToggle: perdixToggleAvailable,
                     perdixEnabled: settings.perdixOverlayEnabled,
                     onTogglePerdix: () => ref
                         .read(settingsProvider.notifier)
@@ -393,10 +519,10 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
                   // Mini dive profile overlay (lower right)
                   if (diveProfile != null &&
                       diveProfile.isNotEmpty &&
-                      enrichment?.elapsedSeconds != null)
+                      positioned)
                     PositionedMiniProfileOverlay(
                       profile: diveProfile,
-                      photoElapsedSeconds: enrichment!.elapsedSeconds!,
+                      photoElapsedSeconds: enrichment.elapsedSeconds!,
                       photoDepthMeters: enrichment.depthMeters,
                       settings: settings,
                       visible: _showOverlay,
@@ -406,6 +532,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
                   _BottomMetadataOverlay(
                     item: currentItem,
                     settings: settings,
+                    profileLengthSeconds: profileLength,
+                    // Pinning needs a profile to pin against; a dive with
+                    // none has no moments to choose from.
+                    onSetTime: diveProfile == null || diveProfile.isEmpty
+                        ? null
+                        : () => _setTimeInDive(
+                            currentItem,
+                            diveProfile,
+                            settings,
+                          ),
                     siteName: diveAsync.whenOrNull(
                       data: (dive) => dive?.site?.name,
                     ),
@@ -429,7 +565,9 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
                 // The face absorbs pointer events over its own bounds (drags
                 // move it, taps do nothing); chrome-toggle and video
                 // play/pause taps work anywhere outside it.
-                if (perdixAvailable && settings.perdixOverlayEnabled)
+                if (settings.perdixOverlayEnabled &&
+                    perdixResolver != null &&
+                    perdixResolver.isAvailable)
                   DraggablePerdixOverlay(
                     // Re-key when the persisted seed first arrives so a late
                     // settings load re-seeds the position (same trick as the
@@ -439,7 +577,9 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
                       '${settings.perdixOverlayX}-${settings.perdixOverlayY}',
                     ),
                     resolver: perdixResolver,
-                    baseElapsedSeconds: enrichment.elapsedSeconds!,
+                    // Non-null here: the resolver is only ever built for
+                    // items passing perdixPrecondition.
+                    baseElapsedSeconds: enrichment!.elapsedSeconds!,
                     settings: settings,
                     topReserve:
                         MediaQuery.paddingOf(context).top + _topChromeHeight,
@@ -504,9 +644,9 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
     return LightroomApiClient.assetWebUrl(catalogId, item.remoteAssetId!);
   }
 
-  Future<void> _shareCurrentPhoto(MediaItem item) async {
+  Future<void> _shareCurrentPhoto(MediaItem item, Rect? anchor) async {
     // Shared resolve-and-share flow (also used by the library selection bar).
-    await shareMediaItems(context, ref, [item]);
+    await shareMediaItems(context, ref, [item], anchor: anchor);
   }
 
   void _showError(String message) {
@@ -624,7 +764,13 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
     } on MetadataWriteException catch (e) {
       debugPrint('[MediaViewerPage] MetadataWriteException: ${e.message}');
       dismissLoadingDialog();
-      _showError(e.message);
+      // The service's messages are English-only; substitute a translation for
+      // the codes we have one for and fall back to its text otherwise.
+      _showError(
+        e.code == metadataWriteLivePhotoUnsupportedCode
+            ? l10n.media_writeMetadata_livePhotoUnsupported
+            : e.message,
+      );
     } catch (e) {
       debugPrint('[MediaViewerPage] Exception: $e');
       dismissLoadingDialog();
@@ -1185,8 +1331,9 @@ class _TopOverlay extends StatelessWidget {
   final int currentIndex;
   final int totalCount;
   final VoidCallback onClose;
-  final VoidCallback onShare;
+  final void Function(Rect? anchor) onShare;
   final VoidCallback onWriteMetadata;
+  final VoidCallback onTagSpecies;
   final bool hasEnrichment;
 
   /// Whether the Perdix overlay toggle is shown (media synced to a profile).
@@ -1210,6 +1357,7 @@ class _TopOverlay extends StatelessWidget {
     required this.onClose,
     required this.onShare,
     required this.onWriteMetadata,
+    required this.onTagSpecies,
     required this.hasEnrichment,
     required this.showPerdixToggle,
     required this.perdixEnabled,
@@ -1293,14 +1441,25 @@ class _TopOverlay extends StatelessWidget {
                     onPressed: onOpenInLightroom,
                   ),
                 IconButton(
+                  key: const ValueKey('viewer_species'),
+                  icon: const Icon(Icons.sell_outlined, color: Colors.white),
+                  tooltip: context.l10n.media_species_actionTooltip,
+                  onPressed: onTagSpecies,
+                ),
+                IconButton(
                   icon: const Icon(Icons.info_outline, color: Colors.white),
                   tooltip: context.l10n.media_info_title,
                   onPressed: () => showMediaInfoSheet(context, item),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.share, color: Colors.white),
-                  tooltip: context.l10n.media_photoViewer_shareTooltip,
-                  onPressed: onShare,
+                // Builder so the iPad share popover anchors to this
+                // button: findRenderObject from a Builder's context descends
+                // to the IconButton rather than yielding the whole overlay.
+                Builder(
+                  builder: (buttonContext) => IconButton(
+                    icon: const Icon(Icons.share, color: Colors.white),
+                    tooltip: context.l10n.media_photoViewer_shareTooltip,
+                    onPressed: () => onShare(shareAnchorFrom(buttonContext)),
+                  ),
                 ),
                 MediaReuploadButton(item: item, color: Colors.white),
               ],
@@ -1318,15 +1477,31 @@ class _BottomMetadataOverlay extends StatelessWidget {
   final AppSettings settings;
   final String? siteName;
 
+  /// Length of the dive's profile, for the dive-window tolerance.
+  final int profileLengthSeconds;
+
+  /// Opens the Set-time dialog (issue #1090); null when there is no profile
+  /// to pin against, which also hides the affordance.
+  final VoidCallback? onSetTime;
+
   const _BottomMetadataOverlay({
     required this.item,
     required this.settings,
+    required this.profileLengthSeconds,
+    this.onSetTime,
     this.siteName,
   });
 
   @override
   Widget build(BuildContext context) {
-    final enrichment = item.enrichment;
+    final l10n = context.l10n;
+    // Depth, temperature and the elapsed chip describe a moment in the
+    // dive, so they only render for a position inside the dive window (or
+    // pinned by the diver). Outside it the raw offset used to print as
+    // `+1879:28`; now the chip says the time is unknown and offers the fix.
+    final positioned =
+        item.enrichment?.isWithinDiveWindow(profileLengthSeconds) ?? false;
+    final enrichment = positioned ? item.enrichment : null;
     final formatter = UnitFormatter(settings);
     final timeFormat = DateFormat.jm();
     final dateFormat = DateFormat.yMMMd();
@@ -1377,6 +1552,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                 ],
+                MediaSpeciesChipsRow(mediaId: item.id),
                 // Metadata row
                 Row(
                   children: [
@@ -1404,13 +1580,25 @@ class _BottomMetadataOverlay extends StatelessWidget {
                       const SizedBox(width: 16),
                     ],
 
-                    // Elapsed time
-                    if (enrichment?.elapsedSeconds != null) ...[
+                    // Elapsed time: the diver's pin, the automatic
+                    // position, or an explicit unknown for a linked item
+                    // whose capture time fell outside the dive.
+                    if (enrichment?.elapsedSeconds != null)
                       _MetadataChip(
-                        icon: Icons.timer_outlined,
-                        value: _formatElapsedTime(enrichment!.elapsedSeconds!),
+                        icon: enrichment!.isManual
+                            ? Icons.push_pin_outlined
+                            : Icons.timer_outlined,
+                        value: _formatElapsedTime(enrichment.elapsedSeconds!),
+                        onTap: onSetTime,
+                        tooltip: l10n.media_timeInDive_setAction,
+                      )
+                    else if (item.diveId != null && onSetTime != null)
+                      _MetadataChip(
+                        icon: Icons.timer_off_outlined,
+                        value: l10n.media_timeInDive_unknown,
+                        onTap: onSetTime,
+                        tooltip: l10n.media_timeInDive_setAction,
                       ),
-                    ],
                   ],
                 ),
 
@@ -1427,11 +1615,14 @@ class _BottomMetadataOverlay extends StatelessWidget {
                       ),
                     ),
 
-                    // Confidence indicator
+                    // Confidence indicator. A manual position is the
+                    // diver's own statement, not an estimate, so it gets
+                    // the pin icon on the chip instead of a warning here.
                     if (enrichment != null &&
                         enrichment.matchConfidence != MatchConfidence.exact &&
                         enrichment.matchConfidence !=
-                            MatchConfidence.interpolated) ...[
+                            MatchConfidence.interpolated &&
+                        !enrichment.isManual) ...[
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -1462,10 +1653,11 @@ class _BottomMetadataOverlay extends StatelessWidget {
     );
   }
 
+  /// `+3:00` into the dive, `-1:30` for a surface shot just before it; the
+  /// formatter already carries the minus, so the plus is only for the rest.
   String _formatElapsedTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '+$minutes:${secs.toString().padLeft(2, '0')}';
+    final formatted = formatElapsedMmSs(seconds);
+    return seconds < 0 ? formatted : '+$formatted';
   }
 }
 
@@ -1474,11 +1666,20 @@ class _MetadataChip extends StatelessWidget {
   final IconData icon;
   final String value;
 
-  const _MetadataChip({required this.icon, required this.value});
+  /// Makes the chip an action (the elapsed chip opens the Set-time dialog).
+  final VoidCallback? onTap;
+  final String? tooltip;
+
+  const _MetadataChip({
+    required this.icon,
+    required this.value,
+    this.onTap,
+    this.tooltip,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, color: Colors.white, size: 18),
@@ -1493,5 +1694,17 @@ class _MetadataChip extends StatelessWidget {
         ),
       ],
     );
+    if (onTap == null) return row;
+    final tappable = InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: row,
+      ),
+    );
+    return tooltip == null
+        ? tappable
+        : Tooltip(message: tooltip!, child: tappable);
   }
 }

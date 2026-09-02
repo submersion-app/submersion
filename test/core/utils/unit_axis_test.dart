@@ -16,9 +16,9 @@ UnitFormatter _imperial() => const UnitFormatter(
 );
 
 void main() {
-  group('UnitAxis.stressedSac', () {
+  group('UnitAxis.stressedRmv', () {
     test('metric exposes the canonical 15-40 L/min range', () {
-      final axis = UnitAxis.stressedSac(_metric());
+      final axis = UnitAxis.stressedRmv(_metric());
       expect(axis.min, 15);
       expect(axis.max, 40);
       expect(axis.decimals, 0);
@@ -26,7 +26,7 @@ void main() {
     });
 
     test('imperial snaps to a selectable cuft/min range', () {
-      final axis = UnitAxis.stressedSac(_imperial());
+      final axis = UnitAxis.stressedRmv(_imperial());
       // 15 L/min = 0.53 cuft/min, 40 L/min = 1.41 cuft/min.
       // The old slider offered 15-35 CUFT/min, which is 425-991 L/min.
       expect(axis.min, closeTo(0.55, 1e-9));
@@ -37,20 +37,49 @@ void main() {
     });
 
     test('imperial max is nowhere near the old off-scale minimum', () {
-      final axis = UnitAxis.stressedSac(_imperial());
+      final axis = UnitAxis.stressedRmv(_imperial());
       expect(axis.max, lessThan(15.0));
     });
 
     test('roundtrips canonical -> display -> canonical', () {
-      final axis = UnitAxis.stressedSac(_imperial());
+      final axis = UnitAxis.stressedRmv(_imperial());
       final display = axis.toDisplay(28.3);
       expect(axis.toCanonical(display), closeTo(28.3, 1e-6));
     });
 
     test('formats imperial with two decimals, not zero', () {
-      final axis = UnitAxis.stressedSac(_imperial());
+      final axis = UnitAxis.stressedRmv(_imperial());
       expect(axis.format(0.75), '0.75');
-      expect(UnitAxis.stressedSac(_metric()).format(20), '20');
+      expect(UnitAxis.stressedRmv(_metric()).format(20), '20');
+    });
+  });
+
+  group('UnitAxis.normalRmv', () {
+    test('metric exposes the canonical 8-30 L/min range', () {
+      final axis = UnitAxis.normalRmv(_metric());
+      expect(axis.min, 8);
+      expect(axis.max, 30);
+      expect(axis.step, 1);
+      expect(axis.decimals, 0);
+      expect(axis.symbol, 'L/min');
+    });
+
+    test('imperial snaps inward to a selectable cuft/min range', () {
+      final axis = UnitAxis.normalRmv(_imperial());
+      // 8 L/min = 0.2825 cuft/min, ceiled to 0.30; 30 L/min = 1.0594,
+      // floored to 1.05. Snapping inward keeps both bounds inside the
+      // canonical range.
+      expect(axis.min, closeTo(0.30, 1e-9));
+      expect(axis.max, closeTo(1.05, 1e-9));
+      expect(axis.step, closeTo(0.05, 1e-9));
+      expect(axis.decimals, 2);
+      expect(axis.symbol, 'cuft/min');
+    });
+
+    test('roundtrips canonical -> display -> canonical', () {
+      final axis = UnitAxis.normalRmv(_imperial());
+      final display = axis.toDisplay(17.0);
+      expect(axis.toCanonical(display), closeTo(17.0, 1e-6));
     });
   });
 

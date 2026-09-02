@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 
 /// Emergency contact information
@@ -67,6 +69,9 @@ class Diver extends Equatable {
   final String? email;
   final String? phone;
   final String? photoPath;
+
+  /// Profile photo: a 512x512 square JPEG. Supersedes [photoPath].
+  final Uint8List? photo;
   final EmergencyContact emergencyContact;
   final EmergencyContact emergencyContact2;
   final String medicalNotes;
@@ -89,6 +94,7 @@ class Diver extends Equatable {
     this.email,
     this.phone,
     this.photoPath,
+    this.photo,
     this.emergencyContact = const EmergencyContact(),
     this.emergencyContact2 = const EmergencyContact(),
     this.medicalNotes = '',
@@ -173,6 +179,7 @@ class Diver extends Equatable {
     Object? email = _unset,
     Object? phone = _unset,
     Object? photoPath = _unset,
+    Object? photo = _unset,
     EmergencyContact? emergencyContact,
     EmergencyContact? emergencyContact2,
     String? medicalNotes,
@@ -195,6 +202,7 @@ class Diver extends Equatable {
       email: _resolve<String?>(email, this.email, 'email'),
       phone: _resolve<String?>(phone, this.phone, 'phone'),
       photoPath: _resolve<String?>(photoPath, this.photoPath, 'photoPath'),
+      photo: _resolve<Uint8List?>(photo, this.photo, 'photo'),
       emergencyContact: emergencyContact ?? this.emergencyContact,
       emergencyContact2: emergencyContact2 ?? this.emergencyContact2,
       medicalNotes: medicalNotes ?? this.medicalNotes,
@@ -240,6 +248,7 @@ class Diver extends Equatable {
     email,
     phone,
     photoPath,
+    photo,
     emergencyContact,
     emergencyContact2,
     medicalNotes,

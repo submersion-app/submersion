@@ -2,11 +2,11 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show compute;
-import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:submersion/features/media/data/services/capture_time_reader.dart';
+import 'package:submersion/features/media/data/services/image_dimensions_reader.dart';
+import 'package:submersion/features/media/data/services/local_media_metadata.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 
@@ -56,11 +56,12 @@ class PhotoPickerServiceDesktop implements PhotoPickerService {
       return [];
     }
 
-    // Reading capture time and dimensions means reading each file's bytes,
-    // which would jank the UI thread for a pick of large photos (the old
-    // stat()-only implementation was cheap enough to inline). Do the batch on
-    // a background isolate, then register the paths here -- the isolate only
-    // ever mutates its own copy of [_filePathCache].
+    // Reading the capture time still means reading each file's bytes -- a
+    // JPEG's EXIF comes out of a full-file parse -- which would jank the UI
+    // thread for a pick of large photos (the old stat()-only implementation
+    // was cheap enough to inline). Do the batch on a background isolate, then
+    // register the paths here -- the isolate only ever mutates its own copy
+    // of [_filePathCache].
     final assets = await compute(
       _extractAssets,
       files.map((f) => f.path).toList(),
@@ -77,15 +78,17 @@ class PhotoPickerServiceDesktop implements PhotoPickerService {
   ///
   /// Returns null when [ioFile] does not exist.
   ///
-  /// The capture time comes from the file's own container metadata (JPEG /
-  /// HEIC EXIF `DateTimeOriginal`, or the MP4/MOV `mvhd`) via
-  /// [readLocalCaptureTime], falling back to the mtime only when the file
-  /// carries no capture time at all. Reporting the mtime unconditionally --
+  /// The capture time and the position both come from the file's own
+  /// container metadata, read in one pass by [readLocalMediaMetadata]: EXIF
+  /// `DateTimeOriginal` and the GPS IFD for stills, the `mvhd` creation time
+  /// and the QuickTime location atom (or GoPro telemetry) for video. The
+  /// capture time falls back to the mtime only when the file carries none at
+  /// all. Reporting the mtime unconditionally --
   /// as this service used to -- dates a photo to when it was copied off the
   /// camera card rather than when it was shot, which pushes it outside the
   /// dive window and leaves it unmatched.
   ///
-  /// [readLocalCaptureTime] returns wall-clock-UTC, but [AssetInfo] is
+  /// That capture time is wall-clock-UTC, but [AssetInfo] is
   /// contractually LOCAL (photo_manager's convention on mobile, which
   /// consumers such as `TripMediaScanner.toWallClockUtc` reinterpret). The
   /// components are therefore carried across verbatim into a local DateTime;
@@ -158,7 +161,10 @@ AssetInfo? _assetInfoForPath(String path) {
   final modified = ioFile.lastModifiedSync();
   final mime = _mimeFromExtension(p.extension(path).toLowerCase());
 
-  final capturedUtc = readLocalCaptureTime(ioFile, mime);
+  // One read for both answers: a still's EXIF block is parsed once and
+  // serves the capture time and the position together.
+  final meta = readLocalMediaMetadata(ioFile, mime);
+  final capturedUtc = meta.capturedUtc;
   final createDateTime = capturedUtc == null
       ? modified
       : DateTime(
@@ -176,7 +182,7 @@ AssetInfo? _assetInfoForPath(String path) {
           capturedUtc.microsecond,
         );
 
-  final size = _dimensionsOf(ioFile, mime);
+  final size = readImageDimensions(ioFile, mime);
 
   return AssetInfo(
     // Keyed on mtime + path so re-picking the same file in one session reuses
@@ -189,36 +195,11 @@ AssetInfo? _assetInfoForPath(String path) {
     width: size?.width ?? 0,
     height: size?.height ?? 0,
     durationSeconds: null,
-    latitude: null,
-    longitude: null,
+    latitude: meta.fix?.latitude,
+    longitude: meta.fix?.longitude,
     filename: p.basename(path),
     filePath: path,
   );
-}
-
-/// Reads pixel dimensions from an image's header.
-///
-/// Only the header is parsed -- `startDecode` stops before any pixel decode --
-/// but the decoder API takes bytes, so the file is read in full first. That
-/// read is why the batch runs on a [compute] isolate; on the main thread a
-/// pick of large images would visibly jank the UI.
-///
-/// Returns null for videos and for anything the decoder cannot read.
-({int width, int height})? _dimensionsOf(File file, String mime) {
-  if (!mime.startsWith('image/')) return null;
-  try {
-    final bytes = file.readAsBytesSync();
-    // Extension first, then content sniffing for files whose name lies.
-    final decoder =
-        img.findDecoderForNamedImage(file.path) ??
-        img.findDecoderForData(bytes);
-    final info = decoder?.startDecode(bytes);
-    if (info == null) return null;
-    return (width: info.width, height: info.height);
-  } on Object {
-    // Unsupported or truncated container: dimensions are optional here.
-    return null;
-  }
 }
 
 String _mimeFromExtension(String ext) => switch (ext) {

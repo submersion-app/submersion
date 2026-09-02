@@ -1,4 +1,5 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 
 /// Converts a libdivecomputer [pigeon.ParsedDive] into the profile-sample
 /// maps the import pipeline consumes.
@@ -76,7 +77,7 @@ class ParsedDiveProfileMapper {
         sampleMap['cns'] = s.cns;
       }
       if (s.rbt != null) {
-        sampleMap['rbt'] = s.rbt;
+        sampleMap['rbt'] = libdcRbtToSeconds(s.rbt);
       }
       if (s.tts != null) {
         sampleMap['tts'] = s.tts;

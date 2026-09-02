@@ -10,6 +10,7 @@ enum SceneMetric {
   cns,
   heartRate,
   tankPressure,
+  tts,
 }
 
 /// Maps per-sample metric values to per-sample rgb triplets (0..1).
@@ -27,6 +28,10 @@ class MetricPalette {
     Color(0xFFEF4444),
   ];
 
+  // Neutral-to-amber ramp for time-to-surface: no red, since red is the
+  // ceiling violation color in the same scene.
+  static const List<Color> _ttsRamp = [Color(0xFF7C8494), Color(0xFFF5A623)];
+
   static Float32List colorsFor(SceneMetric metric, List<double?> values) {
     final out = Float32List(values.length * 3);
     final normalize = _normalizerFor(metric, values);
@@ -36,6 +41,8 @@ class MetricPalette {
           ? _nullColor
           : metric == SceneMetric.ascentRate
           ? _ascentBand(v)
+          : metric == SceneMetric.tts
+          ? Color.lerp(_ttsRamp[0], _ttsRamp[1], normalize(v))!
           : _lerpRamp(normalize(v));
       final p = i * 3;
       out[p] = color.r;

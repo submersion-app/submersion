@@ -110,6 +110,20 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                               static_cast<int64_t>(s.o2_sensor_mv[c]));
             }
 
+            // Every tank's pressure at this sample (issue #1223): a sample can
+            // carry one reading per air-integrated transmitter, and `pressure`
+            // above holds only the last of them. NaN -> null, trailing nulls
+            // trimmed, all-NaN -> no list at all.
+            std::optional<flutter::EncodableList> tank_pressures;
+            for (int t = LIBDC_MAX_TANKS - 1; t >= 0; t--) {
+                if (!tank_pressures && std::isnan(s.tank_pressure[t])) continue;
+                if (!tank_pressures) tank_pressures.emplace(t + 1);
+                (*tank_pressures)[t] =
+                    std::isnan(s.tank_pressure[t])
+                        ? flutter::EncodableValue()
+                        : flutter::EncodableValue(s.tank_pressure[t]);
+            }
+
             // Nullable ints: UINT32_MAX -> nullptr.
             std::optional<int64_t> tank_index =
                 (s.tank == UINT32_MAX)
@@ -156,6 +170,7 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                     temp_c ? &*temp_c : nullptr,
                     pressure ? &*pressure : nullptr,
                     tank_index ? &*tank_index : nullptr,
+                    tank_pressures ? &*tank_pressures : nullptr,
                     heart_rate ? &*heart_rate : nullptr,
                     heading ? &*heading : nullptr,
                     setpoint ? &*setpoint : nullptr,

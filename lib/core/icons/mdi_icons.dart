@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 /// This replaces the `material_design_icons_flutter` package, which defines its
 /// icons via `class _MdiIconData extends IconData`. Flutter 3.44 made
 /// [IconData] a `final` (sealed) class, so that package no longer compiles.
-/// Only six glyphs were ever used, so we vendor the font
+/// Only a handful of glyphs are ever used, so we vendor the font
 /// (`assets/fonts/materialdesignicons-webfont.ttf`, declared under the
 /// `Material Design Icons` family in `pubspec.yaml`) and reference the
 /// code points directly via plain [IconData] constants.
@@ -19,6 +19,24 @@ abstract final class MdiIcons {
     0xf0dc3,
     fontFamily: _family,
   );
+
+  // Dive glyphs that were sitting unused in the bundled font while the
+  // equipment list showed Material metaphors instead: waves for fins, an
+  // eyeball for a mask, scissors for a knife, a gym dumbbell for weights and a
+  // generic flag for an SMB (#1189). `knifeMilitary` rather than `knife`,
+  // which is a chef's knife.
+  static const IconData divingFlippers = IconData(0xf0dbf, fontFamily: _family);
+  static const IconData divingScubaMask = IconData(
+    0xf0dc1,
+    fontFamily: _family,
+  );
+  static const IconData divingScubaFlag = IconData(
+    0xf0dc2,
+    fontFamily: _family,
+  );
+  static const IconData knifeMilitary = IconData(0xf09fc, fontFamily: _family);
+  static const IconData weight = IconData(0xf05a1, fontFamily: _family);
+
   static const IconData fish = IconData(0xf023a, fontFamily: _family);
   static const IconData turtle = IconData(0xf0cd7, fontFamily: _family);
   static const IconData shark = IconData(0xf18ba, fontFamily: _family);

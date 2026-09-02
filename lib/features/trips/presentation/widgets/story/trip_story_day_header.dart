@@ -9,7 +9,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 import 'package:submersion/features/trips/presentation/helpers/weather_icon.dart';
-import 'package:submersion/features/trips/presentation/providers/surface_day_weather_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -18,8 +17,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// (surfaceContainer, one step above the page surface) so the sticky headers
 /// read as chapter anchors and day cards scroll underneath cleanly. The badge
 /// echoes the map's primary-colored day pins, tying header and pin together.
-/// Days with logged weather get a trailing badge: conditions icon plus air
-/// temperature in the diver's temperature unit.
+/// Days with logged or stored weather get a trailing badge: conditions icon
+/// plus air temperature in the diver's temperature unit. The header never
+/// fetches: it renders whatever weather it is handed.
 ///
 /// Every day of the trip gets one of these, including surface days (which
 /// carry no card body at all and are nothing but this header). Presenting a
@@ -36,13 +36,12 @@ class TripStoryDayHeader extends ConsumerWidget {
   static const double minHeight = 52;
 
   final TripStoryDay day;
-  final SurfaceDayWeatherRequest? surfaceWeatherRequest;
 
-  const TripStoryDayHeader({
-    super.key,
-    required this.day,
-    this.surfaceWeatherRequest,
-  });
+  /// Weather stored for this day, passed down by the story view from one
+  /// per-trip read. Null when nothing is stored yet.
+  final TripStoryDayWeather? storedWeather;
+
+  const TripStoryDayHeader({super.key, required this.day, this.storedWeather});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,11 +61,15 @@ class TripStoryDayHeader extends ConsumerWidget {
       ...day.siteNames,
     ].map((part) => part.trim()).where((part) => part.isNotEmpty).toList();
 
-    final request = day.isSurface ? surfaceWeatherRequest : null;
-    final fetchedWeather = request == null
-        ? null
-        : ref.watch(surfaceDayWeatherProvider(request)).asData?.value;
-    final weather = day.weather ?? fetchedWeather;
+    // Dive-logged weather wins: it is what the diver recorded, and a stored
+    // day summary is only ever a stand-in for days that logged none. It wins
+    // only when it can actually draw something, though: a dive whose weather
+    // lookup resolved nothing still carries Precipitation.none, and letting
+    // that mask a stored row would render the day blank.
+    final diveWeather = day.weather;
+    final weather = (diveWeather != null && diveWeather.isRenderable)
+        ? diveWeather
+        : (storedWeather ?? diveWeather);
     final units = UnitFormatter(ref.watch(settingsProvider));
     final weatherBadge = _weatherBadge(context, theme, units, weather);
 

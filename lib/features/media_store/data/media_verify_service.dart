@@ -6,7 +6,16 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 
 /// Outcome of one Verify Library run (orphan-prevention spec 6.3).
 class VerifyLibraryReport {
+  /// Every stored object the sweep listed, across all three namespaces.
+  ///
+  /// A photo is stored as an original plus a thumbnail, and as a rendition
+  /// too when it was compressed, so this is two to three times the number
+  /// of photos. The per-namespace counts below are what make it explainable
+  /// to someone who knows how many photos they have.
   final int objectsChecked;
+  final int originalsChecked;
+  final int thumbsChecked;
+  final int renditionsChecked;
   final int orphansRemoved;
   final int bytesReclaimed;
   final int sessionsAborted;
@@ -14,6 +23,9 @@ class VerifyLibraryReport {
 
   const VerifyLibraryReport({
     required this.objectsChecked,
+    required this.originalsChecked,
+    required this.thumbsChecked,
+    required this.renditionsChecked,
     required this.orphansRemoved,
     required this.bytesReclaimed,
     required this.sessionsAborted,
@@ -87,8 +99,11 @@ class MediaVerifyService {
     final presentThumbs = <String>{};
     final presentRenditions = <String>{};
 
-    Future<void> sweepNamespace(String prefix, Set<String> present) async {
+    /// Returns how many objects the namespace listed.
+    Future<int> sweepNamespace(String prefix, Set<String> present) async {
+      var listed = 0;
       await for (final info in _store.list(prefix)) {
+        listed++;
         objectsChecked++;
         onProgress?.call(objectsChecked);
         final hash = _hashFromKey(info.key, prefix);
@@ -107,11 +122,18 @@ class MediaVerifyService {
           _log.warning('Verify sweep delete failed for ${info.key}', error: e);
         }
       }
+      return listed;
     }
 
-    await sweepNamespace(_objectsPrefix, presentOriginals);
-    await sweepNamespace(_thumbsPrefix, presentThumbs);
-    await sweepNamespace(_renditionsPrefix, presentRenditions);
+    final originalsChecked = await sweepNamespace(
+      _objectsPrefix,
+      presentOriginals,
+    );
+    final thumbsChecked = await sweepNamespace(_thumbsPrefix, presentThumbs);
+    final renditionsChecked = await sweepNamespace(
+      _renditionsPrefix,
+      presentRenditions,
+    );
 
     // Reverse repair (spec 6.2): a stamp whose object is absent is stale -
     // clear it and queue a re-upload; the pipeline re-materializes local
@@ -154,6 +176,9 @@ class MediaVerifyService {
 
     return VerifyLibraryReport(
       objectsChecked: objectsChecked,
+      originalsChecked: originalsChecked,
+      thumbsChecked: thumbsChecked,
+      renditionsChecked: renditionsChecked,
       orphansRemoved: orphansRemoved,
       bytesReclaimed: bytesReclaimed,
       sessionsAborted: sessionsAborted,

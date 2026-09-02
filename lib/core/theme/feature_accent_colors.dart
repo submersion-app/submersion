@@ -19,6 +19,10 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'sites': Color(0xFF388E3C),
       'trips': Color(0xFF7B1FA2),
       'media': Color(0xFF6A1B9A),
+      // Lime is the one hue the other nav accents leave free: green is
+      // sites and teal is statistics, so a kelp tone keeps Species
+      // distinguishable from both at icon size.
+      'species': Color(0xFF827717),
       // Orange and amber are the two hues that go illegible first on a light
       // surface, so these are deepened past their Material 700 shades to keep
       // every light-mode accent at or above the 3:1 WCAG contrast ratio for
@@ -57,6 +61,7 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'sites': Color(0xFF81C784),
       'trips': Color(0xFFBA68C8),
       'media': Color(0xFFCE93D8),
+      'species': Color(0xFFDCE775),
       'equipment': Color(0xFFFFB74D),
       'buddies': Color(0xFFF06292),
       'dive-centers': Color(0xFFBCAAA4),

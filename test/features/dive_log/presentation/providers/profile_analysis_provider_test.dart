@@ -407,24 +407,9 @@ void main() {
       const tank = DiveTank(id: 'tank-1', gasMix: GasMix(o2: 21, he: 0));
       final tankPressures = {
         'tank-1': const [
-          TankPressurePoint(
-            id: 'p0',
-            tankId: 'tank-1',
-            timestamp: 0,
-            pressure: 200,
-          ),
-          TankPressurePoint(
-            id: 'p1',
-            tankId: 'tank-1',
-            timestamp: 60,
-            pressure: 190,
-          ),
-          TankPressurePoint(
-            id: 'p2',
-            tankId: 'tank-1',
-            timestamp: 120,
-            pressure: 180,
-          ),
+          TankPressurePoint(tankId: 'tank-1', timestamp: 0, pressure: 200),
+          TankPressurePoint(tankId: 'tank-1', timestamp: 60, pressure: 190),
+          TankPressurePoint(tankId: 'tank-1', timestamp: 120, pressure: 180),
         ],
       };
 
@@ -449,22 +434,12 @@ void main() {
       const tankB = DiveTank(id: 'b', volume: 20, gasMix: GasMix());
       final tankPressures = {
         'a': const [
-          TankPressurePoint(id: 'a0', tankId: 'a', timestamp: 0, pressure: 200),
-          TankPressurePoint(
-            id: 'a1',
-            tankId: 'a',
-            timestamp: 60,
-            pressure: 100,
-          ),
+          TankPressurePoint(tankId: 'a', timestamp: 0, pressure: 200),
+          TankPressurePoint(tankId: 'a', timestamp: 60, pressure: 100),
         ],
         'b': const [
-          TankPressurePoint(id: 'b0', tankId: 'b', timestamp: 0, pressure: 200),
-          TankPressurePoint(
-            id: 'b1',
-            tankId: 'b',
-            timestamp: 60,
-            pressure: 200,
-          ),
+          TankPressurePoint(tankId: 'b', timestamp: 0, pressure: 200),
+          TankPressurePoint(tankId: 'b', timestamp: 60, pressure: 200),
         ],
       };
 
@@ -486,22 +461,12 @@ void main() {
       const tankB = DiveTank(id: 'b', gasMix: GasMix());
       final tankPressures = {
         'a': const [
-          TankPressurePoint(id: 'a0', tankId: 'a', timestamp: 0, pressure: 200),
-          TankPressurePoint(
-            id: 'a1',
-            tankId: 'a',
-            timestamp: 60,
-            pressure: 100,
-          ),
+          TankPressurePoint(tankId: 'a', timestamp: 0, pressure: 200),
+          TankPressurePoint(tankId: 'a', timestamp: 60, pressure: 100),
         ],
         'b': const [
-          TankPressurePoint(id: 'b0', tankId: 'b', timestamp: 0, pressure: 200),
-          TankPressurePoint(
-            id: 'b1',
-            tankId: 'b',
-            timestamp: 60,
-            pressure: 200,
-          ),
+          TankPressurePoint(tankId: 'b', timestamp: 0, pressure: 200),
+          TankPressurePoint(tankId: 'b', timestamp: 60, pressure: 200),
         ],
       };
 
@@ -522,18 +487,8 @@ void main() {
       const tank = DiveTank(id: 'tank-1', gasMix: GasMix());
       final tankPressures = {
         'tank-1': const [
-          TankPressurePoint(
-            id: 'p0',
-            tankId: 'tank-1',
-            timestamp: 0,
-            pressure: 200,
-          ),
-          TankPressurePoint(
-            id: 'p1',
-            tankId: 'tank-1',
-            timestamp: 100,
-            pressure: 100,
-          ),
+          TankPressurePoint(tankId: 'tank-1', timestamp: 0, pressure: 200),
+          TankPressurePoint(tankId: 'tank-1', timestamp: 100, pressure: 100),
         ],
       };
       final result = combineMultiTankPressures(
@@ -551,18 +506,8 @@ void main() {
       const tank = DiveTank(id: 'tank-1', gasMix: GasMix());
       final tankPressures = {
         'tank-1': const [
-          TankPressurePoint(
-            id: 'p0',
-            tankId: 'tank-1',
-            timestamp: 10,
-            pressure: 200,
-          ),
-          TankPressurePoint(
-            id: 'p1',
-            tankId: 'tank-1',
-            timestamp: 20,
-            pressure: 180,
-          ),
+          TankPressurePoint(tankId: 'tank-1', timestamp: 10, pressure: 200),
+          TankPressurePoint(tankId: 'tank-1', timestamp: 20, pressure: 180),
         ],
       };
       final result = combineMultiTankPressures(
@@ -580,18 +525,8 @@ void main() {
       const tank = DiveTank(id: 'tank-1', gasMix: GasMix());
       final tankPressures = {
         'tank-1': const [
-          TankPressurePoint(
-            id: 'p0',
-            tankId: 'tank-1',
-            timestamp: 0,
-            pressure: 200,
-          ),
-          TankPressurePoint(
-            id: 'p1',
-            tankId: 'tank-1',
-            timestamp: 10,
-            pressure: 180,
-          ),
+          TankPressurePoint(tankId: 'tank-1', timestamp: 0, pressure: 200),
+          TankPressurePoint(tankId: 'tank-1', timestamp: 10, pressure: 180),
         ],
       };
       final result = combineMultiTankPressures(
@@ -624,24 +559,9 @@ void main() {
       const currentTank = DiveTank(id: 'tank-new', gasMix: GasMix());
       final tankPressures = {
         'tank-old': const [
-          TankPressurePoint(
-            id: 'p0',
-            tankId: 'tank-old',
-            timestamp: 0,
-            pressure: 200,
-          ),
-          TankPressurePoint(
-            id: 'p1',
-            tankId: 'tank-old',
-            timestamp: 60,
-            pressure: 190,
-          ),
-          TankPressurePoint(
-            id: 'p2',
-            tankId: 'tank-old',
-            timestamp: 120,
-            pressure: 180,
-          ),
+          TankPressurePoint(tankId: 'tank-old', timestamp: 0, pressure: 200),
+          TankPressurePoint(tankId: 'tank-old', timestamp: 60, pressure: 190),
+          TankPressurePoint(tankId: 'tank-old', timestamp: 120, pressure: 180),
         ],
       };
 

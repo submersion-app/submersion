@@ -6,6 +6,7 @@ import 'package:submersion/features/data_quality/presentation/providers/quality_
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -57,6 +58,7 @@ class ImportSummaryStep extends ConsumerWidget {
       unmatchedPhotoCount: result.unmatchedPhotoCount,
       importedDiveIds: result.importedDiveIds,
       fileOutcomes: result.fileOutcomes,
+      notices: result.notices,
       onDone: onDone,
       onViewDives: onViewDives,
     );
@@ -76,6 +78,7 @@ class _SuccessView extends StatelessWidget {
   final int unmatchedPhotoCount;
   final List<String> importedDiveIds;
   final List<ImportFileOutcome> fileOutcomes;
+  final List<ImportNotice> notices;
   final VoidCallback onDone;
   final VoidCallback onViewDives;
 
@@ -88,6 +91,7 @@ class _SuccessView extends StatelessWidget {
     this.unmatchedPhotoCount = 0,
     this.importedDiveIds = const [],
     this.fileOutcomes = const [],
+    this.notices = const [],
     required this.onDone,
     required this.onViewDives,
   });
@@ -224,6 +228,21 @@ class _SuccessView extends StatelessWidget {
                   );
                 },
               ),
+            if (notices.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Column(
+                key: const Key('import_summary_notices'),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.universalImport_summary_noticesTitle,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  for (final notice in notices) _NoticeCard(notice: notice),
+                ],
+              ),
+            ],
             if (fileOutcomes.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
@@ -309,6 +328,8 @@ class _SuccessView extends StatelessWidget {
         return Icons.inventory;
       case ImportEntityType.courses:
         return Icons.school;
+      case ImportEntityType.media:
+        return Icons.photo_library;
     }
   }
 
@@ -336,6 +357,8 @@ class _SuccessView extends StatelessWidget {
         return l10n.diveImport_uddf_equipmentSets;
       case ImportEntityType.courses:
         return l10n.diveImport_uddf_tabCourses;
+      case ImportEntityType.media:
+        return l10n.diveImport_uddf_media;
     }
   }
 }
@@ -385,6 +408,74 @@ class _ErrorView extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Per-file outcome row (bulk imports)
 // ---------------------------------------------------------------------------
+
+/// Explains data the source files did not contain.
+///
+/// Styled as information, not as a problem: the dives imported fine, and the
+/// gap is in the file rather than in the import. Uses the theme's surface
+/// container rather than an error colour for exactly that reason.
+class _NoticeCard extends StatelessWidget {
+  final ImportNotice notice;
+
+  const _NoticeCard({required this.notice});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+
+    final (title, body) = switch (notice.kind) {
+      ImportNoticeKind.noTankPressure => (
+        l10n.universalImport_summary_noticeNoTankPressureTitle,
+        l10n.universalImport_summary_noticeNoTankPressureBody,
+      ),
+    };
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      color: theme.colorScheme.surfaceContainerHighest,
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 20,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 4),
+                  Text(
+                    body,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.universalImport_summary_noticeAffectedDives(
+                      notice.affectedDives,
+                    ),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _FileOutcomeRow extends StatelessWidget {
   final ImportFileOutcome outcome;

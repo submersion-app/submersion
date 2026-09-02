@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_3d/application/site_seascape_providers.
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_seascape_geometry_service.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
@@ -128,10 +129,9 @@ void main() {
     expect(viewport.axisLabels, isNotNull);
     expect(viewport.chromeStyle, isNotNull);
     // Hover inspection: pick lattice + notifier wired, tissue chrome not.
-    expect(viewport.surfaceGrid, isNotNull);
-    expect(viewport.surfaceGrid!.isEmpty, isFalse);
+    expect(viewport.picker, isA<GridHoverPicker>());
     expect(viewport.hoverPick, isNotNull);
-    expect(viewport.axisChromeOnly, isTrue);
+    expect(viewport.chromeMode, SceneChromeMode.axesOnly);
   });
 
   testWidgets('contours default on, chip toggles them off', (tester) async {
@@ -180,6 +180,30 @@ void main() {
       find.byKey(const ValueKey('seascapeAppearanceButton')),
       findsOneWidget,
     );
+  });
+
+  // Issue #1188: on a phone-sized pane the legend and the viewport's zoom
+  // column both hugged the right edge, and the legend covered the +/-
+  // buttons outright.
+  testWidgets('the legend never overlaps the zoom controls', (tester) async {
+    for (final surface in const [Size(360, 640), Size(360, 380)]) {
+      await tester.binding.setSurfaceSize(surface);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(page(readyState()));
+      await tester.pump();
+      await tester.pump();
+      final legend = tester.getRect(
+        find.byKey(const ValueKey('seascapeDepthLegend')),
+      );
+      final zoom = tester.getRect(
+        find.byKey(const ValueKey('dive3dZoomControls')),
+      );
+      expect(
+        legend.overlaps(zoom),
+        isFalse,
+        reason: 'legend $legend overlaps zoom controls $zoom at $surface',
+      );
+    }
   });
 
   testWidgets('imagery reaches the viewport and shows attribution', (

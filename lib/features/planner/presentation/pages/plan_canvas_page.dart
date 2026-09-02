@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -33,6 +34,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_status_chi
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Whether [id] refers to a plan that already exists in the store. Drives the
 /// visibility of the destructive "Delete plan" action: a brand-new, never-saved
@@ -165,53 +167,61 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
             tooltip: context.l10n.divePlanner_action_savePlan,
             onPressed: planState.isDirty ? _savePlan : null,
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            tooltip: context.l10n.divePlanner_action_moreOptions,
-            onSelected: _onMenu,
-            itemBuilder: (context) => [
-              _menuItem(
-                'quickPlan',
-                Icons.auto_awesome,
-                context.l10n.divePlanner_action_quickPlan,
-              ),
-              _menuItem(
-                'saved',
-                Icons.folder_open,
-                context.l10n.plannerCanvas_saved_title,
-              ),
-              _menuItem(
-                'follow',
-                Icons.history,
-                context.l10n.plannerCanvas_follow_title,
-              ),
-              _menuItem(
-                'settings',
-                Icons.tune,
-                context.l10n.divePlanner_label_planSettings,
-              ),
-              _menuItem(
-                'convert',
-                Icons.scuba_diving,
-                context.l10n.divePlanner_action_convertToDive,
-              ),
-              _menuItem(
-                'slate',
-                Icons.picture_as_pdf,
-                context.l10n.plannerCanvas_slate_menu,
-              ),
-              _menuItem(
-                'share',
-                Icons.ios_share,
-                context.l10n.plannerCanvas_share_menu,
-              ),
-              _menuItem(
-                'reset',
-                Icons.refresh,
-                context.l10n.divePlanner_action_resetPlan,
-              ),
-              if (canDelete) _deleteMenuItem(context),
-            ],
+          // A Builder so the share anchor resolves to the overflow button
+          // rather than the whole app bar: it contributes no render object, so
+          // findRenderObject descends to the PopupMenuButton below it. The
+          // button is still mounted when the share sheet opens; the menu item
+          // the user actually tapped is not.
+          Builder(
+            builder: (menuContext) => PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              tooltip: context.l10n.divePlanner_action_moreOptions,
+              onSelected: (value) =>
+                  _onMenu(value, shareAnchorFrom(menuContext)),
+              itemBuilder: (context) => [
+                _menuItem(
+                  'quickPlan',
+                  Icons.auto_awesome,
+                  context.l10n.divePlanner_action_quickPlan,
+                ),
+                _menuItem(
+                  'saved',
+                  Icons.folder_open,
+                  context.l10n.plannerCanvas_saved_title,
+                ),
+                _menuItem(
+                  'follow',
+                  Icons.history,
+                  context.l10n.plannerCanvas_follow_title,
+                ),
+                _menuItem(
+                  'settings',
+                  Icons.tune,
+                  context.l10n.divePlanner_label_planSettings,
+                ),
+                _menuItem(
+                  'convert',
+                  Icons.scuba_diving,
+                  context.l10n.divePlanner_action_convertToDive,
+                ),
+                _menuItem(
+                  'slate',
+                  Icons.picture_as_pdf,
+                  context.l10n.plannerCanvas_slate_menu,
+                ),
+                _menuItem(
+                  'share',
+                  Icons.ios_share,
+                  context.l10n.plannerCanvas_share_menu,
+                ),
+                _menuItem(
+                  'reset',
+                  Icons.refresh,
+                  context.l10n.divePlanner_action_resetPlan,
+                ),
+                if (canDelete) _deleteMenuItem(context),
+              ],
+            ),
           ),
         ],
       ),
@@ -258,7 +268,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
   }
 
-  void _onMenu(String value) {
+  void _onMenu(String value, Rect? shareAnchor) {
     switch (value) {
       case 'quickPlan':
         showDialog<void>(
@@ -272,15 +282,23 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       case 'settings':
         _focusSetup('deco');
       case 'convert':
-        _convertToDive();
+        logFailure(_convertToDive(), _PlanCanvasPageState, 'convert to dive');
       case 'slate':
-        _exportSlate();
+        logFailure(
+          _exportSlate(shareAnchor),
+          _PlanCanvasPageState,
+          'export slate',
+        );
       case 'share':
-        _sharePlanFile();
+        logFailure(
+          _sharePlanFile(shareAnchor),
+          _PlanCanvasPageState,
+          'share plan file',
+        );
       case 'reset':
         _resetPlan();
       case 'delete':
-        _deletePlan();
+        logFailure(_deletePlan(), _PlanCanvasPageState, 'delete plan');
     }
   }
 
@@ -411,61 +429,69 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     final chartHeight = (constraints.maxHeight * 0.30)
         .clamp(160.0, 260.0)
         .toDouble();
-    return Column(
-      children: [
-        SizedBox(
-          height: chartHeight,
-          child: Stack(
-            children: [
-              const Positioned.fill(
-                child: Padding(
-                  padding: EdgeInsets.all(8),
-                  child: PlanProfileChart(),
+    // A single CustomScrollView so the chart and tab selector scroll away
+    // with the rest of the page instead of staying pinned and eating the
+    // viewport (#1428).
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: chartHeight,
+            child: Stack(
+              children: [
+                const Positioned.fill(
+                  child: Padding(
+                    padding: EdgeInsets.all(8),
+                    child: PlanProfileChart(),
+                  ),
                 ),
-              ),
-              PlanChartReadouts(
-                onIssuesTap: () =>
-                    ref.read(plannerPhoneTabProvider.notifier).state = 3,
-              ),
-              const Positioned(
-                left: 8,
-                right: 56,
-                bottom: 8,
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: ContingencyChips(overlay: true),
+                PlanChartReadouts(
+                  onIssuesTap: () =>
+                      ref.read(plannerPhoneTabProvider.notifier).state = 3,
                 ),
-              ),
-              Positioned(
-                right: 10,
-                bottom: 10,
-                child: IconButton.filledTonal(
-                  icon: const Icon(Icons.open_in_full, size: 18),
-                  // PUSH (not go): back returns to this canvas with its
-                  // state on the stack, instead of closing the app (#647).
-                  onPressed: () => context.push('/planning/dive-planner/chart'),
+                const Positioned(
+                  left: 8,
+                  right: 56,
+                  bottom: 8,
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: ContingencyChips(overlay: true),
+                  ),
                 ),
-              ),
-            ],
+                Positioned(
+                  right: 10,
+                  bottom: 10,
+                  child: IconButton.filledTonal(
+                    icon: const Icon(Icons.open_in_full, size: 18),
+                    // PUSH (not go): back returns to this canvas with its
+                    // state on the stack, instead of closing the app (#647).
+                    onPressed: () =>
+                        context.push('/planning/dive-planner/chart'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: SegmentedButton<int>(
-            segments: [
-              for (var i = 0; i < tabs.length; i++)
-                ButtonSegment(value: i, label: Text(tabs[i])),
-            ],
-            selected: {tab},
-            showSelectedIcon: false,
-            onSelectionChanged: (selection) =>
-                ref.read(plannerPhoneTabProvider.notifier).state =
-                    selection.first,
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: SegmentedButton<int>(
+              segments: [
+                for (var i = 0; i < tabs.length; i++)
+                  ButtonSegment(value: i, label: Text(tabs[i])),
+              ],
+              selected: {tab},
+              showSelectedIcon: false,
+              onSelectionChanged: (selection) =>
+                  ref.read(plannerPhoneTabProvider.notifier).state =
+                      selection.first,
+            ),
           ),
         ),
-        const SizedBox(height: 8),
-        Expanded(child: _phoneTabBody(tab)),
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        SliverToBoxAdapter(child: _phoneTabBody(tab)),
       ],
     );
   }
@@ -473,23 +499,26 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   Widget _phoneTabBody(int tab) {
     switch (tab) {
       case 0:
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          children: const [SegmentList()],
+        return const Padding(
+          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: SegmentList(),
         );
       case 1:
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          children: const [PlanTankList()],
+        return const Padding(
+          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: PlanTankList(),
         );
       case 2:
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          children: const [PlanSetupAccordion()],
+        return const Padding(
+          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: PlanSetupAccordion(),
         );
       case 3:
       default:
-        return PlanResultsPane(controller: _wideResultsController);
+        return PlanResultsPane(
+          controller: _wideResultsController,
+          shrinkWrap: true,
+        );
     }
   }
 
@@ -506,7 +535,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
 
   // --- Actions ---
 
-  Future<void> _sharePlanFile() async {
+  Future<void> _sharePlanFile(Rect? shareAnchor) async {
     final state = ref.read(divePlanNotifierProvider);
     final json = planToSubplanJson(divePlanFromState(state));
     final safeName = state.name
@@ -517,10 +546,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       json,
       '${safeName.isEmpty ? 'dive_plan' : safeName}.$subplanExtension',
       'application/json',
+      sharePositionOrigin: shareAnchor,
     );
   }
 
-  Future<void> _exportSlate() async {
+  Future<void> _exportSlate(Rect? shareAnchor) async {
     final l10n = context.l10n;
     final state = ref.read(divePlanNotifierProvider);
     final labels = PlanSlateLabels(
@@ -557,6 +587,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     await sharePdfBytes(
       bytes,
       '${safeName.isEmpty ? 'dive_plan' : safeName}_slate.pdf',
+      sharePositionOrigin: shareAnchor,
     );
   }
 

@@ -7,8 +7,11 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/desktop_oauth_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_in_authenticator.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/keychain_gated_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 
 /// Exercises the provider through the [GoogleDriveAuthenticator] seam: auth
@@ -427,5 +430,41 @@ void main() {
     await provider.signOut();
     expect(auth.signedOut, isTrue);
     expect(await provider.getFileInfo('x'), isNull);
+  });
+
+  group('default authenticator selection', () {
+    test('Windows/Linux get the loopback flow outright', () {
+      expect(
+        GoogleDriveStorageProvider.authenticatorFor(
+          isLoopbackPlatform: true,
+          isMacOS: false,
+        ),
+        isA<DesktopOAuthAuthenticator>(),
+      );
+    });
+
+    test('iOS and Android get google_sign_in outright', () {
+      expect(
+        GoogleDriveStorageProvider.authenticatorFor(
+          isLoopbackPlatform: false,
+          isMacOS: false,
+        ),
+        isA<GoogleSignInAuthenticator>(),
+      );
+    });
+
+    test('macOS defers the choice to the keychain gate', () {
+      // Neither flow works on every macOS build: google_sign_in needs the
+      // data-protection keychain the Developer ID DMG cannot reach, and the
+      // loopback listener needs the sandbox to be off. Only a runtime probe
+      // can tell the two builds apart.
+      expect(
+        GoogleDriveStorageProvider.authenticatorFor(
+          isLoopbackPlatform: false,
+          isMacOS: true,
+        ),
+        isA<KeychainGatedAuthenticator>(),
+      );
+    });
   });
 }

@@ -15,10 +15,10 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_reposit
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/presentation/pages/media_library_view.dart';
+import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
-import 'package:submersion/features/media/presentation/providers/media_selection_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -84,6 +84,18 @@ class _RecordingMediaRepo implements MediaRepository {
   final List<String> unlinkedFromSite = [];
   (List<String>, String)? reassigned;
 
+  /// Ids the probe should report as carrying a caption or favorite.
+  final Set<String> withUserMetadata = {};
+
+  // No partition stubs: the library unlink clears every link a row has, so
+  // it never asks which side still wants it. A call to one of the partitions
+  // would mean the carve-out leaked back into this surface, and noSuchMethod
+  // makes that a loud failure rather than a quiet empty list.
+
+  @override
+  Future<Set<String>> idsWithUserMetadata(List<String> mediaIds) async =>
+      mediaIds.where(withUserMetadata.contains).toSet();
+
   @override
   Future<void> unlinkFromDive(List<String> mediaIds) async {
     unlinkedFromDive.addAll(mediaIds);
@@ -141,23 +153,6 @@ MediaLibraryEntry entry(String id, {String? diveId, String? siteId}) =>
     );
 
 void main() {
-  group('MediaSelectionNotifier', () {
-    test('toggle adds then removes an id; clear empties', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-      final notifier = container.read(mediaSelectionProvider.notifier);
-
-      notifier.toggle('a');
-      expect(container.read(mediaSelectionProvider), {'a'});
-      notifier.toggle('b');
-      expect(container.read(mediaSelectionProvider), {'a', 'b'});
-      notifier.toggle('a');
-      expect(container.read(mediaSelectionProvider), {'b'});
-      notifier.clear();
-      expect(container.read(mediaSelectionProvider), isEmpty);
-    });
-  });
-
   group('selection UI', () {
     late _RecordingDeletionCoordinator coordinator;
     late _RecordingMediaRepo mediaRepo;
@@ -191,7 +186,128 @@ void main() {
       );
     }
 
-    testWidgets('Unlink calls unlinkFromDive and clears selection', (
+    /// Enters selection mode through the Select control, then checks the
+    /// tiles at [indices]. There is no gesture entry to fall back on: the
+    /// control is the whole affordance.
+    Future<void> selectTiles(WidgetTester tester, List<int> indices) async {
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      for (final index in indices) {
+        await tester.tap(find.byType(MediaLibraryTile).at(index));
+        await tester.pumpAndSettle();
+      }
+    }
+
+    /// Opens the shared bar's overflow, where the destructive action sits.
+    Future<void> openOverflow(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+    }
+
+    /// Taps Unlink, which always opens the confirmation.
+    Future<void> tapUnlink(WidgetTester tester) async {
+      await openOverflow(tester);
+      await tester.tap(find.byKey(const ValueKey('selection_menu_unlink')));
+      await tester.pumpAndSettle();
+    }
+
+    /// The bar's button and the dialog's confirm both read "Unlink", so
+    /// confirming has to be scoped to the dialog.
+    Future<void> confirmUnlink(WidgetTester tester) async {
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(TextButton, 'Unlink'),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the bar offers one destructive action, named Unlink', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host([entry('a', diveId: 'd1'), entry('b', siteId: 's1')]),
+      );
+      await tester.pumpAndSettle();
+
+      await selectTiles(tester, [0, 1]);
+
+      expect(find.text('2 selected'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('selection_action_share')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('selection_action_move_to_dive')),
+        findsOneWidget,
+      );
+      // Destructive actions are never one tap away in the shared bar, so the
+      // library's only one is reached by open-then-choose.
+      expect(
+        find.byKey(const ValueKey('selection_action_unlink')),
+        findsNothing,
+      );
+
+      await openOverflow(tester);
+      expect(find.text('Unlink'), findsOneWidget);
+      // The per-link pair and the separate Delete are gone, and a site-linked
+      // item in the selection no longer grows a second unlink entry.
+      expect(find.byIcon(Icons.link_off), findsOneWidget);
+      expect(find.byIcon(Icons.location_off), findsNothing);
+      expect(
+        find.byKey(const ValueKey('selection_delete')),
+        findsNothing,
+        reason: 'Delete would claim the source files go too, and they do not',
+      );
+      expect(find.text('Unlink from site'), findsNothing);
+    });
+
+    // Unlinking in the library clears every link a row has: a dive or a site
+    // can spare a row the other one still wants, but the library is every
+    // side at once, so the row, the cloud proxies and the thumbnails all go.
+    // Only the ORIGINAL source file is spared, and nothing on this path
+    // reads or writes its path.
+    testWidgets('confirming unlink sends the whole selection to the deletion '
+        'chain and clears', (tester) async {
+      await tester.pumpWidget(
+        host([
+          entry('a', diveId: 'd1'),
+          entry('b', siteId: 's1'),
+          entry('c', diveId: 'd1', siteId: 's1'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      await selectTiles(tester, [0, 1, 2]);
+      expect(find.text('3 selected'), findsOneWidget);
+
+      await tapUnlink(tester);
+      expect(find.text('Unlink 3 items?'), findsOneWidget);
+      expect(
+        coordinator.deleted,
+        isEmpty,
+        reason: 'nothing may go before the dialog is answered',
+      );
+
+      await confirmUnlink(tester);
+
+      // Every id, including the dual-linked one: no side is spared here.
+      expect(coordinator.deleted.toSet(), {'a', 'b', 'c'});
+      expect(
+        mediaRepo.unlinkedFromDive,
+        isEmpty,
+        reason: 'the library detaches nothing; it removes',
+      );
+      expect(mediaRepo.unlinkedFromSite, isEmpty);
+      expect(
+        find.byKey(const ValueKey('selection_exit')),
+        findsNothing,
+        reason: 'a completed bulk action leaves selection mode',
+      );
+    });
+
+    testWidgets('cancelling deletes nothing and keeps the selection', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -199,69 +315,67 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.byType(MediaLibraryTile).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(MediaLibraryTile).at(1));
+      await selectTiles(tester, [0]);
+      await tapUnlink(tester);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Unlink'));
-      await tester.pumpAndSettle();
-
-      expect(mediaRepo.unlinkedFromDive.toSet(), {'a', 'b'});
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(MediaLibraryView)),
-      );
-      expect(container.read(mediaSelectionProvider), isEmpty);
+      expect(coordinator.deleted, isEmpty);
+      // Cancelling the dialog is not cancelling the selection.
+      expect(find.text('1 selected'), findsOneWidget);
     });
 
-    testWidgets('Unlink from site appears only when a selected item has a '
-        'site', (tester) async {
-      await tester.pumpWidget(host([entry('a'), entry('b', siteId: 's1')]));
-      await tester.pumpAndSettle();
-
-      await tester.longPress(find.byType(MediaLibraryTile).first);
-      await tester.pumpAndSettle();
-      expect(find.text('Unlink from site'), findsNothing);
-
-      await tester.tap(find.byType(MediaLibraryTile).at(1));
-      await tester.pumpAndSettle();
-      expect(find.text('Unlink from site'), findsOneWidget);
-
-      // Only the site-linked id is sent: unlinkFromSite latches
-      // retainInLibrary, which would permanently un-sweep 'a' otherwise.
-      await tester.tap(find.text('Unlink from site'));
-      await tester.pumpAndSettle();
-      expect(mediaRepo.unlinkedFromSite.toSet(), {'b'});
-    });
-
-    testWidgets('Unlink sends only the dive-linked ids', (tester) async {
+    testWidgets('the confirmation names what a caption or favorite costs', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        host([entry('a'), entry('b', diveId: 'd1'), entry('c', siteId: 's1')]),
+        host([entry('a', diveId: 'd1'), entry('b', diveId: 'd1')]),
       );
+      // After host(), which mints the fakes this group asserts against.
+      mediaRepo.withUserMetadata.add('a');
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.byType(MediaLibraryTile).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(MediaLibraryTile).at(1));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(MediaLibraryTile).at(2));
-      await tester.pumpAndSettle();
-      expect(find.text('3 selected'), findsOneWidget);
+      await selectTiles(tester, [0, 1]);
 
-      await tester.tap(find.text('Unlink'));
+      await tapUnlink(tester);
+
+      // Everything else an unlink discards is derived and rebuilds from the
+      // source file on a re-link. A caption and the favorite flag live only
+      // in Submersion's own row, so the dialog counts them.
+      expect(
+        find.textContaining(
+          '1 of these has a caption or favorite saved in Submersion',
+        ),
+        findsOneWidget,
+      );
+
+      await confirmUnlink(tester);
+      expect(coordinator.deleted.toSet(), {'a', 'b'});
+    });
+
+    testWidgets('the confirmation stays quiet when nothing typed is at risk', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host([entry('a', diveId: 'd1')]));
       await tester.pumpAndSettle();
 
-      expect(mediaRepo.unlinkedFromDive.toSet(), {'b'});
+      await selectTiles(tester, [0]);
+      await tapUnlink(tester);
+
+      expect(find.text('Unlink 1 items?'), findsOneWidget);
+      expect(find.textContaining('caption or favorite'), findsNothing);
     });
 
     testWidgets('Move to dive opens the picker and reassigns', (tester) async {
       await tester.pumpWidget(host([entry('a')]));
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.byType(MediaLibraryTile).first);
-      await tester.pumpAndSettle();
+      await selectTiles(tester, [0]);
 
-      await tester.tap(find.text('Move to dive'));
+      await tester.tap(
+        find.byKey(const ValueKey('selection_action_move_to_dive')),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.textContaining('#2'));
       await tester.pumpAndSettle();
@@ -270,96 +384,77 @@ void main() {
       expect(mediaRepo.reassigned?.$2, 'dive-2');
     });
 
-    testWidgets('long-press enters selection mode and shows the bar', (
-      tester,
-    ) async {
-      await tester.pumpWidget(host([entry('a'), entry('b')]));
-      await tester.pumpAndSettle();
-
-      await tester.longPress(find.byType(MediaLibraryTile).first);
-      await tester.pumpAndSettle();
-
-      expect(find.text('1 selected'), findsOneWidget);
-      expect(find.text('Delete'), findsOneWidget);
-      expect(find.text('Share'), findsOneWidget);
-    });
-
-    testWidgets('delete confirms then calls the deletion chain and clears', (
-      tester,
-    ) async {
-      await tester.pumpWidget(host([entry('a'), entry('b')]));
-      await tester.pumpAndSettle();
-
-      await tester.longPress(find.byType(MediaLibraryTile).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(MediaLibraryTile).at(1));
-      await tester.pumpAndSettle();
-      expect(find.text('2 selected'), findsOneWidget);
-
-      await tester.tap(find.text('Delete'));
-      await tester.pumpAndSettle();
-      // Confirm dialog
-      expect(find.text('Delete 2 items?'), findsOneWidget);
-      await tester.tap(find.text('Delete').last);
-      await tester.pumpAndSettle();
-
-      expect(coordinator.deleted.toSet(), {'a', 'b'});
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(MediaLibraryView)),
-      );
-      expect(container.read(mediaSelectionProvider), isEmpty);
-    });
-
     testWidgets('tap in selection mode toggles instead of opening viewer', (
       tester,
     ) async {
+      await tester.pumpWidget(
+        host([entry('a', diveId: 'd1'), entry('b', diveId: 'd1')]),
+      );
+      await tester.pumpAndSettle();
+
+      await selectTiles(tester, [0]);
+      expect(find.text('1 selected'), findsOneWidget);
+
+      // Unchecking the last item leaves the mode standing: the user asked for
+      // it with the Select control, so only they can end it. The old id-set
+      // could not tell a deliberate entry from an incidental one and dropped
+      // the bar here.
+      await tester.tap(find.byType(MediaLibraryTile).first);
+      await tester.pumpAndSettle();
+      expect(find.text('0 selected'), findsOneWidget);
+      expect(find.byType(MediaViewerPage), findsNothing);
+    });
+
+    // The dive media section swaps its whole header for the bar. The library
+    // keeps filter and sort reachable -- narrowing the list and then hitting
+    // Select All is a real flow -- but the control that opens a mode already
+    // open is dead weight.
+    testWidgets('the Select control hides while the bar is up', (tester) async {
+      await tester.pumpWidget(host([entry('a'), entry('b')]));
+      await tester.pumpAndSettle();
+
+      await selectTiles(tester, [0]);
+
+      expect(find.byKey(const ValueKey('enter_selection')), findsNothing);
+      expect(find.byIcon(Icons.filter_list), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('selection_exit')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
+    });
+
+    // The old entry gesture is gone everywhere, and nothing replaced it: a
+    // hold now resolves as a plain tap, which opens the viewer rather than
+    // starting a selection nobody asked for.
+    testWidgets('a long press does not enter selection mode', (tester) async {
       await tester.pumpWidget(host([entry('a'), entry('b')]));
       await tester.pumpAndSettle();
 
       await tester.longPress(find.byType(MediaLibraryTile).first);
-      await tester.pumpAndSettle();
-      // Tap the already-selected tile: deselects, bar disappears.
-      await tester.tap(find.byType(MediaLibraryTile).first);
-      await tester.pumpAndSettle();
-      expect(find.text('Delete'), findsNothing);
+      await tester.pump();
+
+      expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
     });
 
     testWidgets('the close button leaves selection mode', (tester) async {
-      await tester.pumpWidget(host([entry('a'), entry('b')]));
-      await tester.pumpAndSettle();
-
-      await tester.longPress(find.byType(MediaLibraryTile).first);
-      await tester.pumpAndSettle();
-      expect(find.text('Delete'), findsOneWidget);
-
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Delete'), findsNothing);
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(MediaLibraryView)),
+      await tester.pumpWidget(
+        host([entry('a', diveId: 'd1'), entry('b', diveId: 'd1')]),
       );
-      expect(container.read(mediaSelectionProvider), isEmpty);
-    });
-
-    testWidgets('cancelling the delete confirmation deletes nothing', (
-      tester,
-    ) async {
-      await tester.pumpWidget(host([entry('a'), entry('b')]));
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.byType(MediaLibraryTile).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Delete'));
+      await selectTiles(tester, [0]);
+      expect(find.text('1 selected'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('selection_exit')));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-
-      expect(coordinator.deleted, isEmpty);
-      // Still in selection mode: cancelling the dialog is not cancelling
-      // the selection.
-      expect(find.text('Delete'), findsOneWidget);
+      expect(find.text('1 selected'), findsNothing);
+      expect(
+        find.byKey(const ValueKey('selection_exit')),
+        findsNothing,
+        reason: 'a completed bulk action leaves selection mode',
+      );
     });
   });
 }

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/parsed_track.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/track_import_service.dart';
+import 'package:submersion/features/gps_log/domain/track_point_codec.dart';
 
 import '../../helpers/test_database.dart';
 
@@ -25,6 +26,30 @@ void main() {
   });
 
   tearDown(tearDownTestDatabase);
+
+  group('prepare rejects an oversized file', () {
+    test('over the point cap, before anything is written', () async {
+      // One row per allowed point, plus one. The guard has to fire on the
+      // parsed count, so the file really does have to carry them.
+      final rows = StringBuffer('time,lat,lon\n');
+      for (var i = 0; i <= kMaxTrackPointCount; i++) {
+        rows.write('2026-05-22T13:00:00Z,20.5,-87.25\n');
+      }
+      final bytes = _utf8Bytes(rows.toString());
+
+      await expectLater(
+        service.prepare(fileName: 'huge.csv', bytes: bytes),
+        throwsA(
+          isA<TrackParseException>().having(
+            (e) => e.reason,
+            'reason',
+            TrackParseReason.tooLarge,
+          ),
+        ),
+      );
+      expect(await repo.getCompletedTracks(), isEmpty);
+    });
+  });
 
   group('sniffFormat', () {
     test('recognises gpx by extension', () {

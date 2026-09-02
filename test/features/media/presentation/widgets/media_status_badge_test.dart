@@ -6,11 +6,13 @@ import 'package:submersion/features/media/data/services/media_serving_recorder.d
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_provenance.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
 import 'package:submersion/features/media/presentation/widgets/media_status_badge.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
@@ -34,6 +36,12 @@ MediaItem _item({
   updatedAt: DateTime(2026, 3, 12),
 );
 
+/// Pins the toggle without SharedPreferences, so these tests drive the
+/// setting directly rather than through the provider fallback.
+class _StubBadgeToggle extends MediaProvenanceBadgesNotifier {
+  _StubBadgeToggle(super.enabled) : super.unstored();
+}
+
 void main() {
   late String? previousDefaultLocale;
 
@@ -54,6 +62,8 @@ void main() {
     MediaItem item, {
     bool attached = true,
     QueueFacts? queue,
+    bool provenanceBadges = true,
+    MediaServingRecorder? recorder,
   }) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1.0;
@@ -71,7 +81,10 @@ void main() {
           mediaStoreIdentityProvider.overrideWith((ref) async => null),
           currentDeviceIdProvider.overrideWith((ref) async => 'dev-a'),
           mediaServingRecorderProvider.overrideWithValue(
-            MediaServingRecorder(),
+            recorder ?? MediaServingRecorder(),
+          ),
+          mediaProvenanceBadgesProvider.overrideWith(
+            (ref) => _StubBadgeToggle(provenanceBadges),
           ),
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         ],
@@ -95,10 +108,114 @@ void main() {
     return tileTaps;
   }
 
-  testWidgets('a healthy backed-up item renders nothing', (tester) async {
+  testWidgets('a healthy item reports where it is served from', (tester) async {
+    // The reversal of the original quiet-on-success design. Rendering nothing
+    // here made a working badge layer indistinguishable from a broken one on
+    // a library where every item is healthy.
     await pump(tester, _item(uploaded: true));
 
     expect(find.byKey(const Key('media-status-badge')), findsNothing);
+    expect(find.byKey(const Key('media-provenance-badge')), findsOneWidget);
+    // No observation recorded, so it falls back to what the row type implies.
+    expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
+  });
+
+  testWidgets('health outranks provenance', (tester) async {
+    await pump(tester, _item(missing: true));
+
+    expect(find.byKey(const Key('media-status-badge')), findsOneWidget);
+    expect(find.byKey(const Key('media-provenance-badge')), findsNothing);
+  });
+
+  testWidgets('the provenance badge can be switched off', (tester) async {
+    await pump(tester, _item(uploaded: true), provenanceBadges: false);
+
+    expect(find.byKey(const Key('media-provenance-badge')), findsNothing);
+  });
+
+  testWidgets('switching provenance off still shows a problem', (tester) async {
+    // The setting silences decoration, never a state the diver may need to
+    // act on. A broken photo must not be able to look healthy.
+    await pump(tester, _item(missing: true), provenanceBadges: false);
+
+    expect(find.byKey(const Key('media-status-badge')), findsOneWidget);
+  });
+
+  testWidgets('an observed source outranks the row type', (tester) async {
+    // A gallery row served from the cloud store is exactly the case the
+    // observation exists to reveal.
+    final recorder = MediaServingRecorder();
+    recorder.record(
+      'm1',
+      thumbnail: true,
+      servedFrom: ServedFrom.storeNetwork,
+      servedTier: ServedTier.thumbnail,
+    );
+
+    await pump(tester, _item(uploaded: true), recorder: recorder);
+
+    expect(find.byIcon(Icons.cloud_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.photo_library_outlined), findsNothing);
+  });
+
+  testWidgets('a grid tile reads the thumbnail observation, not the original', (
+    tester,
+  ) async {
+    // The viewer records the same row under thumbnail: false. Reading that
+    // one would leave every grid badge stuck on its fallback.
+    final recorder = MediaServingRecorder();
+    recorder.record(
+      'm1',
+      thumbnail: false,
+      servedFrom: ServedFrom.storeNetwork,
+      servedTier: ServedTier.original,
+    );
+
+    await pump(tester, _item(uploaded: true), recorder: recorder);
+
+    expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
+  });
+
+  testWidgets('an observation arriving later updates the badge', (
+    tester,
+  ) async {
+    // The subscription is hand-rolled rather than a ListenableBuilder, so the
+    // live-update path needs its own guard: a badge that never notices its
+    // observation would sit on the fallback forever and quietly lie.
+    final recorder = MediaServingRecorder();
+    await pump(tester, _item(uploaded: true), recorder: recorder);
+    expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
+
+    recorder.record(
+      'm1',
+      thumbnail: true,
+      servedFrom: ServedFrom.storeCache,
+      servedTier: ServedTier.thumbnail,
+    );
+    await tester.pump();
+
+    expect(find.byIcon(Icons.cloud_done_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.photo_library_outlined), findsNothing);
+  });
+
+  testWidgets('another item resolving does not change this badge', (
+    tester,
+  ) async {
+    // The recorder notifies globally, so every visible badge hears every
+    // resolution. Only its own answer may move it.
+    final recorder = MediaServingRecorder();
+    await pump(tester, _item(uploaded: true), recorder: recorder);
+
+    recorder.record(
+      'some-other-item',
+      thumbnail: true,
+      servedFrom: ServedFrom.storeNetwork,
+      servedTier: ServedTier.thumbnail,
+    );
+    await tester.pump();
+
+    expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.cloud_outlined), findsNothing);
   });
 
   testWidgets('a missing item renders the broken glyph', (tester) async {

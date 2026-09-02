@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -53,6 +54,23 @@ void main() {
       );
       await expectLater(repository.getStatistics(), throwsA(anything));
       await expectLater(repository.getRecords(), throwsA(anything));
+      await expectLater(
+        repository.getDivesNeedingConditions(),
+        throwsA(anything),
+      );
+      await expectLater(
+        repository.countDivesNeedingConditions(),
+        throwsA(anything),
+      );
+      await expectLater(
+        repository.fillDiveConditions(
+          'test-id',
+          humidity: 70,
+          source: WeatherSource.openMeteo,
+          fetchedAt: DateTime.now(),
+        ),
+        throwsA(anything),
+      );
       final dummyDive = Dive(id: 'test-id', dateTime: DateTime.now());
       await expectLater(repository.createDive(dummyDive), throwsA(anything));
       await expectLater(repository.updateDive(dummyDive), throwsA(anything));

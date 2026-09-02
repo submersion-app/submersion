@@ -3,11 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 
 void main() {
   final adapter = SiteFieldAdapter.instance;
 
-  SiteWithCount wrap(DiveSite site) => (site: site, diveCount: 0);
+  SiteWithCount wrap(DiveSite site) =>
+      SiteWithDiveCount(site: site, diveCount: 0);
 
   test('entryType extracts the real entry method column', () {
     // The enum member keeps its historical name so saved table layouts that

@@ -82,7 +82,8 @@ class _GeofenceEditorSheetState extends ConsumerState<_GeofenceEditorSheet> {
         _latitude = result.latitude;
         _longitude = result.longitude;
         if (_labelController.text.isEmpty) {
-          _labelController.text = result.locality ?? result.region ?? '';
+          _labelController.text =
+              result.place.locality ?? result.place.region ?? '';
         }
       });
     }

@@ -114,6 +114,32 @@ static void test_hw_ostc_suffixed_names_resolve(void) {
     printf("PASS: test_hw_ostc_suffixed_names_resolve\n");
 }
 
+// Issue #1246: an OSTC Sport advertises "OSTCs" plus its serial. That is an
+// ABBREVIATION, not a prefix of "OSTC Sport", so neither the exact-name nor
+// the longest-prefix tiebreaker could reach the right row and the device was
+// reported as an "OSTC 2". The alias table resolves it by product name,
+// because the whole hw_ostc3 family below OSTC 4 shares model 0 and so cannot
+// be told apart by model code.
+static void test_hw_ostc_sport_alias_resolves(void) {
+    expect_ble_match("OSTCs 21211", "OSTC Sport", 0);
+    expect_ble_match("OSTCs", "OSTC Sport", 0);
+    expect_ble_match("ostcs 21211", "OSTC Sport", 0);
+    // The spelled-out product must keep resolving through the ordinary
+    // exact/prefix path rather than depending on the alias.
+    expect_ble_match("OSTC Sport", "OSTC Sport", 0);
+    expect_ble_match("OSTC Sport 4711", "OSTC Sport", 0);
+    printf("PASS: test_hw_ostc_sport_alias_resolves\n");
+}
+
+// The alias must not swallow a longer word that merely starts with it:
+// product_prefix_len rejects a match that ends mid-word, so a hypothetical
+// "OSTCsomething" falls back to the family row instead of claiming to be a
+// Sport.
+static void test_hw_ostc_alias_does_not_match_longer_word(void) {
+    expect_ble_match("OSTCsomething", "OSTC 2", 0);
+    printf("PASS: test_hw_ostc_alias_does_not_match_longer_word\n");
+}
+
 // Issue #483 regression guard: dc_filter_shearwater passes a whitelisted name
 // for EVERY Shearwater row, so resolution relies on the wrapper preferring the
 // row whose product exactly equals the BLE name. The new "Perdix 3" row must
@@ -149,6 +175,8 @@ int main(void) {
     test_non_uwatec_device_unaffected();
     test_perdix_3_resolves();
     test_hw_ostc_suffixed_names_resolve();
+    test_hw_ostc_sport_alias_resolves();
+    test_hw_ostc_alias_does_not_match_longer_word();
     test_other_perdix_models_unchanged();
     test_symbios_handset_resolves_to_handset();
     test_symbios_hud_resolves_to_hud();

@@ -57,6 +57,11 @@ class PayloadMerger {
     for (final input in inputs) {
       warnings.addAll(input.payload.warnings);
 
+      // Dives are appended without folding, so each file's dive indices shift
+      // by the number of dives already collected. Captured BEFORE this input's
+      // dives are added, so media can rebase onto the merged dive list.
+      final diveOffset = (entities[ImportEntityType.dives] ?? const []).length;
+
       for (final type in ImportEntityType.values) {
         final items = input.payload.entitiesOf(type);
         if (items.isEmpty) continue;
@@ -67,6 +72,15 @@ class PayloadMerger {
           // Display names can collide (same basename in different folders);
           // the id is the collision-free key for per-file attribution.
           item['_sourceFileId'] = input.fileId;
+
+          // Two pictures of the same file are both real, so media never
+          // folds. Its dive pointer is rebased onto the merged dive list.
+          if (type == ImportEntityType.media) {
+            final index = item['_diveIndex'];
+            if (index is int) item['_diveIndex'] = index + diveOffset;
+            (entities[type] ??= []).add(item);
+            continue;
+          }
 
           if (type == ImportEntityType.dives) {
             (entities[type] ??= []).add(item);
@@ -198,6 +212,8 @@ class PayloadMerger {
       // Service records are events, not named entities: two services on the
       // same item are both real and must never fold together.
       case ImportEntityType.serviceRecords:
+      // Media is handled before this point and has no name to fold on.
+      case ImportEntityType.media:
         return null;
       case ImportEntityType.sites:
       case ImportEntityType.trips:

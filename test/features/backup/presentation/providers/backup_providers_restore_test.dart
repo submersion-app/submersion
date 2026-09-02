@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/restore_source_missing_exception.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
@@ -57,6 +58,11 @@ class _RecordingBackupService extends BackupService {
   /// [WrongPassphraseException], modelling a wrong passphrase on retry.
   String? correctSecret;
 
+  /// When true, restore throws [RestoreSourceMissingException], modelling a
+  /// source file that vanished between materialization and the swap
+  /// (issue #1344).
+  bool sourceMissing = false;
+
   /// When set, restore awaits this before returning, so a test can observe the
   /// in-flight (mid-restore) state.
   Completer<void>? restoreGate;
@@ -75,6 +81,9 @@ class _RecordingBackupService extends BackupService {
     }
     if (correctSecret != null && secret != null && secret != correctSecret) {
       throw const WrongPassphraseException();
+    }
+    if (sourceMissing) {
+      throw const RestoreSourceMissingException('/gone.db');
     }
   }
 
@@ -571,6 +580,55 @@ void main() {
     expect(sweep.capturedIsCancelled!(), isFalse);
     notifier.skipSafetyReviewSweep();
     expect(sweep.capturedIsCancelled!(), isTrue);
+  });
+
+  test(
+    'a missing restore source lands on error, not restoreComplete',
+    () async {
+      // Issue #1344. DatabaseService.restore leaves the live database alone
+      // when the source file is gone and reports that as a typed failure. The
+      // notifier must not reach restoreComplete (which pushes the Restore
+      // Complete page and offers the restart), or a user recovering from data
+      // loss cannot tell "nothing happened" from "restored an empty library".
+      final sweep = _FakePostRestoreSafetyReview();
+      final container = makeContainer(sweep: sweep);
+      service.sourceMissing = true;
+
+      await container
+          .read(backupOperationProvider.notifier)
+          .restoreFromFilePath(await tempBackupPath('missing'));
+
+      final state = container.read(backupOperationProvider);
+      expect(state.status, BackupOperationStatus.error);
+      expect(state.isRestoring, isFalse, reason: 'the barrier must come down');
+      expect(
+        state.message,
+        'Nothing was restored: the backup file could not be found. '
+        'Your current data is unchanged.',
+      );
+      expect(sweep.calls, 0, reason: 'nothing was restored, nothing to review');
+    },
+  );
+
+  test('restoreFromBackup reports a missing source the same way', () async {
+    final container = makeContainer();
+    service.sourceMissing = true;
+    final record = BackupRecord(
+      id: 'r-missing',
+      filename: 'gone.db',
+      timestamp: DateTime(2026),
+      sizeBytes: 1,
+      location: BackupLocation.local,
+    );
+
+    await container
+        .read(backupOperationProvider.notifier)
+        .restoreFromBackup(record);
+
+    final state = container.read(backupOperationProvider);
+    expect(state.status, BackupOperationStatus.error);
+    expect(state.isRestoring, isFalse);
+    expect(state.message, startsWith('Nothing was restored'));
   });
 
   test('backup encryption providers wire their real dependencies', () async {

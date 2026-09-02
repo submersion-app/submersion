@@ -9,6 +9,7 @@ Welcome to the Submersion developer documentation. This section covers architect
 - [State Management](developer/state-management.md) - Riverpod patterns
 - [Navigation](developer/navigation.md) - go_router setup
 - [Testing](developer/testing.md) - Test organization and running
+- [Local Test Performance](developer/local-test-performance.md) - Making local test runs fast
 - [Building](developer/building.md) - Build and run instructions
 
 ## Technology Stack

@@ -2,7 +2,10 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 
@@ -10,11 +13,13 @@ import '../../../../helpers/test_database.dart';
 
 void main() {
   late DiveComputerRepository repository;
+  late ProfileSeriesRepository profileSeries;
   late AppDatabase db;
 
   setUp(() async {
     db = await setUpTestDatabase();
     repository = DiveComputerRepository();
+    profileSeries = ProfileSeriesRepository();
   });
 
   tearDown(() async {
@@ -84,28 +89,6 @@ void main() {
           ),
         );
     return diveId;
-  }
-
-  Future<void> insertProfile({
-    required String diveId,
-    String? computerId,
-    int timestamp = 0,
-    double depth = 5.0,
-    bool isPrimary = false,
-  }) async {
-    final id = 'profile-$timestamp-${DateTime.now().microsecondsSinceEpoch}';
-    await db
-        .into(db.diveProfiles)
-        .insert(
-          DiveProfilesCompanion(
-            id: Value(id),
-            diveId: Value(diveId),
-            computerId: Value(computerId),
-            isPrimary: Value(isPrimary),
-            timestamp: Value(timestamp),
-            depth: Value(depth),
-          ),
-        );
   }
 
   Future<void> insertDataSource({
@@ -390,24 +373,28 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('deleteComputer', () {
-    test('nulls out FK references in dive_profiles before deleting', () async {
+    test('nulls out FK references in the series before deleting', () async {
       final computerId = await insertComputer();
       final diveId = await insertDive();
-      await insertProfile(
+      final seriesId = await profileSeries.insertSeries(
         diveId: diveId,
         computerId: computerId,
-        timestamp: 0,
-        depth: 10.0,
+        samples: const [ProfileSample(timestamp: 0, depth: 10.0)],
+        now: 1000,
       );
+      final beforeHlc = (await profileSeries.getRowsForDives([
+        diveId,
+      ])).firstWhere((r) => r.id == seriesId).hlc;
 
       await repository.deleteComputer(computerId);
 
-      // Profile should still exist but with null computerId.
-      final profiles = await (db.select(
-        db.diveProfiles,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      expect(profiles, hasLength(1));
-      expect(profiles.first.computerId, isNull);
+      // Series should still exist but with null computerId and a restamped
+      // hlc.
+      final seriesRow = (await profileSeries.getRowsForDives([
+        diveId,
+      ])).firstWhere((r) => r.id == seriesId);
+      expect(seriesRow.computerId, isNull);
+      expect(seriesRow.hlc, isNot(beforeHlc));
 
       // Computer should be deleted.
       final computers = await (db.select(
@@ -566,7 +553,12 @@ void main() {
           computerSerial: 'SN-12345',
           sourceFormat: 'dive_computer',
         );
-        await insertProfile(diveId: diveId, computerId: oldId);
+        final seriesId = await profileSeries.insertSeries(
+          diveId: diveId,
+          computerId: oldId,
+          samples: const [ProfileSample(timestamp: 0, depth: 10.0)],
+          now: 1000,
+        );
         await repository.deleteComputer(oldId);
 
         final created = await repository.createComputer(newComputer());
@@ -579,10 +571,10 @@ void main() {
           db.dives,
         )..where((t) => t.id.equals(diveId))).getSingle();
         expect(dive.computerId, equals(created.id));
-        final profiles = await (db.select(
-          db.diveProfiles,
-        )..where((t) => t.diveId.equals(diveId))).get();
-        expect(profiles.single.computerId, equals(created.id));
+        final series = (await profileSeries.getRowsForDives([
+          diveId,
+        ])).firstWhere((r) => r.id == seriesId);
+        expect(series.computerId, equals(created.id));
       },
     );
 
@@ -676,7 +668,12 @@ void main() {
           computerSerial: 'SN-99999',
           sourceFormat: 'dive_computer',
         );
-        await insertProfile(diveId: diveId, computerId: oldId);
+        final seriesId = await profileSeries.insertSeries(
+          diveId: diveId,
+          computerId: oldId,
+          samples: const [ProfileSample(timestamp: 0, depth: 10.0)],
+          now: 1000,
+        );
         await repository.deleteComputer(oldId);
 
         final created = await repository.createComputer(newComputer());
@@ -693,10 +690,10 @@ void main() {
           db.dives,
         )..where((t) => t.id.equals(diveId))).getSingle();
         expect(dive.computerId, equals(created.id));
-        final profiles = await (db.select(
-          db.diveProfiles,
-        )..where((t) => t.diveId.equals(diveId))).get();
-        expect(profiles.single.computerId, isNull);
+        final series = (await profileSeries.getRowsForDives([
+          diveId,
+        ])).firstWhere((r) => r.id == seriesId);
+        expect(series.computerId, isNull);
       },
     );
   });
@@ -747,6 +744,186 @@ void main() {
         expect(allDives.length, equals(2));
       },
     );
+
+    Future<List<String>> diveTypeIdsFor(String diveId) async {
+      final rows = await (db.select(
+        db.diveDiveTypes,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      return rows.map((r) => r.diveTypeId).toList();
+    }
+
+    test(
+      'a profile with a deco ceiling defaults the dive type to technical',
+      () async {
+        final computerId = await insertComputer();
+        final entryTime = DateTime(2026, 4, 1, 9, 0);
+
+        final diveId = await repository.importProfile(
+          computerId: computerId,
+          profileStartTime: entryTime,
+          points: const [
+            ProfilePointData(timestamp: 0, depth: 1.5, ceiling: 0.0),
+            ProfilePointData(timestamp: 600, depth: 42.0, ceiling: 6.0),
+          ],
+          durationSeconds: 3600,
+          maxDepth: 42.0,
+          forceNew: true,
+        );
+
+        final dive = await (db.select(
+          db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingle();
+        expect(dive.diveType, 'technical');
+        expect(await diveTypeIdsFor(diveId), ['technical']);
+      },
+    );
+
+    test('exhausted NDL with TTS remaining at depth defaults the dive type to '
+        'technical', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 4, 1, 10, 0);
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 30.0, ndl: 300, tts: 120),
+          ProfilePointData(timestamp: 900, depth: 32.0, ndl: 0, tts: 600),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 32.0,
+        forceNew: true,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.diveType, 'technical');
+      expect(await diveTypeIdsFor(diveId), ['technical']);
+    });
+
+    test('a deco-stop event defaults the dive type to technical even with a '
+        'no-deco profile', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 4, 1, 11, 0);
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 1.0, ndl: 3600),
+          ProfilePointData(timestamp: 600, depth: 18.0, ndl: 1200),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 18.0,
+        events: const [EventData(timestamp: 900, type: 'deco')],
+        forceNew: true,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.diveType, 'technical');
+      expect(await diveTypeIdsFor(diveId), ['technical']);
+    });
+
+    test('a deepstop event alone (precautionary, not mandatory deco) keeps the '
+        'dive type recreational', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 4, 1, 11, 30);
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 1.0, ndl: 3600),
+          ProfilePointData(timestamp: 600, depth: 18.0, ndl: 1200),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 18.0,
+        events: const [EventData(timestamp: 900, type: 'deepstop')],
+        forceNew: true,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.diveType, 'recreational');
+      expect(await diveTypeIdsFor(diveId), ['recreational']);
+    });
+
+    test('a ceiling_safetystop event alone (a breached safety stop ceiling, '
+        'not a deco ceiling) keeps the dive type recreational', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 4, 1, 11, 45);
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 1.0, ndl: 3600),
+          ProfilePointData(timestamp: 600, depth: 18.0, ndl: 1200),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 18.0,
+        events: const [EventData(timestamp: 900, type: 'ceiling_safetystop')],
+        forceNew: true,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.diveType, 'recreational');
+      expect(await diveTypeIdsFor(diveId), ['recreational']);
+    });
+
+    test('a ceiling event (a real deco ceiling) still defaults the dive type '
+        'to technical', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 4, 1, 11, 50);
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 1.0, ndl: 3600),
+          ProfilePointData(timestamp: 600, depth: 40.0, ndl: 1200),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 40.0,
+        events: const [EventData(timestamp: 900, type: 'ceiling')],
+        forceNew: true,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.diveType, 'technical');
+      expect(await diveTypeIdsFor(diveId), ['technical']);
+    });
+
+    test('a no-deco profile defaults the dive type to recreational', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 4, 1, 12, 0);
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 1.0, ndl: 3600),
+          ProfilePointData(timestamp: 600, depth: 18.0, ndl: 1200, tts: 60),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 18.0,
+        forceNew: true,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.diveType, 'recreational');
+      expect(await diveTypeIdsFor(diveId), ['recreational']);
+    });
 
     test('importProfile persists the computer dive mode (gauge)', () async {
       final computerId = await insertComputer();
@@ -843,6 +1020,39 @@ void main() {
         db.diveTanks,
       )..where((t) => t.id.equals(switches.single.tankId))).getSingle();
       expect(tank.o2Percent, 99.0);
+    });
+
+    test('persists the preset-derived cylinder attributes', () async {
+      // The default tank preset fills size, rated pressure, material and the
+      // preset label on downloaded cylinders (issue #386); the insert must
+      // carry all four, not just the volume.
+      final computerId = await insertComputer();
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: DateTime(2026, 5, 3, 10, 0),
+        points: const [ProfilePointData(timestamp: 0, depth: 0.0)],
+        durationSeconds: 1800,
+        maxDepth: 18.0,
+        tanks: const [
+          TankData(
+            index: 0,
+            o2Percent: 21.0,
+            volumeLiters: 11.1,
+            workingPressure: 207.0,
+            material: 'aluminum',
+            presetName: 'al80',
+          ),
+        ],
+      );
+
+      final tank = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).getSingle();
+      expect(tank.volume, 11.1);
+      expect(tank.workingPressure, 207.0);
+      expect(tank.tankMaterial, 'aluminum');
+      expect(tank.presetName, 'al80');
     });
 
     test('replace-source: links a gas switch by gas mix even when the stored '
@@ -1024,6 +1234,49 @@ void main() {
       expect(dataSources.first.cns, equals(42.0));
     });
 
+    test('new dive derives cnsEnd from profile samples', () async {
+      final computerId = await insertComputer();
+
+      final entryTime = DateTime(2026, 3, 15, 10, 0);
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: [
+          const ProfilePointData(timestamp: 0, depth: 0.0, cns: 10.0),
+          const ProfilePointData(timestamp: 60, depth: 15.0, cns: 25.0),
+          const ProfilePointData(timestamp: 120, depth: 25.0, cns: 42.0),
+        ],
+        durationSeconds: 30 * 60,
+        maxDepth: 25.0,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.cnsEnd, equals(42.0));
+    });
+
+    test('new dive cnsEnd is null when no samples report CNS', () async {
+      final computerId = await insertComputer();
+
+      final entryTime = DateTime(2026, 3, 15, 10, 0);
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: [
+          const ProfilePointData(timestamp: 0, depth: 0.0),
+          const ProfilePointData(timestamp: 60, depth: 15.0),
+        ],
+        durationSeconds: 30 * 60,
+        maxDepth: 15.0,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.cnsEnd, isNull);
+    });
+
     test(
       'data source waterTemp is null when no samples have temperature',
       () async {
@@ -1100,6 +1353,276 @@ void main() {
       )..where((t) => t.diveId.equals(diveId))).getSingle();
       expect(source.entryLatitude, 12.34567);
       expect(source.exitLongitude, 98.76489);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // findOrRegisterImportedComputer (issue #1288)
+  //
+  // File imports name a computer on every dive but register no
+  // `dive_computers` row, so the Dives filter reports "No dive computers
+  // registered". Registration keys on the serial when the file supplies one
+  // and falls back to the model string when it does not.
+  // ---------------------------------------------------------------------------
+  group('findOrRegisterImportedComputer', () {
+    // dive_computers.diver_id is a real FK, so the owners must exist.
+    setUp(() async {
+      await insertDiver('diver-1');
+      await insertDiver('diver-2');
+    });
+
+    test('creates a computer when nothing matches', () async {
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: 'Perdix 2',
+        manufacturer: 'Shearwater',
+        serialNumber: 'SN-999',
+        diverId: 'diver-1',
+      );
+
+      expect(computer, isNotNull);
+      expect(computer!.model, 'Perdix 2');
+      expect(computer.manufacturer, 'Shearwater');
+      expect(computer.serialNumber, 'SN-999');
+      expect(computer.diverId, 'diver-1');
+      expect(computer.name, 'Shearwater Perdix 2');
+
+      final rows = await db.select(db.diveComputers).get();
+      expect(rows, hasLength(1));
+      expect(rows.single.id, computer.id);
+    });
+
+    test('reuses an existing computer with the same serial', () async {
+      await insertComputer(
+        id: 'existing',
+        diverId: 'diver-1',
+        serialNumber: 'SN-999',
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+      );
+
+      // A different model spelling must not defeat the serial match: the
+      // serial is the strong key, exactly as on the download path.
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: 'Shearwater Perdix AI',
+        serialNumber: 'SN-999',
+        diverId: 'diver-1',
+      );
+
+      expect(computer!.id, 'existing');
+      expect(await db.select(db.diveComputers).get(), hasLength(1));
+    });
+
+    test('matches a serial despite stored whitespace', () async {
+      await insertComputer(
+        id: 'existing',
+        diverId: 'diver-1',
+        serialNumber: '  SN-999 ',
+      );
+
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: 'Perdix',
+        serialNumber: 'SN-999',
+        diverId: 'diver-1',
+      );
+
+      expect(computer!.id, 'existing');
+    });
+
+    test('reuses a serial-less computer with the same model', () async {
+      await insertComputer(
+        id: 'existing',
+        diverId: 'diver-1',
+        manufacturer: null,
+        model: 'Perdix 2',
+        serialNumber: null,
+      );
+
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: '  perdix   2 ',
+        diverId: 'diver-1',
+      );
+
+      expect(computer!.id, 'existing');
+      expect(await db.select(db.diveComputers).get(), hasLength(1));
+    });
+
+    test('matches a serial-less row on its manufacturer plus model', () async {
+      // The download path stores vendor and product separately; a file
+      // usually carries them jammed into one string.
+      await insertComputer(
+        id: 'existing',
+        diverId: 'diver-1',
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: null,
+      );
+
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: 'Shearwater Perdix',
+        diverId: 'diver-1',
+      );
+
+      expect(computer!.id, 'existing');
+    });
+
+    test(
+      'does not adopt a serial-bearing row when the file has no serial',
+      () async {
+        await insertComputer(
+          id: 'registered',
+          diverId: 'diver-1',
+          model: 'Perdix 2',
+          serialNumber: 'SN-999',
+        );
+
+        final computer = await repository.findOrRegisterImportedComputer(
+          model: 'Perdix 2',
+          diverId: 'diver-1',
+        );
+
+        expect(computer!.id, isNot('registered'));
+        expect(await db.select(db.diveComputers).get(), hasLength(2));
+      },
+    );
+
+    test('does not reuse a computer belonging to another diver', () async {
+      await insertComputer(
+        id: 'other-diver',
+        diverId: 'diver-2',
+        serialNumber: 'SN-999',
+      );
+
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: 'Perdix',
+        serialNumber: 'SN-999',
+        diverId: 'diver-1',
+      );
+
+      expect(computer!.id, isNot('other-diver'));
+      expect(computer.diverId, 'diver-1');
+    });
+
+    test('is idempotent: a second call registers nothing new', () async {
+      final first = await repository.findOrRegisterImportedComputer(
+        model: 'Perdix 2',
+        diverId: 'diver-1',
+      );
+      final second = await repository.findOrRegisterImportedComputer(
+        model: 'Perdix 2',
+        diverId: 'diver-1',
+      );
+
+      expect(second!.id, first!.id);
+      expect(await db.select(db.diveComputers).get(), hasLength(1));
+    });
+
+    test('derives a deterministic id from the normalized identity', () async {
+      // Every device must derive the SAME id for the same physical computer,
+      // or the beforeOpen backfill mints one row per synced device and there
+      // is no merge UI to clean that up.
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: 'Perdix 2',
+        diverId: 'diver-1',
+      );
+
+      expect(
+        computer!.id,
+        importedDiveComputerId(
+          diverId: 'diver-1',
+          model: 'Perdix 2',
+          serialNumber: null,
+        ),
+      );
+      // Normalization feeds the id, so spelling noise cannot fork it.
+      expect(
+        importedDiveComputerId(
+          diverId: 'diver-1',
+          model: '  PERDIX   2 ',
+          serialNumber: null,
+        ),
+        computer.id,
+      );
+    });
+
+    test('adopts the row already holding the deterministic id', () async {
+      // The user renamed a computer that a previous import registered, so
+      // the identity match now misses while the derived id still collides.
+      // Inserting blind would throw UNIQUE constraint failed and abort the
+      // whole import.
+      final id = importedDiveComputerId(
+        diverId: 'diver-1',
+        model: 'Perdix',
+        serialNumber: null,
+      );
+      await insertComputer(
+        id: id,
+        diverId: 'diver-1',
+        manufacturer: null,
+        model: 'My Renamed Perdix',
+        serialNumber: null,
+      );
+
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: 'Perdix',
+        diverId: 'diver-1',
+      );
+
+      expect(computer!.id, id);
+      expect(computer.model, 'My Renamed Perdix');
+      expect(await db.select(db.diveComputers).get(), hasLength(1));
+    });
+
+    test('breaks a tie on id so every device resolves alike', () async {
+      // matchImportedComputer's contract is that candidates arrive in a
+      // deterministic preference order. Ordering on updatedAt alone leaves
+      // same-timestamp rows in whatever order SQLite happens to return, so
+      // two devices could attribute the same dives to different rows.
+      await insertComputer(
+        id: 'dc-z',
+        diverId: 'diver-1',
+        manufacturer: null,
+        model: 'Perdix 2',
+        serialNumber: null,
+      );
+      await insertComputer(
+        id: 'dc-a',
+        diverId: 'diver-1',
+        manufacturer: null,
+        model: 'Perdix 2',
+        serialNumber: null,
+      );
+      // Same updatedAt on both, which insertComputer already guarantees.
+      await db.customStatement('UPDATE dive_computers SET updated_at = 1000');
+
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: 'Perdix 2',
+        diverId: 'diver-1',
+      );
+
+      expect(computer!.id, 'dc-a');
+    });
+
+    test('registers nothing when the model is blank', () async {
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: '   ',
+        diverId: 'diver-1',
+      );
+
+      expect(computer, isNull);
+      expect(await db.select(db.diveComputers).get(), isEmpty);
+    });
+
+    test('marks the new computer pending so it syncs', () async {
+      final computer = await repository.findOrRegisterImportedComputer(
+        model: 'Perdix 2',
+        diverId: 'diver-1',
+      );
+
+      final pending = await (db.select(
+        db.syncRecords,
+      )..where((t) => t.entityType.equals('diveComputers'))).get();
+      expect(pending.map((r) => r.recordId), contains(computer!.id));
+      expect(pending.single.syncStatus, 'pending');
     });
   });
 }

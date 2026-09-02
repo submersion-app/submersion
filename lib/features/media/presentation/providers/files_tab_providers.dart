@@ -5,6 +5,8 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
@@ -32,6 +34,14 @@ class FilesTabState extends Equatable {
   final int totalToExtract;
   final MatchedSelection match;
 
+  /// A correction added to every staged file's capture time before matching
+  /// and before persisting.
+  ///
+  /// Scoped to one picking session. Cleared by [FilesTabNotifier.clearStagedFiles]
+  /// along with the files themselves: the notifier is not autoDispose, so an
+  /// offset left set would silently follow the user into their next import.
+  final Duration captureTimeOffset;
+
   const FilesTabState({
     required this.files,
     required this.autoMatchByDate,
@@ -39,6 +49,7 @@ class FilesTabState extends Equatable {
     required this.extractedCount,
     required this.totalToExtract,
     required this.match,
+    required this.captureTimeOffset,
   });
 
   factory FilesTabState.initial() => FilesTabState(
@@ -48,6 +59,7 @@ class FilesTabState extends Equatable {
     extractedCount: 0,
     totalToExtract: 0,
     match: MatchedSelection.empty(),
+    captureTimeOffset: Duration.zero,
   );
 
   FilesTabState copyWith({
@@ -57,6 +69,7 @@ class FilesTabState extends Equatable {
     int? extractedCount,
     int? totalToExtract,
     MatchedSelection? match,
+    Duration? captureTimeOffset,
   }) => FilesTabState(
     files: files ?? this.files,
     autoMatchByDate: autoMatchByDate ?? this.autoMatchByDate,
@@ -64,6 +77,7 @@ class FilesTabState extends Equatable {
     extractedCount: extractedCount ?? this.extractedCount,
     totalToExtract: totalToExtract ?? this.totalToExtract,
     match: match ?? this.match,
+    captureTimeOffset: captureTimeOffset ?? this.captureTimeOffset,
   );
 
   @override
@@ -74,6 +88,7 @@ class FilesTabState extends Equatable {
     extractedCount,
     totalToExtract,
     match,
+    captureTimeOffset,
   ];
 }
 
@@ -152,11 +167,25 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       isExtracting: false,
       extractedCount: 0,
       totalToExtract: 0,
+      captureTimeOffset: Duration.zero,
     );
   }
 
   void setFiles(List<ExtractedFile> files, {required MatchedSelection match}) {
     state = state.copyWith(files: files, match: match);
+  }
+
+  /// Applies a new capture-time [offset] together with the [match] it produced.
+  ///
+  /// Both move in one state update so the review pane's summary count and the
+  /// rendered groups can never disagree: a caller that set the offset first and
+  /// the match second would publish an intermediate state showing the new
+  /// offset against the old grouping.
+  void setCaptureTimeOffset(
+    Duration offset, {
+    required MatchedSelection match,
+  }) {
+    state = state.copyWith(captureTimeOffset: offset, match: match);
   }
 
   void setExtractionProgress({required int done, required int total}) {
@@ -185,7 +214,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
         .toList();
     state = state.copyWith(
       files: remainingFiles,
-      match: MatchedSelection(matched: newMatched, unmatched: newUnmatched),
+      match: state.match.copyWith(matched: newMatched, unmatched: newUnmatched),
     );
   }
 
@@ -216,7 +245,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     );
 
     state = state.copyWith(
-      match: MatchedSelection(
+      match: state.match.copyWith(
         matched: newMatched,
         unmatched: state.match.unmatched
             .where((f) => f.sourcePath != sourcePath)
@@ -242,7 +271,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     );
 
     state = state.copyWith(
-      match: MatchedSelection(matched: newMatched, unmatched: const []),
+      match: state.match.copyWith(matched: newMatched, unmatched: const []),
     );
   }
 
@@ -360,7 +389,13 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       originalFilename: p.basename(file.sourcePath),
       localPath: localPath,
       bookmarkRef: bookmarkRef,
-      takenAt: file.metadata.takenAt ?? now,
+      // The session offset is baked into the stored value, not merely used
+      // for matching. EnrichmentService derives elapsed-since-entry from this
+      // column to place the photo on the profile chart and derive its depth
+      // badge; persisting an unshifted time for a file that only matched
+      // because of the shift would give every such photo a large negative
+      // elapsed, which resolves to the first profile sample's depth.
+      takenAt: file.metadata.takenAt?.add(state.captureTimeOffset) ?? now,
       latitude: file.metadata.latitude,
       longitude: file.metadata.longitude,
       width: file.metadata.width,
@@ -375,6 +410,34 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     return saved.id;
   }
 }
+
+/// The dive time windows the Files tab matches picked media against.
+///
+/// Kept separate from [filesTabNotifierProvider] so the review pane can re-run
+/// [DivePhotoMatcher] with a new capture-time offset without sending the user
+/// back through the OS file picker.
+///
+/// A dive with no recorded exit time gets one synthesised from its runtime, and
+/// a dive with neither gets a one-hour window. That is deliberately generous:
+/// [DivePhotoMatcher] adds a 30-minute pre-buffer and a 60-minute post-buffer
+/// on top, and a window that is slightly too wide costs a correctable
+/// mis-assignment, while one that is too narrow silently drops photos into the
+/// unmatched bucket with nothing to explain it.
+final diveBoundsProvider = FutureProvider<List<DiveBounds>>((ref) async {
+  final dives = await ref.watch(divesProvider.future);
+  return [
+    for (final d in dives)
+      DiveBounds(
+        diveId: d.id,
+        entryTime: d.effectiveEntryTime,
+        exitTime:
+            d.exitTime ??
+            d.effectiveEntryTime.add(
+              d.effectiveRuntime ?? const Duration(hours: 1),
+            ),
+      ),
+  ];
+});
 
 final filesTabNotifierProvider =
     StateNotifierProvider<FilesTabNotifier, FilesTabState>(

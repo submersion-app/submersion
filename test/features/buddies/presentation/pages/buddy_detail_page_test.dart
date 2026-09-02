@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -11,6 +12,23 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+
+/// Silences the RenderFlex overflow this page produces at phone widths while
+/// still surfacing every other framework error.
+///
+/// `FlutterError.onError` is process-global and `testWidgets` installs its own
+/// reporter on it, so the previous handler is captured and restored rather than
+/// assuming `FlutterError.presentError`. The restore is registered with
+/// `addTearDown` so it runs even when the test fails before reaching the end,
+/// which would otherwise leak a swallowing handler into later tests.
+void _ignoreOverflowErrors() {
+  final previousOnError = FlutterError.onError;
+  addTearDown(() => FlutterError.onError = previousOnError);
+  FlutterError.onError = (details) {
+    if (details.exception.toString().contains('overflowed')) return;
+    previousOnError?.call(details);
+  };
+}
 
 void main() {
   group('BuddyDetailPage desktop redirect', () {
@@ -163,6 +181,9 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
+      // Installed before the first frame: an overflow thrown during
+      // pumpWidget would otherwise escape the handler.
+      _ignoreOverflowErrors();
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -183,14 +204,77 @@ void main() {
           ),
         ),
       );
-      // Tolerate overflow errors in test layout
-      final errors = <FlutterErrorDetails>[];
-      FlutterError.onError = (d) => errors.add(d);
       await tester.pumpAndSettle();
-      FlutterError.onError = FlutterError.presentError;
 
       // Should show bottomTime formatted as minutes in dive history
       expect(find.text('45min'), findsOneWidget);
+    });
+  });
+
+  // Issue #982: the shared-dives list formatted dates with DateFormat.MMMd(),
+  // so a list spanning several years rendered ambiguous labels like "Mar 28".
+  group('BuddyDetailPage shared dive dates (#982)', () {
+    testWidgets('renders the year alongside the dive date', (tester) async {
+      final previousLocale = Intl.defaultLocale;
+      Intl.defaultLocale = 'en';
+      addTearDown(() => Intl.defaultLocale = previousLocale);
+
+      final buddy = Buddy(
+        id: 'buddy-1',
+        name: 'Jane Doe',
+        notes: '',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      // createTestDiveWithBottomTime dives are dated 2026-03-28.
+      final dives = [
+        createTestDiveWithBottomTime(id: 'buddy-dive-1', diveNumber: 1),
+      ];
+
+      final overrides = await getBaseOverrides();
+
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Installed before the first frame: an overflow thrown during
+      // pumpWidget would otherwise escape the handler.
+      _ignoreOverflowErrors();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+            buddyStatsProvider(
+              buddy.id,
+            ).overrideWith((ref) async => const BuddyStats(totalDives: 1)),
+            diveIdsForBuddyProvider(
+              buddy.id,
+            ).overrideWith((ref) async => ['buddy-dive-1']),
+            divesForBuddyProvider(buddy.id).overrideWith((ref) async => dives),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: BuddyDetailPage(buddyId: buddy.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(DateFormat.yMMMd().format(dives.first.dateTime)),
+        findsOneWidget,
+      );
+      expect(
+        find.text(DateFormat.MMMd().format(dives.first.dateTime)),
+        findsNothing,
+      );
     });
   });
 }

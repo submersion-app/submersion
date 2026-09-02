@@ -63,4 +63,29 @@ void main() {
     expect(diveTypeLabels(en, ['wreck', 'night']), 'Wreck, Night');
     expect(diveTypeLabels(en, const <String>[]), '');
   });
+
+  test('diveTypeShortLabel uses the built-in abbreviation', () {
+    expect(diveTypeShortLabel(de, 'technical'), 'Tec');
+    expect(diveTypeShortLabel(de, 'recreational'), 'Rec');
+  });
+
+  test('diveTypeShortLabel falls back to the full label for a custom type', () {
+    final byId = {
+      'my-tag': entity('my-tag', 'Suche & Bergung', isBuiltIn: false),
+    };
+    expect(
+      diveTypeShortLabel(de, 'my-tag', typesById: byId),
+      'Suche & Bergung',
+    );
+  });
+
+  test('diveTypeShortLabel keeps the diver label for a custom row on a '
+      'built-in slug', () {
+    final byId = {'wreck': entity('wreck', 'Hausriff-Wrack', isBuiltIn: false)};
+    expect(
+      diveTypeShortLabel(de, 'wreck', typesById: byId),
+      'Hausriff-Wrack',
+      reason: 'the entity guard must win over the built-in abbreviation',
+    );
+  });
 }

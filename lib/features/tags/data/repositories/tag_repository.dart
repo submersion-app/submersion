@@ -587,6 +587,9 @@ class TagRepository {
     try {
       final result = await _db
           .customSelect(
+            // stats-scope-exempt: usage/deletion indicator. Must see every
+            // dive carrying the tag, excluded ones included, or removing the
+            // tag would strand a reference.
             'SELECT COUNT(*) as count FROM dive_tags WHERE tag_id = ?',
             variables: [Variable.withString(tagId)],
           )
@@ -609,6 +612,8 @@ class TagRepository {
       final placeholders = tagIds.map((_) => '?').join(',');
       final result = await _db
           .customSelect(
+            // stats-scope-exempt: merge preview. Tells the diver how many
+            // dives the merge will rewrite, which is every one of them.
             'SELECT COUNT(DISTINCT dive_id) as count FROM dive_tags WHERE tag_id IN ($placeholders)',
             variables: tagIds.map((id) => Variable.withString(id)).toList(),
           )

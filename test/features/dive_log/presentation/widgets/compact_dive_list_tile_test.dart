@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -47,6 +48,31 @@ void main() {
       expect(find.text('Blue Corner Wall'), findsOneWidget);
       expect(find.textContaining('28'), findsWidgets);
       expect(find.textContaining('52'), findsWidgets);
+      // No summary provided -- defaults to the open-circuit badge.
+      expect(find.text('OC'), findsOneWidget);
+    });
+
+    testWidgets('shows the dive mode badge from the summary', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'test-id',
+            diveNumber: 7,
+            dateTime: DateTime(2026, 3, 15, 9, 30),
+            summary: DiveSummary(
+              id: 'test-id',
+              dateTime: DateTime(2026, 3, 15, 9, 30),
+              sortTimestamp: 0,
+              diveMode: DiveMode.ccr,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('CCR'), findsOneWidget);
     });
 
     testWidgets('large dive number stays on one line and scales to fit', (

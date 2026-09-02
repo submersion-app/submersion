@@ -177,14 +177,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           if (site.hasCoordinates) ...[
             _buildMapSection(context, ref, site),
             const SizedBox(height: 16),
-            // Diver-placed annotations; placement happens on the map, so
-            // the add action opens the fullscreen scape armed to place.
-            SiteFeaturesSection(
-              siteId: site.id,
-              onAddFeature: () =>
-                  _showFullscreenMap(context, ref, site, startPlacing: true),
-            ),
-            const SizedBox(height: 16),
           ],
 
           // Basic Info Section (Name + Location String)
@@ -207,9 +199,28 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           _buildDepthSection(context, ref, site),
           const SizedBox(height: 16),
 
+          // Auto-computed Dive Statistics Section (kept visually separate
+          // from the manual Depth Range card above: that card holds
+          // DiveSite.minDepth/maxDepth, while this one is derived from the
+          // dives actually logged at the site)
+          _buildDiveStatisticsSection(context, ref, site),
+          const SizedBox(height: 16),
+
           // Altitude Section (only if altitude is set)
           if (site.altitude != null) ...[
             _buildAltitudeSection(context, ref, site),
+            const SizedBox(height: 16),
+          ],
+
+          // Site Features Section (diver-placed annotations; placement happens
+          // on the map, so the add action opens the fullscreen scape armed to
+          // place)
+          if (site.hasCoordinates) ...[
+            SiteFeaturesSection(
+              siteId: site.id,
+              onAddFeature: () =>
+                  _showFullscreenMap(context, ref, site, startPlacing: true),
+            ),
             const SizedBox(height: 16),
           ],
 
@@ -1115,6 +1126,129 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         ),
       ),
     );
+  }
+
+  /// Auto-computed statistics over the dives actually logged at [site]
+  /// (submersion-app/submersion#1018, #1038): depth range, duration, and
+  /// first/last dive date. Hidden entirely when the site has no dives, so a
+  /// diver never sees a misleading all-zero card; a null individual field
+  /// (e.g. a dive missing depth or duration) renders as "not available"
+  /// rather than 0.
+  ///
+  /// Deliberately a separate card from [_buildDepthSection] above, which
+  /// shows the manually entered [DiveSite.minDepth]/[DiveSite.maxDepth] -
+  /// those values are never read or overwritten here.
+  Widget _buildDiveStatisticsSection(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    final statsAsync = ref.watch(siteDiveStatisticsProvider(site.id));
+
+    return statsAsync.when(
+      data: (stats) {
+        if (!stats.hasData) return const SizedBox.shrink();
+
+        final notAvailable = context.l10n.diveSites_detail_stats_notAvailable;
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.query_stats,
+                      size: 20,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.diveSites_detail_section_diveStatistics,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildDetailRow(
+                  context,
+                  Icons.arrow_downward,
+                  context.l10n.diveSites_detail_stats_maxDepth,
+                  stats.maxDepthReached == null
+                      ? notAvailable
+                      : units.formatDepth(stats.maxDepthReached),
+                  isEmpty: stats.maxDepthReached == null,
+                ),
+                _buildDetailRow(
+                  context,
+                  Icons.arrow_upward,
+                  context.l10n.diveSites_detail_stats_minDepth,
+                  stats.minDepthReached == null
+                      ? notAvailable
+                      : units.formatDepth(stats.minDepthReached),
+                  isEmpty: stats.minDepthReached == null,
+                ),
+                _buildDetailRow(
+                  context,
+                  Icons.timer,
+                  context.l10n.diveSites_detail_stats_longestDive,
+                  _formatStatsDuration(notAvailable, stats.longestDiveSeconds),
+                  isEmpty: stats.longestDiveSeconds == null,
+                ),
+                _buildDetailRow(
+                  context,
+                  Icons.hourglass_bottom,
+                  context.l10n.diveSites_detail_stats_avgDuration,
+                  _formatStatsDuration(
+                    notAvailable,
+                    stats.averageDurationSeconds?.round(),
+                  ),
+                  isEmpty: stats.averageDurationSeconds == null,
+                ),
+                _buildDetailRow(
+                  context,
+                  Icons.event,
+                  context.l10n.diveSites_detail_stats_firstDive,
+                  units.formatDate(stats.firstDiveAt),
+                  isEmpty: stats.firstDiveAt == null,
+                ),
+                _buildDetailRow(
+                  context,
+                  Icons.event_available,
+                  context.l10n.diveSites_detail_stats_lastDive,
+                  units.formatDate(stats.lastDiveAt),
+                  isEmpty: stats.lastDiveAt == null,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      // Nothing while the aggregate is in flight. Unlike the dive count card
+      // above, which always resolves to a card, this section resolves to
+      // SizedBox.shrink() for a site with no dives, so a skeleton here would
+      // be a phantom card that appears and then vanishes, jumping the content
+      // below it. The query is a single indexed aggregate over one site, so
+      // the wait it would cover is imperceptible.
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+
+  /// "Xh Ym" for durations >= 1 hour, "Xmin" otherwise, or [notAvailable]
+  /// when [seconds] is null (issue #1018/#1038: a dive with neither runtime
+  /// nor bottom time contributes nothing to the duration aggregate).
+  String _formatStatsDuration(String notAvailable, int? seconds) {
+    if (seconds == null || seconds <= 0) return notAvailable;
+    final totalMinutes = seconds ~/ 60;
+    final hours = totalMinutes ~/ 60;
+    final minutes = totalMinutes % 60;
+    if (hours > 0) return '${hours}h ${minutes}m';
+    return '${minutes}min';
   }
 
   Widget _buildAltitudeSection(

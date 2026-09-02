@@ -223,6 +223,9 @@ static void sample_callback(dc_sample_type_t type,
         state->current_sample.temperature = NAN;
         state->current_sample.pressure = NAN;
         state->current_sample.tank = UINT32_MAX;
+        for (unsigned int t = 0; t < LIBDC_MAX_TANKS; t++) {
+            state->current_sample.tank_pressure[t] = NAN;
+        }
         // Carry the active gas forward across samples, not just the switch sample.
         state->current_sample.gasmix = state->current_gasmix;
         state->current_sample.heartbeat = UINT32_MAX;
@@ -252,6 +255,14 @@ static void sample_callback(dc_sample_type_t type,
         state->current_sample.temperature = value->temperature;
         break;
     case DC_SAMPLE_PRESSURE:
+        // Issue #1223. libdivecomputer fires this once per transmitter, so a
+        // single sample can carry a reading for several tanks. Record each one
+        // against its own tank; keeping only the pair below dropped every tank
+        // but the last, which drew the others as a flat "(est.)" line.
+        if (value->pressure.tank < LIBDC_MAX_TANKS) {
+            state->current_sample.tank_pressure[value->pressure.tank] =
+                value->pressure.value;
+        }
         state->current_sample.pressure = value->pressure.value;
         state->current_sample.tank = value->pressure.tank;
         break;

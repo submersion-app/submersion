@@ -54,20 +54,17 @@ void main() {
     updatedAt: DateTime(2026, 6, 1),
   );
 
-  test(
-    'unlinkFromDive clears the FK, keeps the row, sets retainInLibrary',
-    () async {
-      await insertDive('d1');
-      await repo.createMedia(item('m1', diveId: 'd1'));
+  test('unlinkFromDive clears the FK and keeps the row', () async {
+    await insertDive('d1');
+    await repo.createMedia(item('m1', diveId: 'd1'));
 
-      await repo.unlinkFromDive(['m1']);
+    await repo.unlinkFromDive(['m1']);
 
-      final m = await repo.getMediaById('m1');
-      expect(m, isNotNull);
-      expect(m!.diveId, isNull);
-      expect(m.retainInLibrary, isTrue);
-    },
-  );
+    final m = await repo.getMediaById('m1');
+    expect(m, isNotNull);
+    expect(m!.diveId, isNull);
+    expect(m.retainInLibrary, isFalse, reason: 'nothing latches the flag');
+  });
 
   test('unlinkFromSite clears only the site link', () async {
     await insertDive('d1');
@@ -79,40 +76,53 @@ void main() {
     final m = await repo.getMediaById('m1');
     expect(m!.siteId, isNull);
     expect(m.diveId, 'd1');
-    expect(m.retainInLibrary, isTrue);
+    expect(m.retainInLibrary, isFalse);
   });
 
-  test('markRetainedInLibrary sets the flag without touching links', () async {
-    await insertDive('d1');
-    await repo.createMedia(item('m1', diveId: 'd1'));
+  test(
+    'partitionForSiteUnlink keeps dive-linked rows, deletes the rest',
+    () async {
+      await insertDive('d1');
+      await insertSite('s1');
+      await repo.createMedia(item('both', diveId: 'd1', siteId: 's1'));
+      await repo.createMedia(item('site-only', siteId: 's1'));
 
-    await repo.markRetainedInLibrary(['m1']);
+      final split = await repo.partitionForSiteUnlink(['both', 'site-only']);
 
-    final m = await repo.getMediaById('m1');
-    expect(m!.diveId, 'd1');
-    expect(m.retainInLibrary, isTrue);
+      expect(split.diveLinked, ['both']);
+      expect(split.deletable, ['site-only']);
+    },
+  );
+
+  test('partitionForSiteUnlink short-circuits an empty list', () async {
+    final split = await repo.partitionForSiteUnlink(const []);
+    expect(split.diveLinked, isEmpty);
+    expect(split.deletable, isEmpty);
   });
 
   test('empty id lists are no-ops', () async {
     await repo.unlinkFromDive(const []);
     await repo.unlinkFromSite(const []);
-    await repo.markRetainedInLibrary(const []);
   });
 
-  test('getSweepableOrphanIds excludes retained rows', () async {
-    await repo.createMedia(item('sweep-me'));
-    await repo.createMedia(item('keep-me'));
-    await repo.markRetainedInLibrary(['keep-me']);
-    // Age both rows past the cutoff.
-    await db.customStatement(
-      'UPDATE media SET created_at = 0 WHERE id IN (?, ?)',
-      ['sweep-me', 'keep-me'],
-    );
+  test(
+    'getSweepableOrphanIds ignores a legacy retain_in_library flag',
+    () async {
+      await repo.createMedia(item('sweep-me'));
+      await repo.createMedia(item('legacy-kept'));
+      // A row a pre-upgrade build latched: the flag no longer protects it.
+      await db.customStatement(
+        'UPDATE media SET retain_in_library = 1, created_at = 0 WHERE id = ?',
+        ['legacy-kept'],
+      );
+      await db.customStatement('UPDATE media SET created_at = 0 WHERE id = ?', [
+        'sweep-me',
+      ]);
 
-    final ids = await repo.getSweepableOrphanIds(
-      olderThan: DateTime(2026, 1, 1),
-    );
-    expect(ids, contains('sweep-me'));
-    expect(ids, isNot(contains('keep-me')));
-  });
+      final ids = await repo.getSweepableOrphanIds(
+        olderThan: DateTime(2026, 1, 1),
+      );
+      expect(ids.toSet(), {'sweep-me', 'legacy-kept'});
+    },
+  );
 }

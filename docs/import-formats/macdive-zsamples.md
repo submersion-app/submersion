@@ -2,10 +2,12 @@
 
 **Status:** `ZRAWDATA` is **SOLVED** — see "Update 2026-08-09" at the end of this document. It is the raw Shearwater download stream stored *still compressed*; decompressing it with libdivecomputer's own two passes yields Petrel Native Format, and 266/267 dives in the reference corpus decode against ground truth. MacDive SQLite profile import works for Shearwater dives as of that date.
 
-`ZSAMPLES` remains NO-GO (AES-encrypted with a per-dive key, documented below) but is now moot: every Shearwater dive that has `ZSAMPLES` also has `ZRAWDATA`. Non-Shearwater dives have neither and still need MacDive's XML export.
+`ZSAMPLES` remains NO-GO (AES-encrypted with a per-dive key, documented below) but is now moot: every Shearwater dive that has `ZSAMPLES` also has `ZRAWDATA`.
+
+**Correction (see "Update 2026-08-29" below):** the claim in the previous paragraph that "non-Shearwater dives have neither [`ZSAMPLES` nor `ZRAWDATA`] and still need MacDive's XML export" was never actually tested against Suunto computers — the investigation corpus contained none. It turns out at least three Suunto models (EON Steel, EON Steel Black, Cobra) do populate `ZRAWDATA`, and unlike Shearwater's, theirs needs no decompression at all.
 
 The 2026-04-24 "ZRAWDATA pivot invalidated" section below is **historically inaccurate** and is retained only to show how the wrong conclusion was reached.
-**Date:** 2026-04-23 (initial), 2026-04-24 (ZRAWDATA invalidation), 2026-08-09 (ZRAWDATA solved)
+**Date:** 2026-04-23 (initial), 2026-04-24 (ZRAWDATA invalidation), 2026-08-09 (ZRAWDATA solved), 2026-08-29 (Suunto ZRAWDATA confirmed)
 **Author:** Eric Griffin
 **Spec:** `docs/superpowers/specs/2026-04-23-macdive-sqlite-profile-decoding-design.md`
 **Plan:** `docs/superpowers/plans/2026-04-23-macdive-zsamples-phase-1-spike.md`
@@ -474,3 +476,21 @@ Model number does not matter within the Petrel family: "Petrel 2" (3) and "Tern"
 ### Caller-facing trap
 
 `libdc_parse_raw_dive` returned **rc = 0 with an empty error buffer** on the failed compressed parse, having produced a zeroed dive — `extract_dive_fields` swallows per-field failures. Any caller must validate sample count or max depth rather than trusting the return code, or a regression in the decompression step lands silently as a wave of empty dives. `MacDiveDiveMapper._attachProfile` treats an empty sample list as failure for exactly this reason.
+
+## Update 2026-08-29: Suunto `ZRAWDATA` also confirmed
+
+The 2026-08-09 update solved `ZRAWDATA` for Shearwater but restated, unchallenged, the original spike's conclusion that non-Shearwater computers carry no `ZRAWDATA` at all. That conclusion was never actually tested against Suunto — the 540-dive investigation corpus (see "Per-computer presence" above) contained Shearwater, Oceanic Matrix Master, and no-computer dives only, never a Suunto one.
+
+A Submersion user's real MacDive database contains Suunto dives, and their `ZRAWDATA` **is** populated. Unlike Shearwater's stream, Suunto's is stored **uncompressed**, already in the exact byte layout libdivecomputer's own parsers expect for that computer family — no RLE/XOR decompression pass needed, confirmed by feeding the raw blob straight into `parseRawDiveData` and getting correct profile samples back.
+
+Confirmed by model (against real MacDive `ZRAWDATA`, not just the vendor name):
+
+| MacDive `ZCOMPUTER` string | libdivecomputer product | Native format |
+|---|---|---|
+| `Suunto EON Steel` | EON Steel | SBEM |
+| `Suunto EON Steel Black` | EON Steel Black | SBEM |
+| `Suunto Cobra` | Cobra | Vyper dive-header |
+
+Implemented in `MacDiveDiveMapper._suuntoVendorProduct` / `_attachProfile` (`lib/features/universal_import/data/services/macdive_dive_mapper.dart`): the mapper now branches on vendor, running `ShearwaterRawDecompressor` only for Shearwater and passing every other recognized vendor's bytes straight to `parse`. See [submersion-app/submersion#1399](https://github.com/submersion-app/submersion/issues/1399) and the fix PR.
+
+**Not yet validated:** other Suunto models likely follow the same uncompressed-native-format pattern (Suunto's own product line shares firmware lineage), but no real `ZRAWDATA` from any other Suunto model has been confirmed. Computers outside the three above still fall through to the "no `ZRAWDATA`" warning path — a future contributor with real data from another Suunto model should add it to `_suuntoVendorProduct` only after confirming its `ZRAWDATA` parses cleanly, per the caller-facing trap noted above (a failed native parse can silently return a zeroed dive rather than an error).

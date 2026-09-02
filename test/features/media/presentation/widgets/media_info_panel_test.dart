@@ -14,7 +14,12 @@ import 'package:submersion/features/media/domain/value_objects/media_source_data
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/media/presentation/helpers/media_time_pinner.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
+import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -84,6 +89,20 @@ class _CapturingQueue implements MediaTransferQueueRepository {
   Future<int> enqueueRepairUpload({required String mediaId}) async {
     repairEnqueued.add(mediaId);
     return 1;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} is not stubbed');
+}
+
+class _CapturingPinner implements MediaTimePinner {
+  _CapturingPinner(this.applied);
+  final List<MediaTimeChoice> applied;
+
+  @override
+  Future<void> apply(MediaItem item, MediaTimeChoice choice) async {
+    applied.add(choice);
   }
 
   @override
@@ -264,12 +283,15 @@ void main() {
       expect(find.text('Not backed up'), findsNothing);
     });
 
-    testWidgets('no store connected renders the not-connected line', (
+    testWidgets('no store connected renders the not-connected line ONCE', (
       tester,
     ) async {
+      // findsOneWidget, not findsWidgets. The store row and the summary row
+      // both fell back to this same string, so the panel printed it twice and
+      // a one-or-more matcher could not see the difference.
       await pump(tester, _item(), attached: false);
 
-      expect(find.text('No cloud store connected'), findsWidgets);
+      expect(find.text('No cloud store connected'), findsOneWidget);
     });
 
     testWidgets('a thumb-only row says the original was not sent', (
@@ -614,6 +636,120 @@ void main() {
 
       expect(find.text('Back up now'), findsNothing);
       expect(find.text('Retry upload'), findsNothing);
+    });
+  });
+
+  group('Time in dive (issue #1090)', () {
+    final dive = domain.Dive(
+      id: 'd1',
+      dateTime: DateTime.utc(2026, 3, 12, 9),
+      profile: const [
+        domain.DiveProfilePoint(timestamp: 0, depth: 0),
+        domain.DiveProfilePoint(timestamp: 600, depth: 20),
+        domain.DiveProfilePoint(timestamp: 1800, depth: 0),
+      ],
+    );
+
+    MediaItem linked({MediaEnrichment? enrichment}) => MediaItem(
+      id: 'm1',
+      diveId: 'd1',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.platformGallery,
+      platformAssetId: 'asset-1',
+      takenAt: DateTime(2026, 3, 12, 9, 14),
+      createdAt: DateTime(2026, 3, 12),
+      updatedAt: DateTime(2026, 3, 12),
+      enrichment: enrichment,
+    );
+
+    MediaEnrichment enrichmentAt(
+      int elapsedSeconds, {
+      MatchConfidence confidence = MatchConfidence.exact,
+    }) => MediaEnrichment(
+      id: 'e1',
+      mediaId: 'm1',
+      diveId: 'd1',
+      elapsedSeconds: elapsedSeconds,
+      depthMeters: 12,
+      matchConfidence: confidence,
+      createdAt: DateTime(2026, 3, 12),
+    );
+
+    final diveOverride = diveProvider('d1').overrideWith((ref) async => dive);
+
+    testWidgets('renders the automatic position as mm:ss', (tester) async {
+      await pump(
+        tester,
+        linked(enrichment: enrichmentAt(750)),
+        extra: [diveOverride],
+      );
+
+      expect(find.text('Time in dive'), findsOneWidget);
+      expect(find.text('12:30'), findsOneWidget);
+    });
+
+    testWidgets('marks a manual position as set by the diver', (tester) async {
+      await pump(
+        tester,
+        linked(
+          enrichment: enrichmentAt(750, confidence: MatchConfidence.manual),
+        ),
+        extra: [diveOverride],
+      );
+
+      expect(find.text('12:30 (set manually)'), findsOneWidget);
+    });
+
+    testWidgets('renders Unknown for a position outside the dive window', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        linked(
+          enrichment: enrichmentAt(
+            1879 * 60,
+            confidence: MatchConfidence.estimated,
+          ),
+        ),
+        extra: [diveOverride],
+      );
+
+      expect(find.text('Time in dive'), findsOneWidget);
+      expect(find.text('1879:00'), findsNothing);
+    });
+
+    testWidgets('offers no row or action for an item with no dive', (
+      tester,
+    ) async {
+      await pump(tester, _item());
+
+      expect(find.text('Time in dive'), findsNothing);
+      expect(find.text('Set time in dive'), findsNothing);
+    });
+
+    testWidgets('Set time in dive opens the dialog and applies the choice', (
+      tester,
+    ) async {
+      final applied = <MediaTimeChoice>[];
+      await pump(
+        tester,
+        linked(enrichment: enrichmentAt(750)),
+        extra: [
+          diveOverride,
+          mediaTimePinnerProvider.overrideWithValue(_CapturingPinner(applied)),
+        ],
+      );
+
+      await tester.tap(find.text('Set time in dive'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SetMediaTimeDialog), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), '5:00');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(applied, hasLength(1));
+      expect((applied.single as MediaTimePinned).elapsedSeconds, 300);
     });
   });
 }

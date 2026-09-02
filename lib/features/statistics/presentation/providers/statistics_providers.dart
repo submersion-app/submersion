@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_gas_lane_provider.dart';
 import 'package:submersion/features/statistics/data/services/deco_classification_service.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
@@ -18,6 +19,19 @@ import 'package:submersion/features/statistics/presentation/providers/statistics
 /// and refreshes every gas statistic downstream of it (issue #828).
 final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
   return StatisticsRepository(gasModel: ref.watch(gasModelProvider));
+});
+
+/// How many dives the diver has explicitly excluded from statistics.
+///
+/// Backs the Overview footnote, which exists so the statistics dive count and
+/// the logbook dive count differing is self-explaining rather than a support
+/// ticket six months later. Deliberately unaffected by the Statistics filter:
+/// it describes a persistent property of the logbook, not the current view.
+final excludedDiveCountProvider = FutureProvider<int>((ref) async {
+  final repository = ref.watch(statisticsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
+  return repository.countExcludedDives(diverId: currentDiverId);
 });
 
 /// Overview totals scoped by the Statistics filter. Kept separate from
@@ -31,6 +45,26 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
   final filter = ref.watch(statisticsFilterProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
   return repository.getStatistics(diverId: currentDiverId, filter: filter);
+});
+
+/// Personal records (superlatives) scoped by the Statistics filter.
+///
+/// Split from diveRecordsProvider for the same reason
+/// [filteredDiveStatisticsProvider] is split from diveStatisticsProvider: the
+/// dive-log summary widget reads the unfiltered one and has no filter UI, so
+/// the Statistics tab's scope must not reach it. Issue #1028: before this
+/// split, the Statistics tab's records were the only panel on the page that
+/// ignored the filter.
+///
+/// Takes the same dives tick as its unfiltered sibling (issue #217): a merge,
+/// a bulk delete, or a sync pull rewrites the superlatives without going
+/// through any notifier.
+final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(statisticsFilterProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  return repository.getRecords(diverId: currentDiverId, filter: filter);
 });
 
 /// Adds keepAlive with a 5-minute expiry and subscribes to the statistics
@@ -57,21 +91,21 @@ void _keepAliveWithExpiry(Ref ref) {
 // Gas Statistics Providers
 // ============================================================================
 
-/// SAC trend provider that uses the appropriate calculation based on sacUnit setting
+/// Consumption trend for the lane the gas page shows (SAC or RMV).
 final sacTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  final sacUnit = ref.watch(sacUnitProvider);
+  final lane = ref.watch(statisticsGasLaneProvider);
   final filter = ref.watch(statisticsFilterProvider);
 
-  if (sacUnit == SacUnit.litersPerMin) {
-    return repository.getSacVolumeTrend(
+  if (lane == GasConsumptionLane.rmv) {
+    return repository.getSacVolumePerDive(
       diverId: currentDiverId,
       filter: filter,
     );
   } else {
-    return repository.getSacPressureTrend(
+    return repository.getSacPressurePerDive(
       diverId: currentDiverId,
       filter: filter,
     );
@@ -91,16 +125,16 @@ final gasMixDistributionProvider = FutureProvider<List<DistributionSegment>>((
   );
 });
 
-/// SAC records provider that uses the appropriate calculation based on sacUnit setting
+/// Best and highest consumption for the lane the gas page shows.
 final sacRecordsProvider =
     FutureProvider<({RankingItem? best, RankingItem? worst})>((ref) async {
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      final sacUnit = ref.watch(sacUnitProvider);
+      final lane = ref.watch(statisticsGasLaneProvider);
       final filter = ref.watch(statisticsFilterProvider);
 
-      if (sacUnit == SacUnit.litersPerMin) {
+      if (lane == GasConsumptionLane.rmv) {
         return repository.getSacVolumeRecords(
           diverId: currentDiverId,
           filter: filter,
@@ -113,15 +147,15 @@ final sacRecordsProvider =
       }
     });
 
-/// Average SAC by tank role (back gas, stage, deco, etc.)
+/// Average consumption by tank role for the lane the gas page shows.
 final sacByTankRoleProvider = FutureProvider<Map<String, double>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  final sacUnit = ref.watch(sacUnitProvider);
+  final lane = ref.watch(statisticsGasLaneProvider);
   final filter = ref.watch(statisticsFilterProvider);
 
-  if (sacUnit == SacUnit.litersPerMin) {
+  if (lane == GasConsumptionLane.rmv) {
     return repository.getSacVolumeByTankRole(
       diverId: currentDiverId,
       filter: filter,
@@ -162,10 +196,7 @@ final depthProgressionTrendProvider = FutureProvider<List<TrendDataPoint>>((
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(statisticsFilterProvider);
-  return repository.getDepthProgressionTrend(
-    diverId: currentDiverId,
-    filter: filter,
-  );
+  return repository.getDepthPerDive(diverId: currentDiverId, filter: filter);
 });
 
 final bottomTimeTrendProvider = FutureProvider<List<TrendDataPoint>>((
@@ -175,7 +206,10 @@ final bottomTimeTrendProvider = FutureProvider<List<TrendDataPoint>>((
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(statisticsFilterProvider);
-  return repository.getBottomTimeTrend(diverId: currentDiverId, filter: filter);
+  return repository.getBottomTimePerDive(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 final divesPerYearProvider = FutureProvider<List<({int year, int count})>>((
@@ -272,6 +306,24 @@ final temperatureByMonthProvider =
         filter: filter,
       );
     });
+
+/// Water temperature as a per-dive time series.
+///
+/// Sibling of [temperatureByMonthProvider], which stays a twelve-bucket
+/// seasonal climatology. A travelling diver needs the series; a diver with one
+/// home region gets real value from the season (issue #299).
+final waterTempTrendProvider = FutureProvider<List<TrendDataPoint>>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(statisticsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getWaterTempPerDive(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
 
 // ============================================================================
 // Social & Buddies Providers
@@ -380,11 +432,11 @@ final bestSitesForMarineLifeProvider = FutureProvider<List<RankingItem>>((
 
 /// Per-species statistics (sightings, depth range, sites, first/last seen).
 ///
-/// Deliberately UNFILTERED: its only consumer is the Marine Life
-/// species-detail page (route `/species/:id`), which is not a Statistics-tab
-/// surface and has no filter UI. Watching [statisticsFilterProvider] here
-/// would silently scope each species' detail stats to whatever filter is
-/// currently active on the (unrelated) Statistics tab.
+/// Deliberately UNFILTERED: its only consumer is the species detail page
+/// (route `/species/:id`), which is not a Statistics-tab surface and has no
+/// filter UI. Watching [statisticsFilterProvider] here would silently scope
+/// each species' detail stats to whatever filter is currently active on the
+/// (unrelated) Statistics tab.
 final speciesStatisticsProvider =
     FutureProvider.family<SpeciesStatistics, String>((ref, speciesId) async {
       _keepAliveWithExpiry(ref);
@@ -466,7 +518,7 @@ final weightTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(statisticsFilterProvider);
-  return repository.getWeightTrend(diverId: currentDiverId, filter: filter);
+  return repository.getWeightPerDive(diverId: currentDiverId, filter: filter);
 });
 
 // ============================================================================

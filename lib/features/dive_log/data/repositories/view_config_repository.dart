@@ -196,13 +196,42 @@ class ViewConfigRepository {
     }
   }
 
-  /// Upserts built-in table presets for [diverId]. Idempotent: safe to call
-  /// on every load. Uses insertOnConflictUpdate so presets are refreshed if
-  /// the built-in definitions change, but createdAt is preserved by using a
-  /// fixed stable timestamp per preset ID.
+  /// Seeds the built-in table presets for [diverId], refreshing them if the
+  /// built-in definitions have changed.
+  ///
+  /// Idempotent in the strict sense: a row that already matches its built-in
+  /// definition is left alone, so a repeat call issues no write at all. That
+  /// matters because drift raises a `field_presets` update for every write
+  /// statement it executes, changed rows or not, and the presets provider
+  /// listens to that stream while seeding from inside its own build. An
+  /// unconditional upsert therefore made the provider invalidate itself on its
+  /// own write and rebuild without end (issue #1355).
+  ///
+  /// [createdAt] carries over from the stored row so a refresh preserves the
+  /// original creation time, which is also the preset list's sort key.
   Future<void> ensureBuiltInPresets(String diverId) async {
+    final builtIns = domain.FieldPreset.builtInTablePresets();
+    if (builtIns.isEmpty) return;
+
+    final ids = builtIns.map((p) => p.id).toList();
+    final rows = await (_db.select(
+      _db.fieldPresets,
+    )..where((r) => r.id.isIn(ids))).get();
+    final existing = {for (final row in rows) row.id: row};
+
     final now = DateTime.now().millisecondsSinceEpoch;
-    for (final preset in domain.FieldPreset.builtInTablePresets()) {
+    for (final preset in builtIns) {
+      final row = existing[preset.id];
+      final configJson = jsonEncode(preset.configJson);
+      final unchanged =
+          row != null &&
+          row.diverId == diverId &&
+          row.viewMode == preset.viewMode.name &&
+          row.name == preset.name &&
+          row.configJson == configJson &&
+          row.isBuiltIn;
+      if (unchanged) continue;
+
       await _db
           .into(_db.fieldPresets)
           .insertOnConflictUpdate(
@@ -211,9 +240,9 @@ class ViewConfigRepository {
               diverId: diverId,
               viewMode: preset.viewMode.name,
               name: preset.name,
-              configJson: jsonEncode(preset.configJson),
+              configJson: configJson,
               isBuiltIn: const Value(true),
-              createdAt: now,
+              createdAt: row?.createdAt ?? now,
             ),
           );
     }

@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 
@@ -7,7 +8,19 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 /// Used by both the provider layer (UI filter state) and the repository layer
 /// (SQL WHERE clause generation for paginated queries).
 class DiveFilterState {
+  /// Inclusive first day of the range, treated as a CALENDAR DATE: only the
+  /// year/month/day are read, and any time-of-day or timezone flag the value
+  /// carries is discarded.
+  ///
+  /// Producers build these locally (the filter sheet's presets, and
+  /// `showAppDatePicker` by construction) while `dives.dive_date_time` holds a
+  /// wall clock flagged as UTC. Comparing the two frames raw shifted the day
+  /// boundary by the device's UTC offset (issue #1368), so every comparison
+  /// site goes through [startDateBoundMs] / [endDateBoundMs] instead.
   final DateTime? startDate;
+
+  /// Inclusive last day of the range. See [startDate] for the calendar-date
+  /// semantics; the whole of this day is kept.
   final DateTime? endDate;
   final String? diveTypeId;
   final String? siteId;
@@ -16,7 +29,37 @@ class DiveFilterState {
   final double? minDepth;
   final double? maxDepth;
   final bool? favoritesOnly;
+
+  /// When true, keep only dives the diver excluded from statistics, so
+  /// they can find and review them (#526). Null means this axis is off.
+  ///
+  /// This is a view filter for *finding* excluded dives. It plays no part
+  /// in enforcing the exclusion; that is DiveStatsScope's job and applies
+  /// unconditionally, whether or not this axis is set.
+  final bool? excludedFromStatsOnly;
+
+  /// Decompression status, derived from the recorded profile signal: a
+  /// deco-stop profile point, a `decoStopStart` event, or a positive ceiling
+  /// on a profile carrying no deco-type data at all (mirroring
+  /// `scanRecordedDecoSignals` in StatisticsRepository). Null means no filter;
+  /// true/false restrict to deco/no-deco dives. Dives whose status is
+  /// unrecorded (no profile, or a profile needing the computed fallback)
+  /// match neither.
+  ///
+  /// This axis is SQL-only. It is applied by `decoSignalCondition` in the
+  /// query paths and deliberately NOT by [apply]; see the note there.
+  final bool? decoOnly;
+
+  /// True to restrict the list to dives with no buddy assigned: neither the
+  /// legacy free-text `buddy` field nor a linked buddy is set.
+  final bool? noBuddyOnly;
   final List<String> tagIds;
+
+  /// Restricts results to dives whose [Dive.dateTime] falls on one of these
+  /// weekdays, using [DateTime.weekday] numbering (1 = Monday, 7 = Sunday).
+  /// ANDs with [startDate]/[endDate] when both are set, like every other
+  /// axis in this filter.
+  final List<int> weekdays;
 
   // v1.5: Additional filter criteria
   final List<String> equipmentIds;
@@ -56,7 +99,11 @@ class DiveFilterState {
     this.minDepth,
     this.maxDepth,
     this.favoritesOnly,
+    this.excludedFromStatsOnly,
+    this.decoOnly,
+    this.noBuddyOnly,
     this.tagIds = const [],
+    this.weekdays = const [],
     this.equipmentIds = const [],
     this.buddyNameFilter,
     this.buddyId,
@@ -75,6 +122,29 @@ class DiveFilterState {
     this.equipmentAttrMax,
   });
 
+  /// Inclusive lower bound for `dives.dive_date_time`, in the wall-clock-as-UTC
+  /// epoch milliseconds that column stores. Null when [startDate] is unset.
+  ///
+  /// Every date comparison, in SQL and in [apply], binds this value, so the
+  /// three implementations of the axis cannot drift apart.
+  int? get startDateBoundMs {
+    final date = startDate;
+    if (date == null) return null;
+    return wallClockUtcDayStart(date).millisecondsSinceEpoch;
+  }
+
+  /// EXCLUSIVE upper bound for `dives.dive_date_time`: the start of the day
+  /// after [endDate], so the whole of the end day is inside the range. Null
+  /// when [endDate] is unset.
+  int? get endDateBoundMs {
+    final date = endDate;
+    if (date == null) return null;
+    // UTC has no DST, so adding a day here is exact.
+    return wallClockUtcDayStart(
+      date,
+    ).add(const Duration(days: 1)).millisecondsSinceEpoch;
+  }
+
   bool get hasActiveFilters =>
       startDate != null ||
       endDate != null ||
@@ -85,7 +155,11 @@ class DiveFilterState {
       minDepth != null ||
       maxDepth != null ||
       favoritesOnly == true ||
+      excludedFromStatsOnly == true ||
+      decoOnly != null ||
+      noBuddyOnly == true ||
       tagIds.isNotEmpty ||
+      weekdays.isNotEmpty ||
       equipmentIds.isNotEmpty ||
       (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) ||
       buddyId != null ||
@@ -109,7 +183,11 @@ class DiveFilterState {
     double? minDepth,
     double? maxDepth,
     bool? favoritesOnly,
+    bool? excludedFromStatsOnly,
+    bool? decoOnly,
+    bool? noBuddyOnly,
     List<String>? tagIds,
+    List<int>? weekdays,
     List<String>? equipmentIds,
     String? buddyNameFilter,
     String? buddyId,
@@ -135,7 +213,11 @@ class DiveFilterState {
     bool clearMinDepth = false,
     bool clearMaxDepth = false,
     bool clearFavoritesOnly = false,
+    bool clearExcludedFromStatsOnly = false,
+    bool clearDecoOnly = false,
+    bool clearNoBuddyOnly = false,
     bool clearTagIds = false,
+    bool clearWeekdays = false,
     bool clearEquipmentIds = false,
     bool clearBuddyNameFilter = false,
     bool clearBuddyId = false,
@@ -164,7 +246,13 @@ class DiveFilterState {
       favoritesOnly: clearFavoritesOnly
           ? null
           : (favoritesOnly ?? this.favoritesOnly),
+      excludedFromStatsOnly: clearExcludedFromStatsOnly
+          ? null
+          : (excludedFromStatsOnly ?? this.excludedFromStatsOnly),
+      decoOnly: clearDecoOnly ? null : (decoOnly ?? this.decoOnly),
+      noBuddyOnly: clearNoBuddyOnly ? null : (noBuddyOnly ?? this.noBuddyOnly),
       tagIds: clearTagIds ? const [] : (tagIds ?? this.tagIds),
+      weekdays: clearWeekdays ? const [] : (weekdays ?? this.weekdays),
       equipmentIds: clearEquipmentIds
           ? const []
           : (equipmentIds ?? this.equipmentIds),
@@ -216,14 +304,34 @@ class DiveFilterState {
   /// buildFilteredDiveIdSubquery), so non-paginated views stay consistent with
   /// the SQL-backed list. It relies on dive.equipment being hydrated with its
   /// curated attributes (getAllDives does this).
+  ///
+  /// [decoOnly] is the one axis this method does NOT apply. getAllDives skips
+  /// profile hydration for list views and deco-stop events never reach the
+  /// entity, so there is nothing here to classify a dive from; evaluating it
+  /// anyway would silently match no dive at all. Callers that honour the deco
+  /// axis intersect this result with `decoFilteredDiveIdsProvider`, which
+  /// resolves it through the same SQL condition the paginated list uses.
   List<Dive> apply(List<Dive> dives) {
+    final startBound = startDateBoundMs;
+    final endBound = endDateBoundMs;
     return dives.where((dive) {
-      if (startDate != null && dive.dateTime.isBefore(startDate!)) {
-        return false;
-      }
-      if (endDate != null &&
-          dive.dateTime.isAfter(endDate!.add(const Duration(days: 1)))) {
-        return false;
+      if (startBound != null || endBound != null) {
+        // Compare CALENDAR DAYS, not instants. Reducing the dive to the start
+        // of its own day makes this identical to the SQL half-open range
+        // (`>= startBound AND < endBound`), because both bounds are themselves
+        // day starts: a timestamp satisfies them exactly when its day does.
+        // Going through the day start also keeps the comparison honest for a
+        // caller holding a local-flagged entity, since only the digits the
+        // diver sees are read.
+        final diveDay = wallClockUtcDayStart(
+          dive.dateTime,
+        ).millisecondsSinceEpoch;
+        if (startBound != null && diveDay < startBound) {
+          return false;
+        }
+        if (endBound != null && diveDay >= endBound) {
+          return false;
+        }
       }
       if (diveTypeId != null && !dive.diveTypeIds.contains(diveTypeId)) {
         return false;
@@ -254,11 +362,23 @@ class DiveFilterState {
       if (favoritesOnly == true && !dive.isFavorite) {
         return false;
       }
+      if (excludedFromStatsOnly == true && !dive.excludedFromStats) {
+        return false;
+      }
+      if (noBuddyOnly == true) {
+        final hasLegacyBuddy = dive.buddy != null && dive.buddy!.isNotEmpty;
+        if (hasLegacyBuddy || dive.buddies.isNotEmpty) {
+          return false;
+        }
+      }
       if (tagIds.isNotEmpty) {
         final diveTagIds = dive.tags.map((t) => t.id).toSet();
         if (!tagIds.any((tagId) => diveTagIds.contains(tagId))) {
           return false;
         }
+      }
+      if (weekdays.isNotEmpty && !weekdays.contains(dive.dateTime.weekday)) {
+        return false;
       }
       if (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) {
         final filters = buddyNameFilter!

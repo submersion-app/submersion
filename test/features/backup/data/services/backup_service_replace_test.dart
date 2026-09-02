@@ -13,6 +13,7 @@ import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
+import '../../../../helpers/in_memory_seed_version_store.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
 
 /// Fake database adapter (mirror of backup_service_test.dart's).
@@ -101,6 +102,21 @@ void main() {
   }
 
   group('restore modes', () {
+    test('a restore clears the applied catalog version', () async {
+      final seedStore = InMemorySeedVersionStore(2);
+      final service = BackupService(
+        dbAdapter: fakeDb,
+        preferences: preferences,
+        syncRepository: _EpochSpySyncRepository(),
+        seedVersionStore: seedStore,
+      );
+
+      await service.restoreFromFile(await writeRestoreSource());
+
+      expect(seedStore.version, isNull);
+      expect(seedStore.clearCalls, 1);
+    });
+
     test('merge mode (default) does not mint a pending replace', () async {
       final service = BackupService(
         dbAdapter: fakeDb,

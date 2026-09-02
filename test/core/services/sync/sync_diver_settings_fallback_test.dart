@@ -277,4 +277,112 @@ void main() {
     expect(exported, isNotNull);
     expect(exported!['gasModel'], 'ideal');
   });
+
+  test(
+    'applies a pre-v161 diver_settings payload missing defaultShowO2CellMv',
+    () async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds8',
+              diverId: 'diver-8',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds8');
+      expect(exported, isNotNull);
+
+      // A peer still on v160 exports no defaultShowO2CellMv. The column is
+      // NOT NULL, so an unseeded import would throw in DiverSetting.fromJson.
+      final legacy = Map<String, dynamic>.from(exported!)
+        ..remove('defaultShowO2CellMv');
+
+      await (db.delete(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds8'))).go();
+
+      await serializer.upsertRecord('diverSettings', legacy);
+
+      final row = await (db.select(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds8'))).getSingle();
+      expect(row.defaultShowO2CellMv, isFalse);
+    },
+  );
+
+  test(
+    'applies a pre-v163 diver_settings payload missing the estimate default',
+    () async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds9',
+              diverId: 'diver-9',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds9');
+      expect(exported, isNotNull);
+
+      // A peer still on v161 exports no defaultShowEstimatedTankPressure.
+      // _withSchemaDefaults fills it from the column's declared default, so a
+      // mixed-version sync must leave the estimate ON rather than silently
+      // switching it off (issue #731).
+      final legacy = Map<String, dynamic>.from(exported!)
+        ..remove('defaultShowEstimatedTankPressure');
+
+      await (db.delete(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds9'))).go();
+
+      await serializer.upsertRecord('diverSettings', legacy);
+
+      final row = await (db.select(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds9'))).getSingle();
+      expect(row.defaultShowEstimatedTankPressure, isTrue);
+    },
+  );
+
+  test(
+    'applies a pre-v166 diver_settings payload missing placeNameLanguage',
+    () async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds-166',
+              diverId: 'diver-1',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds-166');
+      final legacy = Map<String, dynamic>.from(exported!)
+        ..remove('placeNameLanguage');
+      await (db.delete(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds-166'))).go();
+
+      await serializer.upsertRecord('diverSettings', legacy);
+
+      final row = await (db.select(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds-166'))).getSingle();
+      expect(row.placeNameLanguage, 'en');
+    },
+  );
 }

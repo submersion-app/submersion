@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
@@ -27,7 +28,7 @@ class BasePartFileSink {
     required Future<Uint8List?> Function(int index) downloadPart,
   }) async {
     final dir = await _tempDir();
-    final path = '${dir.path}/$name.${_uuid.v4()}.base';
+    final path = basePartTempPath(dir.path, name, _uuid.v4());
     final file = File(path);
     final out = file.openWrite();
 
@@ -79,6 +80,31 @@ class BasePartFileSink {
     }
   }
 }
+
+/// Path a downloaded base is assembled into: `<temp dir>/<name>.<uuid>.base`.
+///
+/// Joins rather than interpolating a literal `/`. [dirPath] comes from
+/// `resolveSyncTempDir`, which on Windows is backslashed, so interpolation
+/// produced a mixed-separator path
+/// (`C:\Users\...\AppData\Local\Temp/ssv1_base_devA_7.<uuid>.base`). Win32
+/// accepts that for open and delete, which is all the two callers of
+/// [BasePartFileSink.assemble] do with it, so nothing was broken -- but it is
+/// character-for-character the shape that killed every Windows base publish in
+/// #1304, where a `split(Platform.pathSeparator)` split on `\` only and left
+/// the `Temp/` segment glued to the front of the "filename". Adding a basename,
+/// a split or a manifest key downstream would have been enough to reproduce it,
+/// so #1327 removes the shape rather than the one consumer.
+///
+/// [context] exists so the Windows style can be pinned in tests running on a
+/// POSIX host, where `Platform.pathSeparator` is `/` and the mixed form is
+/// indistinguishable from a correct one; production always wants the platform's
+/// own.
+String basePartTempPath(
+  String dirPath,
+  String name,
+  String id, {
+  p.Context? context,
+}) => (context ?? p.context).join(dirPath, '$name.$id.base');
 
 /// Minimal `Sink<Digest>` that captures the single digest emitted at close.
 /// Avoids depending on `package:convert`'s `AccumulatorSink` (not exported by

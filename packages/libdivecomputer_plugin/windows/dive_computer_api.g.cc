@@ -221,6 +221,7 @@ ProfileSample::ProfileSample(
   const double* temperature_celsius,
   const double* pressure_bar,
   const int64_t* tank_index,
+  const EncodableList* tank_pressures_bar,
   const int64_t* heart_rate,
   const double* heading,
   const double* setpoint,
@@ -249,6 +250,7 @@ ProfileSample::ProfileSample(
     temperature_celsius_(temperature_celsius ? std::optional<double>(*temperature_celsius) : std::nullopt),
     pressure_bar_(pressure_bar ? std::optional<double>(*pressure_bar) : std::nullopt),
     tank_index_(tank_index ? std::optional<int64_t>(*tank_index) : std::nullopt),
+    tank_pressures_bar_(tank_pressures_bar ? std::optional<EncodableList>(*tank_pressures_bar) : std::nullopt),
     heart_rate_(heart_rate ? std::optional<int64_t>(*heart_rate) : std::nullopt),
     heading_(heading ? std::optional<double>(*heading) : std::nullopt),
     setpoint_(setpoint ? std::optional<double>(*setpoint) : std::nullopt),
@@ -327,6 +329,19 @@ void ProfileSample::set_tank_index(const int64_t* value_arg) {
 
 void ProfileSample::set_tank_index(int64_t value_arg) {
   tank_index_ = value_arg;
+}
+
+
+const EncodableList* ProfileSample::tank_pressures_bar() const {
+  return tank_pressures_bar_ ? &(*tank_pressures_bar_) : nullptr;
+}
+
+void ProfileSample::set_tank_pressures_bar(const EncodableList* value_arg) {
+  tank_pressures_bar_ = value_arg ? std::optional<EncodableList>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_tank_pressures_bar(const EncodableList& value_arg) {
+  tank_pressures_bar_ = value_arg;
 }
 
 
@@ -631,12 +646,13 @@ void ProfileSample::set_gas_mix_index(int64_t value_arg) {
 
 EncodableList ProfileSample::ToEncodableList() const {
   EncodableList list;
-  list.reserve(28);
+  list.reserve(29);
   list.push_back(EncodableValue(time_seconds_));
   list.push_back(EncodableValue(depth_meters_));
   list.push_back(temperature_celsius_ ? EncodableValue(*temperature_celsius_) : EncodableValue());
   list.push_back(pressure_bar_ ? EncodableValue(*pressure_bar_) : EncodableValue());
   list.push_back(tank_index_ ? EncodableValue(*tank_index_) : EncodableValue());
+  list.push_back(tank_pressures_bar_ ? EncodableValue(*tank_pressures_bar_) : EncodableValue());
   list.push_back(heart_rate_ ? EncodableValue(*heart_rate_) : EncodableValue());
   list.push_back(heading_ ? EncodableValue(*heading_) : EncodableValue());
   list.push_back(setpoint_ ? EncodableValue(*setpoint_) : EncodableValue());
@@ -679,95 +695,99 @@ ProfileSample ProfileSample::FromEncodableList(const EncodableList& list) {
   if (!encodable_tank_index.IsNull()) {
     decoded.set_tank_index(std::get<int64_t>(encodable_tank_index));
   }
-  auto& encodable_heart_rate = list[5];
+  auto& encodable_tank_pressures_bar = list[5];
+  if (!encodable_tank_pressures_bar.IsNull()) {
+    decoded.set_tank_pressures_bar(std::get<EncodableList>(encodable_tank_pressures_bar));
+  }
+  auto& encodable_heart_rate = list[6];
   if (!encodable_heart_rate.IsNull()) {
     decoded.set_heart_rate(std::get<int64_t>(encodable_heart_rate));
   }
-  auto& encodable_heading = list[6];
+  auto& encodable_heading = list[7];
   if (!encodable_heading.IsNull()) {
     decoded.set_heading(std::get<double>(encodable_heading));
   }
-  auto& encodable_setpoint = list[7];
+  auto& encodable_setpoint = list[8];
   if (!encodable_setpoint.IsNull()) {
     decoded.set_setpoint(std::get<double>(encodable_setpoint));
   }
-  auto& encodable_ppo2 = list[8];
+  auto& encodable_ppo2 = list[9];
   if (!encodable_ppo2.IsNull()) {
     decoded.set_ppo2(std::get<double>(encodable_ppo2));
   }
-  auto& encodable_cns = list[9];
+  auto& encodable_cns = list[10];
   if (!encodable_cns.IsNull()) {
     decoded.set_cns(std::get<double>(encodable_cns));
   }
-  auto& encodable_rbt = list[10];
+  auto& encodable_rbt = list[11];
   if (!encodable_rbt.IsNull()) {
     decoded.set_rbt(std::get<int64_t>(encodable_rbt));
   }
-  auto& encodable_deco_type = list[11];
+  auto& encodable_deco_type = list[12];
   if (!encodable_deco_type.IsNull()) {
     decoded.set_deco_type(std::get<int64_t>(encodable_deco_type));
   }
-  auto& encodable_deco_time = list[12];
+  auto& encodable_deco_time = list[13];
   if (!encodable_deco_time.IsNull()) {
     decoded.set_deco_time(std::get<int64_t>(encodable_deco_time));
   }
-  auto& encodable_deco_depth = list[13];
+  auto& encodable_deco_depth = list[14];
   if (!encodable_deco_depth.IsNull()) {
     decoded.set_deco_depth(std::get<double>(encodable_deco_depth));
   }
-  auto& encodable_tts = list[14];
+  auto& encodable_tts = list[15];
   if (!encodable_tts.IsNull()) {
     decoded.set_tts(std::get<int64_t>(encodable_tts));
   }
-  auto& encodable_o2_sensor1 = list[15];
+  auto& encodable_o2_sensor1 = list[16];
   if (!encodable_o2_sensor1.IsNull()) {
     decoded.set_o2_sensor1(std::get<double>(encodable_o2_sensor1));
   }
-  auto& encodable_o2_sensor2 = list[16];
+  auto& encodable_o2_sensor2 = list[17];
   if (!encodable_o2_sensor2.IsNull()) {
     decoded.set_o2_sensor2(std::get<double>(encodable_o2_sensor2));
   }
-  auto& encodable_o2_sensor3 = list[17];
+  auto& encodable_o2_sensor3 = list[18];
   if (!encodable_o2_sensor3.IsNull()) {
     decoded.set_o2_sensor3(std::get<double>(encodable_o2_sensor3));
   }
-  auto& encodable_o2_sensor4 = list[18];
+  auto& encodable_o2_sensor4 = list[19];
   if (!encodable_o2_sensor4.IsNull()) {
     decoded.set_o2_sensor4(std::get<double>(encodable_o2_sensor4));
   }
-  auto& encodable_o2_sensor5 = list[19];
+  auto& encodable_o2_sensor5 = list[20];
   if (!encodable_o2_sensor5.IsNull()) {
     decoded.set_o2_sensor5(std::get<double>(encodable_o2_sensor5));
   }
-  auto& encodable_o2_sensor6 = list[20];
+  auto& encodable_o2_sensor6 = list[21];
   if (!encodable_o2_sensor6.IsNull()) {
     decoded.set_o2_sensor6(std::get<double>(encodable_o2_sensor6));
   }
-  auto& encodable_o2_sensor_mv1 = list[21];
+  auto& encodable_o2_sensor_mv1 = list[22];
   if (!encodable_o2_sensor_mv1.IsNull()) {
     decoded.set_o2_sensor_mv1(std::get<int64_t>(encodable_o2_sensor_mv1));
   }
-  auto& encodable_o2_sensor_mv2 = list[22];
+  auto& encodable_o2_sensor_mv2 = list[23];
   if (!encodable_o2_sensor_mv2.IsNull()) {
     decoded.set_o2_sensor_mv2(std::get<int64_t>(encodable_o2_sensor_mv2));
   }
-  auto& encodable_o2_sensor_mv3 = list[23];
+  auto& encodable_o2_sensor_mv3 = list[24];
   if (!encodable_o2_sensor_mv3.IsNull()) {
     decoded.set_o2_sensor_mv3(std::get<int64_t>(encodable_o2_sensor_mv3));
   }
-  auto& encodable_o2_sensor_mv4 = list[24];
+  auto& encodable_o2_sensor_mv4 = list[25];
   if (!encodable_o2_sensor_mv4.IsNull()) {
     decoded.set_o2_sensor_mv4(std::get<int64_t>(encodable_o2_sensor_mv4));
   }
-  auto& encodable_o2_sensor_mv5 = list[25];
+  auto& encodable_o2_sensor_mv5 = list[26];
   if (!encodable_o2_sensor_mv5.IsNull()) {
     decoded.set_o2_sensor_mv5(std::get<int64_t>(encodable_o2_sensor_mv5));
   }
-  auto& encodable_o2_sensor_mv6 = list[26];
+  auto& encodable_o2_sensor_mv6 = list[27];
   if (!encodable_o2_sensor_mv6.IsNull()) {
     decoded.set_o2_sensor_mv6(std::get<int64_t>(encodable_o2_sensor_mv6));
   }
-  auto& encodable_gas_mix_index = list[27];
+  auto& encodable_gas_mix_index = list[28];
   if (!encodable_gas_mix_index.IsNull()) {
     decoded.set_gas_mix_index(std::get<int64_t>(encodable_gas_mix_index));
   }

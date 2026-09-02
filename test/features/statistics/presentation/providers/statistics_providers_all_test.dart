@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_gas_lane_provider.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -26,14 +26,14 @@ void main() {
 
   Future<ProviderContainer> makeContainer({
     DiveFilterState filter = const DiveFilterState(),
-    SacUnit? sacUnit,
+    GasConsumptionLane? lane,
   }) async {
     final overrides = await getBaseOverrides();
     final container = ProviderContainer(
       overrides: [
         ...overrides,
         statisticsFilterProvider.overrideWith((ref) => filter),
-        if (sacUnit != null) sacUnitProvider.overrideWithValue(sacUnit),
+        if (lane != null) statisticsGasLaneProvider.overrideWithValue(lane),
       ].cast(),
     );
     addTearDown(container.dispose);
@@ -49,6 +49,10 @@ void main() {
     expect(
       (await container.read(filteredDiveStatisticsProvider.future)).totalDives,
       0,
+    );
+    expect(
+      (await container.read(filteredDiveRecordsProvider.future)).deepestDive,
+      isNull,
     );
     expect(await container.read(gasMixDistributionProvider.future), isEmpty);
     expect(await container.read(diveTypeDistributionProvider.future), isEmpty);
@@ -66,6 +70,7 @@ void main() {
       isEmpty,
     );
     expect(await container.read(temperatureByMonthProvider.future), isEmpty);
+    expect(await container.read(waterTempTrendProvider.future), isEmpty);
     expect(await container.read(topBuddiesProvider.future), isEmpty);
     final soloVsBuddy = await container.read(soloVsBuddyCountProvider.future);
     expect(soloVsBuddy.solo, 0);
@@ -101,9 +106,8 @@ void main() {
     expect(deco.unknownCount, 0);
   });
 
-  test('SAC providers use the pressure-per-minute branch by default', () async {
-    // MockSettingsNotifier defaults to SacUnit.pressurePerMin, so the else
-    // branch of each SAC provider runs here.
+  test('the consumption providers read the SAC lane by default', () async {
+    // The default display is both, whose first lane is SAC.
     final container = await makeContainer();
     expect(await container.read(sacTrendProvider.future), isEmpty);
     final records = await container.read(sacRecordsProvider.future);
@@ -111,16 +115,13 @@ void main() {
     expect(await container.read(sacByTankRoleProvider.future), isEmpty);
   });
 
-  test(
-    'SAC providers use the liters-per-minute branch when configured',
-    () async {
-      final container = await makeContainer(sacUnit: SacUnit.litersPerMin);
-      expect(await container.read(sacTrendProvider.future), isEmpty);
-      final records = await container.read(sacRecordsProvider.future);
-      expect(records.best, isNull);
-      expect(await container.read(sacByTankRoleProvider.future), isEmpty);
-    },
-  );
+  test('the consumption providers read the RMV lane when selected', () async {
+    final container = await makeContainer(lane: GasConsumptionLane.rmv);
+    expect(await container.read(sacTrendProvider.future), isEmpty);
+    final records = await container.read(sacRecordsProvider.future);
+    expect(records.best, isNull);
+    expect(await container.read(sacByTankRoleProvider.future), isEmpty);
+  });
 
   test('an active filter still resolves every aggregate', () async {
     // Drives the filter-threading path (non-empty DiveFilterState) through the
@@ -131,6 +132,10 @@ void main() {
     expect(
       (await container.read(filteredDiveStatisticsProvider.future)).totalDives,
       0,
+    );
+    expect(
+      (await container.read(filteredDiveRecordsProvider.future)).deepestDive,
+      isNull,
     );
     expect(await container.read(topBuddiesProvider.future), isEmpty);
     expect(await container.read(divesPerYearProvider.future), isEmpty);

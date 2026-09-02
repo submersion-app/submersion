@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
+import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -283,6 +284,10 @@ class HealthKitAdapter implements ImportSourceAdapter {
       await DiveEquipmentDefaulter().applyForImportedDive(dive);
       await ChecklistDiveLinker().applyForImportedDive(dive);
       await altitudeEnricher.applyForImportedDive(dive);
+      // After the defaulter, never before: the defaulter bails on a dive
+      // that already has equipment, so linking first would suppress the
+      // diver's default and geofenced sets.
+      await DiveComputerGearLinker().linkComputerGearForDive(diveId: dive.id);
 
       imported++;
       importedDiveIds.add(dive.id);

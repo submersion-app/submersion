@@ -14,6 +14,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_media_prov
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/presentation/helpers/offer_site_review_after_import.dart';
 
 /// Dismisses a non-dismissible loading dialog exactly once, via a navigator
 /// captured before the first await. This survives the initiating widget being
@@ -174,6 +175,13 @@ Future<void> _importPhotos(
             context.l10n.trips_detail_scan_linkedPhotos(totalImported),
           ),
         ),
+      );
+    }
+    if (context.mounted) {
+      await offerSiteReviewAfterImport(
+        context,
+        ref,
+        photosByDive.keys.map((d) => d.id),
       );
     }
   } catch (e) {

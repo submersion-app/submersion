@@ -4,7 +4,11 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -14,27 +18,33 @@ void main() {
   late AppDatabase db;
   late DiveRepository diveRepo;
   late DiveMergeService service;
+  late ProfileSeriesRepository profileSeries;
+  late TankPressureSeriesRepository tankSeries;
 
   setUp(() async {
     db = await setUpTestDatabase();
     await db.customStatement('PRAGMA foreign_keys = OFF');
     diveRepo = DiveRepository();
     service = DiveMergeService(diveRepo);
+    profileSeries = ProfileSeriesRepository();
+    tankSeries = TankPressureSeriesRepository();
   });
 
   tearDown(() async {
     await tearDownTestDatabase();
   });
 
-  /// Seeds a dive with one tank, a 3-sample profile, and link rows in the
-  /// tables createDive does not cover (buddy, sighting, event, gas switch,
-  /// tank pressure, data source, media).
+  /// Seeds a dive with one tank, a 3-sample profile series, and link rows in
+  /// the tables createDive does not cover (buddy, sighting, event, gas
+  /// switch, tank pressure series, data source, media).
   ///
-  /// [computerId] mirrors how a real dive-computer download stamps profile
-  /// rows: the domain DiveProfilePoint has no computerId field (createDive
-  /// can't set it), so it's stamped with a direct update afterward, same as
-  /// production's saveComputerReading/reparse_service path. FK enforcement
-  /// is off by default in this suite, so no dive_computers row is seeded.
+  /// [computerId] mirrors how a real dive-computer download stamps a
+  /// profile series: the domain DiveProfilePoint has no computerId field
+  /// (createDive can't set it), so the series DiveRepository.createDive
+  /// wrote (no computer, no source) is deleted and re-inserted with the
+  /// computer stamped on it, same samples and flags, same as production's
+  /// saveComputerReading/reparse_service path. FK enforcement is off by
+  /// default in this suite, so no dive_computers row is seeded.
   Future<void> seedDive(
     String id, {
     required DateTime entry,
@@ -62,8 +72,18 @@ void main() {
       ),
     );
     if (computerId != null) {
-      await (db.update(db.diveProfiles)..where((t) => t.diveId.equals(id)))
-          .write(DiveProfilesCompanion(computerId: Value(computerId)));
+      final created = await profileSeries.getSeriesForDive(id);
+      await profileSeries.deleteForDive(id);
+      for (final s in created) {
+        await profileSeries.insertSeries(
+          diveId: id,
+          computerId: computerId,
+          sourceId: s.sourceId,
+          isPrimary: s.isPrimary,
+          samples: s.samples,
+          now: 0,
+        );
+      }
     }
     await db
         .into(db.diveBuddies)
@@ -106,17 +126,13 @@ void main() {
             createdAt: 0,
           ),
         );
-    await db
-        .into(db.tankPressureProfiles)
-        .insert(
-          TankPressureProfilesCompanion.insert(
-            id: 'tp-$id',
-            diveId: id,
-            tankId: 'tank-$id',
-            timestamp: 60,
-            pressure: 180,
-          ),
-        );
+    await tankSeries.insertSeries(
+      diveId: id,
+      tankId: 'tank-$id',
+      samples: const [TankPressureSample(timestamp: 60, pressure: 180.0)],
+      id: 'tp-$id',
+      now: 0,
+    );
     await db
         .into(db.diveDataSources)
         .insert(
@@ -148,13 +164,14 @@ void main() {
 
       expect(snap.mergedDiveId, 'merged-1');
       expect(snap.diveRows, hasLength(2));
-      expect(snap.profileRows, hasLength(6));
+      // One packed series per dive (three samples each), not row-per-sample.
+      expect(snap.profileSeriesRows, hasLength(2));
       expect(snap.tankRows, hasLength(2));
       expect(snap.buddyRows, hasLength(2));
       expect(snap.sightingRows, hasLength(2));
       expect(snap.eventRows, hasLength(2));
       expect(snap.gasSwitchRows, hasLength(2));
-      expect(snap.tankPressureRows, hasLength(2));
+      expect(snap.tankSeriesRows, hasLength(2));
       expect(snap.dataSourceRows, hasLength(2));
       expect(snap.mediaDiveIds, {'media-a': 'a', 'media-b': 'b'});
     });
@@ -181,17 +198,17 @@ void main() {
       )..where((t) => t.entityType.equals('dives'))).get();
       expect(tombstones.map((t) => t.recordId).toSet(), {'a', 'b'});
 
-      // Profile: 3 samples per source, re-based, plus densified gap samples.
-      final profile =
-          await (db.select(db.diveProfiles)
-                ..where((t) => t.diveId.equals(mergedId))
-                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
-              .get();
+      // Profile series: one per source, re-based, gap-fill appended into
+      // the segment before it.
+      final mergedSeries = await profileSeries.getSeriesForDive(mergedId);
+      expect(mergedSeries, hasLength(2));
+      final allSamples = [for (final s in mergedSeries) ...s.samples]
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
       // Dive a ends at 1800s; dive b starts at 3600s; gap samples inside.
-      final gapSamples = profile
+      final gapSamples = allSamples
           .where((p) => p.timestamp > 1800 && p.timestamp < 3600)
           .toList();
-      expect(profile, hasLength(6 + gapSamples.length));
+      expect(allSamples, hasLength(6 + gapSamples.length));
       expect(gapSamples.every((p) => p.depth == 0), isTrue);
       // The gap is filled with 0-depth samples at the source profile's own
       // cadence (median inter-sample delta; here the sparse 900s seed
@@ -200,7 +217,7 @@ void main() {
       // (#449 manual test).
       expect(gapSamples.map((p) => p.timestamp), [1801, 2701, 3599]);
       // b's first sample re-based to 3600.
-      expect(profile.where((p) => p.timestamp == 3600), isNotEmpty);
+      expect(allSamples.where((p) => p.timestamp == 3600), isNotEmpty);
 
       // Surface events at the gap boundaries.
       final events = await (db.select(
@@ -229,10 +246,12 @@ void main() {
       );
 
       // Tank pressures re-based and re-pointed.
-      final pressures = await (db.select(
-        db.tankPressureProfiles,
-      )..where((t) => t.diveId.equals(mergedId))).get();
-      expect(pressures.map((p) => p.timestamp).toSet(), {60, 3660});
+      final pressures = await tankSeries.getSeriesForDive(mergedId);
+      expect(pressures, hasLength(2));
+      expect(pressures.map((s) => s.samples.single.timestamp).toSet(), {
+        60,
+        3660,
+      });
 
       // Buddies and sightings carried; same-species sightings merged.
       final buddies = await (db.select(
@@ -300,60 +319,59 @@ void main() {
         final outcome = await service.apply(['a', 'b']);
         final mergedId = outcome.mergedDive.id;
 
-        final profile = await (db.select(
-          db.diveProfiles,
-        )..where((t) => t.diveId.equals(mergedId))).get();
-        // 3 samples per source + the densified gap samples -- every row,
-        // synthesized ones included, must carry the source computerId.
-        expect(profile.length, greaterThan(6));
-        expect(profile.every((p) => p.computerId == 'comp-1'), isTrue);
-
-        expect(profile.map((p) => p.computerId).toSet(), {'comp-1'});
+        final mergedSeries = await profileSeries.getSeriesForDive(mergedId);
+        // Every series, gap-fill included, must carry the source
+        // computerId. a's series hosts the gap fill, being the only
+        // series on the segment before the gap.
+        expect(mergedSeries.every((s) => s.computerId == 'comp-1'), isTrue);
+        final sampleCount = mergedSeries.fold<int>(
+          0,
+          (sum, s) => sum + s.samples.length,
+        );
+        // 3 samples per source + the densified gap samples.
+        expect(sampleCount, greaterThan(6));
       },
     );
 
     test('gap samples join the primary profile, not a lingering secondary '
         '(#449 review)', () async {
-      // 'a' has a user-edited primary profile (computerId null) plus a
-      // lingering non-primary computer profile -- mirrors saveEditedProfile.
+      // 'a' has a user-edited primary series (computerId null, the identity
+      // DiveRepository.createDive wrote) plus a lingering non-primary
+      // computer series, mirroring saveEditedProfile.
       await seedDive('a', entry: DateTime.utc(2026, 7, 1, 9));
-      await (db.update(
-        db.diveProfiles,
-      )..where((t) => t.diveId.equals('a'))).write(
-        const DiveProfilesCompanion(
-          isPrimary: Value(true),
-          computerId: Value(null),
-        ),
+      await profileSeries.insertSeries(
+        diveId: 'a',
+        computerId: 'sec-comp',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 30, depth: 5)],
+        id: 'sec-a',
+        now: 0,
       );
-      await db
-          .into(db.diveProfiles)
-          .insert(
-            DiveProfilesCompanion.insert(
-              id: 'sec-a',
-              diveId: 'a',
-              timestamp: 30,
-              depth: 5,
-            ).copyWith(
-              isPrimary: const Value(false),
-              computerId: const Value('sec-comp'),
-            ),
-          );
       await seedDive('b', entry: DateTime.utc(2026, 7, 1, 10));
 
       final outcome = await service.apply(['a', 'b']);
       final mergedId = outcome.mergedDive.id;
 
+      final mergedSeries = await profileSeries.getSeriesForDive(mergedId);
       // The surface gap runs from a's extent (1800s) to b's entry (3600s).
-      final gapSamples =
-          (await (db.select(
-                db.diveProfiles,
-              )..where((t) => t.diveId.equals(mergedId))).get())
-              .where((p) => p.timestamp > 1800 && p.timestamp < 3600)
-              .toList();
+      final gapSamples = [
+        for (final s in mergedSeries) ...s.samples,
+      ].where((p) => p.timestamp > 1800 && p.timestamp < 3600).toList();
       expect(gapSamples, isNotEmpty);
-      // Attributed to the primary (edited) profile, not the secondary source.
+      // Attributed to the primary (edited) series, not the secondary source.
+      // Every series holding a gap sample is asserted, not just the first
+      // one found: gap samples landing in BOTH strands is exactly the #449
+      // regression, and a lookup that stops at the first match would let it
+      // through.
+      final hostSeries = mergedSeries
+          .where(
+            (s) =>
+                s.samples.any((p) => p.timestamp > 1800 && p.timestamp < 3600),
+          )
+          .toList();
+      expect(hostSeries, hasLength(1));
       expect(
-        gapSamples.every((p) => p.isPrimary && p.computerId == null),
+        hostSeries.every((s) => s.isPrimary && s.computerId == null),
         isTrue,
       );
     });
@@ -383,14 +401,14 @@ void main() {
       );
 
       final outcome = await service.apply(['a', 'b']);
-      final profile =
-          await (db.select(db.diveProfiles)
-                ..where((t) => t.diveId.equals(outcome.mergedDive.id))
-                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
-              .get();
+      final allSamples =
+          (await profileSeries.getSeriesForDive(
+              outcome.mergedDive.id,
+            )).expand((s) => s.samples).toList()
+            ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
       // Gap runs 300..900 (a ends at 300; b re-based to 900).
-      final gapSamples = profile
+      final gapSamples = allSamples
           .where((p) => p.timestamp > 300 && p.timestamp < 900)
           .toList();
       expect(gapSamples.first.timestamp, 301);
@@ -417,11 +435,9 @@ void main() {
       final outcome = await service.apply(['a', 'b']);
       final mergedId = outcome.mergedDive.id;
 
-      final profile = await (db.select(
-        db.diveProfiles,
-      )..where((t) => t.diveId.equals(mergedId))).get();
+      final mergedSeries = await profileSeries.getSeriesForDive(mergedId);
       // 3 samples per source, no synthesized gap samples.
-      expect(profile, hasLength(6));
+      expect(mergedSeries.fold<int>(0, (sum, s) => sum + s.samples.length), 6);
 
       final events = await (db.select(
         db.diveProfileEvents,
@@ -531,9 +547,9 @@ void main() {
       expect(after.map((r) => r.id), ['a', 'b']);
       final tanks = await db.select(db.diveTanks).get();
       expect(tanks.map((t) => t.id).toSet(), {'tank-a', 'tank-b'});
-      // tankPressureProfiles.tankId is an FK into diveTanks: these rows only
-      // restore if the parent tanks were re-inserted first.
-      final pressures = await db.select(db.tankPressureProfiles).get();
+      // tank_pressure_series.tank_id is an FK into diveTanks: these rows
+      // only restore if the parent tanks were re-inserted first.
+      final pressures = await tankSeries.getRowsForDives(['a', 'b']);
       expect(pressures.map((p) => p.id).toSet(), {'tp-a', 'tp-b'});
     });
   });
@@ -660,12 +676,11 @@ void main() {
       final mergedId = (await service.apply(['a', 'b'])).mergedDive.id;
 
       Future<List<int>> profileTimestamps() async {
-        final rows =
-            await (db.select(db.diveProfiles)
-                  ..where((t) => t.diveId.equals(mergedId))
-                  ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
-                .get();
-        return rows.map((r) => r.timestamp).toList();
+        final series = await profileSeries.getSeriesForDive(mergedId);
+        return [
+          for (final s in series)
+            for (final p in s.samples) p.timestamp,
+        ]..sort();
       }
 
       final before = await profileTimestamps();

@@ -22,6 +22,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/features/settings/presentation/pages/troubleshoot_sync_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/replace_cloud_library_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/newer_schema_peer_banner.dart';
+import 'package:submersion/features/settings/presentation/widgets/read_failed_peer_banner.dart';
 import 'package:submersion/features/settings/presentation/widgets/skipped_peer_banner.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
@@ -1156,6 +1157,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
             ),
           SkippedPeerBanner(peers: syncState.skippedPeerLabels),
           NewerSchemaPeerBanner(peers: syncState.newerSchemaPeerLabels),
+          ReadFailedPeerBanner(peers: syncState.readFailedPeerLabels),
           if (syncState.movedMarker != null)
             _buildMovedBanner(context, ref, syncState.movedMarker!),
           if (syncState.cleanupOldBackendProviderId != null)

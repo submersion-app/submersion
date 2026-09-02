@@ -392,7 +392,7 @@ class GasAnalysisService {
 
   /// Map each tank to its time-series pressure, tolerating a re-keyed series.
   ///
-  /// A dive's transmitter pressure is stored in `tank_pressure_profiles` keyed
+  /// A dive's transmitter pressure is stored in `tank_pressure_series` keyed
   /// by tank id. A reparse, re-import, or multi-computer consolidation can
   /// regenerate the dive's tanks with fresh UUIDs while the pressure rows keep
   /// the old tank id (issue #276). The overall SAC curve already tolerates this

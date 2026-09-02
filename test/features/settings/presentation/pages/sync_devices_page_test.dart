@@ -172,4 +172,61 @@ void main() {
     await pump(tester, []);
     expect(find.text('No sync files on this backend.'), findsOneWidget);
   });
+
+  // Issue #1194: mobile devices publish a name now. Two phones of one model,
+  // and every iPhone on iOS 16+, publish the SAME name.
+  testWidgets('qualifies a name two devices share', (tester) async {
+    await pump(tester, [
+      device(
+        id: 'aaaabbbbccccdddd',
+        state: SyncDeviceFootprintState.active,
+        name: 'iPhone',
+      ),
+      device(
+        id: 'eeeeffff00001111',
+        state: SyncDeviceFootprintState.active,
+        name: 'iPhone',
+      ),
+    ]);
+
+    expect(find.text('iPhone (aaaabbbb)'), findsOneWidget);
+    expect(find.text('iPhone (eeeeffff)'), findsOneWidget);
+    expect(
+      find.text('iPhone'),
+      findsNothing,
+      reason: 'two rows a user cannot tell apart is the thing being fixed',
+    );
+  });
+
+  testWidgets('leaves a unique name alone', (tester) async {
+    await pump(tester, [
+      device(
+        id: 'aaaabbbbccccdddd',
+        state: SyncDeviceFootprintState.active,
+        name: "Eric's Pixel",
+      ),
+      device(
+        id: 'eeeeffff00001111',
+        state: SyncDeviceFootprintState.active,
+        name: 'ERIC-PC',
+      ),
+    ]);
+
+    expect(find.text("Eric's Pixel"), findsOneWidget);
+    expect(find.text('ERIC-PC'), findsOneWidget);
+  });
+
+  test('duplicatedSyncDeviceNames reports only names published twice', () {
+    final duplicated = duplicatedSyncDeviceNames([
+      device(id: 'a', state: SyncDeviceFootprintState.active, name: 'iPhone'),
+      device(id: 'b', state: SyncDeviceFootprintState.active, name: 'iPhone'),
+      device(id: 'c', state: SyncDeviceFootprintState.active, name: 'ERIC-PC'),
+      // Unnamed devices already carry their id, and null is not a name two
+      // devices can be said to share.
+      device(id: 'd', state: SyncDeviceFootprintState.retired),
+      device(id: 'e', state: SyncDeviceFootprintState.retired),
+    ]);
+
+    expect(duplicated, {'iPhone'});
+  });
 }

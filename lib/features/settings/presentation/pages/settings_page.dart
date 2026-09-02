@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
@@ -16,11 +17,13 @@ import 'package:submersion/features/settings/presentation/pages/safety_settings_
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
+import 'package:submersion/features/settings/presentation/widgets/place_name_language_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/visibility_scale_picker.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
@@ -50,6 +53,7 @@ import 'package:submersion/features/auto_update/domain/entities/update_status.da
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -505,12 +509,19 @@ class _UnitsSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildUnitTile(
                   context,
-                  title: context.l10n.settings_units_sacRate,
-                  value: settings.sacUnit == SacUnit.litersPerMin
-                      ? '${settings.volumeUnit.symbol}/min'
-                      : '${settings.pressureUnit.symbol}/min',
+                  title: context.l10n.settings_units_gasConsumption,
+                  value: switch (settings.gasConsumptionDisplay) {
+                    GasConsumptionDisplay.sac =>
+                      '${context.l10n.gasConsumption_sac} '
+                          '(${settings.pressureUnit.symbol}/min)',
+                    GasConsumptionDisplay.rmv =>
+                      '${context.l10n.gasConsumption_rmv} '
+                          '(${settings.volumeUnit.symbol}/min)',
+                    GasConsumptionDisplay.both =>
+                      context.l10n.settings_units_gasConsumption_both,
+                  },
                   onTap: () =>
-                      _showSacUnitPicker(context, ref, settings.sacUnit),
+                      _showGasConsumptionPicker(context, ref, settings),
                 ),
                 const Divider(height: 1),
                 _buildUnitTile(
@@ -554,6 +565,27 @@ class _UnitsSectionContent extends ConsumerWidget {
                   ),
                   onTap: () =>
                       showCoordinateFormatPicker(context, ref, settings),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(context.l10n.settings_placeNameLanguage_title),
+                  subtitle: Text(
+                    context.l10n.settings_placeNameLanguage_subtitle,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        placeNameLanguageLabel(settings.placeNameLanguage),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                  onTap: () =>
+                      showPlaceNameLanguagePicker(context, ref, settings),
                 ),
               ],
             ),
@@ -846,57 +878,68 @@ class _UnitsSectionContent extends ConsumerWidget {
     );
   }
 
-  void _showSacUnitPicker(
+  void _showGasConsumptionPicker(
     BuildContext context,
     WidgetRef ref,
-    SacUnit currentUnit,
+    AppSettings settings,
   ) {
-    showDialog(
+    final l10n = context.l10n;
+    final current = settings.gasConsumptionDisplay;
+
+    showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.settings_units_dialog_sacRateUnit),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(context.l10n.settings_units_sac_volumePerMinute),
-              subtitle: Text(
-                context.l10n.settings_units_sac_volumePerMinute_subtitle,
+      builder: (dialogContext) {
+        Widget option(
+          GasConsumptionDisplay value,
+          String title,
+          String subtitle,
+        ) {
+          return ListTile(
+            title: Text(title),
+            subtitle: Text(subtitle),
+            trailing: current == value
+                ? Icon(
+                    Icons.check,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
+                : null,
+            onTap: () {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setGasConsumptionDisplay(value);
+              Navigator.of(dialogContext).pop();
+            },
+          );
+        }
+
+        return AlertDialog(
+          title: Text(l10n.settings_units_dialog_gasConsumption),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              option(
+                GasConsumptionDisplay.sac,
+                l10n.gasConsumption_sac,
+                l10n.settings_units_gasConsumption_sac_subtitle(
+                  '${settings.pressureUnit.symbol}/min',
+                ),
               ),
-              trailing: currentUnit == SacUnit.litersPerMin
-                  ? Icon(
-                      Icons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
-                  : null,
-              onTap: () {
-                ref
-                    .read(settingsProvider.notifier)
-                    .setSacUnit(SacUnit.litersPerMin);
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-            ListTile(
-              title: Text(context.l10n.settings_units_sac_pressurePerMinute),
-              subtitle: Text(
-                context.l10n.settings_units_sac_pressurePerMinute_subtitle,
+              option(
+                GasConsumptionDisplay.rmv,
+                l10n.gasConsumption_rmv,
+                l10n.settings_units_gasConsumption_rmv_subtitle(
+                  '${settings.volumeUnit.symbol}/min',
+                ),
               ),
-              trailing: currentUnit == SacUnit.pressurePerMin
-                  ? Icon(
-                      Icons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
-                  : null,
-              onTap: () {
-                ref
-                    .read(settingsProvider.notifier)
-                    .setSacUnit(SacUnit.pressurePerMin);
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-          ],
-        ),
-      ),
+              option(
+                GasConsumptionDisplay.both,
+                l10n.settings_units_gasConsumption_both,
+                l10n.settings_units_gasConsumption_both_subtitle,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1193,6 +1236,17 @@ class _DecompressionSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildSourceDropdownTile(
                   context,
+                  title: context.l10n.settings_decompression_gtrSource,
+                  value: settings.defaultGtrSource,
+                  onChanged: (source) => ref
+                      .read(settingsProvider.notifier)
+                      .setDefaultGtrSource(source),
+                ),
+                const Divider(height: 1),
+                _buildGtrReserveTile(context, ref, settings),
+                const Divider(height: 1),
+                _buildSourceDropdownTile(
+                  context,
                   title: context.l10n.settings_decompression_cnsSource,
                   value: settings.defaultCnsSource,
                   onChanged: (source) => ref
@@ -1318,6 +1372,42 @@ class _DecompressionSectionContent extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  /// Reserve pressure the calculated GTR counts down to, shown and edited in
+  /// the diver's pressure unit, stored in bar.
+  Widget _buildGtrReserveTile(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    final units = UnitFormatter(settings);
+    return ListTile(
+      dense: true,
+      title: Text(context.l10n.settings_decompression_gtrReserve),
+      subtitle: Text(context.l10n.settings_decompression_gtrReserve_subtitle),
+      trailing: Text(units.formatPressure(settings.gtrReservePressure)),
+      onTap: () => _showGtrReserveDialog(context, ref, settings),
+    );
+  }
+
+  Future<void> _showGtrReserveDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) async {
+    final units = UnitFormatter(settings);
+    final entered = await showDialog<double>(
+      context: context,
+      builder: (_) => GtrReserveDialog(
+        initialValue: units.convertPressure(settings.gtrReservePressure),
+        unitSymbol: units.pressureSymbol,
+      ),
+    );
+    if (entered == null || !entered.isFinite || entered <= 0) return;
+    await ref
+        .read(settingsProvider.notifier)
+        .setGtrReservePressure(units.pressureToBar(entered));
   }
 
   String _cnsMethodLabel(BuildContext context, CnsCalculationMethod method) {
@@ -2295,7 +2385,7 @@ class _ManageSectionContent extends StatelessWidget {
                   title: Text(context.l10n.settings_manage_species),
                   subtitle: Text(context.l10n.settings_manage_species_subtitle),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/species'),
+                  onTap: () => context.push('/species/manage'),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -2564,6 +2654,20 @@ class _DataSectionContent extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.compress),
+              title: Text(context.l10n.settings_tankPressureAtSurfacing_title),
+              subtitle: Text(
+                context.l10n.settings_tankPressureAtSurfacing_subtitle,
+              ),
+              value: ref.watch(settingsProvider).trimTankPressureAtSurfacing,
+              onChanged: (value) => ref
+                  .read(settingsProvider.notifier)
+                  .setTrimTankPressureAtSurfacing(value),
             ),
           ),
           const SizedBox(height: 16),
@@ -2998,9 +3102,7 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
         ref.watch(releaseChannelProvider) == ReleaseChannel.beta;
     final versionString = packageInfoAsync.when(
       data: (info) {
-        final version = info.version.endsWith('.${info.buildNumber}')
-            ? info.version
-            : '${info.version}.${info.buildNumber}';
+        final version = formatAppVersion(info);
         final base = context.l10n.settings_about_version(version);
         return isBetaChannel
             ? context.l10n.settings_updates_channelBadgeBeta(base)
@@ -3039,9 +3141,9 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                 ),
                 // Beta enrollment signpost for store builds: the app cannot
                 // switch channels itself there, so link to the store's beta
-                // program. Hidden until the enrollment links exist.
-                if (!UpdateChannelConfig.isAutoUpdateEnabled &&
-                    _betaEnrollUrl.isNotEmpty) ...[
+                // program. Null on every build that has its own updater, and
+                // on platforms whose program is not live.
+                if (betaEnrollUrl case final enrollUrl?) ...[
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.science_outlined),
@@ -3050,7 +3152,7 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                       context.l10n.settings_updates_joinBetaSubtitle,
                     ),
                     onTap: () => launchUrl(
-                      Uri.parse(_betaEnrollUrl),
+                      Uri.parse(enrollUrl),
                       mode: LaunchMode.externalApplication,
                     ),
                   ),
@@ -3202,13 +3304,6 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
         ],
       ),
     );
-  }
-
-  /// The store beta-program URL for this platform ('' hides the signpost).
-  String get _betaEnrollUrl {
-    if (Platform.isIOS || Platform.isMacOS) return kTestFlightBetaUrl;
-    if (Platform.isAndroid) return kPlayBetaOptInUrl;
-    return '';
   }
 
   Future<void> _showChannelPicker(BuildContext context) async {

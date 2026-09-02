@@ -2,10 +2,13 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
@@ -37,7 +40,13 @@ class DiverRepository {
   final SyncRepository _syncRepository = SyncRepository();
   static const _uuid = Uuid();
   static final _log = LoggerService.forClass(DiverRepository);
-  static const _activeDiverIdKey = 'active_diver_id';
+
+  /// Settings-table key holding the device-local active diver id.
+  ///
+  /// Public so writers outside this repository that must keep the pointer
+  /// valid in the same transaction as their own change (diver merge) target
+  /// the same row the readers here consult.
+  static const activeDiverIdSettingsKey = 'active_diver_id';
 
   /// Get all divers ordered by name
   Future<List<domain.Diver>> getAllDivers() async {
@@ -135,6 +144,7 @@ class DiverRepository {
               email: Value(diver.email),
               phone: Value(diver.phone),
               photoPath: Value(diver.photoPath),
+              photo: Value(diver.photo),
               emergencyContactName: Value(diver.emergencyContact.name),
               emergencyContactPhone: Value(diver.emergencyContact.phone),
               emergencyContactRelation: Value(diver.emergencyContact.relation),
@@ -199,6 +209,7 @@ class DiverRepository {
           email: Value(diver.email),
           phone: Value(diver.phone),
           photoPath: Value(diver.photoPath),
+          photo: Value(diver.photo),
           emergencyContactName: Value(diver.emergencyContact.name),
           emergencyContactPhone: Value(diver.emergencyContact.phone),
           emergencyContactRelation: Value(diver.emergencyContact.relation),
@@ -255,6 +266,40 @@ class DiverRepository {
   )
   Future<void> deleteDiver(String id) async {
     await deleteDiverWithReassignment(id);
+  }
+
+  /// The [column] values of a raw query, for the cascade steps that have to
+  /// know which rows they are about to change so they can mark them pending.
+  Future<List<String>> _idsOf(
+    String sql,
+    List<String> args, {
+    String column = 'id',
+  }) async {
+    final rows = await _db
+        .customSelect(
+          sql,
+          variables: [for (final a in args) Variable.withString(a)],
+        )
+        .get();
+    return [for (final r in rows) r.read<String>(column)];
+  }
+
+  /// Whether the pre-v183 row-per-sample `dive_profiles` table is still in
+  /// this database. Every current build reads samples from the series
+  /// tables, so a hit here means the v183 pack could not finish and the
+  /// table was deliberately kept for a later retry.
+  ///
+  /// Mirrors `DiveComputerRepository._legacyProfilesTableExists`; the two
+  /// guard the same statement against the same failure and the check is one
+  /// query, not worth a dependency between the repositories.
+  Future<bool> _legacyProfilesTableExists() async {
+    final rows = await _db
+        .customSelect(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'dive_profiles'",
+        )
+        .get();
+    return rows.isNotEmpty;
   }
 
   /// Delete a diver, reassigning shared trips/sites to a surviving diver first.
@@ -354,30 +399,83 @@ class DiverRepository {
           }
         }
 
-        // Step 1: Null out cross-diver FK references to this diver's computers.
-        await _db.customStatement(
-          'UPDATE dives SET computer_id = NULL '
+        // Step 1: Null out cross-diver FK references to this diver's
+        // computers.
+        //
+        // These rows survive the delete and are synced, so clearing them is
+        // a change a peer has to see: without a fresh updated_at and a
+        // pending mark the peer keeps the old computerId and its next
+        // last-writer-wins update carries that dangling reference back. The
+        // series calls below already stamp and mark for themselves.
+        final clearedAt = DateTime.now().millisecondsSinceEpoch;
+        final foreignDiveIds = await _idsOf(
+          'SELECT id FROM dives '
           'WHERE computer_id IN '
           '(SELECT id FROM dive_computers WHERE diver_id = ?) '
           'AND (diver_id IS NULL OR diver_id != ?)',
           [id, id],
         );
         await _db.customStatement(
-          'UPDATE dive_profiles SET computer_id = NULL '
+          'UPDATE dives SET computer_id = NULL, updated_at = ? '
+          'WHERE computer_id IN '
+          '(SELECT id FROM dive_computers WHERE diver_id = ?) '
+          'AND (diver_id IS NULL OR diver_id != ?)',
+          [clearedAt, id, id],
+        );
+        await ProfileSeriesRepository().clearComputersOfDiverForForeignDives(
+          id,
+        );
+        await TankPressureSeriesRepository()
+            .clearComputersOfDiverForForeignDives(id);
+        // dive_data_sources carries no updated_at and no hlc: it is a
+        // clockless child that syncs with its parent dive, so the parent is
+        // what gets marked (the rule TankPressureRepository follows too).
+        final sourceParentIds = await _idsOf(
+          'SELECT DISTINCT dive_id FROM dive_data_sources '
           'WHERE computer_id IN '
           '(SELECT id FROM dive_computers WHERE diver_id = ?) '
           'AND dive_id NOT IN (SELECT id FROM dives WHERE diver_id = ?)',
           [id, id],
+          column: 'dive_id',
         );
         await _db.customStatement(
           'UPDATE dive_data_sources SET computer_id = NULL '
           'WHERE computer_id IN '
           '(SELECT id FROM dive_computers WHERE diver_id = ?) '
+          // stats-scope-exempt: reassignment cascade, not a statistic.
           'AND dive_id NOT IN (SELECT id FROM dives WHERE diver_id = ?)',
           [id, id],
         );
+        for (final diveId in {...foreignDiveIds, ...sourceParentIds}) {
+          await _syncRepository.markRecordPending(
+            entityType: 'dives',
+            recordId: diveId,
+            localUpdatedAt: clearedAt,
+          );
+        }
+        // The v183 rung drops dive_profiles only once its rows have actually
+        // moved into the series table, so a device whose pack threw still
+        // carries it, and its computer_id FK has no ON DELETE action. A
+        // surviving row on another diver's dive fails step 4's
+        // `DELETE FROM dive_computers` with SqliteException(787) and rolls
+        // the whole delete back, so the diver could never be deleted on that
+        // device. Same #823 failure, same fix as
+        // DiveComputerRepository.deleteComputer. The table is no longer
+        // synced, so this only unblocks the FK: nothing to stamp or mark.
+        if (await _legacyProfilesTableExists()) {
+          await _db.customStatement(
+            'UPDATE dive_profiles SET computer_id = NULL '
+            'WHERE computer_id IN '
+            '(SELECT id FROM dive_computers WHERE diver_id = ?) '
+            // stats-scope-exempt: reassignment cascade, not a statistic.
+            'AND dive_id NOT IN (SELECT id FROM dives WHERE diver_id = ?)',
+            [id, id],
+          );
+        }
 
         // Step 2: Delete dives (cascades: profiles, tanks, data_sources, etc.)
+        // stats-scope-exempt: deletion cascade. Deletes the diver's dives,
+        // excluded ones included.
         await _db.customStatement('DELETE FROM dives WHERE diver_id = ?', [id]);
 
         // Step 2b: Null out cross-diver FK references to sites/trips we're
@@ -391,6 +489,7 @@ class DiverRepository {
 
         final divesLosingSite = await _db
             .customSelect(
+              // stats-scope-exempt: deletion cascade cleanup.
               'SELECT id FROM dives WHERE site_id IN '
               '(SELECT id FROM dive_sites WHERE diver_id = ?)',
               variables: [Variable.withString(id)],
@@ -413,6 +512,7 @@ class DiverRepository {
 
         final divesLosingTrip = await _db
             .customSelect(
+              // stats-scope-exempt: deletion cascade cleanup.
               'SELECT id FROM dives WHERE trip_id IN '
               '(SELECT id FROM trips WHERE diver_id = ?)',
               variables: [Variable.withString(id)],
@@ -569,7 +669,8 @@ class DiverRepository {
     try {
       final result = await _db
           .customSelect(
-            'SELECT COUNT(*) as count FROM dives WHERE diver_id = ?',
+            'SELECT COUNT(*) as count FROM dives WHERE diver_id = ?'
+            "${DiveStatsScope.and(alias: 'dives')}",
             variables: [Variable.withString(diverId)],
           )
           .getSingle();
@@ -589,7 +690,9 @@ class DiverRepository {
     try {
       final result = await _db
           .customSelect(
-            'SELECT COALESCE(SUM(bottom_time), 0) as total FROM dives WHERE diver_id = ?',
+            'SELECT COALESCE(SUM(bottom_time), 0) as total '
+            'FROM dives WHERE diver_id = ?'
+            "${DiveStatsScope.and(alias: 'dives')}",
             variables: [Variable.withString(diverId)],
           )
           .getSingle();
@@ -609,7 +712,7 @@ class DiverRepository {
   Future<String?> getActiveDiverIdFromSettings() async {
     try {
       final query = _db.select(_db.settings)
-        ..where((t) => t.key.equals(_activeDiverIdKey));
+        ..where((t) => t.key.equals(activeDiverIdSettingsKey));
       final row = await query.getSingleOrNull();
       return row?.value;
     } catch (e, stackTrace) {
@@ -630,13 +733,13 @@ class DiverRepository {
       if (diverId == null) {
         await (_db.delete(
           _db.settings,
-        )..where((t) => t.key.equals(_activeDiverIdKey))).go();
+        )..where((t) => t.key.equals(activeDiverIdSettingsKey))).go();
       } else {
         await _db
             .into(_db.settings)
             .insertOnConflictUpdate(
               SettingsCompanion(
-                key: const Value(_activeDiverIdKey),
+                key: const Value(activeDiverIdSettingsKey),
                 value: Value(diverId),
                 updatedAt: Value(now),
               ),
@@ -658,6 +761,7 @@ class DiverRepository {
       email: row.email,
       phone: row.phone,
       photoPath: row.photoPath,
+      photo: row.photo,
       emergencyContact: domain.EmergencyContact(
         name: row.emergencyContactName,
         phone: row.emergencyContactPhone,

@@ -295,8 +295,8 @@ void main() {
     ) async {
       const tank = DiveTank(id: 't1', gasMix: GasMix(o2: 21), order: 0);
       const points = [
-        TankPressurePoint(id: 'e0', tankId: 't1', timestamp: 0, pressure: 200),
-        TankPressurePoint(id: 'e1', tankId: 't1', timestamp: 270, pressure: 60),
+        TankPressurePoint(tankId: 't1', timestamp: 0, pressure: 200),
+        TankPressurePoint(tankId: 't1', timestamp: 270, pressure: 60),
       ];
 
       await tester.pumpWidget(
@@ -340,12 +340,7 @@ void main() {
         final profile = _makeProfile(points: 40);
         final flatPressures = <TankPressurePoint>[
           for (var i = 0; i < 40; i++)
-            TankPressurePoint(
-              id: 'p$i',
-              tankId: 't1',
-              timestamp: i * 30,
-              pressure: 0.0,
-            ),
+            TankPressurePoint(tankId: 't1', timestamp: i * 30, pressure: 0.0),
         ];
 
         await tester.pumpWidget(
@@ -386,8 +381,8 @@ void main() {
       const tank = DiveTank(id: 't1', gasMix: GasMix(o2: 21), order: 0);
       // A straight two-point estimate spanning the whole profile (0..570s).
       const points = [
-        TankPressurePoint(id: 'e0', tankId: 't1', timestamp: 0, pressure: 200),
-        TankPressurePoint(id: 'e1', tankId: 't1', timestamp: 570, pressure: 60),
+        TankPressurePoint(tankId: 't1', timestamp: 0, pressure: 200),
+        TankPressurePoint(tankId: 't1', timestamp: 570, pressure: 60),
       ];
       List<TooltipRow>? rows;
 
@@ -815,32 +810,12 @@ void main() {
         ];
         const pressures = {
           'back': [
-            TankPressurePoint(
-              id: 'b0',
-              tankId: 'back',
-              timestamp: 10,
-              pressure: 200,
-            ),
-            TankPressurePoint(
-              id: 'b1',
-              tankId: 'back',
-              timestamp: 100,
-              pressure: 80,
-            ),
+            TankPressurePoint(tankId: 'back', timestamp: 10, pressure: 200),
+            TankPressurePoint(tankId: 'back', timestamp: 100, pressure: 80),
           ],
           'deco': [
-            TankPressurePoint(
-              id: 'd0',
-              tankId: 'deco',
-              timestamp: 60,
-              pressure: 200,
-            ),
-            TankPressurePoint(
-              id: 'd1',
-              tankId: 'deco',
-              timestamp: 100,
-              pressure: 150,
-            ),
+            TankPressurePoint(tankId: 'deco', timestamp: 60, pressure: 200),
+            TankPressurePoint(tankId: 'deco', timestamp: 100, pressure: 150),
           ],
         };
 
@@ -975,7 +950,6 @@ void main() {
         'tank-1': List.generate(
           10,
           (i) => TankPressurePoint(
-            id: 'tp-1-$i',
             tankId: 'tank-1',
             timestamp: i * 30,
             pressure: 200.0 - i * 5,
@@ -984,7 +958,6 @@ void main() {
         'tank-2': List.generate(
           10,
           (i) => TankPressurePoint(
-            id: 'tp-2-$i',
             tankId: 'tank-2',
             timestamp: i * 30,
             pressure: 180.0 - i * 4,
@@ -1014,7 +987,6 @@ void main() {
         'tank-1': List.generate(
           5,
           (i) => TankPressurePoint(
-            id: 'tp-$i',
             tankId: 'tank-1',
             timestamp: i * 30,
             pressure: 200.0 - i * 10,
@@ -1886,7 +1858,6 @@ void main() {
         'tank-1': List.generate(
           10,
           (i) => TankPressurePoint(
-            id: 'tp-$i',
             tankId: 'tank-1',
             timestamp: i * 30,
             pressure: 200.0 - i * 8,
@@ -2036,7 +2007,6 @@ void main() {
               'tank-1': List.generate(
                 10,
                 (i) => TankPressurePoint(
-                  id: 'tp-$i',
                   tankId: 'tank-1',
                   timestamp: i * 30,
                   pressure: 200.0 - i * 8,
@@ -2644,7 +2614,6 @@ void main() {
               'tank-1': List.generate(
                 20,
                 (i) => TankPressurePoint(
-                  id: 'tp-$i',
                   tankId: 'tank-1',
                   timestamp: i * 30,
                   pressure: 200.0 - i * 5,
@@ -2727,7 +2696,6 @@ void main() {
               'tank-a': List.generate(
                 20,
                 (i) => TankPressurePoint(
-                  id: 'tpa-$i',
                   tankId: 'tank-a',
                   timestamp: i * 30,
                   pressure: 200.0 - i * 2,
@@ -2736,7 +2704,6 @@ void main() {
               'tank-b': List.generate(
                 20,
                 (i) => TankPressurePoint(
-                  id: 'tpb-$i',
                   tankId: 'tank-b',
                   timestamp: i * 30,
                   pressure: 210.0 - i * 3,
@@ -2799,7 +2766,6 @@ void main() {
             'tank-a': List.generate(
               20,
               (i) => TankPressurePoint(
-                id: 'tpa-$i',
                 tankId: 'tank-a',
                 timestamp: i * 30,
                 pressure: 200.0 - i * 2,
@@ -3237,7 +3203,6 @@ void main() {
               'tank-1': List.generate(
                 20,
                 (i) => TankPressurePoint(
-                  id: 'tp-$i',
                   tankId: 'tank-1',
                   timestamp: i * 30,
                   pressure: 200.0 - i * 5,
@@ -4164,6 +4129,29 @@ void main() {
         );
       },
     );
+
+    testWidgets('touched spot indicator ignores a stale out-of-range index', (
+      tester,
+    ) async {
+      // Regression: consolidating two dives can shorten the profile mid
+      // touch, leaving spotIndexes from a previous frame's (longer) bar
+      // data. fl_chart's own defaultTouchedIndicators indexes
+      // barData.spots directly and throws a RangeError on a stale index;
+      // getTouchedSpotIndicator must drop it instead of forwarding it.
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        buildWithLegend(profile: profile, ascentRates: const []),
+      );
+      await tester.pumpAndSettle();
+
+      final data = primaryChartData(tester);
+      final bar = data.lineBarsData.first;
+      final indicator = data.lineTouchData.getTouchedSpotIndicator;
+
+      expect(() => indicator(bar, [bar.spots.length + 685]), returnsNormally);
+      expect(indicator(bar, [bar.spots.length + 685]).single, isNull);
+      expect(indicator(bar, const [-1]).single, isNull);
+    });
 
     testWidgets('tooltip builds when hovering a non-first velocity segment', (
       tester,

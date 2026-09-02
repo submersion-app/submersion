@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show FlutterError;
 import 'package:flutter/services.dart' show MissingPluginException;
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 /// A full base export that has been written to disk but not yet fully uploaded.
@@ -298,7 +299,30 @@ Future<Directory> resolveBasePublishDir() async {
     if (!e.toString().contains('Binding has not yet been initialized')) rethrow;
     base = Directory.systemTemp;
   }
-  final dir = Directory('${base.path}/sync_base_publish');
+  final dir = Directory(p.join(base.path, 'sync_base_publish'));
   await dir.create(recursive: true);
   return dir;
+}
+
+/// Where an export at [sourcePath] is moved to inside the publish directory.
+///
+/// Takes the name with [p.Context.basename] rather than splitting on
+/// [Platform.pathSeparator]. Sync used to assemble its paths by interpolating a
+/// literal `/` (every such site now joins instead -- #1304, #1327), so on
+/// Windows an export path mixed separators
+/// (`C:\Users\...\Local\Temp/ssv1_base_x.json`) and a backslash split kept the
+/// `Temp/` in front of the name. That moved the export into a subdirectory of
+/// the publish directory which nothing ever creates, so every base publish on
+/// Windows failed with `PathNotFoundException` (#1304). `basename` treats both
+/// separators as separators under the Windows style, so either shape resolves.
+///
+/// [context] exists so the Windows style can be pinned in tests running on a
+/// POSIX host; production always wants the platform's own.
+String basePublishTargetPath(
+  String publishDirPath,
+  String sourcePath, {
+  p.Context? context,
+}) {
+  final ctx = context ?? p.context;
+  return ctx.join(publishDirPath, ctx.basename(sourcePath));
 }

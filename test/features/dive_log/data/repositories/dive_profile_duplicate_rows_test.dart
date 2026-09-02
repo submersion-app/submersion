@@ -1,7 +1,8 @@
-import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -21,18 +22,24 @@ void main() {
   });
   tearDown(() async => tearDownTestDatabase());
 
-  Future<void> duplicateProfileRows(String diveId) async {
-    final rows = await (db.select(
-      db.diveProfiles,
-    )..where((t) => t.diveId.equals(diveId))).get();
-    for (final row in rows) {
-      await db
-          .into(db.diveProfiles)
-          .insert(row.toCompanion(false).copyWith(id: Value('${row.id}-copy')));
+  /// Series twin of the retired `duplicateProfileRows`: `createDive` now
+  /// writes series, so re-inserts every series of the dive as a second
+  /// series under the SAME identity with a fresh id.
+  Future<void> duplicateProfileSeries(String diveId) async {
+    final series = ProfileSeriesRepository();
+    for (final s in await series.getSeriesForDive(diveId)) {
+      await series.insertSeries(
+        diveId: diveId,
+        computerId: s.computerId,
+        sourceId: s.sourceId,
+        isPrimary: s.isPrimary,
+        samples: s.samples,
+        now: 1000,
+      );
     }
   }
 
-  test('getMergedProfile collapses exact duplicate rows', () async {
+  test('getMergedProfile collapses exact duplicate series', () async {
     await repository.createDive(
       domain.Dive(
         id: 'dup',
@@ -50,7 +57,14 @@ void main() {
         ],
       ),
     );
-    await duplicateProfileRows('dup');
+    await duplicateProfileSeries('dup');
+
+    // Two series under the same identity, proving the collapse runs and
+    // is not merely the dedupe insertSeries already does inside one series.
+    expect(
+      await ProfileSeriesRepository().getSeriesForDive('dup'),
+      hasLength(2),
+    );
 
     final merged = await repository.getMergedProfile('dup');
 
@@ -60,6 +74,43 @@ void main() {
       equals([for (var t = 0; t <= 300; t += 10) t]),
     );
   });
+
+  test(
+    'identical samples from two different computers are both kept',
+    () async {
+      await repository.createDive(
+        domain.Dive(
+          id: 'dup3',
+          dateTime: DateTime.utc(2026, 8, 1, 14),
+          profile: [
+            for (var t = 0; t <= 20; t += 10)
+              domain.DiveProfilePoint(timestamp: t, depth: t / 10.0),
+          ],
+        ),
+      );
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: 'comp-2',
+              name: 'Second Computer',
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'dup3',
+        computerId: 'comp-2',
+        samples: [
+          for (var t = 0; t <= 20; t += 10)
+            ProfileSample(timestamp: t, depth: t / 10.0),
+        ],
+        now: 1000,
+      );
+
+      expect(await repository.getMergedProfile('dup3'), hasLength(6));
+    },
+  );
 
   test('getDiveById stays in step with getMergedProfile', () async {
     await repository.createDive(
@@ -72,7 +123,7 @@ void main() {
         ],
       ),
     );
-    await duplicateProfileRows('dup2');
+    await duplicateProfileSeries('dup2');
 
     final full = await repository.getDiveById('dup2');
     final merged = await repository.getMergedProfile('dup2');
@@ -100,21 +151,16 @@ void main() {
         ],
       ),
     );
-    final rows = await (db.select(
-      db.diveProfiles,
-    )..where((t) => t.diveId.equals('meta'))).get();
-    for (final row in rows) {
-      await db
-          .into(db.diveProfiles)
-          .insert(
-            row
-                .toCompanion(false)
-                .copyWith(
-                  id: Value('${row.id}-hr'),
-                  heartRate: const Value(72),
-                ),
-          );
-    }
+    // A second, unattributed series sharing every (timestamp, depth) pair
+    // with the first but carrying its own heart rate.
+    await ProfileSeriesRepository().insertSeries(
+      diveId: 'meta',
+      samples: [
+        for (var t = 0; t <= 100; t += 10)
+          ProfileSample(timestamp: t, depth: t / 10.0, heartRate: 72),
+      ],
+      now: 1000,
+    );
 
     expect(await repository.getMergedProfile('meta'), hasLength(22));
   });
@@ -132,21 +178,16 @@ void main() {
         ],
       ),
     );
-    final rows = await (db.select(
-      db.diveProfiles,
-    )..where((t) => t.diveId.equals('twosrc'))).get();
-    for (final row in rows) {
-      await db
-          .into(db.diveProfiles)
-          .insert(
-            row
-                .toCompanion(false)
-                .copyWith(
-                  id: Value('${row.id}-b'),
-                  depth: Value(row.depth + 0.4),
-                ),
-          );
-    }
+    // A second, unattributed series recording a different depth at every
+    // shared timestamp.
+    await ProfileSeriesRepository().insertSeries(
+      diveId: 'twosrc',
+      samples: [
+        for (var t = 0; t <= 100; t += 10)
+          ProfileSample(timestamp: t, depth: t / 10.0 + 0.4),
+      ],
+      now: 1000,
+    );
 
     expect(await repository.getMergedProfile('twosrc'), hasLength(22));
   });

@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/domain/entities/species_lookup.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_lookup_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Species picker bottom sheet with search
@@ -208,8 +211,63 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
             ),
           ),
         ),
+        // The empty state's "Add ..." button only appears when the catalog
+        // answers nothing, so a diver whose search has one near-miss hit had
+        // no way to reach the online lookup at all. This footer is the door
+        // that is always open.
+        const Divider(height: 1),
+        // Neither host passes useSafeArea, and the sheet is bottom-anchored,
+        // so without this the button sits under the home indicator. The list
+        // above could be scrolled clear of it; a fixed footer cannot.
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextButton.icon(
+              key: const ValueKey('species_picker_lookup_online'),
+              icon: const Icon(Icons.travel_explore),
+              label: Text(context.l10n.marineLife_lookup_button),
+              onPressed: _lookUpOnline,
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  /// The always-available online path. Unlike the empty state, the diver has
+  /// not committed to creating anything, so a dismissed sheet must create
+  /// nothing; with no query typed there is also no name to fall back on, so
+  /// the sheet's "create without lookup" escape is withheld.
+  Future<void> _lookUpOnline() async {
+    final query = _searchQuery.trim();
+    final outcome = await showSpeciesLookupSheet(
+      context,
+      initialQuery: query,
+      allowCreateWithout: query.isNotEmpty,
+    );
+    if (!mounted || outcome == null) return;
+    await _createFromOutcome(outcome, fallbackName: query);
+  }
+
+  /// Turns a lookup outcome into a species and opens the sighting dialog.
+  /// [fallbackName] is what a "create without lookup" is named.
+  Future<void> _createFromOutcome(
+    SpeciesLookupOutcome outcome, {
+    required String fallbackName,
+  }) async {
+    final repository = ref.read(speciesRepositoryProvider);
+    final species = switch (outcome) {
+      SpeciesLookupChosen(:final result) => await _speciesFromLookup(
+        repository,
+        result,
+      ),
+      SpeciesLookupCreateWithout() => await repository.getOrCreateSpecies(
+        commonName: fallbackName,
+        category: SpeciesCategory.other,
+      ),
+    };
+    if (mounted) _showSightingDetails(species);
   }
 
   Widget _buildCategoryChip(SpeciesCategory? category, String label) {
@@ -307,14 +365,34 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
     );
   }
 
-  void _addCustomSpecies(String name) async {
-    final repository = ref.read(speciesRepositoryProvider);
-    final species = await repository.getOrCreateSpecies(
-      commonName: name,
-      category: SpeciesCategory.other,
+  /// The empty state's "add" path: look the name up first so a custom
+  /// species gets its scientific name, category and class; "Create without
+  /// lookup" (or a dismissed sheet) keeps the old name-only creation, so an
+  /// offline diver loses nothing.
+  Future<void> _addCustomSpecies(String name) async {
+    final outcome = await showSpeciesLookupSheet(context, initialQuery: name);
+    if (!mounted) return;
+    // The diver already tapped "Add <name>", so dismissing the lookup is not
+    // a reason to abandon the species they asked for.
+    await _createFromOutcome(
+      outcome ?? const SpeciesLookupCreateWithout(),
+      fallbackName: name,
     );
-    if (mounted) {
-      _showSightingDetails(species);
-    }
+  }
+
+  Future<Species> _speciesFromLookup(
+    SpeciesRepository repository,
+    SpeciesLookupResult result,
+  ) async {
+    final existing = await repository.findSpeciesByScientificName(
+      result.scientificName,
+    );
+    if (existing != null) return existing;
+    return repository.createSpecies(
+      commonName: result.commonName,
+      scientificName: result.scientificName,
+      category: result.category,
+      taxonomyClass: result.taxonomyClass,
+    );
   }
 }

@@ -113,6 +113,28 @@ void main() {
     expect(await File(result[1].path).readAsString(), 'second');
   });
 
+  test('never reuses a scratch directory across picks', () async {
+    // The scratch sweep prunes picked subdirectories it emptied. A directory
+    // whose name no earlier pick used cannot be one a sweep already decided
+    // to remove, so the copy below can never be opened into a directory that
+    // is about to disappear.
+    Future<String> pickOnce() async {
+      final result = await materializePickedFiles([
+        FakePlatformFile.contentUri(
+          Uri.parse('content://x/1'),
+          name: 'log.csv',
+          bytes: Uint8List.fromList('data'.codeUnits),
+        ),
+      ]);
+      return File(result.single.path).parent.path;
+    }
+
+    final first = await pickOnce();
+    final second = await pickOnce();
+
+    expect(first, isNot(second));
+  });
+
   test('preserves order across a mixed selection', () async {
     final local = await writeSource('a.uddf', 'a');
 

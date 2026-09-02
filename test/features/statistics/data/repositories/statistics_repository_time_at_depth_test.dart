@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 
@@ -9,10 +11,12 @@ import '../../../../helpers/test_database.dart';
 void main() {
   late AppDatabase db;
   late StatisticsRepository repo;
+  late ProfileSeriesRepository seriesRepository;
 
   setUp(() async {
     db = await setUpTestDatabase();
     repo = StatisticsRepository();
+    seriesRepository = ProfileSeriesRepository();
   });
   tearDown(() async {
     await tearDownTestDatabase();
@@ -60,29 +64,31 @@ void main() {
         );
   }
 
-  /// Inserts profile samples as (timestamp seconds, depth meters) pairs.
+  /// Inserts one profile series from (timestamp seconds, depth meters) pairs.
+  ///
+  /// Each call writes one `dive_profile_series` row. A second call with the
+  /// same [diveId]/[computerId] adds a second row for the same stream rather
+  /// than appending to the first, which is how a repeated import is modelled
+  /// once samples are packed into series (see the "exact duplicate profile
+  /// rows" test). Ties in [samples] keep their list order into the stored
+  /// series, matching the legacy row-id tiebreak (see "neither loses nor
+  /// invents time when timestamps tie").
   Future<void> profile(
     String diveId,
     List<(int, double)> samples, {
     bool isPrimary = true,
     String? computerId,
-    String idPrefix = 'row',
   }) async {
-    await db.batch((batch) {
-      for (final (index, sample) in samples.indexed) {
-        batch.insert(
-          db.diveProfiles,
-          DiveProfilesCompanion(
-            id: Value('$diveId-${computerId ?? 'dc'}-$idPrefix-$index'),
-            diveId: Value(diveId),
-            computerId: Value(computerId),
-            isPrimary: Value(isPrimary),
-            timestamp: Value(sample.$1),
-            depth: Value(sample.$2),
-          ),
-        );
-      }
-    });
+    await seriesRepository.insertSeries(
+      diveId: diveId,
+      computerId: computerId,
+      isPrimary: isPrimary,
+      samples: [
+        for (final (ts, depth) in samples)
+          ProfileSample(timestamp: ts, depth: depth),
+      ],
+      now: now,
+    );
   }
 
   /// Holds [depth] from [from] to [to] seconds, sampled every [every] seconds.
@@ -183,14 +189,11 @@ void main() {
 
   test('is unaffected by exact duplicate profile rows', () async {
     await dive('a');
-    // A repeated import stores every sample twice. Row counts double; the
-    // elapsed time between distinct timestamps does not.
+    // A repeated import stores the same samples in a second series row for
+    // the same stream. Sample counts double; the elapsed time between
+    // distinct timestamps does not.
     await profile('a', level(5.0, from: 0, to: 1800, every: 4));
-    await profile(
-      'a',
-      level(5.0, from: 0, to: 1800, every: 4),
-      idPrefix: 'reimport',
-    );
+    await profile('a', level(5.0, from: 0, to: 1800, every: 4));
 
     final ranges = await repo.getTimeAtDepthRanges();
 

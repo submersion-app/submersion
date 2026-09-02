@@ -18,7 +18,7 @@ class MediaLibraryGroupedList extends StatelessWidget {
     required this.onLoadMore,
     required this.onTileTap,
     this.selectedIds = const {},
-    this.onTileLongPress,
+    this.isSelectionMode = false,
   });
 
   final List<MediaLibraryGroup> groups;
@@ -29,8 +29,9 @@ class MediaLibraryGroupedList extends StatelessWidget {
   /// Ids rendered with the selection overlay.
   final Set<String> selectedIds;
 
-  /// Long-press hook for entering selection mode.
-  final void Function(MediaLibraryEntry entry)? onTileLongPress;
+  /// Whether the surface is in multi-select, which can be true with nothing
+  /// checked.
+  final bool isSelectionMode;
 
   static const double _loadMoreThreshold = 400;
 
@@ -93,7 +94,7 @@ class MediaLibraryGroupedList extends StatelessWidget {
         // Inert while a selection is in progress, matching the tiles below it:
         // a tap landing a few pixels high must not navigate away from a
         // half-built selection.
-        final navigable = diveId != null && selectedIds.isEmpty;
+        final navigable = diveId != null && !isSelectionMode;
         rows.add(
           navigable
               ? Semantics(
@@ -144,10 +145,8 @@ class MediaLibraryGroupedList extends StatelessWidget {
             return MediaLibraryTile(
               entry: entry,
               selected: selectedIds.contains(entry.item.id),
+              isSelectionMode: isSelectionMode,
               onTap: () => onTileTap(entry),
-              onLongPress: onTileLongPress == null
-                  ? null
-                  : () => onTileLongPress!(entry),
             );
           },
         ),

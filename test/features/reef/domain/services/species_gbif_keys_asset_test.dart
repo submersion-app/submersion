@@ -24,7 +24,7 @@ void main() {
       final resolved = (keys['speciesKeys'] as Map).length;
       expect(
         resolved,
-        greaterThan((catalog.length * 0.75).floor()),
+        greaterThan((catalog.length * 0.9).floor()),
         reason: 'Too few species resolved to GBIF keys; regenerate the asset',
       );
     });
@@ -75,6 +75,14 @@ void main() {
       expect(taxa, contains(5685), reason: 'Crocodylidae');
       expect(taxa, contains(2450145), reason: 'Laticauda, the sea kraits');
       expect(taxa, contains(2459538), reason: 'Amblyrhynchus, marine iguana');
+    });
+
+    test('no species key is a kingdom or phylum usage', () {
+      // A HIGHERRANK match on an unknown name once wrote Animalia (key 1)
+      // as a species key; GBIF's kingdom and phylum keys are all below 100.
+      for (final key in (keys['speciesKeys'] as Map).keys) {
+        expect(int.parse(key as String), greaterThan(100), reason: key);
+      }
     });
 
     test('every mapped key points at a real catalog species id', () {

@@ -2,9 +2,10 @@ import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
-/// Library health facets: rows whose backing file is missing (persisted
-/// orphan flag) or rows attached to neither a dive nor a site.
-enum MediaHealthFilter { missing, unlinked }
+/// Library health facet: rows whose backing file is missing (persisted
+/// orphan flag). Every row carries a dive or site link, so there is no
+/// "unlinked" facet; an album saved with one decodes to no constraint.
+enum MediaHealthFilter { missing }
 
 /// Cross-dive library filter. Compiled to SQL by MediaLibraryRepository;
 /// all fields combine with AND. Phase 5 serializes this for smart albums.
@@ -14,6 +15,7 @@ class MediaLibraryFilter {
     this.siteId,
     this.tripId,
     this.diveId,
+    this.speciesId,
     this.fromDate,
     this.toDate,
     this.sourceType,
@@ -24,6 +26,9 @@ class MediaLibraryFilter {
   final String? siteId;
   final String? tripId;
   final String? diveId;
+
+  /// Rows tagged with this species (a `media_species` row for the pair).
+  final String? speciesId;
 
   /// Inclusive bounds applied to the sort key (takenAt, falling back to
   /// createdAt).
@@ -40,6 +45,7 @@ class MediaLibraryFilter {
       siteId == null &&
       tripId == null &&
       diveId == null &&
+      speciesId == null &&
       fromDate == null &&
       toDate == null &&
       sourceType == null &&
@@ -52,6 +58,7 @@ class MediaLibraryFilter {
     Object? siteId = _undefined,
     Object? tripId = _undefined,
     Object? diveId = _undefined,
+    Object? speciesId = _undefined,
     Object? fromDate = _undefined,
     Object? toDate = _undefined,
     Object? sourceType = _undefined,
@@ -64,6 +71,9 @@ class MediaLibraryFilter {
       siteId: siteId == _undefined ? this.siteId : siteId as String?,
       tripId: tripId == _undefined ? this.tripId : tripId as String?,
       diveId: diveId == _undefined ? this.diveId : diveId as String?,
+      speciesId: speciesId == _undefined
+          ? this.speciesId
+          : speciesId as String?,
       fromDate: fromDate == _undefined ? this.fromDate : fromDate as DateTime?,
       toDate: toDate == _undefined ? this.toDate : toDate as DateTime?,
       sourceType: sourceType == _undefined
@@ -90,6 +100,7 @@ class MediaLibraryFilter {
     'siteId': siteId,
     'tripId': tripId,
     'diveId': diveId,
+    'speciesId': speciesId,
     'fromDate': _dateToMillis(fromDate),
     'toDate': _dateToMillis(toDate),
     'sourceType': sourceType?.name,
@@ -105,6 +116,7 @@ class MediaLibraryFilter {
       siteId: json['siteId'] as String?,
       tripId: json['tripId'] as String?,
       diveId: json['diveId'] as String?,
+      speciesId: json['speciesId'] as String?,
       fromDate: _dateFromMillis(json['fromDate']),
       toDate: _dateFromMillis(json['toDate']),
       sourceType: _enumByName(MediaSourceType.values, json['sourceType']),
@@ -134,6 +146,7 @@ class MediaLibraryFilter {
         other.siteId == siteId &&
         other.tripId == tripId &&
         other.diveId == diveId &&
+        other.speciesId == speciesId &&
         other.fromDate == fromDate &&
         other.toDate == toDate &&
         other.sourceType == sourceType &&
@@ -146,6 +159,7 @@ class MediaLibraryFilter {
     siteId,
     tripId,
     diveId,
+    speciesId,
     fromDate,
     toDate,
     sourceType,
@@ -153,12 +167,18 @@ class MediaLibraryFilter {
   );
 }
 
-/// Keyset cursor: the sort key (epoch millis of COALESCE(taken_at,
-/// created_at)) and row id of the last entry on the previous page.
+/// Keyset cursor: the last entry's value for the active sort key, plus its
+/// row id as the tiebreaker.
+///
+/// [sortKey] is an int for the date and size fields and a String for the name
+/// field. It is always non-null: the repository coalesces every sort
+/// expression, because a NULL key makes the keyset predicate (`key < ?`)
+/// evaluate to NULL, which is falsy, and silently truncates the result set at
+/// the first NULL row.
 class MediaLibraryCursor {
   const MediaLibraryCursor({required this.sortKey, required this.id});
 
-  final int sortKey;
+  final Object sortKey;
   final String id;
 }
 

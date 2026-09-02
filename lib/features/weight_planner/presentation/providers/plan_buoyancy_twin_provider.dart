@@ -61,8 +61,19 @@ final planBuoyancyTwinProvider = Provider<BuoyancyTwinOutcome?>((ref) {
 
   if (model == null || equipment == null || state.tanks.isEmpty) return null;
 
+  // Both branches are the same quantity: plannedWeightKg is only ever written
+  // as a snapshot of prediction.totalKg (see plan_gear_weights_section), and
+  // the prediction is a TOTAL trained on observations whose carriedKg now
+  // includes ballast built into the rig (issue #1103). Do not add
+  // EquipmentLead here -- gear lead is already inside this figure, and adding
+  // it again would double-count every rig the model has seen.
   final lead = state.plannedWeightKg ?? prediction?.totalKg ?? 0.0;
   if (lead <= 0) return null;
+
+  final itemsById = {for (final e in equipment) e.id: e};
+  final items = <EquipmentItem>[
+    for (final id in state.equipmentIds) ?itemsById[id],
+  ];
 
   final consumptionByTank = {
     for (final g in planResult.gasConsumptions) g.tankId: g,
@@ -87,11 +98,6 @@ final planBuoyancyTwinProvider = Provider<BuoyancyTwinOutcome?>((ref) {
       ),
   ];
 
-  final itemsById = {for (final e in equipment) e.id: e};
-  final items = <EquipmentItem>[
-    for (final id in state.equipmentIds) ?itemsById[id],
-  ];
-
   final rig = BuoyancyTwinAssembler.composeRigTerms(
     items: items,
     tanks: tanks,
@@ -104,6 +110,12 @@ final planBuoyancyTwinProvider = Provider<BuoyancyTwinOutcome?>((ref) {
   // Some planned lead may be non-ditchable (e.g. backplate/trim). When the
   // planner carries a per-WeightType placement, count only the droppable
   // (belt + integrated) portion; otherwise assume all lead is droppable.
+  //
+  // PlacementPredictor builds that map by splitting the whole predicted total
+  // across the diver's habitual placement fractions, which since #1103 are
+  // learned from observations that include styled gear ballast. The gear's
+  // ditchable share is therefore already inside this figure; adding
+  // EquipmentLead.droppableKg on top would count it twice.
   final placement = state.plannedWeightPlacement;
   final droppableLead = placement == null
       ? lead

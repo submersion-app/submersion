@@ -11,6 +11,7 @@ import 'package:submersion/core/services/cloud_storage/google_drive/desktop_oaut
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_in_authenticator.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/keychain_gated_authenticator.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 /// Google Drive implementation of CloudStorageProvider
@@ -19,7 +20,9 @@ import 'package:submersion/core/services/logger_service.dart';
 /// This folder is hidden from the user and only accessible by this app.
 ///
 /// Authentication is delegated to a [GoogleDriveAuthenticator]:
-/// google_sign_in on iOS/macOS/Android, loopback OAuth on Windows/Linux.
+/// google_sign_in on iOS/Android, loopback OAuth on Windows/Linux, and on
+/// macOS whichever of the two the build's keychain entitlements allow (see
+/// [KeychainGatedAuthenticator]).
 /// The seam's boundary is an [http.Client], so neither auth world leaks
 /// into the Drive REST code below.
 class GoogleDriveStorageProvider
@@ -30,10 +33,26 @@ class GoogleDriveStorageProvider
 
   static final _log = LoggerService.forClass(GoogleDriveStorageProvider);
 
-  static GoogleDriveAuthenticator _defaultAuthenticator() =>
-      (Platform.isWindows || Platform.isLinux)
-      ? DesktopOAuthAuthenticator()
-      : GoogleSignInAuthenticator();
+  static GoogleDriveAuthenticator _defaultAuthenticator() => authenticatorFor(
+    isLoopbackPlatform: Platform.isWindows || Platform.isLinux,
+    isMacOS: Platform.isMacOS,
+  );
+
+  /// Picks the authenticator for a platform, without reading [Platform] --
+  /// which is what makes the choice testable on any host.
+  ///
+  /// macOS is the interesting case: it can use either flow, and which one
+  /// works depends on how the build is signed rather than on the platform.
+  /// [KeychainGatedAuthenticator] measures that and decides.
+  @visibleForTesting
+  static GoogleDriveAuthenticator authenticatorFor({
+    required bool isLoopbackPlatform,
+    required bool isMacOS,
+  }) {
+    if (isLoopbackPlatform) return DesktopOAuthAuthenticator();
+    if (isMacOS) return KeychainGatedAuthenticator();
+    return GoogleSignInAuthenticator();
+  }
 
   final GoogleDriveAuthenticator _authenticator;
   drive.DriveApi? _driveApi;

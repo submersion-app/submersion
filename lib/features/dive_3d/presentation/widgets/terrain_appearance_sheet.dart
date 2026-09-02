@@ -14,20 +14,81 @@ void showTerrainAppearanceSheet(BuildContext context) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    // A scroll-controlled sheet grows to whatever its content asks for, and
+    // this content is taller than a phone. Left alone it reached y=0, putting
+    // the drag handle inside Android's notification-shade swipe zone -- so
+    // pulling the sheet down opened the system shade instead of closing it,
+    // and the sheet could not be dismissed at all (issue #1188). The safe
+    // area keeps it clear of the status bar; the height cap leaves a strip of
+    // scrim above it so tapping outside stays an obvious way out.
+    useSafeArea: true,
     showDragHandle: true,
+    constraints: BoxConstraints(
+      maxHeight: MediaQuery.of(context).size.height * _maxHeightFraction,
+    ),
     // The custom-level rows open a keypad. Without a viewInsets pad the sheet
     // keeps its full height, so the lower rows and the add button sit behind
     // the keyboard with no scroll extent left to bring them up (issue #1094).
+    // Not redundant with useSafeArea: that inserts SafeArea(bottom: false),
+    // so the sheet deliberately runs to the bottom edge of the screen. This
+    // one supplies the bottom inset the outer one skips, keeping the last
+    // control clear of the home indicator. Nothing is applied twice -- a
+    // SafeArea strips the padding it consumes out of the MediaQuery, so the
+    // horizontal insets are already zero by the time this one reads them.
     builder: (sheetContext) => SafeArea(
       child: Padding(
         key: const ValueKey('terrainAppearanceSheetInsets'),
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
         ),
-        child: const SingleChildScrollView(child: TerrainAppearanceSheet()),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _SheetHeader(onClose: () => Navigator.of(sheetContext).pop()),
+            // Loose fit: the sheet still hugs short content, but a body
+            // taller than the cap scrolls under the pinned header instead of
+            // pushing it (and the close action) off the screen.
+            const Flexible(
+              child: SingleChildScrollView(child: TerrainAppearanceSheet()),
+            ),
+          ],
+        ),
       ),
     ),
   );
+}
+
+/// Share of the screen the sheet may occupy at most.
+const double _maxHeightFraction = 0.85;
+
+/// Title plus an explicit way out. The drag handle alone is not enough on
+/// Android, where a downward drag near the top edge belongs to the system.
+class _SheetHeader extends StatelessWidget {
+  final VoidCallback onClose;
+
+  const _SheetHeader({required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              context.l10n.dive3d_seascape_appearance,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          TextButton(
+            key: const ValueKey('terrainAppearanceCloseButton'),
+            onPressed: onClose,
+            child: Text(context.l10n.common_action_close),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Issue #1065 knobs: ramp depth range, banded gradient, contour mode with
@@ -82,11 +143,6 @@ class TerrainAppearanceSheet extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.dive3d_seascape_appearance,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          _controlGap,
           Text(l10n.dive3d_seascape_appearance_surface),
           _labelGap,
           SegmentedButton<SeascapeSurfaceMode>(

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart' show StateNotifier;
+import 'package:submersion/core/services/screen_awake.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -31,6 +34,11 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   _FakeSyncNotifier() : super(const SyncState());
 
   int repairSyncCalls = 0;
+
+  /// When set, [repairSync] blocks on it, so a test can inspect the screen
+  /// while the repair is still running.
+  Completer<void>? repairGate;
+
   int removeThisDeviceCalls = 0;
   int wipeAllCalls = 0;
   int rebuildCalls = 0;
@@ -44,7 +52,10 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   SyncCleanupOutcome cleanupOutcome = const SyncCleanupOutcome();
 
   @override
-  Future<void> repairSync() async => repairSyncCalls++;
+  Future<void> repairSync() async {
+    repairSyncCalls++;
+    await repairGate?.future;
+  }
 
   @override
   Future<SyncCleanupOutcome> removeThisDeviceCloudFiles({
@@ -294,6 +305,42 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(fake.repairSyncCalls, 1);
+    expect(find.text('Sync repaired'), findsOneWidget);
+  });
+
+  // Issue #1194: repair ran behind a live page, so a long repair looked like
+  // nothing happening and the phone was free to lock and suspend it.
+  testWidgets('Repair runs behind the blocking dialog, screen held awake', (
+    tester,
+  ) async {
+    final toggles = <bool>[];
+    ScreenAwake.debugToggle = ({required bool enable}) async =>
+        toggles.add(enable);
+    addTearDown(ScreenAwake.debugReset);
+
+    final fake = await _pump(tester);
+    final gate = Completer<void>();
+    fake.repairGate = gate;
+
+    await tester.tap(find.text('Repair Sync'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Repair'));
+    await tester.pump();
+
+    expect(find.text('Repairing sync'), findsOneWidget);
+    expect(find.text('Clearing local sync state'), findsOneWidget);
+    expect(
+      find.textContaining('Keep the app open'),
+      findsOneWidget,
+      reason: 'the same promise the other maintenance actions make',
+    );
+    expect(toggles, [true]);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(toggles, [true, false]);
     expect(find.text('Sync repaired'), findsOneWidget);
   });
 

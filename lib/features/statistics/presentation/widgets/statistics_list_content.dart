@@ -5,8 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_action.dart';
 import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_bar.dart';
 
 /// Statistics category data model.
@@ -161,25 +160,7 @@ class StatisticsListContent extends ConsumerWidget {
               context.push('/records');
             },
           ),
-          IconButton(
-            icon: Badge(
-              isLabelVisible: ref
-                  .watch(statisticsFilterProvider)
-                  .hasActiveFilters,
-              child: const Icon(Icons.filter_list),
-            ),
-            tooltip: context.l10n.statistics_tooltip_filter,
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => DiveFilterSheet(
-                  ref: ref,
-                  filterProvider: statisticsFilterProvider,
-                ),
-              );
-            },
-          ),
+          const StatisticsFilterAction(),
         ],
       ),
       body: listContent,
@@ -215,25 +196,7 @@ class StatisticsListContent extends ConsumerWidget {
               context.push('/records');
             },
           ),
-          IconButton(
-            icon: Badge(
-              isLabelVisible: ref
-                  .watch(statisticsFilterProvider)
-                  .hasActiveFilters,
-              child: const Icon(Icons.filter_list, size: 20),
-            ),
-            tooltip: context.l10n.statistics_tooltip_filter,
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => DiveFilterSheet(
-                  ref: ref,
-                  filterProvider: statisticsFilterProvider,
-                ),
-              );
-            },
-          ),
+          const StatisticsFilterAction(iconSize: 20),
         ],
       ),
     );

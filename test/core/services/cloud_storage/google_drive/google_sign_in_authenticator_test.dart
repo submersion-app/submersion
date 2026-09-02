@@ -8,6 +8,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_in_authenticator.dart';
+import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 
 /// Drives [GoogleSignInAuthenticator] through a fake [GoogleSignInPlatform]
 /// rather than the real plugin, so the mobile/macOS auth path is exercisable
@@ -104,6 +105,19 @@ void main() {
       expect(await auth.attemptSilentAuth(), isTrue);
       expect(auth.authClient, isNotNull);
       expect(await auth.userEmail, 'diver@example.com');
+    });
+
+    test('installs a client with request deadlines', () async {
+      // google_sign_in builds the authorized client itself, over a transport
+      // this app never sees, so the deadlines have to go on the outside. A
+      // bare client parked a wedged Drive request forever -- on sync and, via
+      // mediaHttpClient(), on the media transfer queue (#1279).
+      platform.lightweightResult = _FakePlatform.resultsFor(
+        'diver@example.com',
+      );
+
+      expect(await auth.attemptSilentAuth(), isTrue);
+      expect(auth.authClient, isA<TimeoutHttpClient>());
     });
 
     test('returns false when there is no cached session', () async {

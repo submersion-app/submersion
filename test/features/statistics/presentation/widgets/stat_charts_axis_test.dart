@@ -157,4 +157,154 @@ void main() {
       expect(_isOnTick(data.maxY, interval), isTrue);
     });
   });
+
+  group('MultiTrendLineChart axis', () {
+    // Issue #1354: the seasonal water temperature chart was the one chart in
+    // the statistics feature that never adopted ChartAxis. It picked its own
+    // padded bounds and left both intervals null, so the left labels landed on
+    // fl_chart's own sequence, wide of the grid lines and each other.
+    List<TrendDataPoint> series(List<double> values) => [
+      for (final (index, value) in values.indexed)
+        TrendDataPoint(
+          date: DateTime(2024, index + 1),
+          value: value,
+          label: 'M${index + 1}',
+        ),
+    ];
+
+    final seasonalTemps = [
+      series(const [8.4, 9.1, 11.6, 14.2, 18.9, 22.3]),
+      series(const [11.2, 12.0, 14.4, 17.1, 21.8, 25.6]),
+      series(const [14.0, 15.3, 17.2, 20.5, 24.7, 28.9]),
+    ];
+
+    testWidgets('grid lines and left labels share one interval', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        MultiTrendLineChart(
+          dataSeries: seasonalTemps,
+          seriesLabels: const ['Min', 'Avg', 'Max'],
+        ),
+      );
+
+      final data = tester.widget<LineChart>(find.byType(LineChart)).data;
+      final gridInterval = data.gridData.horizontalInterval;
+      final labelInterval = data.titlesData.leftTitles.sideTitles.interval;
+
+      expect(gridInterval, isNotNull);
+      expect(labelInterval, isNotNull);
+      expect(labelInterval, gridInterval);
+    });
+
+    testWidgets('axis bounds sit on the shared interval', (tester) async {
+      await _pump(
+        tester,
+        MultiTrendLineChart(
+          dataSeries: seasonalTemps,
+          seriesLabels: const ['Min', 'Avg', 'Max'],
+        ),
+      );
+
+      final data = tester.widget<LineChart>(find.byType(LineChart)).data;
+      final interval = data.gridData.horizontalInterval!;
+
+      expect(_isOnTick(data.minY, interval), isTrue);
+      expect(_isOnTick(data.maxY, interval), isTrue);
+    });
+
+    testWidgets('every rendered left label lands on a grid line', (
+      tester,
+    ) async {
+      final labelledValues = <double>[];
+      await _pump(
+        tester,
+        MultiTrendLineChart(
+          dataSeries: seasonalTemps,
+          seriesLabels: const ['Min', 'Avg', 'Max'],
+          valueFormatter: (value) {
+            labelledValues.add(value);
+            return value.toStringAsFixed(1);
+          },
+        ),
+      );
+
+      final data = tester.widget<LineChart>(find.byType(LineChart)).data;
+      final interval = data.gridData.horizontalInterval!;
+
+      expect(labelledValues, isNotEmpty);
+      for (final value in labelledValues) {
+        expect(
+          _isOnTick(value, interval),
+          isTrue,
+          reason: '$value is not a multiple of the $interval grid interval',
+        );
+      }
+    });
+
+    testWidgets('spans every series, not just the first', (tester) async {
+      await _pump(
+        tester,
+        MultiTrendLineChart(
+          dataSeries: seasonalTemps,
+          seriesLabels: const ['Min', 'Avg', 'Max'],
+        ),
+      );
+
+      final data = tester.widget<LineChart>(find.byType(LineChart)).data;
+
+      expect(data.minY, lessThanOrEqualTo(8.4));
+      expect(data.maxY, greaterThanOrEqualTo(28.9));
+    });
+
+    testWidgets('survives a flat series', (tester) async {
+      await _pump(
+        tester,
+        MultiTrendLineChart(
+          dataSeries: [
+            series(const [15.0, 15.0]),
+          ],
+          seriesLabels: const ['Avg'],
+        ),
+      );
+
+      final data = tester.widget<LineChart>(find.byType(LineChart)).data;
+
+      expect(data.maxY, greaterThan(data.minY));
+      expect(data.gridData.horizontalInterval, greaterThan(0));
+    });
+
+    testWidgets('reserves the same label width as the sibling trend chart', (
+      tester,
+    ) async {
+      // A unit-formatted temperature such as "85.5\u00b0F" wrapped onto two
+      // lines in the narrower gutter this chart used to reserve.
+      await _pump(
+        tester,
+        MultiTrendLineChart(
+          dataSeries: seasonalTemps,
+          seriesLabels: const ['Min', 'Avg', 'Max'],
+        ),
+      );
+      final multi = tester
+          .widget<LineChart>(find.byType(LineChart))
+          .data
+          .titlesData
+          .leftTitles
+          .sideTitles
+          .reservedSize;
+
+      await _pump(tester, TrendLineChart(data: _sacTrend));
+      final single = tester
+          .widget<LineChart>(find.byType(LineChart))
+          .data
+          .titlesData
+          .leftTitles
+          .sideTitles
+          .reservedSize;
+
+      expect(multi, single);
+    });
+  });
 }

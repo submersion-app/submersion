@@ -6,6 +6,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final equipmentSetRepositoryProvider = Provider<EquipmentSetRepository>((ref) {
@@ -121,7 +122,11 @@ class EquipmentSetListNotifier
 
   EquipmentSetListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      EquipmentSetListNotifier,
+      'initialize and load',
+    );
 
     // A StateNotifier cannot self-invalidate the way the FutureProviders above
     // do, and the sets list renders itemCount straight off equipmentIds -- so
@@ -138,7 +143,11 @@ class EquipmentSetListNotifier
         state = const AsyncValue.loading();
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(equipmentSetsProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          EquipmentSetListNotifier,
+          'initialize and load',
+        );
       }
     });
   }

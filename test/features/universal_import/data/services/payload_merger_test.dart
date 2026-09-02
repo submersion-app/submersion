@@ -343,4 +343,70 @@ void main() {
       expect(merged.warnings, hasLength(1));
     });
   });
+
+  group('media', () {
+    ImportPayload mediaPayload({
+      required int diveCount,
+      required List<int> pictureDiveIndices,
+    }) {
+      return ImportPayload(
+        entities: {
+          ImportEntityType.dives: [
+            for (var i = 0; i < diveCount; i++)
+              {'uddfId': 'd$i', 'dateTime': DateTime(2025, 1, 1 + i)},
+          ],
+          ImportEntityType.media: [
+            for (final index in pictureDiveIndices)
+              {
+                'filename': '/home/jai/Pictures/p$index.jpg',
+                'offsetSeconds': 200,
+                '_diveIndex': index,
+              },
+          ],
+        },
+      );
+    }
+
+    test('rebases _diveIndex onto the merged dive list', () {
+      final merged = const PayloadMerger().merge([
+        FilePayload(
+          fileId: 'f0',
+          fileName: 'first.ssrf',
+          payload: mediaPayload(diveCount: 2, pictureDiveIndices: [0, 1]),
+        ),
+        FilePayload(
+          fileId: 'f1',
+          fileName: 'second.ssrf',
+          payload: mediaPayload(diveCount: 3, pictureDiveIndices: [0, 2]),
+        ),
+      ]);
+
+      final dives = merged.entitiesOf(ImportEntityType.dives);
+      final media = merged.entitiesOf(ImportEntityType.media);
+      expect(dives, hasLength(5));
+      expect(media, hasLength(4));
+      // First file's pictures keep their indices; second file's shift by 2.
+      expect(media.map((m) => m['_diveIndex']), [0, 1, 2, 4]);
+    });
+
+    test('never folds two pictures with the same filename', () {
+      final payload = ImportPayload(
+        entities: {
+          ImportEntityType.dives: [
+            {'uddfId': 'd0', 'dateTime': DateTime(2025, 1, 1)},
+          ],
+          ImportEntityType.media: [
+            {'filename': '/p/same.jpg', '_diveIndex': 0},
+            {'filename': '/p/same.jpg', '_diveIndex': 0},
+          ],
+        },
+      );
+
+      final merged = const PayloadMerger().merge([
+        FilePayload(fileId: 'f0', fileName: 'a.ssrf', payload: payload),
+      ]);
+
+      expect(merged.entitiesOf(ImportEntityType.media), hasLength(2));
+    });
+  });
 }

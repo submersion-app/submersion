@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -144,6 +145,17 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
                     storageState.lastMigrationResult!,
                   ),
                 ],
+
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.pie_chart_outline),
+                  title: Text(context.l10n.settings_storageUsage_tile_title),
+                  subtitle: Text(
+                    context.l10n.settings_storageUsage_tile_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.pushNamed('storageUsage'),
+                ),
 
                 // Danger Zone
                 const SizedBox(height: 16),

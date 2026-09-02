@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/screen_awake.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -124,6 +125,11 @@ class SyncMaintenanceProgressDialog extends StatelessWidget {
 /// own progress, and returns the task's result once the dialog has been
 /// dismissed.
 ///
+/// The screen is held awake for as long as the dialog is up. The dialog tells
+/// the user to keep the app open, and then their phone locked itself and
+/// suspended the very work it was asking them not to interrupt (issue #1194).
+/// [ScreenAwake.hold] releases the lock however the task ends.
+///
 /// "Dismissed", precisely: the pop has been issued and the route's future has
 /// resolved. That is NOT the same as fully animated out -- a dialog route
 /// completes at pop time, not at the end of its exit transition -- so a caller
@@ -136,6 +142,18 @@ class SyncMaintenanceProgressDialog extends StatelessWidget {
 /// user behind an undismissable barrier -- the exception then surfaces to the
 /// caller, which is what makes honest failure reporting possible.
 Future<T> runWithSyncMaintenanceProgress<T>({
+  required BuildContext context,
+  required String title,
+  required Future<T> Function(SyncMaintenanceReporter report) task,
+}) => ScreenAwake.hold(
+  () => _runWithSyncMaintenanceProgress(
+    context: context,
+    title: title,
+    task: task,
+  ),
+);
+
+Future<T> _runWithSyncMaintenanceProgress<T>({
   required BuildContext context,
   required String title,
   required Future<T> Function(SyncMaintenanceReporter report) task,

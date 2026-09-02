@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -60,20 +62,13 @@ void main() {
     // A simple descent -> bottom -> ascent profile, enough samples for the
     // Buhlmann pass to emit a non-empty decoStatuses list.
     final depths = <double>[0, 10, 20, 30, 30, 30, 30, 30, 20, 10, 6, 6, 3, 0];
-    await db.batch((batch) {
-      for (var i = 0; i < depths.length; i++) {
-        batch.insert(
-          db.diveProfiles,
-          DiveProfilesCompanion(
-            id: Value('$diveId-p$i'),
-            diveId: Value(diveId),
-            isPrimary: const Value(true),
-            timestamp: Value(i * 60),
-            depth: Value(depths[i]),
-          ),
-        );
-      }
-    });
+    await ProfileSeriesRepository().insertSeries(
+      diveId: diveId,
+      samples: [
+        for (var i = 0; i < depths.length; i++)
+          ProfileSample(timestamp: i * 60, depth: depths[i]),
+      ],
+    );
   }
 
   test(

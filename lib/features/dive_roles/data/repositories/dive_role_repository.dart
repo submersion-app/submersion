@@ -237,6 +237,8 @@ class DiveRoleRepository {
       final result = await _db
           .customSelect(
             'SELECT '
+            // stats-scope-exempt: deletion guard, same reasoning as
+            // isDiveTypeInUse. Counts references, not statistics.
             '(SELECT COUNT(*) FROM dive_buddies WHERE role = ?1) + '
             '(SELECT COUNT(*) FROM dives WHERE diver_role = ?1) AS uses',
             variables: [Variable.withString(id)],

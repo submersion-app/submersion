@@ -6,6 +6,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:uuid/uuid_value.dart';
 
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
+import 'package:submersion/core/utils/bounded_inflate.dart';
 
 /// Single-shot SBE1 envelope: the byte form of every encrypted sync file.
 ///
@@ -16,6 +17,21 @@ abstract final class SyncEnvelope {
   static const List<int> magic = [0x53, 0x42, 0x45, 0x31]; // "SBE1"
   static const int _headerLength = 4 + 16 + 1 + 12;
   static const int _flagGzip = 0x01;
+
+  /// The largest plaintext an envelope will gzip on seal or inflate to on
+  /// open.
+  ///
+  /// Derived from what a sync payload can legitimately be, not from a
+  /// round number. The only structurally bounded kind is a base part, cut
+  /// to exactly `BaseChunker.defaultPartSize` (8 MiB), so even a 648 MB
+  /// library publishes as 78 small envelopes; this leaves that path 32x of
+  /// headroom. The unbounded kind is a changeset, which is built,
+  /// JSON-encoded, gzipped and encrypted whole in memory on the writer and
+  /// decoded whole in memory on the reader. A plaintext past a few hundred
+  /// megabytes therefore cannot be applied even if it inflates, so the cap
+  /// refuses only payloads that were already fatal, and turns an OOM kill
+  /// into a transient-stop error.
+  static const int defaultMaxPlaintextBytes = 256 * 1024 * 1024;
 
   static final AesGcm _aesGcm = AesGcm.with256bits();
 
@@ -40,11 +56,18 @@ abstract final class SyncEnvelope {
     required String libraryKeyId,
     required String filename,
     bool compress = true,
+    int maxPlaintextBytes = defaultMaxPlaintextBytes,
     List<int>? nonceForTest,
   }) async {
     var payload = plaintext;
     var flags = 0;
-    if (compress) {
+    // A payload past the cap is stored uncompressed rather than refused: a
+    // device must never write an envelope [open] would reject, and only the
+    // gzip flag makes that possible. The upload is larger, but the write
+    // path stays total and nothing is stranded. Reaching this needs a
+    // single changeset of a quarter gigabyte, which the in-memory encode
+    // above it would already be struggling with.
+    if (compress && plaintext.length <= maxPlaintextBytes) {
       final gz = Uint8List.fromList(gzip.encode(plaintext));
       if (gz.length < plaintext.length) {
         payload = gz;
@@ -74,6 +97,7 @@ abstract final class SyncEnvelope {
     required SecretKey dataKey,
     required String expectedLibraryKeyId,
     required String filename,
+    int maxPlaintextBytes = defaultMaxPlaintextBytes,
   }) async {
     if (!hasMagic(envelope) || envelope.length < _headerLength + 16) {
       throw const EnvelopeCorruptException('Not an SBE1 envelope');
@@ -106,7 +130,39 @@ abstract final class SyncEnvelope {
       );
     }
     if ((flags & _flagGzip) != 0) {
-      return Uint8List.fromList(gzip.decode(payload));
+      // Bounded and chunked. gzip.decode is a single native call that has
+      // already allocated the whole body by the time it returns, so a
+      // length check after the fact buys nothing; the guard has to abort
+      // from inside the inflate.
+      //
+      // AES-GCM ran first, so reaching here means the payload authenticated
+      // under the library data key: the residual threat is a peer inside
+      // the trust boundary, not a network attacker. The gzip flag itself is
+      // read from header byte 20, which is outside both the ciphertext and
+      // the AAD and so is not authenticated at all, which is what lets a
+      // keyless attacker turn any file into "not a gzip stream".
+      //
+      // The blob cap matches the body cap. For anything this seal wrote
+      // that is free: the flag is only set when the gzip came out strictly
+      // smaller than its plaintext, so the blob is always the shorter of
+      // the two and the body cap is the one that binds. A foreign writer
+      // is not bound by that, so a blob over the cap is refused on its
+      // length even if it would have inflated to something under it. That
+      // is deliberate. Such an envelope is itself a quarter-gigabyte file,
+      // and the alternative is copying it whole into the native filter
+      // before the first chunk comes back.
+      try {
+        return inflateBounded(
+          payload,
+          decoder: gzip.decoder,
+          maxBytes: maxPlaintextBytes,
+          maxBlobBytes: maxPlaintextBytes,
+        );
+      } on BoundedInflateException catch (e) {
+        throw EnvelopeCorruptException(
+          'Envelope payload rejected: ${e.message}',
+        );
+      }
     }
     return Uint8List.fromList(payload);
   }

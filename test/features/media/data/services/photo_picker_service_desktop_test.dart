@@ -47,6 +47,32 @@ void main() {
       expect(asset?.filePath, file.path);
     });
 
+    test('carries EXIF GPS onto the asset', () {
+      final image = img.Image(width: 4, height: 4);
+      image.exif.gpsIfd.gpsLatitude = 20.5;
+      image.exif.gpsIfd.gpsLatitudeRef = 'N';
+      image.exif.gpsIfd.gpsLongitude = 87.25;
+      image.exif.gpsIfd.gpsLongitudeRef = 'W';
+      final file = File('${tempDir.path}/gps.jpg')
+        ..writeAsBytesSync(img.encodeJpg(image));
+
+      final asset = service.assetInfoForFile(file);
+
+      expect(asset?.latitude, closeTo(20.5, 1e-6));
+      expect(asset?.longitude, closeTo(-87.25, 1e-6));
+    });
+
+    test('leaves GPS null when the file has none', () {
+      final file = _jpegWithExifDate(
+        tempDir,
+        'nogps.jpg',
+        '2025:07:14 17:22:31',
+      );
+      final asset = service.assetInfoForFile(file);
+      expect(asset?.latitude, isNull);
+      expect(asset?.longitude, isNull);
+    });
+
     test('dates the asset from EXIF capture time, not the file mtime', () {
       final file = _jpegWithExifDate(tempDir, 'a.jpg', '2025:07:14 17:22:31');
       // Copying a card to the PC months later leaves an mtime of the copy

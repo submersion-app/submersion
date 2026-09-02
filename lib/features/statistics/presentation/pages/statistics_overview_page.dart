@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -14,6 +13,7 @@ import 'package:submersion/features/statistics/domain/career_totals.dart';
 import 'package:submersion/features/statistics/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsOverviewPage extends ConsumerWidget {
@@ -81,7 +81,7 @@ class _OverviewBody extends ConsumerWidget {
 
     final settings = ref.watch(settingsProvider);
     final fmt = UnitFormatter(settings);
-    final recordsAsync = ref.watch(diveRecordsProvider);
+    final recordsAsync = ref.watch(filteredDiveRecordsProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -114,6 +114,33 @@ class _OverviewBody extends ConsumerWidget {
           _TopSitesSection(sites: stats.topSites),
           const SizedBox(height: 16),
           _DistributionsSection(stats: stats, fmt: fmt),
+          // Explains why the statistics dive count and the logbook dive count
+          // differ, so the discrepancy never has to be discovered (#526).
+          ref
+              .watch(excludedDiveCountProvider)
+              .maybeWhen(
+                data: (count) => count == 0
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Center(
+                          child: Text(
+                            key: const Key('statistics-excluded-footnote'),
+                            context.l10n.statistics_excludedDivesFootnote(
+                              count,
+                            ),
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ),
+                      ),
+                orElse: () => const SizedBox.shrink(),
+              ),
         ],
       ),
     );
@@ -581,11 +608,20 @@ class _TopSitesSection extends StatelessWidget {
 }
 
 const _depthColors = [
-  Color(0xFF4FC3F7), // lightBlue.shade300
-  Color(0xFF42A5F5), // blue.shade400
-  Color(0xFF1E88E5), // blue.shade600
-  Color(0xFF3949AB), // indigo.shade600
-  Color(0xFF1A237E), // indigo.shade900
+  Color(0xFF81D4FA), // lightBlue.shade200 (0-10m)
+  Color(0xFF4FC3F7), // lightBlue.shade300 (10-20m)
+  Color(0xFF29B6F6), // lightBlue.shade400 (20-30m)
+  Color(0xFF03A9F4), // lightBlue (30-40m)
+  Color(0xFF039BE5), // lightBlue.shade600 (40-50m)
+  Color(0xFF0288D1), // lightBlue.shade700 (50-60m)
+  Color(0xFF1E88E5), // blue.shade600 (60-70m)
+  Color(0xFF1976D2), // blue.shade700 (70-80m)
+  Color(0xFF1565C0), // blue.shade800 (80-90m)
+  Color(0xFF3949AB), // indigo.shade600 (90-100m)
+  Color(0xFF303F9F), // indigo.shade700 (100-110m)
+  Color(0xFF283593), // indigo.shade800 (110-120m)
+  Color(0xFF1A237E), // indigo.shade900 (120-130m)
+  Color(0xFF4A148C), // purple.shade900 (130m+)
 ];
 
 const _typeColors = [
@@ -633,6 +669,20 @@ class _DistributionsSection extends ConsumerWidget {
 
     final wide = MediaQuery.of(context).size.width >= 600;
 
+    // Every dive type's count and summed dive time (issue #641), listed in
+    // full underneath the pie charts above -- unlike the pie chart's legend,
+    // this isn't truncated to the top 6, since every type must be shown.
+    final typeStats = diveTypesAsync.maybeWhen(
+      data: (diveTypes) => diveTypes,
+      orElse: () => const <DistributionSegment>[],
+    );
+    // Same for depth buckets: every bucket that has a dive in it, with its
+    // count and summed dive time, regardless of how many the pie's own
+    // legend can fit (issue #641 follow-up).
+    final depthStats = stats.depthDistribution
+        .where((d) => d.count > 0)
+        .toList();
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -662,11 +712,102 @@ class _DistributionsSection extends ConsumerWidget {
               Column(
                 children: [depthChart, const SizedBox(height: 8), typeChart],
               ),
+            if (depthStats.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.only(top: 8, bottom: 4),
+                child: Text(
+                  context.l10n.statistics_summary_depthDistribution_title,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              for (final segment in depthStats)
+                _DepthRangeStatRow(segment: segment, fmt: fmt),
+            ],
+            if (typeStats.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.only(top: 8, bottom: 4),
+                child: Text(
+                  context.l10n.statistics_summary_diveTypes_title,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              for (final segment in typeStats)
+                _DiveTypeStatRow(segment: segment),
+            ],
           ],
         ),
       ),
     );
   }
+}
+
+class _DiveTypeStatRow extends StatelessWidget {
+  final DistributionSegment segment;
+  const _DiveTypeStatRow({required this.segment});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final duration = Duration(seconds: segment.totalDurationSeconds ?? 0);
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      title: Text(diveTypeDistributionLabel(segment.label, l10n)),
+      trailing: Text(
+        '${l10n.statistics_filterBar_diveCount(segment.count)} • '
+        '${duration.inHours}h ${duration.inMinutes % 60}m',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+class _DepthRangeStatRow extends StatelessWidget {
+  final DepthRangeStat segment;
+  final UnitFormatter fmt;
+  const _DepthRangeStatRow({required this.segment, required this.fmt});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final duration = Duration(seconds: segment.totalDurationSeconds);
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      title: Text(_depthBucketLabel(segment, fmt, l10n)),
+      trailing: Text(
+        '${l10n.statistics_filterBar_diveCount(segment.count)} • '
+        '${duration.inHours}h ${duration.inMinutes % 60}m',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+/// Shared with the pie card's own legend so both agree on how a bucket is
+/// worded in the diver's active unit.
+String _depthBucketLabel(
+  DepthRangeStat data,
+  UnitFormatter fmt,
+  AppLocalizations l10n,
+) {
+  final minDisplay = fmt.convertDepth(data.minDepth.toDouble()).round();
+  final maxDisplay = fmt.convertDepth(data.maxDepth.toDouble()).round();
+  return data.openEnded
+      ? l10n.statistics_summary_depthBucket_over('$minDisplay', fmt.depthSymbol)
+      : l10n.statistics_summary_depthBucket_range(
+          '$minDisplay',
+          '$maxDisplay',
+          fmt.depthSymbol,
+        );
 }
 
 class _DepthPieCard extends StatelessWidget {
@@ -737,27 +878,18 @@ class _DepthPieCard extends StatelessWidget {
                               nonEmptyEntries.add((i, depthDistribution[i]));
                             }
                           }
-                          return nonEmptyEntries.map((
+                          // Caps the inline legend the same way the dive-type
+                          // pie does (max 6 rows) so a diver with many
+                          // occupied depth buckets can't push the legend
+                          // below the fixed-height chart box. The full,
+                          // uncapped breakdown with count and time is listed
+                          // underneath both pie charts.
+                          return nonEmptyEntries.take(6).map((
                             (int, DepthRangeStat) entry,
                           ) {
                             final index = entry.$1;
                             final data = entry.$2;
-                            final minDisplay = fmt
-                                .convertDepth(data.minDepth.toDouble())
-                                .round();
-                            final maxDisplay = fmt
-                                .convertDepth(data.maxDepth.toDouble())
-                                .round();
-                            final label = data.maxDepth >= 100
-                                ? l10n.statistics_summary_depthBucket_over(
-                                    '$minDisplay',
-                                    fmt.depthSymbol,
-                                  )
-                                : l10n.statistics_summary_depthBucket_range(
-                                    '$minDisplay',
-                                    '$maxDisplay',
-                                    fmt.depthSymbol,
-                                  );
+                            final label = _depthBucketLabel(data, fmt, l10n);
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 2),
                               child: Row(

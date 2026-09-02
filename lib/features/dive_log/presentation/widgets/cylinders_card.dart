@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/tank_presets.dart';
-import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -14,10 +14,11 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Unified card showing every cylinder on a dive: identity (name, gas mix,
-/// volume), start/end pressures, MOD/MND, and per-tank SAC.
+/// volume), start/end pressures, MOD/MND, and per-tank SAC and RMV.
 ///
 /// Replaces the former Tanks card and SAC by Cylinder block. Occupies the
 /// [DiveDetailSectionId.tanks] slot on the dive detail page. Per-tank SAC
@@ -29,13 +30,13 @@ class CylindersCard extends ConsumerWidget {
     required this.dive,
     required this.units,
     required this.settings,
-    required this.sacUnit,
+    required this.display,
   });
 
   final Dive dive;
   final UnitFormatter units;
   final AppSettings settings;
-  final SacUnit sacUnit;
+  final GasConsumptionDisplay display;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -100,8 +101,17 @@ class CylindersCard extends ConsumerWidget {
     final pressureUsed = pressures.$1 != null && pressures.$2 != null
         ? pressures.$1! - pressures.$2!
         : null;
+    // The pressure drop and the gas volume are one fact in two units, so
+    // they read together. It also keeps the trailing slot to the rates:
+    // ListTile caps leading and trailing at 56px minus the density
+    // adjustment, which is 48px on desktop, and three lines do not fit.
+    final gasUsedLiters = cylinderSac?.gasUsedLiters;
+    final volumeUsed = gasUsedLiters != null
+        ? ' / ${units.convertVolume(gasUsedLiters).round()} '
+              '${units.volumeSymbol}'
+        : '';
     final used = pressureUsed != null && pressureUsed > 0
-        ? ' (${units.formatPressure(pressureUsed)} used)'
+        ? ' (${units.formatPressure(pressureUsed)}$volumeUsed used)'
         : '';
 
     // Preset display name, falling back to formatted volume.
@@ -156,7 +166,7 @@ class CylindersCard extends ConsumerWidget {
           ),
         ],
       ),
-      trailing: _trailingBlock(theme, cylinderSac, sourceName),
+      trailing: _trailingBlock(context.l10n, theme, cylinderSac, sourceName),
     );
   }
 
@@ -178,10 +188,13 @@ class CylindersCard extends ConsumerWidget {
     );
   }
 
-  /// Trailing column: attribution badge, SAC rate, gas used (converted to
-  /// the diver's volume unit). Returns null when there is nothing to show
-  /// so the tile keeps its natural width.
+  /// Trailing column: attribution badge and one consumption line per
+  /// visible lane. Returns null when there is nothing to show so the tile
+  /// keeps its natural width. The gas used lives in the subtitle, beside
+  /// the pressure drop it restates: ListTile caps this slot at two lines on
+  /// desktop, and Both already needs both of them.
   Widget? _trailingBlock(
+    AppLocalizations l10n,
     ThemeData theme,
     CylinderSac? cylinderSac,
     String? sourceName,
@@ -195,19 +208,12 @@ class CylindersCard extends ConsumerWidget {
       children: [
         if (sourceName != null) FieldAttributionBadge(sourceName: sourceName),
         if (hasSac) ...[
-          Text(
-            _formatSac(cylinderSac),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-          if (cylinderSac.gasUsedLiters != null)
+          for (final line in _consumptionLines(l10n, cylinderSac))
             Text(
-              '${units.convertVolume(cylinderSac.gasUsedLiters!).round()} '
-              '${units.volumeSymbol} used',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+              line,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
               ),
             ),
         ],
@@ -215,16 +221,18 @@ class CylindersCard extends ConsumerWidget {
     );
   }
 
-  /// Formats the SAC value per the diver's SAC unit preference. L/min needs
-  /// a tank volume; otherwise falls back to pressure-drop per minute.
-  /// Only called when [CylinderSac.hasValidSac] is true.
-  String _formatSac(CylinderSac cylinder) {
-    if (sacUnit == SacUnit.litersPerMin && cylinder.sacVolume != null) {
-      final value = units.convertVolume(cylinder.sacVolume!);
-      return '${value.toStringAsFixed(1)} ${units.volumeSymbol}/min';
-    }
-    final value = units.convertPressure(cylinder.sacRate!);
-    return '${value.toStringAsFixed(1)} ${units.pressureSymbol}/min';
+  /// One labeled line per lane the diver displays. RMV needs this
+  /// cylinder's own volume; without one the RMV line is omitted here (the
+  /// summary row carries the volume hint, not every cylinder). Only called
+  /// when [CylinderSac.hasValidSac] is true.
+  List<String> _consumptionLines(AppLocalizations l10n, CylinderSac cylinder) {
+    final rmv = cylinder.rmv;
+    return [
+      if (display.showsSac)
+        '${l10n.gasConsumption_sac} ${units.formatSac(cylinder.sacRate!)}',
+      if (display.showsRmv && rmv != null)
+        '${l10n.gasConsumption_rmv} ${units.formatRmv(rmv)}',
+    ];
   }
 
   /// Resolves start/end pressure: stored tank metadata wins, per-tank

@@ -51,6 +51,20 @@ void main() {
     },
   );
 
+  test('the suspension provider reads false without a runtime', () async {
+    final container = ProviderContainer(
+      overrides: [mediaStoreRuntimeProvider.overrideWith((ref) async => null)],
+    );
+    addTearDown(container.dispose);
+
+    final sub = container.listen(mediaTransfersSuspendedProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect(
+      await container.read(mediaTransfersSuspendedProvider.future),
+      isFalse,
+    );
+  });
+
   test('the enqueue bridge is a no-op when no runtime is attached', () async {
     final container = ProviderContainer(
       overrides: [mediaStoreRuntimeProvider.overrideWith((ref) async => null)],

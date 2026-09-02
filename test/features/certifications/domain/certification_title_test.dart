@@ -123,4 +123,28 @@ void main() {
       expect(certificationSubtitle(cert(name: 'Bali OW', level: null)), isNull);
     });
   });
+
+  group('certificationAgencyAndLevel', () {
+    test('is the agency alone when the title already names the level', () {
+      expect(
+        certificationAgencyAndLevel(cert(name: 'PADI : Open Water')),
+        'PADI',
+      );
+    });
+
+    test('adds the level when a custom name owns the title', () {
+      // Issue #1265: without this the level appears nowhere on the tile.
+      expect(
+        certificationAgencyAndLevel(cert(name: 'Bill Ansell')),
+        'PADI - Open Water',
+      );
+    });
+
+    test('is the agency alone when a custom name has no level', () {
+      expect(
+        certificationAgencyAndLevel(cert(name: 'Bali OW', level: null)),
+        'PADI',
+      );
+    });
+  });
 }

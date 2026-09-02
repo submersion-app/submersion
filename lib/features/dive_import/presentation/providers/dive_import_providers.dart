@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
+import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/features/dive_import/data/services/fit_parser_service.dart';
@@ -396,6 +397,10 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
         await DiveEquipmentDefaulter().applyForImportedDive(dive);
         await ChecklistDiveLinker().applyForImportedDive(dive);
         await altitudeEnricher.applyForImportedDive(dive);
+        // After the defaulter, never before: the defaulter bails on a dive
+        // that already has equipment, so linking first would suppress the
+        // diver's default and geofenced sets.
+        await DiveComputerGearLinker().linkComputerGearForDive(diveId: dive.id);
         imported++;
       }
 

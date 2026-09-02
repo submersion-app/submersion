@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion_saf/submersion_saf.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -46,13 +48,18 @@ class BackupSettingsPage extends ConsumerWidget {
               operationState.status != BackupOperationStatus.idle)
             _buildStatusMessage(context, operationState),
           // Export card
-          _buildActionCard(
-            context: context,
-            icon: Icons.backup,
-            title: context.l10n.backup_export_title,
-            subtitle: context.l10n.backup_export_subtitle,
-            enabled: !isInProgress,
-            onTap: () => _handleExport(context, ref),
+          // Builder so the iPad share popover anchors to the export card:
+          // findRenderObject from a Builder's context descends to the card,
+          // whereas the page's context would yield the whole page.
+          Builder(
+            builder: (cardContext) => _buildActionCard(
+              context: context,
+              icon: Icons.backup,
+              title: context.l10n.backup_export_title,
+              subtitle: context.l10n.backup_export_subtitle,
+              enabled: !isInProgress,
+              onTap: () => _handleExport(cardContext, ref),
+            ),
           ),
           // Import card
           _buildActionCard(
@@ -171,6 +178,9 @@ class BackupSettingsPage extends ConsumerWidget {
 
   void _handleExport(BuildContext context, WidgetRef ref) {
     final encrypted = ref.read(backupSettingsProvider).backupEncryptionEnabled;
+    // Captured now: the export sheet is dismissed before onShare runs, so the
+    // anchor has to come from the card that opened it.
+    final anchor = shareAnchorFrom(context);
     ExportBottomSheet.show(
       context,
       onSaveToFile: () async {
@@ -208,7 +218,7 @@ class BackupSettingsPage extends ConsumerWidget {
             .exportForSharing();
         if (file != null && context.mounted) {
           await SharePlus.instance.share(
-            ShareParams(files: [XFile(file.path)]),
+            ShareParams(files: [XFile(file.path)], sharePositionOrigin: anchor),
           );
         }
       },

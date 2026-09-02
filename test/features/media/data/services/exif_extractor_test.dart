@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -114,6 +115,20 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, null);
     });
+
+    test(
+      'reports nativeExif when the platform channel dates the file',
+      () async {
+        mockedAttributes = {'DateTimeOriginal': '2024:06:01 12:30:45'};
+        final f = File('${tempDir.path}/native.jpg')
+          ..writeAsBytesSync([0, 1, 2]);
+
+        final meta = await ExifExtractor().extract(f);
+
+        expect(meta!.takenAtSource, TakenAtSource.nativeExif);
+        expect(meta.takenAt, DateTime.utc(2024, 6, 1, 12, 30, 45));
+      },
+    );
 
     test(
       'parses DateTimeOriginal, GPS, and dimensions from EXIF attrs',
@@ -281,6 +296,27 @@ void main() {
       return img.encodeJpg(image);
     }
 
+    test('reads GPS from JPEG bytes when native_exif is absent', () async {
+      final image = img.Image(width: 4, height: 4);
+      image.exif.gpsIfd.gpsLatitude = 20.5;
+      image.exif.gpsIfd.gpsLatitudeRef = 'N';
+      image.exif.gpsIfd.gpsLongitude = 87.25;
+      image.exif.gpsIfd.gpsLongitudeRef = 'W';
+      final f = File('${tempDir.path}/gps.jpg')
+        ..writeAsBytesSync(img.encodeJpg(image));
+      final meta = await ExifExtractor().extract(f);
+      expect(meta?.latitude, closeTo(20.5, 1e-6));
+      expect(meta?.longitude, closeTo(-87.25, 1e-6));
+    });
+
+    test('leaves GPS null for a JPEG without a GPS IFD', () async {
+      final f = File('${tempDir.path}/nogps.jpg')
+        ..writeAsBytesSync(jpegWithDateTimeOriginal('2025:12:27 12:08:19'));
+      final meta = await ExifExtractor().extract(f);
+      expect(meta?.latitude, isNull);
+      expect(meta?.longitude, isNull);
+    });
+
     test(
       'reads DateTimeOriginal from JPEG bytes when native_exif is absent',
       () async {
@@ -326,6 +362,41 @@ void main() {
         lessThan(const Duration(minutes: 5)),
       );
     });
+  });
+
+  group('takenAtSource provenance', () {
+    Uint8List jpegWithDateTimeOriginal(String exifDate) {
+      final image = img.Image(width: 4, height: 4);
+      image.exif.exifIfd['DateTimeOriginal'] = exifDate;
+      return img.encodeJpg(image);
+    }
+
+    test(
+      'reports fileModifiedTime when nothing else can date the file',
+      () async {
+        final f = File('${tempDir.path}/undated.png')
+          ..writeAsBytesSync([0x89, 0x50, 0x4e, 0x47]);
+
+        final meta = await ExifExtractor().extract(f);
+
+        expect(meta, isNotNull);
+        expect(meta!.takenAtSource, TakenAtSource.fileModifiedTime);
+        expect(meta.takenAt, isNotNull);
+      },
+    );
+
+    test(
+      'reports containerMetadata when the pure-Dart reader dates a JPEG',
+      () async {
+        final f = File('${tempDir.path}/dated.jpg')
+          ..writeAsBytesSync(jpegWithDateTimeOriginal('2025:12:27 11:47:00'));
+
+        final meta = await ExifExtractor().extract(f);
+
+        expect(meta!.takenAtSource, TakenAtSource.containerMetadata);
+        expect(meta.takenAt, DateTime.utc(2025, 12, 27, 11, 47));
+      },
+    );
   });
 
   test('large files (>5 MB) take the compute() isolate path', () async {

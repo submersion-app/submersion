@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -40,26 +42,20 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  var profileRowCounter = 0;
-  Future<void> insertProfileRow({
+  /// One single-sample series per call. v183 dropped the row-per-sample
+  /// table these tests used to seed, so every sample is a series now.
+  Future<void> insertSeriesRow({
     required int timestamp,
     required double depth,
     required String? computerId,
     required bool isPrimary,
-  }) async {
-    await db
-        .into(db.diveProfiles)
-        .insert(
-          DiveProfilesCompanion(
-            id: Value('prof-${profileRowCounter++}'),
-            diveId: const Value('dive-1'),
-            computerId: Value(computerId),
-            isPrimary: Value(isPrimary),
-            timestamp: Value(timestamp),
-            depth: Value(depth),
-          ),
-        );
-  }
+  }) => ProfileSeriesRepository().insertSeries(
+    diveId: 'dive-1',
+    computerId: computerId,
+    isPrimary: isPrimary,
+    samples: [ProfileSample(timestamp: timestamp, depth: depth)],
+    now: now,
+  );
 
   Future<void> insertComputer(String id) => db
       .into(db.diveComputers)
@@ -105,7 +101,7 @@ void main() {
         (20, 0.0),
         (24, 0.0),
       ]) {
-        await insertProfileRow(
+        await insertSeriesRow(
           timestamp: ts,
           depth: depth,
           computerId: null,
@@ -143,7 +139,7 @@ void main() {
           isPrimary: true,
         );
         for (final (ts, depth) in [(0, 0.0), (4, 20.0), (8, 0.0), (12, 0.0)]) {
-          await insertProfileRow(
+          await insertSeriesRow(
             timestamp: ts,
             depth: depth,
             computerId: 'dc-a',
@@ -173,7 +169,7 @@ void main() {
           isPrimary: true,
         );
         for (final (ts, depth) in [(0, 0.0), (4, 20.0), (8, 0.0), (12, 0.0)]) {
-          await insertProfileRow(
+          await insertSeriesRow(
             timestamp: ts,
             depth: depth,
             computerId: 'dc-a',
@@ -213,7 +209,7 @@ void main() {
         );
 
         for (final (ts, depth) in [(0, 0.0), (4, 20.0), (8, 0.0)]) {
-          await insertProfileRow(
+          await insertSeriesRow(
             timestamp: ts,
             depth: depth,
             computerId: 'dc-a',
@@ -222,7 +218,7 @@ void main() {
         }
         // Secondary computers are always stored demoted.
         for (final (ts, depth) in [(0, 0.1), (4, 20.5), (8, 0.2)]) {
-          await insertProfileRow(
+          await insertSeriesRow(
             timestamp: ts,
             depth: depth,
             computerId: 'dc-b',
@@ -259,7 +255,7 @@ void main() {
       await insertDataSource(id: 'src-b', computerId: 'dc-b', isPrimary: false);
 
       for (final (ts, depth) in [(0, 0.0), (4, 20.0)]) {
-        await insertProfileRow(
+        await insertSeriesRow(
           timestamp: ts,
           depth: depth,
           computerId: 'dc-a',
@@ -267,7 +263,7 @@ void main() {
         );
       }
       for (final (ts, depth) in [(0, 0.1), (4, 20.5)]) {
-        await insertProfileRow(
+        await insertSeriesRow(
           timestamp: ts,
           depth: depth,
           computerId: 'dc-b',
@@ -292,7 +288,7 @@ void main() {
       // setPrimaryDataSource can strand a file import with zero primary rows;
       // nothing was edited, so nothing may be dropped.
       for (final (ts, depth) in [(0, 0.0), (4, 20.0), (8, 0.0)]) {
-        await insertProfileRow(
+        await insertSeriesRow(
           timestamp: ts,
           depth: depth,
           computerId: null,

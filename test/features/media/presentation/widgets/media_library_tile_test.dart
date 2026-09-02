@@ -44,14 +44,15 @@ void main() {
     Intl.defaultLocale = previousDefaultLocale;
   });
 
-  /// Counters as a mutable list so one pump is enough: a record would
-  /// snapshot the values at return time and never observe a later gesture.
+  /// Counter as a mutable list so one pump is enough: a record would
+  /// snapshot the value at return time and never observe a later gesture.
   Future<List<int>> pump(
     WidgetTester tester,
     MediaLibraryEntry entry, {
     bool selected = false,
+    bool isSelectionMode = false,
   }) async {
-    final counts = [0, 0]; // taps, long presses
+    final counts = [0]; // taps
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -73,8 +74,8 @@ void main() {
               child: MediaLibraryTile(
                 entry: entry,
                 selected: selected,
+                isSelectionMode: isSelectionMode,
                 onTap: () => counts[0]++,
-                onLongPress: () => counts[1]++,
               ),
             ),
           ),
@@ -100,18 +101,31 @@ void main() {
     expect(find.byKey(const Key('media-status-badge')), findsNothing);
   });
 
-  // Selection must not regress: long-press is this tile's way into
-  // multi-select, and the badge now sits in the same Stack.
-  testWidgets('tap and long-press still reach their callbacks', (tester) async {
+  // Selection must not regress: the tile's tap is what toggles a checked
+  // item, and the status badge sits in the same Stack.
+  testWidgets('a tap reaches the callback', (tester) async {
     final counts = await pump(tester, _entry(uploaded: true));
 
     await tester.tap(find.byType(MediaLibraryTile));
     await tester.pumpAndSettle();
+
+    expect(counts[0], 1);
+  });
+
+  // Long-press enters selection nowhere in the app. With the handler gone
+  // there is no upper duration bound on TapGestureRecognizer, so a hold
+  // resolves as an ordinary tap on release -- it must not be silently
+  // swallowed, and it must not do anything a tap would not.
+  testWidgets('a hold resolves as an ordinary tap, selecting nothing', (
+    tester,
+  ) async {
+    final counts = await pump(tester, _entry(uploaded: true));
+
     await tester.longPress(find.byType(MediaLibraryTile));
     await tester.pumpAndSettle();
 
-    expect(counts[0], 1, reason: 'tap');
-    expect(counts[1], 1, reason: 'long press');
+    expect(counts[0], 1, reason: 'the hold fell through to onTap');
+    expect(find.byIcon(Icons.check_circle), findsNothing);
   });
 
   testWidgets('the selection check still renders when selected', (
@@ -121,4 +135,41 @@ void main() {
 
     expect(find.byIcon(Icons.check_circle), findsOneWidget);
   });
+
+  /// The scrim drawn over unchecked tiles while the mode is active.
+  Finder dimScrim() => find.byWidgetPredicate(
+    (widget) => widget is Container && widget.color == _dimColor,
+  );
+
+  // Selection mode can be active with nothing checked, which is what the
+  // Select control produces. Without the scrim that state is invisible: the
+  // grid looks exactly as it does outside the mode, and the next tap does
+  // something the user did not expect.
+  testWidgets('an unchecked tile dims while selection mode is active', (
+    tester,
+  ) async {
+    await pump(tester, _entry(uploaded: true), isSelectionMode: true);
+
+    expect(dimScrim(), findsOneWidget);
+  });
+
+  testWidgets('a checked tile is not dimmed', (tester) async {
+    await pump(
+      tester,
+      _entry(uploaded: true),
+      isSelectionMode: true,
+      selected: true,
+    );
+
+    expect(dimScrim(), findsNothing);
+  });
+
+  testWidgets('nothing dims outside selection mode', (tester) async {
+    await pump(tester, _entry(uploaded: true));
+
+    expect(dimScrim(), findsNothing);
+  });
 }
+
+/// Kept in step with the tile's own scrim colour.
+final Color _dimColor = Colors.black.withValues(alpha: 0.3);

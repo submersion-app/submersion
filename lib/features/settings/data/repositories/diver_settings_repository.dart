@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
@@ -82,7 +84,7 @@ class DiverSettingsRepository {
               volumeUnit: Value(s.volumeUnit.name),
               weightUnit: Value(s.weightUnit.name),
               altitudeUnit: Value(s.altitudeUnit.name),
-              sacUnit: Value(s.sacUnit.name),
+              gasConsumptionDisplay: Value(s.gasConsumptionDisplay.name),
               gasModel: Value(s.gasModel.name),
               defaultCurrency: Value(s.defaultCurrency),
               visibilityScalePreset: Value(s.visibilityScalePreset.name),
@@ -99,6 +101,7 @@ class DiverSettingsRepository {
               accentSectionHeaders: Value(s.accentSectionHeaders),
               accentListIcons: Value(s.accentListIcons),
               locale: Value(s.locale),
+              placeNameLanguage: Value(s.placeNameLanguage),
               defaultDiveType: Value(s.defaultDiveType),
               defaultTankVolume: Value(s.defaultTankVolume),
               defaultStartPressure: Value(s.defaultStartPressure),
@@ -132,6 +135,8 @@ class DiverSettingsRepository {
               defaultDecoStopSource: Value(s.defaultDecoStopSource.toInt()),
               defaultTtsSource: Value(s.defaultTtsSource.toInt()),
               defaultCnsSource: Value(s.defaultCnsSource.toInt()),
+              defaultGtrSource: Value(s.defaultGtrSource.toInt()),
+              gtrReservePressure: Value(s.gtrReservePressure),
               cnsCalculationMethod: Value(s.cnsCalculationMethod.dbValue),
               showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
               cardColorAttribute: Value(s.cardColorAttribute.name),
@@ -143,6 +148,7 @@ class DiverSettingsRepository {
               diveCenterListViewMode: Value(s.diveCenterListViewMode.name),
               mapStyle: Value(s.mapStyle.name),
               siteMatchSensitivity: Value(s.siteMatchSensitivity.name),
+              trimTankPressureAtSurfacing: Value(s.trimTankPressureAtSurfacing),
               cardColorGradientPreset: Value(s.cardColorGradientPreset),
               cardColorGradientStart: Value(s.cardColorGradientStart),
               cardColorGradientEnd: Value(s.cardColorGradientEnd),
@@ -172,11 +178,16 @@ class DiverSettingsRepository {
               defaultShowSurfaceGf: Value(s.defaultShowSurfaceGf),
               defaultShowMeanDepth: Value(s.defaultShowMeanDepth),
               defaultShowTts: Value(s.defaultShowTts),
+              defaultShowGtr: Value(s.defaultShowGtr),
               defaultShowCns: Value(s.defaultShowCns),
               defaultShowOtu: Value(s.defaultShowOtu),
               defaultShowGasSwitchMarkers: Value(s.defaultShowGasSwitchMarkers),
               defaultShowPhotoMarkers: Value(s.defaultShowPhotoMarkers),
               defaultShowGasTimeline: Value(s.defaultShowGasTimeline),
+              defaultShowO2CellMv: Value(s.defaultShowO2CellMv),
+              defaultShowEstimatedTankPressure: Value(
+                s.defaultShowEstimatedTankPressure,
+              ),
               defaultShowAscentRateLine: Value(s.defaultShowAscentRateLine),
               notificationsEnabled: Value(s.notificationsEnabled),
               serviceReminderDays: Value(
@@ -241,7 +252,7 @@ class DiverSettingsRepository {
           volumeUnit: Value(settings.volumeUnit.name),
           weightUnit: Value(settings.weightUnit.name),
           altitudeUnit: Value(settings.altitudeUnit.name),
-          sacUnit: Value(settings.sacUnit.name),
+          gasConsumptionDisplay: Value(settings.gasConsumptionDisplay.name),
           gasModel: Value(settings.gasModel.name),
           defaultCurrency: Value(settings.defaultCurrency),
           visibilityScalePreset: Value(settings.visibilityScalePreset.name),
@@ -258,6 +269,7 @@ class DiverSettingsRepository {
           accentSectionHeaders: Value(settings.accentSectionHeaders),
           accentListIcons: Value(settings.accentListIcons),
           locale: Value(settings.locale),
+          placeNameLanguage: Value(settings.placeNameLanguage),
           defaultDiveType: Value(settings.defaultDiveType),
           defaultTankVolume: Value(settings.defaultTankVolume),
           defaultStartPressure: Value(settings.defaultStartPressure),
@@ -293,6 +305,8 @@ class DiverSettingsRepository {
           defaultDecoStopSource: Value(settings.defaultDecoStopSource.toInt()),
           defaultTtsSource: Value(settings.defaultTtsSource.toInt()),
           defaultCnsSource: Value(settings.defaultCnsSource.toInt()),
+          defaultGtrSource: Value(settings.defaultGtrSource.toInt()),
+          gtrReservePressure: Value(settings.gtrReservePressure),
           cnsCalculationMethod: Value(settings.cnsCalculationMethod.dbValue),
           showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
           cardColorAttribute: Value(settings.cardColorAttribute.name),
@@ -304,6 +318,9 @@ class DiverSettingsRepository {
           diveCenterListViewMode: Value(settings.diveCenterListViewMode.name),
           mapStyle: Value(settings.mapStyle.name),
           siteMatchSensitivity: Value(settings.siteMatchSensitivity.name),
+          trimTankPressureAtSurfacing: Value(
+            settings.trimTankPressureAtSurfacing,
+          ),
           cardColorGradientPreset: Value(settings.cardColorGradientPreset),
           cardColorGradientStart: Value(settings.cardColorGradientStart),
           cardColorGradientEnd: Value(settings.cardColorGradientEnd),
@@ -333,6 +350,7 @@ class DiverSettingsRepository {
           defaultShowSurfaceGf: Value(settings.defaultShowSurfaceGf),
           defaultShowMeanDepth: Value(settings.defaultShowMeanDepth),
           defaultShowTts: Value(settings.defaultShowTts),
+          defaultShowGtr: Value(settings.defaultShowGtr),
           defaultShowCns: Value(settings.defaultShowCns),
           defaultShowOtu: Value(settings.defaultShowOtu),
           defaultShowGasSwitchMarkers: Value(
@@ -340,6 +358,10 @@ class DiverSettingsRepository {
           ),
           defaultShowPhotoMarkers: Value(settings.defaultShowPhotoMarkers),
           defaultShowGasTimeline: Value(settings.defaultShowGasTimeline),
+          defaultShowO2CellMv: Value(settings.defaultShowO2CellMv),
+          defaultShowEstimatedTankPressure: Value(
+            settings.defaultShowEstimatedTankPressure,
+          ),
           defaultShowAscentRateLine: Value(settings.defaultShowAscentRateLine),
           notificationsEnabled: Value(settings.notificationsEnabled),
           serviceReminderDays: Value(
@@ -442,7 +464,9 @@ class DiverSettingsRepository {
       volumeUnit: _parseVolumeUnit(row.volumeUnit),
       weightUnit: _parseWeightUnit(row.weightUnit),
       altitudeUnit: _parseAltitudeUnit(row.altitudeUnit),
-      sacUnit: _parseSacUnit(row.sacUnit),
+      gasConsumptionDisplay: GasConsumptionDisplay.fromName(
+        row.gasConsumptionDisplay,
+      ),
       gasModel: GasModel.fromName(row.gasModel),
       defaultCurrency: row.defaultCurrency,
       visibilityScalePreset: _parseVisibilityScalePreset(
@@ -461,6 +485,7 @@ class DiverSettingsRepository {
       accentSectionHeaders: row.accentSectionHeaders,
       accentListIcons: row.accentListIcons,
       locale: row.locale,
+      placeNameLanguage: PlaceNameLanguage.normalize(row.placeNameLanguage),
       defaultDiveType: row.defaultDiveType,
       defaultTankVolume: row.defaultTankVolume,
       defaultStartPressure: row.defaultStartPressure,
@@ -499,6 +524,8 @@ class DiverSettingsRepository {
       ),
       defaultTtsSource: MetricDataSource.fromInt(row.defaultTtsSource),
       defaultCnsSource: MetricDataSource.fromInt(row.defaultCnsSource),
+      defaultGtrSource: MetricDataSource.fromInt(row.defaultGtrSource),
+      gtrReservePressure: row.gtrReservePressure,
       cnsCalculationMethod: CnsCalculationMethod.fromDbValue(
         row.cnsCalculationMethod,
       ),
@@ -513,6 +540,7 @@ class DiverSettingsRepository {
       siteMatchSensitivity: SiteMatchSensitivity.fromName(
         row.siteMatchSensitivity,
       ),
+      trimTankPressureAtSurfacing: row.trimTankPressureAtSurfacing,
       cardColorGradientPreset: row.cardColorGradientPreset,
       cardColorGradientStart: row.cardColorGradientStart,
       cardColorGradientEnd: row.cardColorGradientEnd,
@@ -536,11 +564,14 @@ class DiverSettingsRepository {
       defaultShowSurfaceGf: row.defaultShowSurfaceGf,
       defaultShowMeanDepth: row.defaultShowMeanDepth,
       defaultShowTts: row.defaultShowTts,
+      defaultShowGtr: row.defaultShowGtr,
       defaultShowCns: row.defaultShowCns,
       defaultShowOtu: row.defaultShowOtu,
       defaultShowGasSwitchMarkers: row.defaultShowGasSwitchMarkers,
       defaultShowPhotoMarkers: row.defaultShowPhotoMarkers,
       defaultShowGasTimeline: row.defaultShowGasTimeline,
+      defaultShowO2CellMv: row.defaultShowO2CellMv,
+      defaultShowEstimatedTankPressure: row.defaultShowEstimatedTankPressure,
       defaultShowAscentRateLine: row.defaultShowAscentRateLine,
       notificationsEnabled: row.notificationsEnabled,
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
@@ -608,13 +639,6 @@ class DiverSettingsRepository {
     return AltitudeUnit.values.firstWhere(
       (e) => e.name == value,
       orElse: () => AltitudeUnit.meters,
-    );
-  }
-
-  SacUnit _parseSacUnit(String value) {
-    return SacUnit.values.firstWhere(
-      (e) => e.name == value,
-      orElse: () => SacUnit.pressurePerMin,
     );
   }
 

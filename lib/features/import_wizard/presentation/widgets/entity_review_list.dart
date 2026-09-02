@@ -4,6 +4,8 @@ import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart'
+    show DiveReviewSortField;
 import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -62,6 +64,19 @@ class EntityReviewList extends StatelessWidget {
   /// that will be assigned on import. Only meaningful for dive entity lists.
   final Map<int, int>? projectedDiveNumbers;
 
+  /// Which field to sort the non-duplicate rows by, and a callback to change
+  /// it. Both null (the default) hides the sort control entirely and leaves
+  /// non-duplicate rows in their original order — used for non-dive tabs,
+  /// where date/depth/duration don't apply.
+  final DiveReviewSortField? sortField;
+
+  /// Sort direction for [sortField]. Ignored when [sortField] is null.
+  final bool sortAscending;
+
+  /// Called when the user picks a sort field from the sort menu, including
+  /// re-picking the active field to flip its direction.
+  final ValueChanged<DiveReviewSortField>? onSortFieldChanged;
+
   const EntityReviewList({
     super.key,
     required this.group,
@@ -76,6 +91,9 @@ class EntityReviewList extends StatelessWidget {
     required this.onDeselectAll,
     required this.existingDiveIdForIndex,
     this.projectedDiveNumbers,
+    this.sortField,
+    this.sortAscending = false,
+    this.onSortFieldChanged,
   });
 
   static void _noopBulkAction(DuplicateAction _) {}
@@ -88,9 +106,9 @@ class EntityReviewList extends StatelessWidget {
 
     final autoSkipIndices = group.autoSkipIndices ?? const <int>{};
 
-    final nonDuplicateIndices = _nonDuplicateIndices()
-        .where((i) => !autoSkipIndices.contains(i))
-        .toList();
+    final nonDuplicateIndices = _applySort(
+      _nonDuplicateIndices().where((i) => !autoSkipIndices.contains(i)),
+    );
     final likelyDuplicateIndices = _sortedDuplicateIndices(
       minScore: 0.7,
     ).where((i) => !autoSkipIndices.contains(i)).toList();
@@ -127,6 +145,12 @@ class EntityReviewList extends StatelessWidget {
                   ),
                 ),
               ),
+              if (sortField != null && onSortFieldChanged != null)
+                _SortMenuButton(
+                  sortField: sortField!,
+                  sortAscending: sortAscending,
+                  onSortFieldChanged: onSortFieldChanged!,
+                ),
               TextButton(
                 onPressed: onSelectAll,
                 style: TextButton.styleFrom(
@@ -291,6 +315,40 @@ class EntityReviewList extends StatelessWidget {
     ];
   }
 
+  /// Sorts [indices] by [sortField] (date/depth/duration, read off each
+  /// item's [EntityItem.diveData]) when a sort field is set; otherwise
+  /// returns them unchanged.
+  ///
+  /// Items missing the sorted-by field always sink to the end, regardless of
+  /// direction, rather than being placed arbitrarily by a null comparison.
+  List<int> _applySort(Iterable<int> indices) {
+    final field = sortField;
+    if (field == null) return indices.toList();
+
+    double? valueFor(int index) {
+      final data = group.items[index].diveData;
+      return switch (field) {
+        DiveReviewSortField.date =>
+          data?.startTime?.millisecondsSinceEpoch.toDouble(),
+        DiveReviewSortField.depth => data?.maxDepth,
+        DiveReviewSortField.duration => data?.durationSeconds?.toDouble(),
+      };
+    }
+
+    final withValue = <int>[];
+    final withoutValue = <int>[];
+    for (final i in indices) {
+      (valueFor(i) == null ? withoutValue : withValue).add(i);
+    }
+
+    withValue.sort((a, b) {
+      final cmp = valueFor(a)!.compareTo(valueFor(b)!);
+      return sortAscending ? cmp : -cmp;
+    });
+
+    return [...withValue, ...withoutValue];
+  }
+
   /// Returns duplicate indices filtered by score range.
   ///
   /// Pending-review indices are emitted first (preserving their
@@ -400,6 +458,78 @@ class EntityReviewList extends StatelessWidget {
       parts.add(l10n.universalImport_count_duplicates(duplicates));
     }
     return parts.join(' \u00b7 ');
+  }
+}
+
+/// Sort control for the dive tab's non-duplicate rows.
+///
+/// Shows the active field with a direction arrow; picking the active field
+/// again (via [onSortFieldChanged]) flips the arrow instead of no-opping.
+class _SortMenuButton extends StatelessWidget {
+  final DiveReviewSortField sortField;
+  final bool sortAscending;
+  final ValueChanged<DiveReviewSortField> onSortFieldChanged;
+
+  const _SortMenuButton({
+    required this.sortField,
+    required this.sortAscending,
+    required this.onSortFieldChanged,
+  });
+
+  String _fieldLabel(BuildContext context, DiveReviewSortField field) {
+    final l10n = context.l10n;
+    return switch (field) {
+      DiveReviewSortField.date => l10n.importWizard_review_sortByDate,
+      DiveReviewSortField.depth => l10n.importWizard_review_sortByDepth,
+      DiveReviewSortField.duration => l10n.importWizard_review_sortByDuration,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return PopupMenuButton<DiveReviewSortField>(
+      tooltip: context.l10n.importWizard_review_sortTooltip,
+      onSelected: onSortFieldChanged,
+      itemBuilder: (context) => [
+        for (final field in DiveReviewSortField.values)
+          PopupMenuItem(
+            value: field,
+            child: Row(
+              children: [
+                Expanded(child: Text(_fieldLabel(context, field))),
+                if (field == sortField)
+                  Icon(
+                    sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                    size: 16,
+                    color: colorScheme.primary,
+                  ),
+              ],
+            ),
+          ),
+      ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+              size: 16,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _fieldLabel(context, sortField),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

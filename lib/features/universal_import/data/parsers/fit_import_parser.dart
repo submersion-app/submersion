@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:submersion/features/dive_import/data/services/fit_parser_service.dart';
+import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -158,6 +159,18 @@ class FitImportParser implements ImportParser {
       entities: {
         ImportEntityType.dives: [diveData],
       },
+      warnings: [
+        if (_hasNoTankPressure(dive))
+          const ImportWarning(
+            severity: ImportWarningSeverity.info,
+            code: ImportWarningCode.noTankPressure,
+            entityType: ImportEntityType.dives,
+            field: 'startPressure',
+            message:
+                'This file contains no tank pressure, so air consumption '
+                'and SAC cannot be calculated.',
+          ),
+      ],
       metadata: {
         'sourceApp': 'Garmin',
         'sourceId': dive.sourceId,
@@ -165,6 +178,17 @@ class FitImportParser implements ImportParser {
       },
     );
   }
+
+  /// Whether the dive carries no usable cylinder pressure.
+  ///
+  /// FIT keeps pressure in `tank_summary` (323) and `tank_update` (319), which
+  /// only air-integrated computers write. A file may still describe its gases
+  /// through `dive_gas` (259), which yields tanks with a mix and nothing else;
+  /// an empty tank list means not even that was present. Both cases leave the
+  /// diver with no consumption figures, so both are worth reporting.
+  static bool _hasNoTankPressure(ImportedDive dive) => dive.tanks.every(
+    (t) => t.startPressureBar == null && t.endPressureBar == null,
+  );
 
   /// Derives a dive name from the source [fileName]: drops the extension and
   /// a leading Garmin dive-number prefix (`22 `, `#7 `), which is redundant

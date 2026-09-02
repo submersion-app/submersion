@@ -14,6 +14,7 @@ import 'package:submersion/features/media_store/data/media_upload_pipeline.dart'
 
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
+import '../../helpers/wait_until.dart';
 
 class _RecordingPipeline extends MediaUploadPipeline {
   _RecordingPipeline({
@@ -42,19 +43,28 @@ class _RecordingPipeline extends MediaUploadPipeline {
   }
 }
 
-/// Polls [condition] until true or [within] elapses. Condition-based rather
-/// than a fixed sleep: the wakeup fires on a real timer, and a fixed delay
-/// either flakes under load or pads every run.
-Future<bool> _waitFor(
-  bool Function() condition, {
-  Duration within = const Duration(seconds: 5),
-}) async {
-  final deadline = DateTime.now().add(within);
-  while (DateTime.now().isBefore(deadline)) {
-    if (condition()) return true;
-    await Future<void>.delayed(const Duration(milliseconds: 10));
+/// Widens the window between the drain's last due-check and the moment the
+/// wakeup is armed. That window is where the row in #1210 fell through: too
+/// early for the drain's clock reading, already due by the arming one.
+///
+/// One-shot, and only on an empty result: the lag has to land after the last
+/// [nextPending] of the drain loop, and re-lagging every later drain would
+/// just pad the test.
+class _LaggingQueue extends MediaTransferQueueRepository {
+  _LaggingQueue({required super.database, required this.lag});
+
+  final Duration lag;
+  bool _lagged = false;
+
+  @override
+  Future<MediaTransferQueueEntry?> nextPending(DateTime now) async {
+    final entry = await super.nextPending(now);
+    if (entry == null && !_lagged) {
+      _lagged = true;
+      await Future<void>.delayed(lag);
+    }
+    return entry;
   }
-  return condition();
 }
 
 void main() {
@@ -124,12 +134,95 @@ void main() {
     await worker.drain();
     expect(pipeline.processed, isEmpty, reason: 'not due at drain time');
 
-    expect(
-      await _waitFor(() => pipeline.processed.isNotEmpty),
-      isTrue,
-      reason: 'wakeup timer should have re-drained the row',
-    );
+    await waitUntil(() async => pipeline.processed.isNotEmpty);
     expect(pipeline.processed, ['m1']);
+  });
+
+  // #1210: the drain checks "what is due?" at T0 and the arming query checks
+  // "what is not yet due?" at T1. A row that comes due in between satisfies
+  // neither, so before the fix nothing was armed for it and it sat until an
+  // unrelated trigger (app restart, connectivity flap) happened along.
+  test(
+    'a row that comes due while the drain finishes still gets a wakeup',
+    () async {
+      final lagging = _LaggingQueue(
+        database: cacheDb,
+        lag: const Duration(milliseconds: 400),
+      );
+      final laggingPipeline = _RecordingPipeline(
+        queueRef: lagging,
+        mediaRepository: mediaRepository,
+        queue: lagging,
+        store: InMemoryMediaObjectStore(),
+        registry: MediaSourceResolverRegistry({}),
+        cache: MediaCacheStore(database: cacheDb, root: root),
+      );
+      final laggingWorker = MediaStoreWorker(
+        queue: lagging,
+        pipeline: laggingPipeline,
+      );
+      addTearDown(laggingWorker.dispose);
+
+      final id = await lagging.enqueueUpload(mediaId: 'm1');
+      await lagging.defer(
+        id,
+        DateTime.now().add(const Duration(milliseconds: 80)),
+      );
+
+      await laggingWorker.drain();
+      expect(
+        laggingPipeline.processed,
+        isEmpty,
+        reason: 'not due at drain time',
+      );
+
+      await waitUntil(() async => laggingPipeline.processed.isNotEmpty);
+    },
+  );
+
+  // The constraint the immediate wakeup must not break: a drain that declined
+  // to run leaves its due row behind on purpose, and an immediate timer for
+  // it would spin against a drain that keeps declining. A suspended drain
+  // gets the preflight retry window instead (issue #1356): far enough out
+  // not to spin, and the only thing that lets the queue recover on its own.
+  test('a preflight-suspended drain arms the retry window, not an immediate '
+      'wakeup', () async {
+    final suspended = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      preflight: () async => false,
+    );
+    addTearDown(suspended.dispose);
+    await queue.enqueueUpload(mediaId: 'm1');
+
+    await suspended.drain();
+
+    expect(
+      suspended.wakeupDelayForTesting,
+      MediaStoreWorker.defaultPreflightRetryWindow,
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    expect(
+      pipeline.processed,
+      isEmpty,
+      reason: 'no immediate timer should have fired',
+    );
+  });
+
+  test('a gate-stopped drain arms no wakeup for a due row', () async {
+    final stopped = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      gate: (_) async => WorkerGate.stopDraining,
+    );
+    addTearDown(stopped.dispose);
+    await queue.enqueueUpload(mediaId: 'm1');
+
+    await stopped.drain();
+
+    expect(stopped.wakeupDelayForTesting, isNull);
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    expect(pipeline.processed, isEmpty, reason: 'no timer should have fired');
   });
 
   test(
@@ -172,11 +265,7 @@ void main() {
     pipeline.gate = Completer<void>();
 
     final draining = worker.drain();
-    expect(
-      await _waitFor(() => pipeline.processed.isNotEmpty),
-      isTrue,
-      reason: 'the drain should be parked inside process()',
-    );
+    await waitUntil(() async => pipeline.processed.isNotEmpty);
 
     worker.dispose();
     pipeline.gate!.complete();

@@ -67,5 +67,6 @@ List<DistributionSegment> localizeDistribution(
       label: label(segment.label),
       count: segment.count,
       percentage: segment.percentage,
+      totalDurationSeconds: segment.totalDurationSeconds,
     ),
 ];

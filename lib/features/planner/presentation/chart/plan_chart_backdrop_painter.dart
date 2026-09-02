@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_paint_utils.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_palette.dart';
@@ -80,27 +81,30 @@ class PlanChartBackdropPainter extends CustomPainter {
     depthUnit.paint(canvas, Offset(plot.left - depthUnit.width - 6, plot.top));
     timeUnit.paint(canvas, timeUnitOrigin);
 
-    // Ceiling no-go band: the region shallower than the ceiling.
-    if (ceiling.length >= 2) {
+    // Ceiling no-go band: the region shallower than the ceiling. Only drawn
+    // while a ceiling actually exists — during NDL time (ceiling == 0) there
+    // is nothing to shade, so skip runs that are clear to the surface.
+    for (final run in _ceilingRuns(ceiling)) {
+      if (run.length < 2) continue;
       final band = Path()
-        ..moveTo(geometry.xFor(ceiling.first.timeSeconds), plot.top);
-      for (final point in ceiling) {
+        ..moveTo(geometry.xFor(run.first.timeSeconds), plot.top);
+      for (final point in run) {
         band.lineTo(
           geometry.xFor(point.timeSeconds),
           geometry.yFor(point.depth),
         );
       }
       band
-        ..lineTo(geometry.xFor(ceiling.last.timeSeconds), plot.top)
+        ..lineTo(geometry.xFor(run.last.timeSeconds), plot.top)
         ..close();
       canvas.drawPath(band, Paint()..color = palette.ceilingFill);
 
       final boundary = Path()
         ..moveTo(
-          geometry.xFor(ceiling.first.timeSeconds),
-          geometry.yFor(ceiling.first.depth),
+          geometry.xFor(run.first.timeSeconds),
+          geometry.yFor(run.first.depth),
         );
-      for (final point in ceiling.skip(1)) {
+      for (final point in run.skip(1)) {
         boundary.lineTo(
           geometry.xFor(point.timeSeconds),
           geometry.yFor(point.depth),
@@ -114,6 +118,36 @@ class PlanChartBackdropPainter extends CustomPainter {
           ..style = PaintingStyle.stroke,
       );
     }
+  }
+
+  /// A ceiling at or below this depth (in meters) counts as clear to the
+  /// surface. Deliberately tiny: it exists only to absorb the sub-centimeter
+  /// residue that gradient-factor interpolation leaves on the final sample
+  /// of [PlanOutcome.ceilingTrace], not to hide a real obligation. A larger
+  /// value would end each run at a sample that is still meters deep, so the
+  /// band would cut off in mid-water instead of tapering to the surface.
+  static const clearCeilingEpsilon = 0.05;
+
+  /// Splits [ceiling] into contiguous runs where the ceiling is actually
+  /// above the surface (> [clearCeilingEpsilon]), each bookended by the
+  /// adjacent clear-to-surface sample so the shaded band tapers down to 0
+  /// instead of cutting off abruptly.
+  List<List<CanvasPoint>> _ceilingRuns(List<CanvasPoint> ceiling) {
+    final runs = <List<CanvasPoint>>[];
+    List<CanvasPoint>? current;
+    for (var i = 0; i < ceiling.length; i++) {
+      final point = ceiling[i];
+      if (point.depth > clearCeilingEpsilon) {
+        current ??= [if (i > 0) ceiling[i - 1]];
+        current.add(point);
+      } else if (current != null) {
+        current.add(point);
+        runs.add(current);
+        current = null;
+      }
+    }
+    if (current != null) runs.add(current);
+    return runs;
   }
 
   @override

@@ -1,22 +1,31 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/media/presentation/pages/media_import_link_page.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/media/data/services/media_import_service.dart';
+import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/domain/entities/import_candidate.dart';
+import 'package:submersion/features/media/domain/value_objects/import_preview.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/presentation/helpers/offer_site_review_after_import.dart';
 
-/// The Import console section (Media section Phase 4): launches the
-/// existing three-tab picker with NO dive context, imports the selection
-/// into the library (retained, unlinked), then hands the batch to
-/// [MediaImportLinkPage] for one-tap auto-match linking.
+/// The Import console section: launches the three-tab picker with no dive
+/// context, then hands the picked assets to [MediaImportReviewPage]. Nothing
+/// is written until the user confirms, and only assets resolved to a dive or
+/// a site are imported.
 class MediaImportView extends ConsumerWidget {
   const MediaImportView({super.key, this.launchOverride});
 
-  /// Test seam: returns the imported media ids instead of driving the
-  /// platform picker (which flutter_test cannot).
+  /// Test seam: returns the picked assets instead of driving the platform
+  /// picker (which flutter_test cannot).
   @visibleForTesting
-  final Future<List<String>> Function(BuildContext context)? launchOverride;
+  final Future<List<AssetInfo>> Function(BuildContext context)? launchOverride;
 
   /// Lower bound of the gallery tab's date window for a dive-less import.
   ///
@@ -29,10 +38,7 @@ class MediaImportView extends ConsumerWidget {
   static final DateTime libraryWindowStart =
       DateTime.fromMillisecondsSinceEpoch(0);
 
-  Future<List<String>> _pickAndImport(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
+  Future<List<AssetInfo>> _pick(BuildContext context) async {
     // No dive context: there is no meaningful date window, so the gallery
     // tab gets an unbounded one (desktop file dialogs ignore it entirely).
     final selected = await showPhotoPicker(
@@ -41,21 +47,119 @@ class MediaImportView extends ConsumerWidget {
       diveEndTime: DateTime.now().add(const Duration(days: 1)),
       buffer: Duration.zero,
     );
-    if (selected == null || selected.isEmpty) return const [];
+    return selected ?? const [];
+  }
 
-    final result = await ref
-        .read(mediaImportServiceProvider)
-        .importPhotosToLibrary(selectedAssets: selected);
-    return [for (final item in result.imported) item.id];
+  /// Imports the resolved assets, one service call per dive and per site.
+  /// A failing group never blocks another: a throw inside one group is
+  /// recorded against that group's assets and the loop moves on.
+  ///
+  /// Shared with the species import, which tags the rows this creates.
+  static Future<ImportReviewResult> importResolved({
+    required MediaImportService service,
+    required DiveRepository diveRepository,
+    required List<AssetInfo> assets,
+    required Map<String, MediaAttachTarget> targets,
+  }) async {
+    final byId = {for (final a in assets) a.id: a};
+    final byDive = <String, List<AssetInfo>>{};
+    final bySite = <String, List<AssetInfo>>{};
+    for (final MapEntry(:key, :value) in targets.entries) {
+      final asset = byId[key];
+      if (asset == null) continue;
+      switch (value) {
+        case DiveAttachTarget(:final diveId):
+          byDive.putIfAbsent(diveId, () => []).add(asset);
+        case SiteAttachTarget(:final siteId):
+          bySite.putIfAbsent(siteId, () => []).add(asset);
+      }
+    }
+
+    var linked = 0;
+    final importedIds = <String>[];
+    final failures = <String, String>{};
+
+    void failGroup(List<AssetInfo> group, Object reason) {
+      for (final a in group) {
+        failures[a.id] = reason.toString();
+      }
+    }
+
+    for (final MapEntry(:key, :value) in byDive.entries) {
+      try {
+        final dive = await diveRepository.getDiveById(key);
+        if (dive == null) {
+          failGroup(value, 'dive $key no longer exists');
+          continue;
+        }
+        final result = await service.importPhotosForDive(
+          selectedAssets: value,
+          dive: dive,
+        );
+        linked += result.imported.length;
+        importedIds.addAll(result.imported.map((m) => m.id));
+        failures.addAll(result.failures);
+      } catch (e) {
+        failGroup(value, e);
+      }
+    }
+    for (final MapEntry(:key, :value) in bySite.entries) {
+      try {
+        final result = await service.importPhotosForSite(
+          selectedAssets: value,
+          siteId: key,
+        );
+        linked += result.imported.length;
+        importedIds.addAll(result.imported.map((m) => m.id));
+        failures.addAll(result.failures);
+      } catch (e) {
+        failGroup(value, e);
+      }
+    }
+    return ImportReviewResult(
+      linked: linked,
+      linkedDiveIds: byDive.keys.toList(),
+      skipped: assets.length - targets.length,
+      failures: failures,
+      importedIds: importedIds,
+    );
   }
 
   Future<void> _launch(BuildContext context, WidgetRef ref) async {
-    final ids =
-        await (launchOverride?.call(context) ?? _pickAndImport(context, ref));
-    if (ids.isEmpty || !context.mounted) return;
+    final assets = await (launchOverride?.call(context) ?? _pick(context));
+    if (assets.isEmpty || !context.mounted) return;
+    final candidates = [
+      for (final a in assets)
+        ImportCandidate(
+          key: a.id,
+          title: a.filename ?? a.id,
+          // The same value the import persists as takenAt, so the match
+          // shown here is the match the row would get.
+          takenAt: TripMediaScanner.toWallClockUtc(a.createDateTime),
+          preview: AssetImportPreview(a.id),
+        ),
+    ];
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => MediaImportLinkPage(mediaIds: ids),
+        builder: (_) => MediaImportReviewPage(
+          candidates: candidates,
+          onConfirm: (targets) async {
+            final result = await importResolved(
+              service: ref.read(mediaImportServiceProvider),
+              diveRepository: ref.read(diveRepositoryProvider),
+              assets: assets,
+              targets: targets,
+            );
+            if (context.mounted) {
+              await offerSiteReviewAfterImport(
+                context,
+                ref,
+                result.linkedDiveIds,
+              );
+            }
+            return result;
+          },
+        ),
       ),
     );
   }

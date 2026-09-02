@@ -102,9 +102,4 @@ List<TankPressurePoint> _buildFlatDropFlat({
 }
 
 TankPressurePoint _pt(String tankId, int ts, double pressure) =>
-    TankPressurePoint(
-      id: 'est-$tankId-$ts',
-      tankId: tankId,
-      timestamp: ts,
-      pressure: pressure,
-    );
+    TankPressurePoint(tankId: tankId, timestamp: ts, pressure: pressure);

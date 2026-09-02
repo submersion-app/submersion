@@ -256,19 +256,16 @@ void main() {
         'dive-1': {
           'tank-a': [
             const TankPressurePoint(
-              id: 'tp1',
               tankId: 'tank-a',
               timestamp: 0,
               pressure: 200.0,
             ),
             const TankPressurePoint(
-              id: 'tp2',
               tankId: 'tank-a',
               timestamp: 120,
               pressure: 175.0,
             ),
             const TankPressurePoint(
-              id: 'tp3',
               tankId: 'tank-a',
               timestamp: 240,
               pressure: 150.0,
@@ -276,19 +273,16 @@ void main() {
           ],
           'tank-b': [
             const TankPressurePoint(
-              id: 'tp4',
               tankId: 'tank-b',
               timestamp: 0,
               pressure: 190.0,
             ),
             const TankPressurePoint(
-              id: 'tp5',
               tankId: 'tank-b',
               timestamp: 120,
               pressure: 165.0,
             ),
             const TankPressurePoint(
-              id: 'tp6',
               tankId: 'tank-b',
               timestamp: 240,
               pressure: 140.0,
@@ -337,13 +331,11 @@ void main() {
         'dive-full': {
           'tank-full': [
             const TankPressurePoint(
-              id: 'tp-f1',
               tankId: 'tank-full',
               timestamp: 0,
               pressure: 200.0,
             ),
             const TankPressurePoint(
-              id: 'tp-f2',
               tankId: 'tank-full',
               timestamp: 120,
               pressure: 150.0,

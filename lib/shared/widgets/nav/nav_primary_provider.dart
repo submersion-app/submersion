@@ -8,7 +8,7 @@ final navDestinationsProvider = Provider<List<NavDestination>>((ref) {
   return kNavDestinations;
 });
 
-/// Ids of destinations that can be moved between primary and overflow (13 entries).
+/// Ids of destinations that can be moved between primary and overflow.
 final movableNavIdsProvider = Provider<List<String>>((ref) => movableNavIds);
 
 /// StateNotifier owning the 3-element primary middle-slot id list.

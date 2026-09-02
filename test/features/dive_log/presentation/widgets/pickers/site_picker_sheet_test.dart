@@ -56,6 +56,7 @@ class _FakeLocationService implements LocationService {
   Future<LocationResult?> getCurrentLocation({
     bool includeGeocoding = true,
     Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
   }) {
     calls++;
     return pending?.future ?? Future.value(result);

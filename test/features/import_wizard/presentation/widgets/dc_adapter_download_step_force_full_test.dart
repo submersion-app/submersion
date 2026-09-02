@@ -65,6 +65,9 @@ Widget _buildDownloadStep({
 // reset-then-apply-then-start ordering is verified in
 // `test/features/dive_computer/presentation/widgets/download_step_widget_force_full_test.dart`.
 
+final _pastScanTimeout =
+    DcAdapterDownloadStep.knownDeviceScanTimeout + const Duration(seconds: 1);
+
 void main() {
   testWidgets(
     'adapter forceFullDownload=true propagates to DownloadStepWidget',
@@ -87,6 +90,11 @@ void main() {
           knownComputer: computer,
         ),
       );
+      // The step first scans for the computer's stored address (issue
+      // #1232); the fake service never reports a device, so advance past
+      // the scan timeout to reach the synthesized-device fallback.
+      await tester.pump();
+      await tester.pump(_pastScanTimeout);
       // Only one async gate applies here: deviceDescriptorsProvider
       // (synthesizing a device from the known computer). With
       // forceFullDownload=true, `promptCouldApply` in DcAdapterDownloadStep
@@ -123,6 +131,9 @@ void main() {
           knownComputer: computer,
         ),
       );
+      // Advance past the saved-address scan (see the first test).
+      await tester.pump();
+      await tester.pump(_pastScanTimeout);
       // Two async gates settle in sequence before DownloadStepWidget is
       // constructed: deviceDescriptorsProvider (synthesizing a device from
       // the known computer), then firstSyncCutoffDefaultProvider (only

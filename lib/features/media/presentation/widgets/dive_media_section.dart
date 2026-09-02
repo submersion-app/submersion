@@ -197,8 +197,10 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
 
     if (confirmed == true && context.mounted) {
       try {
-        // True unlink: the FK clears but the rows stay in the library,
-        // exactly what this dialog's copy has always promised.
+        // Unlink IS the removal: the rows leave the library along with
+        // their cloud proxies and thumbnails, and only a row a dive site
+        // still references survives with its dive link cleared. The
+        // original source files are never touched.
         await ref
             .read(mediaListNotifierProvider(widget.diveId).notifier)
             .unlinkMultipleMedia(selectedIds);
@@ -220,9 +222,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                context.l10n.media_diveMediaSection_unlinkError(e.toString()),
-              ),
+              content: Text(context.l10n.media_diveMediaSection_unlinkError(e)),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );

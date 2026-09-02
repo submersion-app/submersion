@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
-import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculators_page.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
@@ -43,11 +42,6 @@ void main() {
       embedded: const DecoCalculatorPage(embedded: true),
       page: const DecoCalculatorPage(),
       title: 'Deco Calculator',
-    ),
-    'gas calculators': (
-      embedded: const GasCalculatorsPage(embedded: true),
-      page: const GasCalculatorsPage(),
-      title: 'Gas Calculators',
     ),
     'surface interval': (
       embedded: const SurfaceIntervalToolPage(embedded: true),
@@ -92,19 +86,49 @@ void main() {
     expect(find.byIcon(Icons.refresh), findsOneWidget);
     expect(find.byIcon(Icons.edit_calendar), findsOneWidget);
 
-    await pump(tester, const GasCalculatorsPage(embedded: true));
-    expect(find.byIcon(Icons.refresh), findsOneWidget);
-
     await pump(tester, const SurfaceIntervalToolPage(embedded: true));
     expect(find.byIcon(Icons.refresh), findsOneWidget);
   });
 
-  // Gas Calculators hangs its TabBar off AppBar.bottom, which the pane does
-  // not have, so embedded it has to become an ordinary first row instead.
-  testWidgets('gas calculators keeps its tabs when embedded', (tester) async {
-    await pump(tester, const GasCalculatorsPage(embedded: true));
+  // Gas Calculators is no longer in the table above: it has no embedded form
+  // at all. It is a full-page push with a split view of its own, so its
+  // chrome contract lives in gas_calculators_page_test.dart instead.
 
-    expect(find.byType(TabBar), findsOneWidget);
-    expect(find.byType(TabBarView), findsOneWidget);
+  // A pushed split view needs a back affordance the nav rail does not supply,
+  // and it has to sit in the same compact header the detail pane uses, or the
+  // two halves stop lining up.
+  group('PlanningToolPane leading', () {
+    testWidgets('renders a leading widget ahead of the title', (tester) async {
+      await pump(
+        tester,
+        const Scaffold(
+          body: PlanningToolPane(
+            leading: BackButton(),
+            title: 'Gas Calculators',
+            child: SizedBox.shrink(),
+          ),
+        ),
+      );
+
+      expect(find.byType(BackButton), findsOneWidget);
+      final backX = tester.getCenter(find.byType(BackButton)).dx;
+      final titleX = tester.getCenter(find.text('Gas Calculators')).dx;
+      expect(backX, lessThan(titleX));
+    });
+
+    testWidgets('omitting it leaves the header unchanged', (tester) async {
+      await pump(
+        tester,
+        const Scaffold(
+          body: PlanningToolPane(
+            title: 'Gas Calculators',
+            child: SizedBox.shrink(),
+          ),
+        ),
+      );
+
+      expect(find.byType(BackButton), findsNothing);
+      expect(find.text('Gas Calculators'), findsOneWidget);
+    });
   });
 }

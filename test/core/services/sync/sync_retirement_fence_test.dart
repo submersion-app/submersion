@@ -1,11 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/retirement_marker.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/mock_providers.dart';
@@ -151,6 +153,72 @@ void main() {
         names.where((n) => ChangesetLogLayout.deviceIdOf(n) == deviceId),
         isNotEmpty,
         reason: 'device republishes its library',
+      );
+    },
+  );
+
+  test(
+    'fence stays closed when the cloud library is from a newer schema (#1341)',
+    () async {
+      final cloud = FakeCloudStorageProvider();
+      final folder = await cloud.getOrCreateSyncFolder();
+      // The current cloud library: peer-1 holds 'keep-1'.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'keep-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'peer-1'); // resets the local DB afterwards
+      final svc = SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+      );
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'stale-1', diveNumber: 2),
+      );
+      expect((await svc.performSync()).status, SyncResultStatus.success);
+
+      // Retired while away; meanwhile peer-1 moved to a newer build whose
+      // compatibility floor this build does not meet.
+      final deviceId = await SyncRepository().getDeviceId();
+      await svc.deleteDeviceSyncFile(deviceId);
+      await cloud.uploadFile(
+        RetirementMarker(deviceId: deviceId, retiredAt: 1).toBytes(),
+        ChangesetLogLayout.retiredMarkerName(deviceId),
+        folderId: folder,
+      );
+      await restampPeerSchemaVersion(
+        cloud,
+        'peer-1',
+        schemaVersion: AppDatabase.currentSchemaVersion + 1,
+      );
+
+      final result = await svc.performSync();
+
+      expect(result.status, SyncResultStatus.error);
+      expect(
+        result.message,
+        l10nForLocaleTag(
+          'en',
+        ).settings_cloudSync_result_cloudLibraryNewerSchema,
+      );
+      expect(result.newerSchemaPeerDeviceIds, {'peer-1'});
+      // Neither rebuilt from the held library nor re-established from local:
+      // rows untouched, the marker still fences us, nothing republished.
+      expect(await hasDive('keep-1'), isTrue);
+      expect(await hasDive('stale-1'), isTrue);
+      final names = (await cloud.listFiles(
+        folderId: folder,
+        namePattern: ChangesetLogLayout.prefix,
+      )).map((f) => f.name).toList();
+      expect(names, contains(ChangesetLogLayout.retiredMarkerName(deviceId)));
+      expect(
+        names.where(
+          (n) =>
+              ChangesetLogLayout.deviceIdOf(n) == deviceId &&
+              !ChangesetLogLayout.isRetiredMarker(n),
+        ),
+        isEmpty,
+        reason: 'a fenced device must not republish its stale library',
       );
     },
   );

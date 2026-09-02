@@ -4,6 +4,7 @@ import 'package:submersion/features/media/data/services/enrichment_service.dart'
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
 void main() {
+  manualPositionTests();
   late EnrichmentService service;
   late DateTime diveStartTime;
 
@@ -409,6 +410,72 @@ void main() {
       test('interpolationThreshold is 60 seconds', () {
         expect(EnrichmentService.interpolationThreshold, 60);
       });
+    });
+  });
+}
+
+/// A manual position (issue #1090) starts from a dive offset the diver
+/// chose, not from a capture time, so the wall-clock normalisation never
+/// runs and the confidence is always [MatchConfidence.manual]: the profile
+/// lookup is the same, but the diver's placement is not an estimate.
+void manualPositionTests() {
+  const service = EnrichmentService();
+  final profile = [
+    const DiveProfilePoint(timestamp: 0, depth: 0.0),
+    const DiveProfilePoint(timestamp: 60, depth: 10.0, temperature: 22.0),
+    const DiveProfilePoint(timestamp: 120, depth: 18.0, temperature: 20.0),
+  ];
+
+  group('calculateEnrichmentAtElapsed', () {
+    test('snaps to a profile point within the exact threshold', () {
+      final result = service.calculateEnrichmentAtElapsed(
+        profile: profile,
+        elapsedSeconds: 65,
+      );
+      expect(result.elapsedSeconds, 65);
+      expect(result.depthMeters, 10.0);
+      expect(result.temperatureCelsius, 22.0);
+      expect(result.timestampOffsetSeconds, 5);
+      expect(result.matchConfidence, MatchConfidence.manual);
+    });
+
+    test('interpolates between bracketing points', () {
+      final result = service.calculateEnrichmentAtElapsed(
+        profile: profile,
+        elapsedSeconds: 90,
+      );
+      expect(result.depthMeters, 14.0);
+      expect(result.temperatureCelsius, 21.0);
+      expect(result.matchConfidence, MatchConfidence.manual);
+    });
+
+    test('uses the first point before the profile starts', () {
+      final result = service.calculateEnrichmentAtElapsed(
+        profile: profile,
+        elapsedSeconds: -30,
+      );
+      expect(result.depthMeters, 0.0);
+      expect(result.elapsedSeconds, -30);
+      expect(result.matchConfidence, MatchConfidence.manual);
+    });
+
+    test('uses the last point after the profile ends', () {
+      final result = service.calculateEnrichmentAtElapsed(
+        profile: profile,
+        elapsedSeconds: 500,
+      );
+      expect(result.depthMeters, 18.0);
+      expect(result.matchConfidence, MatchConfidence.manual);
+    });
+
+    test('reports noProfile for an empty profile', () {
+      final result = service.calculateEnrichmentAtElapsed(
+        profile: const [],
+        elapsedSeconds: 90,
+      );
+      expect(result.matchConfidence, MatchConfidence.noProfile);
+      expect(result.depthMeters, isNull);
+      expect(result.elapsedSeconds, 90);
     });
   });
 }

@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'package:submersion/core/providers/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/auto_update/data/repositories/update_preferences.dart';
 import 'package:submersion/features/auto_update/data/services/github_update_service.dart';
 import 'package:submersion/features/auto_update/data/services/sparkle_update_service.dart';
@@ -67,10 +68,7 @@ final updateServiceProvider = FutureProvider<UpdateService?>((ref) async {
   // Release tags are 4-segment (vX.Y.Z.N) while packageInfo.version is the
   // 3-segment marketing version; without the build number appended, a
   // current install always compares as older than its own release tag.
-  final currentVersion =
-      packageInfo.version.endsWith('.${packageInfo.buildNumber}')
-      ? packageInfo.version
-      : '${packageInfo.version}.${packageInfo.buildNumber}';
+  final currentVersion = formatAppVersion(packageInfo);
 
   if (_useSparkleEngine) {
     return SparkleUpdateService(feedUrl: appcastUrlFor(channel));

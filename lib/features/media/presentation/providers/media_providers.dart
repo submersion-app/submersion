@@ -2,7 +2,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/helpers/media_time_pinner.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 /// Repository provider (singleton)
@@ -31,7 +33,30 @@ final diveMediaEnricherProvider = Provider<DiveMediaEnricher>((ref) {
   return DiveMediaEnricher(
     loadDive: diveRepo.getDiveById,
     loadMediaForDive: mediaRepo.getMediaForDive,
-    saveEnrichment: mediaRepo.saveEnrichment,
+    saveEnrichments: mediaRepo.saveEnrichments,
+  );
+});
+
+/// Applies the Set-time dialog's choice (issue #1090): one media-row write
+/// plus one enrichment pass, so the new position lands on the next tick.
+final mediaTimePinnerProvider = Provider<MediaTimePinner>((ref) {
+  return MediaTimePinner(
+    repository: ref.watch(mediaRepositoryProvider),
+    enricher: ref.watch(diveMediaEnricherProvider),
+  );
+});
+
+/// The one implementation of "unlink from a dive", shared by the Media
+/// section's selection bar and dive detail's.
+///
+/// The coordinator is read lazily inside the closure rather than watched, so
+/// consumer widget tests without a media-store runtime are unaffected. This
+/// mirrors [mediaDeletionCoordinatorProvider]'s own reasoning.
+final mediaUnlinkServiceProvider = Provider<MediaUnlinkService>((ref) {
+  return MediaUnlinkService(
+    repository: ref.watch(mediaRepositoryProvider),
+    deleteMedia: (ids) =>
+        ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids),
   );
 });
 
@@ -152,11 +177,15 @@ class MediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
     await refresh();
   }
 
-  /// True unlink (Media section Phase 2): clears the dive link and keeps
-  /// the rows in the library. The destructive path is [deleteMultipleMedia].
-  Future<void> unlinkMultipleMedia(List<String> ids) async {
-    await _repository.unlinkFromDive(ids);
+  /// Unlinks from the dive: the rows leave the library, along with their
+  /// cloud proxies and thumbnails, unless a dive site still needs them.
+  /// Original source files are never touched. See [MediaUnlinkService].
+  Future<UnlinkOutcome> unlinkMultipleMedia(List<String> ids) async {
+    final outcome = await _ref
+        .read(mediaUnlinkServiceProvider)
+        .unlinkFromDive(ids);
     await refresh();
+    return outcome;
   }
 
   /// Mark a media item as orphaned (photo deleted from gallery)

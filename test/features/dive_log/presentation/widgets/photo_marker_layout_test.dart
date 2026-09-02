@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 MediaItem _media({
   String id = 'm1',
   MediaType type = MediaType.photo,
+  MediaSourceType sourceType = MediaSourceType.platformGallery,
   MediaEnrichment? enrichment,
 }) {
   final now = DateTime.utc(2026, 1, 1);
@@ -12,6 +14,7 @@ MediaItem _media({
     id: id,
     diveId: 'dive-1',
     mediaType: type,
+    sourceType: sourceType,
     takenAt: now,
     createdAt: now,
     updatedAt: now,
@@ -78,6 +81,20 @@ void main() {
       },
     );
 
+    // Issue #1358: a buddy signature's file_type is 'buddy_signature', which
+    // parses to MediaType.photo, so the old MediaType-only guard let one
+    // through as a dive photo. It is a signature by source type instead.
+    test('excludes a buddy signature, which types as a photo', () {
+      final markers = photoMarkersFromMedia([
+        _media(
+          id: 'bs1',
+          sourceType: MediaSourceType.signature,
+          enrichment: _enrichment(),
+        ),
+      ], maxProfileSeconds: 3600);
+      expect(markers, isEmpty);
+    });
+
     test('clamps elapsed seconds into the profile range and sorts by time', () {
       final markers = photoMarkersFromMedia([
         _media(id: 'late', enrichment: _enrichment(elapsedSeconds: 4000)),
@@ -86,6 +103,53 @@ void main() {
       expect(markers, hasLength(2));
       expect(markers[0].elapsedSeconds, 0);
       expect(markers[1].elapsedSeconds, 3600);
+    });
+
+    // Issue #1090: a capture time days outside the dive used to clamp to the
+    // start or end of the profile, so a wrong EXIF date drew a confident
+    // marker at the exit. Beyond the matcher's own buffers the position is
+    // not knowledge, and the chart must not invent one.
+    test('drops automatic positions beyond the dive window tolerance', () {
+      final markers = photoMarkersFromMedia([
+        _media(
+          id: 'years-early',
+          enrichment: _enrichment(
+            elapsedSeconds: -5554653 * 60,
+            confidence: MatchConfidence.estimated,
+          ),
+        ),
+        _media(
+          id: 'days-late',
+          enrichment: _enrichment(
+            elapsedSeconds: 1879 * 60,
+            confidence: MatchConfidence.estimated,
+          ),
+        ),
+        _media(
+          id: 'just-after',
+          enrichment: _enrichment(
+            elapsedSeconds: 3600 + 300,
+            confidence: MatchConfidence.estimated,
+          ),
+        ),
+      ], maxProfileSeconds: 3600);
+      expect(markers.map((m) => m.item.id), ['just-after']);
+      expect(markers.single.elapsedSeconds, 3600);
+    });
+
+    test('keeps a manual position regardless of the tolerance', () {
+      final markers = photoMarkersFromMedia([
+        _media(
+          id: 'pinned',
+          enrichment: _enrichment(
+            elapsedSeconds: 1879 * 60,
+            confidence: MatchConfidence.manual,
+          ),
+        ),
+      ], maxProfileSeconds: 3600);
+      expect(markers, hasLength(1));
+      // A manual offset past a since-shortened profile still clamps to it.
+      expect(markers.single.elapsedSeconds, 3600);
     });
   });
 

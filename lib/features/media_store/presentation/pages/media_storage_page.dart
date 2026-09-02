@@ -17,12 +17,31 @@ import 'package:submersion/features/media_store/presentation/widgets/media_trans
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Configuration page for the media store's S3 backend (design spec
 /// section 14). Sibling of the sync backend's S3ConfigPage: same field
 /// set and validation, its own keychain entry and default prefix, and a
 /// connect flow that adopts or creates the bucket's store identity
 /// marker. Managed providers (iCloud/Drive/Dropbox) arrive in Phase 4.
+/// User-facing text for a failed CONNECT.
+///
+/// A transient answer is the store saying "not yet", not "no": on iCloud it
+/// is a container whose copy of `store.json` has not finished coming down,
+/// and the raw message is a developer string naming an object key. Every
+/// other kind carries a message written to be read.
+///
+/// Connect only. Test Connection and Verify Library keep the raw text: they
+/// are diagnostics, and "wait a moment and try connecting again" answers a
+/// question neither of them asked.
+///
+/// Top-level and l10n-only so it can be tested without a host platform.
+String mediaStoreErrorMessage(AppLocalizations l10n, MediaStoreException e) {
+  return e.kind == MediaStoreErrorKind.transient
+      ? l10n.settings_mediaStorage_error_notReady
+      : e.message;
+}
+
 class MediaStoragePage extends ConsumerStatefulWidget {
   const MediaStoragePage({super.key});
 
@@ -61,7 +80,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     _regionController.addListener(_onRegionChanged);
     _loadExisting();
     _checkSyncConfig();
-    _loadPolicies();
+    logFailure(_loadPolicies(), _MediaStoragePageState, 'load policies');
   }
 
   Future<void> _loadPolicies() async {
@@ -281,7 +300,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
       _showSnack(l10n.settings_mediaStorage_saved);
       await Navigator.maybePop(context);
     } on MediaStoreException catch (e) {
-      _showSnack(e.message, isError: true);
+      _showSnack(mediaStoreErrorMessage(l10n, e), isError: true);
     } catch (e) {
       _showSnack(
         '${l10n.settings_s3Config_error_secureStorage}: $e',
@@ -317,6 +336,9 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
       _showSnack(
         l10n.settings_mediaStorage_verify_summary(
           report.objectsChecked,
+          report.originalsChecked,
+          report.thumbsChecked,
+          report.renditionsChecked,
           report.orphansRemoved,
           report.repairsQueued,
           report.sessionsAborted,
@@ -375,7 +397,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
       _showSnack(l10n.settings_mediaStorage_saved);
       await Navigator.maybePop(context);
     } on MediaStoreException catch (e) {
-      _showSnack(e.message, isError: true);
+      _showSnack(mediaStoreErrorMessage(l10n, e), isError: true);
     } finally {
       if (mounted) setState(() => _busy = false);
     }

@@ -25,8 +25,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
-import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/data/repositories/network_credentials_repository.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
@@ -36,7 +34,6 @@ import 'package:submersion/features/media/data/services/url_metadata_extractor.d
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/utils/url_validator.dart';
 import 'package:submersion/features/media/domain/entities/extracted_metadata.dart';
-import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -48,16 +45,16 @@ enum UrlTabMode { urls, manifest }
 /// State for the URL tab in the photo picker.
 ///
 /// Holds the current segmented-control mode, the staged draft lines (each
-/// validated independently via [UrlValidator]), the auto-match-by-date
-/// preference, the IDs returned by the most recent [UrlTabNotifier.commit]
-/// (used by undo), the last user-visible error string, and the set of
-/// hostnames currently flagged as 401-unauthenticated by the resolver
-/// (drives the "Sign in" badge).
+/// validated independently via [UrlValidator]), whether a resolve is in
+/// flight, the IDs returned by the most recent
+/// [UrlTabNotifier.commitRequests] (used by undo), the last user-visible
+/// error string, and the set of hostnames currently flagged as
+/// 401-unauthenticated by the resolver (drives the "Sign in" badge).
 class UrlTabState extends Equatable {
   const UrlTabState({
     this.mode = UrlTabMode.urls,
     this.draftLines = const [],
-    this.autoMatchByDate = true,
+    this.resolving = false,
     this.committedIds = const [],
     this.lastError,
     this.unauthenticatedHosts = const {},
@@ -65,7 +62,9 @@ class UrlTabState extends Equatable {
 
   final UrlTabMode mode;
   final List<String> draftLines;
-  final bool autoMatchByDate;
+
+  /// True while [UrlTabNotifier.resolveDraft] is fetching metadata.
+  final bool resolving;
   final List<String> committedIds;
   final String? lastError;
   final Set<String> unauthenticatedHosts;
@@ -73,7 +72,7 @@ class UrlTabState extends Equatable {
   UrlTabState copyWith({
     UrlTabMode? mode,
     List<String>? draftLines,
-    bool? autoMatchByDate,
+    bool? resolving,
     List<String>? committedIds,
     String? lastError,
     bool clearLastError = false,
@@ -82,7 +81,7 @@ class UrlTabState extends Equatable {
     return UrlTabState(
       mode: mode ?? this.mode,
       draftLines: draftLines ?? this.draftLines,
-      autoMatchByDate: autoMatchByDate ?? this.autoMatchByDate,
+      resolving: resolving ?? this.resolving,
       committedIds: committedIds ?? this.committedIds,
       lastError: clearLastError ? null : (lastError ?? this.lastError),
       unauthenticatedHosts: unauthenticatedHosts ?? this.unauthenticatedHosts,
@@ -93,7 +92,7 @@ class UrlTabState extends Equatable {
   List<Object?> get props => [
     mode,
     draftLines,
-    autoMatchByDate,
+    resolving,
     committedIds,
     lastError,
     unauthenticatedHosts,
@@ -102,17 +101,18 @@ class UrlTabState extends Equatable {
 
 /// Notifier for the URL tab.
 ///
-/// Phase 3a actions:
+/// Actions:
 /// - [setMode] flips between URLs and Manifest segments.
 /// - [setDraft] replaces the draft line list (multi-line text field).
 /// - [appendSingle] appends a single URL from the "Add URL" entry.
-/// - [setAutoMatchByDate] toggles the auto-match-by-date preference.
-/// - [commit] parses each draft line via [UrlValidator], collects the OK
-///   URIs, and forwards them to [NetworkFetchPipeline.ingest]. Returns the
-///   created IDs and clears the draft list on success.
-/// - [undoCommit] takes the list of IDs returned by [commit] and deletes
-///   each row via [MediaRepository.deleteMedia], mirroring the Phase 2
-///   `FilesTabNotifier.undoCommit` undo path.
+/// - [resolveDraft] parses each draft line via [UrlValidator] and resolves
+///   the OK URIs through [NetworkFetchPipeline.resolve]: metadata only, no
+///   rows. The widget decides the link for each result.
+/// - [commitRequests] inserts the decided rows through
+///   [NetworkFetchPipeline.insertResolved] and stamps the created IDs.
+/// - [undoCommit] takes the list of IDs returned by [commitRequests] and
+///   deletes each row, mirroring the Phase 2 `FilesTabNotifier.undoCommit`
+///   undo path.
 /// - [saveCredentials] forwards a sign-in sheet payload to
 ///   [NetworkCredentialsService.save] and clears the host from
 ///   [UrlTabState.unauthenticatedHosts] so the "Sign in" badge disappears.
@@ -150,26 +150,20 @@ class UrlTabNotifier extends StateNotifier<UrlTabState> {
     state = state.copyWith(draftLines: [...state.draftLines, url]);
   }
 
-  void setAutoMatchByDate(bool value) {
-    state = state.copyWith(autoMatchByDate: value);
-  }
-
-  /// Parses each non-empty draft line, ingests the OK URIs through the
-  /// fetch pipeline, and returns the new row IDs. Stamps
-  /// [UrlTabState.committedIds] for the undo path and clears
-  /// [UrlTabState.draftLines] so the UI returns to its blank-canvas state.
+  /// Parses each non-empty draft line and resolves the OK URIs through the
+  /// pipeline: metadata only, no rows. Flags [UrlTabState.resolving] while
+  /// the fetch runs (it used to run in the background; now the link
+  /// decision waits on it).
   ///
-  /// Empty lines are dropped silently. Invalid lines are also dropped from
-  /// the ingest call — the UI is expected to disable the "Add" button when
-  /// any line fails validation, so reaching here with invalid lines is
-  /// degenerate (we still skip them defensively rather than throw).
+  /// The draft is deliberately kept: with no picker target the resolved
+  /// URLs go through a review the user can back out of, and the pasted
+  /// lines must still be there when they do. [commitRequests] clears it.
   ///
-  /// A [SiteAttachTarget] attaches every row to that site and turns dive
-  /// matching off: a site has no time window, so matching would hand the
-  /// photo to whichever unrelated dive spanned its timestamp rather than to
-  /// the site the picker was opened from (issue #1098). Any other target
-  /// leaves the user's auto-match preference alone.
-  Future<List<String>> commit({MediaAttachTarget? target}) async {
+  /// Empty lines are dropped silently. Invalid lines are also dropped: the
+  /// UI disables the "Add" button when any line fails validation, so
+  /// reaching here with invalid lines is degenerate (still skipped
+  /// defensively rather than thrown on).
+  Future<List<ResolvedNetworkMedia>> resolveDraft() async {
     final uris = <Uri>[];
     for (final raw in state.draftLines) {
       final result = UrlValidator.parse(raw);
@@ -177,20 +171,25 @@ class UrlTabNotifier extends StateNotifier<UrlTabState> {
         uris.add(result.uri);
       }
     }
-    final siteId = switch (target) {
-      SiteAttachTarget(:final siteId) => siteId,
-      DiveAttachTarget() || null => null,
-    };
-    final ids = await _pipeline.ingest(
-      uris,
-      autoMatch: siteId == null && state.autoMatchByDate,
-      siteId: siteId,
-    );
+    state = state.copyWith(resolving: true);
+    try {
+      return await _pipeline.resolve(uris);
+    } finally {
+      state = state.copyWith(resolving: false);
+    }
+  }
+
+  /// Inserts the decided rows, stamps [UrlTabState.committedIds] for the
+  /// undo path, and clears the draft now that it has become rows.
+  Future<List<String>> commitRequests(
+    List<NetworkInsertRequest> requests,
+  ) async {
+    final ids = await _pipeline.insertResolved(requests);
     state = state.copyWith(committedIds: ids, draftLines: const []);
     return ids;
   }
 
-  /// Reverses a prior [commit] by deleting each row by id. Mirrors
+  /// Reverses a prior [commitRequests] by deleting each row by id. Mirrors
   /// `FilesTabNotifier.undoCommit` — the pipeline does not expose a
   /// `deleteIds` helper, so we go through the repository.
   Future<void> undoCommit(List<String> ids) async {
@@ -294,39 +293,12 @@ final urlMetadataExtractorProvider = Provider<UrlMetadataExtractor>(
 /// [DatabaseService] (the same lazy-singleton pattern used by
 /// [MediaRepository]); Riverpod is not yet wired up to manage the database
 /// instance.
-// no-tick: builds a pipeline SERVICE. Its getDivesInRange call lives inside
-// the diveBoundsLoader callback the pipeline invokes per photo, so the read is
-// already fresh per fetch and no cached row exists to go stale.
+// no-tick: builds a pipeline SERVICE with no cached rows of its own; dive
+// matching happens in the callers, per resolved item.
 final networkFetchPipelineProvider = Provider<NetworkFetchPipeline>((ref) {
   return NetworkFetchPipeline(
     db: DatabaseService.instance.database,
     extractor: ref.watch(urlMetadataExtractorProvider),
-    // Auto-match candidates: dives within two days of the photo timestamp
-    // (same entry/exit fallbacks the Lightroom scanner applies).
-    diveBoundsLoader: (takenAt) async {
-      final dives = await ref
-          .read(diveRepositoryProvider)
-          .getDivesInRange(
-            takenAt.subtract(const Duration(days: 2)),
-            takenAt.add(const Duration(days: 2)),
-          );
-      return [
-        for (final dive in dives)
-          () {
-            final entry = dive.entryTime ?? dive.dateTime;
-            final exit =
-                dive.exitTime ??
-                (dive.effectiveRuntime != null
-                    ? entry.add(dive.effectiveRuntime!)
-                    : entry.add(const Duration(minutes: 60)));
-            return DiveBounds(
-              diveId: dive.id,
-              entryTime: entry,
-              exitTime: exit,
-            );
-          }(),
-      ];
-    },
   );
 });
 

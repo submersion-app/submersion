@@ -148,7 +148,7 @@ All v1.5 tasks complete.
 - [ ] Caption and datetime editing per photo
 - [ ] Export dive with photos (ZIP archive)
 - [ ] Bulk photo import with auto-match to dives
-- [ ] GPS extraction from photos (suggest site creation)
+- [x] GPS extraction from photos (suggest site creation): desktop and video readers, nearest-site matching, detail-page and post-import surfacing, synced dismissal
 - [ ] Species tagging in photos (tap to tag, bounding box)
 - [ ] Species recognition suggestions (ML model)
 

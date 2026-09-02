@@ -394,6 +394,84 @@ void main() {
     });
 
     test(
+      'Suunto EON Steel Black ZRAWDATA is passed through unmodified',
+      () async {
+        final calls = <(String, String, Uint8List)>[];
+        final payload = await MacDiveDiveMapper.toPayload(
+          _suuntoRawDataLogbook(
+            computer: 'Suunto EON Steel Black',
+            raw: _suuntoFixture,
+          ),
+          parseRaw: (vendor, product, model, data) async {
+            calls.add((vendor, product, data));
+            return _parsedDive(
+              samples: [
+                pigeon.ProfileSample(
+                  timeSeconds: 0,
+                  depthMeters: 1.2,
+                  temperatureCelsius: 22.0,
+                  pressureBar: 190.0,
+                ),
+              ],
+            );
+          },
+        );
+
+        expect(calls, hasLength(1));
+        expect(calls.single.$1, 'Suunto');
+        expect(calls.single.$2, 'EON Steel Black');
+        // Unlike Shearwater, the bytes reach the parser exactly as MacDive
+        // stored them - no decompression pass. Compared byte for byte, not by
+        // length, because the XOR-delta half of the Shearwater decompressor
+        // rewrites a buffer in place without changing its size.
+        expect(calls.single.$3, orderedEquals(_suuntoFixture));
+
+        final dives = payload.entitiesOf(ImportEntityType.dives);
+        expect(dives.where((d) => d.containsKey('profile')), hasLength(1));
+        expect(payload.warnings, isEmpty);
+      },
+    );
+
+    test(
+      'Suunto EON Steel and Cobra also resolve to (Suunto, model)',
+      () async {
+        final calls = <(String, String)>[];
+        Future<pigeon.ParsedDive> parse(
+          String vendor,
+          String product,
+          int model,
+          Uint8List data,
+        ) async {
+          calls.add((vendor, product));
+          return _parsedDive(
+            samples: [
+              pigeon.ProfileSample(
+                timeSeconds: 0,
+                depthMeters: 3.0,
+                temperatureCelsius: 20.0,
+                pressureBar: 180.0,
+              ),
+            ],
+          );
+        }
+
+        await MacDiveDiveMapper.toPayload(
+          _suuntoRawDataLogbook(
+            computer: 'Suunto EON Steel',
+            raw: _suuntoFixture,
+          ),
+          parseRaw: parse,
+        );
+        await MacDiveDiveMapper.toPayload(
+          _suuntoRawDataLogbook(computer: 'Suunto Cobra', raw: _suuntoFixture),
+          parseRaw: parse,
+        );
+
+        expect(calls, [('Suunto', 'EON Steel'), ('Suunto', 'Cobra')]);
+      },
+    );
+
+    test(
       'unrecognised computer counts toward one aggregated warning',
       () async {
         final payload = await MacDiveDiveMapper.toPayload(
@@ -527,6 +605,57 @@ Uint8List _hex(String s) {
     out[i] = int.parse(s.substring(i * 2, i * 2 + 2), radix: 16);
   }
   return out;
+}
+
+/// Stand-in for a Suunto `ZRAWDATA` blob. The real format (SBEM for EON
+/// Steel, the Vyper dive-header layout for Cobra) is confirmed elsewhere
+/// against real MacDive data; these tests stub `parseRaw`, so the bytes never
+/// have to be a valid dive - but their shape is chosen so that any accidental
+/// Shearwater-style transformation would visibly alter them:
+///
+/// * longer than 32 bytes, so [ShearwaterRawDecompressor.applyXorDelta] (which
+///   preserves length and would therefore slip past a length-only check) has
+///   blocks to fold together;
+/// * non-uniform, so that XOR fold produces different bytes rather than a
+///   coincidentally identical buffer;
+/// * 45 bytes, i.e. a bit count divisible by 9, so
+///   [ShearwaterRawDecompressor.decompressLre] would accept the stream instead
+///   of rejecting it as malformed and short-circuiting the test.
+final _suuntoFixture = Uint8List.fromList(
+  List.generate(45, (i) => (i * 7 + 3) & 0xFF),
+);
+
+/// One dive on [computer] carrying [raw] as its `ZRAWDATA`.
+MacDiveRawLogbook _suuntoRawDataLogbook({
+  required String computer,
+  required Uint8List raw,
+}) {
+  return MacDiveRawLogbook(
+    dives: [
+      MacDiveRawDive(
+        pk: 1,
+        uuid: 'dive-1',
+        computer: computer,
+        rawDataBlob: raw,
+      ),
+    ],
+    sitesByPk: const {},
+    buddiesByPk: const {},
+    tagsByPk: const {},
+    gearByPk: const {},
+    tanksByPk: const {},
+    gasesByPk: const {},
+    tankAndGases: const [],
+    crittersByPk: const {},
+    certifications: const [],
+    serviceRecords: const [],
+    events: const [],
+    diveToBuddyPks: const {},
+    diveToTagPks: const {},
+    diveToGearPks: const {},
+    diveToCritterPks: const {},
+    unitsPreference: 'Metric',
+  );
 }
 
 /// Two dives carrying a real compressed blob plus one manual dive with none.

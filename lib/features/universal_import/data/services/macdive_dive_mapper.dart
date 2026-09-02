@@ -33,17 +33,25 @@ typedef MacDiveRawParseFn =
 /// `MacDiveXmlParser` so the downstream `UddfEntityImporter` processes
 /// both sources through the same code path.
 ///
-/// Profile samples come from `ZRAWDATA`, which holds the raw Shearwater
-/// download stream still in its compressed form. [ShearwaterRawDecompressor]
+/// Profile samples come from `ZRAWDATA`. For Shearwater computers this holds
+/// the raw download stream still in its compressed form: [ShearwaterRawDecompressor]
 /// reverses the two compression passes to recover Petrel Native Format, which
 /// libdivecomputer parses directly. See
 /// `docs/import-formats/macdive-zsamples.md`.
 ///
+/// A handful of Suunto computers ([_suuntoVendorProduct]) store `ZRAWDATA`
+/// uncompressed, already in the exact byte layout libdivecomputer's own
+/// parsers expect (SBEM for the EON Steel family, the Vyper dive-header
+/// format for Cobra) - confirmed by feeding real MacDive exports through
+/// `parseRawDiveData` with no transformation. Those bytes go straight to the
+/// parser; only Shearwater's stream needs decompressing first.
+///
 /// `ZSAMPLES` is AES-encrypted with a per-dive key and remains undecodable,
-/// but it is also redundant: every dive that has `ZSAMPLES` from a Shearwater
-/// computer also has `ZRAWDATA`. Dives whose computer is not a Shearwater
-/// carry no `ZRAWDATA` at all; those raise one aggregated [ImportWarning]
-/// pointing at MacDive's XML export as the working profile path.
+/// but it is also redundant: every dive that has `ZSAMPLES` from a computer
+/// [_vendorProduct] recognises also has a usable `ZRAWDATA`. Dives on an
+/// unrecognised computer carry no decodable `ZRAWDATA`; those raise one
+/// aggregated [ImportWarning] pointing at MacDive's XML export as the
+/// working profile path.
 class MacDiveDiveMapper {
   const MacDiveDiveMapper._();
 
@@ -249,13 +257,33 @@ class MacDiveDiveMapper {
   static bool _hasRawProfile(MacDiveRawDive d) =>
       d.rawDataBlob != null && d.rawDataBlob!.isNotEmpty;
 
+  /// MacDive's `ZCOMPUTER` strings for the handful of Suunto models confirmed
+  /// (against real MacDive `ZRAWDATA`, not just the vendor name) to store
+  /// their raw download already in libdivecomputer's native format. Every
+  /// entry here is a full string match against `ZCOMPUTER` as MacDive writes
+  /// it, unlike Shearwater's "strip the prefix, look up the model" scheme,
+  /// because these were verified one model at a time rather than derived from
+  /// a general naming convention. Add a computer here only after confirming
+  /// its `ZRAWDATA` parses cleanly - unlike Shearwater's transport-compressed
+  /// stream, an unverified Suunto model could be stored in a different raw
+  /// format entirely.
+  static const _suuntoVendorProduct = {
+    'Suunto EON Steel': ('Suunto', 'EON Steel'),
+    'Suunto EON Steel Black': ('Suunto', 'EON Steel Black'),
+    'Suunto Cobra': ('Suunto', 'Cobra'),
+  };
+
   /// MacDive records the computer as a display string such as
   /// "Shearwater Teric". Strip the vendor prefix and reuse the model table
-  /// the Shearwater Cloud importer already maintains.
+  /// the Shearwater Cloud importer already maintains. Suunto has no such
+  /// prefix convention to strip, so [_suuntoVendorProduct] matches the whole
+  /// string instead.
   static (String, String)? _vendorProduct(String? computer) {
     if (computer == null) return null;
     final trimmed = computer.trim();
     if (trimmed.isEmpty) return null;
+    final suunto = _suuntoVendorProduct[trimmed];
+    if (suunto != null) return suunto;
     const prefix = 'Shearwater ';
     final model = trimmed.startsWith(prefix)
         ? trimmed.substring(prefix.length)
@@ -274,15 +302,15 @@ class MacDiveDiveMapper {
     final vendorProduct = _vendorProduct(d.computer);
     if (vendorProduct == null) return false;
 
-    final decompressed = ShearwaterRawDecompressor.decompress(d.rawDataBlob!);
-    if (decompressed == null || decompressed.isEmpty) return false;
+    // Only Shearwater stores ZRAWDATA in its own transport-compressed form;
+    // every other recognised vendor's bytes are already the native format
+    // libdivecomputer expects (see _suuntoVendorProduct).
+    final payload = vendorProduct.$1 == 'Shearwater'
+        ? ShearwaterRawDecompressor.decompress(d.rawDataBlob!)
+        : d.rawDataBlob!;
+    if (payload == null || payload.isEmpty) return false;
 
-    final parsed = await parse(
-      vendorProduct.$1,
-      vendorProduct.$2,
-      0,
-      decompressed,
-    );
+    final parsed = await parse(vendorProduct.$1, vendorProduct.$2, 0, payload);
     // A failed native parse does not always surface as an error: the macOS
     // wrapper has been observed returning success with a zeroed dive (no
     // samples, 0 m, epoch date). Treat "no samples" as the real signal, so a

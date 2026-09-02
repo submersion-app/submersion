@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -26,9 +25,6 @@ class RangeStatsPanel extends ConsumerWidget {
   /// The dive's tanks (for SAC calculation)
   final List<DiveTank> tanks;
 
-  /// SAC unit preference from settings
-  final SacUnit sacUnit;
-
   /// Callback when range is cleared/closed
   final VoidCallback? onClose;
 
@@ -38,7 +34,6 @@ class RangeStatsPanel extends ConsumerWidget {
     required this.profile,
     required this.units,
     required this.tanks,
-    required this.sacUnit,
     this.onClose,
   });
 
@@ -196,7 +191,7 @@ class RangeStatsPanel extends ConsumerWidget {
               Colors.orange,
               chipWidth,
             ),
-            // Conditional: Temp | Temp | Gas | SAC (flows into same row)
+            // Conditional: Temp | Temp | Gas (flows into same row)
             if (stats.hasTemperature) ...[
               _buildStatChip(
                 context,

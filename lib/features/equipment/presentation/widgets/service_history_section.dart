@@ -37,9 +37,6 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
   @override
   Widget build(BuildContext context) {
     final recordsAsync = ref.watch(serviceRecordNotifierProvider(equipmentId));
-    final totalCostAsync = ref.watch(
-      serviceRecordTotalCostProvider(equipmentId),
-    );
     // Indexed once here rather than per row. While the kinds are still
     // loading the map is empty and rows fall back to the service type, which
     // is the right transient state: the history is already useful without the
@@ -140,64 +137,58 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                 }
 
                 final visible = records.where(_filter.matches).toList();
+                // Summed from the already-filtered rows so the total matches
+                // what is actually listed below it (#1236), one row per
+                // currency: a history priced in more than one currency has no
+                // single total.
+                final totals = sumByCurrency<ServiceRecord>(
+                  visible,
+                  amountOf: (r) => r.cost,
+                  currencyOf: (r) => r.currency,
+                  fallbackCode: ref.watch(defaultCurrencyProvider),
+                ).where((e) => e.value > 0).toList();
 
                 return Column(
                   children: [
                     if (_showFilterBar(records, kindsById))
                       _buildFilterBar(context, records, kindsById),
-                    // Total cost summary, one row per currency: a history
-                    // priced in more than one currency has no single total.
-                    totalCostAsync.when(
-                      data: (rawTotals) {
-                        final totals = sumByCurrency<MapEntry<String, double>>(
-                          rawTotals.entries,
-                          amountOf: (e) => e.value,
-                          currencyOf: (e) => e.key,
-                          fallbackCode: ref.watch(defaultCurrencyProvider),
-                        ).where((e) => e.value > 0).toList();
-                        if (totals.isEmpty) return const SizedBox.shrink();
-                        return Container(
-                          padding: const EdgeInsets.all(12),
-                          margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            children: [
-                              for (final entry in totals)
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      context
-                                          .l10n
-                                          .equipment_service_totalCostLabel,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
-                                    Text(
-                                      formatMoney(entry.value, entry.key),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                            ],
-                          ),
-                        );
-                      },
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, _) => const SizedBox.shrink(),
-                    ),
+                    if (totals.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            for (final entry in totals)
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    context
+                                        .l10n
+                                        .equipment_service_totalCostLabel,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
+                                  ),
+                                  Text(
+                                    formatMoney(entry.value, entry.key),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
                     // Service records list. "Nothing logged yet" and "your
                     // filter hides everything" are different situations and
                     // call for different actions, so they stay distinct.

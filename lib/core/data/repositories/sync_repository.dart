@@ -18,7 +18,10 @@ enum CloudProviderType { icloud, googledrive, s3, dropbox }
 
 /// Repository for managing sync metadata and tracking
 class SyncRepository {
-  AppDatabase get _db => DatabaseService.instance.database;
+  SyncRepository({AppDatabase? database}) : _database = database;
+
+  final AppDatabase? _database;
+  AppDatabase get _db => _database ?? DatabaseService.instance.database;
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(SyncRepository);
 
@@ -47,6 +50,9 @@ class SyncRepository {
     'trips': (table: 'trips', pk: 'id'),
     'liveaboardDetails': (table: 'liveaboard_detail_records', pk: 'id'),
     'itineraryDays': (table: 'trip_itinerary_days', pk: 'id'),
+    'tripDayWeather': (table: 'trip_day_weather', pk: 'id'),
+    'diveProfileSeries': (table: 'dive_profile_series', pk: 'id'),
+    'tankPressureSeries': (table: 'tank_pressure_series', pk: 'id'),
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
@@ -548,6 +554,24 @@ class SyncRepository {
       timestamp: 'updated_at',
       filter: null,
     ),
+    // The packed sample series (schema v182). A row can reach these tables
+    // unstamped two ways: the v182 pack runs on a device that had no clock
+    // to advance yet, and any series write whose sync bookkeeping did not
+    // land. Without an entry here such a row is invisible to the
+    // incremental export forever, because NULL never passes the strict
+    // watermark comparison.
+    (
+      entityType: 'diveProfileSeries',
+      table: 'dive_profile_series',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'tankPressureSeries',
+      table: 'tank_pressure_series',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
   ];
 
   /// One-time self-heal for rows that carry `hlc IS NULL`. Such rows are
@@ -559,30 +583,51 @@ class SyncRepository {
   ///
   /// Self-limiting: every write path for these tables now stamps an HLC, so
   /// once the legacy rows are done this finds nothing.
+  /// Per table, and never fatal: a database can carry a table this scan
+  /// cannot read (a v183 pack that failed leaves a differently shaped
+  /// series table behind, which is the state the drop guard deliberately
+  /// preserves for a later retry). This runs at the start of every sync, so
+  /// one unreadable table must not stop the other tables from healing, let
+  /// alone fail the sync.
   Future<void> backfillMissingHlc() async {
     for (final target in _hlcBackfillTargets) {
-      final filter = target.filter == null ? '' : ' AND ${target.filter}';
-      final rows = await _db
-          .customSelect(
-            'SELECT id, "${target.timestamp}" AS ts FROM "${target.table}" '
-            'WHERE hlc IS NULL$filter',
-          )
-          .get();
-      if (rows.isEmpty) continue;
-      // One transaction per table: markRecordPending's own per-row transaction
-      // nests as a savepoint, so a library with many affected rows commits once
-      // instead of once per row (the per-row fsync was the sync-start cost
-      // flagged in review).
-      await _db.transaction(() async {
-        for (final row in rows) {
-          await markRecordPending(
-            entityType: target.entityType,
-            recordId: row.read<String>('id'),
-            localUpdatedAt: row.read<int>('ts'),
-          );
-        }
-      });
+      try {
+        await _backfillTable(target);
+      } catch (e, stackTrace) {
+        _log.warning(
+          'HLC backfill skipped for ${target.table}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
     }
+  }
+
+  Future<void> _backfillTable(
+    ({String entityType, String table, String timestamp, String? filter})
+    target,
+  ) async {
+    final filter = target.filter == null ? '' : ' AND ${target.filter}';
+    final rows = await _db
+        .customSelect(
+          'SELECT id, "${target.timestamp}" AS ts FROM "${target.table}" '
+          'WHERE hlc IS NULL$filter',
+        )
+        .get();
+    if (rows.isEmpty) return;
+    // One transaction per table: markRecordPending's own per-row transaction
+    // nests as a savepoint, so a library with many affected rows commits once
+    // instead of once per row (the per-row fsync was the sync-start cost
+    // flagged in review).
+    await _db.transaction(() async {
+      for (final row in rows) {
+        await markRecordPending(
+          entityType: target.entityType,
+          recordId: row.read<String>('id'),
+          localUpdatedAt: row.read<int>('ts'),
+        );
+      }
+    });
   }
 
   /// Stamp a fresh Hybrid Logical Clock onto the just-written entity row, if
@@ -627,8 +672,28 @@ class SyncRepository {
   /// none has one yet. Lexically comparable because the packed format zero-pads
   /// physical time and counter.
   Future<String?> _maxRowHlc() async {
-    final union = hlcTargets.values
-        .map((t) => 'SELECT MAX(hlc) AS h FROM "${t.table}"')
+    // Only the tables that exist. The series tables are created by
+    // _assertProfileSeriesSchema, which deliberately waits for their foreign
+    // key parents, so a partially built database (a migration fixture, or
+    // one caught mid-ladder) can reach here without them and a UNION naming
+    // a missing table takes the whole clock seed down. backfillMissingHlc
+    // already guards per table for exactly this.
+    final present = {
+      for (final r
+          in await _db
+              .customSelect(
+                "SELECT name FROM sqlite_master WHERE type = 'table'",
+              )
+              .get())
+        r.read<String>('name'),
+    };
+    final tables = [
+      for (final t in hlcTargets.values)
+        if (present.contains(t.table)) t.table,
+    ];
+    if (tables.isEmpty) return null;
+    final union = tables
+        .map((t) => 'SELECT MAX(hlc) AS h FROM "$t"')
         .join(' UNION ALL ');
     final row = await _db
         .customSelect('SELECT MAX(h) AS m FROM ($union)')

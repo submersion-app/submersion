@@ -28,16 +28,16 @@ void main() {
     ],
   );
 
-  group('Dive.sacFor', () {
+  group('Dive.rmvFor', () {
     test('ideal model reproduces the hand calculation from issue #828', () {
       final dive = reportedDive(runtime: const Duration(minutes: 44));
       // 12 L * 150 bar = 1800 L, / (13.2/10 + 1) / 44 min
-      expect(dive.sacFor(GasModel.ideal), closeTo(17.63, 0.01));
+      expect(dive.rmvFor(GasModel.ideal), closeTo(17.63, 0.01));
     });
 
     test('real model applies compressibility and reads lower', () {
       final dive = reportedDive(runtime: const Duration(minutes: 44));
-      expect(dive.sacFor(GasModel.real), closeTo(16.77, 0.01));
+      expect(dive.rmvFor(GasModel.real), closeTo(16.77, 0.01));
     });
 
     test('uses the runtime verbatim, adding no safety stop padding', () {
@@ -46,12 +46,12 @@ void main() {
       final logged = reportedDive(runtime: const Duration(minutes: 44));
       final padded = reportedDive(runtime: const Duration(minutes: 47));
       expect(
-        logged.sacFor(GasModel.ideal),
-        isNot(closeTo(padded.sacFor(GasModel.ideal)!, 0.01)),
+        logged.rmvFor(GasModel.ideal),
+        isNot(closeTo(padded.rmvFor(GasModel.ideal)!, 0.01)),
       );
       expect(
-        padded.sacFor(GasModel.ideal),
-        closeTo(logged.sacFor(GasModel.ideal)! * 44 / 47, 0.01),
+        padded.rmvFor(GasModel.ideal),
+        closeTo(logged.rmvFor(GasModel.ideal)! * 44 / 47, 0.01),
       );
     });
 
@@ -62,7 +62,7 @@ void main() {
         runtime: const Duration(minutes: 44),
         avgDepth: 13.2,
       );
-      expect(noTanks.sacFor(GasModel.real), isNull);
+      expect(noTanks.rmvFor(GasModel.real), isNull);
 
       final noDepth = Dive(
         id: 'd2',
@@ -77,15 +77,15 @@ void main() {
           ),
         ],
       );
-      expect(noDepth.sacFor(GasModel.real), isNull);
+      expect(noDepth.rmvFor(GasModel.real), isNull);
     });
   });
 
-  group('Dive.sacPressure', () {
+  group('Dive.sac', () {
     test('is model independent, being a pure pressure drop per minute', () {
       final dive = reportedDive(runtime: const Duration(minutes: 44));
       // 150 bar / 44 min / 2.32 bar ambient
-      expect(dive.sacPressure, closeTo(1.469, 0.001));
+      expect(dive.sac, closeTo(1.469, 0.001));
     });
   });
 }

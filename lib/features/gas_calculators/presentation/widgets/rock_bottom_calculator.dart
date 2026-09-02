@@ -15,7 +15,7 @@ import 'package:submersion/shared/widgets/forms/unit_slider.dart';
 /// Rock Bottom calculator.
 ///
 /// Calculates the minimum gas reserve needed for emergency ascent,
-/// accounting for buddy breathing, stressed SAC rates, problem-solving time
+/// accounting for buddy breathing, a stressed RMV, problem-solving time
 /// at depth, and safety stops.
 class RockBottomCalculator extends ConsumerWidget {
   const RockBottomCalculator({super.key});
@@ -134,7 +134,7 @@ class RockBottomCalculator extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
 
-              // SAC rates card
+              // RMV card
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -168,7 +168,7 @@ class RockBottomCalculator extends ConsumerWidget {
                         icon: Icons.person,
                         label: context.l10n.gasCalculators_rockBottom_yourSac,
                         value: sac,
-                        axis: UnitAxis.stressedSac(units),
+                        axis: UnitAxis.stressedRmv(units),
                         onChanged: (v) =>
                             ref.read(rockBottomSacProvider.notifier).state = v,
                       ),
@@ -178,7 +178,7 @@ class RockBottomCalculator extends ConsumerWidget {
                         icon: Icons.people,
                         label: context.l10n.gasCalculators_rockBottom_buddySac,
                         value: buddySac,
-                        axis: UnitAxis.stressedSac(units),
+                        axis: UnitAxis.stressedRmv(units),
                         onChanged: (v) =>
                             ref
                                     .read(rockBottomBuddySacProvider.notifier)
@@ -351,12 +351,18 @@ class RockBottomCalculator extends ConsumerWidget {
                             color: colorScheme.primary,
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            context
-                                .l10n
-                                .gasCalculators_rockBottom_emergencyAscentBreakdown,
-                            style: textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
+                          // Expanded so the heading wraps rather than
+                          // overflowing in a narrow detail pane. It is a
+                          // section title, so wrapping keeps it whole where
+                          // an ellipsis would eat it.
+                          Expanded(
+                            child: Text(
+                              context
+                                  .l10n
+                                  .gasCalculators_rockBottom_emergencyAscentBreakdown,
+                              style: textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],

@@ -6,6 +6,7 @@ import 'package:submersion/features/settings/presentation/pages/nav_customizatio
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 class _FakeRepo implements AppSettingsRepository {
   List<String>? stored;
@@ -29,6 +30,10 @@ class _FakeRepo implements AppSettingsRepository {
   Future<String?> getRawSetting(String key) async => null;
   @override
   Future<void> setRawSetting(String key, String value) async {}
+  @override
+  Future<BlenderPreferences?> getBlenderPreferences() async => null;
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
 }
 
 void main() {
@@ -123,6 +128,34 @@ void main() {
       expect(find.text('More'), findsOneWidget);
       // Lock icons render for pinned rows.
       expect(find.byIcon(Icons.lock_outline), findsNWidgets(2));
+    });
+
+    testWidgets('every movable destination gets a reorderable row', (
+      tester,
+    ) async {
+      // Tall surface so the whole list renders without scrolling; the page
+      // uses a ReorderableListView.builder, which only builds visible rows.
+      tester.view.physicalSize = const Size(1200, 3000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = _FakeRepo();
+      await tester.pumpWidget(buildHarness(repo));
+      await tester.pumpAndSettle();
+
+      // A destination that is not listed here cannot be moved between the
+      // phone bottom bar and the More menu, so adding one to kNavDestinations
+      // without it appearing here would silently strand it in overflow.
+      for (final id in movableNavIds) {
+        expect(
+          find.byKey(ValueKey('nav-item-$id')),
+          findsOneWidget,
+          reason: '$id has no row in the navigation customizer',
+        );
+      }
+      expect(find.byKey(const ValueKey('nav-item-species')), findsOneWidget);
+      expect(find.text('Species'), findsOneWidget);
     });
 
     testWidgets('shows the divider row with correct label', (tester) async {

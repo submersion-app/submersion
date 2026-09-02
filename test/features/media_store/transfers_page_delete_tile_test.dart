@@ -26,6 +26,14 @@ void main() {
   Widget app(MediaTransferQueueData row) => ProviderScope(
     overrides: [
       mediaTransferEntriesProvider.overrideWith((ref) => Stream.value([row])),
+      // Without these the page builds the real runtime and reaches for a
+      // database and SharedPreferences neither of which this test sets up;
+      // it passed only because both widgets swallow the failure.
+      mediaStoreRuntimeProvider.overrideWith((ref) async => null),
+      mediaTransferLabelsProvider.overrideWith((ref) async => const {}),
+      mediaTransfersSuspendedProvider.overrideWith(
+        (ref) => Stream.value(false),
+      ),
     ],
     child: const MaterialApp(
       locale: Locale('en'),

@@ -14,8 +14,11 @@ import 'package:submersion/features/marine_life/data/repositories/species_reposi
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
+import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/mock_providers.dart';
 
 void main() {
   late ProviderContainer container;
@@ -242,6 +245,55 @@ void main() {
             'sitesWithCountsProvider should auto-refresh dive counts after a '
             'direct dives-table write without any manual invalidation',
       );
+    });
+  });
+
+  group('site card config providers', () {
+    test('detailed config defaults to the enriched slots', () {
+      final container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final config = container.read(siteDetailedCardConfigProvider);
+      final slotFields = {for (final s in config.slots) s.slotId: s.field};
+
+      expect(slotFields, {
+        'title': SiteField.siteName,
+        'subtitle': SiteField.location,
+        'stat1': SiteField.depthRange,
+        'stat2': SiteField.diveCount,
+      });
+      expect(config.extraFields, [
+        SiteField.lastDived,
+        SiteField.maxDepthReached,
+      ]);
+      expect(
+        container.read(siteDetailedCardConfigProvider.notifier),
+        isA<EntityCardConfigNotifier<SiteField>>(),
+      );
+    });
+
+    test('compact config defaults to count and depth range stats', () {
+      final container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final config = container.read(siteCompactCardConfigProvider);
+      final slotFields = {for (final s in config.slots) s.slotId: s.field};
+
+      expect(slotFields['stat1'], SiteField.diveCount);
+      expect(slotFields['stat2'], SiteField.depthRange);
+      expect(config.extraFields, isEmpty);
     });
   });
 }

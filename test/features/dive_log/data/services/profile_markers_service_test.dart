@@ -79,20 +79,13 @@ void main() {
 
       final tankPressures = {
         't1': [
+          const TankPressurePoint(tankId: 't1', timestamp: 0, pressure: 200.0),
           const TankPressurePoint(
-            id: '1',
-            tankId: 't1',
-            timestamp: 0,
-            pressure: 200.0,
-          ),
-          const TankPressurePoint(
-            id: '2',
             tankId: 't1',
             timestamp: 600,
             pressure: 100.0,
           ),
           const TankPressurePoint(
-            id: '3',
             tankId: 't1',
             timestamp: 1200,
             pressure: 50.0,

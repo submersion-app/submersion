@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart'
+    show BuddyWithDiveCount;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
@@ -27,8 +29,8 @@ final _testRoles = [
 
 /// Buddy with a pre-hydrated instructor cert level -- in production this
 /// comes from `_withPrimaryCerts`, but this widget test overrides
-/// `allBuddiesProvider` directly, bypassing the repository, so the fixture
-/// must carry the derived field itself.
+/// `allBuddiesWithDiveCountProvider` directly, bypassing the repository, so
+/// the fixture must carry the derived field itself.
 final _instructorBuddy = Buddy(
   id: 'buddy-1',
   name: 'Alice Instructor',
@@ -64,6 +66,10 @@ final _instructorCert = Certification(
   updatedAt: _now,
 );
 
+List<BuddyWithDiveCount> _withCount(Iterable<Buddy> buddies) => [
+  for (final b in buddies) BuddyWithDiveCount(buddy: b, diveCount: 0),
+];
+
 /// Sets a tall screen so that bottom sheets and role selectors fit without
 /// overflow.
 void _useTallScreen(WidgetTester tester) {
@@ -87,8 +93,8 @@ void main() {
         testApp(
           overrides: [
             allDiveRolesProvider.overrideWith((ref) async => _testRoles),
-            allBuddiesProvider.overrideWith(
-              (ref) async => [_instructorBuddy, _plainBuddy],
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _withCount([_instructorBuddy, _plainBuddy]),
             ),
             allBuddyCertificationsProvider.overrideWith(
               (ref) async => {
@@ -117,8 +123,8 @@ void main() {
           testApp(
             overrides: [
               allDiveRolesProvider.overrideWith((ref) async => _testRoles),
-              allBuddiesProvider.overrideWith(
-                (ref) async => [_credentialedBuddy, _plainBuddy],
+              allBuddiesWithDiveCountProvider.overrideWith(
+                (ref) async => _withCount([_credentialedBuddy, _plainBuddy]),
               ),
               allBuddyCertificationsProvider.overrideWith(
                 (ref) async => {
@@ -164,8 +170,8 @@ void main() {
         testApp(
           overrides: [
             allDiveRolesProvider.overrideWith((ref) async => _testRoles),
-            allBuddiesProvider.overrideWith(
-              (ref) async => [_credentialedBuddy, _plainBuddy],
+            allBuddiesWithDiveCountProvider.overrideWith(
+              (ref) async => _withCount([_credentialedBuddy, _plainBuddy]),
             ),
             allBuddyCertificationsProvider.overrideWith(
               (ref) async => {

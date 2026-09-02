@@ -5,6 +5,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 
@@ -178,6 +179,18 @@ class DiverMergeRepository {
       await _syncRepository.logDeletion(
         entityType: 'divers',
         recordId: duplicateId,
+      );
+
+      // The device-local active-diver pointer follows the merge when it named
+      // the duplicate, so the startup validator and the live
+      // CurrentDiverIdNotifier land on the keeper instead of falling back to
+      // whichever diver happens to be default (issue #1342). Deliberately not
+      // part of the snapshot: after an undo the keeper is still a valid
+      // profile, and the selection is UI state, not merged data.
+      await _db.customStatement(
+        'UPDATE settings SET value = ?, updated_at = ? '
+        'WHERE key = ? AND value = ?',
+        [keeperId, now, DiverRepository.activeDiverIdSettingsKey, duplicateId],
       );
     });
 

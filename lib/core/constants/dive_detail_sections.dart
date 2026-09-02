@@ -6,6 +6,10 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 ///
 /// Declaration order defines the default display order. The two fixed sections
 /// (Header and Dive Profile Chart) are not included — they always render first.
+///
+/// Sections that pair side by side on a wide pane are declared adjacently, in
+/// left-then-right order (see `kDiveDetailSectionPairs`), so the default order
+/// already reads the way the paired layout renders.
 enum DiveDetailSectionId {
   decoO2,
   safetyReview,
@@ -13,12 +17,12 @@ enum DiveDetailSectionId {
   details,
   environment,
   altitude,
+  surfaceGps,
   tide,
   reefHealth,
-  surfaceGps,
+  tanks,
   weights,
   buoyancy,
-  tanks,
   buddies,
   signatures,
   equipment,
@@ -34,7 +38,7 @@ enum DiveDetailSectionId {
     return switch (this) {
       decoO2 => 'Deco Status / Tissue Loading',
       safetyReview => 'Safety Review',
-      sacSegments => 'SAC Rate by Segment',
+      sacSegments => 'Gas consumption by segment',
       details => 'Details',
       environment => 'Environment',
       altitude => 'Altitude',
@@ -47,7 +51,7 @@ enum DiveDetailSectionId {
       buddies => 'Buddies',
       signatures => 'Signatures',
       equipment => 'Equipment',
-      sightings => 'Marine Life Sightings',
+      sightings => 'Species Sightings',
       media => 'Media',
       tags => 'Tags',
       notes => 'Notes',
@@ -62,7 +66,7 @@ enum DiveDetailSectionId {
     return switch (this) {
       decoO2 => 'NDL, ceiling, tissue heat map, O2 toxicity',
       safetyReview => 'Automatic post-dive profile observations',
-      sacSegments => 'Phase/time SAC segmentation',
+      sacSegments => 'SAC and RMV by phase or time',
       details => 'Type, location, trip, dive center, interval',
       environment => 'Air/water temp, visibility, current',
       altitude => 'Altitude value, category, deco requirement',
@@ -71,7 +75,8 @@ enum DiveDetailSectionId {
       surfaceGps => 'GPS entry/exit points and surface drift',
       weights => 'Weight breakdown, total weight',
       buoyancy => 'Buoyancy through the dive, swing, ditchable weight',
-      tanks => 'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
+      tanks =>
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
       buddies => 'Buddy list with roles',
       signatures => 'Buddy/instructor signature display and capture',
       equipment => 'Equipment used in dive',
@@ -186,12 +191,12 @@ class DiveDetailSectionConfig {
     DiveDetailSectionConfig(id: DiveDetailSectionId.details, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.environment, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.altitude, visible: true),
+    DiveDetailSectionConfig(id: DiveDetailSectionId.surfaceGps, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.tide, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.reefHealth, visible: true),
-    DiveDetailSectionConfig(id: DiveDetailSectionId.surfaceGps, visible: true),
+    DiveDetailSectionConfig(id: DiveDetailSectionId.tanks, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.weights, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.buoyancy, visible: true),
-    DiveDetailSectionConfig(id: DiveDetailSectionId.tanks, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.buddies, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.signatures, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.equipment, visible: true),

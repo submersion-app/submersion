@@ -12,7 +12,11 @@ import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_list_content.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_list_tile.dart';
+import 'package:submersion/features/buddies/presentation/widgets/compact_buddy_list_tile.dart';
 import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -91,6 +95,7 @@ Future<List<Override>> _buildOverrides({
     allBuddiesWithDiveCountProvider.overrideWith((ref) => buddies),
     buddyListNotifierProvider.overrideWith((ref) => _MockBuddyListNotifier()),
     buddyListViewModeProvider.overrideWith((ref) => ListViewMode.table),
+    diveRoleMapProvider.overrideWith((ref) async => <String, DiveRole>{}),
     buddyTableConfigProvider.overrideWith(
       (ref) => _TestBuddyTableConfigNotifier(_testConfig),
     ),
@@ -118,6 +123,9 @@ Future<List<Override>> _buildPhoneOverrides({
     allBuddiesWithDiveCountProvider.overrideWith((ref) => buddies),
     buddyListNotifierProvider.overrideWith((ref) => _MockBuddyListNotifier()),
     buddyListViewModeProvider.overrideWith((ref) => viewMode),
+    // Detailed rows resolve the usual-role chip through the role map; keep
+    // it away from the real repository, which has no database here.
+    diveRoleMapProvider.overrideWith((ref) async => <String, DiveRole>{}),
     buddyTableConfigProvider.overrideWith(
       (ref) => _TestBuddyTableConfigNotifier(_testConfig),
     ),
@@ -639,6 +647,21 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('3 selected'), findsOneWidget);
+    });
+  });
+  group('compact view mode', () {
+    testWidgets('renders CompactBuddyListTile rows', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        buddies: [_makeBuddy(id: 'b1', name: 'Jane Doe', diveCount: 3)],
+        viewMode: ListViewMode.compact,
+      );
+      await tester.pumpWidget(
+        testApp(overrides: overrides, child: const BuddyListContent()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CompactBuddyListTile), findsOneWidget);
+      expect(find.byType(BuddyListTile), findsNothing);
     });
   });
 }

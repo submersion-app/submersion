@@ -48,6 +48,7 @@ class ExperienceSection extends StatelessWidget {
           label: l10n.diveLog_edit_section_rating,
           value: rating,
           onChanged: onRatingChanged,
+          clearTooltip: l10n.common_action_clearRating,
         ),
         sightingsChild,
         FormRow.text(

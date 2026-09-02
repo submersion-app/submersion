@@ -12,6 +12,13 @@ import 'package:submersion/features/statistics/presentation/pages/statistics_ove
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+/// Every MaterialApp here pins `locale: Locale('en')`. flutter_test forwards
+/// the HOST machine's locale list rather than a fixed en_US, and the app ships
+/// 11 locales, so an unpinned MaterialApp renders a translated UI on a
+/// non-English machine and every English assertion in this file misses. CI
+/// runners are en_US, so the failure would only ever show up on a
+/// contributor's machine.
+
 /// Minimal mock SettingsNotifier using noSuchMethod to avoid re-implementing
 /// the full interface (~60 methods). Matches the pattern used in
 /// localization_test.dart and other test files.
@@ -62,7 +69,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => fixture),
             filteredDiveStatisticsProvider.overrideWith((ref) async => fixture),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -73,6 +82,7 @@ void main() {
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
             home: StatisticsOverviewPage(embedded: true),
           ),
         ),
@@ -126,7 +136,7 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => records),
+            filteredDiveRecordsProvider.overrideWith((ref) async => records),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -137,6 +147,7 @@ void main() {
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
             home: StatisticsOverviewPage(embedded: true),
           ),
         ),
@@ -179,7 +190,7 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => records),
+            filteredDiveRecordsProvider.overrideWith((ref) async => records),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -190,6 +201,7 @@ void main() {
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
             home: StatisticsOverviewPage(embedded: true),
           ),
         ),
@@ -252,7 +264,7 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => records),
+            filteredDiveRecordsProvider.overrideWith((ref) async => records),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -263,6 +275,7 @@ void main() {
           child: MaterialApp.router(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
             routerConfig: router,
           ),
         ),
@@ -304,7 +317,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -315,6 +330,7 @@ void main() {
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
             home: StatisticsOverviewPage(embedded: true),
           ),
         ),
@@ -342,7 +358,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -353,6 +371,7 @@ void main() {
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
             home: StatisticsOverviewPage(embedded: true),
           ),
         ),
@@ -401,7 +420,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -412,6 +433,7 @@ void main() {
           child: MaterialApp.router(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
             routerConfig: router,
           ),
         ),
@@ -467,7 +489,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -478,6 +502,7 @@ void main() {
           child: MaterialApp.router(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
             routerConfig: router,
           ),
         ),
@@ -521,7 +546,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => []),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -532,6 +559,7 @@ void main() {
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
             home: StatisticsOverviewPage(embedded: true),
           ),
         ),
@@ -563,15 +591,43 @@ void main() {
         totalSites: 2,
         firstDiveDate: DateTime.now().subtract(const Duration(days: 365)),
         depthDistribution: [
-          DepthRangeStat(label: '0-10m', minDepth: 0, maxDepth: 10, count: 5),
-          DepthRangeStat(label: '10-20m', minDepth: 10, maxDepth: 20, count: 7),
-          DepthRangeStat(label: '20-30m', minDepth: 20, maxDepth: 30, count: 3),
+          DepthRangeStat(
+            label: '0-10m',
+            minDepth: 0,
+            maxDepth: 10,
+            count: 5,
+            totalDurationSeconds: 18000, // 5h 0m
+          ),
+          DepthRangeStat(
+            label: '10-20m',
+            minDepth: 10,
+            maxDepth: 20,
+            count: 7,
+            totalDurationSeconds: 27000, // 7h 30m
+          ),
+          DepthRangeStat(
+            label: '20-30m',
+            minDepth: 20,
+            maxDepth: 30,
+            count: 3,
+            totalDurationSeconds: 11700, // 3h 15m
+          ),
         ],
       );
 
       final diveTypes = [
-        DistributionSegment(label: 'Recreational', count: 10, percentage: 66.7),
-        DistributionSegment(label: 'Technical', count: 5, percentage: 33.3),
+        DistributionSegment(
+          label: 'Recreational',
+          count: 10,
+          percentage: 66.7,
+          totalDurationSeconds: 36000, // 10h 0m
+        ),
+        DistributionSegment(
+          label: 'Technical',
+          count: 5,
+          percentage: 33.3,
+          totalDurationSeconds: 19800, // 5h 30m
+        ),
       ];
 
       await tester.pumpWidget(
@@ -579,7 +635,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            diveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
             diveTypeDistributionProvider.overrideWith((ref) async => diveTypes),
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
@@ -590,6 +648,7 @@ void main() {
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
             home: StatisticsOverviewPage(embedded: true),
           ),
         ),
@@ -599,15 +658,44 @@ void main() {
       expect(find.text('Distributions'), findsOneWidget);
       // Depth range legend labels should contain depth values.
       expect(find.textContaining('10'), findsWidgets);
+      // Per-depth-bucket count + total dive time list (issue #641 follow-up).
+      // The bucket label also appears once in the pie chart's own legend
+      // above the list.
+      expect(find.text('0-10m'), findsNWidgets(2));
+      expect(find.text('5 dives • 5h 0m'), findsOneWidget);
+      expect(find.text('10-20m'), findsNWidgets(2));
+      expect(find.text('7 dives • 7h 30m'), findsOneWidget);
+      expect(find.text('20-30m'), findsNWidgets(2));
+      expect(find.text('3 dives • 3h 15m'), findsOneWidget);
+      // Per-type count + total dive time list (issue #641). The type name
+      // also appears once in the pie chart's own legend above the list.
+      expect(find.text('Recreational'), findsNWidgets(2));
+      expect(find.text('10 dives • 10h 0m'), findsOneWidget);
+      expect(find.text('Technical'), findsNWidgets(2));
+      expect(find.text('5 dives • 5h 30m'), findsOneWidget);
     });
 
-    testWidgets('hides Distributions when totalDives is 0', (tester) async {
+    testWidgets('caps the depth pie legend at 6 rows but lists every occupied '
+        'bucket underneath (issue #641 follow-up: legend overflow)', (
+      tester,
+    ) async {
       final stats = DiveStatistics(
-        totalDives: 0,
-        totalTimeSeconds: 0,
-        maxDepth: 0,
-        avgMaxDepth: 0,
-        totalSites: 0,
+        totalDives: 8,
+        totalTimeSeconds: 28800,
+        maxDepth: 80.0,
+        avgMaxDepth: 40.0,
+        totalSites: 1,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 365)),
+        depthDistribution: [
+          for (var i = 0; i < 8; i++)
+            DepthRangeStat(
+              label: '${i * 10}-${(i + 1) * 10}m',
+              minDepth: i * 10,
+              maxDepth: (i + 1) * 10,
+              count: 1,
+              totalDurationSeconds: 3600,
+            ),
+        ],
       );
 
       await tester.pumpWidget(
@@ -626,6 +714,48 @@ void main() {
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: StatisticsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The 8th bucket (70-80m) only appears once: in the full list below
+      // the chart, not in the space-limited inline legend.
+      expect(find.text('70-80m'), findsOneWidget);
+      // Every bucket's count + time is listed in full underneath the pies.
+      expect(find.text('1 dive • 1h 0m'), findsNWidgets(8));
+    });
+
+    testWidgets('hides Distributions when totalDives is 0', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 0,
+        totalTimeSeconds: 0,
+        maxDepth: 0,
+        avgMaxDepth: 0,
+        totalSites: 0,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
             home: StatisticsOverviewPage(embedded: true),
           ),
         ),

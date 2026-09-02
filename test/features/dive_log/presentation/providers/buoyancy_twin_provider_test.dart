@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
@@ -98,4 +100,68 @@ void main() {
       expect(lead.kg, closeTo(-6.0, 1e-9));
     },
   );
+
+  test('counts lead carried as weights-type equipment (issue #1103)', () async {
+    // The ballast lives in equipment_attributes, not on the equipment row, so
+    // this only works if the dive's equipment join hydrates attributes. Proved
+    // through the real provider + database for the same reason as above.
+    final plate = await EquipmentRepository().createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Weighted backplate',
+        type: EquipmentType.weights,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: EquipmentAttrKeys.dryWeightKg,
+            valueNum: 3.63,
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: EquipmentAttrKeys.weightStyle,
+            valueText: 'trim',
+          ),
+        ],
+      ),
+    );
+    final suit = await EquipmentRepository().createEquipment(
+      const EquipmentItem(id: '', name: 'Drysuit', type: EquipmentType.drysuit),
+    );
+    final dive = await DiveRepository().createDive(
+      Dive(
+        id: '',
+        diveNumber: 2,
+        dateTime: DateTime(2026, 1, 2),
+        equipment: [plate, suit],
+        tanks: const [
+          DiveTank(
+            id: 't1',
+            volume: 11,
+            workingPressure: 207,
+            startPressure: 200,
+            endPressure: 50,
+            material: TankMaterial.aluminum,
+            presetName: 'al80',
+          ),
+        ],
+        waterType: WaterType.salt,
+      ),
+    );
+
+    final c = container();
+    addTearDown(c.dispose);
+
+    final outcome = await c.read(buoyancyTwinProvider(dive.id).future);
+    expect(outcome, isNotNull);
+
+    // No typed weight rows at all, yet the rig's ballast is counted.
+    expect(outcome!.result.input.leadKg, closeTo(3.63, 1e-9));
+    // Trim ballast is not ditchable.
+    expect(outcome.result.input.droppableLeadKg, closeTo(0.0, 1e-9));
+    // It is lead, never a static gear buoyancy term.
+    expect(
+      outcome.result.input.staticTerms.map((t) => t.label),
+      isNot(contains('Weighted backplate')),
+    );
+  });
 }

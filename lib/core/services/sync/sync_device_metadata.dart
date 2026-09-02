@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/device_display_name_service.dart';
 
 /// The identity resolved by [SyncDeviceMetadata.resolve].
 typedef DeviceIdentity = ({String id, String? name, String? appVersion});
@@ -15,22 +14,13 @@ typedef DeviceIdentityResolver = Future<DeviceIdentity> Function();
 /// library epoch markers, library moved markers, and per-device sync
 /// manifests. One resolver so the three cannot drift apart.
 class SyncDeviceMetadata {
-  const SyncDeviceMetadata(this._syncRepository);
+  const SyncDeviceMetadata(
+    this._syncRepository, {
+    DeviceDisplayNameService displayName = const DeviceDisplayNameService(),
+  }) : _displayName = displayName;
 
   final SyncRepository _syncRepository;
-
-  /// Hostnames that identify nothing. Android routinely reports 'localhost',
-  /// which would make every Android peer display under the same name; an
-  /// absent name falls back to the device id, which is at least unique.
-  static const _uselessNames = {'localhost'};
-
-  /// Normalises a raw hostname, returning null when it identifies nothing.
-  static String? sanitizeDeviceName(String? raw) {
-    final trimmed = raw?.trim() ?? '';
-    if (trimmed.isEmpty) return null;
-    if (_uselessNames.contains(trimmed.toLowerCase())) return null;
-    return trimmed;
-  }
+  final DeviceDisplayNameService _displayName;
 
   /// Each piece degrades independently to a safe default: markers are shown
   /// in banners and dialogs, so the origin must always be displayable.
@@ -43,12 +33,9 @@ class SyncDeviceMetadata {
       // be blank.
       id = 'unknown';
     }
-    String? name;
-    try {
-      name = sanitizeDeviceName(Platform.localHostname);
-    } catch (_) {
-      name = null;
-    }
+    // Null when nothing on this platform identifies the device; readers fall
+    // back to a short device id.
+    final name = await _displayName.resolve();
     String? appVersion;
     try {
       appVersion = (await PackageInfo.fromPlatform()).version;

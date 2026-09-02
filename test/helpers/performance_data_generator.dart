@@ -5,6 +5,8 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 
 /// Data volume profile for performance testing.
 enum DataProfile { light, realistic, heavy }
@@ -318,7 +320,7 @@ class PerformanceDataGenerator {
       final batchEnd = min(batchStart + diveBatchSize, _diveCount);
 
       final diveCompanions = <DivesCompanion>[];
-      final profileCompanions = <DiveProfilesCompanion>[];
+      final profileCompanions = <DiveProfileSeriesCompanion>[];
       final tankCompanions = <DiveTanksCompanion>[];
       final diveTagCompanions = <DiveTagsCompanion>[];
       final diveBuddyCompanions = <DiveBuddiesCompanion>[];
@@ -394,8 +396,8 @@ class PerformanceDataGenerator {
         );
 
         // Profile points (every 2 seconds)
-        final points = _buildProfilePoints(diveId, durationSeconds, maxDepth);
-        profileCompanions.addAll(points);
+        final points = _buildProfilePoints(durationSeconds, maxDepth);
+        profileCompanions.add(_seriesCompanion(diveId, points, now));
         totalProfilePoints += points.length;
 
         // Tanks
@@ -466,7 +468,7 @@ class PerformanceDataGenerator {
 
       // Insert all data for this batch
       await _batchInsert(_db.dives, diveCompanions);
-      await _batchInsert(_db.diveProfiles, profileCompanions, chunkSize: 5000);
+      await _batchInsert(_db.diveProfileSeries, profileCompanions);
       await _batchInsert(_db.diveTanks, tankCompanions);
       if (diveTagCompanions.isNotEmpty) {
         await _batchInsert(_db.diveTags, diveTagCompanions);
@@ -493,12 +495,41 @@ class PerformanceDataGenerator {
   // Profile point generation
   // --------------------------------------------------------------------------
 
-  List<DiveProfilesCompanion> _buildProfilePoints(
+  /// Packs [samples] into the one series row the dive gets, the way
+  /// `ProfileSeriesRepository.insertSeries` does, minus the per-row sync
+  /// bookkeeping this fixture generator never wants.
+  DiveProfileSeriesCompanion _seriesCompanion(
     String diveId,
+    List<ProfileSample> samples,
+    int now,
+  ) {
+    _profilePointCounter++;
+    final encoded = const ProfileSeriesCodec().encode(samples);
+    final summary = encoded.summary;
+    return DiveProfileSeriesCompanion.insert(
+      id: 'ps_$_profilePointCounter',
+      diveId: diveId,
+      sampleCount: summary.sampleCount,
+      startTimestamp: summary.startTimestamp,
+      endTimestamp: summary.endTimestamp,
+      maxDepth: summary.maxDepth,
+      firstDepth: summary.firstDepth,
+      lastDepth: summary.lastDepth,
+      hasDecoType: Value(summary.hasDecoType),
+      hasDecoStop: Value(summary.hasDecoStop),
+      hasPositiveCeiling: Value(summary.hasPositiveCeiling),
+      codecVersion: encoded.codecVersion,
+      samples: encoded.bytes,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
+  List<ProfileSample> _buildProfilePoints(
     int durationSeconds,
     double maxDepth,
   ) {
-    final points = <DiveProfilesCompanion>[];
+    final points = <ProfileSample>[];
     const intervalSeconds = 2;
 
     // Phase durations (as fraction of total time)
@@ -525,15 +556,11 @@ class PerformanceDataGenerator {
         depth = 5.0 * (1.0 - ascentProgress);
       }
 
-      _profilePointCounter++;
       points.add(
-        DiveProfilesCompanion(
-          id: Value('pp_$_profilePointCounter'),
-          diveId: Value(diveId),
-          isPrimary: const Value(true),
-          timestamp: Value(t),
-          depth: Value(depth.clamp(0.0, maxDepth)),
-          temperature: Value(12.0 + (t % 80) * 0.1),
+        ProfileSample(
+          timestamp: t,
+          depth: depth.clamp(0.0, maxDepth),
+          temperature: 12.0 + (t % 80) * 0.1,
         ),
       );
     }

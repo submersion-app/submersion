@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
+import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
@@ -231,4 +232,26 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.byType(SnackBar), findsOneWidget);
   });
+
+  testWidgets('a Live Photo refusal is translated, not shown raw', (
+    tester,
+  ) async {
+    // The native handlers now reject Live Photos up front; before that,
+    // PhotoKit rejected the rewritten still and this untranslated string
+    // reached the user verbatim (issue #795).
+    handler = (_) async => throw PlatformException(
+      code: metadataWriteLivePhotoUnsupportedCode,
+      message:
+          "The operation couldn't be completed. "
+          '(PHPhotosErrorDomain error 3302.)',
+    );
+    await pump(tester, item());
+    await openDialog(tester);
+    await confirmWrite(tester);
+
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.textContaining('PHPhotosErrorDomain'), findsNothing);
+    expect(find.textContaining('Live Photos'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  }, skip: !_metadataWriteSupported);
 }

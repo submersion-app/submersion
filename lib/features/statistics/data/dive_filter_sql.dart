@@ -15,17 +15,20 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
   final conditions = <String>[];
   final params = <Object?>[];
 
-  // Date range. dive_date_time is epoch MILLISECONDS (wall-clock-as-UTC).
-  if (filter.startDate != null) {
+  // Date range. dive_date_time is epoch MILLISECONDS (wall-clock-as-UTC), and
+  // the bounds are already normalized to that frame by DiveFilterState, so the
+  // two sides of the comparison agree on where a day starts (issue #1368).
+  // Half-open: the end bound is the start of the day AFTER endDate, which
+  // keeps the whole end day and matches apply() and the paginated list.
+  final startBoundMs = filter.startDateBoundMs;
+  if (startBoundMs != null) {
     conditions.add('dive_date_time >= ?');
-    params.add(filter.startDate!.millisecondsSinceEpoch);
+    params.add(startBoundMs);
   }
-  if (filter.endDate != null) {
-    // apply() keeps dives up to endDate + 1 day (inclusive of the end day).
-    conditions.add('dive_date_time <= ?');
-    params.add(
-      filter.endDate!.add(const Duration(days: 1)).millisecondsSinceEpoch,
-    );
+  final endBoundMs = filter.endDateBoundMs;
+  if (endBoundMs != null) {
+    conditions.add('dive_date_time < ?');
+    params.add(endBoundMs);
   }
 
   // Dive type: membership against the many-to-many junction.
@@ -56,6 +59,19 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
       'id IN (SELECT dive_id FROM dive_tags WHERE tag_id IN ($ph))',
     );
     params.addAll(filter.tagIds);
+  }
+
+  // Weekdays: match ANY selected weekday. dive_date_time is wall-clock-as-UTC
+  // epoch ms, so strftime('%w', ...) (0=Sunday..6=Saturday) already lines up
+  // with the wall-clock day -- no 'utc' modifier needed. Converting
+  // DateTime.weekday (1=Monday..7=Sunday) via `% 7` matches that numbering.
+  if (filter.weekdays.isNotEmpty) {
+    final ph = List.filled(filter.weekdays.length, '?').join(', ');
+    conditions.add(
+      "CAST(strftime('%w', dive_date_time / 1000, 'unixepoch') AS INTEGER) "
+      'IN ($ph)',
+    );
+    params.addAll(filter.weekdays.map((w) => w % 7));
   }
 
   // Equipment: match ANY selected item.
@@ -116,11 +132,33 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
     conditions.add('is_favorite = 1');
   }
 
+  // Finds the dives the diver excluded. Enforcement of the exclusion is
+  // DiveStatsScope's job and is applied alongside this subquery, never
+  // inside it.
+  if (filter.excludedFromStatsOnly == true) {
+    conditions.add('excluded_from_stats = 1');
+  }
+
+  if (filter.decoOnly != null) {
+    conditions.add(
+      decoSignalCondition(wantDeco: filter.decoOnly!, diveIdRef: 'dives.id'),
+    );
+  }
+
+  // No buddy: neither the legacy scalar column nor a junction-linked buddy
+  // is set, mirroring DiveRepository and DiveFilterState.apply.
+  if (filter.noBuddyOnly == true) {
+    conditions.add(
+      "(buddy IS NULL OR buddy = '') AND "
+      'NOT EXISTS (SELECT 1 FROM dive_buddies WHERE dive_buddies.dive_id = dives.id)',
+    );
+  }
+
   // Buddy free-text: case-insensitive substring against the legacy scalar
   // column OR any junction-linked buddy's name. The dive editor writes only
   // the dive_buddies junction; the scalar covers old data (#757).
   // Comma-separated names must each match (AND semantics), mirroring
-  // DiveRepositoryImpl and DiveFilterState.apply.
+  // DiveRepository and DiveFilterState.apply.
   if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
     final names = filter.buddyNameFilter!
         .split(',')
@@ -205,4 +243,52 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
     subquery: 'SELECT id FROM dives WHERE ${conditions.join(' AND ')}',
     params: params,
   );
+}
+
+/// Recorded deco-signal SQL condition (no bind params), shared by
+/// [buildFilteredDiveIdSubquery], `DiveRepository._buildFilterWhereClauses`
+/// and `DiveRepository.getDiveIdsWithDecoSignal` so the three SQL paths
+/// (Statistics, the paginated dive list, and the id set the entity-backed
+/// surfaces intersect with) can't drift apart. Mirrors
+/// `StatisticsRepository.scanRecordedDecoSignals`:
+///
+/// - A series with a recorded deco stop (`has_deco_stop`) or a
+///   `decoStopStart` event means deco.
+/// - A series that carries `deco_type` values (`has_deco_type`) but never a
+///   stop means no-deco: the computer recorded obligations and reported
+///   none.
+/// - A positive ceiling (`has_positive_ceiling`) on a series with no
+///   `deco_type` at all also means deco (some import sources only ever
+///   write a stop depth).
+/// - A dive with no qualifying series data matches neither branch; it is
+///   only classifiable via the computed fallback, which this SQL-only axis
+///   does not have access to.
+///
+/// This is the only place the deco axis is evaluated. `DiveFilterState.apply`
+/// deliberately skips it, because list-view entities carry neither profile
+/// points nor deco-stop events.
+///
+/// [diveIdRef] must be a reference to the enclosing query's `dives.id`
+/// resolvable from inside these correlated subqueries (e.g. `d.id` when the
+/// caller aliases `dives` as `d`, or `dives.id` when it does not).
+String decoSignalCondition({
+  required bool wantDeco,
+  required String diveIdRef,
+}) {
+  final hasDecoStop =
+      'EXISTS (SELECT 1 FROM dive_profile_series s '
+      'WHERE s.dive_id = $diveIdRef AND s.has_deco_stop = 1) '
+      "OR EXISTS (SELECT 1 FROM dive_profile_events e "
+      "WHERE e.dive_id = $diveIdRef AND e.event_type = 'decoStopStart')";
+  final hasDecoType =
+      'EXISTS (SELECT 1 FROM dive_profile_series s '
+      'WHERE s.dive_id = $diveIdRef AND s.has_deco_type = 1)';
+  final hasPositiveCeiling =
+      'EXISTS (SELECT 1 FROM dive_profile_series s '
+      'WHERE s.dive_id = $diveIdRef AND s.has_positive_ceiling = 1)';
+
+  if (wantDeco) {
+    return '($hasDecoStop OR (NOT ($hasDecoType) AND $hasPositiveCeiling))';
+  }
+  return '($hasDecoType AND NOT ($hasDecoStop))';
 }

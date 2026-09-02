@@ -54,8 +54,11 @@ class ProfileLegendState {
   final bool showCns;
   final bool showOtu;
 
-  /// Raw O2 cell output lines (issue #810). Session-only: no persisted
-  /// default backs it, following the showMod precedent.
+  /// Gas time remaining line. Seeds from [AppSettings.defaultShowGtr].
+  final bool showGtr;
+
+  /// Raw O2 cell output lines (issue #810). Seeds from the persisted
+  /// [AppSettings.defaultShowO2CellMv] default (issue #1235).
   final bool showO2CellMv;
 
   // Per-metric data source preferences (session overrides).
@@ -67,6 +70,7 @@ class ProfileLegendState {
   final MetricDataSource ttsSource;
   final MetricDataSource cnsSource;
   final MetricDataSource decoStopSource;
+  final MetricDataSource gtrSource;
 
   // Per-tank pressure visibility (keyed by tank ID)
   final Map<String, bool> showTankPressure;
@@ -113,10 +117,12 @@ class ProfileLegendState {
     this.showCns = false,
     this.showOtu = false,
     this.showO2CellMv = false,
+    this.showGtr = false,
     this.ndlSource = MetricDataSource.calculated,
     this.ttsSource = MetricDataSource.calculated,
     this.cnsSource = MetricDataSource.calculated,
     this.decoStopSource = MetricDataSource.calculated,
+    this.gtrSource = MetricDataSource.calculated,
     this.showTankPressure = const {},
     this.showGas = true,
     this.sectionExpanded = const {
@@ -158,6 +164,7 @@ class ProfileLegendState {
     if (showCns) count++;
     if (showOtu) count++;
     if (showO2CellMv) count++;
+    if (showGtr) count++;
     count += showTankPressure.values.where((v) => v).length;
     return count;
   }
@@ -195,10 +202,12 @@ class ProfileLegendState {
     bool? showCns,
     bool? showOtu,
     bool? showO2CellMv,
+    bool? showGtr,
     MetricDataSource? ndlSource,
     MetricDataSource? ttsSource,
     MetricDataSource? cnsSource,
     MetricDataSource? decoStopSource,
+    MetricDataSource? gtrSource,
     Map<String, bool>? showTankPressure,
     bool? showGas,
     Map<String, bool>? sectionExpanded,
@@ -235,10 +244,12 @@ class ProfileLegendState {
       showCns: showCns ?? this.showCns,
       showOtu: showOtu ?? this.showOtu,
       showO2CellMv: showO2CellMv ?? this.showO2CellMv,
+      showGtr: showGtr ?? this.showGtr,
       ndlSource: ndlSource ?? this.ndlSource,
       ttsSource: ttsSource ?? this.ttsSource,
       cnsSource: cnsSource ?? this.cnsSource,
       decoStopSource: decoStopSource ?? this.decoStopSource,
+      gtrSource: gtrSource ?? this.gtrSource,
       showTankPressure: showTankPressure ?? this.showTankPressure,
       showGas: showGas ?? this.showGas,
       sectionExpanded: sectionExpanded ?? this.sectionExpanded,
@@ -280,10 +291,12 @@ class ProfileLegendState {
           showCns == other.showCns &&
           showOtu == other.showOtu &&
           showO2CellMv == other.showO2CellMv &&
+          showGtr == other.showGtr &&
           ndlSource == other.ndlSource &&
           ttsSource == other.ttsSource &&
           cnsSource == other.cnsSource &&
           decoStopSource == other.decoStopSource &&
+          gtrSource == other.gtrSource &&
           mapEquals(showTankPressure, other.showTankPressure) &&
           showGas == other.showGas &&
           metricsFollowViewport == other.metricsFollowViewport &&
@@ -319,10 +332,12 @@ class ProfileLegendState {
     showCns,
     showOtu,
     showO2CellMv,
+    showGtr,
     ndlSource,
     ttsSource,
     cnsSource,
     decoStopSource,
+    gtrSource,
     ...showTankPressure.entries,
     showGas,
     metricsFollowViewport,
@@ -364,6 +379,7 @@ class ProfileLegend extends _$ProfileLegend {
           defaultShowGasSwitchMarkers: s.defaultShowGasSwitchMarkers,
           defaultShowPhotoMarkers: s.defaultShowPhotoMarkers,
           defaultShowGasTimeline: s.defaultShowGasTimeline,
+          defaultShowO2CellMv: s.defaultShowO2CellMv,
           showNdlOnProfile: s.showNdlOnProfile,
           defaultShowPpO2: s.defaultShowPpO2,
           defaultShowPpN2: s.defaultShowPpN2,
@@ -373,10 +389,12 @@ class ProfileLegend extends _$ProfileLegend {
           defaultShowSurfaceGf: s.defaultShowSurfaceGf,
           defaultShowMeanDepth: s.defaultShowMeanDepth,
           defaultShowTts: s.defaultShowTts,
+          defaultShowGtr: s.defaultShowGtr,
           defaultShowCns: s.defaultShowCns,
           defaultShowOtu: s.defaultShowOtu,
           defaultNdlSource: s.defaultNdlSource,
           defaultTtsSource: s.defaultTtsSource,
+          defaultGtrSource: s.defaultGtrSource,
           defaultCnsSource: s.defaultCnsSource,
           defaultDecoStopSource: s.defaultDecoStopSource,
           profileMetricsFollowViewport: s.profileMetricsFollowViewport,
@@ -399,6 +417,7 @@ class ProfileLegend extends _$ProfileLegend {
       showGasSwitchMarkers: settings.defaultShowGasSwitchMarkers,
       showPhotoMarkers: settings.defaultShowPhotoMarkers,
       showGas: settings.defaultShowGasTimeline,
+      showO2CellMv: settings.defaultShowO2CellMv,
       showNdl: settings.showNdlOnProfile,
       showPpO2: settings.defaultShowPpO2,
       showPpN2: settings.defaultShowPpN2,
@@ -411,10 +430,12 @@ class ProfileLegend extends _$ProfileLegend {
       showTts: settings.defaultShowTts,
       showCns: settings.defaultShowCns,
       showOtu: settings.defaultShowOtu,
+      showGtr: settings.defaultShowGtr,
       ndlSource: settings.defaultNdlSource,
       ttsSource: settings.defaultTtsSource,
       cnsSource: settings.defaultCnsSource,
       decoStopSource: settings.defaultDecoStopSource,
+      gtrSource: settings.defaultGtrSource,
       metricsFollowViewport: settings.profileMetricsFollowViewport,
     );
   }
@@ -542,6 +563,10 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(showTts: !state.showTts);
   }
 
+  void toggleGtr() {
+    state = state.copyWith(showGtr: !state.showGtr);
+  }
+
   void toggleCns() {
     state = state.copyWith(showCns: !state.showCns);
   }
@@ -565,6 +590,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void setTtsSource(MetricDataSource source) {
     state = state.copyWith(ttsSource: source);
+  }
+
+  void setGtrSource(MetricDataSource source) {
+    state = state.copyWith(gtrSource: source);
   }
 
   void setCnsSource(MetricDataSource source) {

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -229,16 +230,15 @@ class _BuddyDetailContent extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
+          ProfileAvatar(
+            photo: buddy.photo,
+            initials: buddy.initials,
             radius: 18,
             backgroundColor: colorScheme.primaryContainer,
-            child: Text(
-              buddy.initials,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onPrimaryContainer,
-              ),
+            textStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onPrimaryContainer,
             ),
           ),
           const SizedBox(width: 12),
@@ -410,22 +410,15 @@ class _BuddyDetailContent extends ConsumerWidget {
     return Center(
       child: Column(
         children: [
-          CircleAvatar(
+          ProfileAvatar(
+            photo: buddy.photo,
+            initials: buddy.initials,
             radius: 50,
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            backgroundImage: buddy.photoPath != null
-                ? AssetImage(buddy.photoPath!)
-                : null,
-            child: buddy.photoPath == null
-                ? Text(
-                    buddy.initials,
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  )
-                : null,
+            textStyle: TextStyle(
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
           const SizedBox(height: 16),
           Text(buddy.name, style: Theme.of(context).textTheme.headlineMedium),
@@ -505,7 +498,7 @@ class _BuddyDetailContent extends ConsumerWidget {
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.card_membership),
                             title: Text(certificationTitle(cert)),
-                            subtitle: Text(cert.agency.displayName),
+                            subtitle: Text(certificationAgencyAndLevel(cert)),
                           ),
                       ],
                     ),
@@ -597,7 +590,9 @@ class _BuddyDetailContent extends ConsumerWidget {
     final diveIdsAsync = ref.watch(diveIdsForBuddyProvider(buddy.id));
     final divesAsync = ref.watch(divesForBuddyProvider(buddy.id));
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.MMMd();
+    // Includes the year: shared dives routinely span several years, so a bare
+    // "Mar 28" is ambiguous (#982). Matches the stats card above.
+    final dateFormat = DateFormat.yMMMd();
 
     return Card(
       child: Padding(

@@ -14,6 +14,9 @@
 ///   but should match wall-clock-UTC dive times.
 /// * [fromWallClockUtc] — the inverse, for reading a stored wall-clock-UTC
 ///   value back into the local `DateTime` the UI works in.
+/// * [wallClockUtcDayStart] gives the start of a calendar day in
+///   wall-clock-UTC, for comparing a date the user picked against stored
+///   wall-clock values.
 library;
 
 /// Matches a trailing `Z` or `+hh:mm` / `-hh:mm` / `+hhmm` / `-hhmm` offset
@@ -90,3 +93,16 @@ DateTime fromWallClockUtc(DateTime wallClockUtc) {
     wallClockUtc.millisecond,
   );
 }
+
+/// Start of [date]'s calendar day in wall-clock-UTC, discarding any
+/// time-of-day component and any timezone offset [date] carries.
+///
+/// This is the bridge a date the diver *picked* has to cross before it can be
+/// compared against a stored wall-clock-UTC timestamp (issue #1368). Pickers
+/// and preset builders produce LOCAL `DateTime`s, whose
+/// `millisecondsSinceEpoch` is local midnight shifted by the device's UTC
+/// offset; comparing that raw against wall-clock-UTC values moved the day
+/// boundary by that offset. Reading only the calendar components makes the
+/// result identical whichever flavor the caller holds.
+DateTime wallClockUtcDayStart(DateTime date) =>
+    DateTime.utc(date.year, date.month, date.day);

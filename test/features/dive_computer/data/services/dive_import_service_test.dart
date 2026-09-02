@@ -7,7 +7,9 @@ import 'package:submersion/features/dive_computer/data/services/dive_import_serv
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 @GenerateMocks([DiveComputerRepository, DiveRepository])
 import 'dive_import_service_test.mocks.dart';
@@ -895,5 +897,156 @@ void main() {
         expect(result.matchedExistingSource, isFalse);
       },
     );
+  });
+
+  group('default tank preset for downloads (issue #386)', () {
+    final al80 = TankPresetEntity.fromBuiltIn(TankPresets.al80);
+
+    DownloadedDive diveWithPressureOnlyTank() => DownloadedDive(
+      fingerprint: 'fp-al',
+      startTime: DateTime(2026, 2, 1, 9, 0),
+      durationSeconds: 2700,
+      maxDepth: 18.0,
+      profile: const [],
+      tanks: const [
+        DownloadedTank(
+          index: 0,
+          o2Percent: 21.0,
+          startPressure: 200.0,
+          endPressure: 60.0,
+        ),
+      ],
+      events: const [],
+    );
+
+    List<TankData> importedTanks() {
+      final captured = verify(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: anyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: captureAnyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: anyNamed('forceNew'),
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+        ),
+      ).captured;
+      return captured.single as List<TankData>;
+    }
+
+    setUp(() {
+      when(
+        mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => 1);
+    });
+
+    test(
+      'fills the cylinder size from the preset when one is supplied',
+      () async {
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          defaultTankPresetForImports: () async => al80,
+        );
+
+        await service.importDives(
+          dives: [diveWithPressureOnlyTank()],
+          computer: computer,
+        );
+
+        final tanks = importedTanks();
+        expect(tanks.single.volumeLiters, al80.volumeLiters);
+        expect(tanks.single.presetName, 'al80');
+        // The transmitter's pressures are untouched.
+        expect(tanks.single.startPressure, 200.0);
+        expect(tanks.single.endPressure, 60.0);
+      },
+    );
+
+    test('leaves the tank alone when the loader yields no preset', () async {
+      // The toggle is off, or the configured preset no longer exists.
+      service = DiveImportService(
+        repository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        defaultTankPresetForImports: () async => null,
+      );
+
+      await service.importDives(
+        dives: [diveWithPressureOnlyTank()],
+        computer: computer,
+      );
+
+      expect(importedTanks().single.volumeLiters, isNull);
+    });
+
+    test('leaves the tank alone without a loader', () async {
+      await service.importDives(
+        dives: [diveWithPressureOnlyTank()],
+        computer: computer,
+      );
+
+      expect(importedTanks().single.volumeLiters, isNull);
+    });
+
+    test('applies to the explicit import-as-new path too', () async {
+      service = DiveImportService(
+        repository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        defaultTankPresetForImports: () async => al80,
+      );
+
+      await service.importSingleDiveAsNew(
+        diveWithPressureOnlyTank(),
+        computerId: computer.id,
+      );
+
+      expect(importedTanks().single.volumeLiters, al80.volumeLiters);
+    });
+
+    test('resolves the preset once per batch', () async {
+      var loads = 0;
+      service = DiveImportService(
+        repository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        defaultTankPresetForImports: () async {
+          loads++;
+          return al80;
+        },
+      );
+
+      await service.importDives(
+        dives: [
+          diveWithPressureOnlyTank(),
+          DownloadedDive(
+            fingerprint: 'fp-second',
+            startTime: DateTime(2026, 2, 2, 9, 0),
+            durationSeconds: 2700,
+            maxDepth: 18.0,
+            profile: const [],
+            tanks: const [DownloadedTank(index: 0, o2Percent: 21.0)],
+            events: const [],
+          ),
+        ],
+        computer: computer,
+      );
+
+      expect(loads, 1);
+    });
   });
 }

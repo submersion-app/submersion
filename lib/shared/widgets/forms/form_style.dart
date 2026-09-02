@@ -13,6 +13,15 @@ abstract final class FormStyle {
     vertical: 11,
   );
 
+  /// Side of the square tap target behind a row's clear (X) affordance.
+  ///
+  /// 26 is what the row can give away for free: a rating row's star buttons
+  /// are already 26 tall, so the clear target fills that band without moving
+  /// the row's 48px height. Going to Material's full 48 would push every row
+  /// carrying a clear icon to 66, and growing the target sideways instead
+  /// would overlap the fifth star's own target.
+  static const double clearTapTarget = 26;
+
   /// Padding around a hero stat strip.
   static const EdgeInsets heroPadding = EdgeInsets.symmetric(
     horizontal: 12,

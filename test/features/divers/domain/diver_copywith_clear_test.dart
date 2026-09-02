@@ -1,8 +1,28 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 void main() {
   final now = DateTime(2026, 1, 1);
+
+  group('copyWith handles the profile photo blob', () {
+    test('clears the photo when passed null and keeps it when omitted', () {
+      final bytes = Uint8List.fromList([1, 2, 3]);
+      final d = Diver(
+        id: 'd1',
+        name: 'Alice',
+        photo: bytes,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      expect(d.photo, bytes);
+      // The sentinel pattern is what makes an explicit clear expressible.
+      expect(d.copyWith(photo: null).photo, isNull);
+      expect(d.copyWith(name: 'Bob').photo, bytes);
+    });
+  });
 
   Diver populated() => Diver(
     id: 'd1',

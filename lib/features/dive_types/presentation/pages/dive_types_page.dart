@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -83,6 +84,21 @@ class DiveTypesPage extends ConsumerWidget {
     DiveTypeEntity diveType, {
     required bool canDelete,
   }) {
+    // Previewed here so a diver knows what a header badge collapses their
+    // selection to: the fixed translated abbreviation for a built-in type
+    // (see builtInDiveTypeShortName), or the diver's own short name for a
+    // custom one. Hidden when there's nothing to preview -- no short name
+    // set, or (for a built-in) identical to the full name (e.g. English
+    // "Wreck").
+    final fullName = diveType.localizedName(context.l10n);
+    final builtInShort = canDelete
+        ? null
+        : builtInDiveTypeShortName(context.l10n, diveType.id);
+    final customShort = canDelete ? diveType.shortName?.trim() : null;
+    final shortName = canDelete
+        ? (customShort?.isNotEmpty == true ? customShort : null)
+        : (builtInShort == fullName ? null : builtInShort);
+
     return ListTile(
       leading: Icon(
         canDelete ? Icons.label_outline : Icons.label,
@@ -90,17 +106,28 @@ class DiveTypesPage extends ConsumerWidget {
             ? Theme.of(context).colorScheme.secondary
             : Theme.of(context).colorScheme.primary,
       ),
-      title: Text(diveType.localizedName(context.l10n)),
-      subtitle: canDelete
-          ? Text(context.l10n.diveTypes_custom)
-          : Text(context.l10n.diveTypes_builtIn),
-      trailing: canDelete
-          ? IconButton(
+      title: Text(fullName),
+      subtitle: Text(
+        canDelete
+            ? context.l10n.diveTypes_custom
+            : context.l10n.diveTypes_builtIn,
+      ),
+      onTap: () => _showEditDiveTypeDialog(context, ref, diveType),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (shortName != null) ...[
+            DiveTypeBadge(label: shortName),
+            if (canDelete) const SizedBox(width: 8),
+          ],
+          if (canDelete)
+            IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () => _confirmDelete(context, ref, diveType),
               tooltip: context.l10n.diveTypes_deleteTooltip,
-            )
-          : null,
+            ),
+        ],
+      ),
     );
   }
 
@@ -109,28 +136,50 @@ class DiveTypesPage extends ConsumerWidget {
     WidgetRef ref,
   ) async {
     final nameController = TextEditingController();
+    final shortNameController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
-    final result = await showDialog<String>(
+    final result = await showDialog<({String name, String? shortName})>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(dialogContext.l10n.diveTypes_addDialog_title),
         content: Form(
           key: formKey,
-          child: TextFormField(
-            controller: nameController,
-            autofocus: true,
-            decoration: InputDecoration(
-              labelText: dialogContext.l10n.diveTypes_addDialog_nameLabel,
-              hintText: dialogContext.l10n.diveTypes_addDialog_nameHint,
-            ),
-            textCapitalization: TextCapitalization.words,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return dialogContext.l10n.diveTypes_addDialog_nameValidation;
-              }
-              return null;
-            },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: dialogContext.l10n.diveTypes_addDialog_nameLabel,
+                  hintText: dialogContext.l10n.diveTypes_addDialog_nameHint,
+                ),
+                textCapitalization: TextCapitalization.words,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return dialogContext
+                        .l10n
+                        .diveTypes_addDialog_nameValidation;
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: shortNameController,
+                decoration: InputDecoration(
+                  labelText:
+                      dialogContext.l10n.diveTypes_addDialog_shortNameLabel,
+                  hintText:
+                      dialogContext.l10n.diveTypes_addDialog_shortNameHint,
+                  helperText:
+                      dialogContext.l10n.diveTypes_addDialog_shortNameHelper,
+                  helperMaxLines: 2,
+                ),
+                textCapitalization: TextCapitalization.words,
+              ),
+            ],
           ),
         ),
         actions: [
@@ -141,7 +190,12 @@ class DiveTypesPage extends ConsumerWidget {
           FilledButton(
             onPressed: () {
               if (formKey.currentState!.validate()) {
-                Navigator.of(dialogContext).pop(nameController.text.trim());
+                Navigator.of(dialogContext).pop((
+                  name: nameController.text.trim(),
+                  shortName: shortNameController.text.trim().isEmpty
+                      ? null
+                      : shortNameController.text.trim(),
+                ));
               }
             },
             child: Text(dialogContext.l10n.diveTypes_addDialog_addButton),
@@ -150,14 +204,17 @@ class DiveTypesPage extends ConsumerWidget {
       ),
     );
 
-    if (result != null && result.isNotEmpty) {
+    if (result != null && result.name.isNotEmpty) {
       try {
         final notifier = ref.read(diveTypeListNotifierProvider.notifier);
-        await notifier.addDiveTypeByName(result);
+        await notifier.addDiveTypeByName(
+          result.name,
+          shortName: result.shortName,
+        );
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(context.l10n.diveTypes_snackbar_added(result)),
+              content: Text(context.l10n.diveTypes_snackbar_added(result.name)),
             ),
           );
         }
@@ -172,6 +229,192 @@ class DiveTypesPage extends ConsumerWidget {
             ),
           );
         }
+      }
+    }
+  }
+
+  /// Edit an existing dive type: name and short name for custom types (the
+  /// name field is disabled for built-ins, whose protected core definition
+  /// updateDiveType refuses to touch), plus the two badge-row visibility
+  /// checkboxes, which are editable on every type regardless of isBuiltIn --
+  /// visibility is a per-diver display preference, not part of that
+  /// protected definition.
+  Future<void> _showEditDiveTypeDialog(
+    BuildContext context,
+    WidgetRef ref,
+    DiveTypeEntity diveType,
+  ) async {
+    final canEditName = !diveType.isBuiltIn;
+    // Built-in names are disabled for editing, so show the localized name
+    // (matching the list tile) rather than the seeded English DB value --
+    // otherwise a German-locale diver would see "Wreck" instead of
+    // "Wracktauchen" in a field they can't even change.
+    final nameController = TextEditingController(
+      text: canEditName ? diveType.name : diveType.localizedName(context.l10n),
+    );
+    final shortNameController = TextEditingController(
+      text: diveType.shortName ?? '',
+    );
+    final formKey = GlobalKey<FormState>();
+    var showInDetailHeader = diveType.showInDetailHeader;
+    var showInListView = diveType.showInListView;
+
+    final result =
+        await showDialog<
+          ({
+            String name,
+            String? shortName,
+            bool showInDetailHeader,
+            bool showInListView,
+          })
+        >(
+          context: context,
+          builder: (dialogContext) => StatefulBuilder(
+            builder: (dialogContext, setState) => AlertDialog(
+              title: Text(dialogContext.l10n.diveTypes_editDialog_title),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: nameController,
+                      enabled: canEditName,
+                      autofocus: canEditName,
+                      decoration: InputDecoration(
+                        labelText:
+                            dialogContext.l10n.diveTypes_addDialog_nameLabel,
+                        helperText: canEditName
+                            ? null
+                            : dialogContext
+                                  .l10n
+                                  .diveTypes_editDialog_builtInNameHelper,
+                        helperMaxLines: 2,
+                      ),
+                      textCapitalization: TextCapitalization.words,
+                      validator: canEditName
+                          ? (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return dialogContext
+                                    .l10n
+                                    .diveTypes_addDialog_nameValidation;
+                              }
+                              return null;
+                            }
+                          : null,
+                    ),
+                    if (canEditName) ...[
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: shortNameController,
+                        decoration: InputDecoration(
+                          labelText: dialogContext
+                              .l10n
+                              .diveTypes_addDialog_shortNameLabel,
+                          hintText: dialogContext
+                              .l10n
+                              .diveTypes_addDialog_shortNameHint,
+                          helperText: dialogContext
+                              .l10n
+                              .diveTypes_addDialog_shortNameHelper,
+                          helperMaxLines: 2,
+                        ),
+                        textCapitalization: TextCapitalization.words,
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    CheckboxListTile(
+                      value: showInDetailHeader,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        dialogContext.l10n.diveTypes_showInHeaderLabel,
+                      ),
+                      subtitle: Text(
+                        dialogContext.l10n.diveTypes_showInHeaderTooltip,
+                      ),
+                      onChanged: (value) =>
+                          setState(() => showInDetailHeader = value ?? true),
+                    ),
+                    CheckboxListTile(
+                      value: showInListView,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(dialogContext.l10n.diveTypes_showInListLabel),
+                      subtitle: Text(
+                        dialogContext.l10n.diveTypes_showInListTooltip,
+                      ),
+                      onChanged: (value) =>
+                          setState(() => showInListView = value ?? true),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(dialogContext.l10n.common_action_cancel),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    if (!canEditName || formKey.currentState!.validate()) {
+                      Navigator.of(dialogContext).pop((
+                        name: nameController.text.trim(),
+                        shortName: shortNameController.text.trim().isEmpty
+                            ? null
+                            : shortNameController.text.trim(),
+                        showInDetailHeader: showInDetailHeader,
+                        showInListView: showInListView,
+                      ));
+                    }
+                  },
+                  child: Text(
+                    dialogContext.l10n.diveTypes_editDialog_saveButton,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+    if (result == null) return;
+
+    try {
+      final notifier = ref.read(diveTypeListNotifierProvider.notifier);
+      if (canEditName) {
+        await notifier.updateDiveType(
+          diveType.copyWith(
+            name: result.name,
+            shortName: result.shortName,
+            showInDetailHeader: result.showInDetailHeader,
+            showInListView: result.showInListView,
+          ),
+        );
+      } else {
+        await notifier.setDiveTypeVisibility(
+          diveType.id,
+          showInDetailHeader: result.showInDetailHeader,
+          showInListView: result.showInListView,
+        );
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.diveTypes_snackbar_updated(result.name)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.diveTypes_snackbar_errorUpdating(e.toString()),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     }
   }

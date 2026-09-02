@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
+import 'package:submersion/shared/widgets/forms/form_style.dart';
 
 Widget _wrap(Widget child) => MaterialApp(
   home: Scaffold(body: Material(child: child)),
+);
+
+/// Same host, but shrink-wrapped so the row reports its own height rather
+/// than filling the body.
+Widget _wrapIntrinsic(Widget child) => MaterialApp(
+  home: Scaffold(
+    body: Material(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [child]),
+    ),
+  ),
 );
 
 void main() {
@@ -332,6 +343,144 @@ void main() {
       await tester.pumpAndSettle();
       expect(value, 0);
       expect(find.byIcon(Icons.clear), findsNothing);
+    });
+
+    testWidgets('rating row clears through onChanged without an onClear', (
+      tester,
+    ) async {
+      var value = 3;
+      await tester.pumpWidget(
+        _wrap(
+          StatefulBuilder(
+            builder: (context, setState) => FormRow.rating(
+              label: 'Rating',
+              value: value,
+              onChanged: (v) => setState(() => value = v),
+            ),
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.clear), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.clear));
+      await tester.pumpAndSettle();
+      expect(value, 0);
+      expect(find.byIcon(Icons.clear), findsNothing);
+      expect(find.byIcon(Icons.star), findsNothing);
+      expect(find.byIcon(Icons.star_border), findsNWidgets(5));
+    });
+
+    testWidgets('rating row hides the clear affordance at zero', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(FormRow.rating(label: 'Rating', value: 0, onChanged: (_) {})),
+      );
+      expect(find.byIcon(Icons.clear), findsNothing);
+    });
+
+    testWidgets('tapping the star that holds the current rating clears it', (
+      tester,
+    ) async {
+      int? rated;
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.rating(
+            label: 'Rating',
+            value: 3,
+            onChanged: (v) => rated = v,
+          ),
+        ),
+      );
+      // The third star is the last filled one, so it carries the current value.
+      await tester.tap(find.byIcon(Icons.star).at(2));
+      expect(rated, 0);
+    });
+
+    testWidgets('tapping below the current rating lowers it instead of '
+        'clearing', (tester) async {
+      int? rated;
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.rating(
+            label: 'Rating',
+            value: 3,
+            onChanged: (v) => rated = v,
+          ),
+        ),
+      );
+      await tester.tap(find.byIcon(Icons.star).first);
+      expect(rated, 1);
+    });
+
+    testWidgets('re-tapping the current rating routes through onClear', (
+      tester,
+    ) async {
+      // A caller that passes onClear has bookkeeping of its own to do, so the
+      // gesture it did not anticipate must not bypass it.
+      var cleared = 0;
+      final reported = <int>[];
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.rating(
+            label: 'Rating',
+            value: 3,
+            onChanged: reported.add,
+            onClear: () => cleared++,
+          ),
+        ),
+      );
+      await tester.tap(find.byIcon(Icons.star).at(2));
+      expect(cleared, 1);
+      expect(reported, isEmpty);
+    });
+
+    testWidgets('clear affordance is as tappable as the row band allows', (
+      tester,
+    ) async {
+      // The X is a 16px glyph, so its tap target has to be stated rather than
+      // inherited from the icon. 26 is the star buttons' own height: filling
+      // that band costs the row nothing, while Material's 48 would push every
+      // row carrying a clear icon from 48 to 66.
+      await tester.pumpWidget(
+        _wrapIntrinsic(
+          FormRow.rating(label: 'Rating', value: 3, onChanged: (_) {}),
+        ),
+      );
+      final target = tester.getSize(
+        find
+            .ancestor(
+              of: find.byIcon(Icons.clear),
+              matching: find.byType(InkWell),
+            )
+            .first,
+      );
+      expect(target.width, FormStyle.clearTapTarget);
+      expect(target.height, FormStyle.clearTapTarget);
+      expect(
+        tester.getSize(find.byType(FormRow)).height,
+        48,
+        reason: 'a bigger target must not make the row taller',
+      );
+    });
+
+    testWidgets('clear affordance carries the caller tooltip', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.rating(
+            label: 'Rating',
+            value: 2,
+            onChanged: (_) {},
+            clearTooltip: 'Clear rating',
+          ),
+        ),
+      );
+      expect(
+        find.byTooltip('Clear rating'),
+        findsOneWidget,
+        reason:
+            'the X is a bare icon, so it needs a name for pointer and '
+            'screen-reader users alike',
+      );
     });
   });
 }

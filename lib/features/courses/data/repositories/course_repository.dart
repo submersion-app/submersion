@@ -137,6 +137,7 @@ class CourseRepository {
   }
 
   /// Get course for a specific dive
+  // stats-scope-exempt: course credit is deliberate, not descriptive
   Future<domain.Course?> getCourseForDive(String diveId) async {
     try {
       final results = await _db
@@ -198,6 +199,11 @@ class CourseRepository {
   }
 
   /// Get count of dives for a course
+  /// Deliberately does NOT apply DiveStatsScope. The diver linked this dive
+  /// to the course on purpose; excluding it from statistics is a statement
+  /// about their logbook averages, not a retraction of course credit. Do not
+  /// "fix" this.
+  // stats-scope-exempt: course credit is deliberate, not descriptive
   Future<int> getDiveCountForCourse(String courseId) async {
     try {
       final result = await _db

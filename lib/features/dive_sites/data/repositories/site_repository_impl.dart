@@ -1,19 +1,27 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
+import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+
+// Re-exported so the many existing `site_repository_impl.dart` importers of
+// SiteWithDiveCount keep compiling after the class moved to the domain layer.
+export 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 
 class SiteRepository {
   /// Injectable seams mirror [DiveRepository]: tests hand in a coordinator
@@ -233,6 +241,86 @@ class SiteRepository {
   ///
   /// Used by the UDDF importer to persist columns that do not flow through
   /// the [domain.DiveSite] entity (e.g. MacDive waterType).
+  /// Stores a looked-up altitude for [siteId] without touching any other
+  /// column. Use this, never `updateSite` with a copied entity, for the
+  /// altitude write-back (issue #1187).
+  Future<void> updateSiteAltitude(String siteId, double altitudeMeters) =>
+      applyImportedMetadata(
+        siteId,
+        DiveSitesCompanion(altitude: Value(altitudeMeters)),
+      );
+
+  /// Stores coordinates (and optionally an altitude) for [siteId] without
+  /// touching any other column.
+  Future<void> updateSiteCoordinates(
+    String siteId,
+    domain.GeoPoint location, {
+    double? altitude,
+  }) => applyImportedMetadata(
+    siteId,
+    DiveSitesCompanion(
+      latitude: Value(location.latitude),
+      longitude: Value(location.longitude),
+      altitude: altitude == null ? const Value.absent() : Value(altitude),
+    ),
+  );
+
+  /// Fills whichever of country, region, city and body of water are still
+  /// empty on [siteId] from [found], leaving every other column untouched
+  /// (issue #1187). Returns true when a column was written. The row is
+  /// marked pending for sync only when something changed.
+  Future<bool> fillMissingLocationDetails(
+    String siteId,
+    PlaceLookup found,
+  ) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final changed = await _db.transaction(() async {
+        final row = await (_db.select(
+          _db.diveSites,
+        )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+        if (row == null) return false;
+
+        final merged = mergeMissingLocationDetails(
+          current: SiteLocationDetails.ofSite(_mapRowToSite(row)),
+          found: found,
+        );
+        if (merged == null) return false;
+
+        Value<String?> column(String? value) =>
+            value == null ? const Value.absent() : Value(value);
+        await (_db.update(
+          _db.diveSites,
+        )..where((t) => t.id.equals(siteId))).write(
+          DiveSitesCompanion(
+            country: column(merged.country),
+            region: column(merged.region),
+            city: column(merged.city),
+            bodyOfWater: column(merged.bodyOfWater),
+            updatedAt: Value(now),
+          ),
+        );
+        return true;
+      });
+      if (!changed) return false;
+
+      await _syncRepository.markRecordPending(
+        entityType: 'diveSites',
+        recordId: siteId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+      return true;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to fill location details for site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Only columns set on [patch] are written; others are left untouched.
   /// Marks the row pending for sync.
   Future<void> applyImportedMetadata(
@@ -764,23 +852,72 @@ class SiteRepository {
     }
   }
 
-  /// Get dive count per site
+  /// Dive count per site. Kept for callers that only need the count; the
+  /// list path uses [getDiveAggregatesBySite].
   Future<Map<String, int>> getDiveCountsBySite() async {
+    final aggregates = await getDiveAggregatesBySite();
+    return aggregates.map((siteId, a) => MapEntry(siteId, a.diveCount));
+  }
+
+  /// One GROUP BY over the dives table: count, most recent dive, and the
+  /// deepest max_depth logged, per site. Sites with no dives are absent.
+  Future<Map<String, SiteDiveAggregate>> getDiveAggregatesBySite() async {
     try {
       final result = await _db.customSelect('''
-        SELECT site_id, COUNT(*) as dive_count
+        SELECT site_id,
+               COUNT(*) AS dive_count,
+               MAX(dive_date_time) AS last_dived,
+               MAX(max_depth) AS max_depth_reached
         FROM dives
-        WHERE site_id IS NOT NULL
+        WHERE site_id IS NOT NULL${DiveStatsScope.and(alias: 'dives')}
         GROUP BY site_id
       ''').get();
 
       return {
         for (final row in result)
-          row.data['site_id'] as String: row.data['dive_count'] as int,
+          row.data['site_id'] as String: SiteDiveAggregate(
+            diveCount: row.data['dive_count'] as int,
+            lastDivedAt: row.data['last_dived'] == null
+                ? null
+                : DateTime.fromMillisecondsSinceEpoch(
+                    row.data['last_dived'] as int,
+                  ),
+            maxDepthReached: (row.data['max_depth_reached'] as num?)
+                ?.toDouble(),
+          ),
       };
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get dive counts by site',
+        'Failed to get dive aggregates by site',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Distinct `site_features.type` names per site, ordered by the first
+  /// feature of each type. One query for the whole list, so a card can show
+  /// feature chips without a per-row lookup.
+  Future<Map<String, List<String>>> getFeatureTypesBySite() async {
+    try {
+      final result = await _db.customSelect('''
+        SELECT site_id, type, MIN(created_at) AS first_seen
+        FROM site_features
+        GROUP BY site_id, type
+        ORDER BY site_id, first_seen
+      ''').get();
+
+      final types = <String, List<String>>{};
+      for (final row in result) {
+        types
+            .putIfAbsent(row.data['site_id'] as String, () => [])
+            .add(row.data['type'] as String);
+      }
+      return types;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get feature types by site',
         error: e,
         stackTrace: stackTrace,
       );
@@ -795,17 +932,19 @@ class SiteRepository {
     try {
       return await PerfTimer.measure('getSitesWithDiveCounts', () async {
         final sites = await getAllSites(diverId: diverId);
-        final counts = await getDiveCountsBySite();
+        final aggregates = await getDiveAggregatesBySite();
+        final featureTypes = await getFeatureTypesBySite();
 
-        return sites
-            .map(
-              (site) => SiteWithDiveCount(
-                site: site,
-                diveCount: counts[site.id] ?? 0,
-              ),
-            )
-            .toList()
-          ..sort((a, b) => b.diveCount.compareTo(a.diveCount));
+        return sites.map((site) {
+          final a = aggregates[site.id];
+          return SiteWithDiveCount(
+            site: site,
+            diveCount: a?.diveCount ?? 0,
+            lastDivedAt: a?.lastDivedAt,
+            maxDepthReached: a?.maxDepthReached,
+            featureTypes: featureTypes[site.id] ?? const [],
+          );
+        }).toList()..sort((a, b) => b.diveCount.compareTo(a.diveCount));
       });
     } catch (e, stackTrace) {
       _log.error(
@@ -817,42 +956,7 @@ class SiteRepository {
     }
   }
 
-  domain.DiveSite _mapRowToSite(DiveSite row) {
-    return domain.DiveSite(
-      id: row.id,
-      diverId: row.diverId,
-      name: row.name,
-      description: row.description,
-      location: row.latitude != null && row.longitude != null
-          ? domain.GeoPoint(row.latitude!, row.longitude!)
-          : null,
-      minDepth: row.minDepth,
-      maxDepth: row.maxDepth,
-      difficulty: domain.SiteDifficulty.fromString(row.difficulty),
-      waterType: row.waterType == null
-          ? null
-          : WaterType.values.asNameMap()[row.waterType],
-      country: row.country,
-      region: row.region,
-      city: row.city,
-      island: row.island,
-      bodyOfWater: row.bodyOfWater,
-      rating: row.rating,
-      notes: row.notes,
-      hazards: row.hazards,
-      accessNotes: row.accessNotes,
-      mooringNumber: row.mooringNumber,
-      parkingInfo: row.parkingInfo,
-      altitude: row.altitude,
-      entryMethod: row.entryMethod == null
-          ? null
-          : EntryMethod.values.asNameMap()[row.entryMethod],
-      exitMethod: row.exitMethod == null
-          ? null
-          : EntryMethod.values.asNameMap()[row.exitMethod],
-      isShared: row.isShared,
-    );
-  }
+  domain.DiveSite _mapRowToSite(DiveSite row) => mapDiveSiteRow(row);
 
   Future<void> _updateSiteRow(domain.DiveSite site, int now) async {
     await (_db.update(_db.diveSites)..where((t) => t.id.equals(site.id))).write(
@@ -1034,13 +1138,6 @@ class SiteRepository {
       }
     }
   }
-}
-
-class SiteWithDiveCount {
-  final domain.DiveSite site;
-  final int diveCount;
-
-  SiteWithDiveCount({required this.site, required this.diveCount});
 }
 
 /// Result returned from a merge operation, containing the survivor ID

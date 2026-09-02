@@ -1,3 +1,5 @@
+import 'dart:ui' show Rect;
+
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/core/services/export/excel/excel_export_service.dart';
@@ -449,8 +451,15 @@ class ExportService {
   Future<String> getExportFilePath(String fileName) =>
       file_utils.getExportFilePath(fileName);
 
-  Future<String> exportImageAsPng(List<int> pngBytes, String fileName) =>
-      file_utils.exportImageAsPng(pngBytes, fileName);
+  Future<String> exportImageAsPng(
+    List<int> pngBytes,
+    String fileName, {
+    Rect? sharePositionOrigin,
+  }) => file_utils.exportImageAsPng(
+    pngBytes,
+    fileName,
+    sharePositionOrigin: sharePositionOrigin,
+  );
 
   Future<String> saveImageToPhotos(List<int> pngBytes, String fileName) =>
       file_utils.saveImageToPhotos(pngBytes, fileName);
@@ -458,8 +467,15 @@ class ExportService {
   Future<String?> saveImageToFile(List<int> pngBytes, String fileName) =>
       file_utils.saveImageToFile(pngBytes, fileName);
 
-  Future<String> sharePdfBytes(List<int> pdfBytes, String fileName) =>
-      file_utils.sharePdfBytes(pdfBytes, fileName);
+  Future<String> sharePdfBytes(
+    List<int> pdfBytes,
+    String fileName, {
+    Rect? sharePositionOrigin,
+  }) => file_utils.sharePdfBytes(
+    pdfBytes,
+    fileName,
+    sharePositionOrigin: sharePositionOrigin,
+  );
 
   Future<String?> savePdfToFile(List<int> pdfBytes, String fileName) =>
       file_utils.savePdfToFile(pdfBytes, fileName);

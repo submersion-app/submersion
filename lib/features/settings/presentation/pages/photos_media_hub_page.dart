@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -75,6 +76,19 @@ class PhotosMediaHubPage extends ConsumerWidget {
               subtitle: Text(l10n.settings_connectedAccounts_subtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push('/settings/connected-accounts'),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _header(context, l10n.settings_photosMedia_displayHeader),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.sell_outlined),
+              title: Text(l10n.settings_media_provenanceBadges),
+              subtitle: Text(l10n.settings_media_provenanceBadgesSubtitle),
+              value: ref.watch(mediaProvenanceBadgesProvider),
+              onChanged: (value) => ref
+                  .read(mediaProvenanceBadgesProvider.notifier)
+                  .setEnabled(value),
             ),
           ),
         ],

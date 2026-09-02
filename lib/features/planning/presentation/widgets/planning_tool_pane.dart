@@ -16,11 +16,21 @@ class PlanningToolPane extends StatelessWidget {
     required this.title,
     required this.child,
     this.actions = const [],
+    this.leading,
   });
 
   final String title;
   final Widget child;
   final List<Widget> actions;
+
+  /// Optional widget shown ahead of the title, where an [AppBar] would put
+  /// its leading slot.
+  ///
+  /// A tool loaded into a detail pane needs nothing here: the surrounding
+  /// page supplies navigation. A tool that is itself a pushed page and puts
+  /// this header on its own master pane needs a back button, because there is
+  /// no [AppBar] to grow one automatically.
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +48,7 @@ class PlanningToolPane extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const SizedBox(width: 8),
+              if (leading != null) leading! else const SizedBox(width: 8),
               // The title is the row's only flexible child. Pairing a
               // Flexible title with a Spacer splits the free space in half
               // and leaves a gap after the last action.

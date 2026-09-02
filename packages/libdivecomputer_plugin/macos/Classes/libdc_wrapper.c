@@ -6,6 +6,7 @@
 #include <libdivecomputer/version.h>
 #include <libdivecomputer/descriptor.h>
 #include <libdivecomputer/iterator.h>
+#include <libdivecomputer/usbhid.h>
 
 #ifdef _WIN32
 #define strcasecmp _stricmp
@@ -175,6 +176,43 @@ static unsigned int uwatec_ble_alias_model(const char *name) {
     return 0;
 }
 
+// Some dive computers advertise an ABBREVIATED BLE name that is neither the
+// libdivecomputer product string nor a prefix of it, so neither the exact-name
+// nor the longest-prefix tiebreaker below can reach the right descriptor. The
+// Uwatec aliases above solve the same problem by model code, but that only
+// works where the models differ: every hw_ostc3 descriptor except OSTC 4 and
+// OSTC 5 carries model 0, so a Heinrichs Weikamp alias has to name its PRODUCT
+// instead.
+//
+// Issue #1246: an OSTC Sport advertises "OSTCs" followed by its serial
+// ("OSTCs 21211"). dc_filter_hw accepts any "OSTC*" name for every hw_ostc3
+// row, and "OSTCs" is not a prefix of "OSTC Sport", so the matcher fell back
+// to the first family row and reported the device as an "OSTC 2". The model is
+// the same either way, so this is a labelling fix, not a download fix.
+//
+// Aliases are compared with product_prefix_len, so an entry also covers the
+// serial-suffixed form and will not match a longer word ("OSTCsomething").
+// Only add an alias with a real advertised name behind it: a wrong guess here
+// silently mislabels hardware. Returns NULL when the name is not a known
+// alias.
+static const char *ble_alias_product(const char *name) {
+    static const struct {
+        const char *alias;
+        const char *product;
+    } aliases[] = {
+        {"OSTCs", "OSTC Sport"}, // issue #1246
+    };
+    if (name == NULL) {
+        return NULL;
+    }
+    for (size_t i = 0; i < sizeof(aliases) / sizeof(aliases[0]); i++) {
+        if (product_prefix_len(name, aliases[i].alias) > 0) {
+            return aliases[i].product;
+        }
+    }
+    return NULL;
+}
+
 int libdc_descriptor_match(const char *name, unsigned int transport,
                            libdc_descriptor_info_t *info) {
     if (name == NULL || info == NULL) {
@@ -229,6 +267,15 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
         }
     }
 
+    // Advertised names that abbreviate their product rather than prefixing it
+    // (see ble_alias_product). Resolved to a product string because the
+    // hw_ostc3 family shares one model code, which the exact-model preference
+    // above cannot tell apart. Issue #1246.
+    const char *alias_product = NULL;
+    if (!has_name_model && (transport & LIBDC_TRANSPORT_BLE)) {
+        alias_product = ble_alias_product(name);
+    }
+
     dc_descriptor_t *desc = NULL;
     int found = 0;
     size_t best_prefix_len = 0;
@@ -259,6 +306,19 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
             if (!has_name_model) {
                 const char *product = dc_descriptor_get_product(desc);
                 if (product && strcasecmp_nospace(name, product) == 0) {
+                    info->vendor = dc_descriptor_get_vendor(desc);
+                    info->product = product;
+                    info->model = dc_descriptor_get_model(desc);
+                    info->transports = dc_descriptor_get_transports(desc);
+                    dc_descriptor_free(desc);
+                    break;
+                }
+
+                // An abbreviated advertised name reaches its product through
+                // the alias table; that beats the prefix tiebreaker below,
+                // which by definition cannot match an abbreviation.
+                if (alias_product && product &&
+                    strcasecmp_nospace(alias_product, product) == 0) {
                     info->vendor = dc_descriptor_get_vendor(desc);
                     info->product = product;
                     info->model = dc_descriptor_get_model(desc);
@@ -323,6 +383,77 @@ int libdc_descriptor_lookup_model(unsigned int transport, unsigned int model,
 
     dc_iterator_free(iter);
     return found;
+}
+
+// ============================================================
+// USB HID Discovery Helpers
+// ============================================================
+
+// Finds the descriptor for an exact vendor/product/model triple.
+// Returns NULL when nothing matches; the caller owns what it gets back and
+// must dc_descriptor_free() it.
+//
+// Vendor and product are compared exactly, unlike the BLE name matcher above:
+// these strings did not come off the air, they came from a descriptor this
+// same table produced, so a spelling difference means a different device.
+static dc_descriptor_t *find_descriptor_exact(const char *vendor,
+                                              const char *product,
+                                              unsigned int model) {
+    if (vendor == NULL || product == NULL) {
+        return NULL;
+    }
+
+    dc_iterator_t *iter = NULL;
+    if (dc_descriptor_iterator(&iter) != DC_STATUS_SUCCESS || iter == NULL) {
+        return NULL;
+    }
+
+    dc_descriptor_t *desc = NULL;
+    dc_descriptor_t *found = NULL;
+    while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
+        const char *desc_vendor = dc_descriptor_get_vendor(desc);
+        const char *desc_product = dc_descriptor_get_product(desc);
+        if (desc_vendor != NULL && desc_product != NULL &&
+            strcmp(desc_vendor, vendor) == 0 &&
+            strcmp(desc_product, product) == 0 &&
+            dc_descriptor_get_model(desc) == model) {
+            found = desc;
+            break;
+        }
+        dc_descriptor_free(desc);
+    }
+
+    dc_iterator_free(iter);
+    return found;
+}
+
+unsigned int libdc_descriptor_transports(const char *vendor, const char *product,
+                                         unsigned int model) {
+    dc_descriptor_t *desc = find_descriptor_exact(vendor, product, model);
+    if (desc == NULL) {
+        return 0;
+    }
+    unsigned int transports = dc_descriptor_get_transports(desc);
+    dc_descriptor_free(desc);
+    return transports;
+}
+
+int libdc_usbhid_match(const char *vendor, const char *product,
+                       unsigned int model,
+                       unsigned short vid, unsigned short pid) {
+    dc_descriptor_t *desc = find_descriptor_exact(vendor, product, model);
+    if (desc == NULL) {
+        return 0;
+    }
+
+    int matched = 0;
+    if (dc_descriptor_get_transports(desc) & DC_TRANSPORT_USBHID) {
+        dc_usbhid_desc_t usbhid = { vid, pid };
+        matched = dc_descriptor_filter(desc, DC_TRANSPORT_USBHID, &usbhid) != 0;
+    }
+
+    dc_descriptor_free(desc);
+    return matched;
 }
 
 void libdc_parsed_dive_free(libdc_parsed_dive_t *dive) {

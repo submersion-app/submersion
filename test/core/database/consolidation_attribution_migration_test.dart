@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 
 void main() {
   late AppDatabase db;
@@ -20,7 +21,10 @@ void main() {
 
   test('v97 adds computer_id to the three attribution tables', () async {
     expect(await columnsOf('dive_tanks'), contains('computer_id'));
-    expect(await columnsOf('tank_pressure_profiles'), contains('computer_id'));
+    // tank_pressure_profiles no longer exists on a fresh install: v183
+    // packed its role into tank_pressure_series, which carries computer_id
+    // as one of its own columns from birth.
+    expect(await columnsOf('tank_pressure_series'), contains('computer_id'));
     expect(await columnsOf('dive_profile_events'), contains('computer_id'));
   });
 
@@ -82,6 +86,14 @@ void main() {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {
           rawDb.execute('PRAGMA user_version = 96');
+          // FK parents the v182/v183 rungs' series tables need to exist at
+          // all (_assertProfileSeriesSchema), same as a real database has
+          // carried since long before v96.
+          rawDb.execute('CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY)');
+          rawDb.execute(
+            'CREATE TABLE dive_computers (id TEXT NOT NULL PRIMARY KEY)',
+          );
+          rawDb.execute("INSERT INTO dives (id) VALUES ('dive-1')");
           rawDb.execute('''
             CREATE TABLE dive_tanks (
               id TEXT NOT NULL PRIMARY KEY,
@@ -140,10 +152,6 @@ void main() {
 
       expect(await upgradedColumnsOf('dive_tanks'), contains('computer_id'));
       expect(
-        await upgradedColumnsOf('tank_pressure_profiles'),
-        contains('computer_id'),
-      );
-      expect(
         await upgradedColumnsOf('dive_profile_events'),
         contains('computer_id'),
       );
@@ -156,6 +164,24 @@ void main() {
           )
           .getSingle();
       expect(tankRow.data['computer_id'], isNull);
+
+      // tank_pressure_profiles is gone by the time this resolves: v182/v183
+      // (later in the same ladder) pack the v97-widened row into
+      // tank_pressure_series and drop the legacy table. computer_id is a
+      // column on that table from birth, so what "adds the column,
+      // preserving rows" becomes here is: the row survives with the same
+      // (null) attribution and the same pressure sample.
+      final tankSeries = await upgradedDb
+          .customSelect(
+            "SELECT computer_id, samples FROM tank_pressure_series "
+            "WHERE dive_id = 'dive-1' AND tank_id = 'tank-1'",
+          )
+          .getSingle();
+      expect(tankSeries.data['computer_id'], isNull);
+      expect(
+        const TankPressureSeriesCodec().decode(tankSeries.read('samples')),
+        [const TankPressureSample(timestamp: 0, pressure: 200.0)],
+      );
     },
   );
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Canonical metadata for a single bottom-nav / nav-rail destination.
@@ -38,7 +39,7 @@ class NavDestination {
 
 /// The complete, ordered list of nav destinations in default wide-screen order.
 ///
-/// Length is **15** — 14 routable destinations plus the `more` sentinel.
+/// Length is **17**: 16 routable destinations plus the `more` sentinel.
 final List<NavDestination> kNavDestinations = List.unmodifiable([
   NavDestination(
     id: 'dashboard',
@@ -75,6 +76,17 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     icon: Icons.photo_library_outlined,
     selectedIcon: Icons.photo_library,
     label: (l10n) => l10n.nav_media,
+  ),
+  // Species sits with Media: both are records of what a dive turned up,
+  // rather than the logistics entities that follow. Material has no fish
+  // glyph, so this borrows MDI's and reuses it for the selected state the
+  // way `gps-log` reuses its icon.
+  NavDestination(
+    id: 'species',
+    route: '/species',
+    icon: MdiIcons.fish,
+    selectedIcon: MdiIcons.fish,
+    label: (l10n) => l10n.nav_species,
   ),
   NavDestination(
     id: 'equipment',
@@ -159,7 +171,7 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
   ),
 ]);
 
-/// The 13 ids that can be moved between primary slots and overflow.
+/// The ids that can be moved between primary slots and overflow.
 final List<String> movableNavIds = List.unmodifiable(
   kNavDestinations.where((d) => !d.isPinned).map((d) => d.id),
 );

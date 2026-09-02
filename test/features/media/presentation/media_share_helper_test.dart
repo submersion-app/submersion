@@ -73,6 +73,7 @@ void main() {
   Widget host({
     required List<MediaItem> items,
     required ResolvedAssetResult Function(MediaItem) resolve,
+    Rect? anchor,
   }) {
     return ProviderScope(
       overrides: [
@@ -87,7 +88,8 @@ void main() {
         home: Scaffold(
           body: Consumer(
             builder: (context, ref, _) => TextButton(
-              onPressed: () => shareMediaItems(context, ref, items),
+              onPressed: () =>
+                  shareMediaItems(context, ref, items, anchor: anchor),
               child: const Text('SHARE'),
             ),
           ),
@@ -249,5 +251,40 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.textContaining('Failed to share'), findsOneWidget);
     expect(platform.calls, isEmpty);
+  });
+
+  group('iPad share popover anchor', () {
+    // On iPad the share sheet is a popover and must point at the control that
+    // opened it. share_plus takes that as ShareParams.sharePositionOrigin;
+    // with none it centres the popover, so the arrow points at nothing.
+    testWidgets('an explicit anchor reaches ShareParams', (tester) async {
+      const anchor = Rect.fromLTWH(12, 34, 56, 78);
+
+      await tester.pumpWidget(
+        host(items: [item('a')], resolve: (_) => resolved(), anchor: anchor),
+      );
+
+      await tapShareAndDrain(tester);
+
+      expect(platform.calls.single.sharePositionOrigin, anchor);
+    });
+
+    testWidgets('falls back to the calling widget rather than nothing', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(items: [item('a')], resolve: (_) => resolved()),
+      );
+
+      await tapShareAndDrain(tester);
+
+      final origin = platform.calls.single.sharePositionOrigin;
+      expect(origin, isNotNull);
+      // The host hands over a Consumer's context, which contributes no render
+      // object, so the rect resolves to the share button below it -- the whole
+      // TextButton, not just its label.
+      expect(origin, tester.getRect(find.byType(TextButton)));
+      expect(origin!.isEmpty, isFalse);
+    });
   });
 }

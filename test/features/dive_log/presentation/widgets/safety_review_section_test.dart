@@ -462,11 +462,184 @@ void main() {
       );
     });
   });
+
+  group('bulk dismiss', () {
+    Future<_RecordingSafetyRepo> pumpBulk(
+      WidgetTester tester,
+      SafetyReview review, {
+      AppSettings? settings,
+    }) async {
+      final repo = _RecordingSafetyRepo();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => MockSettingsNotifier(settings),
+            ),
+            safetyFindingsRepositoryProvider.overrideWithValue(repo),
+            safetyReviewProvider('dive-1').overrideWith((ref) async => review),
+          ],
+          child: localizedMaterialApp(
+            home: const Scaffold(
+              body: SingleChildScrollView(
+                child: SafetyReviewSection(diveId: 'dive-1'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    testWidgets('dismiss all sends one bulk call for the dive', (tester) async {
+      final repo = await pumpBulk(
+        tester,
+        reviewWith([
+          rapidAscent(),
+          finding(
+            SafetyRuleId.sawtoothProfile,
+            severity: SafetySeverity.info,
+            value: 4,
+            id: 'f2',
+          ),
+        ]),
+      );
+
+      await tester.tap(find.text('Dismiss all'));
+      await tester.pumpAndSettle();
+
+      expect(repo.bulkCalls, hasLength(1));
+      expect(repo.bulkCalls.single.diveIds, ['dive-1']);
+      expect(repo.bulkCalls.single.dismissed, isTrue);
+      expect(
+        repo.calls,
+        isEmpty,
+        reason: 'one bulk write, not one call per finding',
+      );
+    });
+
+    testWidgets('offers restore all once nothing is active', (tester) async {
+      final repo = await pumpBulk(
+        tester,
+        reviewWith([rapidAscent(dismissedAt: now)]),
+      );
+
+      expect(find.text('Dismiss all'), findsNothing);
+      await tester.tap(find.text('Restore all'));
+      await tester.pumpAndSettle();
+
+      expect(repo.bulkCalls.single.dismissed, isFalse);
+    });
+
+    testWidgets('passes only the rules the diver has enabled', (tester) async {
+      final repo = await pumpBulk(
+        tester,
+        reviewWith([rapidAscent()]),
+        settings: const AppSettings(
+          safetyReviewDisabledRules: {'sawtoothProfile'},
+        ),
+      );
+
+      await tester.tap(find.text('Dismiss all'));
+      await tester.pumpAndSettle();
+
+      final ruleIds = repo.bulkCalls.single.ruleIds;
+      expect(ruleIds, contains(SafetyRuleId.rapidAscent.dbValue));
+      expect(
+        ruleIds,
+        isNot(contains(SafetyRuleId.sawtoothProfile.dbValue)),
+        reason: 'a rule hidden in settings must not be dismissed unseen',
+      );
+    });
+
+    testWidgets('dismiss all clears the chart highlight', (tester) async {
+      final repo = _RecordingSafetyRepo();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            safetyFindingsRepositoryProvider.overrideWithValue(repo),
+            safetyReviewProvider(
+              'dive-1',
+            ).overrideWith((ref) async => reviewWith([rapidAscent()])),
+          ],
+          child: localizedMaterialApp(
+            home: const Scaffold(
+              body: SingleChildScrollView(
+                child: SafetyReviewSection(diveId: 'dive-1'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Ascent exceeded'));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SafetyReviewSection)),
+      );
+      expect(
+        container.read(selectedSafetyFindingProvider('dive-1')),
+        isNotNull,
+      );
+
+      await tester.tap(find.text('Dismiss all'));
+      await tester.pumpAndSettle();
+
+      expect(
+        container.read(selectedSafetyFindingProvider('dive-1')),
+        isNull,
+        reason: 'a dismissed finding must not stay highlighted on the chart',
+      );
+    });
+
+    testWidgets('the footer fits a narrow screen in a long locale', (
+      tester,
+    ) async {
+      // The state the primary action lands in: everything dismissed, so the
+      // "show dismissed" toggle and "restore all" render side by side. German
+      // labels are roughly twice the width of the English ones, which is why
+      // an English-only test would not catch a row overflow here.
+      await tester.binding.setSurfaceSize(const Size(360, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            safetyFindingsRepositoryProvider.overrideWithValue(
+              _RecordingSafetyRepo(),
+            ),
+            safetyReviewProvider('dive-1').overrideWith(
+              (ref) async => reviewWith([rapidAscent(dismissedAt: now)]),
+            ),
+          ],
+          child: localizedMaterialApp(
+            locale: const Locale('de'),
+            home: const Scaffold(
+              body: SingleChildScrollView(
+                child: SafetyReviewSection(diveId: 'dive-1'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alle wiederherstellen'), findsOneWidget);
+      expect(find.textContaining('Ausgeblendete anzeigen'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
 }
 
-/// Records [setDismissed] calls without touching a database.
+/// Records dismiss calls without touching a database.
 class _RecordingSafetyRepo extends SafetyFindingsRepository {
   final List<(String, bool)> calls = [];
+  final List<({List<String> diveIds, bool dismissed, Set<String> ruleIds})>
+  bulkCalls = [];
 
   @override
   Future<void> setDismissed({
@@ -475,5 +648,21 @@ class _RecordingSafetyRepo extends SafetyFindingsRepository {
     required DateTime now,
   }) async {
     calls.add((findingId, dismissed));
+  }
+
+  @override
+  Future<int> setDismissedForDives({
+    required List<String> diveIds,
+    required bool dismissed,
+    required Set<String> enabledRuleIds,
+    required DateTime now,
+    int chunkSize = SafetyFindingsRepository.dismissChunkSize,
+  }) async {
+    bulkCalls.add((
+      diveIds: diveIds,
+      dismissed: dismissed,
+      ruleIds: enabledRuleIds,
+    ));
+    return diveIds.length;
   }
 }

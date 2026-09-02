@@ -133,57 +133,96 @@ class LocalMediaHandler: NSObject {
         }
     }
 
+    /// Mints a bookmark.
+    ///
+    /// Off the platform thread: bookmarking a file in a Files-provider
+    /// location that is not downloaded yet blocks in the same way reading one
+    /// does, and the platform thread is the one that paints frames.
     private func createBookmark(filePath: String, result: @escaping FlutterResult) {
-        let url = URL(fileURLWithPath: filePath)
-        do {
-            let data = try url.bookmarkData(
-                options: .minimalBookmark,
-                includingResourceValuesForKeys: nil,
-                relativeTo: nil
-            )
-            result(FlutterStandardTypedData(bytes: data))
-        } catch {
-            result(
-                FlutterError(
-                    code: "BOOKMARK_FAILED",
-                    message: "Could not create bookmark: \(error.localizedDescription)",
-                    details: nil
-                ))
+        DispatchQueue.global(qos: .userInitiated).async {
+            let url = URL(fileURLWithPath: filePath)
+            do {
+                let data = try url.bookmarkData(
+                    options: .minimalBookmark,
+                    includingResourceValuesForKeys: nil,
+                    relativeTo: nil
+                )
+                DispatchQueue.main.async {
+                    result(FlutterStandardTypedData(bytes: data))
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    result(
+                        FlutterError(
+                            code: "BOOKMARK_FAILED",
+                            message:
+                                "Could not create bookmark: \(error.localizedDescription)",
+                            details: nil
+                        ))
+                }
+            }
         }
     }
 
+    /// Resolves a bookmark and starts security-scoped access.
+    ///
+    /// Off the platform thread for the same reason as readBookmarkBytes:
+    /// resolving a bookmark touches the location it points at. `active` is
+    /// main-thread-owned state and is mutated back on main.
     private func resolveBookmark(blob: Data, result: @escaping FlutterResult) {
-        var stale = false
-        do {
-            let url = try URL(
-                resolvingBookmarkData: blob,
-                options: [],
-                relativeTo: nil,
-                bookmarkDataIsStale: &stale
-            )
-            guard url.startAccessingSecurityScopedResource() else {
-                result(
-                    FlutterError(
-                        code: "ACCESS_DENIED",
-                        message: "Security-scoped resource access denied",
-                        details: nil
-                    ))
-                return
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            var stale = false
+            do {
+                let url = try URL(
+                    resolvingBookmarkData: blob,
+                    options: [],
+                    relativeTo: nil,
+                    bookmarkDataIsStale: &stale
+                )
+                guard url.startAccessingSecurityScopedResource() else {
+                    DispatchQueue.main.async {
+                        result(
+                            FlutterError(
+                                code: "ACCESS_DENIED",
+                                message: "Security-scoped resource access denied",
+                                details: nil
+                            ))
+                    }
+                    return
+                }
+                let ref = UUID().uuidString
+                let isStale = stale
+                DispatchQueue.main.async {
+                    guard let self else {
+                        // The handler went away mid-resolve, so nothing will
+                        // ever release this scope. Balance it here.
+                        url.stopAccessingSecurityScopedResource()
+                        result(
+                            FlutterError(
+                                code: "RESOLVE_FAILED",
+                                message: "Handler released before the bookmark resolved",
+                                details: nil
+                            ))
+                        return
+                    }
+                    self.active[ref] = url
+                    result([
+                        "bookmarkRef": ref,
+                        "filePath": url.path,
+                        "stale": isStale,
+                    ])
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    result(
+                        FlutterError(
+                            code: "RESOLVE_FAILED",
+                            message:
+                                "Could not resolve bookmark: \(error.localizedDescription)",
+                            details: nil
+                        ))
+                }
             }
-            let ref = UUID().uuidString
-            active[ref] = url
-            result([
-                "bookmarkRef": ref,
-                "filePath": url.path,
-                "stale": stale,
-            ])
-        } catch {
-            result(
-                FlutterError(
-                    code: "RESOLVE_FAILED",
-                    message: "Could not resolve bookmark: \(error.localizedDescription)",
-                    details: nil
-                ))
         }
     }
 
@@ -202,34 +241,50 @@ class LocalMediaHandler: NSObject {
         result(nil)
     }
 
+    /// Reads the bookmarked file's bytes.
+    ///
+    /// Runs off the platform thread. `Data(contentsOf:)` is a synchronous
+    /// whole-file read and this is the ordinary path for every local media
+    /// item, grid thumbnails included. Against a Files-provider location that
+    /// has not been downloaded yet it blocks until the provider answers, and a
+    /// FlutterMethodChannel handler body runs on the thread that paints frames.
     private func readBookmarkBytes(blob: Data, result: @escaping FlutterResult) {
-        var stale = false
-        do {
-            let url = try URL(
-                resolvingBookmarkData: blob,
-                options: [],
-                relativeTo: nil,
-                bookmarkDataIsStale: &stale
-            )
-            guard url.startAccessingSecurityScopedResource() else {
-                result(
-                    FlutterError(
-                        code: "ACCESS_DENIED",
-                        message: "Security-scoped resource access denied",
-                        details: nil
-                    ))
-                return
+        DispatchQueue.global(qos: .userInitiated).async {
+            var stale = false
+            do {
+                let url = try URL(
+                    resolvingBookmarkData: blob,
+                    options: [],
+                    relativeTo: nil,
+                    bookmarkDataIsStale: &stale
+                )
+                guard url.startAccessingSecurityScopedResource() else {
+                    DispatchQueue.main.async {
+                        result(
+                            FlutterError(
+                                code: "ACCESS_DENIED",
+                                message: "Security-scoped resource access denied",
+                                details: nil
+                            ))
+                    }
+                    return
+                }
+                defer { url.stopAccessingSecurityScopedResource() }
+                let data = try Data(contentsOf: url)
+                DispatchQueue.main.async {
+                    result(FlutterStandardTypedData(bytes: data))
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    result(
+                        FlutterError(
+                            code: "READ_FAILED",
+                            message:
+                                "Could not read bookmark bytes: \(error.localizedDescription)",
+                            details: nil
+                        ))
+                }
             }
-            defer { url.stopAccessingSecurityScopedResource() }
-            let data = try Data(contentsOf: url)
-            result(FlutterStandardTypedData(bytes: data))
-        } catch {
-            result(
-                FlutterError(
-                    code: "READ_FAILED",
-                    message: "Could not read bookmark bytes: \(error.localizedDescription)",
-                    details: nil
-                ))
         }
     }
 }

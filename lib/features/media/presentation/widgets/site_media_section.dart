@@ -84,7 +84,11 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
             selectedIds.length,
           ),
         ),
-        content: Text(ctx.l10n.media_siteMediaSection_unlinkSelectedContent),
+        content: Text(
+          ctx.l10n.media_siteMediaSection_unlinkSelectedContent(
+            selectedIds.length,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -102,7 +106,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
       try {
         await ref
             .read(siteMediaListNotifierProvider(widget.siteId).notifier)
-            .deleteMultipleMedia(selectedIds);
+            .unlinkMultipleMedia(selectedIds);
 
         _exitSelectionMode();
 
@@ -121,9 +125,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                context.l10n.media_diveMediaSection_unlinkError(e.toString()),
-              ),
+              content: Text(context.l10n.media_siteMediaSection_unlinkError(e)),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -193,8 +195,9 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                       controller: _selection,
                       selectableIds: media.map((m) => m.id).toList(),
                       shell: SelectionBarShell.pane,
-                      // Unlinking removes media from this site without
-                      // destroying files, so there is no true delete here.
+                      // Unlinking removes the rows from the library unless
+                      // a dive still uses them; files on disk are never
+                      // touched. There is no separate delete here.
                       onDelete: null,
                       actions: [
                         BulkAction(

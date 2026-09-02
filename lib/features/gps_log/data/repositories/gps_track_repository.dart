@@ -359,7 +359,15 @@ class GpsTrackRepository {
       } else if (row.points != null && row.pointCount > 0) {
         // A checkpoint survived but the buffer is gone: close the track at
         // its last checkpointed point.
-        final points = decodeTrackPoints(Uint8List.fromList(row.points!));
+        final points = _decodePointsOrNull(row.id, row.points!);
+        if (points == null || points.isEmpty) {
+          // Left open and left alone. Recovery walks every orphan, so one
+          // unreadable checkpoint must not abort the rest, and closing this
+          // track would overwrite the only copy of the blob. A row whose
+          // pointCount disagrees with an empty array lands here too: there
+          // is no last point to close it at.
+          continue;
+        }
         await _writeBlob(
           row.id,
           points,
@@ -414,6 +422,31 @@ class GpsTrackRepository {
     }
   }
 
+  /// Decodes a stored points blob, or null if it cannot be read.
+  ///
+  /// The blob is peer-supplied - gpsTracks syncs, and the points column
+  /// rides as base64 - so a malformed one is a data condition, not a
+  /// programming error. Every caller here degrades to a track with no points
+  /// rather than propagating: the alternative is that one bad row from one
+  /// device throws out of a repository read and takes the whole GPS log with
+  /// it. This is NOT the derived geometry cache, so the failure is logged at
+  /// error and the blob is left in place; nothing here silently repairs or
+  /// discards the only copy of a track's points.
+  List<domain.GpsTrackPoint>? _decodePointsOrNull(String id, Uint8List blob) {
+    try {
+      // Drift hands back a Uint8List already; copying it would double the
+      // peak allocation on every read of a large track.
+      return decodeTrackPoints(blob);
+    } on TrackPointCodecException catch (e, stackTrace) {
+      _log.error(
+        'Unreadable points blob on GPS track $id; reporting it with no points',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
   domain.GpsTrack _toDomain(GpsTrackRow row, {required bool includePoints}) {
     return domain.GpsTrack(
       id: row.id,
@@ -423,7 +456,7 @@ class GpsTrackRepository {
       deviceName: row.deviceName,
       pointCount: row.pointCount,
       points: includePoints && row.points != null
-          ? decodeTrackPoints(Uint8List.fromList(row.points!))
+          ? _decodePointsOrNull(row.id, row.points!) ?? const []
           : const [],
       source: row.source,
       sourceRef: row.sourceRef,

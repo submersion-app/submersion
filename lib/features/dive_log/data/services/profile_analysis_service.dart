@@ -11,6 +11,8 @@ import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
+import 'package:submersion/core/deco/entities/gradient_factor_source.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
@@ -288,6 +290,12 @@ class ProfileAnalysis {
   /// Time To Surface at each profile point (seconds)
   final List<int>? ttsCurve;
 
+  /// Gas time remaining at each profile point (seconds); null entries are
+  /// where an air-integrated computer would blank the display (surface, SAC
+  /// window not yet full, pressure not falling, deco ceiling). Null when the
+  /// dive has no pressure data. See [calculateGtrCurve].
+  final List<int?>? gtrCurve;
+
   /// Cumulative CNS% at each profile point (includes residual from prior dives)
   final List<double>? cnsCurve;
 
@@ -305,6 +313,22 @@ class ProfileAnalysis {
 
   /// Dive duration in seconds
   final int durationSeconds;
+
+  /// The gradient factors this analysis ran with, and where they came from.
+  ///
+  /// Every deco-derived number here -- [ceilingCurve], [ndlCurve], [ttsCurve],
+  /// [gfCurve], [surfaceGfCurve], [decoStatuses] -- is a function of this pair,
+  /// so a surface that prints any of them can say what produced them. When the
+  /// dive recorded no gradient factors the origin is [GfOrigin.diverSettings],
+  /// and displaying the numbers without that qualifier is the #1047 bug.
+  ///
+  /// Null means unattributed, which is a state rather than a number: an
+  /// analysis nobody configured has no business claiming any diver's settings.
+  /// [ProfileAnalysisService] always stamps its own, so null in practice means
+  /// a directly-constructed [ProfileAnalysis] (chiefly [ProfileAnalysis.empty]
+  /// and tests built on it). Consumers fall back to the per-sample
+  /// [DecoStatus] pair and show no provenance.
+  final GradientFactorSource? gfSource;
 
   const ProfileAnalysis({
     required this.ascentRates,
@@ -331,12 +355,14 @@ class ProfileAnalysis {
     this.surfaceGfCurve,
     this.meanDepthCurve,
     this.ttsCurve,
+    this.gtrCurve,
     this.cnsCurve,
     this.otuCurve,
     required this.maxDepth,
     required this.averageDepth,
     required this.maxDepthTimestamp,
     required this.durationSeconds,
+    this.gfSource,
   });
 
   /// Whether diver went into decompression obligation
@@ -390,6 +416,11 @@ class ProfileAnalysis {
   /// Whether TTS curve data is available
   bool get hasTtsData => ttsCurve != null && ttsCurve!.isNotEmpty;
 
+  /// Whether any sample carries a gas time remaining value. A curve of
+  /// nothing but blanks is not data, and the chart's own availability check
+  /// agrees; the two must not disagree about whether to offer the metric.
+  bool get hasGtrData => gtrCurve?.any((v) => v != null) ?? false;
+
   /// Whether CNS curve data is available
   bool get hasCnsData => cnsCurve != null && cnsCurve!.isNotEmpty;
 
@@ -422,12 +453,14 @@ class ProfileAnalysis {
     List<double>? surfaceGfCurve,
     List<double>? meanDepthCurve,
     List<int>? ttsCurve,
+    List<int?>? gtrCurve,
     List<double>? cnsCurve,
     List<double>? otuCurve,
     double? maxDepth,
     double? averageDepth,
     int? maxDepthTimestamp,
     int? durationSeconds,
+    GradientFactorSource? gfSource,
   }) {
     return ProfileAnalysis(
       ascentRates: ascentRates ?? this.ascentRates,
@@ -455,12 +488,14 @@ class ProfileAnalysis {
       surfaceGfCurve: surfaceGfCurve ?? this.surfaceGfCurve,
       meanDepthCurve: meanDepthCurve ?? this.meanDepthCurve,
       ttsCurve: ttsCurve ?? this.ttsCurve,
+      gtrCurve: gtrCurve ?? this.gtrCurve,
       cnsCurve: cnsCurve ?? this.cnsCurve,
       otuCurve: otuCurve ?? this.otuCurve,
       maxDepth: maxDepth ?? this.maxDepth,
       averageDepth: averageDepth ?? this.averageDepth,
       maxDepthTimestamp: maxDepthTimestamp ?? this.maxDepthTimestamp,
       durationSeconds: durationSeconds ?? this.durationSeconds,
+      gfSource: gfSource ?? this.gfSource,
     );
   }
 
@@ -497,8 +532,15 @@ class ProfileAnalysisService {
   final AscentRateCalculator _ascentRateCalculator;
   final O2ToxicityCalculator _o2ToxicityCalculator;
   final BuhlmannAlgorithm _buhlmannAlgorithm;
+  final GradientFactorSource _gfSource;
   final Uuid _uuid;
 
+  /// [gfSource] names the gradient factors AND where they came from, and takes
+  /// precedence over [gfLow]/[gfHigh] when given (#1047). Passing the pair and
+  /// its provenance as one value is what stops the analysis from reporting one
+  /// set of numbers while having decompressed on another. Callers that supply
+  /// only [gfLow]/[gfHigh] are, by construction, configuring the service from
+  /// the diver's own settings, so the derived source says so.
   ProfileAnalysisService({
     double ascentRateWarning = 9.0,
     double ascentRateCritical = 12.0,
@@ -507,6 +549,7 @@ class ProfileAnalysisService {
     int cnsWarningThreshold = 80,
     double gfLow = 0.30,
     double gfHigh = 0.70,
+    GradientFactorSource? gfSource,
     double lastStopDepth = 3.0,
     double decoStopIncrement = 3.0,
     DiveEnvironment environment = DiveEnvironment.standard,
@@ -522,13 +565,23 @@ class ProfileAnalysisService {
          cnsMethod: cnsCalculationMethod,
        ),
        _buhlmannAlgorithm = BuhlmannAlgorithm(
-         gfLow: gfLow,
-         gfHigh: gfHigh,
+         gfLow: gfSource?.lowFraction ?? gfLow,
+         gfHigh: gfSource?.highFraction ?? gfHigh,
          lastStopDepth: lastStopDepth,
          stopIncrement: decoStopIncrement,
          environment: environment,
        ),
+       _gfSource =
+           gfSource ??
+           GradientFactorSource(
+             low: (gfLow * 100).round(),
+             high: (gfHigh * 100).round(),
+             origin: GfOrigin.diverSettings,
+           ),
        _uuid = const Uuid();
+
+  /// The gradient factors this service decompresses with, and their origin.
+  GradientFactorSource get gfSource => _gfSource;
 
   /// Analyze a complete dive profile.
   ///
@@ -577,9 +630,12 @@ class ProfileAnalysisService {
     List<ProfileGasSegment>? gasSegments,
     AscentGasPlan? ascentGasPlan,
     List<double>? rebreatherPpO2Curve,
+    double gtrReserveBar = defaultGtrReserveBar,
   }) {
     if (depths.isEmpty || depths.length != timestamps.length) {
-      return ProfileAnalysis.empty();
+      // Still an answer from a configured service, so it can say which
+      // gradient factors it would have used.
+      return ProfileAnalysis.empty().copyWith(gfSource: _gfSource);
     }
 
     // Repair implausible single-sample depth readings once, here, so every
@@ -650,6 +706,7 @@ class ProfileAnalysisService {
         durationSeconds: timestamps.isNotEmpty
             ? timestamps.last - timestamps.first
             : 0,
+        gfSource: _gfSource,
       );
     }
 
@@ -895,6 +952,18 @@ class ProfileAnalysisService {
     final surfaceGfCurve = _calculateSurfaceGfCurve(decoStatuses);
     final meanDepthCurve = _calculateMeanDepthCurve(depths);
     final ttsCurve = decoStatuses.map((s) => s.ttsSeconds).toList();
+    // Same pressure track as the SAC curve, blanked by this analysis's own
+    // ceiling so GTR and the deco band never disagree about deco being in
+    // force.
+    final gtrCurve = pressures != null && pressures.length == depths.length
+        ? calculateGtrCurve(
+            depths: depths,
+            timestamps: timestamps,
+            pressures: pressures,
+            reserveBar: gtrReserveBar,
+            ceilings: ceilingCurve,
+          )
+        : null;
     final cnsCurve =
         ocGasMetrics?.cnsCurve ??
         _calculateCnsCurve(
@@ -928,12 +997,14 @@ class ProfileAnalysisService {
       surfaceGfCurve: surfaceGfCurve,
       meanDepthCurve: meanDepthCurve,
       ttsCurve: ttsCurve,
+      gtrCurve: gtrCurve,
       cnsCurve: cnsCurve,
       otuCurve: otuCurve,
       maxDepth: maxDepth,
       averageDepth: averageDepth,
       maxDepthTimestamp: maxDepthTimestamp,
       durationSeconds: durationSeconds,
+      gfSource: _gfSource,
     );
   }
 

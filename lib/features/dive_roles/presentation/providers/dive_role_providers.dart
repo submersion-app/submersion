@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final diveRoleRepositoryProvider = Provider<DiveRoleRepository>((ref) {
@@ -37,7 +38,11 @@ class DiveRoleListNotifier extends StateNotifier<AsyncValue<List<DiveRole>>> {
 
   DiveRoleListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      DiveRoleListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -45,7 +50,11 @@ class DiveRoleListNotifier extends StateNotifier<AsyncValue<List<DiveRole>>> {
         state = const AsyncValue.loading();
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(allDiveRolesProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          DiveRoleListNotifier,
+          'initialize and load',
+        );
       }
     });
 

@@ -39,6 +39,13 @@ class DefaultVisibleMetricsPage extends ConsumerWidget {
             onChanged: notifier.setDefaultShowPressure,
           ),
           SwitchListTile(
+            title: Text(
+              context.l10n.settings_appearance_metric_estimatedTankPressure,
+            ),
+            value: settings.defaultShowEstimatedTankPressure,
+            onChanged: notifier.setDefaultShowEstimatedTankPressure,
+          ),
+          SwitchListTile(
             title: Text(context.l10n.settings_appearance_metric_heartRate),
             value: settings.defaultShowHeartRate,
             onChanged: notifier.setDefaultShowHeartRate,
@@ -94,6 +101,11 @@ class DefaultVisibleMetricsPage extends ConsumerWidget {
             onChanged: notifier.setDefaultShowTts,
           ),
           SwitchListTile(
+            title: Text(context.l10n.settings_appearance_metric_gtr),
+            value: settings.defaultShowGtr,
+            onChanged: notifier.setDefaultShowGtr,
+          ),
+          SwitchListTile(
             title: Text(context.l10n.settings_appearance_metric_cns),
             value: settings.defaultShowCns,
             onChanged: notifier.setDefaultShowCns,
@@ -127,6 +139,11 @@ class DefaultVisibleMetricsPage extends ConsumerWidget {
             title: Text(context.l10n.settings_appearance_metric_gasDensity),
             value: settings.defaultShowGasDensity,
             onChanged: notifier.setDefaultShowGasDensity,
+          ),
+          SwitchListTile(
+            title: Text(context.l10n.diveLog_legend_label_o2Cells),
+            value: settings.defaultShowO2CellMv,
+            onChanged: notifier.setDefaultShowO2CellMv,
           ),
           const Divider(),
           _buildSectionHeader(

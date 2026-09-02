@@ -118,6 +118,15 @@ class Dive extends Equatable {
   final double? weightingFeedbackKg;
   // Favorites and tags (v1.1/v1.5)
   final bool isFavorite;
+
+  /// Excluded from every descriptive statistic, its count included (#526).
+  /// The dive stays fully visible and editable in the logbook.
+  final bool excludedFromStats;
+
+  /// Excluded from SAC/RMV and gas-mix aggregates only (#1272), for a dive
+  /// whose gas number is unrepresentative. Implied by [excludedFromStats];
+  /// the implication is applied in SQL by DiveStatsScope, not stored here.
+  final bool excludedFromGasStats;
   final List<Tag> tags;
 
   // Dive mode (v1.5) - OC, CCR, or SCR
@@ -233,6 +242,8 @@ class Dive extends Equatable {
     this.weightingFeedback,
     this.weightingFeedbackKg,
     this.isFavorite = false,
+    this.excludedFromStats = false,
+    this.excludedFromGasStats = false,
     this.tags = const [],
     // CCR/SCR fields (v1.5)
     this.diveMode = DiveMode.oc,
@@ -352,17 +363,19 @@ class Dive extends Equatable {
   List<DiveTank> get bailoutTanks =>
       tanks.where((t) => t.role == TankRole.bailout).toList();
 
-  /// Air consumption rate in L/min at surface (Surface Air Consumption)
-  /// under [model], summing gas consumed across all tanks with valid data.
+  /// RMV: respiratory minute volume in L/min at the surface under [model],
+  /// summing gas consumed across every tank that has pressures and a volume.
+  ///
+  /// This is the diver's property (how much gas their lungs move), so every
+  /// cylinder counts. Its pressure-lane sibling [sac] reads one reference
+  /// cylinder instead, because a pressure drop is a property of that
+  /// cylinder's size (discussions #354, #803).
   ///
   /// Takes the model as a parameter rather than reading a provider so the
-  /// entity stays free of container dependencies, mirroring how
-  /// `extractDiveFieldValue` threads the SAC unit preference. Callers source
-  /// it from `gasModelProvider`.
-  ///
-  /// The runtime is used verbatim: nothing is added for a safety stop
-  /// (issue #828).
-  double? sacFor(GasModel model) {
+  /// entity stays free of container dependencies. Callers source it from
+  /// `gasModelProvider`. The runtime is used verbatim: nothing is added for
+  /// a safety stop (issue #828).
+  double? rmvFor(GasModel model) {
     if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
       return null;
     }
@@ -415,10 +428,26 @@ class Dive extends Equatable {
     return totalGasLiters / minutes / avgPressureBar;
   }
 
-  /// Air consumption rate in pressure units per minute (bar/min or psi/min)
-  /// This is a simpler calculation that doesn't require tank volume.
-  /// It calculates the average pressure drop per minute adjusted for depth.
-  double? get sacPressure {
+  /// The cylinder the pressure lane ([sac]) reads, and the one whose
+  /// volume converts an unattributed SAC segment to L/min: on a multi-tank
+  /// dive the back gas, else the first cylinder; the only cylinder on a
+  /// single-tank dive whatever its role. Null when the dive has no cylinders.
+  DiveTank? get sacReferenceTank {
+    if (tanks.isEmpty) return null;
+    if (tanks.length == 1) return tanks.first;
+    return tanks.firstWhere(
+      (t) => t.role == TankRole.backGas,
+      orElse: () => tanks.first,
+    );
+  }
+
+  /// SAC: surface air consumption as a tank-pressure drop rate, in bar/min
+  /// at the surface, read from [sacReferenceTank] only.
+  ///
+  /// Needs no cylinder volume, so it exists for every dive-computer download
+  /// that carries pressure. Not a unit conversion of [rmvFor] on multi-tank
+  /// dives: bar/min from a 12 L back gas and a 7 L stage cannot be averaged.
+  double? get sac {
     if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
       return null;
     }
@@ -428,17 +457,7 @@ class Dive extends Equatable {
 
     final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
 
-    // For multi-tank dives use back gas only; single-tank dives use that tank.
-    // If no tank has TankRole.backGas, fall back to the first tank.
-    final DiveTank referenceTank;
-    if (tanks.length == 1) {
-      referenceTank = tanks.first;
-    } else {
-      referenceTank = tanks.firstWhere(
-        (t) => t.role == TankRole.backGas,
-        orElse: () => tanks.first,
-      );
-    }
+    final referenceTank = sacReferenceTank!;
 
     if (referenceTank.startPressure == null ||
         referenceTank.endPressure == null) {
@@ -577,6 +596,8 @@ class Dive extends Equatable {
     WeightingFeedback? weightingFeedback,
     double? weightingFeedbackKg,
     bool? isFavorite,
+    bool? excludedFromStats,
+    bool? excludedFromGasStats,
     List<Tag>? tags,
     // CCR/SCR fields
     DiveMode? diveMode,
@@ -672,6 +693,8 @@ class Dive extends Equatable {
       weightingFeedback: weightingFeedback ?? this.weightingFeedback,
       weightingFeedbackKg: weightingFeedbackKg ?? this.weightingFeedbackKg,
       isFavorite: isFavorite ?? this.isFavorite,
+      excludedFromStats: excludedFromStats ?? this.excludedFromStats,
+      excludedFromGasStats: excludedFromGasStats ?? this.excludedFromGasStats,
       tags: tags ?? this.tags,
       // CCR/SCR fields
       diveMode: diveMode ?? this.diveMode,
@@ -770,6 +793,8 @@ class Dive extends Equatable {
     weightingFeedback,
     weightingFeedbackKg,
     isFavorite,
+    excludedFromStats,
+    excludedFromGasStats,
     tags,
     // CCR/SCR fields
     diveMode,
@@ -971,20 +996,18 @@ class DiveProfilePoint extends Equatable {
 /// Used for multi-tank dives with AI transmitters providing
 /// continuous pressure data for each tank
 class TankPressurePoint extends Equatable {
-  final String id;
   final String tankId;
   final int timestamp; // seconds from dive start
   final double pressure; // bar
 
   const TankPressurePoint({
-    required this.id,
     required this.tankId,
     required this.timestamp,
     required this.pressure,
   });
 
   @override
-  List<Object?> get props => [id, tankId, timestamp, pressure];
+  List<Object?> get props => [tankId, timestamp, pressure];
 }
 
 /// Tank configuration for a dive

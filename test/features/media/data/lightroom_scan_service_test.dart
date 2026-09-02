@@ -1,13 +1,11 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/database/database.dart'
-    show DiveProfilesCompanion;
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/services/lightroom/lightroom_models.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
@@ -318,20 +316,13 @@ void main() {
       entry: DateTime.utc(2026, 7, 1, 10),
       exit: DateTime.utc(2026, 7, 1, 11),
     );
-    final db = DatabaseService.instance.database;
-    for (final (ts, depth) in [(0, 0.0), (1800, 18.0), (3600, 0.0)]) {
-      await db
-          .into(db.diveProfiles)
-          .insert(
-            DiveProfilesCompanion(
-              id: Value('p$ts'),
-              diveId: Value(dive.id),
-              isPrimary: const Value(true),
-              timestamp: Value(ts),
-              depth: Value(depth),
-            ),
-          );
-    }
+    await ProfileSeriesRepository().insertSeries(
+      diveId: dive.id,
+      samples: [
+        for (final (ts, depth) in const [(0, 0.0), (1800, 18.0), (3600, 0.0)])
+          ProfileSample(timestamp: ts, depth: depth),
+      ],
+    );
 
     final asset = LightroomAsset(
       id: 'lr1',

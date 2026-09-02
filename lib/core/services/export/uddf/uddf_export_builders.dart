@@ -685,6 +685,15 @@ class UddfExportBuilders {
             if (dive.isFavorite) {
               builder.element('isfavorite', nest: 'true');
             }
+            // Statistics exclusion (#526 / #1272). App-specific, like
+            // isfavorite: another application's UDDF omits these and imports
+            // as included, which is the right default.
+            if (dive.excludedFromStats) {
+              builder.element('excludedfromstats', nest: 'true');
+            }
+            if (dive.excludedFromGasStats) {
+              builder.element('excludedfromgasstats', nest: 'true');
+            }
             if (dive.photoIds.isNotEmpty) {
               builder.element(
                 'photos',

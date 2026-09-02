@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_reposit
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final diveTypeRepositoryProvider = Provider<DiveTypeRepository>((ref) {
@@ -83,7 +84,11 @@ class DiveTypeListNotifier
 
   DiveTypeListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      DiveTypeListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -96,7 +101,11 @@ class DiveTypeListNotifier
         _ref.invalidate(diveTypesProvider);
         _ref.invalidate(customDiveTypesProvider);
         _ref.invalidate(diveTypeStatisticsProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          DiveTypeListNotifier,
+          'initialize and load',
+        );
       }
     });
 
@@ -170,7 +179,10 @@ class DiveTypeListNotifier
 
   /// Add a custom dive type by name (generates ID automatically)
   /// Throws if no valid diver profile exists
-  Future<DiveTypeEntity> addDiveTypeByName(String name) async {
+  Future<DiveTypeEntity> addDiveTypeByName(
+    String name, {
+    String? shortName,
+  }) async {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
@@ -178,10 +190,12 @@ class DiveTypeListNotifier
       throw Exception('Cannot create custom dive type without a diver profile');
     }
 
+    final trimmedShortName = shortName?.trim();
     final diveType = DiveTypeEntity.create(
       id: DiveTypeEntity.generateSlug(name),
       name: name.trim(),
       diverId: validatedId,
+      shortName: trimmedShortName?.isNotEmpty == true ? trimmedShortName : null,
     );
     return addDiveType(diveType);
   }
@@ -189,6 +203,25 @@ class DiveTypeListNotifier
   /// Update an existing custom dive type
   Future<void> updateDiveType(DiveTypeEntity diveType) async {
     await _repository.updateDiveType(diveType);
+    await _loadDiveTypes();
+    _ref.invalidate(diveTypesProvider);
+    _ref.invalidate(diveTypeStatisticsProvider);
+    _ref.invalidate(customDiveTypesProvider);
+  }
+
+  /// Set which badge rows a type's badge appears in. Allowed on built-in
+  /// types too, unlike [updateDiveType] (see
+  /// [DiveTypeRepository.setDiveTypeVisibility]).
+  Future<void> setDiveTypeVisibility(
+    String id, {
+    required bool showInDetailHeader,
+    required bool showInListView,
+  }) async {
+    await _repository.setDiveTypeVisibility(
+      id,
+      showInDetailHeader: showInDetailHeader,
+      showInListView: showInListView,
+    );
     await _loadDiveTypes();
     _ref.invalidate(diveTypesProvider);
     _ref.invalidate(diveTypeStatisticsProvider);

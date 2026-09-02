@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/presentation/widgets/media_transfers_suspended_notice.dart';
 import 'package:submersion/features/media_store/presentation/widgets/transfers_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -32,6 +35,26 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
 
   bool get _isSelectionMode => _selection.value.isActive;
   Set<String> get _selectedIds => _selection.value.checkedIds;
+
+  @override
+  void initState() {
+    super.initState();
+    // Opening this page resumes the queue (issue #1270).
+    //
+    // The dashboard's "N uploads pending" chip pushes straight here, and this
+    // route is a plain `builder` nested under media-storage, so
+    // MediaStoragePage - whose build resolves the runtime, and which is
+    // therefore the app's only reliable drain trigger - never runs on the way
+    // in. Someone arriving to ask why nothing is uploading was shown the
+    // stuck rows and nothing else.
+    //
+    // Resolving the runtime IS the kick: see the unawaited worker.drain() at
+    // the end of mediaStoreRuntimeProvider. Deliberately a read from
+    // initState rather than a watch in build whose value is thrown away - the
+    // list's rebuilds have nothing to do with the store's lifecycle, and the
+    // intent should not have to be inferred from an unused expression.
+    unawaited(ref.read(mediaStoreRuntimeProvider.future));
+  }
 
   /// Retry is safe only for a terminally failed entry. A `transferring` row
   /// must never be retried: the worker still holds it and a requeue would
@@ -104,10 +127,23 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
                     ),
                   ],
                 ),
-          body: TransfersView(
-            isSelectionMode: _isSelectionMode,
-            selectedIds: _selectedIds,
-            onToggle: _selection.toggle,
+          // The notice lives here rather than inside TransfersView: this
+          // page builds the runtime deliberately (see initState), while the
+          // Media console embeds the bare view, and watching the runtime
+          // from there would construct it - and kick a drain, a queue
+          // reclaim and the opportunistic verify sweep - just because a tab
+          // was selected.
+          body: Column(
+            children: [
+              const MediaTransfersSuspendedNotice(),
+              Expanded(
+                child: TransfersView(
+                  isSelectionMode: _isSelectionMode,
+                  selectedIds: _selectedIds,
+                  onToggle: _selection.toggle,
+                ),
+              ),
+            ],
           ),
         ),
       ),

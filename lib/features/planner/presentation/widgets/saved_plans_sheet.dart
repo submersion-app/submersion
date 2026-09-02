@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
@@ -244,52 +245,62 @@ class _PlanTile extends ConsumerWidget {
             onPressed: () =>
                 _confirmAndDeletePlan(context, ref, summary.id, summary.name),
           ),
-          PopupMenuButton<String>(
-            onSelected: (value) async {
-              final repository = ref.read(divePlanRepositoryProvider);
-              if (value == 'rename') {
-                final plan = await repository.getPlan(summary.id);
-                if (plan == null || !context.mounted) return;
-                final entered = await showPlanNameDialog(
-                  context,
-                  initialName: plan.name,
-                  title: context.l10n.divePlanner_action_renamePlan,
-                );
-                if (entered == null) return;
-                // No summary is passed, so the denormalized depth/runtime
-                // columns stay absent in the companion and the upsert
-                // preserves them along with the tile's subtitle.
-                await repository.savePlan(plan.copyWith(name: entered));
-              } else if (value == 'duplicate') {
-                await repository.duplicatePlan(summary.id);
-              } else if (value == 'share') {
-                final plan = await repository.getPlan(summary.id);
-                if (plan == null) return;
-                final safeName = plan.name
-                    .replaceAll(RegExp(r'[^\w\s-]'), '')
-                    .trim()
-                    .replaceAll(RegExp(r'\s+'), '_');
-                await saveAndShareFile(
-                  planToSubplanJson(plan),
-                  '${safeName.isEmpty ? 'dive_plan' : safeName}.$subplanExtension',
-                  'application/json',
-                );
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'rename',
-                child: Text(context.l10n.divePlanner_action_renamePlan),
-              ),
-              PopupMenuItem(
-                value: 'duplicate',
-                child: Text(context.l10n.plannerCanvas_saved_duplicate),
-              ),
-              PopupMenuItem(
-                value: 'share',
-                child: Text(context.l10n.plannerCanvas_share_menu),
-              ),
-            ],
+          // A Builder so the share anchor resolves to the overflow button
+          // rather than the whole row: it contributes no render object, so
+          // findRenderObject descends to the PopupMenuButton below it.
+          Builder(
+            builder: (menuContext) => PopupMenuButton<String>(
+              onSelected: (value) async {
+                final repository = ref.read(divePlanRepositoryProvider);
+                if (value == 'rename') {
+                  final plan = await repository.getPlan(summary.id);
+                  if (plan == null || !context.mounted) return;
+                  final entered = await showPlanNameDialog(
+                    context,
+                    initialName: plan.name,
+                    title: context.l10n.divePlanner_action_renamePlan,
+                  );
+                  if (entered == null) return;
+                  // No summary is passed, so the denormalized depth/runtime
+                  // columns stay absent in the companion and the upsert
+                  // preserves them along with the tile's subtitle.
+                  await repository.savePlan(plan.copyWith(name: entered));
+                } else if (value == 'duplicate') {
+                  await repository.duplicatePlan(summary.id);
+                } else if (value == 'share') {
+                  // Resolved before the await: the popover anchor has to be
+                  // read while the button is certainly mounted and at its
+                  // current position, not after a database round trip.
+                  final anchor = shareAnchorFrom(menuContext);
+                  final plan = await repository.getPlan(summary.id);
+                  if (plan == null) return;
+                  final safeName = plan.name
+                      .replaceAll(RegExp(r'[^\w\s-]'), '')
+                      .trim()
+                      .replaceAll(RegExp(r'\s+'), '_');
+                  await saveAndShareFile(
+                    planToSubplanJson(plan),
+                    '${safeName.isEmpty ? 'dive_plan' : safeName}.$subplanExtension',
+                    'application/json',
+                    sharePositionOrigin: anchor,
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'rename',
+                  child: Text(context.l10n.divePlanner_action_renamePlan),
+                ),
+                PopupMenuItem(
+                  value: 'duplicate',
+                  child: Text(context.l10n.plannerCanvas_saved_duplicate),
+                ),
+                PopupMenuItem(
+                  value: 'share',
+                  child: Text(context.l10n.plannerCanvas_share_menu),
+                ),
+              ],
+            ),
           ),
         ],
       ),

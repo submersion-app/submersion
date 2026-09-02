@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -82,27 +84,20 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  var profileRowCounter = 0;
+  /// One single-sample series per call. v183 dropped the row-per-sample
+  /// table these tests used to seed, so every sample is a series now.
   Future<void> insertProfileRow({
     required String diveId,
     required int timestamp,
     required double depth,
     required String? computerId,
     required bool isPrimary,
-  }) async {
-    await db
-        .into(db.diveProfiles)
-        .insert(
-          DiveProfilesCompanion(
-            id: Value('prof-${profileRowCounter++}'),
-            diveId: Value(diveId),
-            computerId: Value(computerId),
-            isPrimary: Value(isPrimary),
-            timestamp: Value(timestamp),
-            depth: Value(depth),
-          ),
-        );
-  }
+  }) => ProfileSeriesRepository().insertSeries(
+    diveId: diveId,
+    computerId: computerId,
+    isPrimary: isPrimary,
+    samples: [ProfileSample(timestamp: timestamp, depth: depth)],
+  );
 
   test('null-computerId rows attribute to the primary source', () async {
     await insertProfileRow(

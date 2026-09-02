@@ -8,10 +8,13 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -44,6 +47,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
   // Date Range
   DateTime? _startDate;
   DateTime? _endDate;
+  List<int> _selectedWeekdays = [];
 
   // Location
   String? _siteId;
@@ -55,6 +59,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
   double? _maxDepth;
   int? _minDurationMinutes;
   int? _maxDurationMinutes;
+  bool? _decoOnly;
 
   // Gas & Equipment
   String? _diveTypeId;
@@ -64,6 +69,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
 
   // Social
   String? _buddyNameFilter;
+  bool _noBuddyOnly = false;
 
   // Organization
   List<String> _selectedTagIds = [];
@@ -109,6 +115,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     final filter = ref.read(_filterProvider);
     _startDate = filter.startDate;
     _endDate = filter.endDate;
+    _selectedWeekdays = List.from(filter.weekdays);
     _siteId = filter.siteId;
     _tripId = filter.tripId;
     _diveCenterId = filter.diveCenterId;
@@ -116,11 +123,16 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     _maxDepth = filter.maxDepth;
     _minDurationMinutes = filter.minBottomTimeMinutes;
     _maxDurationMinutes = filter.maxBottomTimeMinutes;
+    _decoOnly = filter.decoOnly;
     _diveTypeId = filter.diveTypeId;
     _minO2Percent = filter.minO2Percent;
     _maxO2Percent = filter.maxO2Percent;
-    _equipmentIds = List.from(filter.equipmentIds);
+    // Deduplicated on the way in: the chip toggle below drops a single
+    // occurrence per tap, so a repeated id would leave a chip stuck selected
+    // with no way to clear it.
+    _equipmentIds = filter.equipmentIds.toSet().toList();
     _buddyNameFilter = filter.buddyNameFilter;
+    _noBuddyOnly = filter.noBuddyOnly ?? false;
     _selectedTagIds = List.from(filter.tagIds);
     _minRating = filter.minRating;
     _favoritesOnly = filter.favoritesOnly ?? false;
@@ -136,14 +148,19 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     _buddyNameController.text = _buddyNameFilter ?? '';
 
     // Auto-expand sections with active filters
-    if (_startDate != null || _endDate != null) _expanded['date'] = true;
+    if (_startDate != null ||
+        _endDate != null ||
+        _selectedWeekdays.isNotEmpty) {
+      _expanded['date'] = true;
+    }
     if (_siteId != null || _tripId != null || _diveCenterId != null) {
       _expanded['location'] = true;
     }
     if (_minDepth != null ||
         _maxDepth != null ||
         _minDurationMinutes != null ||
-        _maxDurationMinutes != null) {
+        _maxDurationMinutes != null ||
+        _decoOnly != null) {
       _expanded['conditions'] = true;
     }
     if (_diveTypeId != null ||
@@ -152,7 +169,8 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
         _equipmentIds.isNotEmpty) {
       _expanded['gas'] = true;
     }
-    if (_buddyNameFilter != null && _buddyNameFilter!.isNotEmpty) {
+    if ((_buddyNameFilter != null && _buddyNameFilter!.isNotEmpty) ||
+        _noBuddyOnly) {
       _expanded['social'] = true;
     }
     if (_selectedTagIds.isNotEmpty || _minRating != null || _favoritesOnly) {
@@ -372,6 +390,31 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             ),
           ),
         ],
+        const SizedBox(height: 16),
+
+        // Weekdays. ANDs with the date range above: when both are set, only
+        // dives inside the range AND on one of these weekdays match.
+        Text(
+          context.l10n.diveLog_filter_sectionWeekdays,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        const SizedBox(height: 8),
+        WeekdayFilterSelector(
+          selectedWeekdays: _selectedWeekdays,
+          onChanged: (weekdays) {
+            setState(() => _selectedWeekdays = weekdays);
+          },
+        ),
+        if (_selectedWeekdays.isNotEmpty)
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton(
+              onPressed: () {
+                setState(() => _selectedWeekdays = []);
+              },
+              child: Text(context.l10n.diveLog_filter_clearWeekdays),
+            ),
+          ),
       ],
     );
   }
@@ -538,6 +581,41 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             ),
           ],
         ),
+        const SizedBox(height: 24),
+
+        // Decompression
+        Text(
+          context.l10n.diveLog_search_label_deco,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ChoiceChip(
+              label: Text(context.l10n.diveLog_search_filter_any),
+              selected: _decoOnly == null,
+              onSelected: (selected) {
+                if (selected) setState(() => _decoOnly = null);
+              },
+            ),
+            ChoiceChip(
+              label: Text(context.l10n.attr_flagYes),
+              selected: _decoOnly == true,
+              onSelected: (selected) {
+                if (selected) setState(() => _decoOnly = true);
+              },
+            ),
+            ChoiceChip(
+              label: Text(context.l10n.attr_flagNo),
+              selected: _decoOnly == false,
+              onSelected: (selected) {
+                if (selected) setState(() => _decoOnly = false);
+              },
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -633,21 +711,95 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             ),
           ],
         ),
+        const SizedBox(height: 24),
+
+        // Equipment
+        Text(
+          context.l10n.diveLog_search_label_equipment,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        const SizedBox(height: 8),
+        ref
+            .watch(allEquipmentProvider)
+            .when(
+              data: (allEquipment) {
+                if (allEquipment.isEmpty) {
+                  return Text(
+                    context.l10n.diveLog_equipmentPicker_noEquipment,
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  );
+                }
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: allEquipment.map((item) {
+                    final isSelected = _equipmentIds.contains(item.id);
+                    return FilterChip(
+                      avatar: Icon(equipmentTypeIcon(item.type), size: 18),
+                      label: Text(item.name),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            if (!_equipmentIds.contains(item.id)) {
+                              _equipmentIds.add(item.id);
+                            }
+                          } else {
+                            _equipmentIds.removeWhere((id) => id == item.id);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+              loading: () => const CircularProgressIndicator(),
+              error: (_, _) =>
+                  Text(context.l10n.diveLog_search_errorLoadingEquipment),
+            ),
       ],
     );
   }
 
   Widget _buildSocialContent() {
-    return TextField(
-      controller: _buddyNameController,
-      decoration: InputDecoration(
-        labelText: context.l10n.diveLog_filter_buddyName,
-        hintText: context.l10n.diveLog_filter_buddyHint,
-        prefixIcon: const Icon(Icons.person),
-      ),
-      onChanged: (value) {
-        _buddyNameFilter = value.isEmpty ? null : value;
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _buddyNameController,
+          decoration: InputDecoration(
+            labelText: context.l10n.diveLog_filter_buddyName,
+            hintText: context.l10n.diveLog_filter_buddyHint,
+            prefixIcon: const Icon(Icons.person),
+          ),
+          onChanged: (value) {
+            setState(() {
+              _buddyNameFilter = value.isEmpty ? null : value;
+              if (value.isNotEmpty) {
+                _noBuddyOnly = false;
+              }
+            });
+          },
+        ),
+        // Mutually exclusive with the buddy name filter above: a dive either
+        // has a buddy to search for, or has none.
+        SwitchListTile(
+          title: Text(context.l10n.diveLog_filter_noBuddyOnly),
+          subtitle: Text(context.l10n.diveLog_filter_showOnlyNoBuddy),
+          secondary: const Icon(Icons.person_off),
+          value: _noBuddyOnly,
+          contentPadding: EdgeInsets.zero,
+          onChanged: (value) {
+            setState(() {
+              _noBuddyOnly = value;
+              if (value) {
+                _buddyNameFilter = null;
+                _buddyNameController.clear();
+              }
+            });
+          },
+        ),
+      ],
     );
   }
 
@@ -776,6 +928,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     setState(() {
       _startDate = null;
       _endDate = null;
+      _selectedWeekdays = [];
       _siteId = null;
       _tripId = null;
       _diveCenterId = null;
@@ -783,11 +936,13 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       _maxDepth = null;
       _minDurationMinutes = null;
       _maxDurationMinutes = null;
+      _decoOnly = null;
       _diveTypeId = null;
       _minO2Percent = null;
       _maxO2Percent = null;
       _equipmentIds = [];
       _buddyNameFilter = null;
+      _noBuddyOnly = false;
       _selectedTagIds = [];
       _minRating = null;
       _favoritesOnly = false;
@@ -808,6 +963,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     ref.read(_filterProvider.notifier).state = DiveFilterState(
       startDate: _startDate,
       endDate: _endDate,
+      weekdays: _selectedWeekdays,
       siteId: _siteId,
       tripId: _tripId,
       diveCenterId: _diveCenterId,
@@ -815,11 +971,13 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       maxDepth: _maxDepth,
       minBottomTimeMinutes: _minDurationMinutes,
       maxBottomTimeMinutes: _maxDurationMinutes,
+      decoOnly: _decoOnly,
       diveTypeId: _diveTypeId,
       minO2Percent: _minO2Percent,
       maxO2Percent: _maxO2Percent,
       equipmentIds: _equipmentIds,
       buddyNameFilter: _buddyNameFilter,
+      noBuddyOnly: _noBuddyOnly ? true : null,
       tagIds: _selectedTagIds,
       minRating: _minRating,
       favoritesOnly: _favoritesOnly ? true : null,

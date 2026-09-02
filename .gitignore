@@ -23,6 +23,7 @@ build/
 # Platform build artifacts (but track source files)
 /android/.gradle/
 packages/*/android/.gradle/
+/android/.kotlin/
 /android/app/build/
 /android/build/
 /android/local.properties

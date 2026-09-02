@@ -65,7 +65,7 @@ class SetupApplyService {
     await notifier.setVolumeUnit(s.volumeUnit);
     await notifier.setWeightUnit(s.weightUnit);
     await notifier.setAltitudeUnit(s.altitudeUnit);
-    await notifier.setSacUnit(s.sacUnit);
+    await notifier.setGasConsumptionDisplay(s.gasConsumptionDisplay);
     await notifier.setTimeFormat(s.timeFormat);
     await notifier.setDateFormat(s.dateFormat);
     await notifier.setThemeMode(s.themeMode);

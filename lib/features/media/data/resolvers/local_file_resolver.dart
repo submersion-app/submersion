@@ -64,10 +64,12 @@ class LocalFileResolver implements MediaSourceResolver {
     DateTime Function()? clock,
     MediaFetchGate? gate,
     bool Function()? usesSecurityScopedBookmarks,
+    Future<String?> Function()? localDeviceId,
   }) : _bookmarkStorage = bookmarkStorage,
        _platform = platform,
        _exifExtractor = exifExtractor,
        _videoThumbnails = videoThumbnails,
+       _localDeviceId = localDeviceId,
        _volumeOnline = (volumeStatus ?? VolumeStatus()).newExpiringProbe(
          ttl: volumeProbeTtl,
          clock: clock,
@@ -106,6 +108,15 @@ class LocalFileResolver implements MediaSourceResolver {
   /// file, and the whole point of this resolver on Apple platforms —
   /// unexecuted in CI. Production always gets the real check.
   final bool Function() _usesSecurityScopedBookmarks;
+
+  /// This device's sync id, for telling a file that is gone from one that
+  /// was never here. Null when built without a source (direct construction
+  /// in tests), in which case every row reads as this device's.
+  final Future<String?> Function()? _localDeviceId;
+
+  /// [_localDeviceId]'s answer, memoized once it succeeds. A failed fetch
+  /// (no database open yet) is not cached, so the next resolution asks again.
+  String? _knownDeviceId;
   final _log = LoggerService.forClass(LocalFileResolver);
 
   @override
@@ -113,8 +124,42 @@ class LocalFileResolver implements MediaSourceResolver {
 
   @override
   bool canResolveOnThisDevice(MediaItem item) {
-    // Device-local pointers don't cross machines.
-    return true;
+    // Device-local pointers don't cross machines, and every localFile row
+    // records the device that imported it. This check is synchronous by
+    // contract, so it can only consult an id a resolution has already
+    // fetched; until then it stays optimistic and [resolve], which does
+    // await the id, is the authority.
+    final local = _knownDeviceId;
+    final origin = item.originDeviceId;
+    if (local == null || origin == null) return true;
+    return origin == local;
+  }
+
+  /// Whether [item]'s bytes were imported on a different device.
+  ///
+  /// Only consulted after a read has failed: a shared volume can make
+  /// another device's path readable here, and a file that reads is a file,
+  /// whoever imported it. Rows from before origin tracking carry no id and
+  /// keep the plain verdict.
+  Future<bool> _importedElsewhere(MediaItem item) async {
+    final origin = item.originDeviceId;
+    if (origin == null) return false;
+    final local = await _thisDeviceId();
+    return local != null && origin != local;
+  }
+
+  Future<String?> _thisDeviceId() async {
+    if (_knownDeviceId != null) return _knownDeviceId;
+    final source = _localDeviceId;
+    if (source == null) return null;
+    try {
+      return _knownDeviceId = await source();
+    } on Object catch (e) {
+      // No database yet, or the metadata read failed: "unknown" is not
+      // "elsewhere". The row keeps today's verdict rather than a guess.
+      _log.debug('Local device id unavailable', error: e);
+      return null;
+    }
   }
 
   /// Coalescing key: rows are reference-linked, so the same photo attached to
@@ -146,7 +191,19 @@ class LocalFileResolver implements MediaSourceResolver {
     // always answers, so this fallback cannot be reached; it is written as a
     // total function rather than a `!` so a future change cannot turn a
     // resolver bug into a crash on a grid tile.
-    return data ?? const UnavailableData(kind: UnavailableKind.notFound);
+    final resolved =
+        data ?? const UnavailableData(kind: UnavailableKind.notFound);
+    // Outside the gate: rows sharing a file share the read, but each row
+    // carries its own origin. A dead pointer on the device that imported the
+    // file is a missing file; the same pointer anywhere else is a file this
+    // device never had, and notFound is the one verdict that orphans a row
+    // and syncs that claim back to the device that still has it.
+    if (resolved is UnavailableData &&
+        resolved.kind == UnavailableKind.notFound &&
+        await _importedElsewhere(item)) {
+      return const UnavailableData(kind: UnavailableKind.fromOtherDevice);
+    }
+    return resolved;
   }
 
   Future<MediaSourceData> _resolveInner(MediaItem item) async {
@@ -383,6 +440,19 @@ class LocalFileResolver implements MediaSourceResolver {
     if (data is! UnavailableData) return VerifyResult.available;
     if (data.kind == UnavailableKind.volumeOffline) {
       return VerifyResult.volumeOffline;
+    }
+    // Another device's file: a reachability fact about this device, not a
+    // finding about the bytes. The verifier treats it as such.
+    if (data.kind == UnavailableKind.fromOtherDevice) {
+      return VerifyResult.fromOtherDevice;
+    }
+    // "Still fetching" is a statement about time, not about whether the file
+    // is there: the read outlived the gate's budget and is very likely still
+    // running. Falling through would put a hung-but-mounted share on the
+    // notFound path below, and notFound flips isOrphaned, so a share that was
+    // merely slow during a sweep would mark its whole library missing.
+    if (data.kind == UnavailableKind.stillFetching) {
+      return VerifyResult.transientError;
     }
     // A file that is present but unreadable (sandbox denial, revoked
     // permission) is not a dead pointer: the bytes are still on disk and a

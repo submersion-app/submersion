@@ -13,7 +13,7 @@ class SkippedPeerBanner extends StatelessWidget {
   const SkippedPeerBanner({super.key, required this.peers});
 
   /// A null name means the peer published none -- either it is on a manifest
-  /// written before the field existed, or its hostname identifies nothing.
+  /// written before the field existed, or nothing identifies it by name.
   final List<({String? name, String shortId})> peers;
 
   @override

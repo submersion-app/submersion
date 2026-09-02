@@ -58,7 +58,7 @@ void main() {
     tester,
   ) async {
     await _pump(tester);
-    expect(find.text('Add Marine Life'), findsOneWidget);
+    expect(find.text('Add Species'), findsOneWidget);
     expect(find.text('Eagle Ray'), findsOneWidget);
     expect(find.text('Aetobatus narinari'), findsOneWidget);
     expect(find.text('Green Turtle'), findsOneWidget);

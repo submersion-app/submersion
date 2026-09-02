@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -16,6 +19,29 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../helpers/mock_file_picker_platform.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
+
+/// Sharing a plan writes it to getApplicationDocumentsDirectory() first, a
+/// platform channel with no implementation under flutter_test.
+class _FakePathProvider extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
+  _FakePathProvider(this.documentsPath);
+  final String documentsPath;
+
+  @override
+  Future<String?> getApplicationDocumentsPath() async => documentsPath;
+}
+
+/// Records what reached the platform so the iPad popover anchor can be
+/// asserted without a real share sheet.
+class _FakeSharePlatform extends SharePlatform {
+  final List<ShareParams> calls = [];
+
+  @override
+  Future<ShareResult> share(ShareParams params) async {
+    calls.add(params);
+    return const ShareResult('ok', ShareResultStatus.success);
+  }
+}
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -40,14 +66,25 @@ DivePlan _plan(String id, String name) => DivePlan(
 
 void main() {
   late DivePlanRepository repository;
+  late Directory documents;
+  final sharePlatform = _FakeSharePlatform();
+
+  // SharePlus.instance is a `static final` that captures SharePlatform.instance
+  // on first read and keeps it for the life of the isolate, so the fake has to
+  // be installed before the first share.
+  setUpAll(() => SharePlatform.instance = sharePlatform);
 
   setUp(() async {
     await setUpTestDatabase();
     repository = DivePlanRepository();
+    documents = Directory.systemTemp.createTempSync('saved_plans_sheet_test');
+    PathProviderPlatform.instance = _FakePathProvider(documents.path);
+    sharePlatform.calls.clear();
   });
 
   tearDown(() {
     DatabaseService.instance.resetForTesting();
+    documents.deleteSync(recursive: true);
   });
 
   Widget harness() => testApp(
@@ -145,6 +182,39 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await repository.getAllPlanSummaries(), hasLength(2));
+  });
+
+  testWidgets('share anchors the iPad popover to the row overflow button', (
+    tester,
+  ) async {
+    await repository.savePlan(_plan('a', 'Reef dive'));
+
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+
+    // The overflow button stays mounted while the menu is up and after it
+    // pops, so it is a valid anchor at the moment the share sheet opens --
+    // unlike the menu item, which is gone by then.
+    final button = find.byType(PopupMenuButton<String>);
+    final buttonRect = tester.getRect(button);
+
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share plan file').last);
+    await tester.pumpAndSettle();
+
+    // Sharing writes the plan with real dart:io, which parks under the
+    // FakeAsync zone testWidgets runs in: runAsync turns the real event loop
+    // so the write lands, and the following pump drains the continuation that
+    // FakeAsync then has queued. Neither alone gets to the share sheet.
+    for (var i = 0; i < 50 && sharePlatform.calls.isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump();
+    }
+
+    expect(sharePlatform.calls.single.sharePositionOrigin, buttonRect);
   });
 
   testWidgets('tapping a plan opens it', (tester) async {

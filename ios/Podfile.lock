@@ -115,6 +115,8 @@ PODS:
   - video_player_avfoundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - wakelock_plus (0.0.1):
+    - Flutter
   - workmanager_apple (0.0.1):
     - Flutter
 
@@ -152,6 +154,7 @@ DEPENDENCIES:
   - submersion_transcoder (from `.symlinks/plugins/submersion_transcoder/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/darwin`)
+  - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
   - workmanager_apple (from `.symlinks/plugins/workmanager_apple/ios`)
 
 SPEC REPOS:
@@ -232,6 +235,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   video_player_avfoundation:
     :path: ".symlinks/plugins/video_player_avfoundation/darwin"
+  wakelock_plus:
+    :path: ".symlinks/plugins/wakelock_plus/ios"
   workmanager_apple:
     :path: ".symlinks/plugins/workmanager_apple/ios"
 
@@ -258,7 +263,7 @@ SPEC CHECKSUMS:
   health: 72947bca89ee7906256d6f650db061ca4b2f92c7
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
-  libdivecomputer_plugin: d7dd76c5ddfeb51f879e840f21f9e0eb13176d76
+  libdivecomputer_plugin: 88223ca7f6a9fd860e80424334a4d4d26d13ba33
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   native_exif: fe0a79e4115f2d7cd084ba206e4933d8a5ed7bde
   ObjectBox: 7da4aceb5013d041bfafdbc6d744a26918b09757
@@ -277,6 +282,7 @@ SPEC CHECKSUMS:
   submersion_transcoder: c0bc7bb59ce039c73dcd24cb7797b390cfd2dab6
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   video_player_avfoundation: 3453f792138786248960ca029747fcd9f318ef52
+  wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
   workmanager_apple: 1fc2a64e6a63ed3540fbb91b65f0c0d501881248
 
 PODFILE CHECKSUM: bf695f1d88cb8e6048580a51c30afd927d095aa6

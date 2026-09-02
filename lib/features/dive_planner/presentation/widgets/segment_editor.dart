@@ -16,6 +16,11 @@ class SegmentEditor extends ConsumerStatefulWidget {
   /// Segment to edit (null for new segment).
   final PlanSegment? segment;
 
+  /// Default start depth (meters) to seed a new segment with, taken from the
+  /// end depth of the previous segment in the plan. Ignored when editing an
+  /// existing segment.
+  final double initialStartDepth;
+
   /// Available tanks for gas selection.
   final List<DiveTank> availableTanks;
 
@@ -25,6 +30,7 @@ class SegmentEditor extends ConsumerStatefulWidget {
   const SegmentEditor({
     super.key,
     this.segment,
+    this.initialStartDepth = 0,
     required this.availableTanks,
     required this.onSave,
   });
@@ -52,10 +58,16 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
     // Every seed goes through formatDecimalForInput so the diver's locale
     // decides the separator and the parse half can read it back (#1091).
     _startDepthController = TextEditingController(
-      text: formatDecimalForInput(segment?.startDepth.roundToDouble() ?? 0),
+      text: formatDecimalForInput(
+        segment?.startDepth.roundToDouble() ??
+            widget.initialStartDepth.roundToDouble(),
+      ),
     );
     _endDepthController = TextEditingController(
-      text: formatDecimalForInput(segment?.endDepth.roundToDouble() ?? 18),
+      text: formatDecimalForInput(
+        segment?.endDepth.roundToDouble() ??
+            widget.initialStartDepth.roundToDouble(),
+      ),
     );
     _durationController = TextEditingController(
       text: formatDecimalForInput(
@@ -268,7 +280,12 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
 
     switch (type) {
       case SegmentType.descent:
-        _startDepthController.text = formatDecimalForInput(0);
+        // Leave the start depth alone. The field already holds the right
+        // value: the segment's own start depth when editing, the previous
+        // segment's end depth when adding, or whatever the diver has since
+        // typed. Only the first segment in a plan starts at the surface, so
+        // the old unconditional reset to 0 clobbered every later one, and
+        // re-seeding from the widget would still discard a typed edit.
         // 18 m/min default descent rate
         _rateController.text = depth(18);
         break;

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/services/sync/sync_device_footprint.dart';
+import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_device_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_maintenance_progress_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -40,21 +41,47 @@ class SyncDevicesPage extends ConsumerWidget {
           icon: Icons.cloud_off,
           text: l10n.settings_syncDevices_readError('$e'),
         ),
-        data: (list) => list.isEmpty
-            ? _Message(
-                icon: Icons.cloud_queue,
-                text: l10n.settings_syncDevices_empty,
-              )
-            : ListView.separated(
-                itemCount: list.length + 1,
-                separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (context, i) => i == 0
-                    ? _Summary(devices: list)
-                    : _DeviceTile(device: list[i - 1]),
-              ),
+        data: (list) {
+          if (list.isEmpty) {
+            return _Message(
+              icon: Icons.cloud_queue,
+              text: l10n.settings_syncDevices_empty,
+            );
+          }
+          final shared = duplicatedSyncDeviceNames(list);
+          return ListView.separated(
+            itemCount: list.length + 1,
+            separatorBuilder: (_, _) => const Divider(height: 1),
+            itemBuilder: (context, i) => i == 0
+                ? _Summary(devices: list)
+                : _DeviceTile(
+                    device: list[i - 1],
+                    // Two phones of the same model, or two iPhones on iOS 16+
+                    // (which hands out the model as the name), publish the
+                    // same name. Identical rows are what the device id
+                    // fallback was protecting against, so keep that guarantee
+                    // by qualifying the name instead of dropping it.
+                    disambiguate: shared.contains(list[i - 1].deviceName),
+                  ),
+          );
+        },
       ),
     );
   }
+}
+
+/// Names published by more than one device in [devices]. Rendering those
+/// unqualified would show two rows a user cannot tell apart.
+@visibleForTesting
+Set<String> duplicatedSyncDeviceNames(List<SyncDeviceFootprint> devices) {
+  final seen = <String>{};
+  final duplicated = <String>{};
+  for (final device in devices) {
+    final name = device.deviceName;
+    if (name == null) continue;
+    if (!seen.add(name)) duplicated.add(name);
+  }
+  return duplicated;
 }
 
 /// Totals first: the number the user actually came here for is "how much of my
@@ -82,7 +109,7 @@ class _Summary extends StatelessWidget {
             l10n.settings_syncDevices_summary(
               devices.length,
               files,
-              _formatBytes(bytes),
+              formatBytes(bytes),
             ),
             style: theme.textTheme.titleMedium,
           ),
@@ -91,7 +118,7 @@ class _Summary extends StatelessWidget {
             Text(
               l10n.settings_syncDevices_summary_removable(
                 removable.length,
-                _formatBytes(removableBytes),
+                formatBytes(removableBytes),
               ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -105,22 +132,39 @@ class _Summary extends StatelessWidget {
 }
 
 class _DeviceTile extends ConsumerWidget {
-  const _DeviceTile({required this.device});
+  const _DeviceTile({required this.device, this.disambiguate = false});
 
   final SyncDeviceFootprint device;
+
+  /// Whether another device published the same name, in which case the short
+  /// id is shown alongside it.
+  final bool disambiguate;
+
+  /// The published name, qualified by the short id when it is not unique, or
+  /// [fallback] when this device published no name at all. The two callers
+  /// pass different fallbacks: a tile title is title-case, a sentence is not.
+  String _displayName(AppLocalizations l10n, {required String fallback}) {
+    final name = device.deviceName;
+    if (name == null) return fallback;
+    return disambiguate
+        ? l10n.settings_syncDevices_nameWithId(name, device.shortId)
+        : name;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final when = device.publishedAt ?? device.lastModified;
-    final size = _formatBytes(device.byteCount);
+    final size = formatBytes(device.byteCount);
     return ListTile(
       isThreeLine: true,
       leading: Icon(_icon, color: _color(theme)),
       title: Text(
-        device.deviceName ??
-            l10n.settings_syncDevices_unnamedDevice(device.shortId),
+        _displayName(
+          l10n,
+          fallback: l10n.settings_syncDevices_unnamedDevice(device.shortId),
+        ),
         style: TextStyle(
           fontWeight: device.isSelf ? FontWeight.bold : FontWeight.normal,
         ),
@@ -183,10 +227,13 @@ class _DeviceTile extends ConsumerWidget {
 
   Future<void> _confirmRemove(BuildContext context, WidgetRef ref) async {
     final l10n = context.l10n;
-    final name =
-        device.deviceName ??
-        l10n.settings_cloudSync_peerNeedsAdopt_unnamedDevice(device.shortId);
-    final size = _formatBytes(device.byteCount);
+    final name = _displayName(
+      l10n,
+      fallback: l10n.settings_cloudSync_peerNeedsAdopt_unnamedDevice(
+        device.shortId,
+      ),
+    );
+    final size = formatBytes(device.byteCount);
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -290,17 +337,4 @@ class _Message extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Sizes are a floor: providers that report no size for a file count zero.
-String _formatBytes(int bytes) {
-  if (bytes < 1024) return '$bytes B';
-  const units = ['KB', 'MB', 'GB', 'TB'];
-  var value = bytes / 1024;
-  var unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  return '${value.toStringAsFixed(value >= 10 ? 0 : 1)} ${units[unit]}';
 }

@@ -34,6 +34,7 @@ class ChangesetWriter {
     this._publishState, {
     this.compactionByteRatio = 0.30,
     this.compactionMaxChangesets = 200,
+    this.maxChangesetSeriesBlobBytes = 16 * 1024 * 1024,
     this.heartbeatMaxAgeMillis = SyncLiveness.heartbeatMaxAgeMillis,
     ResumableBasePublishStore? resumableStore,
   }) : _resumable = resumableStore ?? ResumableBasePublishStore();
@@ -44,6 +45,14 @@ class ChangesetWriter {
   final ResumableBasePublishStore _resumable;
   final double compactionByteRatio;
   final int compactionMaxChangesets;
+
+  /// How many bytes of packed series blob an in-memory changeset may carry
+  /// before this publishes a streamed base instead. See
+  /// [SyncDataSerializer.pendingSeriesBlobBytes]: the changeset payload holds
+  /// base64 and its JSON encoding at once, so the peak is several times this,
+  /// while the base path streams to a temp file and is bounded whatever the
+  /// library size.
+  final int maxChangesetSeriesBlobBytes;
   final int heartbeatMaxAgeMillis;
 
   Future<ChangesetWriteResult> publish({
@@ -55,7 +64,7 @@ class ChangesetWriter {
     String? uploadNonce,
 
     /// Display name published on the manifest so peers can name this device.
-    /// Null when the hostname identifies nothing; readers fall back to the id.
+    /// Null when nothing identifies it by name; readers fall back to the id.
     String? deviceName,
     Map<String, String> appliedPeerHlc = const {},
 
@@ -85,8 +94,27 @@ class ChangesetWriter {
     // there is nothing to append to, so cold-start a fresh base. `state` still
     // recovers the seq counter (knownHeadSeq) so the new base never reuses a
     // number.
-    final hasBase = !forceBase && ownManifest?.baseSeq != null;
     final watermark = ownManifest?.publishedHlcHigh ?? state?.publishedHlcHigh;
+    final baseInCloud = ownManifest?.baseSeq != null;
+    final adoptedMarker =
+        state != null && state.baseSeq == null && watermark != null;
+    // The in-memory changeset cannot carry an unbounded amount of packed
+    // series blob: it holds base64 and its JSON encoding at once, which is
+    // the OOM the streamed base path exists to avoid (#358). The v182
+    // migration stamps EVERY packed row with one freshly issued HLC, so the
+    // first changeset after the upgrade would select the entire packed
+    // corpus in one payload. When the delta is that big, publish a base
+    // instead: same content, streamed to a temp file and slice-uploaded, and
+    // afterwards the watermark covers the corpus so ordinary changesets
+    // resume. A forced base already takes that path, so this only decides
+    // between the two when the caller did not.
+    final oversizedDelta =
+        !forceBase &&
+        (baseInCloud || adoptedMarker) &&
+        await _serializer.pendingSeriesBlobBytes(watermark) >
+            maxChangesetSeriesBlobBytes;
+    final publishBase = forceBase || oversizedDelta;
+    final hasBase = !publishBase && baseInCloud;
     // The post-adopt marker (a publish-state row with a null baseSeq): this
     // device's library IS the adopted epoch the peers already published, so
     // publishing its own base would redundantly re-upload the whole library --
@@ -102,12 +130,7 @@ class ChangesetWriter {
     // exact full-upload/OOM this path avoids, #358). maxRowHlc() is null at
     // adopt for an empty library (the base below no-ops) or one whose rows
     // all predate HLC stamping (one streamed base publish, safely bounded).
-    final adoptedNoBase =
-        !forceBase &&
-        !hasBase &&
-        state != null &&
-        state.baseSeq == null &&
-        watermark != null;
+    final adoptedNoBase = !publishBase && !hasBase && adoptedMarker;
 
     final newSeq = knownHeadSeq + 1;
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -149,7 +172,7 @@ class ChangesetWriter {
         // replaces an over-claiming `publishedHlcHigh` with the truth (null),
         // which is what stops the stale-restore loop for a device rewound to an
         // empty library. Peers apply an empty base as a no-op (upsert + LWW).
-        if (rowCount == 0 && deletions.isEmpty && !forceBase) {
+        if (rowCount == 0 && deletions.isEmpty && !publishBase) {
           try {
             await File(base.path).delete();
           } catch (_) {}
@@ -221,7 +244,7 @@ class ChangesetWriter {
         // a whole library's worth. Prune them exactly as compaction does (see
         // _pruneSupersededBelow: best-effort, readers self-heal from the new
         // base). An ordinary cold-start has nothing below it to prune.
-        if (forceBase) {
+        if (publishBase) {
           await _pruneSupersededBelow(provider, folderId, deviceId, seq);
         }
         // Only now, with the manifest committed, is the export spent. Failing
@@ -263,7 +286,7 @@ class ChangesetWriter {
           deviceId: ownManifest.deviceId,
           // A heartbeat is also the cheapest way a renamed device republishes
           // its name; keep the previously published one when this build
-          // cannot resolve a usable hostname.
+          // cannot resolve a usable name at all.
           deviceName: deviceName ?? ownManifest.deviceName,
           provider: ownManifest.provider,
           baseSeq: ownManifest.baseSeq,
@@ -506,8 +529,7 @@ class ChangesetWriter {
     String? uploadNonce,
   ) async {
     final dir = await _resumable.directory;
-    final target =
-        '${dir.path}/${base.path.split(Platform.pathSeparator).last}';
+    final target = basePublishTargetPath(dir.path, base.path);
     final source = File(base.path);
     try {
       await source.rename(target);

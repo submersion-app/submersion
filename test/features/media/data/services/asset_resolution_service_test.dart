@@ -191,7 +191,10 @@ void main() {
 
         final result = await service.resolveAssetId(createTestItem());
 
-        expect(result.status, equals(ResolutionStatus.unavailable));
+        // accessDenied, not unavailable. Callers are entitled to treat
+        // unavailable as proof the asset is gone and orphan the row; nothing
+        // was learned here, so that claim would be a fabrication.
+        expect(result.status, equals(ResolutionStatus.accessDenied));
         expect(result.localAssetId, isNull);
         verifyNever(mockPicker.getAssetsInDateRange(any, any));
         verifyNever(
@@ -210,7 +213,7 @@ void main() {
 
       final result = await service.resolveAssetId(createTestItem());
 
-      expect(result.status, equals(ResolutionStatus.unavailable));
+      expect(result.status, equals(ResolutionStatus.accessDenied));
       verifyNever(mockPicker.getAssetsInDateRange(any, any));
       verifyNever(
         mockCache.cacheResolution(
@@ -258,7 +261,7 @@ void main() {
     // Riverpod provider watching it. It should be treated like any other
     // gallery failure: log and report unavailable without caching.
     test(
-      'returns unavailable without caching when checkPermission throws',
+      'returns accessDenied without caching when checkPermission throws',
       () async {
         when(mockPicker.supportsGalleryBrowsing).thenReturn(true);
         when(
@@ -274,7 +277,7 @@ void main() {
 
         final result = await service.resolveAssetId(createTestItem());
 
-        expect(result.status, equals(ResolutionStatus.unavailable));
+        expect(result.status, equals(ResolutionStatus.accessDenied));
         expect(result.localAssetId, isNull);
         verifyNever(mockPicker.getAssetsInDateRange(any, any));
         verifyNever(

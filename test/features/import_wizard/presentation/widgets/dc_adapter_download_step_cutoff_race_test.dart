@@ -95,10 +95,19 @@ void main() {
     // for a selected device) constructs a DiscoveryNotifier that subscribes
     // to this stream immediately.
     when(mockService.discoveryComplete).thenAnswer((_) => const Stream.empty());
+    // The step scans for the computer's stored address before connecting
+    // (issue #1232). Nothing is ever reported, so each test advances past
+    // the scan timeout to reach the synthesized-device fallback.
+    when(mockService.discoveredDevices).thenAnswer((_) => const Stream.empty());
+    when(mockService.startDiscovery(any)).thenAnswer((_) async {});
+    when(mockService.stopDiscovery()).thenAnswer((_) async {});
     when(
       mockService.startDownload(any, fingerprint: anyNamed('fingerprint')),
     ).thenAnswer((_) async {});
   });
+
+  final pastScanTimeout =
+      DcAdapterDownloadStep.knownDeviceScanTimeout + const Duration(seconds: 1);
 
   testWidgets(
     'late-arriving cutoff default does not crash and shows the prompt '
@@ -117,8 +126,11 @@ void main() {
           cutoffCompleter: cutoffCompleter,
         ),
       );
-      // Let _computerResolved and deviceDescriptorsProvider settle. The
-      // cutoff provider is still in-flight at this point.
+      // Let the saved-address scan time out, then _computerResolved and
+      // deviceDescriptorsProvider settle. The cutoff provider is still
+      // in-flight at this point.
+      await tester.pump();
+      await tester.pump(pastScanTimeout);
       await tester.pump();
       await tester.pump();
 
@@ -162,6 +174,8 @@ void main() {
         cutoffCompleter: cutoffCompleter,
       ),
     );
+    await tester.pump();
+    await tester.pump(pastScanTimeout);
     await tester.pump();
     await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsOneWidget);

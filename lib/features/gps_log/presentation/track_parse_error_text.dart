@@ -13,5 +13,6 @@ String trackParseErrorText(AppLocalizations l10n, TrackParseException e) {
     TrackParseReason.unreadable => l10n.gpsTrack_importError_unreadable,
     TrackParseReason.noPositions => l10n.gpsTrack_importError_noPositions,
     TrackParseReason.badData => l10n.gpsTrack_importError_badData,
+    TrackParseReason.tooLarge => l10n.gpsTrack_importError_tooLarge,
   };
 }

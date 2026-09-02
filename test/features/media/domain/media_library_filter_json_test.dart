@@ -10,10 +10,11 @@ void main() {
       siteId: 's1',
       tripId: 't1',
       diveId: 'd1',
+      speciesId: 'sp1',
       fromDate: DateTime(2026, 6, 1),
       toDate: DateTime(2026, 6, 30),
       sourceType: MediaSourceType.localFile,
-      health: MediaHealthFilter.unlinked,
+      health: MediaHealthFilter.missing,
     );
 
     expect(MediaLibraryFilter.fromJson(filter.toJson()), filter);
@@ -35,6 +36,13 @@ void main() {
     expect(decoded.mediaType, isNull);
     expect(decoded.health, isNull);
     expect(decoded.sourceType, isNull);
+  });
+
+  test('an album saved with the retired unlinked facet decodes to none', () {
+    // Every row carries a dive or site link now, so the facet is gone; an
+    // album a pre-upgrade build wrote must degrade to "no constraint"
+    // rather than take the library view down.
+    expect(MediaLibraryFilter.fromJson({'health': 'unlinked'}).health, isNull);
   });
 
   test('malformed dates decode to null rather than throwing', () {
@@ -99,6 +107,7 @@ void main() {
         siteId: 's1',
         tripId: 't1',
         diveId: 'd1',
+        speciesId: 'sp1',
         mediaType: MediaType.video,
         sourceType: MediaSourceType.mediaStore,
         health: MediaHealthFilter.missing,
@@ -137,7 +146,7 @@ void main() {
         base ==
             const MediaLibraryFilter(
               siteId: 's1',
-              health: MediaHealthFilter.unlinked,
+              health: MediaHealthFilter.missing,
             ),
         isFalse,
       );
@@ -155,12 +164,31 @@ void main() {
       expect(const MediaLibraryFilter(), MediaLibraryFilter.none);
       expect(MediaLibraryFilter.none.isEmpty, isTrue);
       expect(const MediaLibraryFilter(siteId: 's1').isEmpty, isFalse);
+      expect(const MediaLibraryFilter(speciesId: 'sp1').isEmpty, isFalse);
+    });
+
+    test('a species facet alone distinguishes two filters', () {
+      const base = MediaLibraryFilter(siteId: 's1');
+      expect(
+        base == const MediaLibraryFilter(siteId: 's1', speciesId: 'sp1'),
+        isFalse,
+      );
+      expect(
+        const MediaLibraryFilter(speciesId: 'sp1').copyWith(speciesId: null),
+        MediaLibraryFilter.none,
+      );
+    });
+
+    test('an album saved before the species facet decodes without it', () {
+      final restored = MediaLibraryFilter.fromJson({'siteId': 's1'});
+      expect(restored.speciesId, isNull);
+      expect(restored.siteId, 's1');
     });
 
     test('a round trip through JSON preserves equality', () {
       const filter = MediaLibraryFilter(
         siteId: 's1',
-        health: MediaHealthFilter.unlinked,
+        health: MediaHealthFilter.missing,
       );
       final restored = MediaLibraryFilter.fromJson(filter.toJson());
       expect(restored, filter);

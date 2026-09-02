@@ -30,12 +30,12 @@ class QualityPrefilters {
     // sets (or its old findings would never retire).
     final withProfiles = await ids(
       'SELECT d.id AS id FROM dives d WHERE EXISTS '
-      '(SELECT 1 FROM dive_profiles p WHERE p.dive_id = d.id '
-      'AND p.is_primary = 1)',
+      '(SELECT 1 FROM dive_profile_series s WHERE s.dive_id = d.id '
+      'AND s.is_primary = 1)',
     );
     final withPressures = await ids(
       'SELECT d.id AS id FROM dives d WHERE EXISTS '
-      '(SELECT 1 FROM tank_pressure_profiles t WHERE t.dive_id = d.id)',
+      '(SELECT 1 FROM tank_pressure_series t WHERE t.dive_id = d.id)',
     );
     final withTanks = await ids(
       'SELECT d.id AS id FROM dives d WHERE EXISTS '

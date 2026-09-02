@@ -48,7 +48,7 @@ void main() {
       );
 
       expect(result.altitudeMeters, 740.0);
-      expect(result.siteWriteBack, isNull);
+      expect(result.siteAltitudeWriteBack, isNull);
       expect(requests.single.queryParameters['latitude'], '46.4');
     });
 
@@ -71,7 +71,7 @@ void main() {
       );
 
       expect(result.altitudeMeters, 300.0);
-      expect(result.siteWriteBack, isNull);
+      expect(result.siteAltitudeWriteBack, isNull);
     });
 
     test('uses site altitude when the dive has no GPS', () async {
@@ -94,9 +94,10 @@ void main() {
       );
 
       expect(result.altitudeMeters, 740.0);
-      expect(result.siteWriteBack, isNotNull);
-      expect(result.siteWriteBack!.altitude, 740.0);
-      expect(result.siteWriteBack!.id, 'site-1');
+      expect(result.siteAltitudeWriteBack, (
+        siteId: 'site-1',
+        altitudeMeters: 740.0,
+      ));
     });
 
     test('returns empty resolution when nothing is available', () async {
@@ -108,7 +109,7 @@ void main() {
       final result = await resolver.resolve();
 
       expect(result.altitudeMeters, isNull);
-      expect(result.siteWriteBack, isNull);
+      expect(result.siteAltitudeWriteBack, isNull);
       expect(requests, isEmpty);
     });
 
@@ -121,7 +122,7 @@ void main() {
       );
 
       expect(result.altitudeMeters, isNull);
-      expect(result.siteWriteBack, isNull);
+      expect(result.siteAltitudeWriteBack, isNull);
     });
 
     test('cache dedupes lookups for nearby coordinates', () async {

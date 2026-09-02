@@ -197,29 +197,13 @@ PlanCanvasSeries buildCanvasSeries({
     profile.add(CanvasPoint(outcome.runtimeSeconds.toDouble(), 0));
   }
 
-  // Ceiling approximation: segment-end ceilings plus the stop staircase.
-  final ceiling = <CanvasPoint>[];
-  for (final segmentOutcome in outcome.segmentOutcomes) {
-    if (segmentOutcome.ceilingAtEnd > 0) {
-      ceiling.add(
-        CanvasPoint(
-          segmentOutcome.endRuntime.toDouble(),
-          segmentOutcome.ceilingAtEnd,
-        ),
-      );
-    }
-  }
-  for (final stop in outcome.stops) {
-    ceiling.add(
-      CanvasPoint(stop.arrivalRuntimeSeconds.toDouble(), stop.depthMeters),
-    );
-    ceiling.add(
-      CanvasPoint(
-        (stop.arrivalRuntimeSeconds + stop.durationSeconds).toDouble(),
-        stop.depthMeters,
-      ),
-    );
-  }
+  // The finely-sampled ceiling curve (see PlanEngine._ceilingTrace): a
+  // continuous rise as tissues load and fall as each stop clears, rather
+  // than a staircase pinned to the stops' own depths.
+  final ceiling = <CanvasPoint>[
+    for (final point in outcome.ceilingTrace)
+      CanvasPoint(point.$1.toDouble(), point.$2),
+  ];
 
   return PlanCanvasSeries(
     profile: profile,

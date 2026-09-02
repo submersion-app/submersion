@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
+import 'package:submersion/features/statistics/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_bar.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_action.dart';
+import 'package:submersion/features/statistics/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsProgressionPage extends ConsumerWidget {
@@ -43,8 +49,16 @@ class StatisticsProgressionPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.statistics_progression_appBar_title),
+        actions: const [StatisticsFilterAction()],
       ),
-      body: content,
+      // Expanded is required: content is a SingleChildScrollView, and a
+      // Column would otherwise hand it unbounded height.
+      body: Column(
+        children: [
+          const StatisticsFilterBar(),
+          Expanded(child: content),
+        ],
+      ),
     );
   }
 
@@ -53,51 +67,33 @@ class StatisticsProgressionPage extends ConsumerWidget {
     WidgetRef ref,
     UnitFormatter units,
   ) {
-    final depthTrendAsync = ref.watch(depthProgressionTrendProvider);
-
-    return StatSectionCard(
+    return TrendChartSection(
+      chartId: TrendChartIds.depth,
+      onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: context.l10n.statistics_progression_depthProgression_title,
       subtitle: context.l10n.statistics_progression_depthProgression_subtitle,
-      child: depthTrendAsync.when(
-        data: (data) => TrendLineChart(
-          data: data,
-          lineColor: Colors.indigo,
-          valueFormatter: (value) => units.formatDepth(value),
-        ),
-        loading: () => const SizedBox(
-          height: 200,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (_, _) => StatEmptyState(
-          icon: Icons.error_outline,
-          message: context.l10n.statistics_progression_depthProgression_error,
-        ),
-      ),
+      pointsAsync: ref.watch(depthProgressionTrendProvider),
+      errorMessage: context.l10n.statistics_progression_depthProgression_error,
+      lineColor: Colors.indigo,
+      valueFormatter: (value) => units.formatDepth(value),
+      rateFormatter: (value) => units.formatDepth(value),
     );
   }
 
   Widget _buildBottomTimeSection(BuildContext context, WidgetRef ref) {
-    final bottomTimeAsync = ref.watch(bottomTimeTrendProvider);
+    String minutes(double value) =>
+        context.l10n.surfaceInterval_format_minutes(value.toStringAsFixed(0));
 
-    return StatSectionCard(
+    return TrendChartSection(
+      chartId: TrendChartIds.bottomTime,
+      onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: context.l10n.statistics_progression_bottomTime_title,
       subtitle: context.l10n.statistics_progression_bottomTime_subtitle,
-      child: bottomTimeAsync.when(
-        data: (data) => TrendLineChart(
-          data: data,
-          lineColor: Colors.teal,
-          valueFormatter: (value) => context.l10n
-              .surfaceInterval_format_minutes(value.toStringAsFixed(0)),
-        ),
-        loading: () => const SizedBox(
-          height: 200,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (_, _) => StatEmptyState(
-          icon: Icons.error_outline,
-          message: context.l10n.statistics_progression_bottomTime_error,
-        ),
-      ),
+      pointsAsync: ref.watch(bottomTimeTrendProvider),
+      errorMessage: context.l10n.statistics_progression_bottomTime_error,
+      lineColor: Colors.teal,
+      valueFormatter: minutes,
+      rateFormatter: minutes,
     );
   }
 
@@ -216,9 +212,12 @@ class StatisticsProgressionPage extends ConsumerWidget {
       title: context.l10n.statistics_progression_cumulative_title,
       subtitle: context.l10n.statistics_progression_cumulative_subtitle,
       child: cumulativeAsync.when(
-        data: (data) => TrendLineChart(
-          data: data,
-          lineColor: Colors.green,
+        // A date axis, not the index axis: the count now steps once per dive,
+        // so a trip is a run of steps rather than one. No aggregation or fit
+        // controls, because a mean of a running total says nothing.
+        data: (data) => DiveTrendChart(
+          points: data,
+          pointColor: Colors.green,
           valueFormatter: (value) => value.toStringAsFixed(0),
         ),
         loading: () => const SizedBox(

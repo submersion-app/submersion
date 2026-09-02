@@ -3,14 +3,17 @@ import 'package:submersion/features/weather/data/services/elevation_service.dart
 
 /// Result of an altitude resolution.
 ///
-/// [siteWriteBack] is non-null only when the altitude came from a lookup of
-/// the site's own coordinates: the caller should persist it so future dives
-/// at that site resolve locally without a network call.
+/// [siteAltitudeWriteBack] is non-null only when the altitude came from a
+/// lookup of the site's own coordinates: the caller should persist it so
+/// future dives at that site resolve locally without a network call. It is
+/// deliberately an id plus a number, not a site entity: callers must patch
+/// the altitude column alone, because writing a whole entity that was
+/// hydrated partially wipes every column it did not carry (issue #1187).
 class AltitudeResolution {
-  const AltitudeResolution({this.altitudeMeters, this.siteWriteBack});
+  const AltitudeResolution({this.altitudeMeters, this.siteAltitudeWriteBack});
 
   final double? altitudeMeters;
-  final DiveSite? siteWriteBack;
+  final ({String siteId, double altitudeMeters})? siteAltitudeWriteBack;
 }
 
 /// Encodes the altitude precedence rule from the 2026-08-06 conditions spec:
@@ -52,7 +55,7 @@ class AltitudeResolver {
       if (meters != null) {
         return AltitudeResolution(
           altitudeMeters: meters,
-          siteWriteBack: site.copyWith(altitude: meters),
+          siteAltitudeWriteBack: (siteId: site.id, altitudeMeters: meters),
         );
       }
     }

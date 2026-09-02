@@ -2,6 +2,16 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
+/// How long a PhotoKit fetch may hold a concurrency slot.
+///
+/// photo_manager asks PhotoKit with `networkAccessAllowed = YES`, so an
+/// iCloud-only asset triggers a full cloud download behind a plain `await`.
+/// Four of those used to hold every slot this cache has, which is a gallery of
+/// permanent shimmer on a slow connection. Matching `MediaFetchGate`'s budget:
+/// the two caps govern the same grid and staggering them would only make the
+/// slower one invisible.
+const Duration kGalleryThumbnailSlotBudget = Duration(seconds: 5);
+
 /// Bounded, deduplicating, concurrency-capped cache for gallery thumbnail
 /// bytes.
 ///
@@ -28,8 +38,11 @@ class GalleryThumbnailCache {
   GalleryThumbnailCache({
     this.maxBytes = 32 * 1024 * 1024,
     this.maxConcurrent = 4,
+    this.slotBudget = kGalleryThumbnailSlotBudget,
+    int? maxDetached,
   }) : assert(maxBytes > 0),
-       assert(maxConcurrent > 0);
+       assert(maxConcurrent > 0),
+       maxDetached = maxDetached ?? maxConcurrent * 3;
 
   /// Total retained thumbnail bytes before least-recently-used eviction.
   /// Thumbnails run tens of KB each, so the default holds a large library.
@@ -37,6 +50,21 @@ class GalleryThumbnailCache {
 
   /// Ceiling on simultaneous [getOrFetch] fetches.
   final int maxConcurrent;
+
+  /// How long a fetch may hold a slot before handing it to the next waiter.
+  ///
+  /// The fetch is not cancelled and its bytes are still cached when they land:
+  /// an iCloud asset that took twenty seconds to come down is a hit for every
+  /// later request, and throwing that away because it was slow would mean
+  /// downloading it again.
+  final Duration slotBudget;
+
+  /// Ceiling on fetches that outlived [slotBudget] and are still running.
+  ///
+  /// Without it, detaching would leak: a stalled photo library would start
+  /// [maxConcurrent] fresh PhotoKit requests every [slotBudget] forever. At the
+  /// cap a fetch keeps its slot instead, restoring back-pressure.
+  final int maxDetached;
 
   /// Insertion-ordered, so the first key is the least recently used. Dart map
   /// literals are LinkedHashMap, and a hit re-inserts to move the entry to the
@@ -52,12 +80,19 @@ class GalleryThumbnailCache {
 
   int _bytesHeld = 0;
   int _running = 0;
+  int _detached = 0;
 
   bool containsKey(String key) => _entries.containsKey(key);
 
   int get byteCount => _bytesHeld;
 
   int get length => _entries.length;
+
+  /// Fetches holding a slot, for tests.
+  int get runningCount => _running;
+
+  /// Fetches that outlived [slotBudget] and are still running, for tests.
+  int get detachedCount => _detached;
 
   /// Cached bytes for [key], else [fetch]'s result — run under the concurrency
   /// cap and cached on success.
@@ -103,12 +138,33 @@ class GalleryThumbnailCache {
     Future<Uint8List?> Function() fetch,
   ) async {
     await _acquire();
+    var holdsSlot = true;
+    var detached = false;
+
+    void detach() {
+      if (!holdsSlot || _detached >= maxDetached) return;
+      holdsSlot = false;
+      detached = true;
+      _detached++;
+      _release();
+    }
+
+    // Cancelled below rather than left to fire harmlessly: a stale firing
+    // would release a slot this fetch no longer holds, letting the effective
+    // cap drift upward for the life of the process.
+    final timer = Timer(slotBudget, detach);
     try {
       final bytes = await fetch();
       if (bytes != null) _store(key, bytes);
       return bytes;
     } finally {
-      _release();
+      timer.cancel();
+      if (detached) {
+        _detached--;
+      } else if (holdsSlot) {
+        holdsSlot = false;
+        _release();
+      }
       _inFlight.remove(key);
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 
@@ -433,6 +434,64 @@ void main() {
         0,
         reason: 'undo must clear the pending residue the merge created',
       );
+    });
+  });
+
+  group('active diver id in settings', () {
+    const activeKey = DiverRepository.activeDiverIdSettingsKey;
+
+    Future<String?> activeDiverId() async {
+      final row = await (db.select(
+        db.settings,
+      )..where((t) => t.key.equals(activeKey))).getSingleOrNull();
+      return row?.value;
+    }
+
+    Future<void> setActiveDiverId(String id) async {
+      await db
+          .into(db.settings)
+          .insert(
+            SettingsCompanion.insert(
+              key: activeKey,
+              value: Value(id),
+              updatedAt: 0,
+            ),
+          );
+    }
+
+    test('is repointed to the keeper when it named the duplicate', () async {
+      // Deleting the duplicate would otherwise leave settings.active_diver_id
+      // dangling, and the startup validator would fall back to the default
+      // diver rather than the profile the user was actually using (#1342).
+      await setActiveDiverId(dup);
+
+      await repo.mergeDivers(keeperId: keeper, duplicateId: dup);
+
+      expect(await activeDiverId(), keeper);
+    });
+
+    test('is left alone when it names an unrelated diver', () async {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: 'diver-other',
+              name: 'Someone Else',
+              createdAt: 1000,
+              updatedAt: 1000,
+            ),
+          );
+      await setActiveDiverId('diver-other');
+
+      await repo.mergeDivers(keeperId: keeper, duplicateId: dup);
+
+      expect(await activeDiverId(), 'diver-other');
+    });
+
+    test('is not created when no active diver is recorded', () async {
+      await repo.mergeDivers(keeperId: keeper, duplicateId: dup);
+
+      expect(await activeDiverId(), isNull);
     });
   });
 

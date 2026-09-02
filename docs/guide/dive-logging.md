@@ -190,7 +190,7 @@ Track your weighting for each dive:
 | **Ankle** | Ankle weights |
 | **Backplate** | Backplate weights |
 
-## Marine Life
+## Species
 
 Log species sightings:
 

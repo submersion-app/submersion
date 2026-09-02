@@ -579,6 +579,12 @@ class EquipmentRepository {
   }
 
   /// Get dive count for equipment item
+  /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
+  /// from statistics still physically happened: it cycled this gear and put
+  /// hours on it. Suppressing it here would push a real service interval
+  /// later than it should be, a safety-relevant error rather than a cosmetic
+  /// one. Do not "fix" this.
+  // stats-scope-exempt: gear wear is physical, not descriptive
   Future<int> getDiveCountForEquipment(String equipmentId) async {
     try {
       final result = await _db
@@ -606,6 +612,12 @@ class EquipmentRepository {
   /// (date, duration) samples of dives linked to this equipment via the
   /// dive_equipment junction or dive_tanks.equipment_id, for usage-based
   /// service clocks. Duration is COALESCE(runtime, bottom_time) seconds.
+  /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
+  /// from statistics still physically happened: it cycled this gear and put
+  /// hours on it. Suppressing it here would push a real service interval
+  /// later than it should be, a safety-relevant error rather than a cosmetic
+  /// one. Do not "fix" this.
+  // stats-scope-exempt: gear wear is physical, not descriptive
   Future<List<DiveUsageSample>> getUsageSamplesForEquipment(
     String equipmentId, {
     DateTime? since,
@@ -659,6 +671,12 @@ class EquipmentRepository {
   }
 
   /// Get trip count for equipment item (unique trips from dives using this equipment)
+  /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
+  /// from statistics still physically happened: it cycled this gear and put
+  /// hours on it. Suppressing it here would push a real service interval
+  /// later than it should be, a safety-relevant error rather than a cosmetic
+  /// one. Do not "fix" this.
+  // stats-scope-exempt: gear wear is physical, not descriptive
   Future<int> getTripCountForEquipment(String equipmentId) async {
     try {
       final result = await _db
@@ -685,6 +703,7 @@ class EquipmentRepository {
   }
 
   /// Get trip IDs for equipment item
+  // stats-scope-exempt: gear usage is physical, not descriptive
   Future<List<String>> getTripIdsForEquipment(String equipmentId) async {
     try {
       final result = await _db

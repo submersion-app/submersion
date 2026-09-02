@@ -14,7 +14,13 @@ import '../../../helpers/test_database.dart';
 /// clear-the-reference).
 void main() {
   // SQL table name -> sync entityType, for every entity the merge applies
-  // (mirrors SyncService's mergeOrder).
+  // (mirrors SyncService's mergeOrder). `diveProfiles` / `tankPressureProfiles`
+  // are deliberately absent: their tables (`dive_profiles` /
+  // `tank_pressure_profiles`) were dropped in v183, so there is no live FK
+  // for this test to check; SyncService.parentRefs has no entry for either
+  // any more (an inbound row now stages in a per-connection TEMP table with
+  // no declared FK, and the packer's own orphan check does the equivalent
+  // guard at pack time).
   const syncedTables = <String, String>{
     'divers': 'divers',
     'dives': 'dives',
@@ -24,6 +30,7 @@ void main() {
     'trips': 'trips',
     'liveaboard_detail_records': 'liveaboardDetails',
     'trip_itinerary_days': 'itineraryDays',
+    'trip_day_weather': 'tripDayWeather',
     'checklist_templates': 'checklistTemplates',
     'checklist_template_items': 'checklistTemplateItems',
     'trip_checklist_items': 'tripChecklistItems',
@@ -46,17 +53,16 @@ void main() {
     'dive_equipment': 'diveEquipment',
     'dive_tags': 'diveTags',
     'dive_buddies': 'diveBuddies',
-    'dive_profiles': 'diveProfiles',
     'dive_profile_events': 'diveProfileEvents',
     'gas_switches': 'gasSwitches',
     'dive_custom_fields': 'diveCustomFields',
     'dive_data_sources': 'diveDataSources',
     'site_species': 'siteSpecies',
+    'media_species': 'mediaSpecies',
     'site_features': 'siteFeatures',
     'csv_presets': 'csvPresets',
     'view_configs': 'viewConfigs',
     'field_presets': 'fieldPresets',
-    'tank_pressure_profiles': 'tankPressureProfiles',
     'tide_records': 'tideRecords',
     'sightings': 'sightings',
     'incidents': 'incidents',
@@ -89,6 +95,8 @@ void main() {
     'pre_dive_checklist_template_items': 'preDiveChecklistTemplateItems',
     'pre_dive_sessions': 'preDiveSessions',
     'pre_dive_session_items': 'preDiveSessionItems',
+    'dive_profile_series': 'diveProfileSeries',
+    'tank_pressure_series': 'tankPressureSeries',
   };
 
   // Parent table -> entityType for parents a user can delete (and thus

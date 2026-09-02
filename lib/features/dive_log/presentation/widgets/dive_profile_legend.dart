@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/theme/app_colors.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_options_dialog.dart';
@@ -123,7 +125,7 @@ class DiveProfileLegend extends ConsumerWidget {
           ),
           const SizedBox(width: 4),
           // Zoom controls
-          _ZoomControls(
+          ChartZoomControls(
             zoomLevel: zoomLevel,
             minZoom: minZoom,
             maxZoom: maxZoom,
@@ -353,6 +355,14 @@ class DiveProfileLegend extends ConsumerWidget {
       onTap: notifier.toggleTts,
     );
     add(
+      present: config.hasGtrData,
+      id: 'gtr',
+      label: l10n.diveLog_legend_label_gtr,
+      color: ProfileRightAxisMetric.gtr.color!,
+      isActive: state.showGtr,
+      onTap: notifier.toggleGtr,
+    );
+    add(
       present: config.hasCnsData,
       id: 'cns',
       label: l10n.diveLog_legend_label_cns,
@@ -559,78 +569,6 @@ class _MoreOptionsButton extends ConsumerWidget {
         anchorOffset: buttonOffset,
         anchorSize: buttonSize,
       ),
-    );
-  }
-}
-
-/// Zoom controls widget
-class _ZoomControls extends StatelessWidget {
-  final double zoomLevel;
-  final double minZoom;
-  final double maxZoom;
-  final VoidCallback onZoomIn;
-  final VoidCallback onZoomOut;
-  final VoidCallback onResetZoom;
-
-  const _ZoomControls({
-    required this.zoomLevel,
-    required this.minZoom,
-    required this.maxZoom,
-    required this.onZoomIn,
-    required this.onZoomOut,
-    required this.onResetZoom,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isZoomed = zoomLevel > 1.0;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Zoom out button
-        IconButton(
-          onPressed: zoomLevel > minZoom ? onZoomOut : null,
-          icon: const Icon(Icons.remove),
-          iconSize: 18,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          tooltip: context.l10n.diveLog_profile_tooltip_zoomOut,
-        ),
-        // Zoom level indicator
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            '${zoomLevel.toStringAsFixed(1)}x',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: isZoomed
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        // Zoom in button
-        IconButton(
-          onPressed: zoomLevel < maxZoom ? onZoomIn : null,
-          icon: const Icon(Icons.add),
-          iconSize: 18,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          tooltip: context.l10n.diveLog_profile_tooltip_zoomIn,
-        ),
-        // Reset zoom / fit button
-        if (isZoomed)
-          IconButton(
-            onPressed: onResetZoom,
-            icon: const Icon(Icons.fit_screen),
-            iconSize: 18,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            tooltip: context.l10n.diveLog_profile_tooltip_resetZoom,
-          ),
-      ],
     );
   }
 }

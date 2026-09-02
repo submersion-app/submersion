@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_sites/data/services/dive_site_api_servi
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 
 import 'site_matching_service_test.mocks.dart';
 
@@ -22,17 +23,38 @@ Dive _diveAt(String id, GeoPoint where) => Dive(
   entryLocation: where,
 );
 
-@GenerateMocks([SiteRepository, DiveSiteApiService, DiveRepository])
+Dive _diveWithoutGps(String id) =>
+    Dive(id: id, diveNumber: 1, dateTime: DateTime(2026, 1, 1), maxDepth: 18);
+
+Dive _diveWithBareSite(String id, DiveSite site, {GeoPoint? gps}) => Dive(
+  id: id,
+  diveNumber: 1,
+  dateTime: DateTime(2026, 1, 1),
+  maxDepth: 18,
+  entryLocation: gps,
+  site: site,
+);
+
+const _bareSite = DiveSite(id: 'bare', name: 'Typed Twice');
+
+@GenerateMocks([
+  SiteRepository,
+  DiveSiteApiService,
+  DiveRepository,
+  MediaRepository,
+])
 void main() {
   late MockSiteRepository sites;
   late MockDiveSiteApiService api;
   late MockDiveRepository dives;
+  late MockMediaRepository media;
 
   // Pass-through transaction runner so apply runs without a real database.
   SiteMatchingService service() => SiteMatchingService(
     siteRepository: sites,
     apiService: api,
     diveRepository: dives,
+    mediaRepository: media,
     diverId: 'diver-1',
     thresholds: SiteMatchSensitivity.balanced.thresholds,
     runInTransaction: (body) => body(),
@@ -42,6 +64,8 @@ void main() {
     sites = MockSiteRepository();
     api = MockDiveSiteApiService();
     dives = MockDiveRepository();
+    media = MockMediaRepository();
+    when(media.getBestPhotoGpsForDives(any)).thenAnswer((_) async => const {});
     when(
       api.searchNearby(
         latitude: anyNamed('latitude'),
@@ -222,5 +246,204 @@ void main() {
       expect(result.divesLinked, 0);
       verifyNever(dives.setSite(any, any));
     });
+  });
+
+  group('photo point source', () {
+    test('falls back to the photo fix when the dive has no GPS', () async {
+      const existing = DiveSite(
+        id: 's1',
+        name: 'Blue Hole',
+        location: GeoPoint(0, 0),
+      );
+      when(
+        sites.getAllSites(diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => const [existing]);
+      when(media.getBestPhotoGpsForDives(['d1'])).thenAnswer(
+        (_) async => {
+          'd1': (
+            mediaId: 'm1',
+            location: _eastMeters(33),
+            takenAt: DateTime.utc(2026, 1, 1),
+          ),
+        },
+      );
+
+      final proposals = await service().computeProposals([
+        _diveWithoutGps('d1'),
+      ]);
+
+      expect(proposals.single.status, ProposalStatus.clear);
+      expect(proposals.single.recommendedCandidateId, 's1');
+      expect(proposals.single.pointSource, PointSource.photo);
+      expect(proposals.single.point, _eastMeters(33));
+    });
+
+    test('dive-computer GPS wins over a photo fix', () async {
+      when(media.getBestPhotoGpsForDives(['d1'])).thenAnswer(
+        (_) async => {
+          'd1': (
+            mediaId: 'm1',
+            location: const GeoPoint(10, 10),
+            takenAt: DateTime.utc(2026, 1, 1),
+          ),
+        },
+      );
+      final proposals = await service().computeProposals([
+        _diveAt('d1', _eastMeters(33)),
+      ]);
+      expect(proposals.single.pointSource, PointSource.diveComputer);
+      expect(proposals.single.point, _eastMeters(33));
+    });
+
+    test('a dive with neither point is skipped', () async {
+      final proposals = await service().computeProposals([
+        _diveWithoutGps('d1'),
+      ]);
+      expect(proposals, isEmpty);
+    });
+
+    test('a failing photo query degrades to no photo point', () async {
+      when(
+        media.getBestPhotoGpsForDives(any),
+      ).thenAnswer((_) async => throw StateError('db'));
+      final proposals = await service().computeProposals([
+        _diveAt('d1', _eastMeters(33)),
+        _diveWithoutGps('d2'),
+      ]);
+      expect(proposals.map((p) => p.dive.id), ['d1']);
+    });
+  });
+
+  group('current site without coordinates', () {
+    setUp(() {
+      when(
+        sites.updateSiteCoordinates(any, any, altitude: anyNamed('altitude')),
+      ).thenAnswer((_) async {});
+      when(sites.updateSiteAltitude(any, any)).thenAnswer((_) async {});
+    });
+
+    SiteMatchingService withElevation(Future<double?> Function(GeoPoint) f) =>
+        SiteMatchingService(
+          siteRepository: sites,
+          apiService: api,
+          diveRepository: dives,
+          mediaRepository: media,
+          diverId: 'diver-1',
+          thresholds: SiteMatchSensitivity.balanced.thresholds,
+          runInTransaction: (body) => body(),
+          fetchElevation: f,
+        );
+
+    test(
+      'is the clear recommendation when no located site is nearby',
+      () async {
+        final proposals = await service().computeProposals([
+          _diveWithBareSite('d1', _bareSite, gps: _eastMeters(0)),
+        ]);
+        final p = proposals.single;
+        expect(p.status, ProposalStatus.clear);
+        expect(p.recommendedCandidateId, 'current:bare');
+        expect(p.candidates.first.isCurrentSite, isTrue);
+        expect(p.candidates.first.name, 'Typed Twice');
+      },
+    );
+
+    test(
+      'goes to review when a located user site is within the inner radius',
+      () async {
+        const neighbour = DiveSite(
+          id: 's1',
+          name: 'Blue Hole',
+          location: GeoPoint(0, 0),
+        );
+        when(
+          sites.getAllSites(diverId: anyNamed('diverId')),
+        ).thenAnswer((_) async => const [neighbour]);
+        final proposals = await service().computeProposals([
+          _diveWithBareSite('d1', _bareSite, gps: _eastMeters(40)),
+        ]);
+        final p = proposals.single;
+        expect(p.status, ProposalStatus.review);
+        expect(p.candidates.map((c) => c.id), ['current:bare', 's1']);
+      },
+    );
+
+    test(
+      'applying the current-site candidate patches coordinates only',
+      () async {
+        final s = service();
+        await s.computeProposals([
+          _diveWithBareSite('d1', _bareSite, gps: _eastMeters(0)),
+        ]);
+        final result = await s.applyConfirmed([
+          const ConfirmedMatch('d1', 'current:bare'),
+        ]);
+        expect(result.sitesLocated, 1);
+        expect(result.divesLinked, 1);
+        verify(sites.updateSiteCoordinates('bare', _eastMeters(0))).called(1);
+        verifyNever(sites.updateSite(any));
+        verifyNever(dives.setSite(any, any));
+      },
+    );
+
+    test(
+      'the altitude pass runs after apply for sites that gained coordinates',
+      () async {
+        final s = withElevation((_) async => 12.0);
+        await s.computeProposals([
+          _diveWithBareSite('d1', _bareSite, gps: _eastMeters(0)),
+        ]);
+        await s.applyConfirmed([const ConfirmedMatch('d1', 'current:bare')]);
+        verify(sites.updateSiteAltitude('bare', 12.0)).called(1);
+      },
+    );
+
+    test('an elevation failure does not fail the apply', () async {
+      final s = withElevation((_) async => throw StateError('offline'));
+      await s.computeProposals([
+        _diveWithBareSite('d1', _bareSite, gps: _eastMeters(0)),
+      ]);
+      final result = await s.applyConfirmed([
+        const ConfirmedMatch('d1', 'current:bare'),
+      ]);
+      expect(result.sitesLocated, 1);
+      verifyNever(sites.updateSiteAltitude(any, any));
+    });
+  });
+
+  group('createAndLink', () {
+    setUp(() {
+      when(sites.createSite(any)).thenAnswer((inv) async {
+        final s = inv.positionalArguments.first as DiveSite;
+        return s.copyWith(id: 'new-${s.name}');
+      });
+      when(sites.updateSiteAltitude(any, any)).thenAnswer((_) async {});
+    });
+
+    test(
+      'creates the site under the diver, links the dive, fills altitude',
+      () async {
+        final s = SiteMatchingService(
+          siteRepository: sites,
+          apiService: api,
+          diveRepository: dives,
+          mediaRepository: media,
+          diverId: 'diver-1',
+          thresholds: SiteMatchSensitivity.balanced.thresholds,
+          runInTransaction: (body) => body(),
+          fetchElevation: (_) async => 3.0,
+        );
+        final created = await s.createAndLink(
+          'd1',
+          const DiveSite(id: 'x', name: 'Wall', location: GeoPoint(1, 2)),
+        );
+        expect(created.id, 'new-Wall');
+        final saved =
+            verify(sites.createSite(captureAny)).captured.single as DiveSite;
+        expect(saved.diverId, 'diver-1');
+        verify(dives.setSite('d1', 'new-Wall')).called(1);
+        verify(sites.updateSiteAltitude('new-Wall', 3.0)).called(1);
+      },
+    );
   });
 }

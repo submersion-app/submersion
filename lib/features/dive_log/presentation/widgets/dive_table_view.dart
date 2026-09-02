@@ -136,16 +136,8 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
 
     final sorted = List<Dive>.from(widget.dives);
     sorted.sort((a, b) {
-      final va = field.extractFromDive(
-        a,
-        sacUnit: units.sacUnit,
-        gasModel: units.settings.gasModel,
-      );
-      final vb = field.extractFromDive(
-        b,
-        sacUnit: units.sacUnit,
-        gasModel: units.settings.gasModel,
-      );
+      final va = field.extractFromDive(a, gasModel: units.settings.gasModel);
+      final vb = field.extractFromDive(b, gasModel: units.settings.gasModel);
 
       // Nulls always sort to the end
       if (va == null && vb == null) return 0;
@@ -214,7 +206,8 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
       case DiveField.tankCount:
       case DiveField.startPressure:
       case DiveField.endPressure:
-      case DiveField.sacRate:
+      case DiveField.sac:
+      case DiveField.rmv:
       case DiveField.gasConsumed:
       case DiveField.totalWeight:
       case DiveField.gradientFactorLow:
@@ -246,7 +239,6 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
   }) {
     final value = column.field.extractFromDive(
       dive,
-      sacUnit: units.sacUnit,
       gasModel: units.settings.gasModel,
     );
     final text = column.field.formatValue(value, units);

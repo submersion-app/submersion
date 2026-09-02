@@ -19,6 +19,9 @@ enum ImportSourceType {
 
   /// A dive computer download.
   diveComputer,
+
+  /// A Suunto cloud (app.suunto.com) import.
+  suuntoCloud,
 }
 
 /// The kind of entity represented by an [EntityGroup].
@@ -55,6 +58,9 @@ enum ImportEntityType {
 
   /// Courses.
   courses,
+
+  /// Photos referenced by an imported logbook.
+  media,
 }
 
 /// Metadata about the source of an [ImportBundle].

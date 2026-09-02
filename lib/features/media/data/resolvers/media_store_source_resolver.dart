@@ -54,7 +54,18 @@ class MediaStoreSourceResolver implements MediaSourceResolver {
     if (fn == null) {
       return const UnavailableData(kind: UnavailableKind.unauthenticated);
     }
-    return await fn(item, thumbnail: true) ?? resolve(item);
+    final thumb = await fn(item, thumbnail: true);
+    if (thumb != null) return thumb;
+    // A video's original and its rendition are both video, so degrading to
+    // either renders the same movie placeholder the caller already has, at the
+    // cost of a full download per grid tile.
+    // `MediaStoreResolver.tryResolveRemote` returns null for exactly this
+    // reason and says so; falling through to [resolve] asked it again with
+    // `thumbnail: false` and undid the whole decision.
+    if (item.isVideo) {
+      return const UnavailableData(kind: UnavailableKind.notFound);
+    }
+    return resolve(item);
   }
 
   @override

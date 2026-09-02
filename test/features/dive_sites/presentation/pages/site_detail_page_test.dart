@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_3d/presentation/pages/career_terrain_pa
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
@@ -1147,6 +1148,171 @@ void main() {
       expect(find.text('Cebu City'), findsWidgets);
       expect(find.text('Malapascua'), findsWidgets);
       expect(find.text('Visayan Sea'), findsOneWidget);
+    });
+  });
+
+  group('SiteDetailPage dive statistics section', () {
+    const statsSite = DiveSite(id: 'stats-site', name: 'Stats Site');
+
+    testWidgets('hides the card entirely when the site has no dives', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(statsSite.id).overrideWith((_) async => statsSite),
+            siteDiveCountProvider(statsSite.id).overrideWith((_) async => 0),
+            siteDiveStatisticsProvider(
+              statsSite.id,
+            ).overrideWith((_) async => SiteDiveStatistics.empty),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: statsSite.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dive Statistics'), findsNothing);
+    });
+
+    testWidgets('renders all six stat rows when the site has dives', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await getBaseOverrides();
+      final stats = SiteDiveStatistics(
+        diveCount: 3,
+        maxDepthReached: 30,
+        minDepthReached: 10,
+        longestDiveSeconds: 5400,
+        averageDurationSeconds: 1800,
+        firstDiveAt: DateTime(2025, 1, 5),
+        lastDiveAt: DateTime(2026, 2, 20),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(statsSite.id).overrideWith((_) async => statsSite),
+            siteDiveCountProvider(statsSite.id).overrideWith((_) async => 3),
+            siteDiveStatisticsProvider(
+              statsSite.id,
+            ).overrideWith((_) async => stats),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: statsSite.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Dive Statistics'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      expect(find.text('Dive Statistics'), findsOneWidget);
+      expect(find.text('Deepest Dive'), findsOneWidget);
+      expect(find.text('Shallowest Dive'), findsOneWidget);
+      expect(find.text('Longest Dive'), findsOneWidget);
+      expect(find.text('Average Duration'), findsOneWidget);
+      expect(find.text('First Dive'), findsOneWidget);
+      expect(find.text('Last Dive'), findsOneWidget);
+      // 5400s => 1h 30m; 1800s (average) => 30min.
+      expect(find.text('1h 30m'), findsOneWidget);
+      expect(find.text('30min'), findsOneWidget);
+    });
+
+    testWidgets(
+      'renders missing depth/duration fields as "Not available" rather '
+      'than 0',
+      (tester) async {
+        _setMobileTestSurfaceSize(tester);
+        final overrides = await getBaseOverrides();
+        final stats = SiteDiveStatistics(
+          diveCount: 1,
+          firstDiveAt: DateTime(2026, 1, 1),
+          lastDiveAt: DateTime(2026, 1, 1),
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              siteProvider(statsSite.id).overrideWith((_) async => statsSite),
+              siteDiveCountProvider(statsSite.id).overrideWith((_) async => 1),
+              siteDiveStatisticsProvider(
+                statsSite.id,
+              ).overrideWith((_) async => stats),
+            ],
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: SiteDetailPage(siteId: statsSite.id, embedded: true),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(
+          find.text('Dive Statistics'),
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+
+        // maxDepth, minDepth, longestDive, and avgDuration are all null on
+        // this fixture, so all four rows fall back to the same string.
+        expect(find.text('Not available'), findsNWidgets(4));
+      },
+    );
+
+    testWidgets('renders nothing while the aggregate is in flight, so a site '
+        'with no dives never flashes a phantom card', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(statsSite.id).overrideWith((_) async => statsSite),
+            siteDiveCountProvider(statsSite.id).overrideWith((_) async => 1),
+            siteDiveStatisticsProvider(statsSite.id).overrideWith(
+              (_) => Future.delayed(
+                const Duration(seconds: 10),
+                () => SiteDiveStatistics.empty,
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: statsSite.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // The section occupies no space at all until the aggregate resolves.
+      // Asserting on the card's own icon rather than on a progress indicator
+      // keeps this independent of the other sections on the page.
+      expect(find.byIcon(Icons.query_stats), findsNothing);
+      expect(find.text('Dive Statistics'), findsNothing);
+
+      // Let the pending timer resolve before the test tears down. The stats
+      // are empty, so the section stays hidden once it settles too.
+      await tester.pump(const Duration(seconds: 11));
+      expect(find.byIcon(Icons.query_stats), findsNothing);
     });
   });
 }

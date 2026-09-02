@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strip non-Apple platform references out of App Store Connect note fields.
+"""Strip non-Apple platform references and contributor credits out of App Store Connect note fields.
 
 App Review guideline 2.3.10 forbids referring to other platforms in App Store
 metadata, but the text both Apple-bound note fields are generated from is
@@ -14,9 +14,14 @@ on wording. Redaction is word-level: platform names are dropped out of lists
 with a neutral phrase. The accepted trade-off is that a clause written about
 one platform can survive as a non-sequitur.
 
+The same input also carries contributor credits: the release body attributes
+every bullet to its author and closes with a New Contributors section. Those
+are removed here too, because an @handle is not a name and a PR number is not
+something a store reader can follow.
+
 Only Apple-bound text passes through here. Google Play notes, the GitHub
 release body, the Sparkle appcast and docs/releases/*.md keep every platform
-name.
+name and every credit.
 
 Usage: sanitize_apple_store_notes.py [--fallback TEXT] [--report] < in > out
 
@@ -247,6 +252,40 @@ def tidy(text):
     return text
 
 
+# " by @octocat in #42", and the shorter " by @octocat" a commit that reached
+# main without a PR gets. The "@" is what makes this safe: ordinary prose such
+# as "Reported by a tester" and "Fixes the crash described in #1182" cannot
+# match, so only a real credit is ever removed.
+_ATTRIBUTION_RE = re.compile(
+    r"[ \t]by @[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:[ \t]in #[0-9]+)?"
+)
+
+# The closing credits section, from its heading to the next heading or the end
+# of the body. Unlike every other pass here this one removes lines, which is
+# why it runs on the input before the line-count invariant is established.
+_NEW_CONTRIBUTORS_RE = re.compile(
+    r"^#{1,6}[ \t]*New Contributors[ \t]*$.*?(?=^#{1,6}[ \t]|\Z)",
+    re.MULTILINE | re.DOTALL,
+)
+
+
+def strip_attribution(text):
+    """Remove contributor credits. Returns (text, number of removals).
+
+    The GitHub release body credits every bullet to its author and closes with
+    the first-time contributors, which is the point of the release page. None
+    of it belongs in App Store "What's New": an @handle is not a name, a PR
+    number is not something a store reader can follow, and the section reads as
+    project bookkeeping rather than as what changed in the app.
+
+    This is the only pass that changes the line count, so it runs before
+    sanitize() rather than inside it.
+    """
+    text, dropped = _NEW_CONTRIBUTORS_RE.subn("", text)
+    text, credits = _ATTRIBUTION_RE.subn("", text)
+    return text, dropped + credits
+
+
 def sanitize(text, terms=None):
     """Run every pass. The result may be empty; the caller supplies a fallback.
 
@@ -326,8 +365,15 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     terms = load_terms()
-    original = sys.stdin.read()
+    original, credits = strip_attribution(sys.stdin.read())
     result = sanitize(original, terms)
+
+    if credits:
+        print(
+            "sanitize_apple_store_notes: removed %d contributor credit(s)"
+            % credits,
+            file=sys.stderr,
+        )
 
     if args.report:
         _report(original, result, terms)

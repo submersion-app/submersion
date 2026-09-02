@@ -29,7 +29,6 @@ void main() {
         'dive-1': {
           'tank-a': [
             const TankPressurePoint(
-              id: 'tp1',
               tankId: 'tank-a',
               timestamp: 0,
               pressure: 200.0,
@@ -74,7 +73,6 @@ void main() {
         'dive-1': {
           'tank-a': [
             const TankPressurePoint(
-              id: 'tp1',
               tankId: 'tank-a',
               timestamp: 0,
               pressure: 200.0,
@@ -82,7 +80,6 @@ void main() {
           ],
           'tank-b': [
             const TankPressurePoint(
-              id: 'tp2',
               tankId: 'tank-b',
               timestamp: 0,
               pressure: 190.0,

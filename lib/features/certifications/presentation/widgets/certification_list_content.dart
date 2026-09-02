@@ -743,6 +743,10 @@ class CertificationListTile extends StatelessWidget {
     final issueDateLabel = certification.issueDate != null
         ? ', issued ${DateFormat.yMMMd().format(certification.issueDate!)}'
         : '';
+    // Only non-null when a custom name owns the title, so the level is spoken
+    // exactly once either way.
+    final level = certificationSubtitle(certification);
+    final levelLabel = level != null ? ', $level' : '';
 
     return Semantics(
       // Keep the agency: this label stands in for the whole tile, so dropping
@@ -750,7 +754,8 @@ class CertificationListTile extends StatelessWidget {
       // derived rather than raw so the agency is not said twice.
       label:
           '${certification.agency.displayName} '
-          '${certificationTitle(certification)}$issueDateLabel$statusLabel',
+          '${certificationTitle(certification)}'
+          '$levelLabel$issueDateLabel$statusLabel',
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         color: isSelected
@@ -800,7 +805,9 @@ class CertificationListTile extends StatelessWidget {
 
   Widget? _buildSubtitle(BuildContext context) {
     final parts = <String>[];
-    parts.add(certification.agency.displayName);
+    // Carries the level too when the title is a custom name, which is the
+    // only place the level can show on this tile.
+    parts.add(certificationAgencyAndLevel(certification));
     if (certification.issueDate != null) {
       parts.add(DateFormat.yMMMd().format(certification.issueDate!));
     }

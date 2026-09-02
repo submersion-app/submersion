@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/media/data/services/gallery_thumbnail_cache.dart';
@@ -234,6 +235,112 @@ void main() {
 
       final recovered = await cache.getOrFetch('a', () async => _bytes(10));
       expect(recovered, isNotNull);
+    });
+  });
+
+  /// photo_manager asks PhotoKit with `networkAccessAllowed = YES`, so an
+  /// iCloud-only asset triggers a full cloud download behind a plain await.
+  group('slot budget', () {
+    test('a fetch that overruns the slot budget frees it', () {
+      fakeAsync((async) {
+        final cache = GalleryThumbnailCache(
+          maxConcurrent: 1,
+          slotBudget: const Duration(seconds: 5),
+        );
+        final stuck = Completer<Uint8List?>();
+        var secondStarted = false;
+
+        cache.getOrFetch('cloud', () => stuck.future);
+        async.flushMicrotasks();
+        cache.getOrFetch('local', () async {
+          secondStarted = true;
+          return _bytes(10);
+        });
+        async.flushMicrotasks();
+        expect(
+          secondStarted,
+          isFalse,
+          reason: 'the only slot is held by the iCloud download',
+        );
+
+        async.elapse(const Duration(seconds: 5));
+        async.flushMicrotasks();
+        expect(secondStarted, isTrue);
+        expect(cache.detachedCount, 1);
+
+        stuck.complete(null);
+        async.flushMicrotasks();
+        expect(cache.detachedCount, 0);
+      });
+    });
+
+    test('a fetch inside the budget never detaches and cancels its timer', () {
+      fakeAsync((async) {
+        final cache = GalleryThumbnailCache(
+          maxConcurrent: 1,
+          slotBudget: const Duration(seconds: 5),
+        );
+        cache.getOrFetch('quick', () async => _bytes(10));
+        async.elapse(const Duration(seconds: 1));
+        async.flushMicrotasks();
+
+        expect(cache.detachedCount, 0);
+        expect(cache.runningCount, 0);
+
+        // A stale firing would release a slot nobody holds, drifting the
+        // effective cap upward for the life of the process.
+        async.elapse(const Duration(seconds: 30));
+        expect(cache.runningCount, 0);
+      });
+    });
+
+    test('detaching is capped so outstanding work cannot grow unbounded', () {
+      fakeAsync((async) {
+        final cache = GalleryThumbnailCache(
+          maxConcurrent: 1,
+          maxDetached: 2,
+          slotBudget: const Duration(seconds: 5),
+        );
+        final held = <Completer<Uint8List?>>[];
+
+        for (var i = 0; i < 4; i++) {
+          final blocker = Completer<Uint8List?>();
+          held.add(blocker);
+          cache.getOrFetch('k$i', () => blocker.future);
+          async.flushMicrotasks();
+          async.elapse(const Duration(seconds: 5));
+          async.flushMicrotasks();
+        }
+
+        expect(cache.detachedCount, 2);
+        expect(cache.runningCount, 1);
+
+        for (final blocker in held) {
+          blocker.complete(null);
+        }
+        async.flushMicrotasks();
+      });
+    });
+
+    test('a detached fetch still caches its bytes when it lands', () {
+      fakeAsync((async) {
+        final cache = GalleryThumbnailCache(
+          maxConcurrent: 1,
+          slotBudget: const Duration(seconds: 5),
+        );
+        final late = Completer<Uint8List?>();
+        cache.getOrFetch('slow', () => late.future);
+        async.elapse(const Duration(seconds: 5));
+        async.flushMicrotasks();
+
+        late.complete(_bytes(10));
+        async.flushMicrotasks();
+        expect(
+          cache.containsKey('slow'),
+          isTrue,
+          reason: 'losing the slot must not lose the memoization',
+        );
+      });
     });
   });
 }

@@ -141,15 +141,44 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
                     (s->o2_sensor_mv[c] == UINT32_MAX) ? NULL : &mv_vals[c];
             }
 
+            // Every tank's pressure at this sample (issue #1223): a sample can
+            // carry one reading per air-integrated transmitter, and `pressure`
+            // above holds only the last of them. NaN -> null, trailing nulls
+            // trimmed, all-NaN -> NULL so the field stays absent. The
+            // constructor takes its own reference, so unref ours afterwards.
+            int last_tank = -1;
+            for (int t = LIBDC_MAX_TANKS - 1; t >= 0; t--) {
+                if (!isnan(s->tank_pressure[t])) {
+                    last_tank = t;
+                    break;
+                }
+            }
+            FlValue* tank_pressures = NULL;
+            if (last_tank >= 0) {
+                tank_pressures = fl_value_new_list();
+                for (int t = 0; t <= last_tank; t++) {
+                    fl_value_append_take(
+                        tank_pressures,
+                        isnan(s->tank_pressure[t])
+                            ? fl_value_new_null()
+                            : fl_value_new_float(s->tank_pressure[t]));
+                }
+            }
+
             LibdivecomputerPluginProfileSample* sample =
                 libdivecomputer_plugin_profile_sample_new(
                     time_seconds, s->depth, temp_c, pressure, tank_index,
+                    tank_pressures,
                     heart_rate, heading, setpoint, ppo2, cns, rbt, deco_type,
                     deco_time, deco_depth, tts, o2_sensor[0], o2_sensor[1],
                     o2_sensor[2], o2_sensor[3], o2_sensor[4], o2_sensor[5],
                     o2_sensor_mv[0], o2_sensor_mv[1], o2_sensor_mv[2],
                     o2_sensor_mv[3], o2_sensor_mv[4], o2_sensor_mv[5],
                     gas_mix_index);
+
+            if (tank_pressures != NULL) {
+                fl_value_unref(tank_pressures);
+            }
 
             fl_value_append_take(
                 samples,

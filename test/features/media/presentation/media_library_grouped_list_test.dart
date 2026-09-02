@@ -60,6 +60,7 @@ void main() {
     VoidCallback? onLoadMore,
     void Function(MediaLibraryEntry)? onTileTap,
     Set<String> selectedIds = const {},
+    bool isSelectionMode = false,
   }) {
     return ProviderScope(
       overrides: _badgeOverrides().cast(),
@@ -74,6 +75,7 @@ void main() {
             onLoadMore: onLoadMore ?? () {},
             onTileTap: onTileTap ?? (_) {},
             selectedIds: selectedIds,
+            isSelectionMode: isSelectionMode,
           ),
         ),
       ),
@@ -211,12 +213,30 @@ void main() {
           diveGroup(diveId: 'd1', diveNumber: 9, entries: [entry('a')]),
         ],
         selectedIds: const {'a'},
+        isSelectionMode: true,
       ),
     );
     await tester.pump();
 
     // Tiles toggle selection during multi-select; the header must not
     // navigate out from under a half-built selection.
+    expect(find.byType(InkWell), findsNothing);
+    expect(find.text('#9'), findsOneWidget);
+  });
+
+  testWidgets('a dive header is inert in selection mode with nothing checked', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host([
+        diveGroup(diveId: 'd1', diveNumber: 9, entries: [entry('a')]),
+      ], isSelectionMode: true),
+    );
+    await tester.pump();
+
+    // The Select button enters the mode with an empty selection, a state the
+    // old id-set could not represent. Keying header navigation off "something
+    // is checked" would leave the header live for exactly that first tap.
     expect(find.byType(InkWell), findsNothing);
     expect(find.text('#9'), findsOneWidget);
   });

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
@@ -13,7 +14,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Dive detail section listing the post-dive safety review findings.
 ///
 /// Tone rules (safety-features spec): neutral wording and iconography, no
-/// alarm red, per-finding dismiss. Collapses to nothing when the review is
+/// alarm red, per-finding dismiss plus a footer action that dismisses (or
+/// restores) the whole dive at once. Collapses to nothing when the review is
 /// disabled, absent, or has no findings to show.
 class SafetyReviewSection extends ConsumerStatefulWidget {
   final String diveId;
@@ -79,31 +81,53 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
                 onDismissChanged: (dismissed) =>
                     _setDismissed(finding, dismissed),
               ),
-            if (dismissed.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: TextButton(
-                  onPressed: () =>
-                      setState(() => _showDismissed = !_showDismissed),
-                  child: Text(
-                    l10n.safetyReview_showDismissed(dismissed.length),
-                  ),
-                ),
-              ),
-              if (_showDismissed)
-                for (final finding in dismissed)
-                  Opacity(
-                    opacity: 0.6,
-                    child: _FindingTile(
-                      finding: finding,
-                      units: units,
-                      selected: selectedFinding?.id == finding.id,
-                      onTap: _tapHandlerFor(finding),
-                      onDismissChanged: (dismissed) =>
-                          _setDismissed(finding, dismissed),
+            // Footer: the dismissed-findings toggle on the left, the bulk
+            // action on the right. The bulk action flips to "restore all"
+            // once nothing active is left, so the row never offers a no-op.
+            //
+            // OverflowBar, not Row: after a "dismiss all" both controls are on
+            // screen at once, and in the longer locales that pair does not fit
+            // a narrow phone. OverflowBar stacks them instead of overflowing.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: OverflowBar(
+                alignment: dismissed.isEmpty
+                    ? MainAxisAlignment.end
+                    : MainAxisAlignment.spaceBetween,
+                overflowAlignment: OverflowBarAlignment.end,
+                children: [
+                  if (dismissed.isNotEmpty)
+                    TextButton(
+                      onPressed: () =>
+                          setState(() => _showDismissed = !_showDismissed),
+                      child: Text(
+                        l10n.safetyReview_showDismissed(dismissed.length),
+                      ),
+                    ),
+                  TextButton(
+                    onPressed: () => _onBulkPressed(active.isNotEmpty),
+                    child: Text(
+                      active.isNotEmpty
+                          ? l10n.safetyReview_dismissAll
+                          : l10n.safetyReview_restoreAll,
                     ),
                   ),
-            ],
+                ],
+              ),
+            ),
+            if (dismissed.isNotEmpty && _showDismissed)
+              for (final finding in dismissed)
+                Opacity(
+                  opacity: 0.6,
+                  child: _FindingTile(
+                    finding: finding,
+                    units: units,
+                    selected: selectedFinding?.id == finding.id,
+                    onTap: _tapHandlerFor(finding),
+                    onDismissChanged: (dismissed) =>
+                        _setDismissed(finding, dismissed),
+                  ),
+                ),
             const SizedBox(height: 8),
           ],
         ),
@@ -141,6 +165,25 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
       ref,
       finding: finding,
       dismissed: dismissed,
+    );
+  }
+
+  /// Dismisses every active finding on the dive, or restores every dismissed
+  /// one when nothing is active. Scoped to the enabled rules, so findings the
+  /// diver has hidden in settings are left as they are.
+  ///
+  /// The button callback cannot await, so a failed write would otherwise reach
+  /// the zone handler with no clue where it came from; logFailure attributes
+  /// it. The list simply does not change, which is the user-visible signal.
+  void _onBulkPressed(bool dismissed) {
+    logFailure(
+      setAllSafetyFindingsDismissed(
+        ref,
+        diveId: widget.diveId,
+        dismissed: dismissed,
+      ),
+      _SafetyReviewSectionState,
+      dismissed ? 'dismiss all safety findings' : 'restore all safety findings',
     );
   }
 }

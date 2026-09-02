@@ -154,6 +154,14 @@ struct ProfileSample {
   var temperatureCelsius: Double? = nil
   var pressureBar: Double? = nil
   var tankIndex: Int64? = nil
+  /// Every tank's pressure in bar at this sample, indexed by tank index, with
+  /// null where that tank reported nothing. libdivecomputer fires one pressure
+  /// reading per air-integrated transmitter, so a single sample can carry
+  /// several; [pressureBar]/[tankIndex] hold only the last of them and lose the
+  /// rest (issue #1223). Null when the sample carries no pressure at all, and
+  /// trimmed of trailing nulls, so an ordinary single-transmitter dive costs one
+  /// short list per sample.
+  var tankPressuresBar: [Double?]? = nil
   var heartRate: Int64? = nil
   /// Compass heading in degrees (0-359) from DC_SAMPLE_BEARING; null when the
   /// computer does not report bearing samples.
@@ -196,29 +204,30 @@ struct ProfileSample {
     let temperatureCelsius: Double? = nilOrValue(pigeonVar_list[2])
     let pressureBar: Double? = nilOrValue(pigeonVar_list[3])
     let tankIndex: Int64? = nilOrValue(pigeonVar_list[4])
-    let heartRate: Int64? = nilOrValue(pigeonVar_list[5])
-    let heading: Double? = nilOrValue(pigeonVar_list[6])
-    let setpoint: Double? = nilOrValue(pigeonVar_list[7])
-    let ppo2: Double? = nilOrValue(pigeonVar_list[8])
-    let cns: Double? = nilOrValue(pigeonVar_list[9])
-    let rbt: Int64? = nilOrValue(pigeonVar_list[10])
-    let decoType: Int64? = nilOrValue(pigeonVar_list[11])
-    let decoTime: Int64? = nilOrValue(pigeonVar_list[12])
-    let decoDepth: Double? = nilOrValue(pigeonVar_list[13])
-    let tts: Int64? = nilOrValue(pigeonVar_list[14])
-    let o2Sensor1: Double? = nilOrValue(pigeonVar_list[15])
-    let o2Sensor2: Double? = nilOrValue(pigeonVar_list[16])
-    let o2Sensor3: Double? = nilOrValue(pigeonVar_list[17])
-    let o2Sensor4: Double? = nilOrValue(pigeonVar_list[18])
-    let o2Sensor5: Double? = nilOrValue(pigeonVar_list[19])
-    let o2Sensor6: Double? = nilOrValue(pigeonVar_list[20])
-    let o2SensorMv1: Int64? = nilOrValue(pigeonVar_list[21])
-    let o2SensorMv2: Int64? = nilOrValue(pigeonVar_list[22])
-    let o2SensorMv3: Int64? = nilOrValue(pigeonVar_list[23])
-    let o2SensorMv4: Int64? = nilOrValue(pigeonVar_list[24])
-    let o2SensorMv5: Int64? = nilOrValue(pigeonVar_list[25])
-    let o2SensorMv6: Int64? = nilOrValue(pigeonVar_list[26])
-    let gasMixIndex: Int64? = nilOrValue(pigeonVar_list[27])
+    let tankPressuresBar: [Double?]? = nilOrValue(pigeonVar_list[5])
+    let heartRate: Int64? = nilOrValue(pigeonVar_list[6])
+    let heading: Double? = nilOrValue(pigeonVar_list[7])
+    let setpoint: Double? = nilOrValue(pigeonVar_list[8])
+    let ppo2: Double? = nilOrValue(pigeonVar_list[9])
+    let cns: Double? = nilOrValue(pigeonVar_list[10])
+    let rbt: Int64? = nilOrValue(pigeonVar_list[11])
+    let decoType: Int64? = nilOrValue(pigeonVar_list[12])
+    let decoTime: Int64? = nilOrValue(pigeonVar_list[13])
+    let decoDepth: Double? = nilOrValue(pigeonVar_list[14])
+    let tts: Int64? = nilOrValue(pigeonVar_list[15])
+    let o2Sensor1: Double? = nilOrValue(pigeonVar_list[16])
+    let o2Sensor2: Double? = nilOrValue(pigeonVar_list[17])
+    let o2Sensor3: Double? = nilOrValue(pigeonVar_list[18])
+    let o2Sensor4: Double? = nilOrValue(pigeonVar_list[19])
+    let o2Sensor5: Double? = nilOrValue(pigeonVar_list[20])
+    let o2Sensor6: Double? = nilOrValue(pigeonVar_list[21])
+    let o2SensorMv1: Int64? = nilOrValue(pigeonVar_list[22])
+    let o2SensorMv2: Int64? = nilOrValue(pigeonVar_list[23])
+    let o2SensorMv3: Int64? = nilOrValue(pigeonVar_list[24])
+    let o2SensorMv4: Int64? = nilOrValue(pigeonVar_list[25])
+    let o2SensorMv5: Int64? = nilOrValue(pigeonVar_list[26])
+    let o2SensorMv6: Int64? = nilOrValue(pigeonVar_list[27])
+    let gasMixIndex: Int64? = nilOrValue(pigeonVar_list[28])
 
     return ProfileSample(
       timeSeconds: timeSeconds,
@@ -226,6 +235,7 @@ struct ProfileSample {
       temperatureCelsius: temperatureCelsius,
       pressureBar: pressureBar,
       tankIndex: tankIndex,
+      tankPressuresBar: tankPressuresBar,
       heartRate: heartRate,
       heading: heading,
       setpoint: setpoint,
@@ -258,6 +268,7 @@ struct ProfileSample {
       temperatureCelsius,
       pressureBar,
       tankIndex,
+      tankPressuresBar,
       heartRate,
       heading,
       setpoint,

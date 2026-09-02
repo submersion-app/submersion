@@ -7,10 +7,13 @@ import 'package:submersion/features/dive_sites/data/services/site_matching_servi
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_match_review_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
+import 'package:submersion/core/providers/location_service_provider.dart';
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../media/presentation/support/fake_location_service.dart';
 
 class _SeededNotifier extends SiteMatchReviewNotifier {
   _SeededNotifier(Ref ref, SiteMatchReviewState seeded, {this.confirmResult})
@@ -19,10 +22,25 @@ class _SeededNotifier extends SiteMatchReviewNotifier {
   }
 
   final ApplyResult? confirmResult;
+  final createdHere = <(String, DiveSite)>[];
 
   @override
   Future<ApplyResult?> confirm() async => confirmResult;
+
+  @override
+  Future<DiveSite?> createSiteHere(String diveId, DiveSite site) async {
+    createdHere.add((diveId, site));
+    state = state.copyWith(
+      proposals: [
+        for (final p in state.proposals)
+          if (p.dive.id != diveId) p,
+      ],
+    );
+    return site.copyWith(id: 'created');
+  }
 }
+
+late _SeededNotifier _notifier;
 
 Dive _dive(int n) => Dive(
   id: 'd$n',
@@ -49,10 +67,19 @@ Widget _harness(SiteMatchReviewState seeded, {ApplyResult? confirmResult}) =>
         // The embedded map reads the tile style from settingsProvider.
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         siteMatchReviewProvider(null).overrideWith(
-          (ref) => _SeededNotifier(ref, seeded, confirmResult: confirmResult),
+          (ref) => _notifier = _SeededNotifier(
+            ref,
+            seeded,
+            confirmResult: confirmResult,
+          ),
+        ),
+        locationServiceProvider.overrideWithValue(
+          FakeLocationService(const PlaceLookup.empty()),
         ),
       ],
       child: const MaterialApp(
+        // Same reason as elsewhere: these tests assert English strings.
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: SiteMatchReviewPage(),
@@ -311,5 +338,119 @@ void main() {
     await tester.tap(find.text('Site a').first);
     await tester.pump();
     expect(find.textContaining('1 selected'), findsOneWidget);
+  });
+
+  testWidgets('photo-sourced proposals show the source chip', (tester) async {
+    final seeded = SiteMatchReviewState(
+      isLoading: false,
+      proposals: [
+        MatchProposal(
+          dive: _dive(7),
+          status: ProposalStatus.clear,
+          candidates: [_cand('s1')],
+          recommendedCandidateId: 's1',
+          point: const GeoPoint(0, 0),
+          pointSource: PointSource.photo,
+        ),
+      ],
+      focusedDiveId: 'd7',
+      selections: const {'d7': 's1'},
+    );
+    await tester.pumpWidget(_harness(seeded));
+    await tester.pump();
+    expect(find.text('from photo'), findsOneWidget);
+  });
+
+  testWidgets('the current-site candidate is labelled and preselected', (
+    tester,
+  ) async {
+    final current = MatchCandidateView(
+      id: SiteMatchingService.currentSiteCandidateId('bare'),
+      name: 'Typed Twice',
+      isExisting: true,
+      isCurrentSite: true,
+      distanceMeters: 0,
+      location: const GeoPoint(0, 0),
+    );
+    final seeded = SiteMatchReviewState(
+      isLoading: false,
+      proposals: [
+        MatchProposal(
+          dive: _dive(7),
+          status: ProposalStatus.clear,
+          candidates: [current],
+          recommendedCandidateId: current.id,
+          point: const GeoPoint(0, 0),
+        ),
+      ],
+      focusedDiveId: 'd7',
+      selections: {'d7': current.id},
+    );
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(_harness(seeded));
+    await tester.pump();
+    expect(find.text('Add location to this site'), findsOneWidget);
+    expect(find.text('Typed Twice'), findsWidgets);
+    expect(find.textContaining('0 m away'), findsNothing);
+  });
+
+  testWidgets('Create site here opens the dialog and links immediately', (
+    tester,
+  ) async {
+    final seeded = SiteMatchReviewState(
+      isLoading: false,
+      proposals: [
+        MatchProposal(
+          dive: _dive(7),
+          status: ProposalStatus.none,
+          point: const GeoPoint(0, 0),
+        ),
+      ],
+      focusedDiveId: 'd7',
+    );
+    await tester.pumpWidget(_harness(seeded));
+    await tester.pump();
+    await tester.tap(find.text('Create site here'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Wall');
+    await tester.tap(find.widgetWithText(FilledButton, 'Create Site'));
+    await tester.pumpAndSettle();
+    expect(_notifier.createdHere.single.$1, 'd7');
+    expect(_notifier.createdHere.single.$2.name, 'Wall');
+    expect(find.textContaining('Created site: Wall'), findsOneWidget);
+    expect(find.text('Nothing to match.'), findsOneWidget);
+  });
+
+  testWidgets('confirm snackbar reports located sites', (tester) async {
+    final seeded = SiteMatchReviewState(
+      isLoading: false,
+      proposals: [
+        MatchProposal(
+          dive: _dive(7),
+          status: ProposalStatus.clear,
+          candidates: [_cand('s1')],
+          recommendedCandidateId: 's1',
+          point: const GeoPoint(0, 0),
+        ),
+      ],
+      focusedDiveId: 'd7',
+      selections: const {'d7': 's1'},
+    );
+    await tester.pumpWidget(
+      _harness(
+        seeded,
+        confirmResult: const ApplyResult(
+          divesLinked: 1,
+          sitesCreated: 0,
+          sitesLocated: 1,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Confirm 1 matches'));
+    await tester.pump();
+    expect(find.textContaining('located 1 sites'), findsOneWidget);
   });
 }

@@ -228,7 +228,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(ActionChip));
+    await tester.tap(find.widgetWithText(ActionChip, 'Whale Shark'));
     await tester.pumpAndSettle();
 
     expect(repository.added, ['sp_whale_shark']);

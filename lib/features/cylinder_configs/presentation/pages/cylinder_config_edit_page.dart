@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Creates or edits one configuration. Cylinders are a reorderable list;
 /// their sortOrder is derived from list position on save.
@@ -47,7 +48,7 @@ class _CylinderConfigEditPageState
     if (widget.configId == null) {
       _loaded = true;
     } else {
-      _load();
+      logFailure(_load(), _CylinderConfigEditPageState, 'load');
     }
   }
 

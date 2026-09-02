@@ -1,7 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
-import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -14,10 +14,6 @@ import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
-import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
-import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
-import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
@@ -34,7 +30,8 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
-import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
@@ -519,6 +516,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                           _selection.enterExplicit();
                         } else if (value == 'import') {
                           context.push('/sites/import');
+                        } else if (value == 'fill_location_details') {
+                          unawaited(showSiteLocationBackfillFlow(context, ref));
                         } else if (value.startsWith('view_')) {
                           final mode = ListViewMode.fromName(
                             value.replaceFirst('view_', ''),
@@ -556,6 +555,18 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                               leading: const Icon(Icons.download),
                               title: Text(
                                 context.l10n.diveSites_list_menu_import,
+                              ),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'fill_location_details',
+                            child: ListTile(
+                              leading: const Icon(Icons.travel_explore),
+                              title: Text(
+                                context
+                                    .l10n
+                                    .diveSites_list_menu_fillLocationDetails,
                               ),
                               contentPadding: EdgeInsets.zero,
                             ),
@@ -639,19 +650,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         final settings = ref.watch(settingsProvider);
         final units = UnitFormatter(settings);
 
-        // Convert SiteWithDiveCount (class) to SiteWithCount (record) as
-        // required by SiteFieldAdapter.
-        final siteRecords = sites
-            .map((s) => (site: s.site, diveCount: s.diveCount))
-            .toList();
-
         return Column(
           children: [
             if (filter.hasActiveFilters)
               _buildActiveFiltersBar(context, filter),
             Expanded(
               child: EntityTableView<SiteWithCount, SiteField>(
-                entities: siteRecords,
+                entities: sites,
                 idExtractor: (s) => s.site.id,
                 adapter: SiteFieldAdapter.instance,
                 config: config,
@@ -674,7 +679,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 onEntityTap: (id) {
                   // Table mode honours modifier and shift clicks too, so
                   // selection works the same way as in the list view modes.
-                  final orderedIds = siteRecords.map((s) => s.site.id).toList();
+                  final orderedIds = sites.map((s) => s.site.id).toList();
                   if (SelectableListScope.isShiftPressed()) {
                     _selectRangeTo(id, orderedIds);
                   } else if (SelectableListScope.isModifierPressed()) {
@@ -781,6 +786,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 _selection.enterExplicit();
               } else if (value == 'import') {
                 context.push('/sites/import');
+              } else if (value == 'fill_location_details') {
+                unawaited(showSiteLocationBackfillFlow(context, ref));
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -808,6 +815,16 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 PopupMenuItem(
                   value: 'import',
                   child: Text(context.l10n.diveSites_list_menu_import),
+                ),
+                PopupMenuItem(
+                  value: 'fill_location_details',
+                  child: ListTile(
+                    leading: const Icon(Icons.travel_explore),
+                    title: Text(
+                      context.l10n.diveSites_list_menu_fillLocationDetails,
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
                 ),
               ];
             },
@@ -890,25 +907,15 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               : null;
           return switch (viewMode) {
             ListViewMode.detailed => SiteListTile(
-              name: site.name,
-              location: locationString,
-              minDepth: site.minDepth,
-              maxDepth: site.maxDepth,
-              difficulty: site.difficulty?.displayName,
-              diveCount: siteData.diveCount,
-              rating: site.rating,
+              entry: siteData,
               isSelectionMode: _isSelectionMode,
               isSelected: isSelected,
               isChecked: isChecked,
-              latitude: site.location?.latitude,
-              longitude: site.location?.longitude,
               showSharedBadge: showSharedBadge,
               onTap: () => _handleRowTap(site.id, sites),
             ),
             ListViewMode.compact => CompactSiteListTile(
-              name: site.name,
-              location: locationString,
-              diveCount: siteData.diveCount,
+              entry: siteData,
               isSelectionMode: _isSelectionMode,
               isSelected: isChecked,
               isHighlighted: !_isSelectionMode && isSelected,
@@ -1104,19 +1111,25 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     );
   }
 
+  /// Chip label for the active depth filter.
+  ///
+  /// The bounds are held in meters, like every other stored depth, so they are
+  /// converted for display. A two-ended range carries a single trailing symbol,
+  /// so only the upper bound is formatted with one.
   String _formatDepthRange(double? min, double? max) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
     if (min != null && max != null) {
       return context.l10n.diveSites_list_activeFilter_depthRangeBoth(
-        min.toInt(),
-        max.toInt(),
+        units.convertDepth(min).toStringAsFixed(0),
+        units.formatDepth(max, decimals: 0),
       );
     } else if (min != null) {
       return context.l10n.diveSites_list_activeFilter_depthRangeMin(
-        min.toInt(),
+        units.formatDepth(min, decimals: 0),
       );
     } else if (max != null) {
       return context.l10n.diveSites_list_activeFilter_depthRangeMax(
-        max.toInt(),
+        units.formatDepth(max, decimals: 0),
       );
     }
     return '';
@@ -1216,16 +1229,7 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
           itemBuilder: (context, index) {
             final site = sites[index];
             return SiteListTile(
-              name: site.name,
-              location: site.locationString.isNotEmpty
-                  ? site.locationString
-                  : null,
-              minDepth: site.minDepth,
-              maxDepth: site.maxDepth,
-              difficulty: site.difficulty?.displayName,
-              rating: site.rating,
-              latitude: site.location?.latitude,
-              longitude: site.location?.longitude,
+              entry: SiteWithDiveCount(site: site, diveCount: 0),
               onTap: () {
                 close(context, site);
                 context.push('/sites/${site.id}');
@@ -1264,273 +1268,6 @@ class SiteSearchDelegate extends SearchDelegate<DiveSite?> {
           ),
         );
       },
-    );
-  }
-}
-
-/// List item widget for displaying a dive site summary
-class SiteListTile extends ConsumerStatefulWidget {
-  final String name;
-  final String? location;
-  final double? minDepth;
-  final double? maxDepth;
-  final String? difficulty;
-  final int diveCount;
-  final double? rating;
-  final VoidCallback? onTap;
-  final bool isSelectionMode;
-  final bool isSelected;
-  final bool isChecked;
-  final double? latitude;
-  final double? longitude;
-  final bool showSharedBadge;
-
-  const SiteListTile({
-    super.key,
-    required this.name,
-    this.location,
-    this.minDepth,
-    this.maxDepth,
-    this.difficulty,
-    this.diveCount = 0,
-    this.rating,
-    this.onTap,
-    this.isSelectionMode = false,
-    this.isSelected = false,
-    this.isChecked = false,
-    this.latitude,
-    this.longitude,
-    this.showSharedBadge = false,
-  });
-
-  String? get _depthString {
-    if (minDepth != null && maxDepth != null) {
-      return '${minDepth!.toStringAsFixed(0)}-${maxDepth!.toStringAsFixed(0)}m';
-    }
-    if (maxDepth != null) {
-      return '${maxDepth!.toStringAsFixed(0)}m';
-    }
-    return null;
-  }
-
-  bool get _hasLocation => latitude != null && longitude != null;
-
-  @override
-  ConsumerState<SiteListTile> createState() => _SiteListTileState();
-}
-
-class _SiteListTileState extends ConsumerState<SiteListTile> {
-  final MapController _mapController = MapController();
-
-  @override
-  Widget build(BuildContext context) {
-    final name = widget.name;
-    final location = widget.location;
-    final difficulty = widget.difficulty;
-    final diveCount = widget.diveCount;
-    final rating = widget.rating;
-    final onTap = widget.onTap;
-    final isSelectionMode = widget.isSelectionMode;
-    final isSelected = widget.isSelected;
-    final isChecked = widget.isChecked;
-    final latitude = widget.latitude;
-    final longitude = widget.longitude;
-    final showSharedBadge = widget.showSharedBadge;
-
-    final colorScheme = Theme.of(context).colorScheme;
-    final showMapBackground = ref.watch(showMapBackgroundOnSiteCardsProvider);
-    final shouldShowMap =
-        showMapBackground && widget._hasLocation && !isSelected && !isChecked;
-    final useLightText = shouldShowMap;
-    final primaryTextColor = useLightText ? Colors.white : null;
-    final secondaryTextColor = useLightText
-        ? Colors.white70
-        : colorScheme.onSurfaceVariant;
-
-    Widget buildContent() {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: Center(
-                child: SelectionLeading(
-                  isSelectionMode: isSelectionMode,
-                  isChecked: isChecked,
-                  onChanged: (_) => onTap?.call(),
-                  child: CircleAvatar(
-                    backgroundColor: colorScheme.secondaryContainer,
-                    child: Icon(
-                      Icons.location_on,
-                      color: colorScheme.onSecondaryContainer,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: primaryTextColor,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (location != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      location,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: secondaryTextColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (showSharedBadge)
-                  Tooltip(
-                    message:
-                        context.l10n.accessibility_label_sharedWithAllProfiles,
-                    child: Icon(
-                      Icons.people_outline,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                if (widget._depthString != null)
-                  Text(
-                    widget._depthString!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: secondaryTextColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                if (difficulty != null)
-                  Text(
-                    difficulty,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
-                  ),
-                if (diveCount > 0)
-                  Text(
-                    context.l10n.diveSites_list_tile_diveCount(diveCount),
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
-                  ),
-                if (rating != null)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 16),
-                      Text(
-                        rating.toStringAsFixed(1),
-                        style: TextStyle(color: primaryTextColor),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-            if (!isSelectionMode)
-              Icon(Icons.chevron_right, color: secondaryTextColor),
-          ],
-        ),
-      );
-    }
-
-    if (shouldShowMap) {
-      final siteLocation = LatLng(latitude!, longitude!);
-      return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        clipBehavior: Clip.antiAlias,
-        child: Semantics(
-          button: true,
-          label: context.l10n.diveSites_list_tile_semantics(name),
-          child: InkWell(
-            onTap: onTap,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: TrackpadZoomMap(
-                    controller: _mapController,
-                    child: FlutterMap(
-                      mapController: _mapController,
-                      options: MapOptions(
-                        initialCenter: siteLocation,
-                        initialZoom: 13.0,
-                        interactionOptions: const InteractionOptions(
-                          flags: InteractiveFlag.none,
-                        ),
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate: ref.watch(mapTileUrlProvider),
-                          userAgentPackageName: 'app.submersion',
-                          maxZoom: ref.watch(mapTileMaxZoomProvider),
-                          tileProvider: TileCacheService.instance.isInitialized
-                              ? TileCacheService.instance.getTileProvider()
-                              : null,
-                        ),
-                        const MapAttribution(),
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        stops: const [0.0, 0.3, 0.7, 1.0],
-                        colors: [
-                          Colors.black.withValues(alpha: 0.4),
-                          Colors.black.withValues(alpha: 0.5),
-                          Colors.black.withValues(alpha: 0.7),
-                          Colors.black.withValues(alpha: 0.85),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                buildContent(),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: isSelected
-          ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-          : isChecked
-          ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-          : null,
-      child: Semantics(
-        button: true,
-        label: context.l10n.diveSites_list_tile_semantics(name),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: buildContent(),
-        ),
-      ),
     );
   }
 }

@@ -33,6 +33,40 @@ Widget testApp({
   );
 }
 
+/// Like [testApp] but hosts [child] inside a nested navigator holding a single
+/// route, reproducing the app's master-detail (tablet) shape.
+///
+/// In the real app the `ShellRoute` declares no `navigatorKey`, so GoRouter
+/// builds its own navigator for the shell. On a master-detail viewport a page
+/// renders *embedded* in the shell's single route rather than on a pushed route
+/// of its own. [testApp] instead puts the child straight under
+/// `MaterialApp.home`, where `Navigator.of(context)` and the root navigator are
+/// the same object -- which hides any code that pops the wrong navigator.
+///
+/// Use this whenever a widget shows a dialog (`showDialog` defaults to
+/// `useRootNavigator: true`) and later pops it, so the test can tell the two
+/// navigators apart. [navigatorKey] exposes the nested navigator for assertions.
+Widget testAppInShell({
+  required Widget child,
+  GlobalKey<NavigatorState>? navigatorKey,
+  List<dynamic>? overrides,
+  Locale? locale,
+}) {
+  return ProviderScope(
+    overrides: overrides?.cast() ?? [],
+    child: MaterialApp(
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Navigator(
+        key: navigatorKey,
+        onGenerateRoute: (_) =>
+            MaterialPageRoute<void>(builder: (_) => Scaffold(body: child)),
+      ),
+    ),
+  );
+}
+
 /// Like [testApp] but backed by a [GoRouter], so widgets that call
 /// `context.go(...)` can be exercised end to end in a test.
 Widget testAppRouter({

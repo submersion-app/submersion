@@ -1,5 +1,6 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/profile/surfacing_pressure.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
 /// Resolve a parsed dive's gas mixes to concrete cylinders, shared by the
@@ -12,8 +13,17 @@ import 'package:submersion/features/dive_computer/domain/entities/downloaded_div
 /// "first gas mix" fallback both mislabeled the transmitter and dropped any gas
 /// used without one (e.g. a deco bottle). Gases with no tank become pressureless
 /// cylinders.
-List<DownloadedTank> resolveParsedTanks(pigeon.ParsedDive parsed) =>
-    _resolveCylinders(parsed).tanks;
+///
+/// When [trimAtSurfacing] is set, each cylinder's end pressure is read at the
+/// moment the diver surfaced rather than at the end of the recording. Dive
+/// computers keep logging topside, and a rebreather oxygen cylinder feeding a
+/// constant mass flow orifice bleeds down through it once the valve is closed,
+/// so the computer's own end pressure can be a small fraction of what was
+/// actually left at the end of the dive (issue #1092).
+List<DownloadedTank> resolveParsedTanks(
+  pigeon.ParsedDive parsed, {
+  bool trimAtSurfacing = true,
+}) => _resolveCylinders(parsed, trimAtSurfacing: trimAtSurfacing).tanks;
 
 /// Derive the dive's gas switches from per-sample gas-mix transitions, keyed by
 /// the cylinder index assigned by [resolveParsedTanks].
@@ -26,7 +36,10 @@ List<DownloadedTank> resolveParsedTanks(pigeon.ParsedDive parsed) =>
 /// a different gas mix becomes a [GasSwitchEvent] pointing at the cylinder that
 /// holds that gas.
 List<GasSwitchEvent> resolveGasSwitches(pigeon.ParsedDive parsed) {
-  final gasIndexToTankIndex = _resolveCylinders(parsed).gasIndexToTankIndex;
+  final gasIndexToTankIndex = _resolveCylinders(
+    parsed,
+    trimAtSurfacing: false,
+  ).gasIndexToTankIndex;
   if (gasIndexToTankIndex.isEmpty) {
     return const [];
   }
@@ -81,7 +94,10 @@ class _ResolvedCylinders {
   const _ResolvedCylinders(this.tanks, this.gasIndexToTankIndex);
 }
 
-_ResolvedCylinders _resolveCylinders(pigeon.ParsedDive parsed) {
+_ResolvedCylinders _resolveCylinders(
+  pigeon.ParsedDive parsed, {
+  required bool trimAtSurfacing,
+}) {
   final gasMixes = parsed.gasMixes;
   final gasIndexToTankIndex = <int, int>{};
 
@@ -111,6 +127,11 @@ _ResolvedCylinders _resolveCylinders(pigeon.ParsedDive parsed) {
   }
 
   // Gas indices are positions into gasMixes (every bridge sets GasMix.index == i).
+  // Scanned only once there are tank records to correct: a tankless dive
+  // synthesizes pressureless cylinders that have no end pressure to trim.
+  final surfacingReadings = trimAtSurfacing
+      ? surfacingTankReadings(_surfacingPoints(parsed.samples))
+      : const <int, SurfacingTankReading>{};
   final result = <DownloadedTank>[];
   final consumed = <int>{};
 
@@ -130,7 +151,10 @@ _ResolvedCylinders _resolveCylinders(pigeon.ParsedDive parsed) {
         o2Percent: o2,
         hePercent: he,
         startPressure: tank.startPressureBar,
-        endPressure: tank.endPressureBar,
+        endPressure: trimEndPressureBar(
+          reportedBar: tank.endPressureBar,
+          reading: surfacingReadings[tank.index],
+        ),
         volumeLiters: tank.volumeLiters,
         role: _inferRole(tank.usage, o2, he),
       ),
@@ -248,3 +272,17 @@ int _firstFreeIndex(pigeon.ParsedDive parsed) {
   }
   return maxIndex + 1;
 }
+
+/// Reduce libdivecomputer samples to the depth-plus-pressure points the
+/// surfacing rule reads. A sample carries at most one transmitter reading, so
+/// each point holds either one entry or none.
+List<SurfacingProfilePoint> _surfacingPoints(List<pigeon.ProfileSample> s) => [
+  for (final sample in s)
+    SurfacingProfilePoint(
+      timeSeconds: sample.timeSeconds,
+      depthMeters: sample.depthMeters,
+      tankPressuresBar: sample.pressureBar != null && sample.tankIndex != null
+          ? {sample.tankIndex!: sample.pressureBar!}
+          : const {},
+    ),
+];

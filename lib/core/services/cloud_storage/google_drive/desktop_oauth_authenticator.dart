@@ -10,6 +10,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_token_store.dart';
+import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 /// Runs the user-consent step of the loopback flow and returns credentials.
@@ -29,14 +30,20 @@ typedef BuildRefreshingClient =
       http.Client baseClient,
     );
 
-/// Loopback-OAuth authenticator for Windows and Linux (RFC 8252 section
-/// 7.3): binds an ephemeral 127.0.0.1 port, opens the system browser to
-/// Google's consent page, and receives the auth code on the local
-/// redirect. Uses PKCE with no client secret -- Google lists client_secret
-/// as optional for Desktop-app clients, so the code_verifier alone
-/// authenticates the token exchange. Credentials persist in
-/// [GoogleDriveTokenStore]; cold-launch re-auth is silent via the stored
-/// refresh token.
+/// Loopback-OAuth authenticator for Windows, Linux, and the Developer ID
+/// macOS build (RFC 8252 section 7.3): binds an ephemeral 127.0.0.1 port,
+/// opens the system browser to Google's consent page, and receives the auth
+/// code on the local redirect.
+///
+/// Uses PKCE **and** the Desktop client's secret. PKCE alone does not
+/// satisfy Google: its token endpoint answers `invalid_request:
+/// client_secret is missing` for a Desktop-app client whether the field is
+/// omitted or sent empty, code_verifier present. The secret is supplied at
+/// build time via [GoogleDriveClientConfig.desktopClientSecret] rather than
+/// committed.
+///
+/// Credentials persist in [GoogleDriveTokenStore]; cold-launch re-auth is
+/// silent via the stored refresh token.
 class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
   DesktopOAuthAuthenticator({
     GoogleDriveTokenStore? tokenStore,
@@ -44,14 +51,26 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
     BuildRefreshingClient? buildClient,
     http.Client Function()? baseClientFactory,
     Future<void> Function(String url)? launchBrowser,
-  }) : _tokenStore = tokenStore ?? GoogleDriveTokenStore(),
+    String? clientSecret,
+  }) : _clientSecret =
+           clientSecret ?? GoogleDriveClientConfig.desktopClientSecret,
+       _tokenStore = tokenStore ?? GoogleDriveTokenStore(),
        _obtainConsent =
            obtainConsent ?? gauth.obtainAccessCredentialsViaUserConsent,
        _buildClient = buildClient ?? gauth.autoRefreshingClient,
-       _baseClientFactory = baseClientFactory ?? http.Client.new,
+       _baseClientFactory = baseClientFactory ?? _timedClient,
        _launchBrowser = launchBrowser ?? launchUrlString;
 
   static final _log = LoggerService.forClass(DesktopOAuthAuthenticator);
+
+  /// Base transport for the refreshing client, the consent-flow token
+  /// exchange, and revocation.
+  ///
+  /// A bare `http.Client()` has no connect, response or read deadline, so a
+  /// wedged socket parked every Drive call made through the refreshing client
+  /// on top of it -- on sync and, via `mediaHttpClient()`, on the media
+  /// transfer queue (#1279).
+  static http.Client _timedClient() => TimeoutHttpClient.overSockets();
 
   /// openid + email are included so the id_token carries the account email
   /// for the settings tile subtitle; drive.appdata is the only Drive scope.
@@ -63,6 +82,7 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
 
   static const String _revokeEndpoint = 'https://oauth2.googleapis.com/revoke';
 
+  final String _clientSecret;
   final GoogleDriveTokenStore _tokenStore;
   final ObtainConsentCredentials _obtainConsent;
   final BuildRefreshingClient _buildClient;
@@ -73,10 +93,13 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
   StreamSubscription<gauth.AccessCredentials>? _updateSubscription;
   String? _email;
 
-  // No client secret: PKCE authenticates the token exchange (Google lists
-  // client_secret as optional for Desktop-app clients).
-  gauth.ClientId get _clientId =>
-      gauth.ClientId(GoogleDriveClientConfig.desktopClientId);
+  // Null rather than '' when unconfigured: googleapis_auth serialises
+  // `secret ?? ''` so both reach Google identically, but null keeps the
+  // not-configured state legible at this layer.
+  gauth.ClientId get _clientId => gauth.ClientId(
+    GoogleDriveClientConfig.desktopClientId,
+    _clientSecret.isEmpty ? null : _clientSecret,
+  );
 
   @override
   http.Client? get authClient => _authClient;

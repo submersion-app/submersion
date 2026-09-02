@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/location_pic
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 class DiveCenterEditPage extends ConsumerStatefulWidget {
   final String? centerId;
@@ -125,7 +126,11 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
 
     // Only trigger when all address fields have lost focus
     if (!anyAddressFieldHasFocus) {
-      _onAddressFieldBlur();
+      logFailure(
+        _onAddressFieldBlur(),
+        _DiveCenterEditPageState,
+        'on address field blur',
+      );
     }
   }
 
@@ -588,7 +593,11 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         canPop: !_hasChanges,
         onPopInvokedWithResult: (didPop, result) {
           if (!didPop && _hasChanges) {
-            _showDiscardDialog();
+            logFailure(
+              _showDiscardDialog(),
+              _DiveCenterEditPageState,
+              'show discard dialog',
+            );
           }
         },
         child: Column(

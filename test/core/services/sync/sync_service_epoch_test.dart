@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
@@ -603,6 +605,120 @@ void main() {
       expect(result.isSuccess, isFalse);
       expect(result.message, contains('Failed to adopt'));
       expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+    });
+  });
+
+  group('adoptReplacedLibrary compatibility floor (#1341)', () {
+    const marker = LibraryEpochMarker(
+      epochId: 'e1',
+      replacedAt: 1,
+      deviceId: 'replacer',
+    );
+    final heldMessage = l10nForLocaleTag(
+      'en',
+    ).settings_cloudSync_result_cloudLibraryNewerSchema;
+
+    Future<bool> hasDive(String id) async =>
+        await SyncDataSerializer().fetchRecord('dives', id) != null;
+
+    /// The replacer's current-epoch log carries 'cloud-dive'; after the seed
+    /// (which resets the DB) the local library holds only 'local-only-dive'.
+    Future<void> seedReplacerAndLocal() async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      await seedPeerLog(cloud, 'replacer', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'local-only-dive'),
+      );
+    }
+
+    test('holds, wiping nothing, when the replaced library was published from '
+        'a newer schema', () async {
+      await seedReplacerAndLocal();
+      await restampPeerSchemaVersion(
+        cloud,
+        'replacer',
+        schemaVersion: AppDatabase.currentSchemaVersion + 1,
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.status, SyncResultStatus.error);
+      expect(result.message, heldMessage);
+      expect(result.newerSchemaPeerDeviceIds, {'replacer'});
+      // Adopt is delete-all-refill, so a held base must leave the local
+      // library and the epoch bookkeeping exactly as they were.
+      expect(await hasDive('local-only-dive'), isTrue);
+      expect(await hasDive('cloud-dive'), isFalse);
+      expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+      expect(epochStore.lastAcceptedEpochId, isNull);
+    });
+
+    test('one held base aborts the whole adopt, not just that base', () async {
+      // Two epoch devices: 'replacer' on this build, 'newer' ahead of it.
+      // Pull may hold one peer and merge the rest because it is additive;
+      // adopt may not, because a partial refill drops every row that lives
+      // only in the held base.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      await seedPeerLog(cloud, 'replacer', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'newer-dive'),
+      );
+      await seedPeerLog(cloud, 'newer', epochId: 'e1');
+      await restampPeerSchemaVersion(
+        cloud,
+        'newer',
+        schemaVersion: AppDatabase.currentSchemaVersion + 1,
+      );
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'local-only-dive'),
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.status, SyncResultStatus.error);
+      expect(result.newerSchemaPeerDeviceIds, {'newer'});
+      expect(await hasDive('local-only-dive'), isTrue);
+      expect(await hasDive('cloud-dive'), isFalse);
+      expect(await hasDive('newer-dive'), isFalse);
+      expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+    });
+
+    test('a floor at exactly this schema adopts', () async {
+      await seedReplacerAndLocal();
+      await restampPeerSchemaVersion(
+        cloud,
+        'replacer',
+        schemaVersion: AppDatabase.currentSchemaVersion,
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isTrue);
+      expect(result.newerSchemaPeerDeviceIds, isEmpty);
+      expect(await hasDive('cloud-dive'), isTrue);
+      expect(await hasDive('local-only-dive'), isFalse);
+    });
+
+    test('a legacy manifest with no floor adopts', () async {
+      await seedReplacerAndLocal();
+      await restampPeerSchemaVersion(cloud, 'replacer', schemaVersion: null);
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isTrue);
+      expect(await hasDive('cloud-dive'), isTrue);
     });
   });
 

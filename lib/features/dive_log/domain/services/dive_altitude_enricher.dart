@@ -38,9 +38,12 @@ class DiveAltitudeEnricher {
         exitLocation: dive.exitLocation,
         site: dive.site,
       );
-      final writeBack = resolution.siteWriteBack;
+      final writeBack = resolution.siteAltitudeWriteBack;
       if (writeBack != null) {
-        await _sites.updateSite(writeBack);
+        await _sites.updateSiteAltitude(
+          writeBack.siteId,
+          writeBack.altitudeMeters,
+        );
       }
       final meters = resolution.altitudeMeters;
       if (meters == null) return false;

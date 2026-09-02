@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
@@ -120,5 +121,164 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     blockers['c']!.complete(result('c'));
     await Future.wait(futures);
+  });
+
+  /// Time budgets: a cap with no deadline turns one unreachable item into a
+  /// stalled gallery, because a permit held by a fetch against a dead share is
+  /// a permit no live tile can have.
+  group('budgets', () {
+    test('a fetch that overruns the slot budget hands the slot on', () {
+      fakeAsync((async) {
+        final gate = MediaFetchGate(
+          maxConcurrent: 1,
+          slotBudget: const Duration(seconds: 5),
+          totalBudget: const Duration(seconds: 30),
+        );
+        final stuck = Completer<MediaSourceData?>();
+        var secondStarted = false;
+
+        gate.run('stuck', () => stuck.future);
+        async.flushMicrotasks();
+        gate.run('live', () async {
+          secondStarted = true;
+          return result('live');
+        });
+        async.flushMicrotasks();
+        expect(
+          secondStarted,
+          isFalse,
+          reason: 'the only slot is held by the stuck fetch',
+        );
+
+        async.elapse(const Duration(seconds: 5));
+        async.flushMicrotasks();
+        expect(
+          secondStarted,
+          isTrue,
+          reason: 'the slot budget expired and handed the slot on',
+        );
+        expect(gate.detachedCount, 1);
+
+        stuck.complete(null);
+        async.flushMicrotasks();
+        expect(gate.detachedCount, 0);
+      });
+    });
+
+    test('a fetch that finishes inside the slot budget never detaches', () {
+      fakeAsync((async) {
+        final gate = MediaFetchGate(
+          maxConcurrent: 1,
+          slotBudget: const Duration(seconds: 5),
+        );
+        gate.run('quick', () async => result('quick'));
+        async.elapse(const Duration(seconds: 1));
+        async.flushMicrotasks();
+
+        expect(gate.detachedCount, 0);
+        expect(gate.runningCount, 0);
+
+        // The slot timer must be cancelled, not merely ignored: a stale
+        // firing would release a slot this fetch no longer holds and let
+        // maxConcurrent drift upward for the life of the process.
+        async.elapse(const Duration(seconds: 30));
+        expect(gate.runningCount, 0);
+      });
+    });
+
+    test('the caller gives up at the total budget with stillFetching', () {
+      fakeAsync((async) {
+        final gate = MediaFetchGate(
+          maxConcurrent: 1,
+          slotBudget: const Duration(seconds: 5),
+          totalBudget: const Duration(seconds: 30),
+        );
+        final never = Completer<MediaSourceData?>();
+        MediaSourceData? seen;
+        gate.run('never', () => never.future).then((v) => seen = v);
+
+        async.elapse(const Duration(seconds: 29));
+        async.flushMicrotasks();
+        expect(seen, isNull);
+
+        async.elapse(const Duration(seconds: 2));
+        async.flushMicrotasks();
+        expect(seen, isA<UnavailableData>());
+        expect((seen! as UnavailableData).kind, UnavailableKind.stillFetching);
+
+        // Giving up is not cancelling: the fetch is still live, and its late
+        // completion must not throw into a listener that has gone away.
+        never.complete(null);
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 1));
+      });
+    });
+
+    test('detaching is capped so outstanding work cannot grow unbounded', () {
+      fakeAsync((async) {
+        final gate = MediaFetchGate(
+          maxConcurrent: 1,
+          maxDetached: 2,
+          slotBudget: const Duration(seconds: 5),
+          totalBudget: const Duration(minutes: 5),
+        );
+        final held = <Completer<MediaSourceData?>>[];
+
+        for (var i = 0; i < 4; i++) {
+          final blocker = Completer<MediaSourceData?>();
+          held.add(blocker);
+          gate.run('k$i', () => blocker.future);
+          async.flushMicrotasks();
+          async.elapse(const Duration(seconds: 5));
+          async.flushMicrotasks();
+        }
+
+        expect(
+          gate.detachedCount,
+          2,
+          reason: 'at the cap a fetch keeps its slot instead of detaching',
+        );
+        expect(gate.runningCount, 1);
+
+        for (final blocker in held) {
+          blocker.complete(null);
+        }
+        async.flushMicrotasks();
+        async.elapse(const Duration(minutes: 6));
+      });
+    });
+
+    test('a retry after the total budget joins the fetch still in flight', () {
+      fakeAsync((async) {
+        final gate = MediaFetchGate(
+          maxConcurrent: 4,
+          slotBudget: const Duration(seconds: 5),
+          totalBudget: const Duration(seconds: 30),
+        );
+        final slow = Completer<MediaSourceData?>();
+        var starts = 0;
+        Future<MediaSourceData?> fetch() {
+          starts++;
+          return slow.future;
+        }
+
+        gate.run('k', fetch);
+        async.elapse(const Duration(seconds: 31));
+        async.flushMicrotasks();
+
+        MediaSourceData? retried;
+        gate.run('k', fetch).then((v) => retried = v);
+        async.flushMicrotasks();
+        expect(
+          starts,
+          1,
+          reason: 'a second download of bytes already on the way is waste',
+        );
+
+        slow.complete(result('arrived'));
+        async.flushMicrotasks();
+        expect((retried! as FileData).file.path, 'arrived');
+      });
+    });
   });
 }

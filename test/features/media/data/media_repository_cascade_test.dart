@@ -72,15 +72,17 @@ void main() {
     final siteLinked = await repo.createMedia(
       item('b.jpg', diveId: 'd1', siteId: 's1'),
     );
-    final library = await repo.createMedia(
+    // A URL row is dive-only too now: no source type is exempt from the
+    // cascade, so it dies with its dive like any other photo.
+    final url = await repo.createMedia(
       item('c.jpg', diveId: 'd1', sourceType: MediaSourceType.networkUrl),
     );
-    await repo.createMedia(item('other.jpg')); // unrelated row
+    await repo.createMedia(item('other.jpg', siteId: 's1')); // unrelated row
 
     final split = await repo.partitionMediaForDiveDeletion(['d1']);
-    expect(split.doomed.map((m) => m.id), [doomed.id]);
-    expect(split.doomed.single.contentHash, 'h1');
-    expect(split.unlinkIds.toSet(), {siteLinked.id, library.id});
+    expect(split.doomed.map((m) => m.id).toSet(), {doomed.id, url.id});
+    expect(split.doomed.firstWhere((m) => m.id == doomed.id).contentHash, 'h1');
+    expect(split.unlinkIds, [siteLinked.id]);
   });
 
   test(
@@ -90,8 +92,9 @@ void main() {
       // secondary-dive set, an empty multi-select), and must get empty buckets
       // rather than every unlinked row in the library.
       await insertDive('d1');
+      await insertSite('s1');
       await repo.createMedia(item('a.jpg', diveId: 'd1'));
-      await repo.createMedia(item('unlinked.jpg'));
+      await repo.createMedia(item('site-only.jpg', siteId: 's1'));
 
       final split = await repo.partitionMediaForDiveDeletion([]);
 
@@ -109,12 +112,12 @@ void main() {
     expect(got!.diveId, isNull);
   });
 
-  test('getSweepableOrphanIds honours linkage, source type, and age', () async {
+  test('getSweepableOrphanIds honours linkage and age only', () async {
     await insertDive('d1');
     final orphan = await repo.createMedia(item('old.jpg'));
-    // The two library-level source types, named for the import that creates
-    // them: both are born unlinked and stay that way when auto-match is off
-    // or finds no confident dive, so neither is ever sweepable.
+    // Network rows used to be exempt as "library-level" media. Every row
+    // now needs a dive or site, so an unlinked network row is a sweepable
+    // orphan like any other.
     final manifestOrphan = await repo.createMedia(
       item('manifest.jpg', sourceType: MediaSourceType.manifestEntry),
     );
@@ -129,9 +132,7 @@ void main() {
     final past = DateTime.now().subtract(const Duration(days: 1));
 
     final sweepable = await repo.getSweepableOrphanIds(olderThan: future);
-    expect(sweepable, [orphan.id]);
-    expect(sweepable, isNot(contains(manifestOrphan.id)));
-    expect(sweepable, isNot(contains(urlOrphan.id)));
+    expect(sweepable.toSet(), {orphan.id, manifestOrphan.id, urlOrphan.id});
     expect(sweepable, isNot(contains(linked.id)));
 
     expect(await repo.getSweepableOrphanIds(olderThan: past), isEmpty);

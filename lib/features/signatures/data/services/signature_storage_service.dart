@@ -21,6 +21,22 @@ class SignatureStorageService {
   static const String _signatureFileType = 'instructor_signature';
   static const String _buddySignatureFileType = 'buddy_signature';
 
+  /// `media.file_path` is NOT NULL, but a signature has no file behind it:
+  /// the strokes live in the row's `image_data` BLOB. The empty string is the
+  /// schema's existing "no file" sentinel -- the v72 `source_type` backfill
+  /// tests `file_path != ''` before classifying a row as a local file, and
+  /// `SignatureResolver` only falls back to the path when it is non-empty.
+  ///
+  /// Omitting it entirely is what broke signature capture (issue #1358):
+  /// Drift rejects the companion in `validateIntegrity` before any SQL runs,
+  /// so every save threw and no signature ever reached the database.
+  static const String _signatureFilePath = '';
+
+  /// Signature rows resolve through `SignatureResolver`, never through the
+  /// gallery or local-file resolvers, so they carry the matching source type
+  /// rather than the column's `platformGallery` default.
+  static const String _signatureSourceType = 'signature';
+
   /// Save a signature image and create media record
   ///
   /// [diveId] - The dive this signature belongs to
@@ -47,7 +63,10 @@ class SignatureStorageService {
               id: Value(id),
               diveId: Value(diveId),
               imageData: Value(imageBytes),
+              filePath: const Value(_signatureFilePath),
               fileType: const Value(_signatureFileType),
+              sourceType: const Value(_signatureSourceType),
+              signatureType: const Value('instructor'),
               takenAt: Value(now.millisecondsSinceEpoch),
               signerId: Value(signerId),
               signerName: Value(signerName),
@@ -72,6 +91,7 @@ class SignatureStorageService {
         signerId: signerId,
         signerName: signerName,
         signedAt: now,
+        type: SignatureType.instructor,
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -209,7 +229,9 @@ class SignatureStorageService {
               id: Value(id),
               diveId: Value(diveId),
               imageData: Value(imageBytes),
+              filePath: const Value(_signatureFilePath),
               fileType: const Value(_buddySignatureFileType),
+              sourceType: const Value(_signatureSourceType),
               takenAt: Value(now.millisecondsSinceEpoch),
               signerId: Value(buddyId),
               signerName: Value(buddyName),
@@ -336,10 +358,27 @@ class SignatureStorageService {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
 
+    // The output is a whole number of pixels, rounded up, because the size
+    // comes from layout constraints and is routinely fractional on a scaled
+    // display: a stroke may sit at x = 607.8 on a 607.5-wide canvas, and
+    // truncating would drop that last column and crop the signature again,
+    // in miniature.
+    //
+    // Everything painted below is measured against these dimensions rather
+    // than the fractional request, so the background reaches the edge of the
+    // image it is filling. Filling only to 607.5 of a 608px-wide bitmap
+    // leaves a transparent strip down the right of an otherwise opaque
+    // signature.
+    final pixelWidth = width.ceil();
+    final pixelHeight = height.ceil();
+
     // Draw background if specified
     if (backgroundColor != null) {
       final bgPaint = Paint()..color = backgroundColor;
-      canvas.drawRect(Rect.fromLTWH(0, 0, width, height), bgPaint);
+      canvas.drawRect(
+        Rect.fromLTWH(0, 0, pixelWidth.toDouble(), pixelHeight.toDouble()),
+        bgPaint,
+      );
     }
 
     // Draw strokes
@@ -363,9 +402,8 @@ class SignatureStorageService {
       canvas.drawPath(path, paint);
     }
 
-    // Convert to image
     final picture = recorder.endRecording();
-    final image = await picture.toImage(width.toInt(), height.toInt());
+    final image = await picture.toImage(pixelWidth, pixelHeight);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
 
     return byteData!.buffer.asUint8List();

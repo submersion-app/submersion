@@ -266,21 +266,26 @@ class StatisticsProfilePage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
+              // The bar paints the deco share in orange from the leading edge
+              // and leaves the no-deco remainder in green, so the legend has
+              // to name them in that order. Row and LinearProgressIndicator
+              // are both direction-aware, which keeps the pairing intact in
+              // RTL locales.
               ExcludeSemantics(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      context.l10n.statistics_profile_deco_noDeco,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.green),
-                    ),
-                    Text(
                       context.l10n.statistics_profile_deco_decoLabel,
                       style: Theme.of(
                         context,
                       ).textTheme.bodySmall?.copyWith(color: Colors.orange),
+                    ),
+                    Text(
+                      context.l10n.statistics_profile_deco_noDeco,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.green),
                     ),
                   ],
                 ),

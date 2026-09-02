@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
@@ -40,15 +41,17 @@ class _FakeLocationService implements LocationService {
   final String? region;
 
   @override
-  Future<({String? country, String? region, String? locality})> reverseGeocode(
+  Future<PlaceLookup> reverseGeocode(
     double latitude,
-    double longitude,
-  ) async => (country: country, region: region, locality: null);
+    double longitude, {
+    required String languageCode,
+  }) async => PlaceLookup(country: country, region: region);
 
   @override
   Future<LocationResult?> getCurrentLocation({
     bool includeGeocoding = true,
     Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
   }) async => LocationResult(
     latitude: 12.3,
     longitude: 45.6,

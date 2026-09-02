@@ -17,7 +17,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_map_content.dart';
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
@@ -113,10 +113,14 @@ void main() {
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: SiteListTile(
-                name: 'Blue Hole',
-                latitude: 17.3161,
-                longitude: -87.5347,
-                diveCount: 5,
+                entry: SiteWithDiveCount(
+                  site: DiveSite(
+                    id: 'blue-hole',
+                    name: 'Blue Hole',
+                    location: GeoPoint(17.3161, -87.5347),
+                  ),
+                  diveCount: 5,
+                ),
               ),
             ),
           ),

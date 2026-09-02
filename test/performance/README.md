@@ -78,3 +78,23 @@ Profile points are generated every 2 seconds of dive time (matching real dive co
 3. Use `PerformanceDataGenerator` with desired preset for data setup
 4. Use `PerfTimer.lastResult('name')` for threshold assertions
 5. Print timing with `// ignore: avoid_print` for the runner script to capture
+
+## Profile Series Benchmark Gate
+
+`profile_series_benchmark_test.dart` compares the packed profile series read
+path against the legacy row-per-sample shapes, on a fixture synthesized from
+a real development database rather than generated data. Build the fixture
+once (never point the tool at a live database; it copies the source first):
+
+```bash
+dart run tools/synth_fixture.dart <source.db> <out.db> --replicas 25
+```
+
+Then run the gate:
+
+```bash
+SUBMERSION_BENCH_FIXTURE=<out.db> flutter test --run-skipped --tags performance test/performance/profile_series_benchmark_test.dart
+```
+
+The test skips with a message when `SUBMERSION_BENCH_FIXTURE` is unset.
+The per-dive row measures the two profile reads (dive profile samples and tank pressure samples), not a full dive entity hydrate.

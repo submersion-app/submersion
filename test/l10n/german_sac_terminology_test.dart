@@ -45,12 +45,19 @@ void main() {
     expect(de.enum_certificationAgency_bsac, 'BSAC');
   });
 
-  test('the key surfaces from the issue report read AMV', () {
-    // The dive detail row and the statistics page, both shown in #640.
-    expect(de.diveLog_detail_label_sacRate, 'AMV');
-    expect(de.statistics_gas_sacRecords_title, contains('AMV'));
-    expect(de.statistics_gas_sacTrend_title, contains('AMV'));
-    expect(de.settings_units_sacRate, 'AMV');
+  test('the volume lane reads AMV and the pressure lane Druckverbrauch', () {
+    // AMV (Atemminutenvolumen) is literally the volume rate, so it names
+    // RMV. The tank-pressure rate needs its own word; SAC is not one in
+    // German (discussion #803).
+    expect(de.gasConsumption_rmv, 'AMV');
+    expect(de.gasConsumption_sac, 'Druckverbrauch');
+    expect(de.diveLog_detail_label_rmv, 'AMV');
+    expect(de.diveLog_detail_label_sac, 'Druckverbrauch');
+    expect(de.enum_diveField_rmv_short, 'AMV');
+    expect(de.enum_diveField_sac, 'Druckverbrauch');
+    expect(de.statistics_gas_sacRecords_bestRmv, contains('AMV'));
+    expect(de.statistics_gas_sacRecords_bestSac, contains('Druckverbrauch'));
+    expect(de.settings_units_gasConsumption, 'Gasverbrauch');
   });
 
   test('AMV is not pleonastically suffixed with Rate', () {
@@ -69,10 +76,5 @@ void main() {
     ];
 
     expect(offenders, isEmpty, reason: 'use bare AMV in: $offenders');
-  });
-
-  test('the profile chart tooltip label is localized', () {
-    // The key existed but the widget hardcoded 'SAC' (issue #640).
-    expect(de.diveLog_tooltip_sac, 'AMV');
   });
 }

@@ -39,3 +39,26 @@ String diveTypeLabels(
   Iterable<String> ids, {
   Map<String, DiveTypeEntity>? typesById,
 }) => ids.map((id) => diveTypeLabel(l10n, id, typesById: typesById)).join(', ');
+
+/// Short-form counterpart to [diveTypeLabel], for space-constrained surfaces
+/// like the dive detail header's type badges.
+///
+/// A built-in type uses the fixed translated abbreviation (see
+/// [builtInDiveTypeShortName]). A custom type -- including a diver's own row
+/// sitting on a built-in slug (see [diveTypeLabel]'s tier 1) -- uses
+/// [DiveTypeEntity.shortName] if the diver set one, else falls through to
+/// its full [diveTypeLabel].
+String diveTypeShortLabel(
+  AppLocalizations l10n,
+  String id, {
+  Map<String, DiveTypeEntity>? typesById,
+}) {
+  final loaded = typesById?[id];
+  if (loaded != null && !loaded.isBuiltIn) {
+    final shortName = loaded.shortName;
+    if (shortName != null && shortName.trim().isNotEmpty) return shortName;
+    return diveTypeLabel(l10n, id, typesById: typesById);
+  }
+  return builtInDiveTypeShortName(l10n, id) ??
+      diveTypeLabel(l10n, id, typesById: typesById);
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -16,16 +17,14 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 class PickedLocation {
   final double latitude;
   final double longitude;
-  final String? country;
-  final String? region;
-  final String? locality;
+
+  /// What the coordinates reverse-geocoded to.
+  final PlaceLookup place;
 
   const PickedLocation({
     required this.latitude,
     required this.longitude,
-    this.country,
-    this.region,
-    this.locality,
+    required this.place,
   });
 }
 
@@ -64,6 +63,7 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
       final result = await LocationService.instance.reverseGeocode(
         _selectedLocation!.latitude,
         _selectedLocation!.longitude,
+        languageCode: ref.read(placeNameLanguageProvider),
       );
 
       if (mounted) {
@@ -99,6 +99,7 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
     final result = await LocationService.instance.reverseGeocode(
       _selectedLocation!.latitude,
       _selectedLocation!.longitude,
+      languageCode: ref.read(placeNameLanguageProvider),
     );
 
     if (mounted) {
@@ -106,9 +107,7 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
         PickedLocation(
           latitude: _selectedLocation!.latitude,
           longitude: _selectedLocation!.longitude,
-          country: result.country,
-          region: result.region,
-          locality: result.locality,
+          place: result,
         ),
       );
     }

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/safety/domain/entities/emergency_info.dart';
+import 'package:submersion/features/safety/presentation/widgets/chamber_tile.dart';
 import 'package:submersion/features/safety/presentation/providers/emergency_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The offline emergency card: one screen readable by a stranger under
@@ -123,7 +121,7 @@ class _CardBody extends ConsumerWidget {
             ),
           ),
         const SizedBox(height: 24),
-        _SectionHeader(title: l10n.emergencyCard_chambersSection),
+        _SectionHeader(title: l10n.emergencyCard_chambersNearby),
         Text(
           l10n.emergencyCard_chambersNote,
           style: theme.textTheme.bodySmall?.copyWith(
@@ -132,8 +130,29 @@ class _CardBody extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
-        for (final chamber in data.chambers)
-          _ChamberTile(chamber: chamber, onCall: _call),
+        if (data.nearbyChambers.isEmpty)
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(l10n.emergencyCard_chambersNoneNearby),
+            ),
+          )
+        else
+          for (final listing in data.nearbyChambers)
+            ChamberTile(listing: listing, onCall: _call),
+        if (data.totalChamberCount > data.nearbyChambers.length)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              icon: const Icon(Icons.list_alt_outlined),
+              label: Text(
+                l10n.emergencyCard_chamberViewAll(data.totalChamberCount),
+              ),
+              onPressed: () => context.push(
+                '/settings/diver-profile/emergency-card/chambers',
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -203,75 +222,6 @@ class _DiverSection extends StatelessWidget {
             ),
         ],
       ],
-    );
-  }
-}
-
-class _ChamberTile extends ConsumerWidget {
-  final EmergencyChamber chamber;
-  final Future<void> Function(String) onCall;
-
-  const _ChamberTile({required this.chamber, required this.onCall});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final subtitle = [
-      if (chamber.city != null) chamber.city!,
-      chamber.country,
-      chamber.phone,
-      if (chamber.lastVerified != null)
-        l10n.emergencyCard_chamberVerified(
-          DateFormat.yMMM().format(chamber.lastVerified!),
-        ),
-    ].join(' - ');
-
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.medical_services_outlined),
-        title: Text(chamber.name, style: theme.textTheme.titleMedium),
-        subtitle: Text(subtitle),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) async {
-            if (value == 'hide') {
-              // Capture the messenger before the await; hiding a bundled
-              // chamber is otherwise irreversible from this screen, so offer
-              // an immediate undo.
-              final messenger = ScaffoldMessenger.of(context);
-              final notifier = ref.read(settingsProvider.notifier);
-              await notifier.setChamberHidden(chamber.id, true);
-              messenger.showSnackBar(
-                SnackBar(
-                  content: Text(l10n.emergencyCard_chamberHidden),
-                  action: SnackBarAction(
-                    label: l10n.emergencyCard_undo,
-                    onPressed: () =>
-                        notifier.setChamberHidden(chamber.id, false),
-                  ),
-                ),
-              );
-            } else if (value == 'delete') {
-              await ref
-                  .read(emergencyChamberRepositoryProvider)
-                  .deleteChamber(chamber.id);
-            }
-          },
-          itemBuilder: (context) => [
-            if (chamber.isBuiltIn)
-              PopupMenuItem(
-                value: 'hide',
-                child: Text(l10n.emergencyCard_hideChamber),
-              )
-            else
-              PopupMenuItem(
-                value: 'delete',
-                child: Text(l10n.emergencyCard_deleteChamber),
-              ),
-          ],
-        ),
-        onTap: () => onCall(chamber.phone),
-      ),
     );
   }
 }

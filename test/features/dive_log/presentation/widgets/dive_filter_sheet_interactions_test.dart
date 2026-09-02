@@ -475,6 +475,38 @@ void main() {
     expect(find.byType(DiveFilterSheet), findsNothing);
   });
 
+  testWidgets('the no-buddy toggle clears a typed buddy name', (tester) async {
+    final ref = await openSheet(tester);
+
+    final buddyField = find.byWidgetPredicate(
+      (w) => w is TextField && w.decoration?.labelText == 'Buddy Name',
+    );
+
+    await scrollTo(tester, buddyField);
+    await tester.enterText(buddyField, 'Alex');
+    await tester.pumpAndSettle();
+
+    // Hold the controller itself rather than re-finding the field: scrolling
+    // the switch into view unbuilds the buddy field out of the sheet's lazy
+    // ListView, so the finder would go stale. The controller is owned by the
+    // State and outlives that.
+    final buddyController = tester.widget<TextField>(buddyField).controller!;
+    expect(buddyController.text, 'Alex');
+
+    // A dive either has a buddy to search for or has none, so the two
+    // controls are mutually exclusive. Turning the switch on has to clear the
+    // CONTROLLER as well as the state field: clearing only the field would
+    // leave a stale "Alex" on screen under a filter that ignores it.
+    await tapText(tester, 'No Buddy Assigned');
+
+    expect(buddyController.text, isEmpty);
+
+    await tapText(tester, 'Apply Filters');
+    final applied = ref.read(filterProvider);
+    expect(applied.noBuddyOnly, isTrue);
+    expect(applied.buddyNameFilter, isNull);
+  });
+
   testWidgets('close button dismisses the sheet', (tester) async {
     await openSheet(tester);
     await tester.tap(find.byIcon(Icons.close));

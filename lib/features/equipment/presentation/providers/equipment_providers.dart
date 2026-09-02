@@ -23,6 +23,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final equipmentRepositoryProvider = Provider<EquipmentRepository>((ref) {
@@ -249,7 +250,11 @@ class EquipmentListNotifier
 
   EquipmentListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      EquipmentListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -257,7 +262,11 @@ class EquipmentListNotifier
         state = const AsyncValue.loading();
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(allEquipmentProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          EquipmentListNotifier,
+          'initialize and load',
+        );
       }
     });
   }
@@ -384,18 +393,6 @@ final mostRecentServiceRecordProvider =
       return repository.getMostRecentRecord(equipmentId);
     });
 
-/// Total service cost for equipment, keyed by the currency of each record.
-/// Kept per currency so mixed-currency histories are never added together.
-final serviceRecordTotalCostProvider =
-    FutureProvider.family<Map<String, double>, String>((
-      ref,
-      equipmentId,
-    ) async {
-      final repository = ref.watch(serviceRecordRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchServiceRecordsChanges());
-      return repository.getTotalServiceCostByCurrency(equipmentId);
-    });
-
 /// Service record count for equipment
 final serviceRecordCountProvider = FutureProvider.family<int, String>((
   ref,
@@ -432,7 +429,6 @@ class ServiceRecordNotifier
     await _loadRecords();
     _ref.invalidate(serviceRecordsForEquipmentProvider(equipmentId));
     _ref.invalidate(mostRecentServiceRecordProvider(equipmentId));
-    _ref.invalidate(serviceRecordTotalCostProvider(equipmentId));
     _ref.invalidate(serviceRecordCountProvider(equipmentId));
     // Also refresh equipment to update lastServiceDate
     _ref.invalidate(equipmentItemProvider(equipmentId));

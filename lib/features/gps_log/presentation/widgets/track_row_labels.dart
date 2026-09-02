@@ -19,6 +19,13 @@ String formatTrackStart(UnitFormatter units, GpsTrack track) {
   return '${units.formatDate(start)} ${units.formatTime(start)}';
 }
 
+/// Compact duration, matching the app-wide dive_field_formatter style
+/// ("Xh Ym" at an hour or more, "Xmin" below).
+String formatCompactDuration(Duration duration) {
+  if (duration.inHours < 1) return '${duration.inMinutes}min';
+  return '${duration.inHours}h ${duration.inMinutes % 60}m';
+}
+
 /// Duration of the track as trimmed, compactly ("47min", "3h 12m").
 ///
 /// The trim bounds are stored scalars, so this stays correct even though list
@@ -26,9 +33,30 @@ String formatTrackStart(UnitFormatter units, GpsTrack track) {
 String formatTrackDuration(GpsTrack track) {
   final end = track.effectiveEndTime;
   if (end == null) return '--';
-  final duration = Duration(milliseconds: end - track.effectiveStartTime);
-  if (duration.inHours < 1) return '${duration.inMinutes}min';
-  return '${duration.inHours}h ${duration.inMinutes % 60}m';
+  return formatCompactDuration(
+    Duration(milliseconds: end - track.effectiveStartTime),
+  );
+}
+
+/// The user's label when they gave one, else the start time.
+String formatTrackTitle(UnitFormatter units, GpsTrack track) {
+  final name = track.name?.trim();
+  if (name != null && name.isNotEmpty) return name;
+  return formatTrackStart(units, track);
+}
+
+/// The line under [formatTrackTitle]: fixes and duration, led by the start
+/// time when the title is a name and would otherwise hide it.
+String formatTrackDetailLine(
+  AppLocalizations l10n,
+  UnitFormatter units,
+  GpsTrack track,
+) {
+  final figures = formatTrackSubtitle(l10n, track, formatTrackDuration(track));
+  final start = formatTrackStart(units, track);
+  return formatTrackTitle(units, track) == start
+      ? figures
+      : '$start • $figures';
 }
 
 /// Fix count and duration, both honouring a trim.

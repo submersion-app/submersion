@@ -79,7 +79,42 @@ class EnrichmentService {
     final elapsedSeconds = normalizedPhoto
         .difference(normalizedStart)
         .inSeconds;
+    return _enrichAtElapsed(profile: profile, elapsedSeconds: elapsedSeconds);
+  }
 
+  /// Calculate enrichment data for a media item the diver pinned to a moment
+  /// in the dive (issue #1090).
+  ///
+  /// [elapsedSeconds] is the diver's chosen offset from the dive start; no
+  /// capture time is involved, so no wall-clock normalisation runs. Depth and
+  /// temperature come from the same profile lookup as [calculateEnrichment],
+  /// but the confidence is always [MatchConfidence.manual] (or
+  /// [MatchConfidence.noProfile] when there is nothing to read), because the
+  /// diver's placement is a statement, not an estimate.
+  EnrichmentResult calculateEnrichmentAtElapsed({
+    required List<DiveProfilePoint> profile,
+    required int elapsedSeconds,
+  }) {
+    final result = _enrichAtElapsed(
+      profile: profile,
+      elapsedSeconds: elapsedSeconds,
+    );
+    if (result.matchConfidence == MatchConfidence.noProfile) return result;
+    return EnrichmentResult(
+      depthMeters: result.depthMeters,
+      temperatureCelsius: result.temperatureCelsius,
+      elapsedSeconds: result.elapsedSeconds,
+      matchConfidence: MatchConfidence.manual,
+      timestampOffsetSeconds: result.timestampOffsetSeconds,
+    );
+  }
+
+  /// Profile lookup shared by both entry points: the point (or interpolation)
+  /// at [elapsedSeconds] from the dive start, with the automatic confidence.
+  EnrichmentResult _enrichAtElapsed({
+    required List<DiveProfilePoint> profile,
+    required int elapsedSeconds,
+  }) {
     // Handle empty profile
     if (profile.isEmpty) {
       return EnrichmentResult(

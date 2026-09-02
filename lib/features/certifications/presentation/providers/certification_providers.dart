@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/presentation/providers/view_config_
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final certificationRepositoryProvider = Provider<CertificationRepository>((
@@ -174,7 +175,11 @@ class CertificationListNotifier
 
   CertificationListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(
+      _initializeAndLoad(),
+      CertificationListNotifier,
+      'initialize and load',
+    );
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -182,7 +187,11 @@ class CertificationListNotifier
         state = const AsyncValue.loading();
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(allCertificationsProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          CertificationListNotifier,
+          'initialize and load',
+        );
       }
     });
 

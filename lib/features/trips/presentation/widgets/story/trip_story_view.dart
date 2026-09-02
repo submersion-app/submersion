@@ -7,7 +7,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
-import 'package:submersion/features/trips/presentation/providers/surface_day_weather_provider.dart';
+import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_flight_countdown_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
@@ -154,6 +155,16 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
 
   @override
   Widget build(BuildContext context) {
+    final tripId = widget.story.trip.id;
+    // One read for the whole story. Watched here rather than inside the
+    // LayoutBuilder below, whose builder runs at layout time, not build time.
+    final storedWeather =
+        ref.watch(tripDayWeatherProvider(tripId)).asData?.value ??
+        const <int, TripDayWeather>{};
+    // Fire and forget: the backfill's writes come back through the provider
+    // above via the table tick, so a row landing re-renders its day header.
+    ref.watch(tripDayWeatherBackfillProvider(tripId));
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= _wideBreakpoint;
@@ -172,7 +183,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
                     siteCount: _siteCount,
                   ),
                 ),
-                ..._contentSlivers(),
+                ..._contentSlivers(storedWeather),
               ],
             ),
           );
@@ -195,7 +206,9 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
             Expanded(
               child: NotificationListener<ScrollUpdateNotification>(
                 onNotification: _onScroll,
-                child: CustomScrollView(slivers: _contentSlivers()),
+                child: CustomScrollView(
+                  slivers: _contentSlivers(storedWeather),
+                ),
               ),
             ),
           ],
@@ -229,18 +242,18 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
   /// One day chapter: a SliverMainAxisGroup whose pinned header sticks below
   /// the map until the next day's group pushes it out. Every day gets the same
   /// header, surface days included - theirs simply has no body under it.
-  Widget _daySliver(TripStory story, int index, int? todayIndex) {
+  Widget _daySliver(
+    TripStory story,
+    int index,
+    int? todayIndex,
+    Map<int, TripDayWeather> storedWeather,
+  ) {
     final day = story.days[index];
-    final weatherPoint = day.isSurface
-        ? story.mapGeometry.nearestPointForDay(index)
-        : null;
-    final surfaceWeatherRequest = weatherPoint == null
-        ? null
-        : SurfaceDayWeatherRequest(
-            date: day.date,
-            latitude: weatherPoint.latitude,
-            longitude: weatherPoint.longitude,
-          );
+    // Keyed through the same helper the repository stores under, so the
+    // lookup cannot drift from the write. Computing the key inline here was
+    // how the two came apart: it silently found nothing and every badge
+    // disappeared.
+    final stored = storedWeather[tripDayMillis(day.date)];
     final showTodayDivider = todayIndex != null && index == todayIndex;
     const divider = SliverPadding(
       padding: EdgeInsets.symmetric(horizontal: 16),
@@ -274,7 +287,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
         PinnedHeaderSliver(
           child: TripStoryDayHeader(
             day: day,
-            surfaceWeatherRequest: surfaceWeatherRequest,
+            storedWeather: stored?.toStoryWeather(),
           ),
         ),
         body,
@@ -282,7 +295,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     );
   }
 
-  List<Widget> _contentSlivers() {
+  List<Widget> _contentSlivers(Map<int, TripDayWeather> storedWeather) {
     final story = widget.story;
     final trip = story.trip;
     final todayIndex = story.todayIndex;
@@ -314,7 +327,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
           sliver: SliverToBoxAdapter(child: TripVesselSection(tripId: trip.id)),
         ),
       for (var index = 0; index < story.days.length; index++)
-        _daySliver(story, index, todayIndex),
+        _daySliver(story, index, todayIndex, storedWeather),
       if (trip.notes.isNotEmpty)
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),

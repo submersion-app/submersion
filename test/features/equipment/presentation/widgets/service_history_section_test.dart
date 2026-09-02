@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/services/export/export_service.dart'
     hide ServiceRecord;
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -30,6 +31,7 @@ void main() {
     ServiceCategory type = ServiceCategory.cleaning,
     DateTime? date,
     double? cost,
+    String currency = 'EUR',
     String? provider,
     DateTime? nextDue,
     String notes = '',
@@ -43,7 +45,7 @@ void main() {
       serviceDate: when,
       provider: provider,
       cost: cost,
-      currency: 'EUR',
+      currency: currency,
       nextServiceDue: nextDue,
       notes: notes,
       createdAt: when,
@@ -57,7 +59,6 @@ void main() {
     required List<ServiceKind> kinds,
     Locale locale = const Locale('en'),
     Size surface = const Size(600, 1200),
-    Map<String, double> totals = const {},
     AsyncValue<List<ServiceRecord>>? recordsState,
     _MockServiceRecordNotifier? notifier,
     _FakeExportService? exportService,
@@ -81,9 +82,6 @@ void main() {
                 notifier ??
                 _MockServiceRecordNotifier(records, state: recordsState),
           ),
-          serviceRecordTotalCostProvider(
-            equipmentId,
-          ).overrideWith((ref) async => totals),
           equipmentItemProvider(equipmentId).overrideWith(
             (ref) async => const EquipmentItem(
               id: equipmentId,
@@ -157,10 +155,12 @@ void main() {
     // zero. Flutter's guard is assert-only, so a release build renders one
     // glyph per line instead of throwing. find.text + findsOneWidget passes
     // happily in that state, so the assertion must be on rendered width.
+    // No cost on the record: this test is about the ListTile title, not the
+    // total cost summary, and the summary row is a separate layout concern.
     const longName = 'Sauerstoffsensor ersetzen und kalibrieren';
     await pumpSection(
       tester,
-      records: [record(id: 'r1', kindId: 'o2-cell', cost: 129.99)],
+      records: [record(id: 'r1', kindId: 'o2-cell')],
       kinds: [kind('o2-cell', longName)],
       locale: const Locale('de'),
       surface: const Size(360, 800),
@@ -260,9 +260,11 @@ void main() {
     testWidgets('renders one total row per currency', (tester) async {
       await pumpSection(
         tester,
-        records: [record(id: 'r1', kindId: 'disinfect', cost: 45)],
+        records: [
+          record(id: 'r1', kindId: 'disinfect', cost: 45, currency: 'EUR'),
+          record(id: 'r2', kindId: 'disinfect', cost: 12, currency: 'USD'),
+        ],
         kinds: [kind('disinfect', 'Disinfect')],
-        totals: const {'EUR': 45.0, 'USD': 12.0},
       );
 
       // Mixed currencies never sum into one figure.
@@ -276,10 +278,44 @@ void main() {
         tester,
         records: [record(id: 'r1', kindId: 'disinfect')],
         kinds: [kind('disinfect', 'Disinfect')],
-        totals: const {'EUR': 0.0},
       );
 
       expect(find.text('Total Service Cost'), findsNothing);
+    });
+
+    testWidgets('the total reflects only the filtered rows (#1236)', (
+      tester,
+    ) async {
+      await pumpSection(
+        tester,
+        records: [
+          record(id: 'r1', kindId: 'disinfect', cost: 45, currency: 'EUR'),
+          record(
+            id: 'r2',
+            kindId: 'scrubber-repack',
+            cost: 30,
+            currency: 'EUR',
+          ),
+        ],
+        kinds: [
+          kind('disinfect', 'Disinfect'),
+          kind('scrubber-repack', 'Scrubber repack'),
+        ],
+      );
+
+      // Unfiltered: both records count toward the total.
+      expect(find.text(formatMoney(75, 'EUR')), findsOneWidget);
+
+      await tester.tap(find.text('All tasks'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Disinfect').last);
+      await tester.pumpAndSettle();
+
+      // Filtered down to r1: the total must shrink with the visible list,
+      // not keep counting the hidden scrubber-repack record. Exactly two
+      // occurrences: r1's own row and the total row.
+      expect(find.text(formatMoney(45, 'EUR')), findsNWidgets(2));
+      expect(find.text(formatMoney(75, 'EUR')), findsNothing);
     });
 
     testWidgets('shows a spinner while records load', (tester) async {

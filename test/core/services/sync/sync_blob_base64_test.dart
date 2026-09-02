@@ -164,5 +164,105 @@ void main() {
         reason: 'a large BLOB must not be truncated/corrupted',
       );
     });
+
+    test('a buddy photo is exported as a base64 string', () async {
+      final serializer = SyncDataSerializer();
+      final photo = Uint8List.fromList(List.generate(256, (i) => i % 256));
+
+      await serializer.upsertRecord('buddies', {
+        'id': 'buddy-b64-1',
+        'name': 'Jane Doe',
+        'notes': '',
+        'isFavorite': false,
+        'createdAt': 1700000000000,
+        'updatedAt': 1700000000000,
+        'photo': photo,
+      });
+
+      final deviceId = await SyncRepository().getDeviceId();
+      await buildService().performSync();
+
+      final payload = await cloudBasePayload(cloud, deviceId);
+      final row = payload!.data.buddies.firstWhere(
+        (r) => r['id'] == 'buddy-b64-1',
+      );
+
+      expect(
+        row['photo'],
+        isA<String>(),
+        reason: 'a buddy photo must serialize as base64, not a byte array',
+      );
+      expect(row['photo'], base64Encode(photo));
+    });
+
+    test('a diver photo round-trips through fetchRecord', () async {
+      final serializer = SyncDataSerializer();
+      final photo = Uint8List.fromList(
+        List.generate(128, (i) => 255 - i % 256),
+      );
+
+      await serializer.upsertRecord('divers', {
+        'id': 'diver-b64-1',
+        'name': 'Jane Doe',
+        'medicalNotes': '',
+        'notes': '',
+        'isDefault': false,
+        'createdAt': 1700000000000,
+        'updatedAt': 1700000000000,
+        'photo': photo,
+      });
+
+      final restored = await serializer.fetchRecord('divers', 'diver-b64-1');
+      expect(restored, isNotNull);
+      final blob = restored!['photo'];
+      final bytes = blob is String
+          ? base64Decode(blob)
+          : Uint8List.fromList((blob as List).cast<int>());
+      expect(bytes, photo);
+    });
+
+    test('a legacy array-encoded buddy photo still imports', () async {
+      final serializer = SyncDataSerializer();
+      await serializer.upsertRecord('buddies', {
+        'id': 'buddy-legacy-1',
+        'name': 'Jane Doe',
+        'notes': '',
+        'isFavorite': false,
+        'createdAt': 1700000000000,
+        'updatedAt': 1700000000000,
+        'photo': [0x01, 0x02, 0x03],
+      });
+
+      final restored = await serializer.fetchRecord(
+        'buddies',
+        'buddy-legacy-1',
+      );
+      final blob = restored!['photo'];
+      final bytes = blob is String
+          ? base64Decode(blob)
+          : Uint8List.fromList((blob as List).cast<int>());
+      expect(bytes, [0x01, 0x02, 0x03]);
+    });
+
+    test('a null buddy photo exports as null', () async {
+      final serializer = SyncDataSerializer();
+      await serializer.upsertRecord('buddies', {
+        'id': 'buddy-nullphoto',
+        'name': 'Jane Doe',
+        'notes': '',
+        'isFavorite': false,
+        'createdAt': 1700000000000,
+        'updatedAt': 1700000000000,
+        'photo': null,
+      });
+
+      final deviceId = await SyncRepository().getDeviceId();
+      await buildService().performSync();
+      final payload = await cloudBasePayload(cloud, deviceId);
+      final row = payload!.data.buddies.firstWhere(
+        (r) => r['id'] == 'buddy-nullphoto',
+      );
+      expect(row['photo'], isNull);
+    });
   });
 }

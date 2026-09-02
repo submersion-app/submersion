@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 
 /// Account labels from /users/get_current_account.
 class DropboxAccount {
@@ -51,6 +53,11 @@ class DropboxFileMetadata {
 ///                  (getMetadata, delete); download throws.
 /// - insufficient_space -> distinct user-facing message.
 /// - anything else non-2xx, and transport errors -> wrapped generic.
+///
+/// Every request runs under [TimeoutHttpClient]'s deadlines unless the caller
+/// injects its own transport: a bare `http.Client()` has none, so a wedged
+/// socket used to park a request forever, freezing the sequential media
+/// transfer drain that runs through DropboxMediaObjectStore (#1279).
 class DropboxApiClient {
   DropboxApiClient({
     required Future<String> Function() getAccessToken,
@@ -61,7 +68,7 @@ class DropboxApiClient {
     Future<void> Function(Duration)? wait,
   }) : _getAccessToken = getAccessToken,
        _onAccessTokenRejected = onAccessTokenRejected,
-       _http = httpClient ?? http.Client(),
+       _http = httpClient ?? TimeoutHttpClient.overSockets(),
        _wait = wait ?? ((d) => Future<void>.delayed(d));
 
   static final Uri _apiBase = Uri.parse('https://api.dropboxapi.com');
@@ -79,6 +86,11 @@ class DropboxApiClient {
   final void Function() _onAccessTokenRejected;
   final http.Client _http;
   final Future<void> Function(Duration) _wait;
+
+  /// The transport actually in use, so a test can assert that a client nobody
+  /// handed one to did not fall back to a deadline-free `http.Client()`.
+  @visibleForTesting
+  http.Client get transport => _http;
 
   Future<DropboxFileMetadata> upload(String path, Uint8List data) async {
     if (data.length > chunkedUploadThresholdBytes) {

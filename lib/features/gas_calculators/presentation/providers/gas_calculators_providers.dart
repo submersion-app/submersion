@@ -1,13 +1,15 @@
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart'
-    show GasMix;
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
-import 'package:submersion/features/gas_calculators/domain/gas_blender.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart';
 import 'package:submersion/features/gas_calculators/domain/rock_bottom.dart';
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mnd_calculator_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+/// The blender's own state lives in its own file; re-exported so every
+/// existing consumer and [resetGasCalculators] keep resolving.
+import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
+export 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MOD Calculator State
@@ -135,96 +137,6 @@ final rockBottomResultProvider = Provider<RockBottomResult>((ref) {
     ),
   );
 });
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Gas Blender State
-// ═══════════════════════════════════════════════════════════════════════════
-/// Starting cylinder pressure (bar). Zero means an empty cylinder.
-final blenderStartPressureProvider = StateProvider<double>((ref) => 0.0);
-
-/// Mix already in the cylinder.
-final blenderStartMixProvider = StateProvider<GasMix>(
-  (ref) => const GasMix(o2: 21),
-);
-
-/// Desired final pressure (bar).
-final blenderTargetPressureProvider = StateProvider<double>((ref) => 200.0);
-
-/// Desired final mix.
-final blenderTargetMixProvider = StateProvider<GasMix>(
-  (ref) => const GasMix(o2: 32),
-);
-
-/// Fill gases, applied in this order. The default O2 -> helium -> air is the
-/// order a fill station works in: helium is decanted while the cylinder is
-/// still low, and the compressor tops off with air last. A helium-free target
-/// skips the helium source and blends O2 with air.
-final blenderFillGas1Provider = StateProvider<GasMix>(
-  (ref) => const GasMix(o2: 100),
-);
-final blenderFillGas2Provider = StateProvider<GasMix>(
-  (ref) => const GasMix(o2: 0, he: 100),
-);
-final blenderFillGas3Provider = StateProvider<GasMix>(
-  (ref) => const GasMix(o2: 21),
-);
-
-/// The cylinder being filled. Only its water capacity matters here: it turns
-/// the solver's per-litre amounts into the gas quantity actually drawn from
-/// each bank.
-final blenderTankProvider = StateProvider<TankSpec>((ref) => defaultTankSpec());
-
-/// Bumped by a reset so the input fields re-seed their controllers.
-final blenderResetEpochProvider = StateProvider<int>((ref) => 0);
-
-/// Either a computed fill procedure or the reason one is not achievable.
-class BlenderOutcome {
-  const BlenderOutcome({this.result, this.error, this.drainToBar});
-  final BlendResult? result;
-  final BlendError? error;
-
-  /// Set when the blend fails only because the cylinder holds too much gas:
-  /// the pressure to drain down to before starting.
-  final double? drainToBar;
-}
-
-/// The fill procedure for the current inputs; carries a [BlendError] instead of
-/// throwing when the requested blend is impossible.
-final blenderResultProvider = Provider<BlenderOutcome>((ref) {
-  try {
-    return BlenderOutcome(
-      result: computeBlend(
-        GasBlenderInputs(
-          startPressureBar: ref.watch(blenderStartPressureProvider),
-          start: ref.watch(blenderStartMixProvider),
-          targetPressureBar: ref.watch(blenderTargetPressureProvider),
-          target: ref.watch(blenderTargetMixProvider),
-          fillGas1: ref.watch(blenderFillGas1Provider),
-          fillGas2: ref.watch(blenderFillGas2Provider),
-          fillGas3: ref.watch(blenderFillGas3Provider),
-        ),
-      ),
-    );
-  } on BlendException catch (e) {
-    return BlenderOutcome(error: e.error, drainToBar: e.drainToBar);
-  }
-});
-
-/// Reset the gas blender inputs to defaults and re-seed its input fields.
-void resetGasBlender(WidgetRef ref) {
-  ref.read(blenderStartPressureProvider.notifier).state = 0.0;
-  ref.read(blenderStartMixProvider.notifier).state = const GasMix(o2: 21);
-  ref.read(blenderTargetPressureProvider.notifier).state = 200.0;
-  ref.read(blenderTargetMixProvider.notifier).state = const GasMix(o2: 32);
-  ref.read(blenderFillGas1Provider.notifier).state = const GasMix(o2: 100);
-  ref.read(blenderFillGas2Provider.notifier).state = const GasMix(
-    o2: 0,
-    he: 100,
-  );
-  ref.read(blenderFillGas3Provider.notifier).state = const GasMix(o2: 21);
-  ref.read(blenderTankProvider.notifier).state = defaultTankSpec();
-  ref.read(blenderResetEpochProvider.notifier).state++;
-}
 
 /// Reset all gas calculator providers to defaults
 void resetGasCalculators(WidgetRef ref) {

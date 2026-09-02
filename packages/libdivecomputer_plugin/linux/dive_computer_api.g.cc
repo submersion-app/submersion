@@ -192,6 +192,7 @@ struct _LibdivecomputerPluginProfileSample {
   double* temperature_celsius;
   double* pressure_bar;
   int64_t* tank_index;
+  FlValue* tank_pressures_bar;
   int64_t* heart_rate;
   double* heading;
   double* setpoint;
@@ -224,6 +225,7 @@ static void libdivecomputer_plugin_profile_sample_dispose(GObject* object) {
   g_clear_pointer(&self->temperature_celsius, g_free);
   g_clear_pointer(&self->pressure_bar, g_free);
   g_clear_pointer(&self->tank_index, g_free);
+  g_clear_pointer(&self->tank_pressures_bar, fl_value_unref);
   g_clear_pointer(&self->heart_rate, g_free);
   g_clear_pointer(&self->heading, g_free);
   g_clear_pointer(&self->setpoint, g_free);
@@ -257,7 +259,7 @@ static void libdivecomputer_plugin_profile_sample_class_init(LibdivecomputerPlug
   G_OBJECT_CLASS(klass)->dispose = libdivecomputer_plugin_profile_sample_dispose;
 }
 
-LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, int64_t* heart_rate, double* heading, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts, double* o2_sensor1, double* o2_sensor2, double* o2_sensor3, double* o2_sensor4, double* o2_sensor5, double* o2_sensor6, int64_t* o2_sensor_mv1, int64_t* o2_sensor_mv2, int64_t* o2_sensor_mv3, int64_t* o2_sensor_mv4, int64_t* o2_sensor_mv5, int64_t* o2_sensor_mv6, int64_t* gas_mix_index) {
+LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, FlValue* tank_pressures_bar, int64_t* heart_rate, double* heading, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts, double* o2_sensor1, double* o2_sensor2, double* o2_sensor3, double* o2_sensor4, double* o2_sensor5, double* o2_sensor6, int64_t* o2_sensor_mv1, int64_t* o2_sensor_mv2, int64_t* o2_sensor_mv3, int64_t* o2_sensor_mv4, int64_t* o2_sensor_mv5, int64_t* o2_sensor_mv6, int64_t* gas_mix_index) {
   LibdivecomputerPluginProfileSample* self = LIBDIVECOMPUTER_PLUGIN_PROFILE_SAMPLE(g_object_new(libdivecomputer_plugin_profile_sample_get_type(), nullptr));
   self->time_seconds = time_seconds;
   self->depth_meters = depth_meters;
@@ -281,6 +283,12 @@ LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(in
   }
   else {
     self->tank_index = nullptr;
+  }
+  if (tank_pressures_bar != nullptr) {
+    self->tank_pressures_bar = fl_value_ref(tank_pressures_bar);
+  }
+  else {
+    self->tank_pressures_bar = nullptr;
   }
   if (heart_rate != nullptr) {
     self->heart_rate = static_cast<int64_t*>(malloc(sizeof(int64_t)));
@@ -471,6 +479,11 @@ int64_t* libdivecomputer_plugin_profile_sample_get_tank_index(LibdivecomputerPlu
   return self->tank_index;
 }
 
+FlValue* libdivecomputer_plugin_profile_sample_get_tank_pressures_bar(LibdivecomputerPluginProfileSample* self) {
+  g_return_val_if_fail(LIBDIVECOMPUTER_PLUGIN_IS_PROFILE_SAMPLE(self), nullptr);
+  return self->tank_pressures_bar;
+}
+
 int64_t* libdivecomputer_plugin_profile_sample_get_heart_rate(LibdivecomputerPluginProfileSample* self) {
   g_return_val_if_fail(LIBDIVECOMPUTER_PLUGIN_IS_PROFILE_SAMPLE(self), nullptr);
   return self->heart_rate;
@@ -593,6 +606,7 @@ static FlValue* libdivecomputer_plugin_profile_sample_to_list(LibdivecomputerPlu
   fl_value_append_take(values, self->temperature_celsius != nullptr ? fl_value_new_float(*self->temperature_celsius) : fl_value_new_null());
   fl_value_append_take(values, self->pressure_bar != nullptr ? fl_value_new_float(*self->pressure_bar) : fl_value_new_null());
   fl_value_append_take(values, self->tank_index != nullptr ? fl_value_new_int(*self->tank_index) : fl_value_new_null());
+  fl_value_append_take(values, self->tank_pressures_bar != nullptr ? fl_value_ref(self->tank_pressures_bar) : fl_value_new_null());
   fl_value_append_take(values, self->heart_rate != nullptr ? fl_value_new_int(*self->heart_rate) : fl_value_new_null());
   fl_value_append_take(values, self->heading != nullptr ? fl_value_new_float(*self->heading) : fl_value_new_null());
   fl_value_append_take(values, self->setpoint != nullptr ? fl_value_new_float(*self->setpoint) : fl_value_new_null());
@@ -646,167 +660,172 @@ static LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample
     tank_index = &tank_index_value;
   }
   FlValue* value5 = fl_value_get_list_value(values, 5);
-  int64_t* heart_rate = nullptr;
-  int64_t heart_rate_value;
+  FlValue* tank_pressures_bar = nullptr;
   if (fl_value_get_type(value5) != FL_VALUE_TYPE_NULL) {
-    heart_rate_value = fl_value_get_int(value5);
-    heart_rate = &heart_rate_value;
+    tank_pressures_bar = value5;
   }
   FlValue* value6 = fl_value_get_list_value(values, 6);
-  double* heading = nullptr;
-  double heading_value;
+  int64_t* heart_rate = nullptr;
+  int64_t heart_rate_value;
   if (fl_value_get_type(value6) != FL_VALUE_TYPE_NULL) {
-    heading_value = fl_value_get_float(value6);
-    heading = &heading_value;
+    heart_rate_value = fl_value_get_int(value6);
+    heart_rate = &heart_rate_value;
   }
   FlValue* value7 = fl_value_get_list_value(values, 7);
-  double* setpoint = nullptr;
-  double setpoint_value;
+  double* heading = nullptr;
+  double heading_value;
   if (fl_value_get_type(value7) != FL_VALUE_TYPE_NULL) {
-    setpoint_value = fl_value_get_float(value7);
-    setpoint = &setpoint_value;
+    heading_value = fl_value_get_float(value7);
+    heading = &heading_value;
   }
   FlValue* value8 = fl_value_get_list_value(values, 8);
-  double* ppo2 = nullptr;
-  double ppo2_value;
+  double* setpoint = nullptr;
+  double setpoint_value;
   if (fl_value_get_type(value8) != FL_VALUE_TYPE_NULL) {
-    ppo2_value = fl_value_get_float(value8);
-    ppo2 = &ppo2_value;
+    setpoint_value = fl_value_get_float(value8);
+    setpoint = &setpoint_value;
   }
   FlValue* value9 = fl_value_get_list_value(values, 9);
-  double* cns = nullptr;
-  double cns_value;
+  double* ppo2 = nullptr;
+  double ppo2_value;
   if (fl_value_get_type(value9) != FL_VALUE_TYPE_NULL) {
-    cns_value = fl_value_get_float(value9);
-    cns = &cns_value;
+    ppo2_value = fl_value_get_float(value9);
+    ppo2 = &ppo2_value;
   }
   FlValue* value10 = fl_value_get_list_value(values, 10);
-  int64_t* rbt = nullptr;
-  int64_t rbt_value;
+  double* cns = nullptr;
+  double cns_value;
   if (fl_value_get_type(value10) != FL_VALUE_TYPE_NULL) {
-    rbt_value = fl_value_get_int(value10);
-    rbt = &rbt_value;
+    cns_value = fl_value_get_float(value10);
+    cns = &cns_value;
   }
   FlValue* value11 = fl_value_get_list_value(values, 11);
-  int64_t* deco_type = nullptr;
-  int64_t deco_type_value;
+  int64_t* rbt = nullptr;
+  int64_t rbt_value;
   if (fl_value_get_type(value11) != FL_VALUE_TYPE_NULL) {
-    deco_type_value = fl_value_get_int(value11);
-    deco_type = &deco_type_value;
+    rbt_value = fl_value_get_int(value11);
+    rbt = &rbt_value;
   }
   FlValue* value12 = fl_value_get_list_value(values, 12);
-  int64_t* deco_time = nullptr;
-  int64_t deco_time_value;
+  int64_t* deco_type = nullptr;
+  int64_t deco_type_value;
   if (fl_value_get_type(value12) != FL_VALUE_TYPE_NULL) {
-    deco_time_value = fl_value_get_int(value12);
-    deco_time = &deco_time_value;
+    deco_type_value = fl_value_get_int(value12);
+    deco_type = &deco_type_value;
   }
   FlValue* value13 = fl_value_get_list_value(values, 13);
-  double* deco_depth = nullptr;
-  double deco_depth_value;
+  int64_t* deco_time = nullptr;
+  int64_t deco_time_value;
   if (fl_value_get_type(value13) != FL_VALUE_TYPE_NULL) {
-    deco_depth_value = fl_value_get_float(value13);
-    deco_depth = &deco_depth_value;
+    deco_time_value = fl_value_get_int(value13);
+    deco_time = &deco_time_value;
   }
   FlValue* value14 = fl_value_get_list_value(values, 14);
-  int64_t* tts = nullptr;
-  int64_t tts_value;
+  double* deco_depth = nullptr;
+  double deco_depth_value;
   if (fl_value_get_type(value14) != FL_VALUE_TYPE_NULL) {
-    tts_value = fl_value_get_int(value14);
-    tts = &tts_value;
+    deco_depth_value = fl_value_get_float(value14);
+    deco_depth = &deco_depth_value;
   }
   FlValue* value15 = fl_value_get_list_value(values, 15);
-  double* o2_sensor1 = nullptr;
-  double o2_sensor1_value;
+  int64_t* tts = nullptr;
+  int64_t tts_value;
   if (fl_value_get_type(value15) != FL_VALUE_TYPE_NULL) {
-    o2_sensor1_value = fl_value_get_float(value15);
-    o2_sensor1 = &o2_sensor1_value;
+    tts_value = fl_value_get_int(value15);
+    tts = &tts_value;
   }
   FlValue* value16 = fl_value_get_list_value(values, 16);
-  double* o2_sensor2 = nullptr;
-  double o2_sensor2_value;
+  double* o2_sensor1 = nullptr;
+  double o2_sensor1_value;
   if (fl_value_get_type(value16) != FL_VALUE_TYPE_NULL) {
-    o2_sensor2_value = fl_value_get_float(value16);
-    o2_sensor2 = &o2_sensor2_value;
+    o2_sensor1_value = fl_value_get_float(value16);
+    o2_sensor1 = &o2_sensor1_value;
   }
   FlValue* value17 = fl_value_get_list_value(values, 17);
-  double* o2_sensor3 = nullptr;
-  double o2_sensor3_value;
+  double* o2_sensor2 = nullptr;
+  double o2_sensor2_value;
   if (fl_value_get_type(value17) != FL_VALUE_TYPE_NULL) {
-    o2_sensor3_value = fl_value_get_float(value17);
-    o2_sensor3 = &o2_sensor3_value;
+    o2_sensor2_value = fl_value_get_float(value17);
+    o2_sensor2 = &o2_sensor2_value;
   }
   FlValue* value18 = fl_value_get_list_value(values, 18);
-  double* o2_sensor4 = nullptr;
-  double o2_sensor4_value;
+  double* o2_sensor3 = nullptr;
+  double o2_sensor3_value;
   if (fl_value_get_type(value18) != FL_VALUE_TYPE_NULL) {
-    o2_sensor4_value = fl_value_get_float(value18);
-    o2_sensor4 = &o2_sensor4_value;
+    o2_sensor3_value = fl_value_get_float(value18);
+    o2_sensor3 = &o2_sensor3_value;
   }
   FlValue* value19 = fl_value_get_list_value(values, 19);
-  double* o2_sensor5 = nullptr;
-  double o2_sensor5_value;
+  double* o2_sensor4 = nullptr;
+  double o2_sensor4_value;
   if (fl_value_get_type(value19) != FL_VALUE_TYPE_NULL) {
-    o2_sensor5_value = fl_value_get_float(value19);
-    o2_sensor5 = &o2_sensor5_value;
+    o2_sensor4_value = fl_value_get_float(value19);
+    o2_sensor4 = &o2_sensor4_value;
   }
   FlValue* value20 = fl_value_get_list_value(values, 20);
-  double* o2_sensor6 = nullptr;
-  double o2_sensor6_value;
+  double* o2_sensor5 = nullptr;
+  double o2_sensor5_value;
   if (fl_value_get_type(value20) != FL_VALUE_TYPE_NULL) {
-    o2_sensor6_value = fl_value_get_float(value20);
-    o2_sensor6 = &o2_sensor6_value;
+    o2_sensor5_value = fl_value_get_float(value20);
+    o2_sensor5 = &o2_sensor5_value;
   }
   FlValue* value21 = fl_value_get_list_value(values, 21);
-  int64_t* o2_sensor_mv1 = nullptr;
-  int64_t o2_sensor_mv1_value;
+  double* o2_sensor6 = nullptr;
+  double o2_sensor6_value;
   if (fl_value_get_type(value21) != FL_VALUE_TYPE_NULL) {
-    o2_sensor_mv1_value = fl_value_get_int(value21);
-    o2_sensor_mv1 = &o2_sensor_mv1_value;
+    o2_sensor6_value = fl_value_get_float(value21);
+    o2_sensor6 = &o2_sensor6_value;
   }
   FlValue* value22 = fl_value_get_list_value(values, 22);
-  int64_t* o2_sensor_mv2 = nullptr;
-  int64_t o2_sensor_mv2_value;
+  int64_t* o2_sensor_mv1 = nullptr;
+  int64_t o2_sensor_mv1_value;
   if (fl_value_get_type(value22) != FL_VALUE_TYPE_NULL) {
-    o2_sensor_mv2_value = fl_value_get_int(value22);
-    o2_sensor_mv2 = &o2_sensor_mv2_value;
+    o2_sensor_mv1_value = fl_value_get_int(value22);
+    o2_sensor_mv1 = &o2_sensor_mv1_value;
   }
   FlValue* value23 = fl_value_get_list_value(values, 23);
-  int64_t* o2_sensor_mv3 = nullptr;
-  int64_t o2_sensor_mv3_value;
+  int64_t* o2_sensor_mv2 = nullptr;
+  int64_t o2_sensor_mv2_value;
   if (fl_value_get_type(value23) != FL_VALUE_TYPE_NULL) {
-    o2_sensor_mv3_value = fl_value_get_int(value23);
-    o2_sensor_mv3 = &o2_sensor_mv3_value;
+    o2_sensor_mv2_value = fl_value_get_int(value23);
+    o2_sensor_mv2 = &o2_sensor_mv2_value;
   }
   FlValue* value24 = fl_value_get_list_value(values, 24);
-  int64_t* o2_sensor_mv4 = nullptr;
-  int64_t o2_sensor_mv4_value;
+  int64_t* o2_sensor_mv3 = nullptr;
+  int64_t o2_sensor_mv3_value;
   if (fl_value_get_type(value24) != FL_VALUE_TYPE_NULL) {
-    o2_sensor_mv4_value = fl_value_get_int(value24);
-    o2_sensor_mv4 = &o2_sensor_mv4_value;
+    o2_sensor_mv3_value = fl_value_get_int(value24);
+    o2_sensor_mv3 = &o2_sensor_mv3_value;
   }
   FlValue* value25 = fl_value_get_list_value(values, 25);
-  int64_t* o2_sensor_mv5 = nullptr;
-  int64_t o2_sensor_mv5_value;
+  int64_t* o2_sensor_mv4 = nullptr;
+  int64_t o2_sensor_mv4_value;
   if (fl_value_get_type(value25) != FL_VALUE_TYPE_NULL) {
-    o2_sensor_mv5_value = fl_value_get_int(value25);
-    o2_sensor_mv5 = &o2_sensor_mv5_value;
+    o2_sensor_mv4_value = fl_value_get_int(value25);
+    o2_sensor_mv4 = &o2_sensor_mv4_value;
   }
   FlValue* value26 = fl_value_get_list_value(values, 26);
-  int64_t* o2_sensor_mv6 = nullptr;
-  int64_t o2_sensor_mv6_value;
+  int64_t* o2_sensor_mv5 = nullptr;
+  int64_t o2_sensor_mv5_value;
   if (fl_value_get_type(value26) != FL_VALUE_TYPE_NULL) {
-    o2_sensor_mv6_value = fl_value_get_int(value26);
-    o2_sensor_mv6 = &o2_sensor_mv6_value;
+    o2_sensor_mv5_value = fl_value_get_int(value26);
+    o2_sensor_mv5 = &o2_sensor_mv5_value;
   }
   FlValue* value27 = fl_value_get_list_value(values, 27);
+  int64_t* o2_sensor_mv6 = nullptr;
+  int64_t o2_sensor_mv6_value;
+  if (fl_value_get_type(value27) != FL_VALUE_TYPE_NULL) {
+    o2_sensor_mv6_value = fl_value_get_int(value27);
+    o2_sensor_mv6 = &o2_sensor_mv6_value;
+  }
+  FlValue* value28 = fl_value_get_list_value(values, 28);
   int64_t* gas_mix_index = nullptr;
   int64_t gas_mix_index_value;
-  if (fl_value_get_type(value27) != FL_VALUE_TYPE_NULL) {
-    gas_mix_index_value = fl_value_get_int(value27);
+  if (fl_value_get_type(value28) != FL_VALUE_TYPE_NULL) {
+    gas_mix_index_value = fl_value_get_int(value28);
     gas_mix_index = &gas_mix_index_value;
   }
-  return libdivecomputer_plugin_profile_sample_new(time_seconds, depth_meters, temperature_celsius, pressure_bar, tank_index, heart_rate, heading, setpoint, ppo2, cns, rbt, deco_type, deco_time, deco_depth, tts, o2_sensor1, o2_sensor2, o2_sensor3, o2_sensor4, o2_sensor5, o2_sensor6, o2_sensor_mv1, o2_sensor_mv2, o2_sensor_mv3, o2_sensor_mv4, o2_sensor_mv5, o2_sensor_mv6, gas_mix_index);
+  return libdivecomputer_plugin_profile_sample_new(time_seconds, depth_meters, temperature_celsius, pressure_bar, tank_index, tank_pressures_bar, heart_rate, heading, setpoint, ppo2, cns, rbt, deco_type, deco_time, deco_depth, tts, o2_sensor1, o2_sensor2, o2_sensor3, o2_sensor4, o2_sensor5, o2_sensor6, o2_sensor_mv1, o2_sensor_mv2, o2_sensor_mv3, o2_sensor_mv4, o2_sensor_mv5, o2_sensor_mv6, gas_mix_index);
 }
 
 struct _LibdivecomputerPluginGasMix {

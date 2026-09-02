@@ -1,14 +1,17 @@
-import 'dart:io' show Platform;
+import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/buddies/data/services/contact_photo_loader.dart';
+import 'package:submersion/core/services/images/profile_photo_codec.dart';
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/utils/contact_import_support.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
@@ -27,9 +30,10 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_list_tile.dart';
+import 'package:submersion/features/buddies/presentation/widgets/compact_buddy_list_tile.dart';
 import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
@@ -50,12 +54,18 @@ class BuddyListContent extends ConsumerStatefulWidget {
   /// Optional floating action button to display when showAppBar is true.
   final Widget? floatingActionButton;
 
+  /// Test seam: replaces the native contact picker, which is a static entry
+  /// point with no place to inject a fake. Returns the picked contact, or null
+  /// when the user cancels. Mirrors [OcrScanPage.pickImageOverride].
+  final ContactPickerFn? pickContactOverride;
+
   const BuddyListContent({
     super.key,
     this.onItemSelected,
     this.selectedId,
     this.showAppBar = true,
     this.floatingActionButton,
+    @visibleForTesting this.pickContactOverride,
   });
 
   @override
@@ -74,12 +84,6 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
   bool get _isSelectionMode => _selection.value.isActive;
   Set<String> get _selectedIds => _selection.value.checkedIds;
   BuddyMergeSnapshot? _mergeSnapshot;
-
-  /// Check if contact import is supported on this platform
-  bool get _isContactImportSupported {
-    if (kIsWeb) return false;
-    return Platform.isIOS || Platform.isAndroid;
-  }
 
   @override
   void initState() {
@@ -327,7 +331,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
   }
 
   Future<void> _importFromContacts(BuildContext context) async {
-    if (!_isContactImportSupported) {
+    // An injected picker implies support: the test host is a desktop, where
+    // the real guard would short-circuit before any of the logic below.
+    if (widget.pickContactOverride == null && !isContactImportSupported) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -341,37 +347,36 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     }
 
     try {
-      if (!await FlutterContacts.permissions.has(PermissionType.read)) {
-        await FlutterContacts.permissions.request(PermissionType.read);
-        if (!await FlutterContacts.permissions.has(PermissionType.read)) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  context.l10n.buddies_message_contactPermissionRequired,
-                ),
-              ),
-            );
-          }
-          return;
-        }
-      }
-
-      final pickedContact = await FlutterContacts.native.showPicker();
-      final contactId = pickedContact?.id;
-      if (contactId == null) return;
-
-      final fullContact = await FlutterContacts.get(contactId);
-      if (fullContact == null) {
+      // Only Android needs a permission here. The native picker itself is
+      // permissionless on both platforms, and asking it for properties always
+      // works on iOS, so the iOS build never shows an address-book prompt.
+      final override = widget.pickContactOverride;
+      if (override == null && !await ensureContactPropertyAccess()) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(context.l10n.buddies_message_contactLoadFailed),
+              content: Text(
+                context.l10n.buddies_message_contactPermissionRequired,
+              ),
             ),
           );
         }
         return;
       }
+
+      // One call: flutter_contacts 2.3.1's picker returns the contact with the
+      // requested properties already populated, so there is no follow-up get.
+      final fullContact = override != null
+          ? await override()
+          : await FlutterContacts.native.showPicker(
+              properties: {
+                ContactProperty.name,
+                ContactProperty.email,
+                ContactProperty.phone,
+                ...contactPhotoProperties,
+              },
+            );
+      if (fullContact == null) return;
 
       final name = fullContact.displayName;
       final email = fullContact.emails.isNotEmpty
@@ -381,17 +386,38 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           ? fullContact.phones.first.number
           : null;
 
-      if (context.mounted) {
-        if (ResponsiveBreakpoints.isMasterDetail(context)) {
-          // For desktop, pass data via query params (simplified approach)
-          final state = GoRouterState.of(context);
-          context.go('${state.uri.path}?mode=new');
-        } else {
-          context.push(
-            '/buddies/new',
-            extra: {'name': name, 'email': email, 'phone': phone},
-          );
+      // Centered automatically with no crop dialog: the user is mid-import and
+      // did not ask to frame a photo. They can adjust it afterwards from the
+      // edit page.
+      final rawPhoto =
+          fullContact.photo?.fullSize ?? fullContact.photo?.thumbnail;
+      Uint8List? photo;
+      if (rawPhoto != null) {
+        // No declaredName: the address book gives no filename and a contact
+        // photo is not guaranteed to be JPEG. decodeNamedImage picks the
+        // decoder purely by extension with no fallback, so claiming '.jpg'
+        // over PNG bytes would report a valid photo as undecodable.
+        final encoded = await encodeStoredImage(
+          ImageEncodeRequest.fromBytes(
+            bytes: rawPhoto,
+            spec: ImageEncodeSpec.avatar,
+          ),
+        );
+        if (encoded.outcome == ImageEncodeOutcome.encoded) {
+          photo = encoded.bytes;
         }
+      }
+
+      if (context.mounted) {
+        // One push for every layout. `/buddies/new` declares
+        // parentNavigatorKey: rootNavigatorKey so it renders in the foreground
+        // rather than under the shell, which is why the old master-detail
+        // special case was not just buggy (it carried no data, so an iPad in
+        // landscape landed on a blank form) but unnecessary.
+        context.push(
+          '/buddies/new',
+          extra: {'name': name, 'email': email, 'phone': phone, 'photo': photo},
+        );
       }
     } catch (e) {
       if (context.mounted) {
@@ -614,18 +640,20 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
         final settings = ref.watch(settingsProvider);
         final units = UnitFormatter(settings);
 
-        // Convert BuddyWithDiveCount (class) to BuddyWithCount (record) as
-        // required by BuddyFieldAdapter.
-        final buddyRecords = buddies
-            .map((b) => (buddy: b.buddy, diveCount: b.diveCount))
-            .toList();
-
         return EntityTableView<BuddyWithCount, BuddyField>(
-          entities: buddyRecords,
+          entities: buddies,
           idExtractor: (b) => b.buddy.id,
           adapter: BuddyFieldAdapter.instance,
           config: config,
           units: units,
+          // A photo is not a sortable text value, so it rides in the row's
+          // leading slot rather than joining BuddyField, which also avoids the
+          // saved-layout breakage that renaming that enum causes.
+          leadingBuilder: (entry) => ProfileAvatar(
+            photo: entry.buddy.photo,
+            initials: entry.buddy.initials,
+            radius: 14,
+          ),
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
           onEntityTapDown: (id) {
@@ -644,7 +672,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           onEntityTap: (id) {
             // Table mode honours modifier and shift clicks too, so selection
             // works the same way as in the list view modes.
-            final orderedIds = buddyRecords.map((b) => b.buddy.id).toList();
+            final orderedIds = buddies.map((b) => b.buddy.id).toList();
             if (SelectableListScope.isShiftPressed()) {
               _selectRangeTo(id, orderedIds);
             } else if (SelectableListScope.isModifierPressed()) {
@@ -836,12 +864,18 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           final isChecked = _selectedIds.contains(buddy.id);
           final viewMode = ref.watch(buddyListViewModeProvider);
           return switch (viewMode) {
-            ListViewMode.detailed || ListViewMode.compact => BuddyListTile(
-              buddy: buddy,
-              diveCount: buddyWithCount.diveCount,
+            ListViewMode.detailed => BuddyListTile(
+              entry: buddyWithCount,
               isSelected: isSelected,
               isChecked: isChecked,
               isSelectionMode: _isSelectionMode,
+              onTap: () => _handleRowTap(buddy.id, buddies),
+            ),
+            ListViewMode.compact => CompactBuddyListTile(
+              entry: buddyWithCount,
+              isSelectionMode: _isSelectionMode,
+              isSelected: isChecked,
+              isHighlighted: !_isSelectionMode && isHighlighted,
               onTap: () => _handleRowTap(buddy.id, buddies),
             ),
             ListViewMode.dense || ListViewMode.table => DenseBuddyListTile(
@@ -918,107 +952,6 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
   }
 }
 
-/// List item widget for displaying a buddy
-class BuddyListTile extends StatelessWidget {
-  final Buddy buddy;
-  final int? diveCount;
-  final bool isSelected;
-  final bool isChecked;
-  final bool isSelectionMode;
-  final VoidCallback? onTap;
-
-  const BuddyListTile({
-    super.key,
-    required this.buddy,
-    this.diveCount,
-    this.isSelected = false,
-    this.isChecked = false,
-    this.isSelectionMode = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: isChecked
-          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-          : isSelected
-          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-          : null,
-      child: ListTile(
-        onTap: onTap,
-        leading: SizedBox(
-          width: 40,
-          height: 40,
-          child: Center(
-            child: SelectionLeading(
-              isSelectionMode: isSelectionMode,
-              isChecked: isChecked,
-              onChanged: (_) => onTap?.call(),
-              child: CircleAvatar(
-                backgroundColor: theme.colorScheme.primaryContainer,
-                backgroundImage: buddy.photoPath != null
-                    ? AssetImage(buddy.photoPath!)
-                    : null,
-                child: buddy.photoPath == null
-                    ? Text(
-                        buddy.initials,
-                        style: TextStyle(
-                          color: theme.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
-              ),
-            ),
-          ),
-        ),
-        title: Text(buddy.name),
-        subtitle: _buildSubtitle(context),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (diveCount != null)
-              Text(
-                context.l10n.buddies_label_diveCount(diveCount!),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            if (diveCount != null) const SizedBox(width: 8),
-            ExcludeSemantics(
-              child: Icon(
-                Icons.chevron_right,
-                color: theme.colorScheme.outline,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget? _buildSubtitle(BuildContext context) {
-    final parts = <String>[];
-
-    if (buddy.certificationLevel != null) {
-      parts.add(buddy.certificationLevel!.displayName);
-    }
-    if (buddy.certificationAgency != null) {
-      parts.add(buddy.certificationAgency!.displayName);
-    }
-
-    if (parts.isEmpty) {
-      return null;
-    }
-
-    return Text(parts.join(' - '));
-  }
-}
-
 /// Search delegate for buddies
 class BuddySearchDelegate extends SearchDelegate<Buddy?> {
   final WidgetRef ref;
@@ -1092,7 +1025,7 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
           itemBuilder: (context, index) {
             final buddy = buddies[index];
             return BuddyListTile(
-              buddy: buddy,
+              entry: BuddyWithDiveCount(buddy: buddy, diveCount: 0),
               onTap: () {
                 close(context, buddy);
                 context.push('/buddies/${buddy.id}');

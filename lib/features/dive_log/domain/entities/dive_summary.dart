@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
@@ -20,6 +21,14 @@ class DiveSummary extends Equatable {
   final double? waterTemp;
   final int? rating;
   final bool isFavorite;
+
+  /// Excluded from every descriptive statistic (#526). Surfaced in the
+  /// dive list so the diver can see which dives are not being counted.
+  final bool excludedFromStats;
+
+  /// Excluded from SAC/RMV and gas-mix aggregates only (#1272).
+  final bool excludedFromGasStats;
+  final DiveMode diveMode;
   final List<String> diveTypeIds;
   final List<Tag> tags;
 
@@ -49,6 +58,9 @@ class DiveSummary extends Equatable {
     this.waterTemp,
     this.rating,
     this.isFavorite = false,
+    this.excludedFromStats = false,
+    this.excludedFromGasStats = false,
+    this.diveMode = DiveMode.oc,
     this.diveTypeIds = const ['recreational'],
     this.tags = const [],
     this.siteName,
@@ -79,6 +91,9 @@ class DiveSummary extends Equatable {
       waterTemp: dive.waterTemp,
       rating: dive.rating,
       isFavorite: dive.isFavorite,
+      excludedFromStats: dive.excludedFromStats,
+      excludedFromGasStats: dive.excludedFromGasStats,
+      diveMode: dive.diveMode,
       diveTypeIds: dive.diveTypeIds,
       tags: dive.tags,
       siteName: dive.site?.name,
@@ -129,6 +144,9 @@ class DiveSummary extends Equatable {
     double? waterTemp,
     int? rating,
     bool? isFavorite,
+    bool? excludedFromStats,
+    bool? excludedFromGasStats,
+    DiveMode? diveMode,
     List<String>? diveTypeIds,
     List<Tag>? tags,
     String? siteName,
@@ -151,6 +169,9 @@ class DiveSummary extends Equatable {
       waterTemp: waterTemp ?? this.waterTemp,
       rating: rating ?? this.rating,
       isFavorite: isFavorite ?? this.isFavorite,
+      excludedFromStats: excludedFromStats ?? this.excludedFromStats,
+      excludedFromGasStats: excludedFromGasStats ?? this.excludedFromGasStats,
+      diveMode: diveMode ?? this.diveMode,
       diveTypeIds: diveTypeIds ?? this.diveTypeIds,
       tags: tags ?? this.tags,
       siteName: siteName ?? this.siteName,
@@ -176,6 +197,9 @@ class DiveSummary extends Equatable {
     waterTemp,
     rating,
     isFavorite,
+    excludedFromStats,
+    excludedFromGasStats,
+    diveMode,
     diveTypeIds,
     tags,
     siteName,

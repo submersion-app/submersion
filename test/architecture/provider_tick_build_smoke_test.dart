@@ -588,10 +588,6 @@ void main() {
       read: (c) => c.read(serviceRecordCountProvider(_id).future),
     ),
     (
-      name: 'serviceRecordTotalCostProvider',
-      read: (c) => c.read(serviceRecordTotalCostProvider(_id).future),
-    ),
-    (
       name: 'serviceRecordsForEquipmentProvider',
       read: (c) => c.read(serviceRecordsForEquipmentProvider(_id).future),
     ),
@@ -766,6 +762,10 @@ void main() {
     (
       name: 'filteredDiveStatisticsProvider',
       read: (c) => c.read(filteredDiveStatisticsProvider.future),
+    ),
+    (
+      name: 'filteredDiveRecordsProvider',
+      read: (c) => c.read(filteredDiveRecordsProvider.future),
     ),
   ]);
 

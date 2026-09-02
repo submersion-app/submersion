@@ -5,6 +5,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/helpers/offer_site_review_after_import.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Runs a Lightroom scan over [dives] with progress and summary snackbars.
@@ -47,6 +48,9 @@ Future<void> runLightroomScan(
     for (final dive in dives) {
       ref.invalidate(pendingSuggestionsForDiveProvider(dive.id));
       ref.invalidate(mediaForDiveProvider(dive.id));
+    }
+    if (context.mounted) {
+      await offerSiteReviewAfterImport(context, ref, dives.map((d) => d.id));
     }
   } on Exception catch (e) {
     final message = e is CloudStorageException

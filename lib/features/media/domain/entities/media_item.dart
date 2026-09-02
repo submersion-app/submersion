@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
+import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 /// Type of media (photo, video, instructor signature)
@@ -37,7 +38,13 @@ enum MatchConfidence {
   exact,
   interpolated,
   estimated,
-  noProfile;
+  noProfile,
+
+  /// The diver pinned the item to a moment in the dive themselves
+  /// ([MediaItem.manualElapsedSeconds]); depth and temperature are read
+  /// from the profile at that offset. Never an estimate, never reverted
+  /// by a backfill, and never subject to the dive-window tolerance.
+  manual;
 
   String get displayName {
     switch (this) {
@@ -49,6 +56,8 @@ enum MatchConfidence {
         return 'Estimated';
       case MatchConfidence.noProfile:
         return 'No Profile';
+      case MatchConfidence.manual:
+        return 'Manual';
     }
   }
 
@@ -106,6 +115,12 @@ class MediaItem extends Equatable {
   /// The orphan sweep never GCs retained rows' store blobs.
   final bool retainInLibrary;
 
+  /// Seconds from the dive start the diver pinned this item to, overriding
+  /// the position derived from [takenAt] (issue #1090). Null means the
+  /// automatic position applies. [takenAt] itself is never rewritten: it is
+  /// the file's own timestamp and gallery re-resolution matches on it.
+  final int? manualElapsedSeconds;
+
   final DateTime createdAt;
   final DateTime updatedAt;
   final MediaEnrichment? enrichment;
@@ -150,6 +165,7 @@ class MediaItem extends Equatable {
     this.compressedSizeBytes,
     this.remoteCompressedUploadedAt,
     this.retainInLibrary = false,
+    this.manualElapsedSeconds,
     required this.createdAt,
     required this.updatedAt,
     this.enrichment,
@@ -160,6 +176,19 @@ class MediaItem extends Equatable {
 
   /// Returns true if this is a video
   bool get isVideo => mediaType == MediaType.video;
+
+  /// True for a signature of either kind: instructor or buddy.
+  ///
+  /// [MediaType] has no buddy member -- a `buddy_signature` row parses as
+  /// [MediaType.photo] -- so the source type carries the rest. Both halves
+  /// are needed: instructor rows written before the v72 backfill are typed
+  /// only by [mediaType], and buddy rows only by [sourceType].
+  ///
+  /// A signature attaches to a dive but is not a moment within it, so every
+  /// surface that shows dive media excludes them through this.
+  bool get isSignature =>
+      mediaType == MediaType.instructorSignature ||
+      sourceType == MediaSourceType.signature;
 
   /// True for attachment documents (PDFs and opaque files).
   bool get isDocument => mediaType == MediaType.document;
@@ -283,6 +312,7 @@ class MediaItem extends Equatable {
     Object? compressedSizeBytes = _undefined,
     Object? remoteCompressedUploadedAt = _undefined,
     bool? retainInLibrary,
+    Object? manualElapsedSeconds = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? enrichment = _undefined,
@@ -371,6 +401,9 @@ class MediaItem extends Equatable {
           ? this.remoteCompressedUploadedAt
           : remoteCompressedUploadedAt as DateTime?,
       retainInLibrary: retainInLibrary ?? this.retainInLibrary,
+      manualElapsedSeconds: manualElapsedSeconds == _undefined
+          ? this.manualElapsedSeconds
+          : manualElapsedSeconds as int?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       enrichment: enrichment == _undefined
@@ -420,6 +453,7 @@ class MediaItem extends Equatable {
     compressedSizeBytes,
     remoteCompressedUploadedAt,
     retainInLibrary,
+    manualElapsedSeconds,
     createdAt,
     updatedAt,
     enrichment,
@@ -479,6 +513,26 @@ class MediaEnrichment extends Equatable {
           ? this.timestampOffsetSeconds
           : timestampOffsetSeconds as int?,
       createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  /// Whether the diver placed this item in the dive themselves.
+  bool get isManual => matchConfidence == MatchConfidence.manual;
+
+  /// Whether this row positions the item somewhere the chart should draw.
+  ///
+  /// An automatic position is only trusted inside [MediaDiveWindow] around a
+  /// profile of [profileLengthSeconds]; a manual one always is. The chart,
+  /// the 3D scene and the viewer all ask this rather than clamping blindly,
+  /// so a wrong capture date cannot pin a marker to the exit (issue #1090).
+  bool isWithinDiveWindow(int profileLengthSeconds) {
+    final seconds = elapsedSeconds;
+    if (seconds == null) return false;
+    if (matchConfidence == MatchConfidence.noProfile) return false;
+    if (isManual) return true;
+    return MediaDiveWindow.contains(
+      elapsedSeconds: seconds,
+      profileLengthSeconds: profileLengthSeconds,
     );
   }
 

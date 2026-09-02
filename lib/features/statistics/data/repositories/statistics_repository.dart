@@ -1,17 +1,26 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show compute, visibleForTesting;
 
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/statistics/data/series_profile_aggregates.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
+import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
+
+export 'package:submersion/features/statistics/domain/trend_aggregation.dart'
+    show TrendDataPoint;
 
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///
@@ -27,19 +36,6 @@ typedef DecoSignalScan = ({
   Map<String, int> needsCompute,
   Set<String> noProfile,
 });
-
-/// Data point for line chart trends
-class TrendDataPoint {
-  final DateTime date;
-  final double value;
-  final String label;
-
-  TrendDataPoint({
-    required this.date,
-    required this.value,
-    required this.label,
-  });
-}
 
 /// Ranking item for lists
 class RankingItem {
@@ -66,10 +62,19 @@ class DistributionSegment {
   final int count;
   final double percentage;
 
+  /// Summed dive duration (seconds) behind this segment.
+  ///
+  /// Only populated by distributions where a per-segment total makes sense
+  /// (e.g. dive type); null for distributions like time-of-day where a
+  /// summed duration would double count against other segments' overlapping
+  /// dives or simply isn't meaningful.
+  final int? totalDurationSeconds;
+
   DistributionSegment({
     required this.label,
     required this.count,
     required this.percentage,
+    this.totalDurationSeconds,
   });
 }
 
@@ -101,6 +106,42 @@ class StatisticsRepository {
 
   AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(StatisticsRepository);
+  final _profileSeries = ProfileSeriesRepository();
+
+  /// How many dives' packed series the profile aggregates read at once.
+  ///
+  /// The aggregates run over the whole filtered library, and a packed series
+  /// is a blob: reading them all in one query holds every blob of every dive
+  /// in memory, and hands a copy of that to the worker isolate. Reading a
+  /// chunk at a time bounds both. A stream never spans dives, so a chunk
+  /// boundary cannot split one and the per-chunk totals combine exactly.
+  static const int defaultSeriesDiveChunkSize = 500;
+
+  /// Overridable so a test can force a chunk boundary without seeding a
+  /// library large enough to reach one.
+  @visibleForTesting
+  static int seriesDiveChunkSize = defaultSeriesDiveChunkSize;
+
+  static Iterable<List<String>> _diveChunks(List<String> ids) sync* {
+    final size = seriesDiveChunkSize;
+    for (var start = 0; start < ids.length; start += size) {
+      final end = start + size < ids.length ? start + size : ids.length;
+      yield ids.sublist(start, end);
+    }
+  }
+
+  /// The primary series of one chunk of dives, as blobs for the worker.
+  Future<List<SeriesBlob>> _primaryBlobs(List<String> diveIds) async {
+    final rows = await _profileSeries.getPrimaryRowsForDives(diveIds);
+    return [
+      for (final r in rows)
+        SeriesBlob(
+          diveId: r.diveId,
+          computerId: r.computerId,
+          samples: r.samples,
+        ),
+    ];
+  }
 
   /// Emits whenever any table the statistics queries read is written, so every
   /// statistics provider refreshes after a merge, a bulk delete, an import, or
@@ -108,7 +149,7 @@ class StatisticsRepository {
   ///
   /// Broader than [DiveRepository.watchDivesChanges] because the aggregate SQL
   /// joins well beyond the `dives` table: `dive_tanks` and
-  /// `tank_pressure_profiles` carry all of the SAC math, `sightings`/`species`
+  /// `tank_pressure_series` carry all of the SAC math, `sightings`/`species`
   /// the marine-life stats, `dive_sites`/`dive_centers`/`trips` the geographic
   /// stats. Subscribing only to the dives tick would leave every SAC chart
   /// stale after a sync applied a tank-pressure-only changeset, which never
@@ -128,9 +169,9 @@ class StatisticsRepository {
       .tableUpdates(
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.dives),
-          TableUpdateQuery.onTable(_db.diveProfiles),
+          TableUpdateQuery.onTable(_db.diveProfileSeries),
           TableUpdateQuery.onTable(_db.diveTanks),
-          TableUpdateQuery.onTable(_db.tankPressureProfiles),
+          TableUpdateQuery.onTable(_db.tankPressureSeries),
           TableUpdateQuery.onTable(_db.diveEquipment),
           TableUpdateQuery.onTable(_db.equipment),
           TableUpdateQuery.onTable(_db.diveWeights),
@@ -146,77 +187,52 @@ class StatisticsRepository {
       )
       .debounce(DiveRepository.changeTickDebounce);
 
-  /// Smoothing interval used by [getAscentDescentRates], in seconds.
+  /// Builds the always-on statistics scope plus, when the diver has active
+  /// filter axes, the `AND <alias>.id IN (<subquery>)` fragment and its raw
+  /// params.
   ///
-  /// Kept in sync with the per-dive calculator's configured target interval so
-  /// the two cannot drift apart on how much of a profile they smooth over. The
-  /// filters themselves differ: [AscentRateCalculator] takes an overlapping,
-  /// centred moving average over point-to-point rates (window rounded to an odd
-  /// count of samples, minimum three), while this query averages depth into
-  /// fixed non-overlapping buckets and differences consecutive bucket means.
-  /// Both suppress the same short-timescale noise; neither is a reimplementation
-  /// of the other, and their per-profile outputs are close but not identical.
-  static const int _rateWindowSeconds =
-      AscentRateCalculator.defaultSmoothingWindowSeconds;
-
-  /// Slowest vertical rate that counts as ascending or descending rather than
-  /// working a multi-level profile, in m/min.
+  /// The scope is emitted unconditionally and the user filter conditionally.
+  /// They are deliberately separate: [buildFilteredDiveIdSubquery] is the
+  /// diver's transient view filter and no-ops when nothing is selected, while
+  /// [DiveStatsScope] is a persistent property of the dive. Folding the scope
+  /// into the subquery would make the exclusion evaporate for every diver who
+  /// never opens the filter sheet.
   ///
-  /// A recreational profile spends most of its windows drifting slowly around
-  /// the bottom: on a representative library, windows in the 0.5-3 m/min band
-  /// outnumber genuine transit roughly four to one. Averaging those in drags
-  /// both figures down to around 2.4 m/min, which tells a diver nothing and is
-  /// not comparable to the ascent-rate limits they are trained against. Only
-  /// counting sustained movement keeps the card answering "how fast do I
-  /// actually go up and down".
-  static const double _sustainedTransitThreshold = 3.0;
-
-  /// How many times its own mean sample interval a profile may skip before
-  /// [getTimeAtDepthRanges] stops crediting the skip as time at that depth.
-  ///
-  /// Recording gaps are real: a computer paused mid-dive, a surface interval
-  /// swallowed into one dive record, a profile stitched from two downloads.
-  /// Charging the whole pause to whichever bucket the last sample before it
-  /// happened to sit in would invent hours of bottom time. The bound is
-  /// relative to the profile's own cadence rather than an absolute number of
-  /// seconds because recording intervals in a real library run from 1 s to a
-  /// minute or more, and a manually keyed profile is sparser still. Four times
-  /// the mean leaves room for ordinary jitter and the occasional dropped
-  /// sample while cutting anything an order of magnitude larger down to size.
-  static const int _maxSampleGapFactor = 4;
-
-  /// Builds the `AND <alias>.id IN (<subquery>)` fragment + raw params for a
-  /// stats filter. Empty (no-op) when the filter has no active axes.
+  /// Pass `gas: true` for SAC/RMV and gas-mix aggregates, which additionally
+  /// drop per-dive gas exclusions and gauge-mode dives.
   ({String clause, List<Object?> params}) _diveFilter(
     DiveFilterState filter, {
     String alias = 'dives',
+    bool gas = false,
   }) {
+    final scope = DiveStatsScope.and(alias: alias, gas: gas);
     final f = buildFilteredDiveIdSubquery(filter);
-    if (f.subquery.isEmpty) return (clause: '', params: const <Object?>[]);
-    return (clause: 'AND $alias.id IN (${f.subquery})', params: f.params);
+    if (f.subquery.isEmpty) {
+      return (clause: scope, params: const <Object?>[]);
+    }
+    return (
+      clause: '$scope AND $alias.id IN (${f.subquery})',
+      params: f.params,
+    );
   }
 
   // ============================================================================
   // Gas Statistics
   // ============================================================================
 
-  /// Get SAC rate trend by month in L/min (last 5 years)
-  /// Requires tank volume data
-  Future<List<TrendDataPoint>> getSacVolumeTrend({
+  /// SAC rate of every dive in scope, in L/min at surface pressure, ordered by
+  /// date. Requires tank volume data.
+  ///
+  /// Gas used is summed across a dive's tanks first, so a twinset or a stage
+  /// dive yields one SAC value rather than one per cylinder.
+  Future<List<TrendDataPoint>> getSacVolumePerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
-      final fiveYearsAgo = DateTime.now().subtract(
-        const Duration(days: 365 * 5),
-      );
-      final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
-
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [cutoff, diverId, ...df.params]
-          : [cutoff, ...df.params];
+      final df = _diveFilter(filter, alias: 'd', gas: true);
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -231,7 +247,7 @@ class StatisticsRepository {
           t.he_percent
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
-        WHERE d.dive_date_time >= ? AND d.dive_mode <> 'gauge' $diverFilter ${df.clause}
+        WHERE 1 = 1 $diverFilter ${df.clause}
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
@@ -239,7 +255,8 @@ class StatisticsRepository {
         ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      // Group by dive, compute SAC per dive, then average by month
+      // Sum gas across each dive's tanks before dividing, so a twinset is one
+      // SAC value and not two.
       final Map<
         String,
         ({double gas, DateTime dateTime, int durationSec, double avgDepth})
@@ -293,39 +310,21 @@ class StatisticsRepository {
         }
       }
 
-      // Compute SAC per dive and group by month
-      final Map<String, List<double>> monthSacs = {};
+      final points = <TrendDataPoint>[];
       for (final entry in diveSacs.entries) {
         final d = entry.value;
         final sac =
             d.gas / (d.durationSec / 60.0) / ((d.avgDepth / 10.0) + 1.0);
         if (sac <= 0) continue;
-
-        final dt = d.dateTime;
-        final key = '${dt.year}-${dt.month.toString().padLeft(2, '0')}';
-        monthSacs.putIfAbsent(key, () => []).add(sac);
-      }
-
-      // Average per month
-      final trend = <TrendDataPoint>[];
-      for (final entry in monthSacs.entries) {
-        final parts = entry.key.split('-');
-        final year = int.parse(parts[0]);
-        final month = int.parse(parts[1]);
-        final avg = entry.value.reduce((a, b) => a + b) / entry.value.length;
-        trend.add(
-          TrendDataPoint(
-            date: DateTime(year, month),
-            value: avg,
-            label: '${_monthAbbr(month)} $year',
-          ),
+        points.add(
+          TrendDataPoint(date: d.dateTime, value: sac, diveId: entry.key),
         );
       }
-      trend.sort((a, b) => a.date.compareTo(b.date));
-      return trend;
+      points.sort((a, b) => a.date.compareTo(b.date));
+      return points;
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get SAC volume trend',
+        'Failed to get per-dive SAC volume',
         error: e,
         stackTrace: stackTrace,
       );
@@ -333,31 +332,24 @@ class StatisticsRepository {
     }
   }
 
-  /// Get SAC rate trend by month in pressure/min (last 5 years)
-  /// Does not require tank volume - uses pressure drop normalized to surface
-  Future<List<TrendDataPoint>> getSacPressureTrend({
+  /// SAC rate of every dive in scope, in pressure per minute, ordered by date.
+  ///
+  /// Does not require tank volume: uses the pressure drop of the dive's single
+  /// back-gas tank normalised to surface pressure.
+  Future<List<TrendDataPoint>> getSacPressurePerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
-      final fiveYearsAgo = DateTime.now().subtract(
-        const Duration(days: 365 * 5),
-      );
-      final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
-
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [cutoff, diverId, ...df.params]
-          : [cutoff, ...df.params];
+      final df = _diveFilter(filter, alias: 'd', gas: true);
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
         SELECT
-          strftime('%Y', d.dive_date_time / 1000, 'unixepoch') AS year,
-          strftime('%m', d.dive_date_time / 1000, 'unixepoch') AS month,
-          AVG(
-            (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
-          ) AS avg_sac
+          d.id AS dive_id,
+          d.dive_date_time AS dive_date_time,
+          (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
         FROM dives d
         JOIN dive_tanks t ON t.id = (
           SELECT t2.id FROM dive_tanks t2
@@ -373,26 +365,27 @@ class StatisticsRepository {
           ORDER BY t2.tank_order, t2.rowid
           LIMIT 1
         )
-        WHERE d.dive_date_time >= ? AND d.dive_mode <> 'gauge' $diverFilter ${df.clause}
+        WHERE 1 = 1 $diverFilter ${df.clause}
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
-        GROUP BY year, month
-        HAVING avg_sac IS NOT NULL
-        ORDER BY year, month
+        ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      return results.map((row) {
-        final year = int.parse(row.read<String>('year'));
-        final month = int.parse(row.read<String>('month'));
-        return TrendDataPoint(
-          date: DateTime(year, month),
-          value: row.read<double>('avg_sac'),
-          label: '${_monthAbbr(month)} $year',
-        );
-      }).toList();
+      return results
+          .map(
+            (row) => TrendDataPoint(
+              date: DateTime.fromMillisecondsSinceEpoch(
+                row.read<int>('dive_date_time'),
+                isUtc: true,
+              ),
+              value: row.read<double>('sac'),
+              diveId: row.read<String>('dive_id'),
+            ),
+          )
+          .toList();
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get SAC pressure trend',
+        'Failed to get per-dive SAC pressure',
         error: e,
         stackTrace: stackTrace,
       );
@@ -407,7 +400,7 @@ class StatisticsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd');
+      final df = _diveFilter(filter, alias: 'd', gas: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -420,7 +413,7 @@ class StatisticsRepository {
           COUNT(DISTINCT d.id) AS dive_count
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
-        WHERE 1=1 AND d.dive_mode <> 'gauge' $diverFilter ${df.clause}
+        WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY gas_type
         ORDER BY dive_count DESC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -457,7 +450,7 @@ class StatisticsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd');
+      final df = _diveFilter(filter, alias: 'd', gas: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -480,7 +473,7 @@ class StatisticsRepository {
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
           AND t.volume > 0
-          AND d.dive_mode <> 'gauge'
+         
           $diverFilter ${df.clause}
         ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -584,7 +577,7 @@ class StatisticsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd');
+      final df = _diveFilter(filter, alias: 'd', gas: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -612,7 +605,7 @@ class StatisticsRepository {
         LEFT JOIN dive_sites ds ON ds.id = d.site_id
         WHERE COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
-          AND d.dive_mode <> 'gauge'
+         
           $diverFilter ${df.clause}
         ORDER BY sac ASC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -654,7 +647,7 @@ class StatisticsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd');
+      final df = _diveFilter(filter, alias: 'd', gas: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -675,7 +668,7 @@ class StatisticsRepository {
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.volume > 0
-          AND d.dive_mode <> 'gauge'
+         
           $diverFilter ${df.clause}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
@@ -737,7 +730,7 @@ class StatisticsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd');
+      final df = _diveFilter(filter, alias: 'd', gas: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -756,7 +749,7 @@ class StatisticsRepository {
           AND t.end_pressure IS NOT NULL
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
-          AND d.dive_mode <> 'gauge'
+         
           $diverFilter ${df.clause}
         GROUP BY t.tank_role
         HAVING avg_sac IS NOT NULL
@@ -787,6 +780,12 @@ class StatisticsRepository {
   /// presentation layer resolves it through the built-in translation table
   /// (see `diveTypeDistributionLabel`). Capitalizing the slug here is what
   /// left this chart English under every locale.
+  ///
+  /// A dive carrying several types counts once under each of them, so the
+  /// per-type totals deliberately sum to more than the diver's career total.
+  /// Each dive's contribution is its `Dive.effectiveRuntime`, resolved in SQL
+  /// by [effectiveRuntimeSecondsSql] so a dive whose duration only exists in
+  /// its profile is not reported as zero.
   Future<List<DistributionSegment>> getDiveTypeDistribution({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -799,7 +798,8 @@ class StatisticsRepository {
       final results = await _db.customSelect('''
         SELECT
           ddt.dive_type_id AS dive_type,
-          COUNT(*) AS count
+          COUNT(*) AS count,
+          SUM(${effectiveRuntimeSecondsSql('d')}) AS total_time
         FROM dive_dive_types ddt
         JOIN dives d ON d.id = ddt.dive_id
         WHERE 1=1 $diverFilter ${df.clause}
@@ -820,6 +820,9 @@ class StatisticsRepository {
           label: label,
           count: count,
           percentage: count / total * 100,
+          // NULL when no dive of this type carries a duration in any
+          // form, which reads as no time logged.
+          totalDurationSeconds: row.readNullable<int>('total_time') ?? 0,
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -836,46 +839,40 @@ class StatisticsRepository {
   // Dive Progression Statistics
   // ============================================================================
 
-  /// Get maximum depth progression by month (last 5 years)
-  Future<List<TrendDataPoint>> getDepthProgressionTrend({
+  /// Maximum depth of every dive in scope, ordered by date.
+  ///
+  /// One point per dive. Scope comes entirely from [filter]; there is
+  /// deliberately no built-in window, because a hardcoded five-year cutoff
+  /// used to make "lifetime" unreachable (issue #299).
+  Future<List<TrendDataPoint>> getDepthPerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
-      final fiveYearsAgo = DateTime.now().subtract(
-        const Duration(days: 365 * 5),
-      );
-      final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
-
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'dives');
-      final params = diverId != null
-          ? [cutoff, diverId, ...df.params]
-          : [cutoff, ...df.params];
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
-        SELECT
-          strftime('%Y', dive_date_time / 1000, 'unixepoch') AS year,
-          strftime('%m', dive_date_time / 1000, 'unixepoch') AS month,
-          MAX(max_depth) AS max_depth
+        SELECT id, dive_date_time, max_depth
         FROM dives
-        WHERE dive_date_time >= ? AND max_depth IS NOT NULL $diverFilter ${df.clause}
-        GROUP BY year, month
-        ORDER BY year, month
+        WHERE max_depth IS NOT NULL $diverFilter ${df.clause}
+        ORDER BY dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
-        final year = int.parse(row.read<String>('year'));
-        final month = int.parse(row.read<String>('month'));
         return TrendDataPoint(
-          date: DateTime(year, month),
+          date: DateTime.fromMillisecondsSinceEpoch(
+            row.read<int>('dive_date_time'),
+            isUtc: true,
+          ),
           value: row.read<double>('max_depth'),
-          label: '${_monthAbbr(month)} $year',
+          diveId: row.read<String>('id'),
         );
       }).toList();
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get depth progression trend',
+        'Failed to get per-dive max depth',
         error: e,
         stackTrace: stackTrace,
       );
@@ -883,46 +880,36 @@ class StatisticsRepository {
     }
   }
 
-  /// Get average bottom time trend by month (last 5 years)
-  Future<List<TrendDataPoint>> getBottomTimeTrend({
+  /// Bottom time in minutes for every dive in scope, ordered by date.
+  Future<List<TrendDataPoint>> getBottomTimePerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
-      final fiveYearsAgo = DateTime.now().subtract(
-        const Duration(days: 365 * 5),
-      );
-      final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
-
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'dives');
-      final params = diverId != null
-          ? [cutoff, diverId, ...df.params]
-          : [cutoff, ...df.params];
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
-        SELECT
-          strftime('%Y', dive_date_time / 1000, 'unixepoch') AS year,
-          strftime('%m', dive_date_time / 1000, 'unixepoch') AS month,
-          AVG(bottom_time / 60.0) AS avg_duration
+        SELECT id, dive_date_time, bottom_time / 60.0 AS minutes
         FROM dives
-        WHERE dive_date_time >= ? AND bottom_time IS NOT NULL $diverFilter ${df.clause}
-        GROUP BY year, month
-        ORDER BY year, month
+        WHERE bottom_time IS NOT NULL $diverFilter ${df.clause}
+        ORDER BY dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
-        final year = int.parse(row.read<String>('year'));
-        final month = int.parse(row.read<String>('month'));
         return TrendDataPoint(
-          date: DateTime(year, month),
-          value: row.read<double>('avg_duration'),
-          label: '${_monthAbbr(month)} $year',
+          date: DateTime.fromMillisecondsSinceEpoch(
+            row.read<int>('dive_date_time'),
+            isUtc: true,
+          ),
+          value: row.read<double>('minutes'),
+          diveId: row.read<String>('id'),
         );
       }).toList();
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get bottom time trend',
+        'Failed to get per-dive bottom time',
         error: e,
         stackTrace: stackTrace,
       );
@@ -990,7 +977,7 @@ class StatisticsRepository {
           MAX(max_depth) AS max_depth
         FROM dives
         WHERE dive_date_time >= ? AND dive_date_time < ?
-        $diverFilter
+        $diverFilter${DiveStatsScope.and(alias: 'dives')}
         ''',
             variables: [
               Variable<int>(startMs),
@@ -1055,7 +1042,10 @@ class StatisticsRepository {
     }
   }
 
-  /// Get cumulative dive count over time
+  /// Running dive count, stepping once per dive, ordered by date.
+  ///
+  /// Was bucketed by month in SQL, which collapsed a whole trip into a single
+  /// step and left nothing to zoom into (issue #299).
   Future<List<TrendDataPoint>> getCumulativeDiveCount({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1066,25 +1056,22 @@ class StatisticsRepository {
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
-        SELECT
-          strftime('%Y', dive_date_time / 1000, 'unixepoch') AS year,
-          strftime('%m', dive_date_time / 1000, 'unixepoch') AS month,
-          COUNT(*) AS count
+        SELECT id, dive_date_time
         FROM dives
-        WHERE 1=1 $diverFilter ${df.clause}
-        GROUP BY year, month
-        ORDER BY year, month
+        WHERE 1 = 1 $diverFilter ${df.clause}
+        ORDER BY dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      int runningTotal = 0;
+      var runningTotal = 0;
       return results.map((row) {
-        final year = int.parse(row.read<String>('year'));
-        final month = int.parse(row.read<String>('month'));
-        runningTotal += row.read<int>('count');
+        runningTotal++;
         return TrendDataPoint(
-          date: DateTime(year, month),
+          date: DateTime.fromMillisecondsSinceEpoch(
+            row.read<int>('dive_date_time'),
+            isUtc: true,
+          ),
           value: runningTotal.toDouble(),
-          label: '${_monthAbbr(month)} $year',
+          diveId: row.read<String>('id'),
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -1311,6 +1298,7 @@ class StatisticsRepository {
         FROM dives
         WHERE site_id = ?
           AND entry_method IS NOT NULL AND entry_method != '' $diverFilter
+          ${DiveStatsScope.and(alias: 'dives')}
         GROUP BY entry_method, exit_method
         ORDER BY count DESC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -1330,6 +1318,79 @@ class StatisticsRepository {
         stackTrace: stackTrace,
       );
       return [];
+    }
+  }
+
+  /// Auto-computed dive statistics for a single site (submersion-app/submersion#1018,
+  /// #1038): dive count, depth range, duration range/average, and first/last
+  /// dive dates, aggregated over the dives actually logged at [siteId].
+  ///
+  /// Duration is approximated as `COALESCE(runtime, bottom_time)`, a
+  /// deliberate simplification of [Dive.effectiveRuntime]'s 4-step fallback
+  /// chain: the entry/exit-time-difference and profile-derived steps cannot
+  /// be expressed in SQL, so dives that only carry those will slightly
+  /// undercount the duration stats.
+  ///
+  /// These are descriptive numbers, so [DiveStatsScope] applies: a dive the
+  /// diver ticked "exclude from statistics" and a planner entry for a dive
+  /// never made contribute to none of them, the count included.
+  ///
+  /// Returns [SiteDiveStatistics.empty] (diveCount 0, all other fields null)
+  /// when the site has no matching dives, or on error.
+  Future<SiteDiveStatistics> getSiteDiveStatistics({
+    required String siteId,
+    String? diverId,
+  }) async {
+    try {
+      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+      final params = diverId != null ? [siteId, diverId] : [siteId];
+
+      final result = await _db.customSelect('''
+        SELECT
+          COUNT(*) AS dive_count,
+          MAX(max_depth) AS max_depth_reached,
+          MIN(max_depth) AS min_depth_reached,
+          MAX(COALESCE(runtime, bottom_time)) AS longest_dive_seconds,
+          AVG(COALESCE(runtime, bottom_time)) AS average_duration_seconds,
+          MIN(dive_date_time) AS first_dive_at,
+          MAX(dive_date_time) AS last_dive_at
+        FROM dives
+        WHERE site_id = ? $diverFilter
+          ${DiveStatsScope.and(alias: 'dives')}
+        ''', variables: params.map((p) => Variable(p)).toList()).getSingle();
+
+      final diveCount = result.read<int>('dive_count');
+      if (diveCount == 0) return SiteDiveStatistics.empty;
+
+      final firstDiveMs = result.read<int?>('first_dive_at');
+      final lastDiveMs = result.read<int?>('last_dive_at');
+
+      return SiteDiveStatistics(
+        diveCount: diveCount,
+        maxDepthReached: result.read<double?>('max_depth_reached'),
+        minDepthReached: result.read<double?>('min_depth_reached'),
+        longestDiveSeconds: result.read<int?>('longest_dive_seconds'),
+        averageDurationSeconds: result.read<double?>(
+          'average_duration_seconds',
+        ),
+        // `dive_date_time` is persisted as a wall clock flagged UTC, the same
+        // convention `DiveRepositoryImpl` hydrates with. Reading it back as a
+        // local `DateTime` would shift the displayed first/last dive date by
+        // the device's UTC offset.
+        firstDiveAt: firstDiveMs != null
+            ? DateTime.fromMillisecondsSinceEpoch(firstDiveMs, isUtc: true)
+            : null,
+        lastDiveAt: lastDiveMs != null
+            ? DateTime.fromMillisecondsSinceEpoch(lastDiveMs, isUtc: true)
+            : null,
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dive statistics for site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return SiteDiveStatistics.empty;
     }
   }
 
@@ -2026,6 +2087,11 @@ class StatisticsRepository {
                     WHERE d2.diver_id = d.diver_id
                       AND d2.exit_time IS NOT NULL
                       AND d2.exit_time < d.entry_time
+                      -- The scope applies to the preceding dive as well: a
+                      -- surface interval measured from an excluded dive is
+                      -- as wrong as one measured to it. The user filter has
+                      -- never reached this inner alias.
+                      ${DiveStatsScope.and(alias: 'd2')}
                   )
                 ) / 1000.0
                 ELSE NULL
@@ -2108,47 +2174,85 @@ class StatisticsRepository {
     }
   }
 
-  /// Get weight trend by month
-  Future<List<TrendDataPoint>> getWeightTrend({
+  /// Total lead carried on every dive in scope, in kilograms, ordered by date.
+  ///
+  /// Sums the dive's weight rows. The monthly version this replaced averaged
+  /// across rows, so a 4 kg belt plus 2 kg of trim weights was reported as
+  /// 3 kg rather than the 6 kg actually carried.
+  Future<List<TrendDataPoint>> getWeightPerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
-      final fiveYearsAgo = DateTime.now().subtract(
-        const Duration(days: 365 * 5),
-      );
-      final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
-
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [cutoff, diverId, ...df.params]
-          : [cutoff, ...df.params];
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
-        SELECT
-          strftime('%Y', d.dive_date_time / 1000, 'unixepoch') AS year,
-          strftime('%m', d.dive_date_time / 1000, 'unixepoch') AS month,
-          AVG(dw.amount_kg) AS avg_weight
+        SELECT d.id AS dive_id,
+               d.dive_date_time AS dive_date_time,
+               SUM(dw.amount_kg) AS total_kg
         FROM dives d
         JOIN dive_weights dw ON dw.dive_id = d.id
-        WHERE d.dive_date_time >= ? $diverFilter ${df.clause}
-        GROUP BY year, month
-        ORDER BY year, month
+        WHERE 1 = 1 $diverFilter ${df.clause}
+        GROUP BY d.id
+        HAVING total_kg IS NOT NULL
+        ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
-        final year = int.parse(row.read<String>('year'));
-        final month = int.parse(row.read<String>('month'));
         return TrendDataPoint(
-          date: DateTime(year, month),
-          value: row.read<double>('avg_weight'),
-          label: '${_monthAbbr(month)} $year',
+          date: DateTime.fromMillisecondsSinceEpoch(
+            row.read<int>('dive_date_time'),
+            isUtc: true,
+          ),
+          value: row.read<double>('total_kg'),
+          diveId: row.read<String>('dive_id'),
         );
       }).toList();
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get weight trend',
+        'Failed to get per-dive weight',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
+  /// Water temperature of every dive in scope, in Celsius, ordered by date.
+  ///
+  /// Distinct from [getTemperatureByMonth], which collapses all years into
+  /// twelve calendar buckets to show a season. This one is a time series.
+  Future<List<TrendDataPoint>> getWaterTempPerDive({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+      final df = _diveFilter(filter, alias: 'dives');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
+
+      final results = await _db.customSelect('''
+        SELECT id, dive_date_time, water_temp
+        FROM dives
+        WHERE water_temp IS NOT NULL $diverFilter ${df.clause}
+        ORDER BY dive_date_time
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
+
+      return results.map((row) {
+        return TrendDataPoint(
+          date: DateTime.fromMillisecondsSinceEpoch(
+            row.read<int>('dive_date_time'),
+            isUtc: true,
+          ),
+          value: row.read<double>('water_temp'),
+          diveId: row.read<String>('id'),
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get per-dive water temperature',
         error: e,
         stackTrace: stackTrace,
       );
@@ -2163,16 +2267,21 @@ class StatisticsRepository {
   /// Get average ascent/descent rates in m/min, or null when the filtered
   /// dives hold no vertical movement to average.
   ///
-  /// Rates are derived from the stored depth samples rather than read from
-  /// `dive_profiles.ascent_rate`: no download or import path ever populates
-  /// that column (libdivecomputer reports no ascent-rate sample type), so it is
-  /// null for every row and averaging it always yielded an empty section.
+  /// Rates are derived from the stored depth samples rather than read from a
+  /// stored rate column. The retired `dive_profiles.ascent_rate` was never
+  /// populated by any download or import path (libdivecomputer reports no
+  /// ascent-rate sample type), so it was null for every row and averaging it
+  /// always yielded an empty section.
   ///
-  /// The derivation follows the same conventions as [AscentRateCalculator],
-  /// which computes rates per-dive for the profile chart, but smooths by a
-  /// different (cheaper, set-based) filter -- see [_rateWindowSeconds]:
+  /// The aggregation runs in Dart, on a worker isolate, over decoded primary
+  /// series (see [ascentDescentRates] and [ascentDescentRatesFromBlobs]),
+  /// with the same windows and thresholds a SQL query over `dive_profiles`
+  /// used before the packed-series migration. The derivation follows the same
+  /// conventions as [AscentRateCalculator], which computes rates per-dive for
+  /// the profile chart, but smooths by a different (cheaper, set-based)
+  /// filter (see [rateWindowSeconds]):
   ///
-  /// - Samples are averaged into fixed [_rateWindowSeconds] buckets, which
+  /// - Samples are averaged into fixed [rateWindowSeconds] buckets, which
   ///   makes the result independent of the computer's sample interval and keeps
   ///   depth-resolution noise from dominating (0.1 m between two 1 s samples is
   ///   already 6 m/min of pure quantisation noise).
@@ -2180,7 +2289,7 @@ class StatisticsRepository {
   ///   bucket width, so uneven occupancy at the edges cannot distort the
   ///   interval.
   /// - Positive is ascending, matching [AscentRatePoint.rateMetersPerMin].
-  /// - Buckets slower than [_sustainedTransitThreshold] are excluded, so
+  /// - Buckets slower than [sustainedTransitThreshold] are excluded, so
   ///   working a multi-level profile does not read as ascending or descending.
   ///
   /// Only primary profile rows are considered, so a dive logged by two
@@ -2194,47 +2303,31 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
-
-      final results = await _db.customSelect('''
-        WITH windows AS (
-          SELECT
-            p.dive_id AS dive_id,
-            p.computer_id AS computer_id,
-            p.timestamp / $_rateWindowSeconds AS window_index,
-            AVG(p.depth) AS depth,
-            AVG(p.timestamp) AS at
-          FROM dive_profiles p
-          JOIN dives d ON d.id = p.dive_id
-          WHERE p.is_primary = 1 $diverFilter ${df.clause}
-          GROUP BY p.dive_id, p.computer_id, p.timestamp / $_rateWindowSeconds
-        ),
-        paired AS (
-          SELECT
-            depth,
-            at,
-            LAG(depth) OVER w AS prev_depth,
-            LAG(at) OVER w AS prev_at
-          FROM windows
-          WINDOW w AS (PARTITION BY dive_id, computer_id ORDER BY window_index)
-        ),
-        rates AS (
-          SELECT (prev_depth - depth) * 60.0 / (at - prev_at) AS rate
-          FROM paired
-          WHERE prev_at IS NOT NULL AND at > prev_at
-        )
-        SELECT
-          AVG(CASE WHEN rate >= $_sustainedTransitThreshold THEN rate END)
-            AS avg_ascent,
-          AVG(CASE WHEN rate <= -$_sustainedTransitThreshold THEN -rate END)
-            AS avg_descent
-        FROM rates
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
-
-      if (results.isEmpty) return (avgAscent: null, avgDescent: null);
-      return (
-        avgAscent: results.first.read<double?>('avg_ascent'),
-        avgDescent: results.first.read<double?>('avg_descent'),
-      );
+      final scoped = await _db
+          .customSelect(
+            // Only dives that actually have a primary series: without this
+            // the chunk loop pages over every filtered dive, most of which
+            // return no blob at all on a library where profiles are the
+            // exception rather than the rule.
+            'SELECT d.id AS id FROM dives d WHERE 1=1 $diverFilter '
+            '${df.clause} AND EXISTS (SELECT 1 FROM dive_profile_series s '
+            'WHERE s.dive_id = d.id AND s.is_primary = 1)',
+            variables: params.map((p) => Variable(p)).toList(),
+            readsFrom: {_db.dives, _db.diveProfileSeries},
+          )
+          .get();
+      final diveIds = [for (final r in scoped) r.read<String>('id')];
+      if (diveIds.isEmpty) return (avgAscent: null, avgDescent: null);
+      var totals = emptyRateTotals;
+      for (final chunk in _diveChunks(diveIds)) {
+        final blobs = await _primaryBlobs(chunk);
+        if (blobs.isEmpty) continue;
+        totals = combineRateTotals(
+          totals,
+          await compute(ascentDescentTotalsFromBlobs, blobs),
+        );
+      }
+      return ratesFromTotals(totals);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get ascent/descent rates',
@@ -2252,29 +2345,33 @@ class StatisticsRepository {
   /// axis label and bucket labels match the setting. The top bucket is
   /// open-ended ([upperDepth] is null).
   ///
+  /// The aggregation runs in Dart, on a worker isolate, over decoded primary
+  /// series (see [timeAtDepthRanges] and [timeAtDepthRangesFromBlobs]), with
+  /// the same windows and thresholds a SQL query over `dive_profiles` used
+  /// before the packed-series migration.
+  ///
   /// Minutes come from the sample timestamps, not from a row count: the
   /// interval between one sample and the next is credited to the bucket the
   /// earlier sample sits in. Counting rows and calling each one a second, as
-  /// this query used to, is only right for a computer sampling at 1 Hz: for
-  /// the many that record every 2, 4, 5, 10 or 20 seconds it divides every
+  /// this aggregation used to, is only right for a computer sampling at 1 Hz:
+  /// for the many that record every 2, 4, 5, 10 or 20 seconds it divides every
   /// bucket by that interval. Differencing timestamps needs no
-  /// assumption about the recording rate at all, and it makes duplicate rows
-  /// from a repeated import harmless: the repeat adds a zero-length interval
-  /// rather than a second helping of time.
+  /// assumption about the recording rate at all, and it makes duplicate
+  /// samples from a repeated import harmless: the repeat adds a zero-length
+  /// interval rather than a second helping of time.
   ///
-  /// Each dive's intervals are capped at [_maxSampleGapFactor] times that
+  /// Each dive's intervals are capped at [maxSampleGapFactor] times that
   /// profile's own mean interval so a recording pause is not banked as bottom
   /// time. A profile's total therefore spans its first sample to its last: the
   /// last sample opens no interval, and whatever time the diver spent after it
   /// was never recorded and cannot be recovered here.
   ///
-  /// Samples are ordered by `(timestamp, id)` rather than timestamp alone.
-  /// Ties cannot lose time whichever way they fall -- every row but the last
-  /// of a tied group yields a zero-length interval, and the last carries the
-  /// whole step to the next timestamp -- but if tied rows sit in different
-  /// buckets, the tie order decides which bucket that step lands in. Ordering
-  /// by row id makes that choice reproducible instead of leaving it to
-  /// SQLite.
+  /// Samples are ordered by `(timestamp, stored order)` rather than timestamp
+  /// alone. Ties cannot lose time whichever way they fall, because every
+  /// sample but the last of a tied group yields a zero-length interval and
+  /// the last carries the whole step to the next timestamp. If tied samples
+  /// sit in different buckets, though, the tie order decides which bucket
+  /// that step lands in.
   ///
   /// Only primary profile rows are counted, matching [getAscentDescentRates]:
   /// a dive logged by two computers, or one whose original profile was demoted
@@ -2291,65 +2388,31 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
-
-      final results = await _db.customSelect('''
-        WITH samples AS (
-          SELECT
-            p.dive_id AS dive_id,
-            p.computer_id AS computer_id,
-            p.id AS sample_id,
-            p.timestamp AS at,
-            p.depth AS depth
-          FROM dive_profiles p
-          JOIN dives d ON d.id = p.dive_id
-          WHERE p.is_primary = 1 $diverFilter ${df.clause}
-        ),
-        cadence AS (
-          SELECT
-            dive_id,
-            computer_id,
-            (MAX(at) - MIN(at)) * $_maxSampleGapFactor / (COUNT(*) - 1.0)
-              AS max_interval
-          FROM samples
-          GROUP BY dive_id, computer_id
-          HAVING COUNT(*) > 1
-        ),
-        intervals AS (
-          SELECT
-            dive_id,
-            computer_id,
-            depth,
-            LEAD(at) OVER w - at AS seconds
-          FROM samples
-          WINDOW w AS (
-            PARTITION BY dive_id, computer_id ORDER BY at, sample_id
+      final scoped = await _db
+          .customSelect(
+            // Only dives that actually have a primary series: without this
+            // the chunk loop pages over every filtered dive, most of which
+            // return no blob at all on a library where profiles are the
+            // exception rather than the rule.
+            'SELECT d.id AS id FROM dives d WHERE 1=1 $diverFilter '
+            '${df.clause} AND EXISTS (SELECT 1 FROM dive_profile_series s '
+            'WHERE s.dive_id = d.id AND s.is_primary = 1)',
+            variables: params.map((p) => Variable(p)).toList(),
+            readsFrom: {_db.dives, _db.diveProfileSeries},
           )
-        )
-        SELECT
-          CASE
-            WHEN i.depth < 10 THEN 0
-            WHEN i.depth < 20 THEN 10
-            WHEN i.depth < 30 THEN 20
-            WHEN i.depth < 40 THEN 30
-            ELSE 40
-          END AS bucket_lo,
-          SUM(MIN(i.seconds * 1.0, c.max_interval)) AS seconds
-        FROM intervals i
-        JOIN cadence c
-          ON c.dive_id = i.dive_id AND c.computer_id IS i.computer_id
-        WHERE i.seconds > 0
-        GROUP BY bucket_lo
-        ORDER BY bucket_lo
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
-
-      return results.map((row) {
-        final lo = row.read<int>('bucket_lo');
-        return (
-          lowerDepth: lo,
-          upperDepth: lo >= 40 ? null : lo + 10,
-          minutes: (row.read<double>('seconds') / 60).round(),
+          .get();
+      final diveIds = [for (final r in scoped) r.read<String>('id')];
+      if (diveIds.isEmpty) return [];
+      var seconds = <int, double>{};
+      for (final chunk in _diveChunks(diveIds)) {
+        final blobs = await _primaryBlobs(chunk);
+        if (blobs.isEmpty) continue;
+        seconds = combineDepthSeconds(
+          seconds,
+          await compute(timeAtDepthSecondsFromBlobs, blobs),
         );
-      }).toList();
+      }
+      return bucketsFromSeconds(seconds);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get time at depth ranges',
@@ -2399,13 +2462,14 @@ class StatisticsRepository {
         signals AS (
           SELECT
             s.dive_id AS dive_id,
-            MAX(CASE WHEN p.id IS NOT NULL THEN 1 ELSE 0 END) AS has_profile,
-            MAX(CASE WHEN p.deco_type IS NOT NULL THEN 1 ELSE 0 END)
+            MAX(CASE WHEN ps.id IS NOT NULL THEN 1 ELSE 0 END) AS has_profile,
+            MAX(CASE WHEN ps.has_deco_type = 1 THEN 1 ELSE 0 END)
               AS has_deco_type,
-            MAX(CASE WHEN p.deco_type = 2 THEN 1 ELSE 0 END) AS deco_stop,
-            MAX(CASE WHEN p.ceiling > 0 THEN 1 ELSE 0 END) AS positive_ceiling
+            MAX(CASE WHEN ps.has_deco_stop = 1 THEN 1 ELSE 0 END) AS deco_stop,
+            MAX(CASE WHEN ps.has_positive_ceiling = 1 THEN 1 ELSE 0 END)
+              AS positive_ceiling
           FROM scoped s
-          LEFT JOIN dive_profiles p ON p.dive_id = s.dive_id
+          LEFT JOIN dive_profile_series ps ON ps.dive_id = s.dive_id
           GROUP BY s.dive_id
         ),
         stop_events AS (
@@ -2509,6 +2573,7 @@ class StatisticsRepository {
       FROM dives d
       JOIN dive_sites ds ON d.site_id = ds.id
       WHERE LOWER(ds.name) = LOWER(?) AND d.diver_id = ?
+            ${DiveStatsScope.and(alias: 'd')}
     ''',
           variables: [
             Variable.withString(siteName),
@@ -2524,27 +2589,32 @@ class StatisticsRepository {
     );
   }
 
+  /// Counts the dives the diver has explicitly excluded from statistics, for
+  /// the Overview footnote.
+  ///
+  /// Deliberately counts only `excluded_from_stats`, not the whole
+  /// [DiveStatsScope]: this footnote exists to explain the diver's own choice
+  /// back to them. A planned dive is not something they chose to exclude, so
+  /// folding it in would make the number confusing rather than clarifying.
+  // stats-scope-exempt: counts the excluded, by definition
+  Future<int> countExcludedDives({String? diverId}) async {
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final row = await _db
+        .customSelect(
+          'SELECT COUNT(*) AS c FROM dives '
+          'WHERE excluded_from_stats = 1 $diverFilter',
+          variables: diverId != null
+              ? [Variable<String>(diverId)]
+              : const <Variable<Object>>[],
+          readsFrom: {_db.dives},
+        )
+        .getSingle();
+    return row.read<int>('c');
+  }
+
   // ============================================================================
   // Helpers
   // ============================================================================
-
-  String _monthAbbr(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return months[month - 1];
-  }
 }
 
 /// Aggregates for one calendar year (dashboard year-in-review card).

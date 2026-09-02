@@ -14,6 +14,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final courseRepositoryProvider = Provider<CourseRepository>((ref) {
@@ -218,7 +219,7 @@ class CourseListNotifier extends StateNotifier<AsyncValue<List<Course>>> {
 
   CourseListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(_initializeAndLoad(), CourseListNotifier, 'initialize and load');
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -228,7 +229,11 @@ class CourseListNotifier extends StateNotifier<AsyncValue<List<Course>>> {
         _ref.invalidate(allCoursesProvider);
         _ref.invalidate(inProgressCoursesProvider);
         _ref.invalidate(completedCoursesProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          CourseListNotifier,
+          'initialize and load',
+        );
       }
     });
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' show Rect;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:gal/gal.dart';
@@ -13,11 +14,19 @@ import 'package:share_plus/share_plus.dart';
 /// pick a destination on disk should use the matching `save*ToFile` helper
 /// instead -- those return `null` when the save dialog is cancelled, which this
 /// function has no way to express.
+///
+/// [sharePositionOrigin] is the screen rect the iPad share popover points at,
+/// normally from `shareAnchorFrom` on the button's context. It is optional
+/// because not every caller can name a control: the settings export chain runs
+/// several service layers below the widget that started it, and dismisses its
+/// format picker before sharing. Null means "let the platform decide", which
+/// share_plus honours by centring the popover.
 Future<String> saveAndShareFile(
   String content,
   String fileName,
-  String mimeType,
-) async {
+  String mimeType, {
+  Rect? sharePositionOrigin,
+}) async {
   final directory = await getApplicationDocumentsDirectory();
   final file = File('${directory.path}/$fileName');
   await file.writeAsString(content);
@@ -26,6 +35,7 @@ Future<String> saveAndShareFile(
     ShareParams(
       files: [XFile(file.path, mimeType: mimeType)],
       subject: fileName,
+      sharePositionOrigin: sharePositionOrigin,
     ),
   );
 
@@ -34,12 +44,14 @@ Future<String> saveAndShareFile(
 
 /// Save raw bytes to a file and open the system share sheet.
 ///
-/// See [saveAndShareFile] for why this never opens a save dialog.
+/// See [saveAndShareFile] for why this never opens a save dialog, and for what
+/// [sharePositionOrigin] is and when it is null.
 Future<String> saveAndShareFileBytes(
   List<int> bytes,
   String fileName,
-  String mimeType,
-) async {
+  String mimeType, {
+  Rect? sharePositionOrigin,
+}) async {
   final directory = await getApplicationDocumentsDirectory();
   final file = File('${directory.path}/$fileName');
   await file.writeAsBytes(bytes);
@@ -48,6 +60,7 @@ Future<String> saveAndShareFileBytes(
     ShareParams(
       files: [XFile(file.path, mimeType: mimeType)],
       subject: fileName,
+      sharePositionOrigin: sharePositionOrigin,
     ),
   );
 
@@ -63,8 +76,17 @@ Future<String> getExportFilePath(String fileName) async {
 /// Export PNG image bytes via the system share sheet.
 ///
 /// Use this with RenderRepaintBoundary.toImage() to export widgets as images.
-Future<String> exportImageAsPng(List<int> pngBytes, String fileName) async {
-  return saveAndShareFileBytes(pngBytes, fileName, 'image/png');
+Future<String> exportImageAsPng(
+  List<int> pngBytes,
+  String fileName, {
+  Rect? sharePositionOrigin,
+}) async {
+  return saveAndShareFileBytes(
+    pngBytes,
+    fileName,
+    'image/png',
+    sharePositionOrigin: sharePositionOrigin,
+  );
 }
 
 /// Save an image directly to the device's photo library.
@@ -114,8 +136,17 @@ Future<String?> saveImageToFile(List<int> pngBytes, String fileName) async {
 }
 
 /// Share PDF bytes via the system share sheet.
-Future<String> sharePdfBytes(List<int> pdfBytes, String fileName) async {
-  return saveAndShareFileBytes(pdfBytes, fileName, 'application/pdf');
+Future<String> sharePdfBytes(
+  List<int> pdfBytes,
+  String fileName, {
+  Rect? sharePositionOrigin,
+}) async {
+  return saveAndShareFileBytes(
+    pdfBytes,
+    fileName,
+    'application/pdf',
+    sharePositionOrigin: sharePositionOrigin,
+  );
 }
 
 /// Save string content to a user-selected file location.

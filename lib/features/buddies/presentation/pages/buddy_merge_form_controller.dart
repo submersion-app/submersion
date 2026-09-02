@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -30,6 +31,12 @@ class BuddyMergeFormController {
   final Map<String, int> fieldIndices = {};
   List<MergeFieldCandidate<String?>> photoCandidates = [];
   String? mergedPhotoPath;
+
+  /// Candidates for the profile photo BLOB, which supersedes photoPath.
+  /// Kept alongside rather than replacing it so a database written before
+  /// v181 still surfaces whatever it had.
+  List<MergeFieldCandidate<Uint8List?>> photoBytesCandidates = [];
+  Uint8List? mergedPhoto;
   bool isInitialized = false;
 
   /// Initialize merge candidate state from loaded buddies. Sets the text
@@ -86,6 +93,23 @@ class BuddyMergeFormController {
       (value) => value != null && value.isNotEmpty,
     );
     mergedPhotoPath = photoCandidates[fieldIndices['photo'] ?? 0].value;
+
+    // Uint8List equality is by identity, so distinctness has to compare
+    // contents or two buddies holding the same image would offer two
+    // indistinguishable candidates.
+    photoBytesCandidates = _buildDistinctCandidates<Uint8List?>(
+      buddies,
+      (buddy) => buddy.photo,
+      equals: (a, b) {
+        if (a == null || b == null) return a == b;
+        return listEquals(a, b);
+      },
+    );
+    fieldIndices['photoBytes'] = _firstMeaningfulIndex(
+      photoBytesCandidates,
+      (value) => value != null && value.isNotEmpty,
+    );
+    mergedPhoto = photoBytesCandidates[fieldIndices['photoBytes'] ?? 0].value;
   }
 
   void _initializeTextField({

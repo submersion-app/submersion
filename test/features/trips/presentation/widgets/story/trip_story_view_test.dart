@@ -1,11 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -78,12 +77,14 @@ Future<void> pumpView(
   List<Override> extra = const [],
   Size viewSize = const Size(800, 2600),
   http.Client? weatherHttpClient,
+  Map<int, TripDayWeather>? tripDayWeather,
 }) async {
   tester.view.physicalSize = viewSize;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides(
     weatherHttpClient: weatherHttpClient,
+    tripDayWeather: tripDayWeather,
   );
   final stats = TripWithStats(trip: story.trip, diveCount: 2);
   final router = GoRouter(
@@ -405,9 +406,50 @@ void main() {
     expect(find.text('Surface day'), findsOneWidget);
   });
 
-  testWidgets('only the surface day fetches from the nearest trip point', (
+  testWidgets('the surface day renders stored weather', (tester) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 27),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        _diveAt('d1', DateTime(2026, 3, 25, 9), 12.10, -68.20),
+        _diveAt('d3', DateTime(2026, 3, 27, 9), 13.30, -69.40),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    final surfaceDate = DateTime(2026, 3, 26);
+    final now = DateTime(2026, 3, 28);
+
+    await pumpView(
+      tester,
+      story,
+      tripDayWeather: {
+        tripDayMillis(surfaceDate): TripDayWeather(
+          id: 'w1',
+          tripId: trip.id,
+          date: surfaceDate,
+          latitude: 12.10,
+          longitude: -68.20,
+          airTemp: 26,
+          cloudCover: CloudCover.clear,
+          fetchedAt: now,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      },
+    );
+    await tester.pump();
+
+    expect(find.text('26°C'), findsOneWidget);
+  });
+
+  testWidgets('a day with nothing stored renders no weather badge', (
     tester,
   ) async {
+    // The view no longer falls back to a network fetch while rendering: an
+    // unstored day is simply badge-free until the backfill writes its row.
     final trip = _trip(
       start: DateTime(2026, 3, 25),
       end: DateTime(2026, 3, 27),
@@ -421,34 +463,15 @@ void main() {
       today: DateTime(2026, 6, 1),
     );
     var calls = 0;
-    final client = MockClient((request) async {
+    final client = MockClient((_) async {
       calls++;
-      expect(request.url.queryParameters['latitude'], '12.1');
-      expect(request.url.queryParameters['longitude'], '-68.2');
-      expect(request.url.queryParameters['start_date'], '2026-03-26');
-      expect(request.url.queryParameters['timezone'], 'auto');
-      return http.Response(
-        jsonEncode({
-          'hourly': {
-            'time': ['2026-03-26T12:00'],
-            'temperature_2m': [26.0],
-            'relative_humidity_2m': [70.0],
-            'precipitation': [0.0],
-            'cloud_cover': [10.0],
-            'wind_speed_10m': [8.0],
-            'wind_direction_10m': [30.0],
-            'surface_pressure': [1012.0],
-            'weathercode': [0],
-          },
-        }),
-        200,
-      );
+      return http.Response('', 500);
     });
 
     await pumpView(tester, story, weatherHttpClient: client);
     await tester.pump();
 
-    expect(calls, 1);
-    expect(find.text('26°C'), findsOneWidget);
+    expect(calls, 0);
+    expect(find.textContaining('°C'), findsNothing);
   });
 }

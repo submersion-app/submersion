@@ -11,6 +11,8 @@ import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dar
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -77,6 +79,68 @@ void main() {
     expect(manifest.headSeq, manifest.baseSeq);
     expect(manifest.publishedHlcHigh, isNotNull);
     expect(manifest.basePartChecksums, isNotEmpty);
+  });
+
+  test(
+    'a series delta over the cap publishes a base, not a changeset',
+    () async {
+      // A tiny cap stands in for the real one (16 MB): after the v182
+      // migration every packed series row carries one freshly issued HLC, so
+      // the first changeset would otherwise pull the whole packed corpus into
+      // one unstreamed in-memory payload.
+      final db = DatabaseService.instance.database;
+      final serializer = SyncDataSerializer();
+      final capped = ChangesetWriter(
+        serializer,
+        ChangesetCodec(serializer),
+        PublishStateStore(db),
+        compactionByteRatio: 1000.0,
+        compactionMaxChangesets: 1 << 30,
+        maxChangesetSeriesBlobBytes: 256,
+      );
+      Future<ChangesetWriteResult> publishCapped() async => capped.publish(
+        provider: provider,
+        deviceId: await SyncRepository().getDeviceId(),
+        folderId: folder,
+        deletions: await SyncRepository().getAllDeletions(),
+      );
+
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      expect((await publishCapped()).kind, ChangesetWriteKind.base);
+
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'd1',
+        samples: [
+          for (var i = 0; i < 2000; i++)
+            ProfileSample(timestamp: i, depth: i * 0.01, temperature: 20.0 + i),
+        ],
+      );
+      expect(
+        await serializer.pendingSeriesBlobBytes(null),
+        greaterThan(256),
+        reason: 'the fixture must actually exceed the cap',
+      );
+
+      expect((await publishCapped()).kind, ChangesetWriteKind.base);
+    },
+  );
+
+  test('a series delta under the cap still publishes a changeset', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    expect((await publish()).kind, ChangesetWriteKind.base);
+
+    await ProfileSeriesRepository().insertSeries(
+      diveId: 'd1',
+      samples: const [
+        ProfileSample(timestamp: 0, depth: 1.0),
+        ProfileSample(timestamp: 10, depth: 2.0),
+      ],
+    );
+    expect((await publish()).kind, ChangesetWriteKind.changeset);
   });
 
   test('publish with no data is a no-op', () async {

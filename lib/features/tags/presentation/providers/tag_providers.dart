@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
 final tagRepositoryProvider = Provider<TagRepository>((ref) {
@@ -80,7 +81,7 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
 
   TagListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
-    _initializeAndLoad();
+    logFailure(_initializeAndLoad(), TagListNotifier, 'initialize and load');
 
     // Listen for diver changes and reload
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -89,7 +90,11 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(tagsProvider);
         _ref.invalidate(tagStatisticsProvider);
-        _initializeAndLoad();
+        logFailure(
+          _initializeAndLoad(),
+          TagListNotifier,
+          'initialize and load',
+        );
       }
     });
 

@@ -115,8 +115,19 @@ class TroubleshootSyncPage extends ConsumerWidget {
         ],
       ),
     );
-    if (ok != true) return;
-    await ref.read(syncStateProvider.notifier).repairSync();
+    if (ok != true || !context.mounted) return;
+    // Clearing local sync state and re-reading the backend is quick on a small
+    // library and minutes-long on a large one. Behind a live page it looked
+    // like nothing happened at all (issue #1194), so it gets the same blocking
+    // dialog -- and the same wakelock -- as the other maintenance actions.
+    await runWithSyncMaintenanceProgress<void>(
+      context: context,
+      title: l10n.settings_troubleshootSync_repair_progressTitle,
+      task: (report) async {
+        report(0, 0, l10n.settings_syncMaintenance_phase_repairing);
+        await ref.read(syncStateProvider.notifier).repairSync();
+      },
+    );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

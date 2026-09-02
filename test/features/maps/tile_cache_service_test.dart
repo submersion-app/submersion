@@ -10,6 +10,87 @@ import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 // ignore_for_file: invalid_use_of_internal_member
 
 void main() {
+  group('store routing', () {
+    // The whole point of the two-store split. Submersion used to keep browse
+    // caching and downloaded offline regions in one store, and FMTC's
+    // removeOldestTilesAboveLimit orders by lastModified across a whole store,
+    // so any cap or age sweep would have deleted regions a diver downloaded
+    // for a trip. These assertions pin the routing that makes capping safe.
+    test('browsing writes to the browse store only', () {
+      final strategies = TileCacheService.browseStoreStrategies();
+
+      expect(
+        strategies['submersion_tiles_browse'],
+        BrowseStoreStrategy.readUpdateCreate,
+      );
+      expect(strategies['submersion_tiles'], BrowseStoreStrategy.read);
+    });
+
+    test('browsing never creates tiles in the offline store', () {
+      // If this ever becomes readUpdateCreate, incidental panning would grow
+      // the uncapped store without bound and the browse cap would be a lie.
+      for (final entry in TileCacheService.browseStoreStrategies().entries) {
+        if (entry.key == 'submersion_tiles') {
+          expect(
+            entry.value,
+            BrowseStoreStrategy.read,
+            reason: 'the offline store must never be written by browsing',
+          );
+        }
+      }
+    });
+
+    test('the offline view reads both stores and writes neither', () {
+      final strategies = TileCacheService.offlineStoreStrategies();
+
+      expect(strategies, hasLength(2));
+      expect(
+        strategies.values,
+        everyElement(BrowseStoreStrategy.read),
+        reason: 'an offline-only view must not mutate any store',
+      );
+    });
+
+    test('the two stores are distinct and the offline one keeps its name', () {
+      // Renaming submersion_tiles would strand every existing install's
+      // downloaded regions, which is the one thing this split must not do.
+      final browse = TileCacheService.browseStoreStrategies().keys.toSet();
+      final offline = TileCacheService.offlineStoreStrategies().keys.toSet();
+
+      expect(browse, offline);
+      expect(browse, contains('submersion_tiles'));
+      expect(browse, hasLength(2));
+    });
+
+    test('the store name getters match the routing maps', () {
+      // Cheap, but the offline getter keeping its historical value is what
+      // stops an upgrade from stranding every downloaded region.
+      expect(TileCacheService.instance.storeName, 'submersion_tiles');
+      expect(
+        TileCacheService.instance.browseStoreName,
+        'submersion_tiles_browse',
+      );
+      expect(
+        TileCacheService.browseStoreStrategies().keys,
+        containsAll([
+          TileCacheService.instance.storeName,
+          TileCacheService.instance.browseStoreName,
+        ]),
+      );
+    });
+
+    test('an uninitialized service refuses to hand out a store', () {
+      // _ensureInitialized now checks both stores, so a half-initialized
+      // service cannot leak a null browse store into a tile provider.
+      expect(() => TileCacheService.instance.store, throwsStateError);
+    });
+
+    test('the browse cap and age are bounded', () {
+      expect(TileCacheService.browseStoreMaxTiles, greaterThan(0));
+      expect(TileCacheService.browseTileMaxAge, const Duration(days: 30));
+    });
+  });
+
   group('TileCacheService.handleTileError', () {
     // Returns the next LogEntry emitted on the shared logger stream while
     // [action] runs. The subscription is established before [action] so the

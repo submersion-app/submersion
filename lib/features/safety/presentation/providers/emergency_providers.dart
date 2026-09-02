@@ -6,6 +6,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/safety/data/repositories/emergency_chamber_repository.dart';
 import 'package:submersion/features/safety/data/services/emergency_data_service.dart';
+import 'package:submersion/features/safety/domain/entities/chamber_listing.dart';
 import 'package:submersion/features/safety/domain/entities/emergency_info.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -41,28 +42,37 @@ final emergencyRegionProvider = FutureProvider<String?>((ref) async {
   return _isoFromCountry(country);
 });
 
-/// Everything the offline emergency card renders, assembled from local data
-/// only (bundled assets, DB, settings). No network, no location permission.
-class EmergencyCardData {
-  final String? countryCode;
-  final EmergencyRegion hotline;
-  final String emsNumber;
-  final Diver? diver;
-  final List<EmergencyChamber> chambers;
+/// How many chambers the emergency card shows before deferring to the full
+/// directory. The card is read under stress; it is not a browsing surface.
+const chamberCardLimit = 5;
 
-  const EmergencyCardData({
-    required this.countryCode,
-    required this.hotline,
-    required this.emsNumber,
-    required this.diver,
-    required this.chambers,
-  });
+/// Beyond this, a chamber is not meaningfully "near" and the card says so
+/// instead of listing a facility on another continent. The full directory
+/// still lists it.
+const chamberNearbyRadiusMeters = 500000.0;
+
+/// Ordering band. Lower sorts first.
+///
+/// Distance alone would rank an elective wound-care clinic 5 km away above an
+/// on-call dive chamber 80 km away, which is the whole hazard of listing
+/// elective facilities. Banding defuses it. A chamber the diver added
+/// themselves always leads: they added it on purpose.
+int _orderingBand(EmergencyChamber chamber) {
+  if (!chamber.isBuiltIn) return 0;
+  return switch (chamber.capability) {
+    ChamberCapability.divingEmergency => 1,
+    ChamberCapability.hyperbaricUnit => 2,
+    ChamberCapability.unknown => 3,
+    ChamberCapability.elective => 4,
+  };
 }
 
-final emergencyCardDataProvider = FutureProvider<EmergencyCardData>((
+/// Every chamber the diver can see, ordered by band then distance. Backs both
+/// the emergency card (which takes the head of this list) and the directory
+/// page (which shows all of it).
+final chamberListingsProvider = FutureProvider<List<ChamberListing>>((
   ref,
 ) async {
-  final numbers = await EmergencyDataService.loadNumbers();
   final bundled = await EmergencyDataService.loadBundledChambers();
   final countryCode = await ref.watch(emergencyRegionProvider.future);
   final diver = await ref.watch(currentDiverProvider.future);
@@ -72,15 +82,9 @@ final emergencyCardDataProvider = FutureProvider<EmergencyCardData>((
   ref.invalidateSelfWhen(chamberRepo.watchChanges());
   final userChambers = await chamberRepo.getUserChambers(diverId: diver?.id);
 
-  // User chambers first, then bundled chambers (hidden entries filtered out).
-  // The final ordering is applied below: by distance when the last dive has
-  // GPS, else same-country-first, else this insertion order.
-  final visibleBundled = bundled.where((c) => !hidden.contains(c.id)).toList();
-  final chambers = [...userChambers, ...visibleBundled];
-
-  // Distance sort when the most recent dive site has GPS. Re-run when dives
-  // change so the sort stays fresh even when a manual region override makes
-  // emergencyRegionProvider return early (and skip its own subscription).
+  // Re-run when dives change so the distance anchor stays fresh even when a
+  // manual region override makes emergencyRegionProvider return early and skip
+  // its own subscription.
   final repository = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
   // Scope the GPS anchor to the active diver's most recent dive, not another
@@ -91,27 +95,127 @@ final emergencyCardDataProvider = FutureProvider<EmergencyCardData>((
   );
   final lat = summaries.isNotEmpty ? summaries.first.siteLatitude : null;
   final lon = summaries.isNotEmpty ? summaries.first.siteLongitude : null;
-  if (lat != null && lon != null) {
-    chambers.sort((a, b) {
-      final da = _distanceKm(lat, lon, a.latitude, a.longitude);
-      final db = _distanceKm(lat, lon, b.latitude, b.longitude);
-      return da.compareTo(db);
-    });
-  } else if (countryCode != null) {
-    // No GPS: same-country chambers first.
-    chambers.sort((a, b) {
-      final aMatch = a.country == countryCode ? 0 : 1;
-      final bMatch = b.country == countryCode ? 0 : 1;
-      return aMatch.compareTo(bMatch);
-    });
+
+  final chambers = [
+    ...userChambers,
+    ...bundled.where((c) => !hidden.contains(c.id)),
+  ];
+
+  final listings = [
+    for (final chamber in chambers)
+      ChamberListing(
+        chamber: chamber,
+        distanceMeters:
+            (lat != null &&
+                lon != null &&
+                chamber.latitude != null &&
+                chamber.longitude != null)
+            ? _distanceKm(lat, lon, chamber.latitude, chamber.longitude) * 1000
+            : null,
+      ),
+  ];
+
+  listings.sort((a, b) {
+    final band = _orderingBand(a.chamber).compareTo(_orderingBand(b.chamber));
+    if (band != 0) return band;
+    // Chambers with no distance (no GPS anchor, or no coordinates) sort last
+    // within their band rather than jumping to the front on a null compare.
+    final da = a.distanceMeters ?? double.maxFinite;
+    final db = b.distanceMeters ?? double.maxFinite;
+    final byDistance = da.compareTo(db);
+    if (byDistance != 0) return byDistance;
+    // With no GPS anchor every distance is null and the comparison above is a
+    // tie, which is where same-country chambers earn their place at the top.
+    final byCountry = _countryRank(
+      a.chamber,
+      countryCode,
+    ).compareTo(_countryRank(b.chamber, countryCode));
+    if (byCountry != 0) return byCountry;
+    // List.sort is not stable, so break remaining ties deterministically or
+    // the widget tests flake on reordering.
+    return a.chamber.name.compareTo(b.chamber.name);
+  });
+
+  return listings;
+});
+
+int _countryRank(EmergencyChamber chamber, String? countryCode) {
+  if (countryCode == null) return 0;
+  return chamber.country == countryCode ? 0 : 1;
+}
+
+/// Picks what the card shows.
+///
+/// A chamber the diver added themselves always qualifies. A bundled chamber
+/// qualifies when it is within [chamberNearbyRadiusMeters], or, when the
+/// diver's position is unknown, when it is in the resolved country.
+List<ChamberListing> _selectNearby(
+  List<ChamberListing> listings,
+  String? countryCode,
+) {
+  final picked = <ChamberListing>[];
+  for (final listing in listings) {
+    if (picked.length >= chamberCardLimit) break;
+
+    if (!listing.chamber.isBuiltIn) {
+      picked.add(listing);
+      continue;
+    }
+
+    final distance = listing.distanceMeters;
+    if (distance != null) {
+      if (distance.isFinite && distance <= chamberNearbyRadiusMeters) {
+        picked.add(listing);
+      }
+      continue;
+    }
+
+    if (countryCode != null && listing.chamber.country == countryCode) {
+      picked.add(listing);
+    }
   }
+  return picked;
+}
+
+/// Everything the offline emergency card renders, assembled from local data
+/// only (bundled assets, DB, settings). No network, no location permission.
+class EmergencyCardData {
+  final String? countryCode;
+  final EmergencyRegion hotline;
+  final String emsNumber;
+  final Diver? diver;
+
+  /// At most [chamberCardLimit] chambers worth showing on the card.
+  final List<ChamberListing> nearbyChambers;
+
+  /// Everything in the directory, for the "view all" affordance.
+  final int totalChamberCount;
+
+  const EmergencyCardData({
+    required this.countryCode,
+    required this.hotline,
+    required this.emsNumber,
+    required this.diver,
+    required this.nearbyChambers,
+    required this.totalChamberCount,
+  });
+}
+
+final emergencyCardDataProvider = FutureProvider<EmergencyCardData>((
+  ref,
+) async {
+  final numbers = await EmergencyDataService.loadNumbers();
+  final countryCode = await ref.watch(emergencyRegionProvider.future);
+  final diver = await ref.watch(currentDiverProvider.future);
+  final listings = await ref.watch(chamberListingsProvider.future);
 
   return EmergencyCardData(
     countryCode: countryCode,
     hotline: numbers.hotlineFor(countryCode),
     emsNumber: numbers.emsFor(countryCode),
     diver: diver,
-    chambers: chambers,
+    nearbyChambers: _selectNearby(listings, countryCode),
+    totalChamberCount: listings.length,
   );
 });
 

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +9,8 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/media_store/icloud_media_object_store.dart';
+import 'package:submersion/core/services/media_store/icloud_media_platform.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
@@ -29,6 +32,16 @@ class _CorruptingStore extends InMemoryMediaObjectStore {
   }) async {
     await destination.writeAsBytes('garbage'.codeUnits, flush: true);
   }
+}
+
+/// An iCloud container whose files never finish downloading (the native 12 s
+/// poll expires), as seen by the second device to connect while the first
+/// device's marker is still coming down from iCloud.
+class _UndownloadablePlatform extends DirectoryICloudMediaPlatform {
+  _UndownloadablePlatform(super.root);
+
+  @override
+  Future<bool> ensureDownloaded(String path) async => false;
 }
 
 void main() {
@@ -382,4 +395,118 @@ void main() {
       );
     },
   );
+
+  // Issue #1356: the phone connected while the Mac's store.json had not
+  // finished downloading, minted its own store id over it, and the Mac's
+  // every preflight failed against a marker it did not recognise.
+  test('connectICloud does not mint a new store over a marker that is still '
+      'downloading', () async {
+    final container = await Directory.systemTemp.createTemp('icloud_connect');
+    addTearDown(() => container.delete(recursive: true));
+    final marker = File('${container.path}/submersion-media/smv1/store.json')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(
+        '{"storeId":"store-from-the-mac","formatVersion":1,"createdAt":""}',
+      );
+    final svc = MediaStoreService(
+      credentials: credentials,
+      attachState: attachState,
+      storesRepository: storesRepository,
+      accountsRepository: accountsRepository,
+      accountCredentials: accountCredentials,
+      icloudStoreFactory: () async =>
+          ICloudMediaObjectStore(platform: _UndownloadablePlatform(container)),
+    );
+
+    await expectLater(
+      svc.connectICloud(),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.transient,
+        ),
+      ),
+    );
+
+    expect(await attachState.attachedStoreId(), isNull);
+    expect(
+      jsonDecode(marker.readAsStringSync())['storeId'],
+      'store-from-the-mac',
+      reason: 'the marker the other device wrote must survive untouched',
+    );
+  });
+
+  // Connecting is a foreground action the user is watching, and on iCloud the
+  // container's copy of store.json may still be coming down when they tap
+  // Connect. Refusing on the first attempt would fail a connect that succeeds
+  // seconds later.
+  test('a store that cannot serve the marker yet is retried, then '
+      'connects', () async {
+    final fake = InMemoryMediaObjectStore();
+    var attempts = 0;
+    final svc = MediaStoreService(
+      credentials: credentials,
+      attachState: attachState,
+      storesRepository: storesRepository,
+      accountsRepository: accountsRepository,
+      accountCredentials: accountCredentials,
+      markerRetryBackoff: const [Duration.zero, Duration.zero],
+      icloudStoreFactory: () async {
+        attempts++;
+        if (attempts == 1) {
+          fake.failNextWith = const MediaStoreException(
+            'still downloading from iCloud: smv1/store.json',
+            kind: MediaStoreErrorKind.transient,
+          );
+        }
+        return fake;
+      },
+    );
+
+    final result = await svc.connectICloud();
+
+    expect(result.storeId, isNotEmpty);
+    expect(await attachState.attachedStoreId(), result.storeId);
+  });
+
+  test('a store that keeps refusing the marker gives up rather than '
+      'connecting', () async {
+    final svc = MediaStoreService(
+      credentials: credentials,
+      attachState: attachState,
+      storesRepository: storesRepository,
+      accountsRepository: accountsRepository,
+      accountCredentials: accountCredentials,
+      markerRetryBackoff: const [Duration.zero],
+      icloudStoreFactory: () async => _AlwaysTransientStore(),
+    );
+
+    await expectLater(
+      svc.connectICloud(),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.transient,
+        ),
+      ),
+    );
+    expect(await attachState.attachedStoreId(), isNull);
+  });
+}
+
+/// Never serves the marker, however often it is asked.
+class _AlwaysTransientStore extends InMemoryMediaObjectStore {
+  @override
+  Future<void> getFile(
+    String key,
+    File destination, {
+    TransferProgressCallback? onProgress,
+  }) async {
+    throw const MediaStoreException(
+      'still downloading from iCloud: smv1/store.json',
+      kind: MediaStoreErrorKind.transient,
+    );
+  }
 }

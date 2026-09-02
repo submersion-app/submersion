@@ -4,11 +4,20 @@ import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Provider for the [ReparseService] singleton.
+///
+/// Watches the surfacing-pressure setting so a reparse run after the diver
+/// flips it applies the current preference (issue #1092).
 final reparseServiceProvider = Provider<ReparseService>((ref) {
   final db = DatabaseService.instance.database;
-  return ReparseService(db: db);
+  return ReparseService(
+    db: db,
+    trimTankPressureAtSurfacing: ref.watch(
+      settingsProvider.select((s) => s.trimTankPressureAtSurfacing),
+    ),
+  );
 });
 
 /// Provides raw data counts for all dive computer sources matching [computerId].

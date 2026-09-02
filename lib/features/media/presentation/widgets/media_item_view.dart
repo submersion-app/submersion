@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/services/media_orphan_reconciler.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
@@ -90,11 +94,20 @@ class MediaItemView extends ConsumerStatefulWidget {
 /// this: it is a fact about the SEQUENCE of attempts rather than about any
 /// single one, and it is what lets the info panel say "the photo library
 /// lookup failed" instead of merely "served from cloud".
+///
+/// [nativeFailure] is why the row's OWN source could not produce bytes, or
+/// null when it did. Deliberately separate from [data], which is what ended
+/// up on screen: when the store covers for a dead origin, `data` is bytes and
+/// carries no failure at all, so anything reasoning about whether the ORIGIN
+/// still exists has to read this instead. `MediaItem.isOrphaned` is exactly
+/// such a fact, and driving it from `data` would clear the flag every time
+/// the cloud successfully covered for a missing local file.
 typedef _Resolution = ({
   MediaSourceData data,
   bool videoPosterMissing,
   bool documentRenderable,
   bool storeFallbackUsed,
+  UnavailableKind? nativeFailure,
 });
 
 class _MediaItemViewState extends ConsumerState<MediaItemView> {
@@ -157,7 +170,67 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           failure: data is UnavailableData ? data.kind : null,
           storeFallbackUsed: resolution.storeFallbackUsed,
         );
+    _reconcileOrphanState(resolution.nativeFailure);
     return resolution;
+  }
+
+  /// Persists what this resolution just proved about the row's source.
+  ///
+  /// The recorder above is session-scoped and 200 entries deep, so without
+  /// this the app rediscovers a deleted asset on every scroll and never
+  /// writes it down. `isOrphaned` is then read by the status badge, the
+  /// orphaned placeholder, and the orphan sweeps, all of which understate
+  /// library damage while nothing updates the column.
+  ///
+  /// Writes only on an actual change: [reconciledOrphanFlag] returns null
+  /// when the flag already agrees or the outcome was inconclusive, so a
+  /// library at rest costs nothing. That matters because every
+  /// `MediaRepository` write calls `markRecordPending`, and a write per
+  /// visible tile would queue one pending sync row per thumbnail scrolled
+  /// past.
+  void _reconcileOrphanState(UnavailableKind? nativeFailure) {
+    final desired = reconciledOrphanFlag(
+      currentlyOrphaned: widget.item.isOrphaned,
+      failure: nativeFailure,
+    );
+    if (desired == null) return;
+    // Unawaited and fully guarded: this runs on the resolve path of a grid
+    // tile and must neither delay the frame nor turn a write failure into a
+    // broken thumbnail. markVerified logs its own errors.
+    try {
+      unawaited(
+        ref
+            .read(mediaRepositoryProvider)
+            .markVerified(
+              widget.item.id,
+              isOrphaned: desired,
+              verifiedAt: DateTime.now(),
+            )
+            .catchError((Object _) {}),
+      );
+    } on Object catch (e) {
+      _imageErrorLog.error(
+        'Orphan reconciliation failed for ${widget.item.id}',
+        error: e,
+      );
+    }
+  }
+
+  /// Re-runs resolution after the user taps a still-loading tile.
+  ///
+  /// Only [UnavailableKind.stillFetching] is retryable by tapping. It is the
+  /// one kind that means "nothing is wrong, this is just slow", so a retry has
+  /// a real chance of a different answer; offering one for a dead pointer or an
+  /// unmounted volume would be a placebo. `MediaFetchGate` coalesces the retry
+  /// onto the fetch still in flight, so the tap joins the live download rather
+  /// than starting a second one.
+  /// A block body, not an arrow: `setState(() => _future = _resolve())` makes
+  /// the closure evaluate to the assigned Future, and setState asserts that
+  /// its callback returns nothing so an `async` body cannot slip through.
+  void _retry() {
+    setState(() {
+      _future = _resolve();
+    });
   }
 
   // Declared `async` (not just returning a Future from a sync body) so any
@@ -210,6 +283,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           videoPosterMissing: false,
           documentRenderable: true,
           storeFallbackUsed: false,
+          nativeFailure: null,
         );
       }
       // No local render (bytes unavailable here, or an unreadable PDF):
@@ -233,8 +307,13 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
         videoPosterMissing: false,
         documentRenderable: false,
         storeFallbackUsed: false,
+        nativeFailure: null,
       );
     }
+    // Captured once, here, where `native` is promoted. Every return below
+    // this line describes a resolution whose ORIGIN failed, whether or not
+    // the store went on to cover for it.
+    final nativeFailure = native.kind;
     // Media store fallback (design spec section 10): only engages when the
     // native source cannot produce bytes on this device and the row is
     // confirmed uploaded - for thumbnail requests the thumb stamp alone
@@ -261,6 +340,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
         // The store was never consulted: the row carries no stamp saying it
         // would have anything to offer.
         storeFallbackUsed: false,
+        nativeFailure: nativeFailure,
       );
     }
     try {
@@ -277,6 +357,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           // store here to answer it, which is a different situation from
           // never having looked.
           storeFallbackUsed: true,
+          nativeFailure: nativeFailure,
         );
       }
       final remote = await runtime.resolver.tryResolveRemote(
@@ -295,6 +376,10 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           documentRenderable:
               widget.thumbnail && remote is FileData && remote.isPoster,
           storeFallbackUsed: true,
+          // The store covered, but the ORIGIN still failed and that is what
+          // the orphan flag is about. Reporting null here would clear the
+          // flag on exactly the rows MediaStatus.cloudOnly exists for.
+          nativeFailure: nativeFailure,
         );
       }
       // The movie tile claims something specific -- this video has no poster
@@ -312,6 +397,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             widget.item.remoteThumbUploadedAt == null,
         documentRenderable: false,
         storeFallbackUsed: true,
+        nativeFailure: nativeFailure,
       );
     } catch (_) {
       return (
@@ -319,6 +405,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
         videoPosterMissing: false,
         documentRenderable: false,
         storeFallbackUsed: true,
+        nativeFailure: nativeFailure,
       );
     }
   }
@@ -416,6 +503,16 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             cacheWidth: cacheWidth,
             errorBuilder: _imageError,
           ),
+          UnavailableData(kind: UnavailableKind.stillFetching) =>
+            GestureDetector(
+              onTap: _retry,
+              // The placeholder paints an opaque background, but the Column
+              // inside it does not fill the tile, so without this the gaps
+              // around the icon are not hit-testable and the tap falls through
+              // to whatever is behind the grid.
+              behavior: HitTestBehavior.opaque,
+              child: UnavailableMediaPlaceholder(data: data),
+            ),
           UnavailableData() => UnavailableMediaPlaceholder(data: data),
         };
       },

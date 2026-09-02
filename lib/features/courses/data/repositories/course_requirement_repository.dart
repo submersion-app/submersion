@@ -53,6 +53,11 @@ class CourseRequirementRepository {
 
   /// All requirements of [courseId] with their credited dives, in
   /// sortOrder. One requirement query plus one joined link query -- no N+1.
+  /// Deliberately does NOT apply DiveStatsScope. The diver linked this dive
+  /// to the course on purpose; excluding it from statistics is a statement
+  /// about their logbook averages, not a retraction of course credit. Do not
+  /// "fix" this.
+  // stats-scope-exempt: course credit is deliberate, not descriptive
   Future<CourseProgress> getCourseProgress(String courseId) async {
     try {
       final reqRows =
@@ -437,6 +442,11 @@ class CourseRequirementRepository {
   /// assigned to this course (dives.course_id) or dated on/after the course
   /// start, excluding dives already credited to any requirement of this
   /// course. Newest first, capped at 10.
+  /// Deliberately does NOT apply DiveStatsScope. The diver linked this dive
+  /// to the course on purpose; excluding it from statistics is a statement
+  /// about their logbook averages, not a retraction of course credit. Do not
+  /// "fix" this.
+  // stats-scope-exempt: course credit is deliberate, not descriptive
   Future<List<RequirementDiveSummary>> getSuggestedDives(
     String courseId,
   ) async {

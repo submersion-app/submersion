@@ -1,6 +1,9 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 
 /// Pre-v158 dive_profiles shape: samples are correlated to a data source only
 /// through computer_id, which is null for every file import and manual entry.
@@ -24,6 +27,17 @@ const _preV158DiveDataSources = '''
     created_at INTEGER
   )
 ''';
+
+/// FK parents the v182/v183 rungs' series tables need to exist at all
+/// (_assertProfileSeriesSchema), same as a real database has carried since
+/// long before v157. comp-99 is deliberately never registered here: it is
+/// the "computer_id matching no source" case _seedMixedDive sets up.
+void _seedFkParents(dynamic rawDb) {
+  rawDb.execute('CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY)');
+  rawDb.execute('CREATE TABLE dive_computers (id TEXT NOT NULL PRIMARY KEY)');
+  rawDb.execute("INSERT INTO dives (id) VALUES ('d1'), ('d2')");
+  rawDb.execute("INSERT INTO dive_computers (id) VALUES ('comp-1')");
+}
 
 /// A dive with one computer source and one file-imported source, plus the
 /// four profile shapes the backfill has to sort out.
@@ -52,20 +66,40 @@ void _seedMixedDive(dynamic rawDb) {
   profile('p-orphan', 'd2', null);
 }
 
-Future<String?> _sourceIdOf(AppDatabase db, String profileId) async {
-  final row = await db
+/// The packed dive_profile_series rows for [diveId] (v182/v183 pack the
+/// legacy dive_profiles rows into these and drop the legacy table). Each
+/// group of profile rows that shared a (computer_id, source_id, is_primary)
+/// key becomes one series, so tests look a group up by that key rather than
+/// by any one profile row's id.
+Future<List<Map<String, Object?>>> _seriesRowsFor(
+  AppDatabase db,
+  String diveId,
+) async {
+  final rows = await db
       .customSelect(
-        "SELECT source_id FROM dive_profiles WHERE id = '$profileId'",
+        'SELECT * FROM dive_profile_series WHERE dive_id = ?',
+        variables: [Variable<String>(diveId)],
       )
-      .getSingle();
-  return row.data['source_id'] as String?;
+      .get();
+  return rows.map((r) => r.data).toList();
 }
 
+Map<String, Object?> _seriesWhere(
+  List<Map<String, Object?>> rows, {
+  String? computerId,
+  String? sourceId,
+}) => rows.singleWhere(
+  (r) => r['computer_id'] == computerId && r['source_id'] == sourceId,
+);
+
 void main() {
+  const codec = ProfileSeriesCodec();
+
   test('v158 adds the owning-source column, preserving rows', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 157');
+        _seedFkParents(rawDb);
         rawDb.execute(_preV158DiveProfiles);
         rawDb.execute(_preV158DiveDataSources);
         _seedMixedDive(rawDb);
@@ -75,24 +109,24 @@ void main() {
     final db = AppDatabase(nativeDb);
     addTearDown(() => db.close());
 
-    final cols = await db
-        .customSelect("PRAGMA table_info('dive_profiles')")
-        .get();
-    expect(cols.map((c) => c.read<String>('name')), contains('source_id'));
-
-    final row = await db
-        .customSelect(
-          "SELECT depth, timestamp FROM dive_profiles WHERE id = 'p-computer'",
-        )
-        .getSingle();
-    expect(row.data['depth'], 20.0);
-    expect(row.data['timestamp'], 60);
+    // dive_profiles is gone by the time this resolves; the ladder drops it
+    // once v183 has packed everything into dive_profile_series, which
+    // carries source_id as a series-level column.
+    final rows = await _seriesRowsFor(db, 'd1');
+    final computerSeries = _seriesWhere(
+      rows,
+      computerId: 'comp-1',
+      sourceId: 'src-computer',
+    );
+    final samples = codec.decode(computerSeries['samples'] as dynamic);
+    expect(samples, [const ProfileSample(timestamp: 60, depth: 20.0)]);
   });
 
   test('v158 attributes rows the way the pre-v158 read path did', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 157');
+        _seedFkParents(rawDb);
         rawDb.execute(_preV158DiveProfiles);
         rawDb.execute(_preV158DiveDataSources);
         _seedMixedDive(rawDb);
@@ -102,20 +136,50 @@ void main() {
     final db = AppDatabase(nativeDb);
     addTearDown(() => db.close());
 
+    final rows = await _seriesRowsFor(db, 'd1');
+
     // A matching computer_id names the owner outright.
-    expect(await _sourceIdOf(db, 'p-computer'), 'src-computer');
+    expect(
+      _seriesWhere(rows, computerId: 'comp-1', sourceId: 'src-computer'),
+      isNotNull,
+    );
 
-    // Null computer_id belongs to the primary source -- the convention
-    // getProfilesByDataSource has always implemented. Reproducing it here is
-    // what keeps the upgrade from moving anyone's samples between sources.
-    expect(await _sourceIdOf(db, 'p-null'), 'src-file');
-
-    // A computer_id matching no source falls back the same way.
-    expect(await _sourceIdOf(db, 'p-unmatched'), 'src-file');
+    // Null computer_id (p-null) and a computer_id matching no source
+    // (p-unmatched, comp-99 is never registered) both resolve to a null
+    // computer at pack time and land on the primary source: the convention
+    // getProfilesByDataSource has always implemented.
+    // Reproducing it here is what keeps the upgrade from moving anyone's
+    // samples between sources; it also merges them into one series, since
+    // they now share both key components.
+    expect(
+      rows.where((r) => r['computer_id'] == null),
+      hasLength(1),
+      reason:
+          'p-null and p-unmatched resolve to the same null computer_id and '
+          'must land on the same source_id, or they would be two series '
+          'instead of one',
+    );
+    final nullComputerSeries = _seriesWhere(
+      rows,
+      computerId: null,
+      sourceId: 'src-file',
+    );
+    expect(
+      codec.decode(nullComputerSeries['samples'] as dynamic),
+      hasLength(1),
+      reason:
+          'p-null and p-unmatched merge into one series, and their samples '
+          'are identical (both timestamp 60, depth 20.0), so the exact-'
+          'duplicate dedupe collapses them to one',
+    );
 
     // Nothing to attribute to: left null, and the code falls back to the
     // legacy convention for these.
-    expect(await _sourceIdOf(db, 'p-orphan'), isNull);
+    final orphanRows = await _seriesRowsFor(db, 'd2');
+    expect(
+      _seriesWhere(orphanRows, computerId: null, sourceId: null),
+      isNotNull,
+    );
   });
 
   test('migration list includes v158 and schema is at least 158', () {
@@ -131,6 +195,7 @@ void main() {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 157');
+        _seedFkParents(rawDb);
         rawDb.execute(_preV158DiveProfiles);
         rawDb.execute(_preV158DiveDataSources);
         rawDb.execute('ALTER TABLE dive_profiles ADD COLUMN source_id TEXT');
@@ -145,18 +210,29 @@ void main() {
     final db = AppDatabase(nativeDb);
     addTearDown(() => db.close());
 
-    final cols = await db
-        .customSelect("PRAGMA table_info('dive_profiles')")
-        .get();
-    expect(
-      cols.map((c) => c.read<String>('name')).where((n) => n == 'source_id'),
-      hasLength(1),
-    );
+    final rows = await _seriesRowsFor(db, 'd1');
 
-    // Already attributed: the backfill only fills nulls, so this stays put
-    // even though the convention would have chosen src-file.
-    expect(await _sourceIdOf(db, 'p-null'), 'src-computer');
-    expect(await _sourceIdOf(db, 'p-computer'), 'src-computer');
+    // Already attributed: the backfill only fills nulls, so p-null's series
+    // (still keyed on its null computer_id) keeps 'src-computer' even though
+    // the convention would have chosen src-file, and it does not merge with
+    // p-unmatched's series (which the backfill DID assign 'src-file' to,
+    // since only p-null had a pre-existing value) despite sharing a null
+    // computer_id: the two series differ by source_id.
+    final pNullSeries = _seriesWhere(
+      rows,
+      computerId: null,
+      sourceId: 'src-computer',
+    );
+    expect(codec.decode(pNullSeries['samples'] as dynamic), hasLength(1));
+    expect(
+      _seriesWhere(rows, computerId: null, sourceId: 'src-file'),
+      isNotNull,
+      reason: 'p-unmatched still gets backfilled on its own series',
+    );
+    expect(
+      _seriesWhere(rows, computerId: 'comp-1', sourceId: 'src-computer'),
+      isNotNull,
+    );
   });
 
   test('the helper no-ops when dive_profiles is absent', () async {

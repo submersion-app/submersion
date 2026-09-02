@@ -240,7 +240,6 @@ void main() {
           'stale-uuid': [
             for (var t = 0; t <= 40 * 60; t += 60)
               TankPressurePoint(
-                id: 'p$t',
                 tankId: 'stale-uuid',
                 timestamp: t,
                 // Linear drain 200 -> 60 bar over the dive.
@@ -280,7 +279,6 @@ void main() {
         'tank-A': [
           for (var t = 0; t <= 40 * 60; t += 60)
             TankPressurePoint(
-              id: 'a$t',
               tankId: 'tank-A',
               timestamp: t,
               pressure: 210 - (150 * t / (40 * 60)),
@@ -326,7 +324,6 @@ void main() {
           return [
             for (var t = firstTs; t <= 40 * 60; t += 60)
               TankPressurePoint(
-                id: '$key-$t',
                 tankId: key,
                 timestamp: t,
                 pressure: 200 - drain * (t - firstTs) / (40 * 60 - firstTs),

@@ -92,3 +92,43 @@ Future<void> setSafetyFindingDismissed(
       );
   ref.invalidate(safetyReviewProvider(diveId));
 }
+
+/// The safety rule ids the diver currently has switched on, as stored
+/// dbValues.
+///
+/// Bulk dismiss/restore is scoped to this set so a rule hidden in settings is
+/// never acted on behind the user's back, and so a finding written by a newer
+/// build (an unrecognised rule_id, which [SafetyFindingsRepository.getReview]
+/// already drops) is never dismissed sight unseen.
+Set<String> enabledSafetyRuleIds(AppSettings settings) => {
+  for (final rule in SafetyRuleId.values)
+    if (!settings.safetyReviewDisabledRules.contains(rule.dbValue))
+      rule.dbValue,
+};
+
+/// Dismisses or restores every finding on [diveId] whose rule is enabled,
+/// returning how many changed.
+///
+/// The bulk sibling of [setSafetyFindingDismissed], with the same UI
+/// housekeeping: a dismissed finding can no longer be the chart selection.
+Future<int> setAllSafetyFindingsDismissed(
+  WidgetRef ref, {
+  required String diveId,
+  required bool dismissed,
+}) async {
+  final changed = await ref
+      .read(safetyFindingsRepositoryProvider)
+      .setDismissedForDives(
+        diveIds: [diveId],
+        dismissed: dismissed,
+        enabledRuleIds: enabledSafetyRuleIds(ref.read(settingsProvider)),
+        now: DateTime.now(),
+      );
+  // Clear the selection only once the write lands. Clearing first would drop
+  // the user's chart highlight as the sole visible effect of a failed write.
+  if (dismissed) {
+    ref.read(selectedSafetyFindingProvider(diveId).notifier).state = null;
+  }
+  ref.invalidate(safetyReviewProvider(diveId));
+  return changed;
+}

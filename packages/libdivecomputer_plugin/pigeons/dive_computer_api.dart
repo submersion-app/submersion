@@ -57,6 +57,7 @@ class ProfileSample {
     this.temperatureCelsius,
     this.pressureBar,
     this.tankIndex,
+    this.tankPressuresBar,
     this.heartRate,
     this.heading,
     this.setpoint,
@@ -86,6 +87,15 @@ class ProfileSample {
   final double? temperatureCelsius;
   final double? pressureBar;
   final int? tankIndex;
+
+  /// Every tank's pressure in bar at this sample, indexed by tank index, with
+  /// null where that tank reported nothing. libdivecomputer fires one pressure
+  /// reading per air-integrated transmitter, so a single sample can carry
+  /// several; [pressureBar]/[tankIndex] hold only the last of them and lose the
+  /// rest (issue #1223). Null when the sample carries no pressure at all, and
+  /// trimmed of trailing nulls, so an ordinary single-transmitter dive costs one
+  /// short list per sample.
+  final List<double?>? tankPressuresBar;
   final int? heartRate;
 
   /// Compass heading in degrees (0-359) from DC_SAMPLE_BEARING; null when the

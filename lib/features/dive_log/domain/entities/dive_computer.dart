@@ -47,6 +47,12 @@ class DiveComputer extends Equatable {
   /// Additional notes
   final String notes;
 
+  /// The equipment row representing this device as gear, its gear twin (v175).
+  ///
+  /// Null when the user has deleted that gear item, which is permanent: only a
+  /// genuine computer registration mints a twin, so nothing re-creates it.
+  final String? equipmentId;
+
   /// When this record was created
   final DateTime createdAt;
 
@@ -68,6 +74,7 @@ class DiveComputer extends Equatable {
     this.diveCount = 0,
     this.isFavorite = false,
     this.notes = '',
+    this.equipmentId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -128,6 +135,7 @@ class DiveComputer extends Equatable {
     int? diveCount,
     bool? isFavorite,
     String? notes,
+    String? equipmentId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -146,6 +154,7 @@ class DiveComputer extends Equatable {
       diveCount: diveCount ?? this.diveCount,
       isFavorite: isFavorite ?? this.isFavorite,
       notes: notes ?? this.notes,
+      equipmentId: equipmentId ?? this.equipmentId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -167,6 +176,7 @@ class DiveComputer extends Equatable {
     diveCount,
     isFavorite,
     notes,
+    equipmentId,
     createdAt,
     updatedAt,
   ];

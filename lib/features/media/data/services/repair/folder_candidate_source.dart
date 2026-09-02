@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -38,9 +40,11 @@ class FolderCandidateSource implements CandidateSource {
           if (entity is! File) continue;
           final stat = await entity.stat();
           final path = entity.path;
-          final slash = path.lastIndexOf('/');
-          final name = (slash >= 0 ? path.substring(slash + 1) : path)
-              .toLowerCase();
+          // p.basename follows the HOST's separator. A hand-rolled
+          // lastIndexOf('/') indexed the entire path as the key on Windows,
+          // where Directory.list yields backslash-separated paths, so every
+          // filename lookup missed.
+          final name = p.basename(path).toLowerCase();
           foundPaths.add(path);
           byFilename
               .putIfAbsent(name, () => [])

@@ -10,6 +10,9 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_header_cell.
 const double kEntityTableRowHeight = 38.0;
 const double _kCheckboxWidth = 48.0;
 
+/// Width reserved for [EntityTableView.leadingBuilder], when one is given.
+const double _kLeadingWidth = 40.0;
+
 /// Generic full-width data table for displaying entity lists with pinned
 /// columns and synchronized horizontal scrolling.
 ///
@@ -56,6 +59,16 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
   /// ID of the currently highlighted entity (for single-select highlight).
   final String? highlightedId;
 
+  /// Optional widget rendered at the start of each row, before the first
+  /// column. Null for every table that does not opt in, so existing tables are
+  /// unchanged.
+  ///
+  /// Used for profile photos, which are not a sortable text value and
+  /// therefore do not belong in the field enum. Renders in the PINNED section
+  /// so it stays put when the table is scrolled horizontally, which means the
+  /// header reserves the same width to keep columns aligned.
+  final Widget Function(T entity)? leadingBuilder;
+
   const EntityTableView({
     super.key,
     required this.entities,
@@ -71,6 +84,7 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
     this.selectedIds = const {},
     this.isSelectionMode = false,
     this.highlightedId,
+    this.leadingBuilder,
   });
 
   @override
@@ -298,6 +312,11 @@ class _EntityTableViewState<T, F extends EntityField>
                   width: _kCheckboxWidth,
                   height: kEntityTableRowHeight,
                 ),
+              if (widget.leadingBuilder != null)
+                const SizedBox(
+                  width: _kLeadingWidth,
+                  height: kEntityTableRowHeight,
+                ),
               ...pinned.map((col) {
                 return EntityTableHeaderCell(
                   field: col.field,
@@ -339,7 +358,8 @@ class _EntityTableViewState<T, F extends EntityField>
               SizedBox(
                 width:
                     pinnedWidth +
-                    (widget.isSelectionMode ? _kCheckboxWidth : 0),
+                    (widget.isSelectionMode ? _kCheckboxWidth : 0) +
+                    (widget.leadingBuilder != null ? _kLeadingWidth : 0),
                 child: ListView.builder(
                   controller: _pinnedVerticalController,
                   itemExtent: kEntityTableRowHeight,
@@ -394,6 +414,14 @@ class _EntityTableViewState<T, F extends EntityField>
                                       materialTapTargetSize:
                                           MaterialTapTargetSize.shrinkWrap,
                                       visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                if (widget.leadingBuilder != null)
+                                  SizedBox(
+                                    width: _kLeadingWidth,
+                                    height: kEntityTableRowHeight,
+                                    child: Center(
+                                      child: widget.leadingBuilder!(entity),
                                     ),
                                   ),
                                 ...pinned.asMap().entries.map((entry) {

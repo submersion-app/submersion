@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
@@ -122,41 +125,100 @@ final filteredLogEntriesProvider = Provider<AsyncValue<List<LogEntry>>>((ref) {
   });
 });
 
+/// Name the exported copy carries in the share sheet and the save dialog.
+const _exportFileName = 'submersion-debug-logs.txt';
+
+/// Resolve the header prepended to every export.
+///
+/// Callers may pass a captured [LogEnvironment]; otherwise it is read here.
+/// Attaching the build and device to the logs is what turns a pasted excerpt
+/// into something triageable (issue #1246).
+Future<String> _exportHeader(LogEnvironment? environment) async {
+  final resolved = environment ?? await LogEnvironment.capture();
+  return resolved.toExportHeader();
+}
+
+/// The log file's bytes behind the export header.
+///
+/// Concatenated as BYTES rather than decoded to a string first: the log
+/// carries whatever a device name or a native log message put in it, and
+/// `readAsString` throws on a malformed UTF-8 sequence. Losing the whole
+/// export to one bad byte is a worse outcome than passing it through.
+Future<Uint8List> _exportBytes(File file, String header) async {
+  return Uint8List.fromList([
+    ...utf8.encode(header),
+    ...await file.readAsBytes(),
+  ]);
+}
+
 /// Share the full log file via system share sheet.
-Future<void> shareLogFile(LogFileService service, AppLocalizations l10n) async {
-  final path = service.logFilePath;
-  final file = File(path);
+///
+/// Shares a header-prefixed copy rather than the log file itself, so the
+/// recipient sees which build and device produced the lines.
+///
+/// [sharePositionOrigin] anchors the iPad share popover; this function has no
+/// [BuildContext] of its own, so the caller resolves it from the share button
+/// (see `shareAnchorFrom`). Ignored on every other platform.
+Future<void> shareLogFile(
+  LogFileService service,
+  AppLocalizations l10n, {
+  LogEnvironment? environment,
+  Rect? sharePositionOrigin,
+}) async {
+  final file = File(service.logFilePath);
   if (!file.existsSync()) return;
+
+  final header = await _exportHeader(environment);
+
+  // Written to the temp directory rather than shared in place: the log file
+  // has to stay untouched (it is still being appended to), and the copy is
+  // disposable once the share sheet has read it. Sharing a *copy* is also what
+  // lets the export carry the header at all. Reusing one name bounds the temp
+  // directory to a single file across repeated shares.
+  final tempDir = await getTemporaryDirectory();
+  final export = File('${tempDir.path}/$_exportFileName');
+  await export.writeAsBytes(await _exportBytes(file, header));
 
   await SharePlus.instance.share(
     ShareParams(
-      files: [XFile(path, mimeType: 'text/plain')],
+      files: [XFile(export.path, mimeType: 'text/plain')],
       subject: l10n.settings_debugLog_shareSubject,
+      sharePositionOrigin: sharePositionOrigin,
     ),
   );
 }
 
-/// Copy the filtered log entries to clipboard.
-Future<void> copyFilteredLogs(List<LogEntry> entries) async {
+/// Copy the filtered log entries to clipboard, behind the export header.
+///
+/// The header is unconditional, so even a one-line excerpt names the build it
+/// came from. That is deliberately not special-cased for an empty list, but it
+/// is also not reachable that way today: the Copy button in
+/// [DebugLogViewerPage] guards on a non-empty list, so an empty filter result
+/// copies nothing at all rather than a bare header.
+Future<void> copyFilteredLogs(
+  List<LogEntry> entries, {
+  LogEnvironment? environment,
+}) async {
+  final header = await _exportHeader(environment);
   final text = entries.map((e) => e.toLogLine()).join('\n');
-  await Clipboard.setData(ClipboardData(text: text));
+  await Clipboard.setData(ClipboardData(text: '$header$text'));
 }
 
 /// Save the full log file to a user-chosen location.
 Future<String?> saveLogFile(
   LogFileService service,
-  AppLocalizations l10n,
-) async {
-  final path = service.logFilePath;
-  final file = File(path);
+  AppLocalizations l10n, {
+  LogEnvironment? environment,
+}) async {
+  final file = File(service.logFilePath);
   if (!file.existsSync()) return null;
 
-  final bytes = await file.readAsBytes();
+  final header = await _exportHeader(environment);
   final result = await FilePicker.saveFile(
     dialogTitle: l10n.settings_debugLog_saveDialogTitle,
-    fileName: 'submersion-debug-logs.txt',
+    fileName: _exportFileName,
     type: FileType.custom,
-    bytes: bytes,
+    bytes: await _exportBytes(file, header),
     mimeType: 'text/plain',
   );
 

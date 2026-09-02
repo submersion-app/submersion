@@ -53,6 +53,18 @@ permissions:
 env:
   FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
 
+  # Fastlane's gym/gym-for-mac starts by running `xcodebuild -showBuildSettings`
+  # to learn the bundle id, configuration and product name. On this workspace
+  # that means evaluating every Pods target and xcconfig plus the
+  # libdivecomputer_plugin native target, which is slow. Fastlane defaults the
+  # call to a 3 second base timeout with 3 retries, so it gives up after
+  # 3/6/12/24 seconds and aborts the lane before the archive ever starts. A cold
+  # runner loses that race: run 32680736603 failed exactly this way with the
+  # Flutter build already finished. These only raise a ceiling, so a healthy run
+  # returns as fast as it returns and pays nothing for them.
+  FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: '120'
+  FASTLANE_XCODEBUILD_SETTINGS_RETRIES: '5'
+
 # Cache and ref design (issue #1132, CodeQL actions/cache-poisoning).
 #
 # Every job here runs repo-controlled code before it produces artifacts that
@@ -183,7 +195,7 @@ jobs:
           echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Release.xcconfig
 
       - name: Build macOS release
-        run: flutter build macos --release --dart-define=UPDATE_CHANNEL=github
+        run: flutter build macos --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
 
       # -- Developer ID DMG (for GitHub Release) --
 
@@ -453,7 +465,7 @@ jobs:
           grep '^version:' pubspec.yaml
 
       - name: Build Windows release
-        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github
+        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
 
       - name: Check bundled native assets
         # Runs before the installer is compiled: the .iss packages whatever is
@@ -595,7 +607,7 @@ jobs:
           grep '^version:' pubspec.yaml
 
       - name: Build Linux release
-        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github
+        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
 
       - name: Check bundled native assets
         # Runs before the tarball is rolled, for the same reason as the Windows
@@ -637,7 +649,7 @@ jobs:
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '21'

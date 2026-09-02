@@ -9,6 +9,7 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
@@ -76,6 +77,9 @@ Widget _buildWidget(
   return ProviderScope(
     overrides: [importWizardNotifierProvider.overrideWith((_) => notifier)],
     child: MaterialApp(
+      // Pinned so the English assertions in this file do not depend on the host
+      // machine's locale, which flutter_test forwards to the app.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -1217,6 +1221,65 @@ void main() {
         find.byKey(const Key('import_summary_unmatched_photos_row')),
         findsNothing,
       );
+    });
+  });
+
+  group('ImportSummaryStep - notices', () {
+    // A notice explains data the source file did not contain. The import
+    // succeeded, so this must read as an explanation, not as a failure.
+    Future<void> pumpWithNotices(
+      WidgetTester tester,
+      List<ImportNotice> notices, {
+      int dives = 12,
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: dives},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          notices: notices,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+    }
+
+    testWidgets('explains a missing-tank-pressure notice', (tester) async {
+      await pumpWithNotices(tester, const [
+        ImportNotice(kind: ImportNoticeKind.noTankPressure, affectedDives: 12),
+      ]);
+
+      expect(find.byKey(const Key('import_summary_notices')), findsOneWidget);
+      expect(find.text('Tank pressure not recorded'), findsOneWidget);
+      expect(find.textContaining('SAC cannot be calculated'), findsOneWidget);
+      expect(find.text('Affects 12 dives'), findsOneWidget);
+    });
+
+    testWidgets('uses the singular for a single dive', (tester) async {
+      await pumpWithNotices(tester, const [
+        ImportNotice(kind: ImportNoticeKind.noTankPressure, affectedDives: 1),
+      ], dives: 1);
+
+      expect(find.text('Affects 1 dive'), findsOneWidget);
+    });
+
+    testWidgets('shows no notices section when there are none', (tester) async {
+      await pumpWithNotices(tester, const []);
+
+      expect(find.byKey(const Key('import_summary_notices')), findsNothing);
+    });
+
+    testWidgets('still reports the import as successful', (tester) async {
+      await pumpWithNotices(tester, const [
+        ImportNotice(kind: ImportNoticeKind.noTankPressure, affectedDives: 12),
+      ]);
+
+      expect(find.text('Successfully Imported'), findsOneWidget);
     });
   });
 }

@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
@@ -8,18 +10,16 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_library_sort.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
-
-/// Source types that live at library level by design (subscription feeds and
-/// URL media): they are never "unlinked" problems and never orphan-swept.
-const List<String> kLibraryLevelSourceTypes = ['networkUrl', 'manifestEntry'];
 
 /// Paginated, filtered, cross-dive media reads for the Media section.
 ///
 /// Deliberately separate from MediaRepository (per-dive CRUD): this class
-/// owns exactly one job — library queries. Pagination is keyset on
-/// (COALESCE(taken_at, created_at) DESC, id DESC) so deep scroll positions
-/// stay flat-cost on large libraries. Signature rows are always excluded;
+/// owns exactly one job — library queries. Pagination is keyset on the active
+/// sort key plus id, so deep scroll positions stay flat-cost on large
+/// libraries. Every sort key is coalesced to a non-null value; see
+/// [_afterCursor] for why. Signature rows are always excluded;
 /// dive-linked media is scoped to the given diver; unlinked and site-only
 /// media is diver-global (matching the orphan sweep's view of the world).
 ///
@@ -29,8 +29,24 @@ class MediaLibraryRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   static final _log = LoggerService.forClass(MediaLibraryRepository);
 
-  Expression<int> get _sortKey =>
+  /// The library's date key: COALESCE(taken_at, created_at).
+  ///
+  /// This serves the fromDate/toDate FILTER BOUNDS and, when the active sort
+  /// is dateTaken, the ordering. The two roles are deliberately separate:
+  /// bounds must always compare dates, even when the page is ordered by name
+  /// or size.
+  Expression<int> get _dateKey =>
       coalesce<int>([_db.media.takenAt, _db.media.createdAt]);
+
+  /// Filename key, falling back to file_path (NOT NULL) so the expression is
+  /// total.
+  Expression<String> get _nameKey =>
+      coalesce<String>([_db.media.originalFilename, _db.media.filePath]);
+
+  /// Size key. content_size_bytes is written only once the media store has
+  /// hashed a row, so unhashed rows coalesce to -1 and sort as smallest.
+  Expression<int> get _sizeKey =>
+      coalesce<int>([_db.media.contentSizeBytes, const Constant(-1)]);
 
   /// Signatures never appear in the library, in any spelling.
   Expression<bool> get _notSignature =>
@@ -60,6 +76,21 @@ class MediaLibraryRepository {
     if (tripId != null) {
       where = where & d.tripId.equals(tripId);
     }
+    final speciesId = filter.speciesId;
+    if (speciesId != null) {
+      // Correlated EXISTS rather than a join: a photo tagged with several
+      // species must still come back once.
+      final ms = _db.mediaSpecies;
+      where =
+          where &
+          existsQuery(
+            _db.selectOnly(ms)
+              ..addColumns([ms.id])
+              ..where(
+                ms.mediaId.equalsExp(m.id) & ms.speciesId.equals(speciesId),
+              ),
+          );
+    }
     // taken_at is stored as wall-clock-as-UTC millis, so a bound picked in
     // local time has to be normalised the same way before it can be
     // compared -- otherwise the window slides by the host's UTC offset.
@@ -68,7 +99,7 @@ class MediaLibraryRepository {
     if (fromDate != null) {
       where =
           where &
-          _sortKey.isBiggerOrEqualValue(
+          _dateKey.isBiggerOrEqualValue(
             TripMediaScanner.toWallClockUtc(fromDate).millisecondsSinceEpoch,
           );
     }
@@ -76,7 +107,7 @@ class MediaLibraryRepository {
     if (toDate != null) {
       where =
           where &
-          _sortKey.isSmallerOrEqualValue(
+          _dateKey.isSmallerOrEqualValue(
             TripMediaScanner.toWallClockUtc(toDate).millisecondsSinceEpoch,
           );
     }
@@ -87,24 +118,62 @@ class MediaLibraryRepository {
     switch (filter.health) {
       case MediaHealthFilter.missing:
         where = where & m.isOrphaned.equals(true);
-      case MediaHealthFilter.unlinked:
-        where =
-            where &
-            m.diveId.isNull() &
-            m.siteId.isNull() &
-            m.sourceType.isNotIn(kLibraryLevelSourceTypes);
       case null:
         break;
     }
     return where;
   }
 
-  /// One page of library entries for [diverId] (null = all divers), newest
-  /// first. Pass the previous page's [MediaLibraryPageResult.nextCursor] as
-  /// [after] to continue.
+  /// The keyset predicate for one page boundary.
+  ///
+  /// `key OP value OR (key = value AND id OP lastId)`, where `OP` follows the
+  /// sort direction. The id tiebreaker is what keeps rows sharing a sort key
+  /// from being dropped or repeated across a page boundary.
+  ///
+  /// [key] must be a coalesced (never NULL) expression. A NULL key makes
+  /// every comparison here evaluate to NULL, which SQL treats as false, so
+  /// the first page boundary that lands in a run of NULLs would match nothing
+  /// and truncate the library silently.
+  Expression<bool> _afterCursor<T extends Comparable<dynamic>>(
+    Expression<T> key,
+    T value,
+    String lastId,
+    SortDirection direction,
+  ) {
+    final descending = direction == SortDirection.descending;
+    final beyond = descending
+        ? key.isSmallerThanValue(value)
+        : key.isBiggerThanValue(value);
+    final tie = descending
+        ? _db.media.id.isSmallerThanValue(lastId)
+        : _db.media.id.isBiggerThanValue(lastId);
+    return beyond | (key.equals(value) & tie);
+  }
+
+  /// The cursor value for [row] under [field]. Mirrors the COALESCE in the
+  /// matching key expression: if these two ever disagree, pagination skips or
+  /// repeats rows at the boundary.
+  Object _cursorValue(MediaData row, MediaSortField field) => switch (field) {
+    MediaSortField.dateTaken => row.takenAt ?? row.createdAt,
+    MediaSortField.fileName => row.originalFilename ?? row.filePath,
+    MediaSortField.fileSize => row.contentSizeBytes ?? -1,
+  };
+
+  /// The ordering expression for [field]. Typed loosely because OrderingTerm
+  /// accepts any expression; the typed comparisons live in [_afterCursor].
+  Expression<Object> _sortExpression(MediaSortField field) => switch (field) {
+    MediaSortField.dateTaken => _dateKey,
+    MediaSortField.fileName => _nameKey,
+    MediaSortField.fileSize => _sizeKey,
+  };
+
+  /// One page of library entries for [diverId] (null = all divers), ordered
+  /// by [sort] (newest first by default). Pass the previous page's
+  /// [MediaLibraryPageResult.nextCursor] as [after] to continue.
   Future<MediaLibraryPageResult> getPage({
     required String? diverId,
     MediaLibraryFilter filter = MediaLibraryFilter.none,
+    SortState<MediaSortField> sort = kDefaultMediaSort,
     MediaLibraryCursor? after,
     int limit = 60,
   }) async {
@@ -117,10 +186,31 @@ class MediaLibraryRepository {
       if (after != null) {
         where =
             where &
-            (_sortKey.isSmallerThanValue(after.sortKey) |
-                (_sortKey.equals(after.sortKey) &
-                    m.id.isSmallerThanValue(after.id)));
+            switch (sort.field) {
+              MediaSortField.dateTaken => _afterCursor(
+                _dateKey,
+                after.sortKey as int,
+                after.id,
+                sort.direction,
+              ),
+              MediaSortField.fileName => _afterCursor(
+                _nameKey,
+                after.sortKey as String,
+                after.id,
+                sort.direction,
+              ),
+              MediaSortField.fileSize => _afterCursor(
+                _sizeKey,
+                after.sortKey as int,
+                after.id,
+                sort.direction,
+              ),
+            };
       }
+
+      final mode = sort.direction == SortDirection.descending
+          ? OrderingMode.desc
+          : OrderingMode.asc;
 
       final query =
           _db.select(m).join([
@@ -128,7 +218,10 @@ class MediaLibraryRepository {
               leftOuterJoin(s, s.id.equalsExp(d.siteId)),
             ])
             ..where(where)
-            ..orderBy([OrderingTerm.desc(_sortKey), OrderingTerm.desc(m.id)])
+            ..orderBy([
+              OrderingTerm(expression: _sortExpression(sort.field), mode: mode),
+              OrderingTerm(expression: m.id, mode: mode),
+            ])
             ..limit(limit + 1);
 
       final rows = await query.get();
@@ -159,7 +252,7 @@ class MediaLibraryRepository {
       if (hasMore && entries.isNotEmpty) {
         final last = visible.last.readTable(m);
         next = MediaLibraryCursor(
-          sortKey: last.takenAt ?? last.createdAt,
+          sortKey: _cursorValue(last, sort.field),
           id: last.id,
         );
       }
@@ -172,21 +265,6 @@ class MediaLibraryRepository {
       );
       rethrow;
     }
-  }
-
-  /// Rows attached to neither a dive nor a site, excluding signatures and
-  /// library-level source types. Backs the Unlinked sidebar badge.
-  Future<int> countUnlinked() async {
-    final m = _db.media;
-    final count = countAll(
-      filter:
-          m.diveId.isNull() &
-          m.siteId.isNull() &
-          _notSignature &
-          m.sourceType.isNotIn(kLibraryLevelSourceTypes),
-    );
-    final row = await (_db.selectOnly(m)..addColumns([count])).getSingle();
-    return row.read(count) ?? 0;
   }
 
   /// How many library rows each source type holds (Media section Phase 5's

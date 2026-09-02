@@ -129,6 +129,16 @@ data class ProfileSample (
   val temperatureCelsius: Double? = null,
   val pressureBar: Double? = null,
   val tankIndex: Long? = null,
+  /**
+   * Every tank's pressure in bar at this sample, indexed by tank index, with
+   * null where that tank reported nothing. libdivecomputer fires one pressure
+   * reading per air-integrated transmitter, so a single sample can carry
+   * several; [pressureBar]/[tankIndex] hold only the last of them and lose the
+   * rest (issue #1223). Null when the sample carries no pressure at all, and
+   * trimmed of trailing nulls, so an ordinary single-transmitter dive costs one
+   * short list per sample.
+   */
+  val tankPressuresBar: List<Double?>? = null,
   val heartRate: Long? = null,
   /**
    * Compass heading in degrees (0-359) from DC_SAMPLE_BEARING; null when the
@@ -179,30 +189,31 @@ data class ProfileSample (
       val temperatureCelsius = pigeonVar_list[2] as Double?
       val pressureBar = pigeonVar_list[3] as Double?
       val tankIndex = pigeonVar_list[4] as Long?
-      val heartRate = pigeonVar_list[5] as Long?
-      val heading = pigeonVar_list[6] as Double?
-      val setpoint = pigeonVar_list[7] as Double?
-      val ppo2 = pigeonVar_list[8] as Double?
-      val cns = pigeonVar_list[9] as Double?
-      val rbt = pigeonVar_list[10] as Long?
-      val decoType = pigeonVar_list[11] as Long?
-      val decoTime = pigeonVar_list[12] as Long?
-      val decoDepth = pigeonVar_list[13] as Double?
-      val tts = pigeonVar_list[14] as Long?
-      val o2Sensor1 = pigeonVar_list[15] as Double?
-      val o2Sensor2 = pigeonVar_list[16] as Double?
-      val o2Sensor3 = pigeonVar_list[17] as Double?
-      val o2Sensor4 = pigeonVar_list[18] as Double?
-      val o2Sensor5 = pigeonVar_list[19] as Double?
-      val o2Sensor6 = pigeonVar_list[20] as Double?
-      val o2SensorMv1 = pigeonVar_list[21] as Long?
-      val o2SensorMv2 = pigeonVar_list[22] as Long?
-      val o2SensorMv3 = pigeonVar_list[23] as Long?
-      val o2SensorMv4 = pigeonVar_list[24] as Long?
-      val o2SensorMv5 = pigeonVar_list[25] as Long?
-      val o2SensorMv6 = pigeonVar_list[26] as Long?
-      val gasMixIndex = pigeonVar_list[27] as Long?
-      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, heartRate, heading, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts, o2Sensor1, o2Sensor2, o2Sensor3, o2Sensor4, o2Sensor5, o2Sensor6, o2SensorMv1, o2SensorMv2, o2SensorMv3, o2SensorMv4, o2SensorMv5, o2SensorMv6, gasMixIndex)
+      val tankPressuresBar = pigeonVar_list[5] as List<Double?>?
+      val heartRate = pigeonVar_list[6] as Long?
+      val heading = pigeonVar_list[7] as Double?
+      val setpoint = pigeonVar_list[8] as Double?
+      val ppo2 = pigeonVar_list[9] as Double?
+      val cns = pigeonVar_list[10] as Double?
+      val rbt = pigeonVar_list[11] as Long?
+      val decoType = pigeonVar_list[12] as Long?
+      val decoTime = pigeonVar_list[13] as Long?
+      val decoDepth = pigeonVar_list[14] as Double?
+      val tts = pigeonVar_list[15] as Long?
+      val o2Sensor1 = pigeonVar_list[16] as Double?
+      val o2Sensor2 = pigeonVar_list[17] as Double?
+      val o2Sensor3 = pigeonVar_list[18] as Double?
+      val o2Sensor4 = pigeonVar_list[19] as Double?
+      val o2Sensor5 = pigeonVar_list[20] as Double?
+      val o2Sensor6 = pigeonVar_list[21] as Double?
+      val o2SensorMv1 = pigeonVar_list[22] as Long?
+      val o2SensorMv2 = pigeonVar_list[23] as Long?
+      val o2SensorMv3 = pigeonVar_list[24] as Long?
+      val o2SensorMv4 = pigeonVar_list[25] as Long?
+      val o2SensorMv5 = pigeonVar_list[26] as Long?
+      val o2SensorMv6 = pigeonVar_list[27] as Long?
+      val gasMixIndex = pigeonVar_list[28] as Long?
+      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, tankPressuresBar, heartRate, heading, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts, o2Sensor1, o2Sensor2, o2Sensor3, o2Sensor4, o2Sensor5, o2Sensor6, o2SensorMv1, o2SensorMv2, o2SensorMv3, o2SensorMv4, o2SensorMv5, o2SensorMv6, gasMixIndex)
     }
   }
   fun toList(): List<Any?> {
@@ -212,6 +223,7 @@ data class ProfileSample (
       temperatureCelsius,
       pressureBar,
       tankIndex,
+      tankPressuresBar,
       heartRate,
       heading,
       setpoint,

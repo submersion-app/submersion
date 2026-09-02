@@ -1,6 +1,5 @@
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/gas_model.dart';
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -10,25 +9,21 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 extension DiveFieldExtractor on DiveField {
   /// Extract the raw value for this field from a full [Dive] entity.
   ///
-  /// [sacUnit] selects which base value [DiveField.sacRate] yields: volume-based
-  /// L/min ([Dive.sacFor]) or pressure-based bar/min ([Dive.sacPressure]). It must
-  /// match the [UnitFormatter] later used to format the value so the unit suffix
-  /// is correct. Defaults to [SacUnit.pressurePerMin] to match the AppSettings
-  /// default, so an omitted argument stays consistent with default settings.
-  /// Other fields ignore it.
+  /// [DiveField.sac] yields bar/min from [Dive.sac] (one reference tank, no
+  /// volume needed); [DiveField.rmv] yields L/min from [Dive.rmvFor] under
+  /// [gasModel] (every tank with a volume). The two are separate columns, so
+  /// there is no unit preference to thread through here.
   ///
   /// [diveTypeLabel] resolves a dive-type slug to its display label for
   /// [DiveField.diveTypeName]. On-screen callers pass the localizing resolver
   /// (`diveTypeLabel` in `dive_log/presentation/formatters/`) so the column
   /// honors the active locale (issue #643). Omitting it keeps the English slug
   /// capitalization, which is what locale-independent consumers want.
-  /// [gasModel] selects the equation of state behind the volumetric L/min
-  /// value, and is ignored for every other field and for pressure-based SAC.
-  /// Defaults to [GasModel.real] to match the AppSettings default, so an
-  /// omitted argument stays consistent with default settings (issue #828).
+  /// [gasModel] selects the equation of state behind the RMV value and is
+  /// ignored for every other field. Defaults to [GasModel.real] to match the
+  /// AppSettings default (issue #828).
   dynamic extractFromDive(
     Dive dive, {
-    SacUnit sacUnit = SacUnit.pressurePerMin,
     GasModel gasModel = GasModel.real,
     String Function(String id)? diveTypeLabel,
   }) {
@@ -94,8 +89,10 @@ extension DiveFieldExtractor on DiveField {
         return dive.tanks.isNotEmpty ? dive.tanks.first.startPressure : null;
       case DiveField.endPressure:
         return dive.tanks.isNotEmpty ? dive.tanks.first.endPressure : null;
-      case DiveField.sacRate:
-        return _computeSacRate(dive, sacUnit, gasModel);
+      case DiveField.sac:
+        return dive.sac;
+      case DiveField.rmv:
+        return dive.rmvFor(gasModel);
       case DiveField.gasConsumed:
         return _computeGasConsumed(dive);
       case DiveField.totalWeight:
@@ -189,6 +186,8 @@ extension DiveFieldExtractor on DiveField {
         return summary.rating;
       case DiveField.isFavorite:
         return summary.isFavorite;
+      case DiveField.diveMode:
+        return summary.diveMode.name.toUpperCase();
       case DiveField.diveTypeName:
         return summary.diveTypeIds
             .map(diveTypeLabel ?? Dive.diveTypeDisplayName)
@@ -206,16 +205,6 @@ extension DiveFieldExtractor on DiveField {
     }
   }
 }
-
-/// Compute the SAC rate (Surface Air Consumption) for a [Dive].
-///
-/// Returns the base value matching [sacUnit]:
-/// - [SacUnit.litersPerMin]: volume-based L/min from [Dive.sacFor] under
-///   [gasModel] (sums gas across all tanks with volume data).
-/// - [SacUnit.pressurePerMin]: pressure-based bar/min from [Dive.sacPressure]
-///   (back gas tank pressure drop; no tank volume or gas model required).
-double? _computeSacRate(Dive dive, SacUnit sacUnit, GasModel gasModel) =>
-    sacUnit == SacUnit.litersPerMin ? dive.sacFor(gasModel) : dive.sacPressure;
 
 /// Names shown in the Buddy table column: every recorded participant whose
 /// role is NOT a guide/divemaster (see [_isGuideRole]), comma-joined.

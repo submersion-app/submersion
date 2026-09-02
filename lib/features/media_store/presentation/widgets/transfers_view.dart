@@ -133,7 +133,7 @@ class _TransferTile extends ConsumerWidget {
           if (entry.errorMessage != null)
             Text(entry.errorMessage!, maxLines: 2)
           else
-            Text(entry.mediaId, maxLines: 1),
+            _MediaLabel(entry.mediaId),
           if (entry.state == 'transferring')
             Padding(
               padding: const EdgeInsets.only(top: 4),
@@ -178,5 +178,25 @@ class _TransferTile extends ConsumerWidget {
     await ref.read(mediaTransferQueueRepositoryProvider).retry(entry.id);
     final runtime = await ref.read(mediaStoreRuntimeProvider.future);
     await runtime?.worker?.drain();
+  }
+}
+
+/// Names the row's media. The queue row carries only the media id, and a
+/// column of bare UUIDs was the reporter's whole picture of the queue (issue
+/// #1356). Labels come from one batched lookup for the whole queue
+/// ([mediaTransferLabelsProvider]); blank until it resolves rather than
+/// flashing the id first, and the id is the fallback for a media row that
+/// has no name or no longer exists.
+class _MediaLabel extends ConsumerWidget {
+  const _MediaLabel(this.mediaId);
+
+  final String mediaId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final labels = ref.watch(mediaTransferLabelsProvider);
+    if (labels.isLoading && !labels.hasValue) return const SizedBox.shrink();
+    final label = labels.value?[mediaId] ?? mediaId;
+    return Text(label, maxLines: 1, overflow: TextOverflow.ellipsis);
   }
 }

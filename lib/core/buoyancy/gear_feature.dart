@@ -218,6 +218,9 @@ class GearFeature extends Equatable {
     EquipmentType.hood => 0.3,
     EquipmentType.gloves => 0.2,
     EquipmentType.boots => 0.4,
+    // Stated rather than left to the fallthrough, which already returns 0.0:
+    // gear twins (v175) make this a case readers will look for.
+    EquipmentType.computer => 0.0,
     _ => 0.0,
   };
 
@@ -225,6 +228,11 @@ class GearFeature extends Equatable {
     EquipmentType.wetsuit => 2.0,
     EquipmentType.drysuit => 3.0,
     EquipmentType.bcd => 3.5,
+    // A wrist computer's dry mass is negligible against the rig, and gear
+    // twins (v175) put one on every downloaded dive: the 0.5 kg fallthrough
+    // would move every diver's buoyancy by that much per computer. An explicit
+    // dry_weight_kg attribute still wins, so a bulky console can be modeled.
+    EquipmentType.computer => 0.0,
     _ => 0.5,
   };
 

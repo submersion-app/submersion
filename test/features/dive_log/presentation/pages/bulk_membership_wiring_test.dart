@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide Buddy, Dive;
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
@@ -17,10 +16,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipm
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Covers the bulk tri-state membership wiring in DiveEditPage: loading members
@@ -88,10 +88,20 @@ void main() {
       Dive(id: id, dateTime: DateTime(2026, 1, 1), notes: ''),
     );
 
+    /// Hosted in the shell shape rather than straight under `MaterialApp.home`.
+    /// Every add-affordance below is a dialog, a sheet, or a sheet opened from
+    /// a dialog, and `showDialog` defaults to the root navigator while
+    /// `showModalBottomSheet` defaults to the nearest one. Under `home` those
+    /// are the same object, so a sheet pushed onto the wrong navigator still
+    /// lands on top and the test sees nothing wrong; under the app's real
+    /// `ShellRoute` it opens *behind* the dialog instead (#1366).
     Future<void> pump(WidgetTester tester, List<String> ids) async {
       final overrides = await getBaseOverrides();
       await tester.pumpWidget(
-        ProviderScope(
+        testAppInShell(
+          // Every assertion below matches an English label, so pin the
+          // locale instead of inheriting the ambient platform one.
+          locale: const Locale('en'),
           overrides: [
             ...overrides,
             diveRepositoryProvider.overrideWithValue(repository),
@@ -99,17 +109,8 @@ void main() {
               (ref) => DiveListNotifier(repository, ref),
             ),
             customTankPresetsProvider.overrideWith((ref) async => []),
-          ].cast(),
-          child: MaterialApp(
-            // Every assertion below matches an English label, so pin the
-            // locale instead of inheriting the ambient platform one.
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: ids, embedded: true),
-            ),
-          ),
+          ],
+          child: DiveEditPage(bulkDiveIds: ids, embedded: true),
         ),
       );
       await tester.pumpAndSettle();
@@ -460,6 +461,45 @@ void main() {
       await tester.tap(useSet);
       await tester.pumpAndSettle();
       expect(find.byType(EquipmentSetPickerSheet), findsOneWidget);
+    });
+
+    testWidgets('the bulk tag dialog can browse previously used tags', (
+      tester,
+    ) async {
+      // Seeded but unattached, so it is absent from the member list and
+      // available in the picker.
+      await seedTag('t9', 'Nitrox');
+      await seedDive('d1');
+      await seedDive('d2');
+      await pump(tester, ['d1', 'd2']);
+
+      await tapAdd(tester, 'Tags');
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Browse'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TagPickerSheet), findsOneWidget);
+      await tester.tap(find.text('Nitrox'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Add 1 tag'));
+      await tester.pumpAndSettle();
+
+      // Back in the dialog with the browsed tag staged as a chip.
+      expect(find.byType(TagPickerSheet), findsNothing);
+      expect(find.widgetWithText(Chip, 'Nitrox'), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(FilledButton, 'Add'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Nitrox'), findsOneWidget); // added as a tag member
     });
   });
 }

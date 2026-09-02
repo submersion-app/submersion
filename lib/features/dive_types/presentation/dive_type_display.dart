@@ -31,6 +31,33 @@ String? builtInDiveTypeName(AppLocalizations l10n, String id) => switch (id) {
   _ => null,
 };
 
+/// Short-form localized name for a built-in dive type (e.g. "Wreck" -> "Wreck",
+/// "Technisches Tauchen" -> "Tec"), for space-constrained surfaces like the
+/// dive detail header's type badges.
+///
+/// Returns null for anything that is not a known built-in slug; callers should
+/// handle custom dive types separately (e.g. `DiveTypeEntity.shortName` or the
+/// full display name).
+String? builtInDiveTypeShortName(AppLocalizations l10n, String id) =>
+    switch (id) {
+      'recreational' => l10n.diveType_builtin_recreational_short,
+      'technical' => l10n.diveType_builtin_technical_short,
+      'freedive' => l10n.diveType_builtin_freedive_short,
+      'training' => l10n.diveType_builtin_training_short,
+      'wreck' => l10n.diveType_builtin_wreck_short,
+      'cave' => l10n.diveType_builtin_cave_short,
+      'ice' => l10n.diveType_builtin_ice_short,
+      'night' => l10n.diveType_builtin_night_short,
+      'drift' => l10n.diveType_builtin_drift_short,
+      'deep' => l10n.diveType_builtin_deep_short,
+      'altitude' => l10n.diveType_builtin_altitude_short,
+      'shore' => l10n.diveType_builtin_shore_short,
+      'boat' => l10n.diveType_builtin_boat_short,
+      'liveaboard' => l10n.diveType_builtin_liveaboard_short,
+      'cavern' => l10n.diveType_builtin_cavern_short,
+      _ => null,
+    };
+
 extension DiveTypeDisplay on DiveTypeEntity {
   /// Localized name for built-in types; the stored name for custom types.
   ///

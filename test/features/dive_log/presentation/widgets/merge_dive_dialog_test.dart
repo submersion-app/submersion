@@ -810,7 +810,6 @@ class _FakeDiveConsolidationService extends DiveConsolidationService {
   final DiveMergeSnapshot outcomeSnapshot = const DiveMergeSnapshot(
     mergedDiveId: 'candidate-1',
     diveRows: [],
-    profileRows: [],
     tankRows: [],
     weightRows: [],
     customFieldRows: [],
@@ -821,7 +820,6 @@ class _FakeDiveConsolidationService extends DiveConsolidationService {
     sightingRows: [],
     eventRows: [],
     gasSwitchRows: [],
-    tankPressureRows: [],
     dataSourceRows: [],
     tideRows: [],
     mediaDiveIds: {},

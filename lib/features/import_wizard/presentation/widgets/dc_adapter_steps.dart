@@ -278,6 +278,11 @@ class DcAdapterDownloadStep extends ConsumerStatefulWidget {
   final DiveComputerAdapter adapter;
   final DiveComputer? knownComputer;
 
+  /// How long a saved-computer download scans for the computer's stored
+  /// address before falling back to a direct connect with that address.
+  /// Matches the first resolve attempt of the macOS/iOS native resolver.
+  static const knownDeviceScanTimeout = Duration(seconds: 15);
+
   @override
   ConsumerState<DcAdapterDownloadStep> createState() =>
       _DcAdapterDownloadStepState();
@@ -286,19 +291,70 @@ class DcAdapterDownloadStep extends ConsumerStatefulWidget {
 class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   bool _captured = false;
   bool _computerResolved = false;
+  bool _searchingForKnownDevice = false;
   bool _noDives = false;
 
   @override
   void initState() {
     super.initState();
-    // In discovery mode, check if the device matches a known computer
-    // BEFORE the download starts. If found, the computer's fingerprint
-    // enables incremental download (only new dives).
-    if (widget.knownComputer != null) {
-      _computerResolved = true;
-    } else {
+    final computer = widget.knownComputer;
+    if (computer == null) {
+      // In discovery mode, check if the device matches a known computer
+      // BEFORE the download starts. If found, the computer's fingerprint
+      // enables incremental download (only new dives).
       WidgetsBinding.instance.addPostFrameCallback((_) => _resolveComputer());
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _reacquireKnownDevice(computer),
+      );
     }
+  }
+
+  /// Re-acquires a saved Bluetooth computer by scanning for its stored
+  /// address before the download connects (issue #1232).
+  ///
+  /// Connecting straight to a stored address fails on Android and Windows
+  /// unless the stack has recently seen the device advertise, which is why
+  /// the scan-and-download flow worked for the same computer while the
+  /// saved entry did not. If the scan does not see the address, the step
+  /// falls back to the stored address exactly as before.
+  Future<void> _reacquireKnownDevice(DiveComputer computer) async {
+    if (!mounted) return;
+    final address = computer.bluetoothAddress;
+    final notifier = ref.read(discoveryNotifierProvider.notifier);
+    final selected = ref.read(discoveryNotifierProvider).selectedDevice;
+    final alreadyAcquired =
+        selected != null &&
+        address != null &&
+        bluetoothAddressesMatch(selected.address, address);
+    // A saved computer downloads only from a device carrying its stored
+    // address. A selection left over from an earlier discovery session is
+    // dropped from the provider itself, because the completion path reads
+    // the provider's selection to capture the descriptor the import
+    // service records; hiding it locally here would not be enough.
+    if (selected != null && !alreadyAcquired) {
+      notifier.clearSelectedDevice();
+    }
+    final isBluetooth =
+        _connectionTypeFromString(computer.connectionType) ==
+        DeviceConnectionType.ble;
+
+    if (address == null || !isBluetooth || alreadyAcquired) {
+      setState(() => _computerResolved = true);
+      return;
+    }
+
+    setState(() => _searchingForKnownDevice = true);
+    final device = await notifier.scanForAddress(
+      address,
+      timeout: DcAdapterDownloadStep.knownDeviceScanTimeout,
+    );
+    if (device != null) notifier.selectDevice(device);
+    if (!mounted) return;
+    setState(() {
+      _searchingForKnownDevice = false;
+      _computerResolved = true;
+    });
   }
 
   Future<void> _resolveComputer() async {
@@ -330,6 +386,10 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     // Wait for computer resolution before creating the download widget.
     // This ensures the fingerprint is available for incremental download.
     if (!_computerResolved) {
+      final knownComputer = widget.knownComputer;
+      if (_searchingForKnownDevice && knownComputer != null) {
+        return _KnownDeviceSearchView(computer: knownComputer);
+      }
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -480,6 +540,33 @@ DeviceConnectionType _connectionTypeFromString(String? type) {
       return DeviceConnectionType.infrared;
     default:
       return DeviceConnectionType.ble;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Searching for a saved computer
+// ---------------------------------------------------------------------------
+
+class _KnownDeviceSearchView extends StatelessWidget {
+  const _KnownDeviceSearchView({required this.computer});
+
+  final DiveComputer computer;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(
+            l10n.diveComputer_download_searchingForDevice(computer.displayName),
+          ),
+        ],
+      ),
+    );
   }
 }
 

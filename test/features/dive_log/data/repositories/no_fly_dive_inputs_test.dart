@@ -2,17 +2,21 @@ import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../../helpers/test_database.dart';
 
 void main() {
   late AppDatabase db;
   late DiveRepository repository;
+  late ProfileSeriesRepository seriesRepository;
   final now = DateTime.utc(2026, 7, 17, 12);
 
   setUp(() async {
     db = await setUpTestDatabase();
     repository = DiveRepository();
+    seriesRepository = ProfileSeriesRepository();
   });
 
   tearDown(() => tearDownTestDatabase());
@@ -48,18 +52,18 @@ void main() {
     int? decoType,
     double? ceiling,
   }) async {
-    await db
-        .into(db.diveProfiles)
-        .insert(
-          DiveProfilesCompanion(
-            id: Value('$diveId-p${decoType ?? 0}-${ceiling ?? 0}'),
-            diveId: Value(diveId),
-            timestamp: const Value(60),
-            depth: const Value(20.0),
-            decoType: Value(decoType),
-            ceiling: Value(ceiling),
-          ),
-        );
+    await seriesRepository.insertSeries(
+      diveId: diveId,
+      samples: [
+        ProfileSample(
+          timestamp: 60,
+          depth: 20.0,
+          decoType: decoType,
+          ceiling: ceiling,
+        ),
+      ],
+      now: now.millisecondsSinceEpoch,
+    );
   }
 
   test('returns dives ending after the cutoff with deco flags', () async {

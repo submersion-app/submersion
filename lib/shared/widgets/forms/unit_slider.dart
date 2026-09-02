@@ -44,17 +44,25 @@ class UnitSlider extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Icon(icon, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w500,
+            // Flexible, because the readout beside it carries the value and
+            // must stay whole: when the two together outgrow the width, the
+            // label is what gives. Unconstrained, this Row overflowed in a
+            // detail pane at its 400px minimum.
+            Flexible(
+              child: Row(
+                children: [
+                  Icon(icon, size: 20, color: colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

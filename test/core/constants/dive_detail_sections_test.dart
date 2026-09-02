@@ -398,7 +398,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.displayName,
-        'SAC Rate by Segment',
+        'Gas consumption by segment',
       );
       expect(DiveDetailSectionId.details.displayName, 'Details');
       expect(DiveDetailSectionId.environment.displayName, 'Environment');
@@ -409,10 +409,7 @@ void main() {
       expect(DiveDetailSectionId.buddies.displayName, 'Buddies');
       expect(DiveDetailSectionId.signatures.displayName, 'Signatures');
       expect(DiveDetailSectionId.equipment.displayName, 'Equipment');
-      expect(
-        DiveDetailSectionId.sightings.displayName,
-        'Marine Life Sightings',
-      );
+      expect(DiveDetailSectionId.sightings.displayName, 'Species Sightings');
       expect(DiveDetailSectionId.media.displayName, 'Media');
       expect(DiveDetailSectionId.tags.displayName, 'Tags');
       expect(DiveDetailSectionId.notes.displayName, 'Notes');
@@ -427,7 +424,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.description,
-        'Phase/time SAC segmentation',
+        'SAC and RMV by phase or time',
       );
       expect(
         DiveDetailSectionId.details.description,
@@ -451,7 +448,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.tanks.description,
-        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
       );
       expect(DiveDetailSectionId.buddies.description, 'Buddy list with roles');
       expect(
@@ -525,7 +522,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.localizedDisplayName(l10n),
-        'SAC Rate by Segment',
+        'Gas consumption by segment',
       );
       expect(DiveDetailSectionId.details.localizedDisplayName(l10n), 'Details');
       expect(
@@ -550,7 +547,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sightings.localizedDisplayName(l10n),
-        'Marine Life Sightings',
+        'Species Sightings',
       );
       expect(DiveDetailSectionId.media.localizedDisplayName(l10n), 'Media');
       expect(DiveDetailSectionId.tags.localizedDisplayName(l10n), 'Tags');
@@ -572,7 +569,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.localizedDescription(l10n),
-        'Phase/time SAC segmentation',
+        'SAC and RMV by phase or time',
       );
       expect(
         DiveDetailSectionId.details.localizedDescription(l10n),
@@ -596,7 +593,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.tanks.localizedDescription(l10n),
-        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
       );
       expect(
         DiveDetailSectionId.buddies.localizedDescription(l10n),

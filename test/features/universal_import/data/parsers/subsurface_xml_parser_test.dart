@@ -2467,4 +2467,206 @@ $diveXml
       },
     );
   });
+  group('picture parsing', () {
+    test(
+      'parses filename, offset and gps, pointing at the owning dive',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='40:00 min'>
+  <picture filename='/home/jai/Pictures/2025/dive042.jpg' offset='+3:20 min' gps='18.465562 -66.084902'/>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        final media = result.entitiesOf(ImportEntityType.media);
+        expect(media, hasLength(1));
+        expect(media.first['filename'], '/home/jai/Pictures/2025/dive042.jpg');
+        expect(media.first['offsetSeconds'], 200);
+        expect(media.first['latitude'], closeTo(18.465562, 1e-6));
+        expect(media.first['longitude'], closeTo(-66.084902, 1e-6));
+        expect(media.first['_diveIndex'], 0);
+      },
+    );
+
+    test('accepts comma-separated picture coordinates', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='/p/a.jpg' gps='18.465562, -66.084902'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final media = result.entitiesOf(ImportEntityType.media);
+      expect(media.single['latitude'], closeTo(18.465562, 1e-6));
+      expect(media.single['longitude'], closeTo(-66.084902, 1e-6));
+    });
+
+    test('rejects NaN picture coordinates', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='/p/a.jpg' gps='NaN NaN'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      // double.tryParse happily parses 'NaN', and every comparison against
+      // NaN is false, so a range check alone would wave it through.
+      final media = result.entitiesOf(ImportEntityType.media);
+      expect(media.single['latitude'], isNull);
+      expect(media.single['longitude'], isNull);
+    });
+
+    test('rejects out-of-range picture coordinates', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='/p/a.jpg' gps='91.0 -200.0'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final media = result.entitiesOf(ImportEntityType.media);
+      expect(media.single['latitude'], isNull);
+      expect(media.single['longitude'], isNull);
+    });
+
+    test('parses a negative offset', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='/p/before.jpg' offset='-1:05 min'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(
+        result.entitiesOf(ImportEntityType.media).single['offsetSeconds'],
+        -65,
+      );
+    });
+
+    test('keeps a picture whose offset is unparseable', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='/p/odd.jpg' offset='not a duration'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final media = result.entitiesOf(ImportEntityType.media);
+      expect(media, hasLength(1));
+      expect(media.single['offsetSeconds'], isNull);
+    });
+
+    test(
+      'keeps a Windows path verbatim for the resolver to normalise',
+      () async {
+        final result = await parser.parse(
+          xmlBytes(r'''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture filename='C:\Users\jai\Pictures\dive042.jpg' offset='+1:00 min'/>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        expect(
+          result.entitiesOf(ImportEntityType.media).single['filename'],
+          r'C:\Users\jai\Pictures\dive042.jpg',
+        );
+      },
+    );
+
+    test('drops a picture with no filename and warns', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'>
+  <picture offset='+1:00 min'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entitiesOf(ImportEntityType.media), isEmpty);
+      expect(
+        result.warnings.any((w) => w.entityType == ImportEntityType.media),
+        isTrue,
+      );
+    });
+
+    test('collects pictures from trip-wrapped dives too', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<trip date='2025-01-15' location='Bonaire'>
+  <dive number='1' date='2025-01-15' time='10:00:00'>
+    <picture filename='/p/trip.jpg' offset='+1:00 min'/>
+  </dive>
+</trip>
+<dive number='2' date='2025-01-16' time='10:00:00'>
+  <picture filename='/p/solo.jpg' offset='+2:00 min'/>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final media = result.entitiesOf(ImportEntityType.media);
+      expect(media, hasLength(2));
+      // Trip dives are walked first, so the trip picture points at dive 0.
+      expect(media.map((m) => [m['filename'], m['_diveIndex']]), [
+        ['/p/trip.jpg', 0],
+        ['/p/solo.jpg', 1],
+      ]);
+    });
+
+    test('omits the media key when a logbook has no pictures', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00'/>
+</dives>
+</divelog>
+'''),
+      );
+
+      expect(result.entities.containsKey(ImportEntityType.media), isFalse);
+    });
+  });
 }

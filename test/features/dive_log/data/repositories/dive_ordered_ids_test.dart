@@ -80,13 +80,18 @@ void main() {
   });
 
   test('applies filter where-clause', () async {
-    await insertDive('a', 2000);
-    await insertDive('c', 500); // before the filter window
+    // The date axis is a CALENDAR DATE range (issue #1368), so the window is
+    // expressed in days, not milliseconds. Rows carry a wall clock flagged as
+    // UTC, matching the column; the filter date is LOCAL, as the pickers
+    // build it.
+    await insertDive('a', DateTime.utc(2026, 6, 15).millisecondsSinceEpoch);
+    await insertDive(
+      'c',
+      DateTime.utc(2026, 5, 1).millisecondsSinceEpoch,
+    ); // before the filter window
 
     final ids = await repository.getOrderedDiveIds(
-      filter: DiveFilterState(
-        startDate: DateTime.fromMillisecondsSinceEpoch(1000),
-      ),
+      filter: DiveFilterState(startDate: DateTime(2026, 6, 1)),
     );
 
     expect(ids, ['a']);

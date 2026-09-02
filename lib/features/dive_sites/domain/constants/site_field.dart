@@ -2,14 +2,23 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
-/// Wrapper pairing a [DiveSite] with its computed dive count.
-typedef SiteWithCount = ({DiveSite site, int diveCount});
+/// Entity handed to [SiteFieldAdapter]. An alias of the repository's class so
+/// the table view and the list cards share one type with no conversion.
+typedef SiteWithCount = SiteWithDiveCount;
 
 /// Categories grouping related site fields together.
-enum SiteFieldCategory { core, depth, conditions, details, coordinates }
+enum SiteFieldCategory {
+  core,
+  depth,
+  conditions,
+  details,
+  coordinates,
+  statistics,
+}
 
 /// Enumeration of every field from the DiveSite entity (plus dive count)
 /// that can appear in table views. Each value implements [EntityField] directly
@@ -53,7 +62,12 @@ enum SiteField implements EntityField {
 
   // Coordinates
   latitude,
-  longitude;
+  longitude,
+
+  // Statistics (aggregated over the dives logged at the site)
+  depthRange,
+  lastDived,
+  maxDepthReached;
 
   @override
   String get name => toString().split('.').last;
@@ -109,6 +123,12 @@ enum SiteField implements EntityField {
         return 'Latitude';
       case SiteField.longitude:
         return 'Longitude';
+      case SiteField.depthRange:
+        return 'Depth Range';
+      case SiteField.lastDived:
+        return 'Last Dived';
+      case SiteField.maxDepthReached:
+        return 'Your Max Depth';
     }
   }
 
@@ -163,6 +183,12 @@ enum SiteField implements EntityField {
         return 'Lat';
       case SiteField.longitude:
         return 'Lon';
+      case SiteField.depthRange:
+        return 'Depth';
+      case SiteField.lastDived:
+        return 'Last dived';
+      case SiteField.maxDepthReached:
+        return 'Your max';
     }
   }
 
@@ -192,6 +218,9 @@ enum SiteField implements EntityField {
     SiteField.notes => l10n.enum_siteField_notes,
     SiteField.latitude => l10n.enum_siteField_latitude,
     SiteField.longitude => l10n.enum_siteField_longitude,
+    SiteField.depthRange => l10n.enum_siteField_depthRange,
+    SiteField.lastDived => l10n.enum_siteField_lastDived,
+    SiteField.maxDepthReached => l10n.enum_siteField_maxDepthReached,
   };
 
   @override
@@ -220,6 +249,9 @@ enum SiteField implements EntityField {
     SiteField.notes => l10n.enum_siteField_notes_short,
     SiteField.latitude => l10n.enum_siteField_latitude_short,
     SiteField.longitude => l10n.enum_siteField_longitude_short,
+    SiteField.depthRange => l10n.enum_siteField_depthRange_short,
+    SiteField.lastDived => l10n.enum_siteField_lastDived_short,
+    SiteField.maxDepthReached => l10n.enum_siteField_maxDepthReached_short,
   };
 
   @override
@@ -273,6 +305,12 @@ enum SiteField implements EntityField {
         return Icons.my_location;
       case SiteField.longitude:
         return Icons.my_location;
+      case SiteField.depthRange:
+        return Icons.straighten;
+      case SiteField.lastDived:
+        return Icons.history;
+      case SiteField.maxDepthReached:
+        return Icons.vertical_align_bottom;
     }
   }
 
@@ -326,6 +364,12 @@ enum SiteField implements EntityField {
       case SiteField.latitude:
         return 90;
       case SiteField.longitude:
+        return 90;
+      case SiteField.depthRange:
+        return 100;
+      case SiteField.lastDived:
+        return 110;
+      case SiteField.maxDepthReached:
         return 90;
     }
   }
@@ -381,6 +425,12 @@ enum SiteField implements EntityField {
         return 60;
       case SiteField.longitude:
         return 60;
+      case SiteField.depthRange:
+        return 60;
+      case SiteField.lastDived:
+        return 70;
+      case SiteField.maxDepthReached:
+        return 50;
     }
   }
 
@@ -401,6 +451,8 @@ enum SiteField implements EntityField {
       case SiteField.rating:
       case SiteField.latitude:
       case SiteField.longitude:
+      case SiteField.lastDived:
+      case SiteField.maxDepthReached:
         return true;
       case SiteField.location:
       case SiteField.waterType:
@@ -412,6 +464,7 @@ enum SiteField implements EntityField {
       case SiteField.mooringNumber:
       case SiteField.hazards:
       case SiteField.notes:
+      case SiteField.depthRange:
         return false;
     }
   }
@@ -448,6 +501,10 @@ enum SiteField implements EntityField {
       case SiteField.latitude:
       case SiteField.longitude:
         return SiteFieldCategory.coordinates.name;
+      case SiteField.depthRange:
+      case SiteField.lastDived:
+      case SiteField.maxDepthReached:
+        return SiteFieldCategory.statistics.name;
     }
   }
 
@@ -461,6 +518,7 @@ enum SiteField implements EntityField {
       case SiteField.rating:
       case SiteField.latitude:
       case SiteField.longitude:
+      case SiteField.maxDepthReached:
         return true;
       case SiteField.siteName:
       case SiteField.location:
@@ -479,6 +537,8 @@ enum SiteField implements EntityField {
       case SiteField.mooringNumber:
       case SiteField.hazards:
       case SiteField.notes:
+      case SiteField.depthRange:
+      case SiteField.lastDived:
         return false;
     }
   }
@@ -559,12 +619,19 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
         return site.location?.latitude;
       case SiteField.longitude:
         return site.location?.longitude;
+      case SiteField.depthRange:
+        if (site.minDepth == null && site.maxDepth == null) return null;
+        return (min: site.minDepth, max: site.maxDepth);
+      case SiteField.lastDived:
+        return entity.lastDivedAt;
+      case SiteField.maxDepthReached:
+        return entity.maxDepthReached;
     }
   }
 
   @override
   String formatValue(SiteField field, dynamic value, UnitFormatter units) {
-    if (value == null) return '--';
+    if (value == null) return kFieldValuePlaceholder;
     switch (field) {
       case SiteField.siteName:
       case SiteField.location:
@@ -598,6 +665,21 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
         return units.formatLatitude(value as double);
       case SiteField.longitude:
         return units.formatLongitude(value as double);
+      case SiteField.depthRange:
+        final range = value as ({double? min, double? max});
+        final min = range.min;
+        final max = range.max;
+        if (min != null && max != null) {
+          // One trailing symbol for the pair ("16-98ft"), matching the site
+          // list card's historical rendering.
+          final low = units.convertDepth(min).toStringAsFixed(0);
+          return '$low-${units.formatDepth(max, decimals: 0)}';
+        }
+        return units.formatDepth(max ?? min, decimals: 0);
+      case SiteField.lastDived:
+        return units.formatDate(value as DateTime);
+      case SiteField.maxDepthReached:
+        return units.formatDepth(value as double, decimals: 0);
     }
   }
 

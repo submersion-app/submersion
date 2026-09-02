@@ -1,6 +1,5 @@
-import 'dart:math' as math;
-
 import 'package:submersion/features/dive_3d/domain/geometry/axis_frame.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/nice_step.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/axis_labels.dart';
@@ -25,29 +24,6 @@ class SeascapeAxes {
 
   const SeascapeAxes({required this.frame, required this.labels});
 }
-
-/// Rounds [target] up to a "nice" step (1/2/5 x 10^n). Returns 0 for
-/// non-positive targets (no ticks).
-double niceStep(double target) {
-  if (target <= 0) return 0;
-  final exp = (math.log(target) / math.ln10).floorToDouble();
-  final magnitude = math.pow(10.0, exp).toDouble();
-  final base = target / magnitude;
-  final double factor;
-  if (base <= 1) {
-    factor = 1;
-  } else if (base <= 2) {
-    factor = 2;
-  } else if (base <= 5) {
-    factor = 5;
-  } else {
-    factor = 10;
-  }
-  return factor * magnitude;
-}
-
-String _formatTick(double value, double step) =>
-    step % 1 == 0 ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 
 /// Builds the axes for a seascape scene. Tick values are nice steps in the
 /// diver's display unit ([displayUnitInMeters]: 1.0 for meters, 0.3048 for
@@ -100,7 +76,7 @@ SeascapeAxes buildSeascapeAxes({
     final step = niceStep(spanDisplay / divisions);
     if (step <= 0) return;
     for (var v = step; v <= spanDisplay + 1e-9; v += step) {
-      emit(v * displayUnitInMeters, _formatTick(v, step));
+      emit(v * displayUnitInMeters, formatTickValue(v, step));
     }
   }
 

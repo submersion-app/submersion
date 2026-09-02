@@ -35,6 +35,7 @@ extension SiteSortFieldDisplay on SiteSortField {
     SiteSortField.difficulty => l10n.enum_sortField_difficulty,
     SiteSortField.depth => l10n.enum_sortField_maxDepth,
     SiteSortField.diveCount => l10n.enum_sortField_diveCount,
+    SiteSortField.lastDived => l10n.enum_siteField_lastDived,
   };
 }
 
@@ -60,6 +61,7 @@ extension BuddySortFieldDisplay on BuddySortField {
   String localizedName(AppLocalizations l10n) => switch (this) {
     BuddySortField.name => l10n.enum_sortField_name,
     BuddySortField.diveCount => l10n.enum_sortField_diveCount,
+    BuddySortField.lastDive => l10n.enum_sortField_lastDive,
   };
 }
 
@@ -84,5 +86,13 @@ extension CourseSortFieldDisplay on CourseSortField {
     CourseSortField.startDate => l10n.enum_sortField_startDate,
     CourseSortField.agency => l10n.enum_sortField_agency,
     CourseSortField.status => l10n.enum_sortField_status,
+  };
+}
+
+extension MediaSortFieldDisplay on MediaSortField {
+  String localizedName(AppLocalizations l10n) => switch (this) {
+    MediaSortField.dateTaken => l10n.enum_sortField_dateTaken,
+    MediaSortField.fileName => l10n.enum_sortField_fileName,
+    MediaSortField.fileSize => l10n.enum_sortField_fileSize,
   };
 }

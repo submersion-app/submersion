@@ -39,7 +39,7 @@ void main() {
     });
 
     test('icon returns null for fields without icons', () {
-      const wrapper = DiveEntityField(DiveField.sacRate);
+      const wrapper = DiveEntityField(DiveField.sac);
       expect(wrapper.icon, isNull);
     });
 
@@ -94,7 +94,8 @@ void main() {
       DiveField.tankCount,
       DiveField.startPressure,
       DiveField.endPressure,
-      DiveField.sacRate,
+      DiveField.sac,
+      DiveField.rmv,
       DiveField.gasConsumed,
       DiveField.totalWeight,
       DiveField.gradientFactorLow,
@@ -367,6 +368,15 @@ void main() {
       final result = adapter.fieldFromName('maxDepth');
       expect(result, isA<DiveEntityField>());
       expect(result.field, DiveField.maxDepth);
+    });
+
+    test('resolves the legacy sacRate name to sac', () {
+      // Saved dive-table layouts persist field names verbatim. A layout
+      // written before the SAC/RMV split, or synced from a build that
+      // predates it, still names the column sacRate; an unresolved name
+      // throws out of EntityTableViewConfig.fromJson.
+      final adapter = DiveFieldAdapter.instance;
+      expect(adapter.fieldFromName('sacRate').field, DiveField.sac);
     });
 
     test('throws StateError for invalid name', () {

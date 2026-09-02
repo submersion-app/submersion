@@ -2,18 +2,22 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../helpers/test_database.dart';
 
 void main() {
   late AppDatabase db;
   late DiveRepository repository;
+  late ProfileSeriesRepository profileSeries;
 
   setUp(() async {
     db = await setUpTestDatabase();
     repository = DiveRepository();
+    profileSeries = ProfileSeriesRepository();
   });
 
   tearDown(() async {
@@ -72,24 +76,24 @@ void main() {
     return id;
   }
 
-  Future<void> insertProfile({
+  /// Series twin of the retired legacy `insertProfile`: same parameters,
+  /// one single-sample series per call through the series repository, which
+  /// is what consolidation, setPrimaryDataSource, and split now read and
+  /// write. Returns the series id.
+  Future<String> insertProfileSeries({
     required String id,
     required String diveId,
     bool isPrimary = true,
     int timestamp = 0,
     double depth = 5.0,
-  }) async {
-    await db
-        .into(db.diveProfiles)
-        .insert(
-          DiveProfilesCompanion(
-            id: Value(id),
-            diveId: Value(diveId),
-            isPrimary: Value(isPrimary),
-            timestamp: Value(timestamp),
-            depth: Value(depth),
-          ),
-        );
+  }) {
+    return profileSeries.insertSeries(
+      id: id,
+      diveId: diveId,
+      isPrimary: isPrimary,
+      samples: [ProfileSample(timestamp: timestamp, depth: depth)],
+      now: 1000,
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -112,14 +116,14 @@ void main() {
         waterTemp: 22.0,
       );
 
-      await insertProfile(
+      await insertProfileSeries(
         id: 'profile-primary-0',
         diveId: diveId,
         isPrimary: true,
         timestamp: 0,
         depth: 0.0,
       );
-      await insertProfile(
+      await insertProfileSeries(
         id: 'profile-primary-60',
         diveId: diveId,
         isPrimary: true,
@@ -140,14 +144,14 @@ void main() {
         duration: 3580,
         waterTemp: 21.8,
       );
-      await insertProfile(
+      await insertProfileSeries(
         id: 'profile-secondary-0',
         diveId: secondaryDiveId,
         isPrimary: true,
         timestamp: 0,
         depth: 0.0,
       );
-      await insertProfile(
+      await insertProfileSeries(
         id: 'profile-secondary-60',
         diveId: secondaryDiveId,
         isPrimary: true,
@@ -186,6 +190,23 @@ void main() {
       final readingsAfterSwap = await repository.getDataSources(diveId);
       final newPrimary = readingsAfterSwap.firstWhere((r) => r.isPrimary);
       expect(newPrimary.id, equals(secondaryReadingId));
+
+      // The swap also promotes the new primary's own series. The promoted
+      // computer contributed two single-sample series over disjoint times,
+      // and neither supersedes the other, so both go live: promoting just
+      // one would leave this dive rendering half the samples it has.
+      final primarySeriesAfterSwap = (await profileSeries.getSeriesForDive(
+        diveId,
+      )).where((s) => s.isPrimary).toList();
+      expect(primarySeriesAfterSwap, hasLength(2));
+      expect(
+        primarySeriesAfterSwap.map((s) => s.computerId),
+        everyElement('dc-d5'),
+      );
+      expect(
+        primarySeriesAfterSwap.expand((s) => s.samples).map((s) => s.timestamp),
+        [0, 60],
+      );
 
       // 7. Split the (now secondary) original reading into its own dive.
       final originalReading = readingsAfterSwap.firstWhere((r) => !r.isPrimary);
@@ -233,14 +254,14 @@ void main() {
       waterTemp: 17.8,
     );
 
-    await insertProfile(
+    await insertProfileSeries(
       id: 'profile-a-0',
       diveId: diveAId,
       isPrimary: true,
       timestamp: 0,
       depth: 0.0,
     );
-    await insertProfile(
+    await insertProfileSeries(
       id: 'profile-a-120',
       diveId: diveAId,
       isPrimary: true,
@@ -248,14 +269,14 @@ void main() {
       depth: 40.0,
     );
 
-    await insertProfile(
+    await insertProfileSeries(
       id: 'profile-b-0',
       diveId: diveBId,
       isPrimary: true,
       timestamp: 0,
       depth: 0.0,
     );
-    await insertProfile(
+    await insertProfileSeries(
       id: 'profile-b-120',
       diveId: diveBId,
       isPrimary: true,
@@ -302,5 +323,10 @@ void main() {
     final remainingReadings = await repository.getDataSources(diveAId);
     expect(remainingReadings, hasLength(1));
     expect(remainingReadings.single.isPrimary, isTrue);
+
+    // The split-off dive carries the series consolidation copied over from
+    // dive B (both single-sample series, moved back out as a unit).
+    final newDiveSeries = await profileSeries.getSeriesForDive(newDiveId);
+    expect(newDiveSeries, hasLength(2));
   });
 }

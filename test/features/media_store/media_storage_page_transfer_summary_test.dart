@@ -17,31 +17,41 @@ import '../../support/fake_keychain_storage.dart';
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  Widget app(MediaTransferSummary summary) => ProviderScope(
-    overrides: [
-      mediaStoreRuntimeProvider.overrideWith((ref) async => null),
-      mediaStoreCredentialsStoreProvider.overrideWithValue(
-        MediaStoreCredentialsStore(storage: InMemoryKeychain()),
-      ),
-      mediaStoreStatusHintProvider.overrideWith(
-        (ref) async => 'dive-media @ minio',
-      ),
-      mediaTransferSummaryProvider.overrideWith((ref) => Stream.value(summary)),
-    ],
-    child: const MaterialApp(
-      locale: Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: MediaStoragePage(),
-    ),
-  );
+  Widget app(MediaTransferSummary summary, {bool suspended = false}) =>
+      ProviderScope(
+        overrides: [
+          mediaStoreRuntimeProvider.overrideWith((ref) async => null),
+          mediaTransfersSuspendedProvider.overrideWith(
+            (ref) => Stream.value(suspended),
+          ),
+          mediaStoreCredentialsStoreProvider.overrideWithValue(
+            MediaStoreCredentialsStore(storage: InMemoryKeychain()),
+          ),
+          mediaStoreStatusHintProvider.overrideWith(
+            (ref) async => 'dive-media @ minio',
+          ),
+          mediaTransferSummaryProvider.overrideWith(
+            (ref) => Stream.value(summary),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MediaStoragePage(),
+        ),
+      );
 
-  Future<void> settle(WidgetTester tester, MediaTransferSummary summary) async {
+  Future<void> settle(
+    WidgetTester tester,
+    MediaTransferSummary summary, {
+    bool suspended = false,
+  }) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await tester.runAsync(() async {
-      await tester.pumpWidget(app(summary));
+      await tester.pumpWidget(app(summary, suspended: suspended));
       for (var i = 0; i < 20; i++) {
         await Future<void>.delayed(const Duration(milliseconds: 20));
         await tester.pump();
@@ -116,5 +126,32 @@ void main() {
     expect(find.byKey(const Key('media-transfer-progress')), findsNothing);
     expect(find.byKey(const Key('media-transfer-waiting')), findsNothing);
     expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
+
+  // Issue #1356: a preflight that keeps failing left the rows exactly as they
+  // were, so the page read "N queued" for days with no hint that nothing was
+  // going to move them.
+  testWidgets('a suspended queue shows the paused notice', (tester) async {
+    await settle(
+      tester,
+      const MediaTransferSummary(transferring: 0, queued: 14, waiting: 0),
+      suspended: true,
+    );
+
+    expect(find.byKey(const Key('media-transfers-suspended')), findsOneWidget);
+    expect(find.text('Transfers paused'), findsOneWidget);
+    expect(find.text('14 queued'), findsOneWidget);
+  });
+
+  testWidgets('no paused notice while the worker is not suspended', (
+    tester,
+  ) async {
+    await settle(
+      tester,
+      const MediaTransferSummary(transferring: 0, queued: 14, waiting: 0),
+    );
+
+    expect(find.byKey(const Key('media-transfers-suspended')), findsNothing);
+    expect(find.text('Transfers paused'), findsNothing);
   });
 }

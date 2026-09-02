@@ -239,6 +239,50 @@ void main() {
       // value.
       expect(dive.containsKey('entryMethod'), isFalse);
     });
+
+    // #1135: MacDive's native XML exporter never writes certification or
+    // service-record elements, even when the library has them. Verified
+    // against a 540-dive export whose MacDive.sqlite held 4 certifications
+    // and 1 service record while the XML held neither. Nothing can be parsed
+    // out of the file, so the parser says so rather than leaving the diver to
+    // wonder why their cards never arrived.
+    test('warns that MacDive XML omits certifications and service '
+        'records', () async {
+      final payload = await const MacDiveXmlParser().parse(bytes);
+
+      final notices = payload.warnings
+          .where((w) => w.severity == ImportWarningSeverity.info)
+          .where((w) => w.message.contains('certifications'))
+          .toList();
+      expect(notices, hasLength(1));
+
+      final message = notices.single.message;
+      expect(message, contains('service records'));
+      expect(
+        message,
+        contains('MacDive.sqlite'),
+        reason: 'the notice must name the export that does carry them',
+      );
+      expect(
+        payload.entitiesOf(ImportEntityType.certifications),
+        isEmpty,
+        reason: 'the notice explains an absence, it does not invent entities',
+      );
+    });
+
+    test('omits the format notice when the file has no dives', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema></dives>''';
+      final payload = await const MacDiveXmlParser().parse(
+        Uint8List.fromList(utf8.encode(xml)),
+      );
+
+      expect(
+        payload.warnings.where((w) => w.message.contains('certifications')),
+        isEmpty,
+        reason: 'an empty logbook has no import for the notice to qualify',
+      );
+    });
   });
 
   group('MacDiveXmlParser dedup behavior', () {

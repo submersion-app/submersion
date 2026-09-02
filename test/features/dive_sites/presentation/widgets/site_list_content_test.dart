@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -40,9 +42,17 @@ SiteWithDiveCount _makeSite({
   required String name,
   int diveCount = 0,
   bool isShared = false,
+  double? minDepth,
+  double? maxDepth,
 }) {
   return SiteWithDiveCount(
-    site: DiveSite(id: id, name: name, isShared: isShared),
+    site: DiveSite(
+      id: id,
+      name: name,
+      isShared: isShared,
+      minDepth: minDepth,
+      maxDepth: maxDepth,
+    ),
     diveCount: diveCount,
   );
 }
@@ -62,13 +72,16 @@ Future<List<Override>> _buildPhoneOverrides({
   required ListViewMode viewMode,
   String? highlightedSiteId,
   List<Diver>? divers,
+  AppSettings? settings,
+  SiteFilterState? filter,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
 
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
-    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    if (filter != null) siteFilterProvider.overrideWith((ref) => filter),
+    settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     sortedSitesWithCountsProvider.overrideWithValue(AsyncValue.data(sites)),
     siteListNotifierProvider.overrideWith((ref) => _MockSiteListNotifier()),
@@ -846,14 +859,19 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
-            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            ...await getBaseOverrides(),
             showMapBackgroundOnSiteCardsProvider.overrideWithValue(true),
           ],
           child: const SiteListTile(
-            name: 'Blue Hole',
-            location: 'Belize',
-            latitude: 17.3155,
-            longitude: -87.5346,
+            entry: SiteWithDiveCount(
+              site: DiveSite(
+                id: 'blue-hole',
+                name: 'Blue Hole',
+                country: 'Belize',
+                location: GeoPoint(17.3155, -87.5346),
+              ),
+              diveCount: 0,
+            ),
           ),
         ),
       );
@@ -871,8 +889,8 @@ void main() {
         final p = await SharedPreferences.getInstance();
 
         final sites = [
-          SiteWithDiveCount(
-            site: const DiveSite(
+          const SiteWithDiveCount(
+            site: DiveSite(
               id: 's1',
               name: 'Located Reef',
               location: GeoPoint(17.3155, -87.5346),
@@ -1021,6 +1039,143 @@ void main() {
               'would touch it',
         );
       }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Depth unit localization (issue #1257)
+  // ---------------------------------------------------------------------------
+
+  group('detailed view depth respects the diver depth unit', () {
+    testWidgets('renders a max-only depth in feet when the diver is imperial', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [_makeSite(id: 's1', name: 'Alpha Site', maxDepth: 40)],
+        viewMode: ListViewMode.detailed,
+        settings: const AppSettings(depthUnit: DepthUnit.feet),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 40 m -> 131.23 ft, rendered without decimals.
+      expect(find.text('131ft'), findsOneWidget);
+      expect(find.text('40m'), findsNothing);
+    });
+
+    testWidgets('renders a depth range in feet with a single trailing symbol', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [
+          _makeSite(id: 's1', name: 'Alpha Site', minDepth: 5, maxDepth: 30),
+        ],
+        viewMode: ListViewMode.detailed,
+        settings: const AppSettings(depthUnit: DepthUnit.feet),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 5 m -> 16.40 ft, 30 m -> 98.43 ft.
+      expect(find.text('16-98ft'), findsOneWidget);
+    });
+
+    testWidgets('still renders meters for a metric diver', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [
+          _makeSite(id: 's1', name: 'Alpha Site', minDepth: 5, maxDepth: 30),
+        ],
+        viewMode: ListViewMode.detailed,
+        settings: const AppSettings(),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('5-30m'), findsOneWidget);
+    });
+  });
+
+  group('active depth filter chip respects the diver depth unit', () {
+    testWidgets('labels a both-ended range in feet', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [_makeSite(id: 's1', name: 'Alpha Site', maxDepth: 20)],
+        viewMode: ListViewMode.detailed,
+        settings: const AppSettings(depthUnit: DepthUnit.feet),
+        // Filter bounds are stored in meters, like every other depth value.
+        filter: const SiteFilterState(minDepth: 5, maxDepth: 30),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('16-98ft'), findsOneWidget);
+    });
+
+    testWidgets('labels a max-only bound in feet', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [_makeSite(id: 's1', name: 'Alpha Site', maxDepth: 20)],
+        viewMode: ListViewMode.detailed,
+        settings: const AppSettings(depthUnit: DepthUnit.feet),
+        filter: const SiteFilterState(maxDepth: 30),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Up to 98ft'), findsOneWidget);
+    });
+
+    testWidgets('labels a min-only bound in feet', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [_makeSite(id: 's1', name: 'Alpha Site', maxDepth: 20)],
+        viewMode: ListViewMode.detailed,
+        settings: const AppSettings(depthUnit: DepthUnit.feet),
+        filter: const SiteFilterState(minDepth: 5),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const SiteListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('16ft+'), findsOneWidget);
     });
   });
 }

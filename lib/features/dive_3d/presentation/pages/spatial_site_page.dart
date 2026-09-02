@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/terrain_appeara
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_tooltip_layout.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -39,7 +40,7 @@ class SpatialSitePage extends ConsumerStatefulWidget {
 class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
-  final ValueNotifier<TissuePick?> _hoverPick = ValueNotifier(null);
+  final ValueNotifier<ScenePick?> _hoverPick = ValueNotifier(null);
   final Set<SceneOverlay> _visible = {
     SceneOverlay.markers,
     SceneOverlay.contours,
@@ -129,12 +130,14 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
                             chromeStyle: axes == null
                                 ? null
                                 : seascapeChromeStyle(context),
-                            axisChromeOnly: true,
-                            surfaceGrid: grid == null
+                            chromeMode: SceneChromeMode.axesOnly,
+                            picker: grid == null
                                 ? null
-                                : seascapePickGrid(
-                                    grid,
-                                    scene.layers.first.mesh,
+                                : GridHoverPicker(
+                                    seascapePickGrid(
+                                      grid,
+                                      scene.layers.first.mesh,
+                                    ),
                                   ),
                             hoverPick: grid == null ? null : _hoverPick,
                             terrainImagery: result.imagery?.image,
@@ -155,13 +158,16 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
                       child: _captions(result!),
                     ),
                     // The legend describes the depth ramp; a photographed
-                    // surface has no ramp to explain.
+                    // surface has no ramp to explain. It sits LEFT because the
+                    // viewport's zoom column owns the right edge, and on a
+                    // phone-sized pane a right-hand legend covers the +/-
+                    // buttons outright (issue #1188).
                     if (result.grid != null &&
                         result.axisInputs != null &&
                         appearance.surfaceMode != SeascapeSurfaceMode.imagery)
                       Positioned(
                         top: 40,
-                        right: 8,
+                        left: 8,
                         child: SeascapeDepthLegend(
                           maxDepthMeters: result.axisInputs!.maxDepth,
                           hasLand: result.grid!.depthsMeters.any(
@@ -241,13 +247,16 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
   Widget _hoverTooltip(BathymetryGrid grid) {
     return Positioned.fill(
       child: IgnorePointer(
-        child: ValueListenableBuilder<TissuePick?>(
+        child: ValueListenableBuilder<ScenePick?>(
           valueListenable: _hoverPick,
           builder: (context, pick, _) {
-            if (pick == null) return const SizedBox.shrink();
+            final payload = pick?.payload;
+            if (pick == null || payload is! TissuePick) {
+              return const SizedBox.shrink();
+            }
             return CustomSingleChildLayout(
               delegate: TissueTooltipLayoutDelegate(pick.screenPos),
-              child: SeascapeHoverTooltip(pick: pick, grid: grid),
+              child: SeascapeHoverTooltip(pick: payload, grid: grid),
             );
           },
         ),

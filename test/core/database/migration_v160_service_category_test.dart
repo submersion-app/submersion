@@ -194,8 +194,10 @@ void main() {
   test('the compatibility floor records the rename', () {
     expect(
       AppDatabase.minimumCompatibleSchemaVersion,
-      160,
-      reason: 'renaming a synced column is breaking under the #1089 rules',
+      greaterThanOrEqualTo(160),
+      reason:
+          'renaming a synced column is breaking under the #1089 rules; later '
+          'renames may raise it further',
     );
   });
 

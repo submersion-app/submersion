@@ -1,6 +1,9 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 
 /// Pre-v153 dive_profiles shape: the ppO2-in-bar cells exist, the millivolt
 /// columns do not.
@@ -22,11 +25,39 @@ const _preV153DiveProfiles = '''
   )
 ''';
 
+/// FK parents the v182/v183 rungs' series tables need to exist at all
+/// (_assertProfileSeriesSchema), same as a real database has carried since
+/// long before v150.
+void _seedFkParents(dynamic rawDb) {
+  rawDb.execute('CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY)');
+  rawDb.execute('CREATE TABLE dive_computers (id TEXT NOT NULL PRIMARY KEY)');
+  rawDb.execute(
+    'CREATE TABLE dive_data_sources (id TEXT NOT NULL PRIMARY KEY)',
+  );
+  rawDb.execute("INSERT INTO dives (id) VALUES ('dive1')");
+}
+
 void main() {
+  const codec = ProfileSeriesCodec();
+
+  Future<List<ProfileSample>> primarySeriesFor(
+    AppDatabase db,
+    String diveId,
+  ) async {
+    final row = await db
+        .customSelect(
+          'SELECT samples FROM dive_profile_series WHERE dive_id = ?',
+          variables: [Variable<String>(diveId)],
+        )
+        .getSingle();
+    return codec.decode(row.read('samples'));
+  }
+
   test('v153 adds O2 cell millivolt columns, preserving rows', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 150');
+        _seedFkParents(rawDb);
         rawDb.execute(_preV153DiveProfiles);
         rawDb.execute(
           "INSERT INTO dive_profiles (id, dive_id, timestamp, depth, o2_sensor1) "
@@ -38,39 +69,15 @@ void main() {
     final db = AppDatabase(nativeDb);
     addTearDown(() => db.close());
 
-    final cols = await db
-        .customSelect("PRAGMA table_info('dive_profiles')")
-        .get();
-    final names = cols.map((c) => c.read<String>('name')).toSet();
-
-    expect(
-      names,
-      containsAll(<String>{
-        'o2_sensor_mv1',
-        'o2_sensor_mv2',
-        'o2_sensor_mv3',
-        'o2_sensor_mv4',
-        'o2_sensor_mv5',
-        'o2_sensor_mv6',
-      }),
-    );
-
-    // Millivolts are whole numbers, not partial pressures: a REAL column here
-    // would silently round-trip through a double.
-    for (final col in cols) {
-      if (col.read<String>('name').startsWith('o2_sensor_mv')) {
-        expect(col.read<String>('type').toUpperCase(), 'INTEGER');
-      }
-    }
-
-    final row = await db
-        .customSelect(
-          "SELECT o2_sensor1, o2_sensor_mv1 FROM dive_profiles WHERE id = 'p1'",
-        )
-        .getSingle();
-    expect(row.data['o2_sensor1'], 0.95);
-    // Existing rows read the new columns as NULL.
-    expect(row.data['o2_sensor_mv1'], isNull);
+    // dive_profiles is gone by the time this resolves; the ladder drops it
+    // once v183 has packed everything into dive_profile_series.
+    final samples = await primarySeriesFor(db, 'dive1');
+    expect(samples, [
+      const ProfileSample(timestamp: 60, depth: 20.0, o2Sensor1: 0.95),
+    ]);
+    // Existing rows carry no millivolt values: only the bar-based o2Sensor1
+    // was seeded.
+    expect(samples.single.o2SensorMv1, isNull);
   });
 
   test('migration list includes v153 and schema is at least 153', () {
@@ -87,6 +94,7 @@ void main() {
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {
           rawDb.execute('PRAGMA user_version = 150');
+          _seedFkParents(rawDb);
           rawDb.execute(_preV153DiveProfiles);
           rawDb.execute(
             'ALTER TABLE dive_profiles ADD COLUMN o2_sensor_mv1 INTEGER',
@@ -104,27 +112,14 @@ void main() {
       final db = AppDatabase(nativeDb);
       addTearDown(() => db.close());
 
-      final cols = await db
-          .customSelect("PRAGMA table_info('dive_profiles')")
-          .get();
-      final names = cols.map((c) => c.read<String>('name')).toList();
-
-      for (var n = 1; n <= 6; n++) {
-        expect(
-          names.where((name) => name == 'o2_sensor_mv$n').length,
-          1,
-          reason: 'o2_sensor_mv$n should exist exactly once',
-        );
-      }
-
-      final row = await db
-          .customSelect(
-            "SELECT o2_sensor_mv1, o2_sensor_mv3 FROM dive_profiles "
-            "WHERE id = 'p1'",
-          )
-          .getSingle();
-      expect(row.data['o2_sensor_mv1'], 58);
-      expect(row.data['o2_sensor_mv3'], isNull);
+      // Touching the DB runs the ladder; it must not throw on the columns
+      // that already exist, and the pre-existing value must survive the
+      // pack into dive_profile_series.
+      final samples = await primarySeriesFor(db, 'dive1');
+      expect(samples, [
+        const ProfileSample(timestamp: 60, depth: 20.0, o2SensorMv1: 58),
+      ]);
+      expect(samples.single.o2SensorMv3, isNull);
     },
   );
 

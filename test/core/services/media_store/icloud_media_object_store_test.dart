@@ -23,12 +23,15 @@ class _FailedMovePlatform extends DirectoryICloudMediaPlatform {
   Future<bool> moveIntoContainer(String s, String d) async => false;
 }
 
-/// Claims a file is downloaded when it is not on disk.
-class _PhantomDownloadPlatform extends DirectoryICloudMediaPlatform {
-  _PhantomDownloadPlatform(super.root);
+/// Reports a file iCloud knows about but could not materialize in time. The
+/// native downloadIfNeeded answers false only on that path: the placeholder
+/// exists, startDownloadingUbiquitousItem succeeded, and the 12 s poll ran out.
+/// A file the container has never held short-circuits to true instead.
+class _UndownloadablePlatform extends DirectoryICloudMediaPlatform {
+  _UndownloadablePlatform(super.root);
 
   @override
-  Future<bool> ensureDownloaded(String path) async => true;
+  Future<bool> ensureDownloaded(String path) async => false;
 }
 
 void main() {
@@ -151,11 +154,8 @@ void main() {
 
   test('getFile treats a phantom download (no file on disk) as not '
       'found', () async {
-    final store = ICloudMediaObjectStore(
-      platform: _PhantomDownloadPlatform(container),
-    );
     await expectLater(
-      store.getFile('smv1/objects/aa/ghost.bin', File('${tmp.path}/o')),
+      build().getFile('smv1/objects/aa/ghost.bin', File('${tmp.path}/o')),
       throwsA(
         isA<MediaStoreException>().having(
           (e) => e.kind,
@@ -207,6 +207,70 @@ void main() {
     expect(
       await build().reapStaleUploadSessions(olderThan: DateTime.utc(2026)),
       0,
+    );
+  });
+
+  // Issue #1356: the second device to connect read the first device's
+  // store.json before iCloud had finished downloading it. Reporting that as
+  // notFound made StoreMarkerStore.ensure mint a fresh store id and overwrite
+  // the marker, splitting the store's identity between the two devices.
+  test('getFile on a placeholder that would not download in time is '
+      'transient, not notFound', () async {
+    final store = ICloudMediaObjectStore(
+      platform: _UndownloadablePlatform(container),
+    );
+    File('${container.path}/submersion-media/smv1/store.json')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('{"storeId":"a","formatVersion":1}');
+    await expectLater(
+      store.getFile('smv1/store.json', File('${tmp.path}/o')),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.transient,
+        ),
+      ),
+    );
+  });
+
+  // null means "not in the store" to every caller, and the upload pipeline
+  // answers that by uploading: reporting a placeholder still coming down as
+  // absent re-uploads the whole library from the second device.
+  test('head on a placeholder that would not download in time is transient, '
+      'not absent', () async {
+    final store = ICloudMediaObjectStore(
+      platform: _UndownloadablePlatform(container),
+    );
+    File('${container.path}/submersion-media/smv1/objects/aa/x.jpg')
+      ..createSync(recursive: true)
+      ..writeAsBytesSync([1, 2, 3]);
+    await expectLater(
+      store.head('smv1/objects/aa/x.jpg'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.transient,
+        ),
+      ),
+    );
+  });
+
+  test('head on a key the container has never held is absent', () async {
+    expect(await build().head('smv1/objects/aa/never.bin'), isNull);
+  });
+
+  test('getFile on a key the container has never held is notFound', () async {
+    await expectLater(
+      build().getFile('smv1/objects/aa/never.bin', File('${tmp.path}/o')),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.notFound,
+        ),
+      ),
     );
   });
 }

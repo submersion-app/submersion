@@ -1,13 +1,23 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 
 /// v102 re-links tank_pressure_profiles rows that were stranded under a stale
 /// tank id (issue #510). See `AppDatabase._relinkStrandedTankPressures`.
+///
+/// v182/v183 (well past v102 in the same ladder) pack whatever
+/// tank_pressure_profiles rows the repair leaves behind into
+/// tank_pressure_series and drop the legacy table, so every assertion below
+/// reads the packed series rather than the now-gone legacy table.
 void main() {
-  // Minimal pre-v102 shape for the three tables the migration touches. No FK
+  const codec = TankPressureSeriesCodec();
+
+  // Minimal pre-v102 shape for the tables the migration touches. No FK
   // constraints so the test can insert an orphaned pressure row directly (the
   // real DB reaches this state via reparse/consolidation with FKs relaxed).
+  // dive_computers is present only so _assertProfileSeriesSchema (v182/v183)
+  // will create tank_pressure_series at all.
   NativeDatabase makeDb(void Function(dynamic rawDb) seed) {
     return NativeDatabase.memory(
       setup: (rawDb) {
@@ -20,6 +30,9 @@ void main() {
             updated_at INTEGER NOT NULL
           )
         ''');
+        rawDb.execute(
+          'CREATE TABLE dive_computers (id TEXT NOT NULL PRIMARY KEY)',
+        );
         rawDb.execute('''
           CREATE TABLE dive_tanks (
             id TEXT NOT NULL PRIMARY KEY,
@@ -44,11 +57,25 @@ void main() {
   Future<List<String>> pressureTankIds(AppDatabase db, String diveId) async {
     final rows = await db
         .customSelect(
-          'SELECT DISTINCT tank_id FROM tank_pressure_profiles '
+          'SELECT DISTINCT tank_id FROM tank_pressure_series '
           "WHERE dive_id = '$diveId' ORDER BY tank_id",
         )
         .get();
     return rows.map((r) => r.read<String>('tank_id')).toList();
+  }
+
+  Future<List<TankPressureSample>> samplesFor(
+    AppDatabase db,
+    String diveId,
+    String tankId,
+  ) async {
+    final row = await db
+        .customSelect(
+          'SELECT samples FROM tank_pressure_series '
+          "WHERE dive_id = '$diveId' AND tank_id = '$tankId'",
+        )
+        .getSingle();
+    return codec.decode(row.read('samples'));
   }
 
   test(
@@ -72,6 +99,10 @@ void main() {
       expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(102));
 
       expect(await pressureTankIds(db, 'd1'), ['tank-new']);
+      expect(await samplesFor(db, 'd1', 'tank-new'), [
+        const TankPressureSample(timestamp: 0, pressure: 200.0),
+        const TankPressureSample(timestamp: 60, pressure: 150.0),
+      ]);
     },
   );
 
@@ -90,6 +121,10 @@ void main() {
     addTearDown(() => db.close());
 
     expect(await pressureTankIds(db, 'd2'), ['tank-a']);
+    expect(await samplesFor(db, 'd2', 'tank-a'), [
+      const TankPressureSample(timestamp: 0, pressure: 210.0),
+      const TankPressureSample(timestamp: 60, pressure: 160.0),
+    ]);
   });
 
   test(
@@ -114,55 +149,25 @@ void main() {
       );
       addTearDown(() => db.close());
 
-      final earlyTarget = await db
-          .customSelect(
-            "SELECT DISTINCT tank_id FROM tank_pressure_profiles "
-            "WHERE dive_id = 'd3' AND id IN ('b1', 'b2')",
-          )
-          .getSingle();
-      final lateTarget = await db
-          .customSelect(
-            "SELECT DISTINCT tank_id FROM tank_pressure_profiles "
-            "WHERE dive_id = 'd3' AND id IN ('a1', 'a2')",
-          )
-          .getSingle();
-
-      expect(earlyTarget.read<String>('tank_id'), 'tank-1');
-      expect(lateTarget.read<String>('tank_id'), 'tank-2');
+      expect(await pressureTankIds(db, 'd3'), ['tank-1', 'tank-2']);
+      expect(await samplesFor(db, 'd3', 'tank-1'), [
+        const TankPressureSample(timestamp: 0, pressure: 190.0),
+        const TankPressureSample(timestamp: 60, pressure: 140.0),
+      ]);
+      expect(await samplesFor(db, 'd3', 'tank-2'), [
+        const TankPressureSample(timestamp: 100, pressure: 200.0),
+        const TankPressureSample(timestamp: 160, pressure: 150.0),
+      ]);
     },
   );
 
-  test('a second repair run over healed data is a no-op', () async {
-    // Seed an orphaned series so the migration re-links it on open, then run
-    // the repair AGAIN and confirm nothing else moves and no rows are lost.
-    final db = AppDatabase(
-      makeDb((rawDb) {
-        rawDb.execute("INSERT INTO dives VALUES ('d4', 1, 1, 1)");
-        rawDb.execute("INSERT INTO dive_tanks VALUES ('tank-x', 'd4', 0)");
-        rawDb.execute(
-          "INSERT INTO tank_pressure_profiles VALUES "
-          "('p1', 'd4', 'tank-old', 0, 200.0), "
-          "('p2', 'd4', 'tank-old', 60, 150.0)",
-        );
-      }),
-    );
-    addTearDown(() => db.close());
-
-    // First pass ran during the migration on open.
-    expect(await pressureTankIds(db, 'd4'), ['tank-x']);
-    final countBefore = await db
-        .customSelect('SELECT COUNT(*) AS n FROM tank_pressure_profiles')
-        .getSingle();
-
-    // Explicit second pass must change nothing.
-    await db.relinkStrandedTankPressuresForTest();
-
-    expect(await pressureTankIds(db, 'd4'), ['tank-x']);
-    final countAfter = await db
-        .customSelect('SELECT COUNT(*) AS n FROM tank_pressure_profiles')
-        .getSingle();
-    expect(countAfter.read<int>('n'), countBefore.read<int>('n'));
-  });
+  // "a second repair run over healed data is a no-op" is deleted: the repair
+  // helper (relinkStrandedTankPressuresForTest / _relinkStrandedTankPressures)
+  // only ever operates on the legacy tank_pressure_profiles table, which
+  // v183 drops once its own pack has run. Calling the helper again after
+  // that point is a table-existence no-op regardless of whether the repair
+  // logic itself is idempotent, so the test could no longer exercise what it
+  // was written to check.
 
   test('v102 is registered in the migration ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(102));

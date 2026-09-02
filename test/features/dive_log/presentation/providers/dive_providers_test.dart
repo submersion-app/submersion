@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
@@ -84,17 +86,10 @@ void main() {
       final initial = await container.read(diveProfileProvider('d1').future);
       expect(initial, isEmpty);
 
-      final db = DatabaseService.instance.database;
-      await db
-          .into(db.diveProfiles)
-          .insert(
-            DiveProfilesCompanion.insert(
-              id: 'p1',
-              diveId: 'd1',
-              timestamp: 0,
-              depth: 0.0,
-            ),
-          );
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'd1',
+        samples: const [ProfileSample(timestamp: 0, depth: 0.0)],
+      );
 
       var count = 0;
       for (var i = 0; i < 50; i++) {
@@ -106,7 +101,7 @@ void main() {
         count,
         1,
         reason:
-            'diveProfileProvider should auto-refresh after a dive_profiles '
+            'diveProfileProvider should auto-refresh after a series '
             'write via watchDiveDetailChanges, so the profile chart reflects '
             'synced changes',
       );

@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/document_import_service.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
@@ -130,6 +131,17 @@ class SiteMediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
   Future<void> deleteMultipleMedia(List<String> ids) async {
     await _ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids);
     await refresh();
+  }
+
+  /// Unlinks from the site: rows leave the library unless a dive still
+  /// needs them. Original source files are never touched. See
+  /// [MediaUnlinkService].
+  Future<SiteUnlinkOutcome> unlinkMultipleMedia(List<String> ids) async {
+    final outcome = await _ref
+        .read(mediaUnlinkServiceProvider)
+        .unlinkFromSite(ids);
+    await refresh();
+    return outcome;
   }
 }
 

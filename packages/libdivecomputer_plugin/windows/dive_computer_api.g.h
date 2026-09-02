@@ -173,6 +173,7 @@ class ProfileSample {
     const double* temperature_celsius,
     const double* pressure_bar,
     const int64_t* tank_index,
+    const flutter::EncodableList* tank_pressures_bar,
     const int64_t* heart_rate,
     const double* heading,
     const double* setpoint,
@@ -214,6 +215,17 @@ class ProfileSample {
   const int64_t* tank_index() const;
   void set_tank_index(const int64_t* value_arg);
   void set_tank_index(int64_t value_arg);
+
+  // Every tank's pressure in bar at this sample, indexed by tank index, with
+  // null where that tank reported nothing. libdivecomputer fires one pressure
+  // reading per air-integrated transmitter, so a single sample can carry
+  // several; [pressureBar]/[tankIndex] hold only the last of them and lose the
+  // rest (issue #1223). Null when the sample carries no pressure at all, and
+  // trimmed of trailing nulls, so an ordinary single-transmitter dive costs one
+  // short list per sample.
+  const flutter::EncodableList* tank_pressures_bar() const;
+  void set_tank_pressures_bar(const flutter::EncodableList* value_arg);
+  void set_tank_pressures_bar(const flutter::EncodableList& value_arg);
 
   const int64_t* heart_rate() const;
   void set_heart_rate(const int64_t* value_arg);
@@ -329,6 +341,7 @@ class ProfileSample {
   std::optional<double> temperature_celsius_;
   std::optional<double> pressure_bar_;
   std::optional<int64_t> tank_index_;
+  std::optional<flutter::EncodableList> tank_pressures_bar_;
   std::optional<int64_t> heart_rate_;
   std::optional<double> heading_;
   std::optional<double> setpoint_;

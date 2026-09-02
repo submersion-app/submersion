@@ -637,7 +637,6 @@ void main() {
           snapshot: DiveMergeSnapshot(
             mergedDiveId: 'existing-dive-1',
             diveRows: [],
-            profileRows: [],
             tankRows: [],
             weightRows: [],
             customFieldRows: [],
@@ -648,7 +647,6 @@ void main() {
             sightingRows: [],
             eventRows: [],
             gasSwitchRows: [],
-            tankPressureRows: [],
             dataSourceRows: [],
             tideRows: [],
             mediaDiveIds: {},
@@ -752,7 +750,6 @@ void main() {
           snapshot: DiveMergeSnapshot(
             mergedDiveId: 'existing-dive-1',
             diveRows: [],
-            profileRows: [],
             tankRows: [],
             weightRows: [],
             customFieldRows: [],
@@ -763,7 +760,6 @@ void main() {
             sightingRows: [],
             eventRows: [],
             gasSwitchRows: [],
-            tankPressureRows: [],
             dataSourceRows: [],
             tideRows: [],
             mediaDiveIds: {},

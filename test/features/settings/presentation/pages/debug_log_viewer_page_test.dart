@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -369,6 +370,19 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+
+      // copyFilteredLogs prefixes the export header, which reads the app
+      // version (issue #1246). PackageInfo.fromPlatform NEVER completes under
+      // testWidgets, so without this mock the handler stays suspended and the
+      // snackbar is never scheduled. Production is covered by the timeout in
+      // LogEnvironment.capture; here the normal path is what we want to test.
+      PackageInfo.setMockInitialValues(
+        appName: 'Submersion',
+        packageName: 'app.submersion',
+        version: '1.7.6',
+        buildNumber: '123',
+        buildSignature: '',
+      );
 
       // Tap the Copy button
       await tester.tap(find.text('Copy'));

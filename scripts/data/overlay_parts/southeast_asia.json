@@ -1,0 +1,158 @@
+{
+  "chambers": [
+    {
+      "id": "th-kohtao",
+      "name": "SSS Recompression Chamber Network Koh Tao",
+      "country": "TH",
+      "city": "Koh Tao",
+      "phone": "+66-81-081-9777",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.ssschambernetwork.com/"}
+    },
+    {
+      "id": "th-phuket-hst",
+      "name": "Hyperbaric Services of Thailand (SSS Chamber Network Phuket)",
+      "country": "TH",
+      "city": "Phuket",
+      "phone": "+66-81-081-9000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.ssschambernetwork.com/phuket-thailand/"}
+    },
+    {
+      "id": "th-phuket-bh",
+      "name": "Bangkok Hospital Phuket Diving Medicine Center",
+      "country": "TH",
+      "city": "Phuket",
+      "phone": "+66-76-254-425",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.bangkokhospital.com/en/phuket/center-clinic/other/diving-medicine-center-bpk/facilities"}
+    },
+    {
+      "id": "th-pattaya",
+      "name": "Bangkok Hospital Pattaya Hyperbaric Oxygen Therapy Center",
+      "country": "TH",
+      "city": "Pattaya",
+      "phone": "+66-38-259-986",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.bangkokhospital.com/en/pattaya/center-clinic/brain/hyperbaric-oxygen-therapy-bph/overview"}
+    },
+    {
+      "id": "th-bangkok",
+      "name": "Bumrungrad Hospital Hyperbaric Oxygen Therapy Center",
+      "country": "TH",
+      "city": "Bangkok",
+      "phone": "+66-2-011-4793",
+      "capability": "diving_emergency",
+      "availability": "business_hours",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.bumrungrad.com/en/centers/hbot-hyperbaric-oxygen-therapy-bangkok-thailand"}
+    },
+    {
+      "id": "my-kl",
+      "name": "Healing Chambers of Asia Kuala Lumpur Hyperbaric Center",
+      "country": "MY",
+      "city": "Kuala Lumpur",
+      "phone": "+60-3-4023-3333",
+      "emergencyPhone": "+60-13-363-0013",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://healingchambers.com.my/"}
+    },
+    {
+      "id": "sg-singapore",
+      "name": "Hyperbaric and Diving Medicine Centre, Singapore General Hospital",
+      "country": "SG",
+      "city": "Singapore",
+      "phone": "+65-6321-3427",
+      "emergencyPhone": "+65-6222-3322",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.sgh.com.sg/our-specialties/hyperbaric-and-diving-medicine-centre"}
+    },
+    {
+      "id": "id-bali",
+      "name": "Sanglah General Hospital (Prof. Dr. I.G.N.G. Ngoerah Hospital)",
+      "country": "ID",
+      "city": "Denpasar",
+      "phone": "+62-361-227-911",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://bali.com/places/ngoerah-rumah-sakit-sanglah-general-hospital/"}
+    },
+    {
+      "id": "id-makassar",
+      "name": "RSUP Dr. Wahidin Sudirohusodo Hyperbaric Unit",
+      "country": "ID",
+      "city": "Makassar",
+      "phone": "+62-411-583-333",
+      "emergencyPhone": "+62-811-4100-7770",
+      "capability": "hyperbaric_unit",
+      "availability": "on_call",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://rsupwahidin.com/profil"}
+    },
+    {
+      "id": "ph-batangas",
+      "name": "St. Patrick's Hospital Hyperbaric Unit, Batangas City",
+      "country": "PH",
+      "city": "Batangas City",
+      "phone": "+63-43-723-7089",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.businesslist.ph/company/132362/st-patricks-hospital-medical-center"}
+    },
+    {
+      "id": "ph-cebu",
+      "name": "Cebu Doctors' University Hospital Center for Hyperbaric Medicine",
+      "country": "PH",
+      "city": "Cebu City",
+      "phone": "+63-32-255-5555",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "registry", "url": "https://www.philstar.com/the-freeman/cebu-lifestyle/2019/05/20/1919256/most-advanced-hyperbaric-chamber-now-cebu"}
+    },
+    {
+      "id": "ph-manila",
+      "name": "St. Luke's Medical Center Hyperbaric Medicine Unit",
+      "country": "PH",
+      "city": "Taguig",
+      "phone": "+63-2-8789-7700",
+      "capability": "hyperbaric_unit",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.stlukes.com.ph/"}
+    },
+    {
+      "id": "mv-bandos",
+      "name": "Bandos Hyperbaric and Medical Clinic, Maldives",
+      "country": "MV",
+      "city": "Bandos Island, North Male Atoll",
+      "phone": "+960-664-0088",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://bandosmaldives.com/"}
+    },
+    {
+      "id": "mv-male-adk",
+      "name": "ADK Hospital Hyperbaric Treatment Unit",
+      "country": "MV",
+      "city": "Male",
+      "phone": "+960-331-3553",
+      "capability": "diving_emergency",
+      "availability": "unknown",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.adkhospital.mv/contact"}
+    },
+    {
+      "id": "mv-kuredu",
+      "name": "Kuredu Medical Clinic and Hyperbaric Centre",
+      "country": "MV",
+      "city": "Kuredu, Lhaviyani Atoll",
+      "phone": "+960-790-7510",
+      "emergencyPhone": "+960-790-1754",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://kureduclinic.com/"}
+    }
+  ]
+}

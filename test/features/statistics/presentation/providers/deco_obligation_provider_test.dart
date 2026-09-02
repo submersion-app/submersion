@@ -6,7 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/statistics/data/repositories/deco_classification_cache.dart';
 import 'package:submersion/features/statistics/data/services/deco_classification_service.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
@@ -77,7 +79,7 @@ void main() {
         );
   }
 
-  /// Writes a profile carrying depth only: no deco_type, no ceiling, no
+  /// Writes a series carrying depth only: no deco_type, no ceiling, no
   /// events. This is what MacDive, Shearwater Cloud, generic UDDF, CSV and
   /// OCR imports produce, and it is the shape that made the card report zero.
   Future<void> insertBareProfile(
@@ -86,19 +88,14 @@ void main() {
     int bottomMinutes,
   ) async {
     final (depths, times) = _square(depth, bottomMinutes);
-    await db.batch((batch) {
-      for (var i = 0; i < depths.length; i++) {
-        batch.insert(
-          db.diveProfiles,
-          DiveProfilesCompanion(
-            id: Value('$diveId-row-$i'),
-            diveId: Value(diveId),
-            timestamp: Value(times[i]),
-            depth: Value(depths[i]),
-          ),
-        );
-      }
-    });
+    await ProfileSeriesRepository().insertSeries(
+      diveId: diveId,
+      samples: [
+        for (var i = 0; i < depths.length; i++)
+          ProfileSample(timestamp: times[i], depth: depths[i]),
+      ],
+      now: now,
+    );
   }
 
   Future<ProviderContainer> makeContainer() async {
@@ -167,18 +164,13 @@ void main() {
     // deco stop. The recorded signal must take priority.
     await insertDive('recorded');
     await insertBareProfile('recorded', 18, 30);
-    await db
-        .into(db.diveProfiles)
-        .insert(
-          const DiveProfilesCompanion(
-            id: Value('recorded-deco-sample'),
-            diveId: Value('recorded'),
-            timestamp: Value(99999),
-            depth: Value(9.0),
-            decoType: Value(2),
-            ceiling: Value(9.0),
-          ),
-        );
+    await ProfileSeriesRepository().insertSeries(
+      diveId: 'recorded',
+      samples: const [
+        ProfileSample(timestamp: 99999, depth: 9.0, decoType: 2, ceiling: 9.0),
+      ],
+      now: now,
+    );
 
     final stats = await (await makeContainer()).read(
       decoObligationStatsProvider.future,
@@ -247,9 +239,7 @@ void main() {
 
     // Replace the profile with one well inside the NDL and bump updated_at,
     // exactly as an edit would. The stale entry must not be served.
-    await (db.delete(
-      db.diveProfiles,
-    )..where((t) => t.diveId.equals('deep'))).go();
+    await ProfileSeriesRepository().deleteForDive('deep');
     await insertBareProfile('deep', 18, 30);
     await (db.update(db.dives)..where((t) => t.id.equals('deep'))).write(
       DivesCompanion(updatedAt: Value(now + 1000)),

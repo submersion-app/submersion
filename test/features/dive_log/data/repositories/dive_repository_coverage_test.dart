@@ -4,6 +4,8 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
@@ -299,6 +301,157 @@ void main() {
       // Dive 1 contributes runtime (40), dive 2 falls back to bottom_time (45)
       expect(stats.totalTimeSeconds, (40 + 45) * 60);
     });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getStatistics - depth distribution buckets (issue #641)
+  // ---------------------------------------------------------------------------
+
+  group('getStatistics depth distribution', () {
+    test(
+      'buckets max depth into 10m ranges up to 130m, with an open-ended tail',
+      () async {
+        await insertDive(id: 'dive-5m', maxDepth: 5.0);
+        await insertDive(id: 'dive-35m', maxDepth: 35.0);
+        await insertDive(id: 'dive-40m', maxDepth: 40.0);
+        await insertDive(id: 'dive-125m', maxDepth: 125.0);
+        await insertDive(id: 'dive-150m', maxDepth: 150.0);
+
+        final stats = await repository.getStatistics();
+        final byLabel = {for (final d in stats.depthDistribution) d.label: d};
+
+        expect(stats.depthDistribution.length, 14);
+        expect(byLabel['0-10m']!.count, 1);
+        expect(byLabel['30-40m']!.count, 1);
+        // A dive at exactly 40m now falls in its own 40-50m bucket instead of
+        // the old open-ended "40m+" catch-all.
+        expect(byLabel['40-50m']!.count, 1);
+        expect(byLabel['40-50m']!.openEnded, isFalse);
+        expect(byLabel['120-130m']!.count, 1);
+        expect(byLabel['130m+']!.count, 1);
+        expect(byLabel['130m+']!.openEnded, isTrue);
+      },
+    );
+
+    test(
+      'dives under 40m are still counted correctly (no regression)',
+      () async {
+        await insertDive(id: 'dive-a', maxDepth: 12.0);
+        await insertDive(id: 'dive-b', maxDepth: 12.0);
+        await insertDive(id: 'dive-c', maxDepth: 38.0);
+
+        final stats = await repository.getStatistics();
+        final byLabel = {for (final d in stats.depthDistribution) d.label: d};
+
+        expect(byLabel['10-20m']!.count, 2);
+        expect(byLabel['30-40m']!.count, 1);
+      },
+    );
+
+    test('sums dive time per bucket, preferring runtime over bottom_time '
+        '(issue #641 follow-up)', () async {
+      await insertDive(
+        id: 'dive-a',
+        maxDepth: 12.0,
+        bottomTimeSeconds: 20 * 60,
+        runtimeSeconds: 25 * 60,
+      );
+      await insertDive(
+        id: 'dive-b',
+        maxDepth: 15.0,
+        bottomTimeSeconds: 30 * 60,
+      );
+      await insertDive(
+        id: 'dive-c',
+        maxDepth: 38.0,
+        bottomTimeSeconds: 45 * 60,
+      );
+
+      final stats = await repository.getStatistics();
+      final byLabel = {for (final d in stats.depthDistribution) d.label: d};
+
+      // dive-a prefers runtime (25m) over bottom_time (20m); dive-b has no
+      // runtime and falls back to bottom_time (30m). Same bucket: 55m total.
+      expect(byLabel['10-20m']!.totalDurationSeconds, 55 * 60);
+      expect(byLabel['30-40m']!.totalDurationSeconds, 45 * 60);
+      expect(byLabel['0-10m']!.totalDurationSeconds, 0);
+    });
+
+    test('falls back to the profile span when runtime, entry/exit time, and '
+        'bottom_time are all missing (issue #641 follow-up)', () async {
+      // No runtime/entryTime/exitTime/bottomTime: effectiveRuntime can only
+      // resolve via the profile-derived fallback (30 min span).
+      await repository.createDive(
+        domain.Dive(
+          id: 'dive-profile-only',
+          dateTime: DateTime.utc(2026, 3, 28, 10),
+          maxDepth: 22.0,
+          profile: [
+            for (var t = 0; t <= 1800; t += 10)
+              domain.DiveProfilePoint(
+                timestamp: t,
+                depth: t == 0 || t == 1800 ? 0 : 22,
+              ),
+          ],
+        ),
+      );
+      await insertDive(
+        id: 'dive-with-bottom-time',
+        maxDepth: 22.0,
+        bottomTimeSeconds: 10 * 60,
+      );
+
+      final stats = await repository.getStatistics();
+      final byLabel = {for (final d in stats.depthDistribution) d.label: d};
+
+      // dive-profile-only contributes its 30 min profile span; dive-with-
+      // bottom-time contributes its 10 min bottom_time. Same bucket: 40m.
+      expect(byLabel['20-30m']!.totalDurationSeconds, (30 + 10) * 60);
+      expect(byLabel['20-30m']!.count, 2);
+    });
+
+    test('falls back to exit - entry when there is no runtime, ahead of the '
+        'profile span and bottom_time (issue #641 follow-up)', () async {
+      await repository.createDive(
+        domain.Dive(
+          id: 'dive-entry-exit',
+          dateTime: DateTime.utc(2026, 3, 29, 10),
+          maxDepth: 45.0,
+          entryTime: DateTime.utc(2026, 3, 29, 10),
+          exitTime: DateTime.utc(2026, 3, 29, 10, 50),
+          bottomTime: const Duration(minutes: 20),
+          profile: [
+            for (var t = 0; t <= 600; t += 10)
+              domain.DiveProfilePoint(
+                timestamp: t,
+                depth: t == 0 || t == 600 ? 0 : 45,
+              ),
+          ],
+        ),
+      );
+
+      final stats = await repository.getStatistics();
+      final byLabel = {for (final d in stats.depthDistribution) d.label: d};
+
+      // 50 min from the timestamps, not the 10 min profile span and not the
+      // 20 min bottom_time: both sit later in the chain.
+      expect(byLabel['40-50m']!.totalDurationSeconds, 50 * 60);
+    });
+
+    test(
+      'reports zero time for a bucket whose dives carry no duration at all',
+      () async {
+        await insertDive(id: 'dive-untimed', maxDepth: 18.0);
+
+        final stats = await repository.getStatistics();
+        final byLabel = {for (final d in stats.depthDistribution) d.label: d};
+
+        // SUM over an all-NULL column is NULL; the bucket still reports its
+        // dive, with no time behind it.
+        expect(byLabel['10-20m']!.count, 1);
+        expect(byLabel['10-20m']!.totalDurationSeconds, 0);
+      },
+    );
   });
 
   // ---------------------------------------------------------------------------

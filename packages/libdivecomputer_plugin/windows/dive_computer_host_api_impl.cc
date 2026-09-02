@@ -1,7 +1,9 @@
 #include "dive_computer_host_api_impl.h"
 
 #include "dive_converter.h"
+#include "native_logger.h"
 #include "serial_scanner.h"
+#include "usbhid_enumerator.h"
 
 #include <climits>
 #include <cmath>
@@ -16,12 +18,17 @@ namespace libdivecomputer_plugin {
 DiveComputerHostApiImpl::DiveComputerHostApiImpl(
     flutter::BinaryMessenger* messenger)
     : flutter_api_(
-          std::make_unique<DiveComputerFlutterApi>(messenger)) {}
+          std::make_unique<DiveComputerFlutterApi>(messenger)) {
+    NativeLogger::SetFlutterApi(flutter_api_.get());
+}
 
 DiveComputerHostApiImpl::~DiveComputerHostApiImpl() {
     if (download_thread_.joinable()) {
         download_thread_.join();
     }
+    // After the download thread is joined, so nothing can be mid-log, and
+    // before flutter_api_ is destroyed with this object.
+    NativeLogger::SetFlutterApi(nullptr);
 }
 
 void DiveComputerHostApiImpl::GetDeviceDescriptors(
@@ -42,12 +49,16 @@ void DiveComputerHostApiImpl::GetDeviceDescriptors(
             transports.push_back(
                 flutter::CustomEncodableValue(TransportType::kBle));
         }
-        // USBHID is deliberately NOT surfaced as USB: no platform build
-        // implements a USB HID transport (HAVE_HIDAPI is off), so
-        // advertising it sent HID-only devices (Suunto EON Steel family)
-        // into the serial path's "No USB serial ports found" dead end
-        // (#143). BLE is the working path for those devices.
-        if (info.transports & LIBDC_TRANSPORT_USB) {
+        // USB HID is reported as USB, which is the cable the user is
+        // holding; the app has no separate HID transfer mode and does not
+        // want one.
+        //
+        // It was suppressed until issue #1271, because advertising a
+        // transport with nothing behind it sent HID-only devices (the Suunto
+        // EON Steel family) into the serial path's "No USB serial ports
+        // found" dead end (#143). UsbHidIoStream is that missing transport,
+        // so the bit can be told the truth again.
+        if (info.transports & (LIBDC_TRANSPORT_USB | LIBDC_TRANSPORT_USBHID)) {
             transports.push_back(
                 flutter::CustomEncodableValue(TransportType::kUsb));
         }
@@ -294,37 +305,109 @@ void DiveComputerHostApiImpl::PerformDownload(
 
     if (device.transport() == TransportType::kSerial ||
         device.transport() == TransportType::kUsb) {
-        // Build list of candidate serial ports.
-        std::vector<std::string> ports_to_try;
-        std::string address = device.address();
-        bool is_com_port = (address.size() >= 4 &&
-            _strnicmp(address.c_str(), "COM", 3) == 0 &&
-            address[3] >= '0' && address[3] <= '9');
+        // One thing worth trying as the byte pipe for this download.
+        //
+        // The transport is carried per candidate rather than per download
+        // because the drivers branch on it: a USB HID computer framed as
+        // serial never completes its handshake.
+        struct DownloadCandidate {
+            bool is_hid = false;
+            std::string port;
+            UsbHidDevice hid;
+            std::string label;
+            unsigned int transport = LIBDC_TRANSPORT_SERIAL;
+        };
 
-        if (is_com_port) {
-            ports_to_try.push_back(address);
-        } else {
-            ports_to_try = EnumerateAvailableSerialPorts();
+        std::vector<DownloadCandidate> candidates;
+
+        // USB HID computers first. A HID-only model (the Scubapro G2 family,
+        // the Suunto EON Steel family) has no serial port to find, and
+        // probing unrelated ports before it would write dive-computer
+        // handshake bytes at hardware that is not the target (issue #1271).
+        const unsigned int descriptor_transports = libdc_descriptor_transports(
+            device.vendor().c_str(), device.product().c_str(),
+            static_cast<unsigned int>(device.model()));
+        const bool hid_capable =
+            (descriptor_transports & LIBDC_TRANSPORT_USBHID) != 0;
+        // Hardware whose only wired transport is HID. Probing serial ports for
+        // it would write dive-computer handshake bytes at unrelated hardware
+        // and could only ever fail, so the list stops at the HID candidates.
+        const bool hid_only =
+            hid_capable &&
+            (descriptor_transports &
+             (LIBDC_TRANSPORT_SERIAL | LIBDC_TRANSPORT_USB)) == 0;
+        if (hid_capable) {
+            auto hid_devices = EnumerateMatchingUsbHidDevices(
+                [&device](unsigned short vendor_id, unsigned short product_id) {
+                    return libdc_usbhid_match(
+                               device.vendor().c_str(),
+                               device.product().c_str(),
+                               static_cast<unsigned int>(device.model()),
+                               vendor_id, product_id) != 0;
+                },
+                nullptr);
+            for (auto& hid : hid_devices) {
+                DownloadCandidate candidate;
+                candidate.is_hid = true;
+                candidate.label = hid.DisplayName() + " (USB HID)";
+                candidate.transport = LIBDC_TRANSPORT_USBHID;
+                candidate.hid = std::move(hid);
+                candidates.push_back(std::move(candidate));
+            }
         }
 
-        // Try each candidate port with a full download attempt.
-        // Simply opening a port is not enough — many ports open successfully
-        // even when they are not the target dive computer.
+        // Build list of candidate serial ports.
+        if (!hid_only) {
+            std::vector<std::string> ports_to_try;
+            std::string address = device.address();
+            bool is_com_port = (address.size() >= 4 &&
+                _strnicmp(address.c_str(), "COM", 3) == 0 &&
+                address[3] >= '0' && address[3] <= '9');
+
+            if (is_com_port) {
+                ports_to_try.push_back(address);
+            } else {
+                ports_to_try = EnumerateAvailableSerialPorts();
+            }
+            for (const auto& port : ports_to_try) {
+                DownloadCandidate candidate;
+                candidate.port = port;
+                candidate.label = port;
+                candidates.push_back(std::move(candidate));
+            }
+        }
+
+        // Try each candidate with a full download attempt. Simply opening one
+        // is not enough: many serial ports open successfully even when they
+        // are not the target dive computer.
         std::string probe_log;
         bool any_opened = false;
-        // Buffer dives when probing multiple ports to avoid dispatching
-        // phantom dives from a wrong port to Flutter.
-        dl_ctx.buffer_dives = (ports_to_try.size() > 1);
-        for (const auto& port : ports_to_try) {
+        // Buffer dives when probing more than one candidate to avoid
+        // dispatching phantom dives from a wrong one to Flutter.
+        dl_ctx.buffer_dives = (candidates.size() > 1);
+        for (const auto& candidate : candidates) {
             dl_ctx.buffered_dives.clear();
-            serial_stream_ = std::make_unique<SerialIoStream>();
-            if (!serial_stream_->Open(port)) {
-                probe_log += "  " + port + ": failed to open\n";
-                serial_stream_.reset();
-                continue;
+
+            libdc_io_callbacks_t io_callbacks = {};
+            if (candidate.is_hid) {
+                usbhid_stream_ = std::make_unique<UsbHidIoStream>();
+                const std::string reason = usbhid_stream_->Open(candidate.hid);
+                if (!reason.empty()) {
+                    probe_log += "  " + candidate.label + ": " + reason + "\n";
+                    usbhid_stream_.reset();
+                    continue;
+                }
+                io_callbacks = usbhid_stream_->MakeCallbacks();
+            } else {
+                serial_stream_ = std::make_unique<SerialIoStream>();
+                if (!serial_stream_->Open(candidate.port)) {
+                    probe_log += "  " + candidate.label + ": failed to open\n";
+                    serial_stream_.reset();
+                    continue;
+                }
+                io_callbacks = serial_stream_->MakeCallbacks();
             }
 
-            libdc_io_callbacks_t io_callbacks = serial_stream_->MakeCallbacks();
             serial = 0;
             firmware = 0;
             memset(error_buf, 0, sizeof(error_buf));
@@ -333,7 +416,7 @@ void DiveComputerHostApiImpl::PerformDownload(
                 session,
                 device.vendor().c_str(), device.product().c_str(),
                 static_cast<unsigned int>(device.model()),
-                transport_value,
+                candidate.transport,
                 &io_callbacks,
                 fp_bytes.empty() ? nullptr : fp_bytes.data(),
                 static_cast<unsigned int>(fp_bytes.size()),
@@ -342,19 +425,30 @@ void DiveComputerHostApiImpl::PerformDownload(
                 error_buf, sizeof(error_buf));
 
             serial_stream_.reset();
+            usbhid_stream_.reset();
             any_opened = true;
 
             if (rc == 0 || rc == LIBDC_STATUS_CANCELLED) {
                 break;
             }
-            probe_log += "  " + port + ": download failed (rc=" +
+            probe_log += "  " + candidate.label + ": download failed (rc=" +
                          std::to_string(rc) + ")\n";
         }
 
-        if (ports_to_try.empty()) {
+        if (candidates.empty()) {
+            // A HID-only model has no serial port to go looking for, so the
+            // serial wording would send the user hunting for the wrong thing.
+            const std::string code =
+                hid_capable ? "no_usb_device" : "no_serial_ports";
+            const std::string message =
+                hid_capable
+                    ? "No " + device.product() +
+                          " found over USB. Is it connected to this computer "
+                          "and powered on?"
+                    : "No USB serial ports found. Is the dive computer "
+                      "connected and powered on?";
             flutter_api_->OnError(
-                DiveComputerError("no_serial_ports",
-                    "No USB serial ports found. Is the dive computer connected and powered on?"),
+                DiveComputerError(code, message),
                 [] {}, [](const auto&) {});
             libdc_download_session_free(session);
             download_session_ = nullptr;
@@ -365,8 +459,8 @@ void DiveComputerHostApiImpl::PerformDownload(
         // error message so users can share it with developers.
         if (!any_opened || (rc != 0 && !probe_log.empty())) {
             std::string msg = probe_log.empty()
-                ? "No dive computer found on any serial port."
-                : "No dive computer found. Ports tried:\n" + probe_log;
+                ? "No dive computer found on any USB or serial connection."
+                : "No dive computer found. Tried:\n" + probe_log;
             flutter_api_->OnError(
                 DiveComputerError("connect_failed", msg),
                 [] {}, [](const auto&) {});

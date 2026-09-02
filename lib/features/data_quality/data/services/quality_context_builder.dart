@@ -3,9 +3,14 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
+    as series;
+import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 
@@ -14,6 +19,8 @@ class QualityContextBuilder {
     : _diveRepo = diveRepository ?? DiveRepository();
 
   final DiveRepository _diveRepo;
+  final _profileSeries = ProfileSeriesRepository();
+  final _tankSeries = TankPressureSeriesRepository();
   AppDatabase get _db => DatabaseService.instance.database;
 
   Future<List<DiveQualityContext>> buildAll(
@@ -30,31 +37,30 @@ class QualityContextBuilder {
   }
 
   Future<DiveQualityContext> _build(domain.Dive dive, DateTime now) async {
-    final profileRows =
-        await (_db.select(_db.diveProfiles)
-              ..where(
-                (t) => t.diveId.equals(dive.id) & t.isPrimary.equals(true),
-              )
-              ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
-            .get();
+    final primarySeries = await _profileSeries.getSeriesForDive(
+      dive.id,
+      primaryOnly: true,
+    );
     final samples = <QualitySample>[
-      for (final r in profileRows)
-        if (r.depth.isFinite &&
-            (r.temperature == null || r.temperature!.isFinite))
-          QualitySample(t: r.timestamp, depth: r.depth, temp: r.temperature),
+      for (final p in mergeSeriesPointsCollapsingDuplicates(primarySeries))
+        if (p.depth.isFinite &&
+            (p.temperature == null || p.temperature!.isFinite))
+          QualitySample(t: p.timestamp, depth: p.depth, temp: p.temperature),
     ];
 
-    final pressureRows =
-        await (_db.select(_db.tankPressureProfiles)
-              ..where((t) => t.diveId.equals(dive.id))
-              ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
-            .get();
     final pressures = <String, List<QualityPressureSample>>{};
-    for (final r in pressureRows) {
-      if (!r.pressure.isFinite) continue;
-      pressures
-          .putIfAbsent(r.tankId, () => [])
-          .add(QualityPressureSample(t: r.timestamp, bar: r.pressure));
+    final tankSeries = await _tankSeries.getSeriesForDive(dive.id);
+    final byTank = <String, List<series.TankPressureSeries>>{};
+    for (final s in tankSeries) {
+      byTank.putIfAbsent(s.tankId, () => []).add(s);
+    }
+    for (final entry in byTank.entries) {
+      for (final p in mergeTankSeriesPoints(entry.value)) {
+        if (!p.pressure.isFinite) continue;
+        pressures
+            .putIfAbsent(entry.key, () => [])
+            .add(QualityPressureSample(t: p.timestamp, bar: p.pressure));
+      }
     }
 
     final switchRows =
@@ -106,12 +112,19 @@ class QualityContextBuilder {
         .customSelect(
           'SELECT id, entry_time, dive_date_time, exit_time, max_depth, '
           'runtime, bottom_time, dive_computer_serial, '
-          '(SELECT depth FROM dive_profiles p WHERE p.dive_id = dives.id '
-          'AND p.is_primary = 1 ORDER BY p.timestamp ASC LIMIT 1) '
-          'AS first_depth, '
-          '(SELECT depth FROM dive_profiles p WHERE p.dive_id = dives.id '
-          'AND p.is_primary = 1 ORDER BY p.timestamp DESC LIMIT 1) '
-          'AS last_depth '
+          '(SELECT s.first_depth FROM dive_profile_series s '
+          'WHERE s.dive_id = dives.id AND s.is_primary = 1 '
+          'ORDER BY s.start_timestamp ASC, s.id ASC LIMIT 1) AS first_depth, '
+          '(SELECT s.last_depth FROM dive_profile_series s '
+          'WHERE s.dive_id = dives.id AND s.is_primary = 1 '
+          // start_timestamp before id: series order is (start_timestamp,
+          // id), so on an end-timestamp tie (the sync union of one profile
+          // from two devices) the merged read's last sample comes from the
+          // LATER-starting series, whatever its id sorts as. Ordering by id
+          // alone picked the other one and reported a last depth no other
+          // reader agrees with.
+          'ORDER BY s.end_timestamp DESC, s.start_timestamp DESC, '
+          's.id DESC LIMIT 1) AS last_depth '
           'FROM dives WHERE id != ?1 AND diver_id IS ?2 '
           'AND COALESCE(entry_time, dive_date_time) BETWEEN ?3 AND ?4 '
           'ORDER BY COALESCE(entry_time, dive_date_time) ASC',
@@ -121,7 +134,7 @@ class QualityContextBuilder {
             Variable.withInt(entry.millisecondsSinceEpoch - windowMs),
             Variable.withInt(exit.millisecondsSinceEpoch + windowMs),
           ],
-          readsFrom: {_db.dives, _db.diveProfiles},
+          readsFrom: {_db.dives, _db.diveProfileSeries},
         )
         .get();
     final out = <QualityNeighbor>[];

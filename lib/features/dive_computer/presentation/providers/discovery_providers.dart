@@ -251,12 +251,72 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     state = state.copyWith(isScanning: false);
   }
 
+  /// Scans until a device advertising [address] is seen, then stops.
+  ///
+  /// Resolves with the freshly discovered device, or with null when the scan
+  /// could not start, native discovery ended, or [timeout] elapsed without
+  /// seeing the address. The scan is stopped on every path.
+  ///
+  /// The saved-computer download path uses this to re-acquire the device
+  /// before connecting. A direct connect to a stored address that the
+  /// Bluetooth stack has not seen advertise recently fails on Android and
+  /// Windows, while the very same address connects fine right after a scan
+  /// (issue #1232). macOS and iOS re-scan natively before connecting; this
+  /// gives the other platforms the same behaviour.
+  Future<DiscoveredDevice?> scanForAddress(
+    String address, {
+    required Duration timeout,
+  }) async {
+    final completer = Completer<DiscoveredDevice?>();
+
+    void check(DiscoveryState current) {
+      if (completer.isCompleted) return;
+      final match = current.discoveredDevices
+          .where((d) => bluetoothAddressesMatch(d.address, address))
+          .firstOrNull;
+      if (match != null) {
+        completer.complete(match);
+      } else if (!current.isScanning) {
+        completer.complete(null);
+      }
+    }
+
+    // startScan settles isScanning before returning: true once discovery is
+    // running, false (with an error message) when it could not start.
+    await startScan();
+    final subscription = stream.listen(check);
+    check(state);
+    final timer = Timer(timeout, () {
+      if (!completer.isCompleted) completer.complete(null);
+    });
+
+    try {
+      return await completer.future;
+    } finally {
+      timer.cancel();
+      // Not awaited: a broadcast subscription's cancel() resolves to the
+      // root-zone null future, which a fake-async widget test can never
+      // flush. Cancellation itself is synchronous.
+      unawaited(subscription.cancel());
+      await stopScan();
+    }
+  }
+
   /// Select a device and move to the next step.
   void selectDevice(DiscoveredDevice device) {
     state = state.copyWith(
       selectedDevice: device,
       currentStep: DiscoveryStep.confirm,
     );
+  }
+
+  /// Drop the selected device without touching the rest of the state.
+  ///
+  /// Used when a selection left over from an earlier discovery session must
+  /// not be reused, e.g. it does not carry the address of the saved computer
+  /// about to be downloaded from.
+  void clearSelectedDevice() {
+    state = state.copyWith(clearDevice: true);
   }
 
   /// Set a custom name for the device.
@@ -309,6 +369,13 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     super.dispose();
   }
 }
+
+/// Whether two transport addresses name the same device.
+///
+/// Android reports colon-separated MACs and Windows colon-free hex; both are
+/// stable per platform, so only letter case is normalized.
+bool bluetoothAddressesMatch(String a, String b) =>
+    a.toUpperCase() == b.toUpperCase();
 
 /// Provider for the discovery notifier.
 final discoveryNotifierProvider =

@@ -2,8 +2,12 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -114,9 +118,10 @@ void main() {
     );
   }
 
-  /// Insert a profile point, using [sourceTag] to distinguish computers
-  /// (stored in the id to make retrieval predictable, computerId left null).
-  Future<String> insertTestProfile({
+  /// Insert one single-sample profile series, using [sourceTag] to
+  /// distinguish computers (stored in the id to make retrieval predictable,
+  /// computerId left null).
+  Future<String> insertTestSeries({
     required String diveId,
     String? sourceTag,
     String? sourceId,
@@ -126,19 +131,14 @@ void main() {
   }) async {
     final tag = sourceTag ?? 'default';
     final id = 'profile-$tag-$timestamp-${diveId.hashCode}';
-    await db
-        .into(db.diveProfiles)
-        .insert(
-          DiveProfilesCompanion(
-            id: Value(id),
-            diveId: Value(diveId),
-            // computerId left null to avoid FK constraints
-            sourceId: Value(sourceId),
-            isPrimary: Value(isPrimary),
-            timestamp: Value(timestamp),
-            depth: Value(depth),
-          ),
-        );
+    await ProfileSeriesRepository().insertSeries(
+      id: id,
+      diveId: diveId,
+      sourceId: sourceId,
+      isPrimary: isPrimary,
+      samples: [ProfileSample(timestamp: timestamp, depth: depth)],
+      now: 1000,
+    );
     return id;
   }
 
@@ -276,7 +276,7 @@ void main() {
 
       // Source A's own samples, demoted the way a profile edit leaves the
       // superseded originals: null computerId, isPrimary false, owned by A.
-      await insertTestProfile(
+      await insertTestSeries(
         diveId: diveId,
         sourceTag: 'a-original',
         sourceId: 'source-a',
@@ -285,7 +285,7 @@ void main() {
         depth: 5.0,
       );
       // Source B's samples: identical shape apart from the owning source.
-      await insertTestProfile(
+      await insertTestSeries(
         diveId: diveId,
         sourceTag: 'b1',
         sourceId: 'source-b',
@@ -298,12 +298,12 @@ void main() {
         repository,
       ).split(diveId: diveId, sourceId: 'source-b');
 
-      final remaining = await (db.select(
-        db.diveProfiles,
-      )..where((t) => t.diveId.equals(diveId))).get();
+      final remaining = await ProfileSeriesRepository().getSeriesForDive(
+        diveId,
+      );
 
       expect(
-        remaining.map((r) => r.sourceId),
+        remaining.map((s) => s.sourceId),
         contains('source-a'),
         reason:
             "source A's samples belong to the dive being split FROM and must "
@@ -339,14 +339,14 @@ void main() {
       );
 
       // Profiles for each computer (isPrimary distinguishes them).
-      await insertTestProfile(
+      await insertTestSeries(
         diveId: diveId,
         sourceTag: 'prim',
         isPrimary: true,
         timestamp: 0,
         depth: 5.0,
       );
-      await insertTestProfile(
+      await insertTestSeries(
         diveId: diveId,
         sourceTag: 'sec',
         isPrimary: false,
@@ -434,14 +434,14 @@ void main() {
         ),
       );
 
-      await insertTestProfile(
+      await insertTestSeries(
         diveId: diveId,
         sourceTag: 'prim',
         isPrimary: true,
         timestamp: 0,
         depth: 5.0,
       );
-      await insertTestProfile(
+      await insertTestSeries(
         diveId: diveId,
         sourceTag: 'sec',
         isPrimary: false,
@@ -603,39 +603,31 @@ void main() {
         const DivesCompanion(computerId: Value('comp-s')),
       );
 
-      await db
-          .into(db.tankPressureProfiles)
-          .insert(
-            TankPressureProfilesCompanion.insert(
-              id: 'tp-t1',
-              diveId: targetId,
-              tankId: 'tank-t1',
-              timestamp: 60,
-              pressure: 190,
-            ),
-          );
-      await db
-          .into(db.tankPressureProfiles)
-          .insert(
-            TankPressureProfilesCompanion.insert(
-              id: 'tp-s1',
-              diveId: secondaryId,
-              tankId: 'tank-s1',
-              timestamp: 60,
-              pressure: 195,
-            ),
-          );
-      await db
-          .into(db.tankPressureProfiles)
-          .insert(
-            TankPressureProfilesCompanion.insert(
-              id: 'tp-s2',
-              diveId: secondaryId,
-              tankId: 'tank-s2',
-              timestamp: 60,
-              pressure: 195,
-            ),
-          );
+      // Single-sample tank pressure series, the writer's twin of the legacy
+      // row-per-sample tank pressure inserts it replaced: computerId left
+      // null, matching what the legacy rows carried before the fold under
+      // test stamps them.
+      await TankPressureSeriesRepository().insertSeries(
+        id: 'tp-t1',
+        diveId: targetId,
+        tankId: 'tank-t1',
+        samples: const [TankPressureSample(timestamp: 60, pressure: 190)],
+        now: 1000,
+      );
+      await TankPressureSeriesRepository().insertSeries(
+        id: 'tp-s1',
+        diveId: secondaryId,
+        tankId: 'tank-s1',
+        samples: const [TankPressureSample(timestamp: 60, pressure: 195)],
+        now: 1000,
+      );
+      await TankPressureSeriesRepository().insertSeries(
+        id: 'tp-s2',
+        diveId: secondaryId,
+        tankId: 'tank-s2',
+        samples: const [TankPressureSample(timestamp: 60, pressure: 195)],
+        now: 1000,
+      );
 
       await db
           .into(db.diveProfileEvents)
@@ -657,22 +649,21 @@ void main() {
     }
 
     /// Asserts referential dive-locality: no tank_pressure_profiles,
-    /// dive_profile_events, or gas_switches row on [diveId] references a
-    /// dive_tanks row that lives on a different dive.
+    /// tank_pressure_series, dive_profile_events, or gas_switches row on
+    /// [diveId] references a dive_tanks row that lives on a different dive.
     Future<void> assertNoCrossDiveTankRefs(String diveId) async {
       final tankIds = (await (db.select(
         db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get()).map((t) => t.id).toSet();
 
-      final pressures = await (db.select(
-        db.tankPressureProfiles,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      for (final p in pressures) {
+      final pressureSeries = await TankPressureSeriesRepository()
+          .getSeriesForDive(diveId);
+      for (final p in pressureSeries) {
         expect(
           tankIds,
           contains(p.tankId),
           reason:
-              'tank_pressure_profiles row ${p.id} on dive $diveId '
+              'tank_pressure_series row ${p.id} on dive $diveId '
               'references tank ${p.tankId}, which is not on this dive',
         );
       }
@@ -759,10 +750,9 @@ void main() {
       final sharedTank = originalTanks.firstWhere((t) => t.id == 'tank-t1');
       expect(sharedTank.computerId, equals('comp-t'));
 
-      // -- Tank pressure profiles ---------------------------------------
-      final newDivePressures = await (db.select(
-        db.tankPressureProfiles,
-      )..where((t) => t.diveId.equals(newDiveId))).get();
+      // Tank pressure series ---------------------------------------------
+      final newDivePressures = await TankPressureSeriesRepository()
+          .getSeriesForDive(newDiveId);
       expect(newDivePressures, hasLength(2));
       expect(newDivePressures.every((p) => p.computerId == 'comp-s'), isTrue);
       // One curve points at the clone (it lived on the shared tank), the
@@ -774,9 +764,8 @@ void main() {
 
       // The original dive keeps only its own computer's pressure curve on
       // the shared tank.
-      final originalPressures = await (db.select(
-        db.tankPressureProfiles,
-      )..where((t) => t.diveId.equals('dive-t'))).get();
+      final originalPressures = await TankPressureSeriesRepository()
+          .getSeriesForDive('dive-t');
       expect(originalPressures, hasLength(1));
       expect(originalPressures.single.tankId, equals('tank-t1'));
       expect(originalPressures.single.computerId, equals('comp-t'));
@@ -858,13 +847,12 @@ void main() {
       expect(clone.startPressure, equals(200.0));
       expect(clone.endPressure, equals(100.0));
 
-      // -- Tank pressure profiles ---------------------------------------
-      // comp-s's pressure rows stay on the original dive; the one that
+      // Tank pressure series ---------------------------------------------
+      // comp-s's pressure series stay on the original dive; the one that
       // lived on the shared tank still points at tank-t1, which is
       // still on that dive.
-      final originalPressures = await (db.select(
-        db.tankPressureProfiles,
-      )..where((t) => t.diveId.equals('dive-t'))).get();
+      final originalPressures = await TankPressureSeriesRepository()
+          .getSeriesForDive('dive-t');
       expect(originalPressures, hasLength(2));
       expect(originalPressures.every((p) => p.computerId == 'comp-s'), isTrue);
       final stayedOnShared = originalPressures.firstWhere(
@@ -872,11 +860,10 @@ void main() {
       );
       expect(stayedOnShared.computerId, equals('comp-s'));
 
-      // comp-t's own pressure row moves to the new dive, re-pointed at
+      // comp-t's own pressure series moves to the new dive, re-pointed at
       // the clone rather than the shared tank it used to live on.
-      final newDivePressures = await (db.select(
-        db.tankPressureProfiles,
-      )..where((t) => t.diveId.equals(newDiveId))).get();
+      final newDivePressures = await TankPressureSeriesRepository()
+          .getSeriesForDive(newDiveId);
       expect(newDivePressures, hasLength(1));
       expect(newDivePressures.single.computerId, equals('comp-t'));
       expect(newDivePressures.single.tankId, equals(clone.id));
@@ -1095,20 +1082,16 @@ void main() {
           ),
         );
 
-        // Insert profiles with isPrimary=true (both without computerId).
-        await insertTestProfile(
+        // Insert one unattributed series (both samples come from the same
+        // import, the same shape createDive writes) with isPrimary=true.
+        await ProfileSeriesRepository().insertSeries(
           diveId: diveId,
-          sourceTag: 'a1',
           isPrimary: true,
-          timestamp: 0,
-          depth: 5.0,
-        );
-        await insertTestProfile(
-          diveId: diveId,
-          sourceTag: 'a2',
-          isPrimary: true,
-          timestamp: 60,
-          depth: 10.0,
+          samples: const [
+            ProfileSample(timestamp: 0, depth: 5.0),
+            ProfileSample(timestamp: 60, depth: 10.0),
+          ],
+          now: 1000,
         );
 
         await repository.setPrimaryDataSource(
@@ -1116,13 +1099,11 @@ void main() {
           computerReadingId: 'reading-b',
         );
 
-        final profiles = await (db.select(
-          db.diveProfiles,
-        )..where((t) => t.diveId.equals(diveId))).get();
+        final series = await ProfileSeriesRepository().getSeriesForDive(diveId);
 
-        for (final p in profiles) {
+        for (final s in series) {
           expect(
-            p.isPrimary,
+            s.isPrimary,
             isTrue,
             reason:
                 'A null-computerId source owns the dive\'s unattributed '
@@ -1170,19 +1151,15 @@ void main() {
           ),
         );
 
-        await insertTestProfile(
+        // One unattributed series (both samples from the same import).
+        await ProfileSeriesRepository().insertSeries(
           diveId: diveId,
-          sourceTag: 'a1',
           isPrimary: true,
-          timestamp: 0,
-          depth: 5.0,
-        );
-        await insertTestProfile(
-          diveId: diveId,
-          sourceTag: 'a2',
-          isPrimary: true,
-          timestamp: 60,
-          depth: 10.0,
+          samples: const [
+            ProfileSample(timestamp: 0, depth: 5.0),
+            ProfileSample(timestamp: 60, depth: 10.0),
+          ],
+          now: 1000,
         );
 
         await repository.setPrimaryDataSource(
@@ -1190,15 +1167,13 @@ void main() {
           computerReadingId: 'reading-b',
         );
 
-        final profiles = await (db.select(
-          db.diveProfiles,
-        )..where((t) => t.diveId.equals(diveId))).get();
+        final series = await ProfileSeriesRepository().getSeriesForDive(diveId);
 
         expect(
-          profiles.where((p) => p.isPrimary),
+          series.where((s) => s.isPrimary),
           isNotEmpty,
           reason:
-              'A dive that has profile rows must never be left with zero '
+              'A dive that has profile series must never be left with zero '
               'is_primary rows: getDiveProfile and getAscentDescentRates '
               'would silently skip it (issue #1149)',
         );
@@ -1231,7 +1206,7 @@ void main() {
         ),
       );
 
-      await insertTestProfile(
+      await insertTestSeries(
         diveId: diveId,
         sourceTag: 'a1',
         sourceId: 'reading-a',
@@ -1239,7 +1214,7 @@ void main() {
         timestamp: 0,
         depth: 5.0,
       );
-      await insertTestProfile(
+      await insertTestSeries(
         diveId: diveId,
         sourceTag: 'b1',
         sourceId: 'reading-b',
@@ -1253,10 +1228,8 @@ void main() {
         computerReadingId: 'reading-b',
       );
 
-      final profiles = await (db.select(
-        db.diveProfiles,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      final primary = profiles.where((p) => p.isPrimary).toList();
+      final series = await ProfileSeriesRepository().getSeriesForDive(diveId);
+      final primary = series.where((s) => s.isPrimary).toList();
 
       expect(primary, hasLength(1));
       expect(
@@ -1296,18 +1269,20 @@ void main() {
         ),
       );
 
-      // One past the 32766 cap of the bundled SQLite, which is also well past
-      // the 999 cap older builds enforce. Generated with a recursive CTE
-      // rather than 32767 companion inserts, which took ~45s on its own and
-      // would have made this the slowest test in the suite by far.
+      // One past the 32766 bound-variable cap of the bundled SQLite, the
+      // limit the legacy row-per-sample promote used to bump into. A series
+      // promotes by row id rather than by binding one variable per sample, so
+      // this is now a single series carrying every sample.
       const sampleCount = 32767;
-      await db.customStatement(
-        'INSERT INTO dive_profiles '
-        '(id, dive_id, source_id, is_primary, timestamp, depth) '
-        'WITH RECURSIVE seq(n) AS ('
-        'SELECT 0 UNION ALL SELECT n + 1 FROM seq WHERE n < ?2 - 1) '
-        "SELECT 'p-b-' || n, ?1, 'reading-b', 0, n, 10.0 FROM seq",
-        [diveId, sampleCount],
+      await ProfileSeriesRepository().insertSeries(
+        diveId: diveId,
+        sourceId: 'reading-b',
+        isPrimary: false,
+        samples: [
+          for (var n = 0; n < sampleCount; n++)
+            ProfileSample(timestamp: n, depth: 10.0),
+        ],
+        now: 1000,
       );
 
       await repository.setPrimaryDataSource(
@@ -1315,15 +1290,13 @@ void main() {
         computerReadingId: 'reading-b',
       );
 
-      final promoted =
-          await (db.selectOnly(db.diveProfiles)
-                ..addColumns([db.diveProfiles.id.count()])
-                ..where(
-                  db.diveProfiles.diveId.equals(diveId) &
-                      db.diveProfiles.isPrimary.equals(true),
-                ))
-              .getSingle();
-      expect(promoted.read(db.diveProfiles.id.count()), sampleCount);
+      expect(
+        (await ProfileSeriesRepository().getSeriesForDive(
+          diveId,
+          primaryOnly: true,
+        )).single.samples,
+        hasLength(sampleCount),
+      );
     });
 
     test(
@@ -1353,7 +1326,7 @@ void main() {
 
         // saveEditedProfile's shape: the superseded original demoted, the edit
         // inserted alongside it at the same timestamp, both owned by source A.
-        await insertTestProfile(
+        await insertTestSeries(
           diveId: diveId,
           sourceTag: 'original',
           sourceId: 'reading-a',
@@ -1361,7 +1334,7 @@ void main() {
           timestamp: 0,
           depth: 5.0,
         );
-        await insertTestProfile(
+        await insertTestSeries(
           diveId: diveId,
           sourceTag: 'edited',
           sourceId: 'reading-a',
@@ -1369,7 +1342,7 @@ void main() {
           timestamp: 0,
           depth: 7.0,
         );
-        await insertTestProfile(
+        await insertTestSeries(
           diveId: diveId,
           sourceTag: 'b1',
           sourceId: 'reading-b',
@@ -1388,10 +1361,8 @@ void main() {
           computerReadingId: 'reading-a',
         );
 
-        final profiles = await (db.select(
-          db.diveProfiles,
-        )..where((t) => t.diveId.equals(diveId))).get();
-        final primary = profiles.where((p) => p.isPrimary).toList();
+        final series = await ProfileSeriesRepository().getSeriesForDive(diveId);
+        final primary = series.where((s) => s.isPrimary).toList();
 
         expect(
           primary,

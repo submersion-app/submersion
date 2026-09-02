@@ -32,24 +32,9 @@ void main() {
 
   group('pressureAtTimestamp', () {
     final points = [
-      const TankPressurePoint(
-        id: '1',
-        tankId: 'tank1',
-        timestamp: 0,
-        pressure: 200,
-      ),
-      const TankPressurePoint(
-        id: '2',
-        tankId: 'tank1',
-        timestamp: 60,
-        pressure: 180,
-      ),
-      const TankPressurePoint(
-        id: '3',
-        tankId: 'tank1',
-        timestamp: 120,
-        pressure: 160,
-      ),
+      const TankPressurePoint(tankId: 'tank1', timestamp: 0, pressure: 200),
+      const TankPressurePoint(tankId: 'tank1', timestamp: 60, pressure: 180),
+      const TankPressurePoint(tankId: 'tank1', timestamp: 120, pressure: 160),
     ];
     test('exact match', () => expect(pressureAtTimestamp(points, 60), 180));
     test(

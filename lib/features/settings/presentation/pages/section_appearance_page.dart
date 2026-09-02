@@ -576,7 +576,7 @@ class SectionAppearancePage extends ConsumerWidget {
         subtitle: Text(
           context.l10n.settings_appearance_metricsEnabledCount(
             _countEnabledMetrics(settings),
-            18,
+            _visibleMetricToggles(settings).length,
           ),
         ),
         trailing: const Icon(Icons.chevron_right),
@@ -688,6 +688,7 @@ class SectionAppearancePage extends ConsumerWidget {
       ProfileRightAxisMetric.surfaceGf => l10n.enum_profileMetric_surfaceGf,
       ProfileRightAxisMetric.meanDepth => l10n.enum_profileMetric_meanDepth,
       ProfileRightAxisMetric.tts => l10n.enum_profileMetric_tts,
+      ProfileRightAxisMetric.gtr => l10n.enum_profileMetric_gtr,
       ProfileRightAxisMetric.cns => l10n.enum_profileMetric_cns,
       ProfileRightAxisMetric.otu => l10n.enum_profileMetric_otu,
       ProfileRightAxisMetric.o2CellMv => l10n.enum_profileMetric_o2CellMv,
@@ -710,29 +711,34 @@ class SectionAppearancePage extends ConsumerWidget {
     };
   }
 
-  int _countEnabledMetrics(AppSettings settings) {
-    final values = [
-      settings.defaultShowTemperature,
-      settings.defaultShowPressure,
-      settings.defaultShowHeartRate,
-      settings.defaultShowSac,
-      settings.defaultShowEvents,
-      settings.defaultShowPhotoMarkers,
-      settings.showCeilingOnProfile,
-      settings.showAscentRateColors,
-      settings.defaultShowAscentRateLine,
-      settings.showNdlOnProfile,
-      settings.defaultShowTts,
-      settings.defaultShowCns,
-      settings.defaultShowOtu,
-      settings.defaultShowPpO2,
-      settings.defaultShowPpN2,
-      settings.defaultShowPpHe,
-      settings.defaultShowGasDensity,
-      settings.defaultShowGf,
-      settings.defaultShowSurfaceGf,
-      settings.defaultShowMeanDepth,
-    ];
-    return values.where((v) => v).length;
-  }
+  /// One entry per SwitchListTile on [DefaultVisibleMetricsPage], in the same
+  /// order, so the enabled/total counts shown in the summary subtitle can
+  /// never drift out of sync with what that page actually renders.
+  List<bool> _visibleMetricToggles(AppSettings settings) => [
+    settings.defaultShowTemperature,
+    settings.defaultShowPressure,
+    settings.defaultShowHeartRate,
+    settings.defaultShowSac,
+    settings.defaultShowEvents,
+    settings.defaultShowPhotoMarkers,
+    settings.showCeilingOnProfile,
+    settings.showDecoStopsOnProfile,
+    settings.showAscentRateColors,
+    settings.defaultShowAscentRateLine,
+    settings.showNdlOnProfile,
+    settings.defaultShowTts,
+    settings.defaultShowCns,
+    settings.defaultShowOtu,
+    settings.defaultShowPpO2,
+    settings.defaultShowPpN2,
+    settings.defaultShowPpHe,
+    settings.defaultShowGasDensity,
+    settings.defaultShowO2CellMv,
+    settings.defaultShowGf,
+    settings.defaultShowSurfaceGf,
+    settings.defaultShowMeanDepth,
+  ];
+
+  int _countEnabledMetrics(AppSettings settings) =>
+      _visibleMetricToggles(settings).where((v) => v).length;
 }

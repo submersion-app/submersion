@@ -4,6 +4,8 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_chart_backdrop_painter.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -116,6 +118,44 @@ void main() {
     }
     expect(series.ceiling, isNotEmpty);
   });
+
+  test(
+    'ceiling curve rises from 0, is finely sampled, and clears back to 0',
+    () {
+      final container = _container();
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.addSimplePlan(maxDepth: 45.0, bottomTimeMinutes: 25);
+      final outcome = container.read(planOutcomeProvider);
+      final series = container.read(planCanvasSeriesProvider);
+
+      // A staircase pinned to each stop's own depth would only produce two
+      // points per stop; a real ceiling curve samples far more densely across
+      // the whole ascent (and the loading portion of the dive too).
+      expect(series.ceiling.length, greaterThan(outcome.stops.length * 2));
+      expect(series.ceiling.first.depth, 0);
+      expect(series.ceiling.map((p) => p.depth), contains(greaterThan(0)));
+
+      // Clears the surface once the last stop finishes. Residual
+      // GF-interpolation noise keeps this off exactly 0, so the bound is the
+      // painter's own epsilon rather than a round number: anything at or
+      // above it leaves the no-go band open and trailing along the surface
+      // for the rest of the dive.
+      expect(
+        series.ceiling.last.depth,
+        lessThan(PlanChartBackdropPainter.clearCeilingEpsilon),
+      );
+
+      // Time is monotonically non-decreasing, and no gap exceeds the
+      // engine's sampling interval - a coarser stretch would show up as a
+      // straight chord cutting across the real curve.
+      for (var i = 1; i < series.ceiling.length; i++) {
+        final gap =
+            series.ceiling[i].timeSeconds - series.ceiling[i - 1].timeSeconds;
+        expect(gap, greaterThanOrEqualTo(0));
+        expect(gap, lessThanOrEqualTo(PlanEngine.ceilingSampleSeconds));
+      }
+    },
+  );
 
   test('multi-gas plan yields gas-switch markers at deco depths', () {
     final container = _container();

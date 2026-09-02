@@ -10,6 +10,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/restore_source_missing_exception.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
@@ -461,7 +462,7 @@ void main() {
   );
 
   test(
-    'a no-op restore sweeps restore temp files stranded by a prior run',
+    'a missing-source restore still sweeps temp files stranded by a prior run',
     () async {
       final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
       await DatabaseService.instance.initialize(
@@ -476,9 +477,11 @@ void main() {
       File('$defaultPath.pre-restore').writeAsStringSync('stale');
       File('$defaultPath.restore-staging').writeAsStringSync('stale');
 
-      // A restore pointed at a missing file is a no-op, but still sweeps temps.
-      await DatabaseService.instance.restore(
-        p.join(tempDir.path, 'missing.db'),
+      // A restore pointed at a missing file swaps nothing in and reports
+      // that (issue #1344), but still sweeps the temps on the way out.
+      await expectLater(
+        DatabaseService.instance.restore(p.join(tempDir.path, 'missing.db')),
+        throwsA(isA<RestoreSourceMissingException>()),
       );
 
       expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
@@ -532,28 +535,58 @@ void main() {
     expect(one.read<int>('v'), 1);
   });
 
-  test('restore with a missing backup file leaves the live DB open', () async {
-    // A restore pointed at a nonexistent file must be a true no-op: it must
-    // NOT close the database (which would open an unavailable window for
-    // nothing). The database stays queryable throughout.
-    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
-    await DatabaseService.instance.initialize(
-      locationService: _FakeLocation(defaultPath),
-    );
-    await DatabaseService.instance.database
-        .customSelect('SELECT 1')
-        .getSingle();
+  test(
+    'restore with a missing backup file throws and leaves the live DB open',
+    () async {
+      // Issue #1344. A restore pointed at a nonexistent file must NOT close
+      // the database (that would open an unavailable window for nothing), but
+      // it must not pass for a completed restore either: a caller has to be
+      // able to tell "nothing happened" from "restored an empty library". So
+      // the live database stays queryable throughout AND the call fails with
+      // a typed exception naming the missing source.
+      final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+      await DatabaseService.instance.initialize(
+        locationService: _FakeLocation(defaultPath),
+      );
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+      // A temp file stranded by an earlier restore is still swept on the way
+      // out, exactly as the silent no-op used to do.
+      final stranded = File('$defaultPath.pre-restore');
+      await stranded.writeAsString('stale');
 
-    var windowOpened = false;
-    DatabaseService.instance.debugOnRestoreWindowOpen = (_) =>
-        windowOpened = true;
+      var windowOpened = false;
+      DatabaseService.instance.debugOnRestoreWindowOpen = (_) =>
+          windowOpened = true;
 
-    await DatabaseService.instance.restore(p.join(tempDir.path, 'nope.db'));
+      final missingPath = p.join(tempDir.path, 'nope.db');
+      await expectLater(
+        DatabaseService.instance.restore(missingPath),
+        throwsA(
+          isA<RestoreSourceMissingException>()
+              .having((e) => e.backupPath, 'backupPath', missingPath)
+              // Two callers (startup recovery, settings export) render '$e'
+              // to the user unlocalized, so the text must read as a sentence
+              // that names the file, not as a class name.
+              .having(
+                (e) => '$e',
+                'toString',
+                allOf(
+                  contains(missingPath),
+                  contains('Nothing was restored'),
+                  isNot(contains('Exception')),
+                ),
+              ),
+        ),
+      );
 
-    expect(windowOpened, isFalse);
-    final one = await DatabaseService.instance.database
-        .customSelect('SELECT 1 AS v')
-        .getSingle();
-    expect(one.read<int>('v'), 1);
-  });
+      expect(windowOpened, isFalse);
+      expect(stranded.existsSync(), isFalse);
+      final one = await DatabaseService.instance.database
+          .customSelect('SELECT 1 AS v')
+          .getSingle();
+      expect(one.read<int>('v'), 1);
+    },
+  );
 }

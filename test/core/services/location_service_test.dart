@@ -1,140 +1,65 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show Locale;
 
+import 'package:clock/clock.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geocoding/geocoding.dart';
 // `geocoding` declares its own app-facing `Geocoding`, which shadows the
 // platform-interface class of the same name that fakes must extend.
 import 'package:geocoding_platform_interface/geocoding_platform_interface.dart'
     as gpi;
+import 'package:submersion/core/services/geocoding/nominatim_throttle.dart';
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 
-/// One canned HTTP exchange plus a record of what the service actually sent.
-///
-/// The geocoding paths talk to Nominatim through `dart:io HttpClient`, so the
-/// only seam that does not require a real socket is [HttpOverrides]. Every
-/// request the service makes is captured here so the tests can assert on the
-/// English pin (#214) that lives in the URI *and* in the request headers.
-class _FakeNominatim {
-  _FakeNominatim({this.statusCode = 200, this.body = '{}'});
-
-  final int statusCode;
-  final String body;
-
-  final List<Uri> requestedUris = <Uri>[];
-  final List<Map<String, String>> requestHeaders = <Map<String, String>>[];
-  int clientCloseCount = 0;
-
-  Uri get lastUri => requestedUris.last;
-  Map<String, String> get lastHeaders => requestHeaders.last;
-
-  /// Run [body] with every `HttpClient` replaced by this fake server.
-  Future<T> run<T>(Future<T> Function() action) =>
-      HttpOverrides.runZoned<Future<T>>(
-        action,
-        createHttpClient: (SecurityContext? _) => _FakeHttpClient(this),
-      );
-}
-
-class _FakeHttpClient implements HttpClient {
-  _FakeHttpClient(this._server);
-
-  final _FakeNominatim _server;
-
-  @override
-  String? userAgent;
-
-  @override
-  Future<HttpClientRequest> getUrl(Uri url) async {
-    _server.requestedUris.add(url);
-    return _FakeHttpClientRequest(url, _server);
-  }
-
-  @override
-  void close({bool force = false}) => _server.clientCloseCount++;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
-
-class _FakeHttpClientRequest implements HttpClientRequest {
-  _FakeHttpClientRequest(this.uri, this._server);
-
-  final _FakeNominatim _server;
-
-  @override
-  final Uri uri;
-
-  @override
-  final HttpHeaders headers = _FakeHttpHeaders();
-
-  @override
-  Future<HttpClientResponse> close() async {
-    _server.requestHeaders.add((headers as _FakeHttpHeaders).values);
-    return _FakeHttpClientResponse(_server.statusCode, _server.body);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
-
-class _FakeHttpHeaders implements HttpHeaders {
-  final Map<String, String> values = <String, String>{};
-
-  @override
-  void set(String name, Object value, {bool preserveHeaderCase = false}) {
-    values[name.toLowerCase()] = '$value';
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
-
-class _FakeHttpClientResponse extends Stream<List<int>>
-    implements HttpClientResponse {
-  _FakeHttpClientResponse(this.statusCode, this._body);
-
-  @override
-  final int statusCode;
-
-  final String _body;
-
-  @override
-  StreamSubscription<List<int>> listen(
-    void Function(List<int> event)? onData, {
-    Function? onError,
-    void Function()? onDone,
-    bool? cancelOnError,
-  }) {
-    return Stream<List<int>>.value(utf8.encode(_body)).listen(
-      onData,
-      onError: onError,
-      onDone: onDone,
-      cancelOnError: cancelOnError,
-    );
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
+import '../../helpers/fake_nominatim.dart';
 
 void main() {
   final service = LocationService.instance;
 
+  setUp(() {
+    LocationService.throttle = NominatimThrottle(minimumGap: Duration.zero);
+    addTearDown(() => LocationService.throttle = NominatimThrottle());
+  });
+
   group('Nominatim URIs pin English results (#214)', () {
-    test('reverse geocode URI carries accept-language=en', () {
-      final uri = LocationService.buildReverseGeocodeUri(36.0, -5.6);
+    test('reverse geocode URI carries the requested accept-language', () {
+      final uri = LocationService.buildReverseGeocodeUri(
+        36.0,
+        -5.6,
+        languageCode: 'fr',
+      );
       expect(
         uri.queryParameters['accept-language'],
-        'en',
+        'fr',
         reason:
             'without a pinned language Nominatim answers in the request '
             'locale, splitting statistics into Spain/Spanien/España rows',
       );
       expect(uri.queryParameters['lat'], '36.0');
       expect(uri.queryParameters['lon'], '-5.6');
+    });
+
+    test('the language code is query-encoded, never interpolated', () {
+      // The code is synced user data; a stray separator must not become a
+      // second query parameter.
+      for (final uri in [
+        LocationService.buildReverseGeocodeUri(
+          36.0,
+          -5.6,
+          languageCode: 'en&foo=bar',
+        ),
+        LocationService.buildNaturalFeatureUri(
+          36.0,
+          -5.6,
+          languageCode: 'en&foo=bar',
+        ),
+      ]) {
+        expect(uri.queryParameters['accept-language'], 'en&foo=bar');
+        expect(uri.queryParameters.containsKey('foo'), isFalse);
+      }
     });
 
     test('forward geocode URI carries accept-language=en', () {
@@ -148,7 +73,7 @@ void main() {
     test(
       'parses country, region and locality from a Nominatim response',
       () async {
-        final server = _FakeNominatim(
+        final server = FakeNominatim(
           body: jsonEncode(<String, dynamic>{
             'address': <String, dynamic>{
               'country': 'Spain',
@@ -159,7 +84,7 @@ void main() {
         );
 
         final result = await server.run(
-          () => service.reverseGeocode(36.0143, -5.6044),
+          () => service.reverseGeocode(36.0143, -5.6044, languageCode: 'en'),
         );
 
         expect(result.country, 'Spain');
@@ -171,17 +96,19 @@ void main() {
     test(
       'sends the English pin in both the URI and the request headers',
       () async {
-        final server = _FakeNominatim(
+        final server = FakeNominatim(
           body: jsonEncode(<String, dynamic>{
             'address': <String, dynamic>{'country': 'Spain'},
           }),
         );
 
-        await server.run(() => service.reverseGeocode(36.0143, -5.6044));
+        await server.run(
+          () => service.reverseGeocode(36.0143, -5.6044, languageCode: 'en'),
+        );
 
-        expect(server.requestedUris, hasLength(1));
+        expect(server.requestedUris, hasLength(2));
         expect(
-          server.lastUri.queryParameters['accept-language'],
+          server.requestedUris.first.queryParameters['accept-language'],
           'en',
           reason: 'the request itself must carry the pin, not just the builder',
         );
@@ -200,8 +127,34 @@ void main() {
       },
     );
 
+    test('sends the requested language in the URI and the headers', () async {
+      final server = FakeNominatim(
+        body: jsonEncode(<String, dynamic>{
+          'address': <String, dynamic>{'country': 'Schweiz'},
+        }),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(47.0276, 8.4006, languageCode: 'de'),
+      );
+
+      expect(result.country, 'Schweiz');
+      expect(server.lastUri.queryParameters['accept-language'], 'de');
+      expect(server.lastHeaders['accept-language'], 'de');
+    });
+
+    test('returns PlaceLookup.unavailable when the request throws', () async {
+      final result = await HttpOverrides.runZoned(
+        () => service.reverseGeocode(47.0, 8.4, languageCode: 'en'),
+        createHttpClient: (_) => ThrowingHttpClient(),
+      );
+
+      expect(result.isEmpty, isTrue);
+      expect(result.networkFailed, isTrue);
+    });
+
     test('falls back from state to province for the region', () async {
-      final server = _FakeNominatim(
+      final server = FakeNominatim(
         body: jsonEncode(<String, dynamic>{
           'address': <String, dynamic>{
             'country': 'Canada',
@@ -212,7 +165,7 @@ void main() {
       );
 
       final result = await server.run(
-        () => service.reverseGeocode(45.2542, -81.6653),
+        () => service.reverseGeocode(45.2542, -81.6653, languageCode: 'en'),
       );
 
       expect(result.region, 'Ontario');
@@ -220,7 +173,7 @@ void main() {
     });
 
     test('falls back from province to region, and to village', () async {
-      final server = _FakeNominatim(
+      final server = FakeNominatim(
         body: jsonEncode(<String, dynamic>{
           'address': <String, dynamic>{
             'country': 'Egypt',
@@ -231,7 +184,7 @@ void main() {
       );
 
       final result = await server.run(
-        () => service.reverseGeocode(28.5091, 34.5136),
+        () => service.reverseGeocode(28.5091, 34.5136, languageCode: 'en'),
       );
 
       expect(result.country, 'Egypt');
@@ -242,11 +195,13 @@ void main() {
     test(
       'returns empty fields when the payload has no address block',
       () async {
-        final server = _FakeNominatim(
+        final server = FakeNominatim(
           body: jsonEncode(<String, dynamic>{'error': 'Unable to geocode'}),
         );
 
-        final result = await server.run(() => service.reverseGeocode(0.0, 0.0));
+        final result = await server.run(
+          () => service.reverseGeocode(0.0, 0.0, languageCode: 'en'),
+        );
 
         expect(result.country, isNull);
         expect(result.region, isNull);
@@ -254,26 +209,39 @@ void main() {
       },
     );
 
-    test('returns empty fields on a non-200 response', () async {
-      final server = _FakeNominatim(
+    test('reports the geocoder as unavailable on a non-200 response', () async {
+      // Nominatim says "nothing here" with a 200 and an error body, so a
+      // non-200 is the service itself: a rate limit or an outage, which must
+      // not read as "no location details found" (and must not count as
+      // unchanged in the bulk backfill).
+      final server = FakeNominatim(
         statusCode: 503,
         body: 'Service Unavailable',
       );
 
       final result = await server.run(
-        () => service.reverseGeocode(36.0143, -5.6044),
+        () => service.reverseGeocode(36.0143, -5.6044, languageCode: 'en'),
       );
 
-      expect(result.country, isNull);
-      expect(result.region, isNull);
-      expect(result.locality, isNull);
+      expect(result.isEmpty, isTrue);
+      expect(result.networkFailed, isTrue);
+    });
+
+    test('a rate limit is reported the same way', () async {
+      final server = FakeNominatim(statusCode: 429, body: 'Too Many Requests');
+
+      final result = await server.run(
+        () => service.reverseGeocode(36.0143, -5.6044, languageCode: 'en'),
+      );
+
+      expect(result.networkFailed, isTrue);
     });
 
     test('swallows malformed JSON instead of throwing', () async {
-      final server = _FakeNominatim(body: '<html>rate limited</html>');
+      final server = FakeNominatim(body: '<html>rate limited</html>');
 
       final result = await server.run(
-        () => service.reverseGeocode(36.0143, -5.6044),
+        () => service.reverseGeocode(36.0143, -5.6044, languageCode: 'en'),
       );
 
       expect(result.country, isNull);
@@ -282,21 +250,25 @@ void main() {
     });
 
     test('closes the HttpClient even when the body fails to parse', () async {
-      final server = _FakeNominatim(body: 'not json');
+      final server = FakeNominatim(body: 'not json');
 
-      await server.run(() => service.reverseGeocode(36.0143, -5.6044));
+      await server.run(
+        () => service.reverseGeocode(36.0143, -5.6044, languageCode: 'en'),
+      );
 
       expect(
         server.clientCloseCount,
-        1,
-        reason: 'the finally block must release the sockets on the error path',
+        server.requestedUris.length,
+        reason:
+            'the finally block must release the sockets on the error path, '
+            'once per request (address layer, then natural layer)',
       );
     });
   });
 
   group('forwardGeocode', () {
     test('returns the parsed coordinates and address details', () async {
-      final server = _FakeNominatim(
+      final server = FakeNominatim(
         body: jsonEncode(<dynamic>[
           <String, dynamic>{
             'lat': '36.0143',
@@ -324,7 +296,7 @@ void main() {
     test(
       'sends the English pin in both the URI and the request headers',
       () async {
-        final server = _FakeNominatim(
+        final server = FakeNominatim(
           body: jsonEncode(<dynamic>[
             <String, dynamic>{'lat': '36.0143', 'lon': '-5.6044'},
           ]),
@@ -340,7 +312,7 @@ void main() {
     );
 
     test('falls back from state to province, and from city to town', () async {
-      final server = _FakeNominatim(
+      final server = FakeNominatim(
         body: jsonEncode(<dynamic>[
           <String, dynamic>{
             'lat': '45.2542',
@@ -363,7 +335,7 @@ void main() {
     });
 
     test('falls back to region and village as the last options', () async {
-      final server = _FakeNominatim(
+      final server = FakeNominatim(
         body: jsonEncode(<dynamic>[
           <String, dynamic>{
             'lat': '28.5091',
@@ -386,7 +358,7 @@ void main() {
     test(
       'returns coordinates with null details when address is absent',
       () async {
-        final server = _FakeNominatim(
+        final server = FakeNominatim(
           body: jsonEncode(<dynamic>[
             <String, dynamic>{'lat': '12.5', 'lon': '-70.0'},
           ]),
@@ -403,7 +375,7 @@ void main() {
     );
 
     test('returns null when Nominatim has no match', () async {
-      final server = _FakeNominatim(body: '[]');
+      final server = FakeNominatim(body: '[]');
 
       final result = await server.run(
         () => service.forwardGeocode('Nowhere At All'),
@@ -413,7 +385,7 @@ void main() {
     });
 
     test('returns null when the coordinates are not parseable', () async {
-      final server = _FakeNominatim(
+      final server = FakeNominatim(
         body: jsonEncode(<dynamic>[
           <String, dynamic>{'lat': 'not-a-number', 'lon': '-5.6044'},
         ]),
@@ -425,7 +397,7 @@ void main() {
     });
 
     test('returns null on a non-200 response', () async {
-      final server = _FakeNominatim(statusCode: 429, body: 'Too Many Requests');
+      final server = FakeNominatim(statusCode: 429, body: 'Too Many Requests');
 
       final result = await server.run(() => service.forwardGeocode('Tarifa'));
 
@@ -438,7 +410,7 @@ void main() {
     });
 
     test('swallows malformed JSON instead of throwing', () async {
-      final server = _FakeNominatim(body: '<html>rate limited</html>');
+      final server = FakeNominatim(body: '<html>rate limited</html>');
 
       final result = await server.run(() => service.forwardGeocode('Tarifa'));
 
@@ -448,7 +420,7 @@ void main() {
     test(
       'short-circuits a blank address without hitting the network',
       () async {
-        final server = _FakeNominatim(body: '[]');
+        final server = FakeNominatim(body: '[]');
 
         final result = await server.run(() => service.forwardGeocode('   '));
 
@@ -471,7 +443,7 @@ void main() {
       LocationService.debugForceNativeGeocoder = false;
     });
 
-    test('asks the geocoder for English results', () async {
+    test('asks the geocoder for the requested language', () async {
       final geocoding = _FakeGeocoding(
         placemarks: const [
           Placemark(
@@ -483,9 +455,13 @@ void main() {
       );
       GeocodingPlatformFactory.instance = _FakeGeocodingFactory(geocoding);
 
-      final result = await service.reverseGeocode(36.0143, -5.6044);
+      final result = await service.reverseGeocode(
+        36.0143,
+        -5.6044,
+        languageCode: 'es',
+      );
 
-      expect(geocoding.locales, [const Locale('en')]);
+      expect(geocoding.locales, [const Locale('es')]);
       expect(result.country, 'Spain');
       expect(result.region, 'Andalusia');
       expect(result.locality, 'Tarifa');
@@ -498,9 +474,9 @@ void main() {
       GeocodingPlatformFactory.instance = _FakeGeocodingFactory(geocoding);
 
       await Future.wait([
-        service.reverseGeocode(36.0, -5.6),
-        service.reverseGeocode(37.0, -5.7),
-        service.reverseGeocode(38.0, -5.8),
+        service.reverseGeocode(36.0, -5.6, languageCode: 'en'),
+        service.reverseGeocode(37.0, -5.7, languageCode: 'en'),
+        service.reverseGeocode(38.0, -5.8, languageCode: 'en'),
       ]);
 
       expect(
@@ -521,17 +497,23 @@ void main() {
 
       // The first attempt throws inside the native branch; the service falls
       // through to the web fallback rather than surfacing the failure.
-      final server = _FakeNominatim(
+      final server = FakeNominatim(
         body: '{"address": {"country": "Fallback"}}',
       );
-      final first = await server.run(() => service.reverseGeocode(36.0, -5.6));
+      final first = await server.run(
+        () => service.reverseGeocode(36.0, -5.6, languageCode: 'en'),
+      );
       expect(
         first.country,
         'Fallback',
         reason: 'a native geocoder failure is non-fatal',
       );
 
-      final second = await service.reverseGeocode(36.0, -5.6);
+      final second = await service.reverseGeocode(
+        36.0,
+        -5.6,
+        languageCode: 'en',
+      );
 
       expect(
         second.country,
@@ -539,6 +521,205 @@ void main() {
         reason: 'a later lookup retries the native geocoder',
       );
       expect(geocoding.locales, [const Locale('en'), const Locale('en')]);
+    });
+  });
+
+  group('LocationResult.place', () {
+    test('carries the geocoder outage through to the site form', () {
+      const result = LocationResult(
+        latitude: 47.0,
+        longitude: 8.4,
+        geocodeUnavailable: true,
+      );
+      expect(result.place.networkFailed, isTrue);
+      expect(result.place.isEmpty, isTrue);
+    });
+
+    test('a geocoded result is a plain lookup', () {
+      const result = LocationResult(
+        latitude: 47.0,
+        longitude: 8.4,
+        country: 'Switzerland',
+        locality: 'Weggis',
+        bodyOfWater: 'Lake Lucerne',
+      );
+      expect(result.place.networkFailed, isFalse);
+      expect(result.place.country, 'Switzerland');
+      expect(result.place.locality, 'Weggis');
+      expect(result.place.bodyOfWater, 'Lake Lucerne');
+    });
+  });
+
+  group('body of water (issue #1187)', () {
+    Map<String, dynamic> address() => <String, dynamic>{
+      'address': <String, dynamic>{
+        'country': 'Switzerland',
+        'state': 'Lucerne',
+        'village': 'Weggis',
+      },
+    };
+
+    String? natural(Uri uri, Map<String, dynamic> hit) =>
+        uri.queryParameters['layer'] == 'natural' ? jsonEncode(hit) : null;
+
+    test('the natural-layer URI asks for water features only', () {
+      final uri = LocationService.buildNaturalFeatureUri(
+        47.027631,
+        8.400640,
+        languageCode: 'de',
+      );
+      expect(uri.host, 'nominatim.openstreetmap.org');
+      expect(uri.path, '/reverse');
+      expect(uri.queryParameters['layer'], 'natural');
+      expect(uri.queryParameters['zoom'], '14');
+      expect(uri.queryParameters['accept-language'], 'de');
+      expect(uri.queryParameters['format'], 'json');
+    });
+
+    test('a lake on the natural layer becomes the body of water', () async {
+      final server = FakeNominatim(
+        body: jsonEncode(address()),
+        bodyFor: (uri) => natural(uri, {
+          'class': 'water',
+          'type': 'lake',
+          'name': 'Lake Lucerne',
+        }),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(47.027631, 8.400640, languageCode: 'en'),
+      );
+
+      expect(result.locality, 'Weggis');
+      expect(result.bodyOfWater, 'Lake Lucerne');
+      expect(server.requestedUris, hasLength(2));
+      expect(server.requestedUris.last.queryParameters['layer'], 'natural');
+    });
+
+    test('a bay is accepted', () {
+      expect(
+        LocationService.bodyOfWaterFromNaturalFeature({
+          'class': 'natural',
+          'type': 'bay',
+          'name': 'Naama Bay',
+        }),
+        'Naama Bay',
+      );
+    });
+
+    test('a strait is accepted', () {
+      expect(
+        LocationService.bodyOfWaterFromNaturalFeature({
+          'class': 'natural',
+          'type': 'strait',
+          'name': 'Strait of Gibraltar',
+        }),
+        'Strait of Gibraltar',
+      );
+    });
+
+    test('a mountain range is not a body of water', () {
+      expect(
+        LocationService.bodyOfWaterFromNaturalFeature({
+          'class': 'natural',
+          'type': 'mountain_range',
+          'name': 'Urner Alps',
+        }),
+        isNull,
+      );
+    });
+
+    test('a saddle is not a body of water', () {
+      expect(
+        LocationService.bodyOfWaterFromNaturalFeature({
+          'class': 'natural',
+          'type': 'saddle',
+          'name': 'coll Roig',
+        }),
+        isNull,
+      );
+    });
+
+    test('an unable-to-geocode answer yields no body of water', () {
+      expect(
+        LocationService.bodyOfWaterFromNaturalFeature({
+          'error': 'Unable to geocode',
+        }),
+        isNull,
+      );
+    });
+
+    test('a water hit with a blank name is ignored', () {
+      expect(
+        LocationService.bodyOfWaterFromNaturalFeature({
+          'class': 'water',
+          'type': 'lake',
+          'name': '',
+        }),
+        isNull,
+      );
+    });
+
+    test('a non-200 on the natural layer keeps the address result', () async {
+      final server = FakeNominatim(
+        body: jsonEncode(address()),
+        statusFor: (uri) =>
+            uri.queryParameters['layer'] == 'natural' ? 503 : null,
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(47.027631, 8.400640, languageCode: 'en'),
+      );
+
+      expect(result.country, 'Switzerland');
+      expect(result.bodyOfWater, isNull);
+      expect(result.networkFailed, isFalse);
+    });
+
+    test('a failing natural-layer request keeps the address result', () async {
+      var calls = 0;
+      final server = FakeNominatim(
+        body: jsonEncode(address()),
+        bodyFor: (uri) {
+          if (uri.queryParameters['layer'] != 'natural') return null;
+          calls++;
+          return 'this is not json';
+        },
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(47.027631, 8.400640, languageCode: 'en'),
+      );
+
+      expect(calls, 1);
+      expect(result.country, 'Switzerland');
+      expect(result.locality, 'Weggis');
+      expect(result.bodyOfWater, isNull);
+      expect(result.networkFailed, isFalse);
+    });
+
+    test('the address and natural requests are a second apart', () {
+      fakeAsync((async) {
+        LocationService.throttle = NominatimThrottle();
+        final start = clock.now();
+        final seenAt = <Duration>[];
+        final server = FakeNominatim(
+          body: jsonEncode(address()),
+          bodyFor: (uri) {
+            seenAt.add(clock.now().difference(start));
+            return uri.queryParameters['layer'] == 'natural'
+                ? jsonEncode({'class': 'water', 'type': 'lake', 'name': 'L'})
+                : null;
+          },
+        );
+        PlaceLookup? result;
+        server
+            .run(() => service.reverseGeocode(47.0, 8.4, languageCode: 'en'))
+            .then((r) => result = r);
+        async.elapse(const Duration(seconds: 1));
+        expect(seenAt, [Duration.zero, const Duration(seconds: 1)]);
+        expect(result?.bodyOfWater, 'L');
+      });
     });
   });
 }

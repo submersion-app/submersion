@@ -37,11 +37,17 @@ void main() {
     addTearDown(db.close);
     await db.customSelect('SELECT 1').get();
 
-    await db.customStatement('DROP INDEX idx_dive_profiles_dive_id');
-    expect(await indexNames(db), isNot(contains('idx_dive_profiles_dive_id')));
+    await db.customStatement('DROP INDEX idx_dive_profile_series_dive_primary');
+    expect(
+      await indexNames(db),
+      isNot(contains('idx_dive_profile_series_dive_primary')),
+    );
 
     final created = await ensurePerformanceIndexes(db);
-    expect(created, equals(['idx_dive_profiles_dive_id']));
-    expect(await indexNames(db), contains('idx_dive_profiles_dive_id'));
+    expect(created, equals(['idx_dive_profile_series_dive_primary']));
+    expect(
+      await indexNames(db),
+      contains('idx_dive_profile_series_dive_primary'),
+    );
   });
 }

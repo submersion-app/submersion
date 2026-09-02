@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync_maintenance_progress_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Confirm and run adoption of a replaced cloud library. Shared by the Cloud
@@ -42,8 +43,19 @@ Future<void> showAdoptReplacedLibraryDialog(
       ],
     ),
   );
-  if (confirmed != true) return;
-  // Safety backup of this device's current data BEFORE it is overwritten.
-  await ref.read(backupServiceProvider).performBackup(isAutomatic: true);
-  await ref.read(syncStateProvider.notifier).adoptReplacedLibrary();
+  if (confirmed != true || !context.mounted) return;
+  // A safety backup followed by a whole-library download runs for minutes on a
+  // large library. Both used to happen behind a live page, so the user saw
+  // nothing and their phone was free to lock mid-adopt (issue #1194).
+  await runWithSyncMaintenanceProgress<void>(
+    context: context,
+    title: l10n.settings_cloudSync_adopt_progressTitle,
+    task: (report) async {
+      // Safety backup of this device's current data BEFORE it is overwritten.
+      report(0, 0, l10n.settings_syncMaintenance_phase_backingUp);
+      await ref.read(backupServiceProvider).performBackup(isAutomatic: true);
+      report(0, 0, l10n.settings_syncMaintenance_phase_applyingLibrary);
+      await ref.read(syncStateProvider.notifier).adoptReplacedLibrary();
+    },
+  );
 }

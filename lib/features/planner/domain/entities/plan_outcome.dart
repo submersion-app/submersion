@@ -190,6 +190,17 @@ class PlanOutcome {
   final BuhlmannState endTissue;
   final List<(int runtimeSeconds, BuhlmannState state)> tissueTimeline;
 
+  /// The deco ceiling sampled at a fixed 30-second interval (see
+  /// `PlanEngine.ceilingSampleSeconds`) across the whole dive (user segments
+  /// plus the computed ascent and stops), so the chart can draw it as the
+  /// continuous rise-then-fall curve it actually is instead of jumping
+  /// straight from one stop's own depth to the next.
+  ///
+  /// The trace always ends clear of the surface: the last sample is below
+  /// the chart's clear-ceiling epsilon, so the shaded no-go band closes
+  /// instead of trailing along the surface for the rest of the dive.
+  final List<(int runtimeSeconds, double ceilingMeters)> ceilingTrace;
+
   const PlanOutcome({
     required this.runtimeSeconds,
     required this.maxDepth,
@@ -203,6 +214,7 @@ class PlanOutcome {
     required this.issues,
     required this.endTissue,
     required this.tissueTimeline,
+    required this.ceilingTrace,
   });
 
   /// No critical issue present.

@@ -39,5 +39,12 @@
 	<!-- non-sandboxed app. The sandboxed App Store (Release.entitlements) and -->
 	<!-- iOS builds DO declare keychain-access-groups, where their provisioning -->
 	<!-- profile authorizes it. -->
+
+	<!-- Google Drive sign-in is the other consumer of that fact. GoogleSignIn -->
+	<!-- hard-codes the data-protection keychain on macOS and exposes no way -->
+	<!-- to change it, so it can never work on this build; the app detects -->
+	<!-- that at runtime (KeychainGatedAuthenticator) and uses the loopback -->
+	<!-- OAuth flow instead. Do NOT try to fix Drive by adding the entitlement -->
+	<!-- here; that is the launch failure described above. -->
 </dict>
 </plist>

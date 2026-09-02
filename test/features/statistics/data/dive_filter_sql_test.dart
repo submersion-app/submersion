@@ -1,7 +1,10 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as dive_entity;
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -11,9 +14,11 @@ import '../../../helpers/test_database.dart';
 
 void main() {
   late AppDatabase db;
+  late ProfileSeriesRepository seriesRepository;
 
   setUp(() async {
     db = await setUpTestDatabase();
+    seriesRepository = ProfileSeriesRepository();
   });
   tearDown(() async {
     await tearDownTestDatabase();
@@ -39,8 +44,16 @@ void main() {
         .insert(
           DivesCompanion(
             id: Value(id),
+            // dive_date_time holds a wall clock flagged as UTC (the digits
+            // on the computer face, stored verbatim), so the fixture has to
+            // write the same frame the app does. Passing a LOCAL DateTime's
+            // raw epoch would shift the stored wall clock by the machine's
+            // UTC offset and quietly move these dives to another day under
+            // any non-UTC zone (issue #1368).
             diveDateTime: Value(
-              (date ?? DateTime(2026, 6, 1)).millisecondsSinceEpoch,
+              asWallClockUtc(
+                date ?? DateTime(2026, 6, 1),
+              ).millisecondsSinceEpoch,
             ),
             siteId: Value(siteId),
             diveCenterId: Value(diveCenterId),
@@ -225,6 +238,47 @@ void main() {
         );
   }
 
+  Future<void> insertProfilePoint(
+    String diveId,
+    String id, {
+    int timestamp = 0,
+    double depth = 30,
+    int? decoType,
+    double? ceiling,
+  }) async {
+    await seriesRepository.insertSeries(
+      diveId: diveId,
+      id: id,
+      samples: [
+        ProfileSample(
+          timestamp: timestamp,
+          depth: depth,
+          decoType: decoType,
+          ceiling: ceiling,
+        ),
+      ],
+      now: now,
+    );
+  }
+
+  Future<void> insertProfileEvent(
+    String diveId,
+    String id, {
+    String eventType = 'decoStopStart',
+  }) async {
+    await db
+        .into(db.diveProfileEvents)
+        .insert(
+          DiveProfileEventsCompanion(
+            id: Value(id),
+            diveId: Value(diveId),
+            timestamp: const Value(0),
+            eventType: Value(eventType),
+            createdAt: Value(now),
+          ),
+        );
+  }
+
   Future<void> insertCustomField(
     String diveId,
     String key,
@@ -288,6 +342,44 @@ void main() {
     });
   });
 
+  test('weekday filter matches ANY selected weekday', () async {
+    // 28 days apart (4 whole weeks) guarantees the same weekday regardless
+    // of which actual day of the week these calendar dates land on.
+    final mondayA = DateTime(2026, 6, 8);
+    final mondayB = DateTime(2026, 7, 6);
+    final tuesday = DateTime(2026, 6, 9);
+    await insertDive('mon-a', date: mondayA);
+    await insertDive('mon-b', date: mondayB);
+    await insertDive('tue', date: tuesday);
+
+    expect(await idsMatching(DiveFilterState(weekdays: [mondayA.weekday])), {
+      'mon-a',
+      'mon-b',
+    });
+    expect(
+      await idsMatching(
+        DiveFilterState(weekdays: [mondayA.weekday, tuesday.weekday]),
+      ),
+      {'mon-a', 'mon-b', 'tue'},
+    );
+  });
+
+  test('weekday filter ANDs with date range when both are set', () async {
+    final mondayInRange = DateTime(2026, 6, 8);
+    final mondayOutOfRange = DateTime(2026, 7, 6);
+    final tuesdayInRange = DateTime(2026, 6, 9);
+    await insertDive('mon-in', date: mondayInRange);
+    await insertDive('mon-out', date: mondayOutOfRange);
+    await insertDive('tue-in', date: tuesdayInRange);
+
+    final filter = DiveFilterState(
+      startDate: DateTime(2026, 6, 1),
+      endDate: DateTime(2026, 6, 30),
+      weekdays: [mondayInRange.weekday],
+    );
+    expect(await idsMatching(filter), {'mon-in'});
+  });
+
   test('site, depth, rating, favorites axes', () async {
     await insertSite('s1');
     await insertDive(
@@ -305,6 +397,54 @@ void main() {
       'a',
     });
   });
+
+  test(
+    'decoOnly axis: recorded signal (stop, no-stop, ceiling-only, event-only, '
+    'unrecorded)',
+    () async {
+      await insertDive('stop'); // deco: a deco_type = 2 point
+      await insertDive('noStop'); // no-deco: has deco_type, none is 2
+      await insertDive('ceilingOnly'); // deco: positive ceiling, no deco_type
+      await insertDive('eventOnly'); // deco: decoStopStart event only
+      await insertDive('none'); // unrecorded: no profile data at all
+
+      await insertProfilePoint('stop', 'p-stop-1', decoType: 0);
+      await insertProfilePoint('stop', 'p-stop-2', decoType: 2);
+
+      await insertProfilePoint('noStop', 'p-noStop-1', decoType: 0);
+
+      await insertProfilePoint('ceilingOnly', 'p-ceiling-1', ceiling: 3.0);
+
+      await insertProfilePoint('eventOnly', 'p-event-1');
+      await insertProfileEvent('eventOnly', 'e-event-1');
+
+      expect(await idsMatching(const DiveFilterState(decoOnly: true)), {
+        'stop',
+        'ceilingOnly',
+        'eventOnly',
+      });
+      expect(await idsMatching(const DiveFilterState(decoOnly: false)), {
+        'noStop',
+      });
+    },
+  );
+
+  test(
+    'noBuddyOnly excludes both legacy and junction-linked buddies',
+    () async {
+      await insertDive('legacy', buddy: 'Alice');
+      await insertDive('none');
+      await insertDive('empty', buddy: '');
+      await insertBuddy('b1', 'Bob Buddy');
+      await insertDive('linked');
+      await linkBuddy('linked', 'b1');
+
+      expect(await idsMatching(const DiveFilterState(noBuddyOnly: true)), {
+        'none',
+        'empty',
+      });
+    },
+  );
 
   test(
     'bottom-time filter truncates to whole minutes like Duration.inMinutes',
@@ -339,7 +479,9 @@ void main() {
             .insert(
               DivesCompanion(
                 id: Value(id),
-                diveDateTime: Value(date.millisecondsSinceEpoch),
+                diveDateTime: Value(
+                  asWallClockUtc(date).millisecondsSinceEpoch,
+                ),
                 bottomTime: Value(bt),
                 createdAt: Value(now),
                 updatedAt: Value(now),
@@ -350,7 +492,8 @@ void main() {
           .map(
             (c) => dive_entity.Dive(
               id: c.$1,
-              dateTime: c.$2,
+              // Entities carry the same wall-clock-UTC value the rows do.
+              dateTime: asWallClockUtc(c.$2),
               bottomTime: Duration(seconds: c.$3),
             ),
           )
@@ -380,8 +523,15 @@ void main() {
     // DiveFilterState.apply() and buildFilteredDiveIdSubquery() select the
     // same ids for a battery of filters -- one per axis, plus a few
     // multi-axis combinations. That "SQL mirrors apply()" property is what
-    // lets getStatistics/getSacVolumeTrend/etc. push filtering into SQL
+    // lets getStatistics/getSacVolumePerDive/etc. push filtering into SQL
     // instead of loading every dive into Dart.
+    //
+    // decoOnly is the one axis deliberately left out of the battery: it is
+    // SQL-only. getAllDives does not hydrate profiles and deco-stop events
+    // never reach the entity, so apply() cannot classify a dive and does not
+    // try. Its own coverage is the decoOnly test above plus
+    // deco_filter_providers_test.dart, which pins the entity-backed surfaces
+    // to the SQL answer via decoFilteredDiveIdsProvider.
 
     // --- Parents (FK=ON: must precede the dives that reference them) ---
     await insertSite('s1');
@@ -536,12 +686,16 @@ void main() {
       'diveCenterId': const DiveFilterState(diveCenterId: 'c1'),
       'tripId': const DiveFilterState(tripId: 't1'),
       'single tag': const DiveFilterState(tagIds: ['dry']),
+      'weekday (ANY)': DiveFilterState(
+        weekdays: [DateTime(2026, 1, 10).weekday, DateTime(2026, 4, 1).weekday],
+      ),
       'multi tag (ANY)': const DiveFilterState(tagIds: ['dry', 'night']),
       'equipment (ANY)': const DiveFilterState(equipmentIds: ['eq1']),
       'minDepth (null-exclusion)': const DiveFilterState(minDepth: 20),
       'maxDepth (null-exclusion)': const DiveFilterState(maxDepth: 20),
       'favoritesOnly': const DiveFilterState(favoritesOnly: true),
       'buddyNameFilter': const DiveFilterState(buddyNameFilter: 'alice'),
+      'noBuddyOnly': const DiveFilterState(noBuddyOnly: true),
       'diveIds': const DiveFilterState(diveIds: ['d1', 'd4']),
       'minO2Percent (any-tank)': const DiveFilterState(minO2Percent: 30),
       'maxO2Percent (any-tank)': const DiveFilterState(maxO2Percent: 20),
@@ -622,6 +776,13 @@ void main() {
       battery['buddyNameFilter']!.apply(domainDives).map((d) => d.id).toSet(),
       {'d1', 'd6'},
       reason: 'apply() must consult dive.buddies, not only dive.buddy',
+    );
+    expect(
+      await idsMatching(battery['noBuddyOnly']!),
+      {'d3', 'd4', 'd5', 'd7'},
+      reason:
+          'no-buddy filter must exclude both the legacy scalar column (d1, '
+          'd2) and junction-linked buddies (d6)',
     );
     expect(
       (await DiveRepository().getDiveSummaries(

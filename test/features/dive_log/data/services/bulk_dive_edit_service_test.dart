@@ -66,6 +66,14 @@ void main() {
     ),
     role: DiveRole.builtInBuddy(),
   );
+  domain.BuddyWithRole bwrRole(String id, String roleId) =>
+      domain.BuddyWithRole(
+        buddy: bwr(id).buddy,
+        role: DiveRole.synthetic(roleId),
+      );
+  Future<List<String>> buddyRolesOf(String d) async => (await (db.select(
+    db.diveBuddies,
+  )..where((t) => t.diveId.equals(d))).get()).map((r) => r.role).toList();
   domain.DiveTank tank(String name, {TankMaterial? material}) =>
       domain.DiveTank(id: '', name: name, material: material);
   domain.DiveWeight weight(double kg) => domain.DiveWeight(
@@ -249,6 +257,48 @@ void main() {
     expect(await equipOf('d1'), isEmpty);
     expect(await buddiesOf('d1'), isEmpty);
   });
+
+  test(
+    'BuddiesOp update rewrites roles without adding missing links',
+    () async {
+      await seed('d1');
+      await seed('d2');
+      // Real buddy rows: the undo snapshot reads links back through a join
+      // on `buddies`, so orphan junction rows would not survive the trip.
+      await seedBuddy('b1');
+      await seedBuddy('b2');
+      // b1 is on both dives; b2 only on d1.
+      await buddyRepo.bulkAddBuddies(['d1', 'd2'], [bwr('b1')]);
+      await buddyRepo.bulkAddBuddies(['d1'], [bwr('b2')]);
+
+      final snap = await service.apply(
+        BulkEditRequest(
+          diveIds: const ['d1', 'd2'],
+          ops: [
+            BuddiesOp(
+              mode: BulkCollectionMode.update,
+              buddies: [
+                bwrRole('b1', DiveRole.instructorId),
+                bwrRole('b2', DiveRole.diveGuideId),
+              ],
+            ),
+          ],
+        ),
+      );
+
+      expect((await buddyRolesOf('d2')).single, DiveRole.instructorId);
+      expect((await buddiesOf('d2')).toSet(), {'b1'});
+      expect((await buddyRolesOf('d1')).toSet(), {
+        DiveRole.instructorId,
+        DiveRole.diveGuideId,
+      });
+
+      await service.undo(snap);
+      expect((await buddyRolesOf('d1')).toSet(), {DiveRole.buddyId});
+      expect((await buddyRolesOf('d2')).single, DiveRole.buddyId);
+      expect((await buddiesOf('d2')).toSet(), {'b1'});
+    },
+  );
 
   test('EquipmentOp add preserves existing gear on each dive', () async {
     // Reproduces the r/submersion report at the service layer: adding one

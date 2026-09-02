@@ -61,8 +61,8 @@ Future<void> _pumpPage(WidgetTester tester, SiteMapPage page) async {
         ...base,
         sitesWithCountsProvider.overrideWith(
           (ref) async => [
-            SiteWithDiveCount(site: _site, diveCount: 3),
-            SiteWithDiveCount(site: _site2, diveCount: 1),
+            const SiteWithDiveCount(site: _site, diveCount: 3),
+            const SiteWithDiveCount(site: _site2, diveCount: 1),
           ],
         ),
         siteCoverageHeatMapProvider.overrideWith(

@@ -2,15 +2,15 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Calculate normalization factor to align profile-based SAC with tank-based SAC.
-/// The segments are calculated from profile pressure data, but dive.sacPressure
+/// The segments are calculated from profile pressure data, but dive.sac
 /// uses tank start/end pressures - these can differ, so we normalize.
 double calculateSacNormalizationFactor(Dive dive, ProfileAnalysis? analysis) {
   if (analysis?.sacSegments == null || analysis!.sacSegments!.isEmpty) {
     return 1.0;
   }
 
-  final diveSacPressure = dive.sacPressure;
-  if (diveSacPressure == null || diveSacPressure <= 0) {
+  final diveSac = dive.sac;
+  if (diveSac == null || diveSac <= 0) {
     return 1.0;
   }
 
@@ -27,5 +27,5 @@ double calculateSacNormalizationFactor(Dive dive, ProfileAnalysis? analysis) {
   final avgSegmentSac = totalWeightedSac / totalDuration;
   if (avgSegmentSac <= 0) return 1.0;
 
-  return diveSacPressure / avgSegmentSac;
+  return diveSac / avgSegmentSac;
 }

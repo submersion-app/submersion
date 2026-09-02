@@ -7,16 +7,21 @@
 // follows the pattern set by `network_fetch_pipeline_test.dart` (real DB +
 // stub extractor) and `trip_media_scanner_test.dart` (hand-rolled fakes
 // rather than Mockito) — both pre-existing in this codebase.
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/dive_link_matcher.dart';
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/data/services/subscription_poller.dart';
@@ -101,8 +106,8 @@ class _NoExtractExtractor implements UrlMetadataExtractor {
   }
 }
 
-/// Build a fully prefilled `ManifestEntry` so the pipeline's
-/// `ingestManifestEntries` path skips network extraction entirely.
+/// Build a fully prefilled `ManifestEntry` so the pipeline's manifest path
+/// skips network extraction entirely.
 ManifestEntry _entry(String key, String url, {DateTime? takenAt}) {
   return ManifestEntry(
     entryKey: key,
@@ -119,11 +124,41 @@ ManifestEntry _entry(String key, String url, {DateTime? takenAt}) {
 ManifestParseResult _parsed(List<ManifestEntry> entries) =>
     ManifestParseResult(format: ManifestFormat.json, entries: entries);
 
+/// Serves a fixed candidate list to [DiveLinkMatcher], so a test controls
+/// which dive (if any) an entry's timestamp lands on.
+class _FakeDiveRepo implements DiveRepository {
+  _FakeDiveRepo(this.dives);
+  final List<domain.Dive> dives;
+  String? lastDiverId;
+
+  @override
+  Future<List<domain.Dive>> getDivesInRange(
+    DateTime start,
+    DateTime end, {
+    String? diverId,
+  }) async {
+    lastDiverId = diverId;
+    return dives;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+domain.Dive _dive(String id, DateTime start) => domain.Dive(
+  id: id,
+  dateTime: start,
+  entryTime: start,
+  exitTime: start.add(const Duration(minutes: 50)),
+);
+
 void main() {
   late AppDatabase db;
   late ManifestSubscriptionRepository subscriptions;
   late MediaRepository mediaRepo;
   late NetworkFetchPipeline pipeline;
+  late DiveLinkMatcher matcher;
+  late _FakeDiveRepo diveRepo;
 
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
@@ -131,6 +166,22 @@ void main() {
     subscriptions = ManifestSubscriptionRepository();
     mediaRepo = MediaRepository();
     pipeline = NetworkFetchPipeline(db: db, extractor: _NoExtractExtractor());
+    // Every fixture entry is taken at 2024-06-01 12:00 UTC; this dive's
+    // window covers it, so the unattended poll has a confident match. The
+    // FK on media.dive_id needs the row to exist for real.
+    const epoch = 1717200000000;
+    await db
+        .into(db.dives)
+        .insert(
+          const DivesCompanion(
+            id: Value('d1'),
+            diveDateTime: Value(epoch),
+            createdAt: Value(epoch),
+            updatedAt: Value(epoch),
+          ),
+        );
+    diveRepo = _FakeDiveRepo([_dive('d1', DateTime.utc(2024, 6, 1, 11, 50))]);
+    matcher = DiveLinkMatcher(diveRepository: diveRepo);
   });
 
   tearDown(() async {
@@ -159,11 +210,12 @@ void main() {
       mediaRepo: mediaRepo,
       fetchService: fetcher,
       pipeline: pipeline,
+      diveLinkMatcher: matcher,
+      activeDiverId: () => 'diver-42',
     );
 
     final now = DateTime.utc(2024, 4, 27, 10, 0, 0);
     final visited = await poller.pollAllDue(now);
-    await pipeline.idle();
 
     expect(visited, 1);
     final rows = await mediaRepo.getAllBySubscription(sub.id);
@@ -178,6 +230,11 @@ void main() {
     expect(k1.latitude, 1.0);
     expect(k1.width, 800);
     expect(k1.isOrphaned, isFalse);
+    // Unattended polling links at insert; a row with no dive never lands.
+    expect(rows.every((r) => r.diveId == 'd1'), isTrue);
+    // Matching is scoped to the active diver, so a multi-diver database
+    // never hands a subscription photo to someone else's dive.
+    expect(diveRepo.lastDiverId, 'diver-42');
 
     // recordPollSuccess should have written ETag + bumped nextPollAt.
     final after = await subscriptions.getById(sub.id);
@@ -194,6 +251,52 @@ void main() {
     expect(fetcher.calls.single.ifNoneMatch, isNull);
     expect(fetcher.calls.single.ifModifiedSince, isNull);
   });
+
+  test(
+    'an entry with no confident dive is skipped and retried next poll',
+    () async {
+      final sub = await subscriptions.createSubscription(
+        manifestUrl: 'https://feed.example.com/m.json',
+        format: ManifestFormat.json,
+        pollIntervalSeconds: 3600,
+      );
+      final unmatched = _entry(
+        'k-far',
+        'https://feed.example.com/far.jpg',
+        takenAt: DateTime.utc(2024, 9, 1, 12),
+      );
+      final fetcher = _StaticFetcher({
+        sub.manifestUrl: ManifestFetchSuccess(parsed: _parsed([unmatched])),
+      });
+      final poller = SubscriptionPoller(
+        subscriptions: subscriptions,
+        mediaRepo: mediaRepo,
+        fetchService: fetcher,
+        pipeline: pipeline,
+        diveLinkMatcher: matcher,
+      );
+
+      await poller.pollNow(sub.id, DateTime.utc(2024, 9, 2));
+      expect(await mediaRepo.getAllBySubscription(sub.id), isEmpty);
+
+      // The dive gets logged later; the next poll picks the entry up.
+      final later = SubscriptionPoller(
+        subscriptions: subscriptions,
+        mediaRepo: mediaRepo,
+        fetchService: fetcher,
+        pipeline: pipeline,
+        diveLinkMatcher: DiveLinkMatcher(
+          diveRepository: _FakeDiveRepo([
+            _dive('d1', DateTime.utc(2024, 9, 1, 11, 50)),
+          ]),
+        ),
+      );
+      await later.pollNow(sub.id, DateTime.utc(2024, 9, 3));
+      final rows = await mediaRepo.getAllBySubscription(sub.id);
+      expect(rows.single.entryKey, 'k-far');
+      expect(rows.single.diveId, 'd1');
+    },
+  );
 
   test('not-modified: 304 path bumps timestamps only', () async {
     final firstNow = DateTime.utc(2024, 4, 27, 10, 0, 0);
@@ -222,10 +325,10 @@ void main() {
       mediaRepo: mediaRepo,
       fetchService: fetcher,
       pipeline: pipeline,
+      diveLinkMatcher: matcher,
     );
 
     final visited = await poller.pollAllDue(secondNow);
-    await pipeline.idle();
 
     expect(visited, 1);
     // No media inserted on a 304.
@@ -266,6 +369,7 @@ void main() {
       mediaRepo: mediaRepo,
       fetchService: fetcher,
       pipeline: pipeline,
+      diveLinkMatcher: matcher,
     );
 
     final now = DateTime.utc(2024, 4, 27, 10, 0, 0);
@@ -312,11 +416,11 @@ void main() {
         mediaRepo: mediaRepo,
         fetchService: fetcher,
         pipeline: pipeline,
+        diveLinkMatcher: matcher,
       );
 
       final now = DateTime.utc(2024, 4, 27, 10, 0, 0);
       final visited = await poller.pollAllDue(now);
-      await pipeline.idle();
 
       expect(visited, 2);
 
@@ -359,11 +463,11 @@ void main() {
       mediaRepo: mediaRepo,
       fetchService: fetcher,
       pipeline: pipeline,
+      diveLinkMatcher: matcher,
     );
 
     final t0 = DateTime.utc(2024, 4, 27, 10, 0, 0);
     await poller.pollAllDue(t0);
-    await pipeline.idle();
     expect(await mediaRepo.getAllBySubscription(sub.id), hasLength(2));
 
     // Second poll: only k1 still in the manifest. k2 should be orphaned.
@@ -374,7 +478,6 @@ void main() {
     );
     final t1 = t0.add(const Duration(hours: 2));
     await poller.pollAllDue(t1);
-    await pipeline.idle();
 
     final rows = await mediaRepo.getAllBySubscription(sub.id);
     expect(rows, hasLength(2)); // not deleted, just orphaned
@@ -404,11 +507,11 @@ void main() {
       mediaRepo: mediaRepo,
       fetchService: fetcher,
       pipeline: pipeline,
+      diveLinkMatcher: matcher,
     );
 
     final t0 = DateTime.utc(2024, 4, 27, 10, 0, 0);
     await poller.pollAllDue(t0);
-    await pipeline.idle();
 
     final firstRow = (await mediaRepo.getAllBySubscription(sub.id)).single;
     expect(firstRow.caption, 'cap');
@@ -432,7 +535,6 @@ void main() {
     );
     final t1 = t0.add(const Duration(hours: 2));
     await poller.pollAllDue(t1);
-    await pipeline.idle();
 
     // Still only one row (no duplicate insert), but it's been patched.
     final rows = await mediaRepo.getAllBySubscription(sub.id);

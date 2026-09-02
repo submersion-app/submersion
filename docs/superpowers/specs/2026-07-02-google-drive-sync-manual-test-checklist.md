@@ -19,6 +19,32 @@ cold-launch silent auth that passes today fails a week later.
 - [ ] B. An Android OAuth client exists for the **release / Play App
       Signing** SHA-1, not just the debug SHA-1. Without it, sign-in works
       in debug builds and fails in release ones.
+- [ ] C. The repository secret `GOOGLE_DRIVE_CLIENT_SECRET` holds the
+      **Desktop** client's secret (starts with `GOCSPX-`, ~35 chars), not the
+      client id. Google authenticates the Desktop-client token exchange with
+      it and answers `invalid_request: client_secret is missing` without it,
+      PKCE notwithstanding, so a wrong value produces a green build whose
+      sign-in fails only after the user has authorised in the browser. Google
+      no longer displays secrets after creation; use Add secret to mint a new
+      one. Local desktop builds read the same value from the
+      `GOOGLE_DRIVE_CLIENT_SECRET` environment variable
+      (`scripts/release/build_nosandbox_macos.sh`); omitting it disables
+      Google Drive in that build by design rather than failing at sign-in.
+
+## Verification status (2026-08-23)
+
+Recorded so the next person knows what is actually proven:
+
+- **macOS Developer ID DMG** -- VERIFIED on device. Fresh sign-in and a full
+  publish of 224 pending changes, on a build signed Developer ID + hardened
+  runtime with `ReleaseNoSandbox.entitlements`.
+- **macOS sandboxed (App Store)** -- regression-checked only: the build must
+  still choose the google_sign_in path, since `KeychainGatedAuthenticator` now
+  sits in front of every macOS build.
+- **Windows / Linux** -- NOT verified on device. The loopback flow there was
+  broken in exactly the same way (no client secret) and the fix is shared
+  code, but nobody has watched sign-in complete on either platform. Treat
+  items 1-7 below as outstanding for both.
 
 ## Device matrix
 

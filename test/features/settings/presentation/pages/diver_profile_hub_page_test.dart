@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image/image.dart' as img;
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -40,6 +44,22 @@ class _MockDiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>>
   Future<void> setAsDefault(String id) async {}
 }
 
+/// Records updateDiver so the remove-photo path can be asserted end to end.
+class _RecordingDiverRepository extends DiverRepository {
+  final List<Diver> updated = [];
+
+  @override
+  Future<void> updateDiver(Diver diver) async {
+    updated.add(diver);
+  }
+}
+
+Uint8List _jpeg() {
+  final image = img.Image(width: 32, height: 32);
+  img.fill(image, color: img.ColorRgb8(10, 20, 30));
+  return Uint8List.fromList(img.encodeJpg(image, quality: 80));
+}
+
 void main() {
   final now = DateTime.now();
 
@@ -54,8 +74,10 @@ void main() {
     EmergencyContact emergency = const EmergencyContact(),
     int? priorDiveCount,
     DateTime? divingSince,
+    Uint8List? photo,
   }) {
     return Diver(
+      photo: photo,
       id: id,
       name: name,
       email: email,
@@ -548,6 +570,109 @@ void main() {
       await tester.pumpAndSettle();
       // Sheet closed.
       expect(find.text('Diver Two'), findsNothing);
+    });
+  });
+
+  group('DiverProfileHubPage profile photo', () {
+    Future<void> pumpHub(WidgetTester tester, Diver diver) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            currentDiverProvider.overrideWith((_) async => diver),
+            diverListNotifierProvider.overrideWith(
+              (_) => _MockDiverListNotifier([diver]),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiverProfileHubPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the active diver card renders a stored photo', (tester) async {
+      await pumpHub(tester, makeDiver(photo: _jpeg()));
+
+      final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
+      expect(avatar.photo, isNotNull);
+      expect(avatar.radius, 40);
+    });
+
+    testWidgets('the card falls back to initials without a photo', (
+      tester,
+    ) async {
+      await pumpHub(tester, makeDiver());
+
+      final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
+      expect(avatar.photo, isNull);
+      expect(find.text('AA'), findsOneWidget);
+    });
+
+    testWidgets('the avatar carries a camera badge and is tappable', (
+      tester,
+    ) async {
+      await pumpHub(tester, makeDiver());
+
+      expect(find.byIcon(Icons.camera_alt), findsOneWidget);
+      final detector = tester.widget<GestureDetector>(
+        find
+            .ancestor(
+              of: find.byType(ProfileAvatar),
+              matching: find.byType(GestureDetector),
+            )
+            .first,
+      );
+      expect(detector.onTap, isNotNull);
+    });
+
+    testWidgets('tapping the avatar and choosing Remove clears the photo', (
+      tester,
+    ) async {
+      // Exercises the whole handler without a platform plugin: the source
+      // sheet opens in-process, and Remove short-circuits before any picker.
+      final repo = _RecordingDiverRepository();
+      final diver = makeDiver(photo: _jpeg());
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            currentDiverProvider.overrideWith((_) async => diver),
+            diverListNotifierProvider.overrideWith(
+              (_) => _MockDiverListNotifier([diver]),
+            ),
+            diverRepositoryProvider.overrideWithValue(repo),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiverProfileHubPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(ProfileAvatar));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text('Remove Photo'), findsOneWidget);
+      // Contacts holds buddies, not the diver using the app.
+      expect(find.text('Choose from Contacts'), findsNothing);
+
+      await tester.tap(find.text('Remove Photo'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(repo.updated, hasLength(1));
+      expect(repo.updated.single.photo, isNull);
+      expect(repo.updated.single.id, diver.id);
     });
   });
 }

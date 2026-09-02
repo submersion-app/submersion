@@ -111,6 +111,51 @@ void main() {
     expect(await cache.get(hash, MediaCacheKind.original), isNull);
   });
 
+  test(
+    'an idle over-cap store settles when evictIfNeeded runs alone',
+    () async {
+      // The gap this closes: the caps are enforced only inside put(), so the
+      // next eviction needs a write. A store that went over cap and then went
+      // idle stayed over cap indefinitely, waiting on a download that might
+      // never come. Lowering the cap under a settled store reproduces that
+      // state without needing a write to create it.
+      final a = 'aa${'1' * 62}';
+      final b = 'bb${'2' * 62}';
+      await cache.put(
+        a,
+        MediaCacheKind.original,
+        await staged(List.filled(60, 1)),
+      );
+      // lastAccessedAt is millisecondsSinceEpoch and _evictPool orders by it
+      // ascending, so two puts in the same millisecond leave the LRU order,
+      // and therefore the victim, undefined. Same delay as the LRU test above.
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await cache.put(
+        b,
+        MediaCacheKind.original,
+        await staged(List.filled(30, 1)),
+      );
+      expect(await cache.totalBytes(MediaCacheKind.original), 90);
+
+      final tightened = MediaCacheStore(
+        database: db,
+        root: root,
+        originalsCapBytes: 50,
+        thumbsCapBytes: 50,
+      );
+
+      // No put(), no writes of any kind: the pass runs on its own.
+      await tightened.evictIfNeeded();
+
+      expect(
+        await tightened.totalBytes(MediaCacheKind.original),
+        lessThanOrEqualTo(50),
+      );
+      expect(await tightened.get(a, MediaCacheKind.original), isNull);
+      expect(await tightened.get(b, MediaCacheKind.original), isNotNull);
+    },
+  );
+
   test('thumb pool evicts independently of originals', () async {
     final bigOriginal = 'ee${'5' * 62}';
     await cache.put(

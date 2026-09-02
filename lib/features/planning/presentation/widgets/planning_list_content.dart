@@ -192,6 +192,11 @@ class PlanningTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    // A full-page tool navigates even in split view, where every other row
+    // loads the detail pane. This is the general form of the rule the dive
+    // planner has always followed; see [PlanningToolPresentation].
+    final onSelected = tool.isFullPage ? null : onToolSelected;
+
     return Semantics(
       button: true,
       selected: selected,
@@ -226,13 +231,32 @@ class PlanningTile extends StatelessWidget {
           Icons.chevron_right,
           color: colorScheme.onSurfaceVariant,
         ).excludeFromSemantics(),
-        onTap: onToolSelected != null
-            ? () => onToolSelected!(tool.id)
-            // PUSH (not go): tools are sub-pages of the planning hub and must
-            // stay poppable (#647).
-            : () => context.push(tool.route),
+        onTap: onSelected != null
+            ? () => onSelected(tool.id)
+            : () => _open(context, tool),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
     );
+  }
+
+  /// Navigates to [tool] with the verb its presentation requires.
+  ///
+  /// PUSH by default: tools are sub-pages of the planning hub and must stay
+  /// poppable (#647).
+  ///
+  /// GO for a tool hosting its own split view. Its [MasterDetailScaffold]
+  /// selects by calling `go`, which rebuilds the stack from the declarative
+  /// route match; arriving on a push leaves the route carrying a generated
+  /// page key, so that first selection swaps the key and Flutter animates the
+  /// whole page in from the right a second time. `go` on a nested child route
+  /// still leaves the hub beneath it, so the tool stays poppable.
+  void _open(BuildContext context, PlanningTool tool) {
+    switch (tool.presentation) {
+      case PlanningToolPresentation.splitViewPage:
+        context.go(tool.route);
+      case PlanningToolPresentation.detailPane:
+      case PlanningToolPresentation.pushedPage:
+        context.push(tool.route);
+    }
   }
 }

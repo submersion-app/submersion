@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -630,6 +631,20 @@ void main() {
   });
 
   group('title derivation', () {
+    // The subtitle dates itself with DateFormat.yMMMd(), which resolves
+    // against Intl.defaultLocale (a process global that app.dart sets from the
+    // app locale), NOT the MaterialApp.locale the harness passes. Pin it so
+    // the "Aug 24, 2026" assertions below state their real dependency instead
+    // of riding on intl's implicit en_US fallback, and restore it so the
+    // global stays contained. No initializeDateFormatting is needed: these are
+    // widget tests, so GlobalMaterialLocalizations loads the symbol data.
+    String? previousLocale;
+    setUp(() {
+      previousLocale = Intl.defaultLocale;
+      Intl.defaultLocale = 'en';
+    });
+    tearDown(() => Intl.defaultLocale = previousLocale);
+
     testWidgets('a cert with no stored name still shows a title', (
       tester,
     ) async {
@@ -706,6 +721,99 @@ void main() {
       // The Name column derives the certification; the Agency column still
       // carries "PADI" on its own, so the title must not repeat it.
       expect(find.text('Open Water'), findsWidgets);
+    });
+
+    // A custom name takes the title, which leaves the level with nowhere to go
+    // unless the subtitle carries it. See issue #1265: a card entered as
+    // "Bill Ansell" / PADI / Divemaster showed no trace of "Divemaster".
+    testWidgets('a custom name keeps the certification in the subtitle', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        certs: [
+          _makeCert(
+            id: 'c1',
+            name: 'Bill Ansell',
+            level: CertificationLevel.diveMaster,
+            issueDate: DateTime(2026, 8, 24),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: const CertificationListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Bill Ansell'), findsOneWidget);
+      expect(find.text('PADI - Divemaster - Aug 24, 2026'), findsOneWidget);
+    });
+
+    testWidgets('a derived title does not repeat the level in the subtitle', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        certs: [
+          _makeCert(
+            id: 'c2',
+            name: '',
+            level: CertificationLevel.diveMaster,
+            issueDate: DateTime(2026, 8, 24),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: const CertificationListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      // The title already says "Divemaster"; the subtitle must not say it
+      // again, which is the duplication the title helper exists to remove.
+      expect(find.text('Divemaster'), findsOneWidget);
+      expect(find.text('PADI - Aug 24, 2026'), findsOneWidget);
+    });
+
+    testWidgets('accessibility label names the certification too', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+
+      final overrides = await _buildPhoneOverrides(
+        certs: [
+          _makeCert(
+            id: 'c3',
+            name: 'Bill Ansell',
+            level: CertificationLevel.diveMaster,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: const CertificationListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      // The label stands in for the whole tile, so a screen reader must hear
+      // the level even when a custom name owns the title.
+      expect(
+        find.bySemanticsLabel('PADI Bill Ansell, Divemaster'),
+        findsOneWidget,
+      );
+
+      handle.dispose();
     });
   });
 }

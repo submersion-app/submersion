@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -28,7 +27,6 @@ void main() {
   late MediaOrphanBacklogSweep sweep;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
     db = await setUpTestDatabase();
     cacheDb = LocalCacheDatabase(NativeDatabase.memory());
     queue = MediaTransferQueueRepository(database: cacheDb);
@@ -39,7 +37,6 @@ void main() {
         mediaRepository: repo,
         queue: () => queue,
       ),
-      prefs: SharedPreferences.getInstance,
     );
   });
 
@@ -73,7 +70,7 @@ void main() {
   // 24h age guard is satisfied by running "two days in the future".
   final sweepTime = DateTime.now().add(const Duration(days: 2));
 
-  test('sweeps old unlinked non-library rows exactly once', () async {
+  test('sweeps every old unlinked row on each run', () async {
     final epoch = DateTime(2026, 1, 1).millisecondsSinceEpoch;
     await db
         .into(db.dives)
@@ -88,43 +85,43 @@ void main() {
     final orphan = await repo.createMedia(
       item('orphan.jpg', hash: 'h1', uploadedAt: DateTime(2026, 2)),
     );
-    final library = await repo.createMedia(
-      item('lib.jpg', sourceType: MediaSourceType.networkUrl),
+    final url = await repo.createMedia(
+      item('url.jpg', sourceType: MediaSourceType.networkUrl),
     );
     final linked = await repo.createMedia(item('linked.jpg', diveId: 'd1'));
 
-    final swept = await sweep.runIfNeeded(now: sweepTime);
-    expect(swept, 1);
+    expect(await sweep.run(now: sweepTime), 2);
     expect(await repo.getMediaById(orphan.id), isNull);
-    expect(await repo.getMediaById(library.id), isNotNull);
+    expect(await repo.getMediaById(url.id), isNull);
     expect(await repo.getMediaById(linked.id), isNotNull);
     // The uploaded orphan produced a blob-delete intent.
     final entry = (await queue.allForTesting()).single;
     expect(entry.direction, 'delete');
     expect(entry.contentHash, 'h1');
 
-    // Second run is a no-op: the flag persisted.
-    await repo.createMedia(item('later-orphan.jpg'));
-    expect(await sweep.runIfNeeded(now: sweepTime), 0);
+    // A second run is idempotent on a clean library.
+    expect(await sweep.run(now: sweepTime), 0);
+
+    // A row that arrives later (a peer that has not upgraded yet can still
+    // sync one in) is caught on a later launch once it is old enough.
+    final late = await repo.createMedia(item('late-orphan.jpg'));
+    expect(await sweep.run(now: sweepTime), 1);
+    expect(await repo.getMediaById(late.id), isNull);
   });
 
-  test(
-    'flag stays unset when the sweep fails, so it retries next launch',
-    () async {
-      final broken = MediaOrphanBacklogSweep(
-        mediaRepository: _ThrowingMediaRepository(),
-        coordinator: MediaDeletionCoordinator(
-          mediaRepository: repo,
-          queue: () => queue,
-        ),
-        prefs: SharedPreferences.getInstance,
-      );
-      await expectLater(broken.runIfNeeded(now: sweepTime), throwsStateError);
-      final p = await SharedPreferences.getInstance();
-      expect(p.getBool(MediaOrphanBacklogSweep.flagKey), isNot(true));
-      // The healthy sweep still runs afterwards.
-      expect(await sweep.runIfNeeded(now: sweepTime), 0);
-      expect(p.getBool(MediaOrphanBacklogSweep.flagKey), isTrue);
-    },
-  );
+  test('a row younger than the age guard is left alone', () async {
+    await repo.createMedia(item('fresh.jpg'));
+    expect(await sweep.run(now: DateTime.now()), 0);
+  });
+
+  test('a repository failure propagates', () async {
+    final broken = MediaOrphanBacklogSweep(
+      mediaRepository: _ThrowingMediaRepository(),
+      coordinator: MediaDeletionCoordinator(
+        mediaRepository: repo,
+        queue: () => queue,
+      ),
+    );
+    await expectLater(broken.run(now: sweepTime), throwsStateError);
+  });
 }

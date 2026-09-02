@@ -73,6 +73,97 @@ void main() {
       expect(conflicts.first.recordId, 'd-getc');
     });
 
+    test('getConflicts resolves foreign keys on both sides (#1031)', () async {
+      final serializer = SyncDataSerializer();
+      await serializer.upsertRecord('tags', {
+        'id': 'tag-local',
+        'name': 'Wreck',
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      });
+      await serializer.upsertRecord('tags', {
+        'id': 'tag-remote',
+        'name': 'Night',
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      });
+      await seedDive('d-refs', 10);
+      await serializer.upsertRecord('diveTags', {
+        'id': 'dt-1',
+        'diveId': 'd-refs',
+        'tagId': 'tag-local',
+        'createdAt': 1000,
+      });
+      await raiseConflict('diveTags', 'dt-1', {
+        'id': 'dt-1',
+        'diveId': 'd-refs',
+        'tagId': 'tag-remote',
+        'createdAt': 2000,
+      });
+
+      final conflict = (await buildService().getConflicts()).single;
+
+      expect(
+        conflict.localReferences.firstWhere((r) => r.field == 'tagId').name,
+        'Wreck',
+      );
+      expect(
+        conflict.remoteReferences.firstWhere((r) => r.field == 'tagId').name,
+        'Night',
+      );
+    });
+
+    test('surfaces a conflict whose local row is already gone', () async {
+      // Nothing local to fetch, so there are no local fields to resolve. The
+      // conflict still has to reach the dialog or the user cannot act on it.
+      await raiseConflict('dives', 'd-vanished', {
+        'id': 'd-vanished',
+        'maxDepth': 42.0,
+      });
+
+      final conflict = (await buildService().getConflicts()).single;
+
+      expect(conflict.localData, isEmpty);
+      expect(conflict.localReferences, isEmpty);
+      expect(conflict.recordId, 'd-vanished');
+    });
+
+    test('keeps a conflict when a reference lookup fails', () async {
+      final serializer = SyncDataSerializer();
+      await serializer.upsertRecord('tags', {
+        'id': 'tag-1',
+        'name': 'Wreck',
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      });
+      await seedDive('d-reffail', 10);
+      await serializer.upsertRecord('diveTags', {
+        'id': 'dt-fail',
+        'diveId': 'd-reffail',
+        'tagId': 'tag-1',
+        'createdAt': 1000,
+      });
+      await raiseConflict('diveTags', 'dt-fail', {
+        'id': 'dt-fail',
+        'diveId': 'd-reffail',
+        'tagId': 'tag-1',
+        'createdAt': 2000,
+      });
+
+      final service = SyncService(
+        syncRepository: SyncRepository(),
+        serializer: _TagLookupFailsSerializer(),
+        cloudProvider: cloud,
+      );
+      final conflict = (await service.getConflicts()).single;
+
+      // Degrading to an unresolved preview is the point: dropping the
+      // conflict would leave it permanently unresolvable.
+      expect(conflict.recordId, 'dt-fail');
+      expect(conflict.localReferences, isEmpty);
+      expect(conflict.remoteReferences, isEmpty);
+    });
+
     test(
       'keepLocal preserves the local value and clears the conflict',
       () async {
@@ -220,4 +311,20 @@ void main() {
       },
     );
   });
+}
+
+/// Fails only when a reference is resolved, never when the conflicting row
+/// itself is loaded, so the failure lands in the reference-resolution step
+/// rather than the outer conflict parse.
+class _TagLookupFailsSerializer extends SyncDataSerializer {
+  @override
+  Future<Map<String, dynamic>?> fetchRecord(
+    String entityType,
+    String recordId,
+  ) {
+    if (entityType == 'tags') {
+      throw StateError('simulated lookup failure for $recordId');
+    }
+    return super.fetchRecord(entityType, recordId);
+  }
 }

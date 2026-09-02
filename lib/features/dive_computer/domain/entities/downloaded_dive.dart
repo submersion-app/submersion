@@ -201,6 +201,13 @@ class ProfileSample {
   /// Tank index for pressure (0-based)
   final int? tankIndex;
 
+  /// Every tank's pressure in bar at this sample, indexed by tank index, with
+  /// null where that tank reported nothing. libdivecomputer reports one
+  /// pressure per air-integrated transmitter, so a single sample can carry
+  /// several; [pressure]/[tankIndex] hold only the last of them (issue #1223).
+  /// Null when the source reports at most one pressure per sample.
+  final List<double?>? tankPressures;
+
   /// Heart rate in bpm (if available)
   final int? heartRate;
 
@@ -265,6 +272,7 @@ class ProfileSample {
     this.temperature,
     this.pressure,
     this.tankIndex,
+    this.tankPressures,
     this.heartRate,
     this.heading,
     this.setpoint,

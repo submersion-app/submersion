@@ -290,6 +290,8 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
         return l10n.diveImport_uddf_equipmentSets;
       case ImportEntityType.courses:
         return l10n.diveImport_uddf_tabCourses;
+      case ImportEntityType.media:
+        return l10n.diveImport_uddf_media;
     }
   }
 }
@@ -354,6 +356,11 @@ class _EntityTab extends StatelessWidget {
         onDeselectAll: () => notifier.deselectAll(type),
         existingDiveIdForIndex: (i) => group.matchResults?[i]?.diveId ?? '',
         projectedDiveNumbers: projectedDiveNumbers,
+        sortField: type == ImportEntityType.dives ? state.diveSortField : null,
+        sortAscending: state.diveSortAscending,
+        onSortFieldChanged: type == ImportEntityType.dives
+            ? notifier.setDiveSortField
+            : null,
       ),
     );
   }

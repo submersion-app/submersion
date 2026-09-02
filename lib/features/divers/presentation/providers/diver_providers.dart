@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -57,34 +60,59 @@ final diverByIdProvider = FutureProvider.family<Diver?, String>((
 /// Public so the backup restore flow can sync this value.
 const String currentDiverIdKey = 'current_diver_id';
 
+final _activeDiverLog = LoggerService.forClass(CurrentDiverIdNotifier);
+
+/// Resolves the diver id the app should scope to: the first of [candidates]
+/// that names an existing diver, else the default diver. Null only when no
+/// diver exists at all.
+Future<String?> _resolveActiveDiverId(
+  DiverRepository repository,
+  Iterable<String?> candidates,
+) async {
+  for (final id in candidates.whereType<String>().toSet()) {
+    if (await repository.getDiverById(id) != null) return id;
+  }
+  return (await repository.getDefaultDiver())?.id;
+}
+
 /// After the local database content has been replaced wholesale (backup
 /// restore, or adopting a replaced sync library), realign the active diver:
 /// validate the restored settings' active diver against the divers table,
 /// fall back to the default diver, and persist the result to
 /// SharedPreferences so startup picks up the right diver.
+///
+/// When nothing resolves the stored id is removed rather than left in place.
+/// `current_diver_id` lives in SharedPreferences, which a database swap never
+/// touches, so a leftover id from the previous library would seed the next
+/// launch with a diver that no longer exists and scope every dive query to
+/// nothing (issue #1342). With no id the queries run unscoped, which is how
+/// every other diver-scoped repository already treats a null diver id.
+///
+/// Callers that keep running without a restart need not invalidate
+/// [currentDiverIdProvider]: the live notifier re-validates itself on the
+/// divers-table tick the replace produced.
 Future<void> realignActiveDiverAfterDataReplace(SharedPreferences prefs) async {
   try {
     final repository = DiverRepository();
-
-    var restoredId = await repository.getActiveDiverIdFromSettings();
-
-    if (restoredId != null) {
-      final diver = await repository.getDiverById(restoredId);
-      if (diver == null) {
-        restoredId = null;
-      }
+    final resolvedId = await _resolveActiveDiverId(repository, [
+      await repository.getActiveDiverIdFromSettings(),
+    ]);
+    if (resolvedId != null) {
+      await prefs.setString(currentDiverIdKey, resolvedId);
+    } else if (prefs.containsKey(currentDiverIdKey)) {
+      _activeDiverLog.warning(
+        'No diver resolves after the data replace; clearing stored active '
+        'diver id ${prefs.getString(currentDiverIdKey)}',
+      );
+      await prefs.remove(currentDiverIdKey);
     }
-
-    if (restoredId == null) {
-      final defaultDiver = await repository.getDefaultDiver();
-      restoredId = defaultDiver?.id;
-    }
-
-    if (restoredId != null) {
-      await prefs.setString(currentDiverIdKey, restoredId);
-    }
-  } catch (_) {
-    // Non-fatal: startup validation in CurrentDiverIdNotifier handles it.
+  } catch (e, stackTrace) {
+    // Non-fatal: startup validation in CurrentDiverIdNotifier retries this.
+    _activeDiverLog.error(
+      'Failed to realign the active diver after the data replace',
+      error: e,
+      stackTrace: stackTrace,
+    );
   }
 }
 
@@ -99,13 +127,43 @@ final currentDiverIdProvider =
 class CurrentDiverIdNotifier extends StateNotifier<String?> {
   final SharedPreferences _prefs;
   final DiverRepository _repository;
+  StreamSubscription<void>? _diversChangeSub;
 
   CurrentDiverIdNotifier(this._prefs, this._repository) : super(null) {
     _loadCurrentDiverId();
     _validateAndSync();
+    // A merge, a restore, a replace-adopt, or a sync tombstone can remove the
+    // diver this id names without going through setCurrentDiver. Re-validate
+    // on the divers-table tick so the live notifier never keeps an id that
+    // matches no row (issue #1342). A raw stream subscription rather than a
+    // pause-aware ref.listen: the repair must run even while nothing watches
+    // this provider, so the next reader gets a healed id.
+    try {
+      _diversChangeSub = _repository.watchDiversChanges().listen(
+        (_) => _validateAndSync(),
+      );
+    } catch (e, stackTrace) {
+      // Same footing as the validation above: without a database (a test
+      // that never opened one) the notifier still serves the stored id.
+      _activeDiverLog.error(
+        'Cannot watch the divers table; the active diver id will not '
+        'self-repair until the next launch',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _diversChangeSub?.cancel();
+    super.dispose();
   }
 
   /// Synchronous load from SharedPreferences for immediate UI rendering.
+  ///
+  /// Unvalidated by design (no DB read is possible synchronously);
+  /// [_validateAndSync] follows at once and corrects or clears it.
   void _loadCurrentDiverId() {
     final storedId = _prefs.getString(currentDiverIdKey);
     if (storedId != null && storedId.isNotEmpty) {
@@ -113,52 +171,75 @@ class CurrentDiverIdNotifier extends StateNotifier<String?> {
     }
   }
 
-  /// Async validation that runs after construction.
-  /// Checks the prefs ID is valid, falls back to DB Settings table,
-  /// then to default diver. Syncs resolved ID back to both stores.
+  /// Async validation, run after construction and again on every divers-table
+  /// write. Resolves, in order: the current id if its diver exists, the
+  /// Settings-table id (survives a restore) if its diver exists, then the
+  /// default diver. Syncs the result to both stores.
+  ///
+  /// When nothing resolves the id is cleared from state and prefs. A null id
+  /// runs the queries unscoped, which is how every other diver-scoped
+  /// repository already treats a null diver id; keeping an id that matches no
+  /// row would instead scope the logbook to a diver that cannot exist and
+  /// empty it for good.
   Future<void> _validateAndSync() async {
+    // Everything below awaits; if the user switches diver meanwhile, an
+    // answer computed from the old id must not overwrite their choice.
+    final startedFrom = state;
     try {
-      String? resolvedId = state;
+      final dbId = await _repository.getActiveDiverIdFromSettings();
+      final resolvedId = await _resolveActiveDiverId(_repository, [
+        startedFrom,
+        dbId,
+      ]);
+      if (!mounted || state != startedFrom) return;
 
-      // Check if the prefs ID actually exists in the divers table
-      if (resolvedId != null) {
-        final diver = await _repository.getDiverById(resolvedId);
-        if (diver == null) {
-          resolvedId = null;
+      if (resolvedId != startedFrom) {
+        if (resolvedId == null) {
+          _activeDiverLog.warning(
+            'Active diver id $startedFrom matches no diver and none can be '
+            'resolved; clearing it',
+          );
+        } else {
+          _activeDiverLog.info(
+            'Active diver id resolved to $resolvedId (was $startedFrom)',
+          );
         }
-      }
-
-      // If prefs ID was stale/empty, try the Settings table (survives restore)
-      if (resolvedId == null) {
-        final dbId = await _repository.getActiveDiverIdFromSettings();
-        if (dbId != null) {
-          final diver = await _repository.getDiverById(dbId);
-          if (diver != null) {
-            resolvedId = dbId;
-          }
+        await _persist(resolvedId);
+        if (!mounted) return;
+        if (state != startedFrom) {
+          // The user switched diver while that write was in flight, and
+          // their own write may have landed first. Re-persist the newer state
+          // so prefs do not keep the answer computed for the old one.
+          await _persist(state);
+          return;
         }
-      }
-
-      // Last resort: fall back to the default diver
-      if (resolvedId == null) {
-        final defaultDiver = await _repository.getDefaultDiver();
-        resolvedId = defaultDiver?.id;
-      }
-
-      // Sync the resolved ID to both stores if it changed
-      if (resolvedId != null && resolvedId != state) {
-        await _prefs.setString(currentDiverIdKey, resolvedId);
         state = resolvedId;
       }
 
-      // Ensure the DB Settings table is in sync
-      if (resolvedId != null) {
+      // Keep the DB Settings table in step. Skipped when it already agrees,
+      // so a divers-table tick does not turn into a settings write, and left
+      // alone when nothing resolved: a stale pointer there is harmless (it is
+      // validated on every read) and may name the right diver again once a
+      // replace finishes refilling the divers table.
+      if (resolvedId != null && dbId != resolvedId) {
         await _repository.setActiveDiverIdInSettings(resolvedId);
       }
-    } catch (_) {
-      // Non-fatal: SharedPreferences remains the primary source
+    } catch (e, stackTrace) {
+      // Not cleared: a failed read says nothing about whether the id is
+      // valid. Logged so a transient startup failure that leaves a stale id
+      // in place is visible; the next divers-table write retries.
+      _activeDiverLog.error(
+        'Failed to validate active diver id $startedFrom; keeping it '
+        'unvalidated',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
+
+  Future<void> _persist(String? id) => id == null
+      ? _prefs.remove(currentDiverIdKey)
+      : _prefs.setString(currentDiverIdKey, id);
 
   Future<void> setCurrentDiver(String diverId) async {
     await _prefs.setString(currentDiverIdKey, diverId);
@@ -272,10 +353,22 @@ class DiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>> {
     final result = await _repository.deleteDiverWithReassignment(id);
     await refresh();
 
-    // If deleted diver was current, clear selection
+    // If the deleted diver was current, move the selection to the diver the
+    // app would resolve at startup (Settings-table pointer, then default)
+    // rather than leaving it null. The notifier's own divers-table tick would
+    // repair it eventually, but that races this method's return; resolving
+    // here makes the state settled by the time the caller continues.
     final currentId = _ref.read(currentDiverIdProvider);
     if (currentId == id) {
-      await _ref.read(currentDiverIdProvider.notifier).clearCurrentDiver();
+      final replacementId = await _resolveActiveDiverId(_repository, [
+        await _repository.getActiveDiverIdFromSettings(),
+      ]);
+      final notifier = _ref.read(currentDiverIdProvider.notifier);
+      if (replacementId != null) {
+        await notifier.setCurrentDiver(replacementId);
+      } else {
+        await notifier.clearCurrentDiver();
+      }
     }
     return result;
   }

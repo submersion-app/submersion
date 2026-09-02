@@ -40,10 +40,16 @@ class MarkerLayout {
   static List<SceneMarker> layout({
     required Dive3dSceneData data,
     required SceneBounds bounds,
+    List<double>? pathTimes,
+    List<double>? pathZs,
   }) {
     if (!data.hasProfile) return const [];
     final lookup = ProfileLookup(data.times);
     final nullableDepths = data.depths.cast<double?>();
+    final zLookup = pathTimes == null || pathZs == null
+        ? null
+        : ProfileLookup(pathTimes);
+    final nullableZs = pathZs?.cast<double?>();
 
     SceneMarker at({
       required SceneMarkerKind kind,
@@ -52,12 +58,14 @@ class MarkerLayout {
       required int t,
     }) {
       final depth = lookup.interpolate(nullableDepths, t.toDouble()) ?? 0;
+      final z = zLookup?.interpolate(nullableZs!, t.toDouble()) ?? 0;
       return SceneMarker(
         kind: kind,
         refId: refId,
         label: label,
         x: bounds.xOf(t),
         y: bounds.yOf(depth) + _floatOffset,
+        z: z,
         timestampSeconds: t,
       );
     }

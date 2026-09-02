@@ -5,9 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/statistics/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
-import 'package:submersion/features/statistics/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/statistics/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_bar.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_action.dart';
+import 'package:submersion/features/statistics/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class StatisticsEquipmentPage extends ConsumerWidget {
@@ -39,8 +42,16 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.statistics_equipment_appBar_title),
+        actions: const [StatisticsFilterAction()],
       ),
-      body: content,
+      // Expanded is required: content is a SingleChildScrollView, and a
+      // Column would otherwise hand it unbounded height.
+      body: Column(
+        children: [
+          const StatisticsFilterBar(),
+          Expanded(child: content),
+        ],
+      ),
     );
   }
 
@@ -74,26 +85,16 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     WidgetRef ref,
     UnitFormatter units,
   ) {
-    final weightTrendAsync = ref.watch(weightTrendProvider);
-
-    return StatSectionCard(
+    return TrendChartSection(
+      chartId: TrendChartIds.weight,
+      onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: context.l10n.statistics_equipment_weightTrend_title,
       subtitle: context.l10n.statistics_equipment_weightTrend_subtitle,
-      child: weightTrendAsync.when(
-        data: (data) => TrendLineChart(
-          data: data,
-          lineColor: Colors.purple,
-          valueFormatter: (value) => units.formatWeight(value),
-        ),
-        loading: () => const SizedBox(
-          height: 200,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (_, _) => StatEmptyState(
-          icon: Icons.error_outline,
-          message: context.l10n.statistics_equipment_weightTrend_error,
-        ),
-      ),
+      pointsAsync: ref.watch(weightTrendProvider),
+      errorMessage: context.l10n.statistics_equipment_weightTrend_error,
+      lineColor: Colors.purple,
+      valueFormatter: (value) => units.formatWeight(value),
+      rateFormatter: (value) => units.formatWeight(value),
     );
   }
 }

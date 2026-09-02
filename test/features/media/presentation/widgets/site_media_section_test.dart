@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
@@ -43,9 +44,10 @@ class _RecordingSiteMediaNotifier extends SiteMediaListNotifier {
   final Object? failWith;
 
   @override
-  Future<void> deleteMultipleMedia(List<String> ids) async {
+  Future<SiteUnlinkOutcome> unlinkMultipleMedia(List<String> ids) async {
     deleteCalls.add(List<String>.of(ids));
     if (failWith != null) throw failWith!;
+    return SiteUnlinkOutcome(deleted: ids.length, keptAsDiveMedia: 0);
   }
 }
 
@@ -408,11 +410,14 @@ void main() {
       await openUnlinkDialog(tester);
 
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.text('Remove 2 attachments?'), findsOneWidget);
+      // Same verb as every other media surface; the body is what makes this
+      // one the site's, by naming the carve-out a dive still holds.
+      expect(find.text('Unlink 2 items?'), findsOneWidget);
       expect(
         find.text(
-          'The selected items will be removed from this site. Files in '
-          'your photo library or on disk are not deleted.',
+          'Removes 2 items from your library, along with their cloud copies '
+          'and thumbnails. Media a dive still uses is kept. Your original '
+          'files are not affected.',
         ),
         findsOneWidget,
       );
@@ -443,7 +448,7 @@ void main() {
       expect(deleteCalls, [
         ['m1', 'm2'],
       ]);
-      expect(find.text('Removed 2 attachments'), findsOneWidget);
+      expect(find.text('Unlinked 2 items'), findsOneWidget);
       // Selection mode exits once the unlink lands.
       expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
       expect(find.text('Site Media'), findsOneWidget);
@@ -460,7 +465,7 @@ void main() {
         find.text('Failed to unlink: Exception: row locked'),
         findsOneWidget,
       );
-      expect(find.text('Removed 2 attachments'), findsNothing);
+      expect(find.text('Unlinked 2 items'), findsNothing);
       expect(find.text('2 selected'), findsOneWidget);
     });
   });

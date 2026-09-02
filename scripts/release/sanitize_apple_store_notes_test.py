@@ -459,6 +459,80 @@ class TestMain(unittest.TestCase):
         self.assertIn("survived", err)
 
 
+class TestStripAttribution(unittest.TestCase):
+    """Contributor credits belong in the release body, not in store copy.
+
+    The App Store "What's New" is derived from the published GitHub release
+    body, so the @handles and #PR numbers the changelog adds arrive here. They
+    mean nothing to a store reader, and an @handle is not a name.
+    """
+
+    def test_drops_handle_and_pr(self):
+        self.assertEqual(
+            san.strip_attribution("- fixed a thing by @octocat in #42")[0],
+            "- fixed a thing",
+        )
+
+    def test_drops_handle_without_a_pr(self):
+        self.assertEqual(
+            san.strip_attribution("- fixed a thing by @octo-cat")[0],
+            "- fixed a thing",
+        )
+
+    def test_leaves_ordinary_prose_alone(self):
+        for line in (
+            "Reported by a tester in the field.",
+            "Sorted by depth, then by date.",
+            "Fixes the crash described in #1182.",
+        ):
+            with self.subTest(line=line):
+                self.assertEqual(san.strip_attribution(line)[0], line)
+
+    def test_drops_the_new_contributors_section(self):
+        body = (
+            "### Bug Fixes\n"
+            "\n"
+            "- fixed a thing by @octocat in #42\n"
+            "\n"
+            "### New Contributors\n"
+            "\n"
+            "- @octocat made their first contribution in #42\n"
+        )
+        result, count = san.strip_attribution(body)
+        self.assertNotIn("New Contributors", result)
+        self.assertNotIn("@octocat", result)
+        self.assertIn("- fixed a thing", result)
+        self.assertEqual(count, 2)
+
+    def test_a_later_section_survives_the_drop(self):
+        body = (
+            "### New Contributors\n"
+            "\n"
+            "- @octocat made their first contribution in #42\n"
+            "\n"
+            "## Upgrade notes\n"
+            "\n"
+            "- the schema is unchanged\n"
+        )
+        result, _count = san.strip_attribution(body)
+        self.assertNotIn("@octocat", result)
+        self.assertIn("the schema is unchanged", result)
+
+    def test_end_to_end_through_main(self):
+        body = "- fixed a thing on Windows by @octocat in #42\n"
+        stdin, stdout = sys.stdin, sys.stdout
+        sys.stdin, sys.stdout = io.StringIO(body), io.StringIO()
+        try:
+            code = san.main([])
+            result = sys.stdout.getvalue()
+        finally:
+            sys.stdin, sys.stdout = stdin, stdout
+        self.assertEqual(code, 0)
+        self.assertNotIn("@octocat", result)
+        self.assertNotIn("#42", result)
+        self.assertNotIn("Windows", result)
+
+
 class TestReleaseNotesCorpus(unittest.TestCase):
     """The real input distribution: every historical release announcement."""
 

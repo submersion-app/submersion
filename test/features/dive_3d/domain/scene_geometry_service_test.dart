@@ -40,7 +40,7 @@ void main() {
 
   test('builds ribbon, curtain and strata layers; skips absent overlays', () {
     final scene = service.build(sceneData(), SceneMetric.depth);
-    expect(ribbonLayer(scene).mesh.vertexCount, 200);
+    expect(ribbonLayer(scene).mesh.vertexCount, 400);
     expect(layerFor(scene, SceneOverlay.curtain)!.mesh.vertexCount, 200);
     expect(layerFor(scene, SceneOverlay.strata), isNotNull);
     expect(layerFor(scene, SceneOverlay.ceiling), isNull);
@@ -51,7 +51,7 @@ void main() {
   test('decimates geometry above 2000 samples', () {
     final scene = service.build(sceneData(samples: 6000), SceneMetric.depth);
     final ribbon = ribbonLayer(scene).mesh;
-    expect(ribbon.vertexCount, lessThanOrEqualTo(2 * 2000));
-    expect(ribbon.vertexCount, greaterThan(2 * 1000));
+    expect(ribbon.vertexCount, lessThanOrEqualTo(4 * 2000));
+    expect(ribbon.vertexCount, greaterThan(4 * 1000));
   });
 }

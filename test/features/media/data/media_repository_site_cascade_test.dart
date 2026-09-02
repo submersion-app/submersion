@@ -94,29 +94,28 @@ void main() {
   }
 
   group('partitionMediaForSiteDeletion', () {
-    test(
-      'site-only media is doomed; dive-linked and library rows unlink',
-      () async {
-        await insertSite('s1');
-        await insertDive('d1');
-        final siteOnly = await mediaRepository.createMedia(
-          item('a.pdf', siteId: 's1', mediaType: MediaType.document),
-        );
-        final diveLinked = await mediaRepository.createMedia(
-          item('b.jpg', siteId: 's1', diveId: 'd1'),
-        );
-        final libraryRow = await mediaRepository.createMedia(
-          item('c.jpg', siteId: 's1', sourceType: MediaSourceType.networkUrl),
-        );
-        await mediaRepository.createMedia(item('other.jpg')); // unrelated
+    test('site-only media is doomed; dive-linked rows unlink', () async {
+      await insertSite('s1');
+      await insertDive('d1');
+      final siteOnly = await mediaRepository.createMedia(
+        item('a.pdf', siteId: 's1', mediaType: MediaType.document),
+      );
+      final diveLinked = await mediaRepository.createMedia(
+        item('b.jpg', siteId: 's1', diveId: 'd1'),
+      );
+      // A URL row is site-only too: no source type is exempt from the
+      // cascade, so it dies with the site like the document does.
+      final urlRow = await mediaRepository.createMedia(
+        item('c.jpg', siteId: 's1', sourceType: MediaSourceType.networkUrl),
+      );
+      await mediaRepository.createMedia(
+        item('other.jpg', diveId: 'd1'),
+      ); // unrelated
 
-        final split = await mediaRepository.partitionMediaForSiteDeletion([
-          's1',
-        ]);
-        expect(split.doomed.map((m) => m.id), [siteOnly.id]);
-        expect(split.unlinkIds.toSet(), {diveLinked.id, libraryRow.id});
-      },
-    );
+      final split = await mediaRepository.partitionMediaForSiteDeletion(['s1']);
+      expect(split.doomed.map((m) => m.id).toSet(), {siteOnly.id, urlRow.id});
+      expect(split.unlinkIds, [diveLinked.id]);
+    });
 
     test('empty input returns empty partition', () async {
       await insertSite('s1');

@@ -390,4 +390,39 @@ void main() {
       }
     });
   });
+
+  group('dive computers', () {
+    test('contribute no dry mass', () {
+      // Gear twins (v175) put a computer on every downloaded dive. The
+      // _typeDryMass fallthrough of 0.5 kg would silently move every diver's
+      // rig by that much per computer.
+      final feature = GearFeature.fromEquipment(
+        id: 'gear-1',
+        type: EquipmentType.computer,
+        name: 'Perdix 2',
+      );
+      expect(feature.dryMassKg, 0.0);
+    });
+
+    test('contribute no buoyancy prior', () {
+      final feature = GearFeature.fromEquipment(
+        id: 'gear-1',
+        type: EquipmentType.computer,
+        name: 'Perdix 2',
+      );
+      expect(feature.priorKg, 0.0);
+    });
+
+    test('still honour an explicit user dry weight', () {
+      // A bulky console or canister is real mass; the attribute path stays
+      // live so a tech diver can still model it.
+      final feature = GearFeature.fromEquipment(
+        id: 'gear-1',
+        type: EquipmentType.computer,
+        name: 'Console',
+        weightKg: 1.2,
+      );
+      expect(feature.dryMassKg, 1.2);
+    });
+  });
 }

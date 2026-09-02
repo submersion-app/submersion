@@ -6,6 +6,7 @@ import 'package:submersion/features/gps_log/data/services/track_import/csv_track
 import 'package:submersion/features/gps_log/data/services/track_import/gpx_track_parser.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/kml_track_parser.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/parsed_track.dart';
+import 'package:submersion/features/gps_log/domain/track_point_codec.dart';
 import 'package:submersion/features/gps_log/presentation/track_parse_error_text.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -59,6 +60,18 @@ void main() {
         _reasonOf(() => validateCoordinate(200, 0)),
         TrackParseReason.badData,
       );
+    });
+
+    test('a file with more positions than a track can store reports '
+        'tooLarge', () {
+      expect(
+        _reasonOf(() => validateFixCount(kMaxTrackPointCount + 1)),
+        TrackParseReason.tooLarge,
+      );
+    });
+
+    test('a file at exactly the cap is accepted', () {
+      expect(() => validateFixCount(kMaxTrackPointCount), returnsNormally);
     });
 
     test('malformed XML falls through to the unreadable default', () {

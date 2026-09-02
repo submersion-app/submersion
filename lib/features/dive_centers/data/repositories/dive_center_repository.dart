@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -241,7 +242,7 @@ class DiveCenterRepository {
           '''
       SELECT COUNT(*) as count
       FROM dives
-      WHERE dive_center_id = ?
+      WHERE dive_center_id = ?${DiveStatsScope.and(alias: 'dives')}
     ''',
           variables: [Variable.withString(centerId)],
         )

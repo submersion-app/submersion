@@ -69,6 +69,23 @@ class StoreMarkerStore {
   Future<({StoreMarker marker, bool created})> ensure() async {
     final existing = await read();
     if (existing != null) return (marker: existing, created: false);
+    // Confirm the absence before minting, because [read] cannot tell "this
+    // store has no marker" from "this device cannot see it yet". On iCloud a
+    // marker another device wrote has no local entry at all until the
+    // container's metadata reaches this device, and the native download
+    // check answers "nothing to do" for a path it has never heard of - so
+    // the read fails as absent and minting overwrites the other device's
+    // marker, splitting one store into two (issue #1356).
+    //
+    // A listing is the one call that makes an adapter go and look: the
+    // iCloud adapter refreshes the container folder before enumerating it.
+    // It costs one request, on the mint path only.
+    if (await _markerVisibleInListing()) {
+      final afterListing = await read();
+      if (afterListing != null) {
+        return (marker: afterListing, created: false);
+      }
+    }
     final marker = StoreMarker(
       storeId: const Uuid().v4(),
       formatVersion: 1,
@@ -90,5 +107,20 @@ class StoreMarkerStore {
       if (await tmp.exists()) await tmp.delete();
     }
     return (marker: marker, created: true);
+  }
+
+  /// Whether a listing can see the marker this device failed to read.
+  ///
+  /// Never blocks a first connect: a store that cannot serve the listing
+  /// answers the same as one that has no marker, which is the state a first
+  /// connect is entitled to assume.
+  Future<bool> _markerVisibleInListing() async {
+    try {
+      return await _store
+          .list(StoreKeys.markerKey)
+          .any((object) => object.key == StoreKeys.markerKey);
+    } on Object {
+      return false;
+    }
   }
 }

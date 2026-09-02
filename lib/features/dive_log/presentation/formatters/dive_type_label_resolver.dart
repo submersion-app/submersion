@@ -35,3 +35,41 @@ DiveTypeLabelResolver watchDiveTypeLabelResolver(
   };
   return (id) => diveTypeLabel(l10n, id, typesById: typesById);
 }
+
+/// Short-form counterpart to [watchDiveTypeLabelResolver], for space
+/// -constrained surfaces like list-row type badges. Same call-once-per-list
+/// contract and empty-map-before-load fallback.
+DiveTypeLabelResolver watchDiveTypeShortLabelResolver(
+  WidgetRef ref,
+  AppLocalizations l10n,
+) {
+  final typesById = {
+    for (final t
+        in ref.watch(diveTypesProvider).value ?? const <DiveTypeEntity>[])
+      t.id: t,
+  };
+  return (id) => diveTypeShortLabel(l10n, id, typesById: typesById);
+}
+
+/// Whether a dive-type slug's badge should appear in the dive list's
+/// type-badge row (issue #1269 follow-up). Independent of the header's own
+/// visibility toggle -- a diver may want a type in one badge row but not
+/// the other.
+typedef DiveTypeListVisibilityPredicate = bool Function(String id);
+
+/// Builds a [DiveTypeListVisibilityPredicate] from the currently loaded dive
+/// types. Same call-once-per-list contract as [watchDiveTypeLabelResolver].
+///
+/// A slug absent from the loaded types (not yet loaded, or deleted out from
+/// under a still-referencing dive) resolves to visible -- unknown is not the
+/// same as explicitly hidden.
+DiveTypeListVisibilityPredicate watchDiveTypeListVisibilityPredicate(
+  WidgetRef ref,
+) {
+  final typesById = {
+    for (final t
+        in ref.watch(diveTypesProvider).value ?? const <DiveTypeEntity>[])
+      t.id: t,
+  };
+  return (id) => typesById[id]?.showInListView ?? true;
+}

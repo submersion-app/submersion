@@ -384,4 +384,92 @@ void main() {
     expect(find.text('Exporting...'), findsNothing);
     expect(find.textContaining('share broke'), findsOneWidget);
   });
+
+  /// Same flow, but hosted the way master-detail layouts host it: inside a
+  /// nested navigator whose only route is the list.
+  ///
+  /// [testApp] puts the list straight under `MaterialApp.home`, where the local
+  /// and root navigators are one object, so it cannot catch a pop aimed at the
+  /// wrong navigator. Here the progress dialog goes to the root navigator
+  /// (`showDialog` defaults to `useRootNavigator: true`) while a bare
+  /// `Navigator.of(context)` would resolve to the shell's, emptying it.
+  Future<void> pumpInShellAndOpenExportSheet(WidgetTester tester) async {
+    final summaries = dives.map(DiveSummary.fromDive).toList();
+    final base = await getBaseOverrides();
+
+    await tester.pumpWidget(
+      testAppInShell(
+        // Pinned so the English menu and dialog labels this test taps do not
+        // depend on the host machine's locale, which flutter_test forwards.
+        locale: const Locale('en'),
+        overrides: [
+          ...base,
+          diveListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+          paginatedDiveListProvider.overrideWith(
+            (ref) => _MockPaginatedNotifier(summaries),
+          ),
+          diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(dives)),
+          exportServiceProvider.overrideWithValue(exportService),
+        ],
+        child: const DiveListContent(showAppBar: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(_tile('d1'));
+    await tester.pumpAndSettle();
+    await tester.tap(_tile('d2'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export Selected'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('bulk UDDF share leaves the list on screen in master-detail', (
+    tester,
+  ) async {
+    await pumpInShellAndOpenExportSheet(tester);
+    await tester.tap(find.text('UDDF'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    // Not pumpAndSettle: a stranded progress dialog spins forever.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(exportService.calls, ['share:uddf']);
+    expect(find.text('Exporting...'), findsNothing);
+    expect(find.byType(DiveListContent), findsOneWidget);
+  });
+
+  testWidgets('bulk UDDF save leaves the list on screen in master-detail', (
+    tester,
+  ) async {
+    await pumpInShellAndOpenExportSheet(tester);
+    await tester.tap(find.text('UDDF'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save to File'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(exportService.calls, ['save:uddf']);
+    expect(find.text('Exporting...'), findsNothing);
+    expect(find.byType(DiveListContent), findsOneWidget);
+  });
+
+  testWidgets('a failed bulk export leaves the list on screen', (tester) async {
+    exportService.failure = StateError('disk full');
+    await pumpInShellAndOpenExportSheet(tester);
+    await tester.tap(find.text('UDDF'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('Exporting...'), findsNothing);
+    expect(find.byType(DiveListContent), findsOneWidget);
+  });
 }

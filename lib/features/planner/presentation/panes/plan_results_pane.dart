@@ -9,9 +9,18 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The always-visible results column of Mission Control: headline stat tiles
 /// over the full results content.
 class PlanResultsPane extends ConsumerWidget {
-  const PlanResultsPane({super.key, required this.controller});
+  const PlanResultsPane({
+    super.key,
+    required this.controller,
+    this.shrinkWrap = false,
+  });
 
   final ScrollController controller;
+
+  /// When true, the results sheet lays out to its natural height instead of
+  /// scrolling on its own, so it can sit inside an outer scrollable (the
+  /// phone tab deck) rather than fighting it for scroll gestures.
+  final bool shrinkWrap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,7 +68,10 @@ class PlanResultsPane extends ConsumerWidget {
             children: tiles,
           ),
         ),
-        Expanded(child: PlanResultsSheet(controller: controller)),
+        if (shrinkWrap)
+          PlanResultsSheet(controller: controller, shrinkWrap: true)
+        else
+          Expanded(child: PlanResultsSheet(controller: controller)),
       ],
     );
   }

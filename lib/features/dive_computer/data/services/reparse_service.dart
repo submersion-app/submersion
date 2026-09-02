@@ -2,10 +2,19 @@ import 'package:drift/drift.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
+    as codec;
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
+    show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
+import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 
 /// Service responsible for applying re-parsed dive computer data back to the
 /// database while respecting the computer-authored vs user-authored field
@@ -17,7 +26,32 @@ class ReparseService {
   final AppDatabase db;
   final _uuid = const Uuid();
 
-  ReparseService({required this.db});
+  /// The diver's preference for reading cylinder end pressure at the moment of
+  /// surfacing rather than at the end of the recording (issue #1092). Reparse
+  /// is how an already-imported dive picks the rule up, so it has to agree
+  /// with the live download path.
+  final bool trimTankPressureAtSurfacing;
+
+  ReparseService({
+    required this.db,
+    this.trimTankPressureAtSurfacing = true,
+    ProfileSeriesRepository? profileSeries,
+    TankPressureSeriesRepository? tankSeries,
+  }) : _profileSeries =
+           profileSeries ??
+           ProfileSeriesRepository(
+             database: db,
+             syncRepository: SyncRepository(database: db),
+           ),
+       _tankSeries =
+           tankSeries ??
+           TankPressureSeriesRepository(
+             database: db,
+             syncRepository: SyncRepository(database: db),
+           );
+
+  final ProfileSeriesRepository _profileSeries;
+  final TankPressureSeriesRepository _tankSeries;
 
   /// Apply a freshly parsed dive to the database, updating only
   /// computer-authored fields and preserving user-authored fields.
@@ -126,9 +160,7 @@ class ReparseService {
         await (db.delete(
           db.gasSwitches,
         )..where((t) => t.diveId.equals(diveId))).go();
-        await (db.delete(
-          db.tankPressureProfiles,
-        )..where((t) => t.diveId.equals(diveId))).go();
+        await _tankSeries.deleteForDive(diveId);
 
         // Re-insert events from parsed data
         await _insertEvents(
@@ -373,6 +405,21 @@ class ReparseService {
   // Private helpers
   // ==========================================================================
 
+  /// The dive's start instant as this parse reports it, in the source's own
+  /// time frame.
+  ///
+  /// Both the source row's provenance window and the dive row's own clock
+  /// derive from this one expression so they cannot drift apart across a
+  /// re-parse (#1207).
+  static DateTime _parsedEntryTime(pigeon.ParsedDive parsed) => DateTime.utc(
+    parsed.dateTimeYear,
+    parsed.dateTimeMonth,
+    parsed.dateTimeDay,
+    parsed.dateTimeHour,
+    parsed.dateTimeMinute,
+    parsed.dateTimeSecond,
+  );
+
   Future<void> _updateSourceRow({
     required String sourceRowId,
     required pigeon.ParsedDive parsed,
@@ -384,6 +431,7 @@ class ReparseService {
     required Uint8List? rawFingerprint,
     required DateTime now,
   }) async {
+    final entryTime = _parsedEntryTime(parsed);
     await (db.update(
       db.diveDataSources,
     )..where((t) => t.id.equals(sourceRowId))).write(
@@ -393,7 +441,11 @@ class ReparseService {
           parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
         ),
         duration: Value(parsed.durationSeconds),
-        waterTemp: Value(parsed.minTemperatureCelsius),
+        waterTemp: Value(_minWaterTemp(parsed)),
+        // Derived from the samples, matching how the download path fills this
+        // column. Written unconditionally so a parser change that drops CNS
+        // clears the old value instead of leaving a stale one behind.
+        cns: Value(_extractMaxCns(parsed.samples)),
         decoAlgorithm: Value(parsed.decoAlgorithm),
         gradientFactorLow: Value(parsed.gfLow),
         gradientFactorHigh: Value(parsed.gfHigh),
@@ -401,6 +453,22 @@ class ReparseService {
         entryLongitude: Value(parsed.entryLongitude),
         exitLatitude: Value(parsed.exitLatitude),
         exitLongitude: Value(parsed.exitLongitude),
+        // The download path stamps this window when it inserts the row, so a
+        // re-parse has to refresh it or the source keeps advertising the
+        // original download's clock while the dive itself moves (#1207).
+        // These are load-bearing: DiveSplitService dates a split-out dive
+        // from them and DiveConsolidationService carries them onto the
+        // target.
+        //
+        // Raw parse frame, deliberately unshifted by timeOffsetSeconds. The
+        // samples in _replaceDiveProfiles are re-based onto the dive's
+        // timeline; this window is not, because consolidation copies a
+        // folded-in source's entry/exit across untouched and records the
+        // shift in timeOffsetSeconds instead.
+        entryTime: Value(entryTime),
+        exitTime: Value(
+          entryTime.add(Duration(seconds: parsed.durationSeconds)),
+        ),
         descriptorVendor: Value(descriptorVendor),
         descriptorProduct: Value(descriptorProduct),
         descriptorModel: Value(descriptorModel),
@@ -421,18 +489,10 @@ class ReparseService {
     required pigeon.ParsedDive parsed,
     required DateTime now,
   }) async {
-    // Build UTC DateTime from parsed components
-    final diveDateTime = DateTime.utc(
-      parsed.dateTimeYear,
-      parsed.dateTimeMonth,
-      parsed.dateTimeDay,
-      parsed.dateTimeHour,
-      parsed.dateTimeMinute,
-      parsed.dateTimeSecond,
-    );
-    final diveDateTimeMs = diveDateTime.millisecondsSinceEpoch;
+    final diveDateTimeMs = _parsedEntryTime(parsed).millisecondsSinceEpoch;
     final exitTimeMs = diveDateTimeMs + (parsed.durationSeconds * 1000);
     final bottomTimeSeconds = _calculateBottomTimeFromSamples(parsed.samples);
+    final waterTemp = _minWaterTemp(parsed);
 
     await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
       DivesCompanion(
@@ -445,7 +505,11 @@ class ReparseService {
         entryTime: Value(diveDateTimeMs),
         exitTime: Value(exitTimeMs),
         bottomTime: Value(bottomTimeSeconds ?? parsed.durationSeconds),
-        waterTemp: Value(parsed.minTemperatureCelsius),
+        // Only overwrite the dive's water temp when this parse produced one,
+        // for the same reason as the GPS fields below: Value.absent() keeps a
+        // temperature stamped by hand or by another source, while the
+        // dive_data_sources row above still records the computer's own answer.
+        waterTemp: waterTemp != null ? Value(waterTemp) : const Value.absent(),
         diveMode: Value(mapLibdcDiveModeCode(parsed.diveMode)),
         cnsEnd: Value(_extractMaxCns(parsed.samples)),
         otu: const Value.absent(), // OTU is not directly in ParsedDive
@@ -485,62 +549,52 @@ class ReparseService {
     required int timeOffset,
   }) async {
     // Delete existing profiles for this (diveId, computerId)
-    if (computerId != null) {
-      await (db.delete(db.diveProfiles)..where(
-            (t) => t.diveId.equals(diveId) & t.computerId.equals(computerId),
-          ))
-          .go();
-    } else {
-      await (db.delete(
-        db.diveProfiles,
-      )..where((t) => t.diveId.equals(diveId) & t.computerId.isNull())).go();
-    }
+    await _profileSeries.deleteByComputer(diveId, computerId);
 
     // Re-insert from parsed samples
-    await db.batch((batch) {
-      for (final s in parsed.samples) {
-        batch.insert(
-          db.diveProfiles,
-          DiveProfilesCompanion(
-            id: Value(_uuid.v4()),
-            diveId: Value(diveId),
-            computerId: Value(computerId),
-            // Re-parsing rewrites this source's samples in place, so the
-            // replacements belong to the same source row (issue #1149).
-            sourceId: Value(sourceId),
-            isPrimary: Value(isPrimary),
-            timestamp: Value(s.timeSeconds + timeOffset),
-            depth: Value(s.depthMeters),
-            temperature: Value(s.temperatureCelsius),
-            heartRate: Value(s.heartRate),
-            heading: Value(s.heading),
-            setpoint: Value(s.setpoint),
-            ppO2: Value(s.ppo2),
-            cns: Value(s.cns),
-            ndl: Value(s.decoType == 0 ? s.decoTime : null),
-            ceiling: Value(
-              s.decoType != null && s.decoType != 0 ? s.decoDepth : null,
-            ),
-            rbt: Value(s.rbt),
-            decoType: Value(s.decoType),
-            tts: Value(s.tts),
-            o2Sensor1: Value(s.o2Sensor1),
-            o2Sensor2: Value(s.o2Sensor2),
-            o2Sensor3: Value(s.o2Sensor3),
-            o2Sensor4: Value(s.o2Sensor4),
-            o2Sensor5: Value(s.o2Sensor5),
-            o2Sensor6: Value(s.o2Sensor6),
-            o2SensorMv1: Value(s.o2SensorMv1),
-            o2SensorMv2: Value(s.o2SensorMv2),
-            o2SensorMv3: Value(s.o2SensorMv3),
-            o2SensorMv4: Value(s.o2SensorMv4),
-            o2SensorMv5: Value(s.o2SensorMv5),
-            o2SensorMv6: Value(s.o2SensorMv6),
-          ),
-        );
-      }
-    });
+    if (parsed.samples.isNotEmpty) {
+      await _profileSeries.insertSeries(
+        diveId: diveId,
+        computerId: computerId,
+        sourceId: sourceId,
+        isPrimary: isPrimary,
+        samples: [
+          for (final s in parsed.samples) _sampleFromParsed(s, timeOffset),
+        ],
+      );
+    }
   }
+
+  codec.ProfileSample _sampleFromParsed(
+    pigeon.ProfileSample s,
+    int timeOffset,
+  ) => codec.ProfileSample(
+    timestamp: s.timeSeconds + timeOffset,
+    depth: s.depthMeters,
+    temperature: s.temperatureCelsius,
+    heartRate: s.heartRate,
+    heading: s.heading,
+    setpoint: s.setpoint,
+    ppO2: s.ppo2,
+    cns: s.cns,
+    ndl: s.decoType == 0 ? s.decoTime : null,
+    ceiling: s.decoType != null && s.decoType != 0 ? s.decoDepth : null,
+    rbt: libdcRbtToSeconds(s.rbt),
+    decoType: s.decoType,
+    tts: s.tts,
+    o2Sensor1: s.o2Sensor1,
+    o2Sensor2: s.o2Sensor2,
+    o2Sensor3: s.o2Sensor3,
+    o2Sensor4: s.o2Sensor4,
+    o2Sensor5: s.o2Sensor5,
+    o2Sensor6: s.o2Sensor6,
+    o2SensorMv1: s.o2SensorMv1,
+    o2SensorMv2: s.o2SensorMv2,
+    o2SensorMv3: s.o2SensorMv3,
+    o2SensorMv4: s.o2SensorMv4,
+    o2SensorMv5: s.o2SensorMv5,
+    o2SensorMv6: s.o2SensorMv6,
+  );
 
   Future<void> _insertEvents({
     required String diveId,
@@ -639,7 +693,10 @@ class ReparseService {
     // Gas-mix linking and tankless synthesis (computers that report gas
     // mixes but no tank records) live in the shared resolver so this path
     // cannot drift from the live-download mapper.
-    for (final tank in resolveParsedTanks(parsed)) {
+    for (final tank in resolveParsedTanks(
+      parsed,
+      trimAtSurfacing: trimTankPressureAtSurfacing,
+    )) {
       newTankOrders.add(tank.index);
 
       final existing = existingByOrder[tank.index];
@@ -650,7 +707,13 @@ class ReparseService {
           db.diveTanks,
         )..where((t) => t.id.equals(existing.id))).write(
           DiveTanksCompanion(
-            volume: Value(tank.volumeLiters),
+            // Computers report pressure, not cylinder size: a volume the
+            // parse lacks was entered by the diver (or filled from the
+            // default preset), so only overwrite it with a reported one.
+            // Zero means "unreported" throughout the tank code.
+            volume: (tank.volumeLiters ?? 0) > 0
+                ? Value(tank.volumeLiters)
+                : const Value.absent(),
             workingPressure: const Value.absent(),
             startPressure: Value(tank.startPressure),
             endPressure: Value(tank.endPressure),
@@ -709,40 +772,37 @@ class ReparseService {
   }) async {
     if (tankIdsByIndex.isEmpty) return;
 
-    // Group sample pressures by tank index.
-    final pressuresByTank = <int, List<({int timestamp, double pressure})>>{};
-    for (final s in parsed.samples) {
-      final pressure = s.pressureBar;
-      if (pressure != null) {
-        final idx = s.tankIndex ?? 0;
-        pressuresByTank.putIfAbsent(idx, () => []).add((
-          timestamp: s.timeSeconds,
-          pressure: pressure,
-        ));
-      }
-    }
+    // Group sample pressures by tank index. A sample can carry a reading per
+    // air-integrated transmitter (issue #1223), so this walks tankPressuresBar
+    // rather than the single pressureBar/tankIndex pair.
+    final pressuresByTank = groupPressuresByTank([
+      for (final s in parsed.samples)
+        (
+          timeSeconds: s.timeSeconds,
+          pressureBar: s.pressureBar,
+          tankIndex: s.tankIndex,
+          tankPressuresBar: s.tankPressuresBar,
+        ),
+    ]);
     if (pressuresByTank.isEmpty) return;
 
     // Insert the pressure time-series for each known tank.
-    await db.batch((batch) {
-      for (final entry in pressuresByTank.entries) {
-        final tankId = tankIdsByIndex[entry.key];
-        if (tankId == null) continue;
-        for (final point in entry.value) {
-          batch.insert(
-            db.tankPressureProfiles,
-            TankPressureProfilesCompanion.insert(
-              id: _uuid.v4(),
-              diveId: diveId,
-              tankId: tankId,
-              computerId: Value(computerId),
+    for (final entry in pressuresByTank.entries) {
+      final tankId = tankIdsByIndex[entry.key];
+      if (tankId == null || entry.value.isEmpty) continue;
+      await _tankSeries.insertSeries(
+        diveId: diveId,
+        tankId: tankId,
+        computerId: computerId,
+        samples: [
+          for (final point in entry.value)
+            TankPressureSample(
               timestamp: point.timestamp,
               pressure: point.pressure,
             ),
-          );
-        }
-      }
-    });
+        ],
+      );
+    }
 
     // Backfill start/end pressure from the profile when the parsed tank summary
     // didn't provide explicit values.
@@ -793,6 +853,27 @@ class ReparseService {
     return BottomTimeCalculator.secondsFromSamples([
       for (final s in samples) (timestamp: s.timeSeconds, depth: s.depthMeters),
     ]);
+  }
+
+  /// Minimum water temperature for this parse, in Celsius.
+  ///
+  /// Some computers (Shearwater among them) report no top-level minimum and
+  /// carry temperature only in the per-sample stream, so the download path
+  /// derives the minimum from the samples when the header value is missing
+  /// (`parsed_dive_mapper.dart`, and the profile import in
+  /// `dive_computer_repository_impl.dart`). Re-parse mirrors that path; taking
+  /// `minTemperatureCelsius` at face value here blanked the water temp of any
+  /// already-downloaded dive from such a computer.
+  static double? _minWaterTemp(pigeon.ParsedDive parsed) {
+    final headerTemp = parsed.minTemperatureCelsius;
+    if (headerTemp != null) return headerTemp;
+    double? minTemp;
+    for (final s in parsed.samples) {
+      final t = s.temperatureCelsius;
+      if (t == null) continue;
+      if (minTemp == null || t < minTemp) minTemp = t;
+    }
+    return minTemp;
   }
 
   /// Extract maximum CNS percentage from profile samples.
