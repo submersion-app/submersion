@@ -389,10 +389,6 @@ class ExportNotifier extends StateNotifier<ExportState> {
     );
   }
 
-  /// Decode the diver's portrait for the PDF, or null when there is none.
-  ///
-  /// A missing or unreadable photo must never fail the export: the logbook is
-  /// still perfectly usable without a portrait.
   Future<void> exportDivesToUddf() async {
     state = state.copyWith(
       status: ExportStatus.exporting,

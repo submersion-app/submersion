@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
 import 'package:submersion/core/constants/units.dart';
@@ -16,7 +17,6 @@ import 'package:submersion/core/services/export/uddf/uddf_full_export_service.da
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
-import 'dart:typed_data';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
