@@ -518,8 +518,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               // it can be pulled back apart (issue #1504). Read separately
               // from the source count: the halves of a combined import
               // collapse to a single display source (#1451).
+              //
+              // Read through the built-in AsyncValue.value, which keeps the
+              // previous value while a provider reloads, for the reason
+              // spelled out in _buildProfileSection: the valueOrNull
+              // polyfill is `when(loading: () => null)`, so it answers null
+              // on a RELOAD that already has a value. This provider reloads
+              // behind every analysis-input tick and is invalidated outright
+              // after a separation, so the action would blink out of the
+              // section for a frame each time.
               final segmentCount =
-                  ref.watch(diveSegmentCountProvider(dive.id)).valueOrNull ?? 0;
+                  ref.watch(diveSegmentCountProvider(dive.id)).value ?? 0;
               return DataSourcesSection(
                 dataSources: dataSources,
                 diveCreatedAt: dive.dateTime,
