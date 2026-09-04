@@ -110,7 +110,6 @@ class ExportService {
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
-    List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -125,7 +124,6 @@ class ExportService {
     diver: diver,
     diverPhoto: diverPhoto,
     title: title,
-    allSightings: allSightings,
   );
 
   Future<String> exportDivesToPdf(
@@ -134,7 +132,6 @@ class ExportService {
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
-    List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -149,7 +146,6 @@ class ExportService {
     diver: diver,
     diverPhoto: diverPhoto,
     title: title,
-    allSightings: allSightings,
   );
 
   Future<String?> saveDivesToPdfFile(
@@ -158,7 +154,6 @@ class ExportService {
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
-    List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -173,7 +168,6 @@ class ExportService {
     diver: diver,
     diverPhoto: diverPhoto,
     title: title,
-    allSightings: allSightings,
   );
 
   Future<String?> savePdfBytesToFile(List<int> bytes, String fileName) =>

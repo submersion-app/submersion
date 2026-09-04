@@ -26,7 +26,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_list_cont
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -85,7 +84,6 @@ class _RecordingExportService implements ExportService {
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
-    List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -104,7 +102,6 @@ class _RecordingExportService implements ExportService {
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
-    List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,

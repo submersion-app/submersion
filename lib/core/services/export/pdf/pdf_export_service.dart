@@ -15,7 +15,6 @@ import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -165,7 +164,6 @@ class PdfExportService {
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
-    List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -214,7 +212,6 @@ class PdfExportService {
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
-    List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -226,7 +223,6 @@ class PdfExportService {
       units: units,
       options: options,
       title: title,
-      allSightings: allSightings,
       profiles: profiles,
       certifications: certifications,
       diver: diver,
@@ -246,7 +242,6 @@ class PdfExportService {
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
     String title = 'Dive Logbook',
-    List<Sighting>? allSightings,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,
@@ -258,7 +253,6 @@ class PdfExportService {
       units: units,
       options: options,
       title: title,
-      allSightings: allSightings,
       profiles: profiles,
       certifications: certifications,
       diver: diver,
