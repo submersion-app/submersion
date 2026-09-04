@@ -7,12 +7,15 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 void main() {
   Future<DateTime? Function()> pumpPickerButton(
     WidgetTester tester,
-    DateFormatPreference format,
-  ) async {
+    DateFormatPreference format, {
+    Locale? locale,
+  }) async {
     DateTime? picked;
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: locale,
+        supportedLocales: const [Locale('en'), Locale('de')],
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -90,6 +93,64 @@ void main() {
     // D MMM YYYY has no compact input analogue, so the picker falls back to
     // the day-first numeric locale (en-GB): 31/01 parses, 31 is not a month.
     await tester.enterText(find.byType(TextField), '31/01/2026');
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(picked(), DateTime(2026, 1, 31));
+  });
+
+  testWidgets(
+    'dotted preference keeps the dialog in the app language (#1510)',
+    (tester) async {
+      final picked = await pumpPickerButton(
+        tester,
+        DateFormatPreference.ddmmyyyyDots,
+      );
+
+      await tester.tap(find.text('pick'));
+      await tester.pumpAndSettle();
+
+      // Chrome stays English: the dotted format used to force Locale('de'),
+      // which translated the whole dialog.
+      expect(find.text('Select date'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter Date'), findsOneWidget);
+      expect(find.text('dd.mm.yyyy'), findsOneWidget);
+
+      // Dots still parse, which is what the locale override was there for.
+      await tester.enterText(find.byType(TextField), '31.01.2026');
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(picked(), DateTime(2026, 1, 31));
+    },
+  );
+
+  testWidgets('a non-English app keeps its own dialog chrome (#1510)', (
+    tester,
+  ) async {
+    final picked = await pumpPickerButton(
+      tester,
+      DateFormatPreference.mmddyyyy,
+      locale: const Locale('de'),
+    );
+
+    await tester.tap(find.text('pick'));
+    await tester.pumpAndSettle();
+
+    // A month-first preference used to force Locale('en', 'US') and hand a
+    // German diver an English dialog.
+    expect(find.text('Abbrechen'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.pumpAndSettle();
+
+    // Month-first entry still wins over the German locale's own dd.MM.yyyy.
+    await tester.enterText(find.byType(TextField), '01/31/2026');
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
 
@@ -196,12 +257,9 @@ void main() {
         usesOwnHint ? findsOneWidget : findsNothing,
       );
 
-      // The picker locale also localizes the dialog chrome, so the cancel
-      // label is not always English (de for the dotted preference).
-      final cancelLabel = MaterialLocalizations.of(
-        tester.element(find.byType(DatePickerDialog)),
-      ).cancelButtonLabel;
-      await tester.tap(find.text(cancelLabel));
+      // Dialog chrome follows the app language, never the date format
+      // (#1510), so the cancel label is English for every preference.
+      await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
       expect(find.byType(DatePickerDialog), findsNothing);
     });
