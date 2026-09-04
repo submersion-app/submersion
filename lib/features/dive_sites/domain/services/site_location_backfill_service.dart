@@ -84,20 +84,25 @@ class SiteLocationBackfillService {
     return all.where((site) => wants(site, mode)).toList(growable: false);
   }
 
+  /// Runs the lookup over [targets], or over [candidates] when the caller
+  /// has none to hand. A caller that already listed the candidates (to
+  /// confirm on their count, say) passes them here so the database is not
+  /// scanned and mapped a second time.
   Future<BackfillSummary> run({
     String? diverId,
+    List<DiveSite>? targets,
     required void Function(int done, int total) onProgress,
     required bool Function() isCancelled,
   }) async {
-    final targets = await candidates(diverId: diverId);
-    final total = targets.length;
+    final sites = targets ?? await candidates(diverId: diverId);
+    final total = sites.length;
     var updated = 0;
     var unchanged = 0;
     var failed = 0;
     var done = 0;
     onProgress(done, total);
 
-    for (final site in targets) {
+    for (final site in sites) {
       if (isCancelled()) {
         return BackfillSummary(
           total: total,

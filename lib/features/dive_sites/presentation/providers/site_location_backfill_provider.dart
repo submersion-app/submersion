@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -52,17 +53,25 @@ class SiteLocationBackfillNotifier extends StateNotifier<BackfillState> {
   Future<String?> _diverId() =>
       _ref.read(validatedCurrentDiverIdProvider.future);
 
-  /// How many sites a run in [mode] would look up.
-  Future<int> countCandidates(SiteLocationLookupMode mode) async =>
-      (await _service(mode).candidates(diverId: await _diverId())).length;
+  /// The sites a run in [mode] would look up. The list itself is handed
+  /// back, not just its length, so a caller that confirms on the count can
+  /// start the run on the same sites instead of scanning the database again.
+  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async =>
+      _service(mode).candidates(diverId: await _diverId());
 
-  /// Starts a run unless one is already running.
-  Future<void> start(SiteLocationLookupMode mode) async {
+  /// Starts a run unless one is already running. [targets] are the sites to
+  /// look up, from an earlier [findCandidates] call; without them the run
+  /// lists the candidates itself.
+  Future<void> start(
+    SiteLocationLookupMode mode, {
+    List<DiveSite>? targets,
+  }) async {
     if (state is BackfillRunning) return;
     _cancelRequested = false;
     state = BackfillRunning(mode: mode, done: 0, total: 0);
     final summary = await _service(mode).run(
-      diverId: await _diverId(),
+      diverId: targets == null ? await _diverId() : null,
+      targets: targets,
       onProgress: (done, total) {
         if (mounted) {
           state = BackfillRunning(mode: mode, done: done, total: total);

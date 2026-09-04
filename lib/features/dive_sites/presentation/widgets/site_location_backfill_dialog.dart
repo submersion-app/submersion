@@ -39,7 +39,11 @@ Future<void> showSiteLocationBackfillFlow(
     return;
   }
 
-  final count = await notifier.countCandidates(mode);
+  // The candidates are listed once here: the count drives the confirmation
+  // copy and the same list is then handed to the run, so a large site list is
+  // not read and mapped twice.
+  final candidates = await notifier.findCandidates(mode);
+  final count = candidates.length;
   if (!context.mounted) return;
   if (count == 0) {
     messenger.showSnackBar(
@@ -84,7 +88,7 @@ Future<void> showSiteLocationBackfillFlow(
   if (confirmed != true || !context.mounted) return;
 
   // No reset here: start() is the only guard against overlapping runs.
-  final run = notifier.start(mode);
+  final run = notifier.start(mode, targets: candidates);
   await showDialog<void>(
     context: context,
     barrierDismissible: false,

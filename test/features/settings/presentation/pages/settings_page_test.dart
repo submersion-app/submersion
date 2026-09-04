@@ -28,6 +28,7 @@ import 'package:submersion/features/settings/presentation/pages/section_appearan
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
@@ -55,9 +56,9 @@ class _RecordingBackfill extends StateNotifier<BackfillState>
   final List<SiteLocationLookupMode> counted = [];
 
   @override
-  Future<int> countCandidates(SiteLocationLookupMode mode) async {
+  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
     counted.add(mode);
-    return 0;
+    return const [];
   }
 
   @override

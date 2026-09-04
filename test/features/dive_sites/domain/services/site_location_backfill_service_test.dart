@@ -167,6 +167,25 @@ void main() {
     expect(empty!.bodyOfWater, 'Lake Lucerne');
   });
 
+  test('run uses the targets it is given instead of listing again', () async {
+    await seed();
+    final location = _MapLocationService({'47.2,8.6': weggis});
+    final full = (await sites.getSiteById('full'))!;
+
+    final summary = await service(location).run(
+      targets: [full],
+      onProgress: (_, _) {},
+      isCancelled: () => false,
+    );
+
+    expect(summary.total, 1);
+    expect(
+      location.asked,
+      ['47.2,8.6'],
+      reason: 'a candidate scan would have taken the two incomplete sites',
+    );
+  });
+
   test('a lookup that finds nothing counts as unchanged', () async {
     await seed();
     final summary = await service(

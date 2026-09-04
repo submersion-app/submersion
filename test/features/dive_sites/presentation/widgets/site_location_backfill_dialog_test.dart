@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
@@ -8,7 +9,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// A scripted notifier so the dialog can be driven without a database or
-/// network: [candidates] answers the count, [start] walks [script].
+/// network: [candidates] sites are handed back to the flow, [start] walks
+/// [script].
 class _ScriptedBackfill extends StateNotifier<BackfillState>
     implements SiteLocationBackfillNotifier {
   _ScriptedBackfill({
@@ -24,14 +26,23 @@ class _ScriptedBackfill extends StateNotifier<BackfillState>
   bool cancelled = false;
 
   SiteLocationLookupMode? startedWith;
+  List<DiveSite>? startedTargets;
 
   @override
-  Future<int> countCandidates(SiteLocationLookupMode mode) async => candidates;
+  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
+    return [
+      for (var i = 0; i < candidates; i++) DiveSite(id: '$i', name: 'Site $i'),
+    ];
+  }
 
   @override
-  Future<void> start(SiteLocationLookupMode mode) async {
+  Future<void> start(
+    SiteLocationLookupMode mode, {
+    List<DiveSite>? targets,
+  }) async {
     startCalls++;
     startedWith = mode;
+    startedTargets = targets;
     for (final s in script) {
       await Future<void>.delayed(stepDelay);
       state = s;
@@ -286,6 +297,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 15));
     expect(find.text('Refreshing place names'), findsOneWidget);
     expect(notifier.startedWith, SiteLocationLookupMode.refreshAll);
+    expect(
+      notifier.startedTargets,
+      isNotNull,
+      reason: 'the run reuses the sites the confirmation was counted from',
+    );
+    expect(notifier.startedTargets, hasLength(notifier.candidates));
     await tester.pumpAndSettle();
   });
 

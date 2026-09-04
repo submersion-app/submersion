@@ -101,10 +101,10 @@ void main() {
   test('starts idle and counts candidates', () async {
     expect(container.read(siteLocationBackfillProvider), isA<BackfillIdle>());
     final notifier = container.read(siteLocationBackfillProvider.notifier);
-    expect(
-      await notifier.countCandidates(SiteLocationLookupMode.fillMissing),
-      2,
+    final found = await notifier.findCandidates(
+      SiteLocationLookupMode.fillMissing,
     );
+    expect(found, hasLength(2));
   });
 
   test('reports progress while running and finishes with a summary', () async {
@@ -199,14 +199,43 @@ void main() {
     );
     final notifier = container.read(siteLocationBackfillProvider.notifier);
 
-    expect(
-      await notifier.countCandidates(SiteLocationLookupMode.fillMissing),
-      2,
+    final filling = await notifier.findCandidates(
+      SiteLocationLookupMode.fillMissing,
     );
-    expect(
-      await notifier.countCandidates(SiteLocationLookupMode.refreshAll),
-      3,
+    final refreshing = await notifier.findCandidates(
+      SiteLocationLookupMode.refreshAll,
     );
+
+    expect(filling, hasLength(2));
+    expect(refreshing, hasLength(3));
+  });
+
+  test('a started run looks up only the candidates it was handed', () async {
+    final notifier = container.read(siteLocationBackfillProvider.notifier);
+    final candidates = await notifier.findCandidates(
+      SiteLocationLookupMode.fillMissing,
+    );
+    // A site added between listing and starting is not part of this run.
+    await sites.createSite(
+      const DiveSite(id: 'c', name: 'C', location: GeoPoint(47.2, 8.6)),
+    );
+
+    final run = notifier.start(
+      SiteLocationLookupMode.fillMissing,
+      targets: candidates,
+    );
+    while (location.gates.isEmpty) {
+      await tick();
+    }
+    expect(
+      container.read(siteLocationBackfillProvider),
+      isA<BackfillRunning>().having((s) => s.total, 'total', 2),
+    );
+
+    await runToCompletion(run);
+    final state = container.read(siteLocationBackfillProvider);
+    expect((state as BackfillFinished).summary.total, 2);
+    expect((await sites.getSiteById('c'))!.city, isNull);
   });
 
   test('the running state carries the mode it was started with', () async {
