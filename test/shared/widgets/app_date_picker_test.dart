@@ -8,7 +8,9 @@ void main() {
   Future<DateTime? Function()> pumpPickerButton(
     WidgetTester tester,
     DateFormatPreference format, {
-    Locale? locale,
+    // Pinned: the assertions match English strings. Tests that care about
+    // another language pass it explicitly.
+    Locale locale = const Locale('en'),
   }) async {
     DateTime? picked;
 
@@ -121,6 +123,9 @@ void main() {
       expect(find.text('Enter Date'), findsOneWidget);
       expect(find.text('dd.mm.yyyy'), findsOneWidget);
 
+      // The field is prefilled from the same pattern it parses.
+      expect(find.text('15.01.2026'), findsOneWidget);
+
       // Dots still parse, which is what the locale override was there for.
       await tester.enterText(find.byType(TextField), '31.01.2026');
       await tester.tap(find.text('OK'));
@@ -165,6 +170,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        // Pinned: the assertions match English strings.
+        locale: const Locale('en'),
+        supportedLocales: const [Locale('en')],
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,

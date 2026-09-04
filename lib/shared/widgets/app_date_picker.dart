@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/shared/widgets/compact_date_localizations.dart';
+import 'package:submersion/shared/widgets/compact_date_calendar_delegate.dart';
 
 /// Shows the Material date picker with manual-entry parsing and hints that
 /// honor the diver's [DateFormatPreference] (#765).
@@ -11,10 +11,10 @@ import 'package:submersion/shared/widgets/compact_date_localizations.dart';
 /// [MaterialLocalizations] locale (en-US on an English UI), so a user whose
 /// Submersion date format is DD/MM/YYYY was still forced to type MM/DD/YYYY.
 ///
-/// The override is scoped to the compact date format alone. Passing a whole
-/// locale to [showDatePicker] instead, as this used to, re-resolves every
-/// localization for that locale and translated the dialog along with the
-/// input format (#1510).
+/// The format is supplied through a [CalendarDelegate], which is scoped to
+/// compact-date handling. This used to borrow a whole locale instead, which
+/// re-resolves every localization for that locale and translated the dialog
+/// along with the input format (#1510).
 ///
 /// [dateFormat] is read from the settings provider when omitted; pass it
 /// explicitly in tests. [initialDate] stays required but nullable so callers
@@ -34,8 +34,7 @@ Future<DateTime?> showAppDatePicker({
     firstDate: firstDate,
     lastDate: lastDate,
     initialDatePickerMode: initialDatePickerMode,
-    builder: (dialogContext, dialog) =>
-        _withCompactDateFormat(dialogContext, format, dialog),
+    calendarDelegate: _compactDateDelegate(context, format),
   );
 }
 
@@ -44,7 +43,7 @@ Future<DateTime?> showAppDatePicker({
 ///
 /// The range dialog reads its compact date format from the same ambient
 /// [MaterialLocalizations] as the single-date dialog, so it needs the same
-/// override; see [showAppDatePicker].
+/// delegate; see [showAppDatePicker].
 Future<DateTimeRange?> showAppDateRangePicker({
   required BuildContext context,
   required DateTime firstDate,
@@ -58,26 +57,18 @@ Future<DateTimeRange?> showAppDateRangePicker({
     initialDateRange: initialDateRange,
     firstDate: firstDate,
     lastDate: lastDate,
-    builder: (dialogContext, dialog) =>
-        _withCompactDateFormat(dialogContext, format, dialog),
+    calendarDelegate: _compactDateDelegate(context, format),
   );
 }
 
-/// Wraps a picker dialog so its manual-entry field speaks [format] while the
-/// rest of the dialog keeps the app's language.
-Widget _withCompactDateFormat(
+/// Teaches a picker's manual-entry field to speak [format] while the rest of
+/// the dialog keeps the app's language.
+CompactDateCalendarDelegate _compactDateDelegate(
   BuildContext context,
   DateFormatPreference format,
-  Widget? dialog,
-) => Localizations.override(
-  context: context,
-  delegates: [
-    CompactDateLocalizationsDelegate(
-      base: MaterialLocalizations.of(context),
-      pattern: _compactPatternFor(format),
-    ),
-  ],
-  child: dialog,
+) => CompactDateCalendarDelegate(
+  pattern: _compactPatternFor(format),
+  locale: Localizations.localeOf(context),
 );
 
 /// Reads the diver's date format when settings are reachable.
