@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/shared/widgets/compact_date_calendar_delegate.dart';
 
 /// The delegate is exercised through the pickers in app_date_picker_test.dart;
@@ -8,8 +9,22 @@ import 'package:submersion/shared/widgets/compact_date_calendar_delegate.dart';
 /// input and the locales `intl` has no data for.
 void main() {
   // A pure unit test has to initialize date formatting itself; widget tests
-  // get it from GlobalMaterialLocalizations.
-  setUpAll(initializeDateFormatting);
+  // get it from GlobalMaterialLocalizations. Initialize BEFORE pinning:
+  // assigning Intl.defaultLocale makes intl demand real symbol data instead
+  // of falling back, so the reverse order throws LocaleDataException.
+  //
+  // The unknown-language case below builds a DateFormat with no locale of its
+  // own, which resolves against this global. A numeric pattern survives most
+  // defaults unchanged (intl substitutes digits for fa and bn, but not for ar
+  // or de), so the pin is here to state the dependency rather than to fix a
+  // failure. Restore it so the global stays contained.
+  String? previousLocale;
+  setUpAll(() async {
+    await initializeDateFormatting();
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDownAll(() => Intl.defaultLocale = previousLocale);
 
   // Every method takes a MaterialLocalizations it does not consult, since the
   // whole point is that the format comes from the diver's preference instead.
@@ -63,6 +78,9 @@ void main() {
   });
 
   test('an unknown language still yields a usable format', () {
+    // Neither 'zz' nor its language exists, so the delegate falls through to a
+    // DateFormat with no locale, which resolves against the pinned default.
+    // The point is that it still produces a usable format instead of throwing.
     final subject = delegate(locale: const Locale('zz'));
 
     expect(

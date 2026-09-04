@@ -17,8 +17,11 @@ class CompactDateCalendarDelegate extends GregorianCalendarDelegate {
   /// the diver wants to type and read dates.
   ///
   /// [locale] is the app's locale, not one borrowed for the pattern's sake. It
-  /// only decides which digits the field prints and accepts, so an Arabic UI
-  /// keeps Arabic-Indic digits in the order [pattern] asks for.
+  /// never decides field order, only digit shape, and then only for the
+  /// locales `intl` substitutes digits for: Persian and Bengali render
+  /// `۳۱.۰۱.۲۰۲۶`, while Arabic and German both render `31.01.2026`. No locale
+  /// Submersion ships today substitutes, so this is correctness by
+  /// construction rather than a behavior anyone can see yet.
   CompactDateCalendarDelegate({required String pattern, required Locale locale})
     : _format = _dateFormat(pattern, locale),
       _helpText = pattern.toLowerCase();
