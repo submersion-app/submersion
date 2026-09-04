@@ -1489,14 +1489,19 @@ class UddfExportBuilders {
                       },
                     );
                   }
-                  if (owner.insurance.provider != null) {
+                  // Gated on any detail, not on the provider name: a policy
+                  // number or an assistance line saved without naming the
+                  // insurer would otherwise never reach the file.
+                  if (owner.insurance.hasAnyDetail) {
                     builder.element(
                       'insurance',
                       nest: () {
-                        builder.element(
-                          'provider',
-                          nest: owner.insurance.provider,
-                        );
+                        if (owner.insurance.provider != null) {
+                          builder.element(
+                            'provider',
+                            nest: owner.insurance.provider,
+                          );
+                        }
                         if (owner.insurance.policyNumber != null) {
                           builder.element(
                             'policynumber',

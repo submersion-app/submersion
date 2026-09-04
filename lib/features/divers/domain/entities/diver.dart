@@ -76,6 +76,20 @@ class DiverInsurance extends Equatable {
   /// Whether the diver recorded any insurer number at all.
   bool get hasCallNumber => callNumber != null;
 
+  /// Whether the diver recorded anything at all under insurance.
+  ///
+  /// Persistence and export must key off this rather than [provider]: a policy
+  /// number or an assistance line can be saved without ever naming the
+  /// insurer, and gating on the name alone silently drops the rest.
+  bool get hasAnyDetail {
+    final name = provider?.trim();
+    if (name != null && name.isNotEmpty) return true;
+    final policy = policyNumber?.trim();
+    if (policy != null && policy.isNotEmpty) return true;
+    if (expiryDate != null) return true;
+    return hasCallNumber;
+  }
+
   bool get isExpired {
     if (expiryDate == null) return false;
     return DateTime.now().isAfter(expiryDate!);

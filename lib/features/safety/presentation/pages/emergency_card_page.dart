@@ -380,6 +380,11 @@ class _DiverSection extends StatelessWidget {
 
 /// Whether the insurance block has anything worth a section header. A diver
 /// who saved only an assistance number still gets the section.
+///
+/// Deliberately narrower than [DiverInsurance.hasAnyDetail], which also counts
+/// the expiry date: the card does not render an expiry, so keying off it would
+/// print a header over an empty block. Persistence and export use the wider
+/// one.
 bool _hasInsuranceDetails(DiverInsurance insurance) {
   final provider = insurance.provider?.trim();
   if (provider != null && provider.isNotEmpty) return true;
