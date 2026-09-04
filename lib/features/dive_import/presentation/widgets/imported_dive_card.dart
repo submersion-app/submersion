@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card displaying an imported dive for selection in the import wizard.
-class ImportedDiveCard extends StatelessWidget {
+class ImportedDiveCard extends ConsumerWidget {
   const ImportedDiveCard({
     super.key,
     required this.dive,
@@ -19,9 +21,10 @@ class ImportedDiveCard extends StatelessWidget {
   final ImportMatchStatus? matchStatus;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Card(
       elevation: isSelected ? 2 : 0,
@@ -44,7 +47,7 @@ class ImportedDiveCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeader(context),
+                      _buildHeader(context, units),
                       const SizedBox(height: 8),
                       _buildMetrics(context),
                       if (matchStatus != null) ...[
@@ -82,22 +85,20 @@ class ImportedDiveCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, UnitFormatter units) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.yMMMd();
-    final timeFormat = DateFormat.jm();
 
     return Row(
       children: [
         Text(
-          dateFormat.format(dive.startTime),
+          units.formatDate(dive.startTime),
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(width: 8),
         Text(
-          timeFormat.format(dive.startTime),
+          units.formatTime(dive.startTime),
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

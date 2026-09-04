@@ -644,7 +644,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
           depthLabel: suggestedDepth > 0
               ? units.formatDepth(suggestedDepth)
               : null,
-          date: planState.startDateTime ?? DateTime.now(),
+          dateLabel: units.formatMonthDay(
+            planState.startDateTime ?? DateTime.now(),
+          ),
           fallbackLabel: l10n.plannerCanvas_name_defaultFallback,
         ),
         title: l10n.plannerCanvas_name_dialogTitle,

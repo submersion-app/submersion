@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -90,7 +89,7 @@ class BodyWeightEditPage extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       '${dialogContext.l10n.bodyWeight_dateLabel}: '
-                      '${DateFormat.yMMMd().format(measuredAt)}',
+                      '${units.formatDate(measuredAt)}',
                     ),
                   ),
                   IconButton(
@@ -189,9 +188,9 @@ class BodyWeightEditPage extends ConsumerWidget {
                 title: Text(units.formatWeight(entry.weightKg)),
                 subtitle: Text(
                   entry.heightCm != null
-                      ? '${DateFormat.yMMMd().format(entry.measuredAt)} · '
+                      ? '${units.formatDate(entry.measuredAt)} · '
                             '${units.formatHeight(entry.heightCm)}'
-                      : DateFormat.yMMMd().format(entry.measuredAt),
+                      : units.formatDate(entry.measuredAt),
                 ),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline),

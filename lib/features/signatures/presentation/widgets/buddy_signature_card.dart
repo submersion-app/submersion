@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 
 /// Card displaying a buddy's signature status
-class BuddySignatureCard extends StatelessWidget {
+class BuddySignatureCard extends ConsumerWidget {
   final BuddyWithRole buddyWithRole;
   final Signature? signature;
   final VoidCallback? onRequestSignature;
@@ -24,9 +26,10 @@ class BuddySignatureCard extends StatelessWidget {
   bool get hasSigned => signature != null;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final buddy = buddyWithRole.buddy;
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -81,7 +84,7 @@ class BuddySignatureCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           context.l10n.signatures_signedDate(
-                            DateFormat.yMMMd().format(signature!.signedAt),
+                            units.formatDate(signature!.signedAt),
                           ),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: colorScheme.primary),

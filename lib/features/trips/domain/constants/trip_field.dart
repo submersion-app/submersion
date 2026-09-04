@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' show DateFormat;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -195,8 +194,6 @@ class TripFieldAdapter extends EntityFieldAdapter<TripWithStats, TripField> {
     return map;
   }();
 
-  static final DateFormat _dateFormat = DateFormat.yMMMd();
-
   @override
   List<TripField> get allFields => _allFields;
 
@@ -226,8 +223,8 @@ class TripFieldAdapter extends EntityFieldAdapter<TripWithStats, TripField> {
   String formatValue(TripField field, dynamic value, UnitFormatter units) {
     if (value == null) return '--';
     return switch (field) {
-      TripField.startDate => _dateFormat.format(value as DateTime),
-      TripField.endDate => _dateFormat.format(value as DateTime),
+      TripField.startDate => units.formatDate(value as DateTime),
+      TripField.endDate => units.formatDate(value as DateTime),
       TripField.durationDays => '${value as int} days',
       TripField.tripType => (value as TripType).name,
       TripField.diveCount => (value as int).toString(),

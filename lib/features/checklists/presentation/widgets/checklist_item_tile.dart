@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A single checklist row: checkbox, title, optional due chip, edit/delete.
-class ChecklistItemTile extends StatelessWidget {
+class ChecklistItemTile extends ConsumerWidget {
   final TripChecklistItem item;
 
   /// Whether overdue styling applies (false for past trips - they never nag).
@@ -24,8 +26,9 @@ class ChecklistItemTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final isOverdue = showOverdue && item.isOverdue(DateTime.now());
     final due = item.dueDate;
 
@@ -58,7 +61,7 @@ class ChecklistItemTile extends StatelessWidget {
               label: Text(
                 isOverdue
                     ? context.l10n.checklists_item_overdue
-                    : DateFormat.MMMd().format(due),
+                    : units.formatMonthDay(due),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: isOverdue
                       ? theme.colorScheme.onErrorContainer

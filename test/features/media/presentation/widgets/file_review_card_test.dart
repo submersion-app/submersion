@@ -163,7 +163,9 @@ void main() {
         targetDiveId: 'd1',
       );
 
-      expect(find.textContaining('2025-12-27 11:47'), findsOneWidget);
+      // The line honours the diver's date and time preferences; the
+      // harness leaves them at their defaults.
+      expect(find.textContaining('Dec 27, 2025 11:47 AM'), findsOneWidget);
       expect(find.textContaining('from EXIF'), findsOneWidget);
     });
 
@@ -226,8 +228,8 @@ void main() {
 
       // The corrected time leads; the value actually read from the file
       // follows, so the diver can see what was changed on their behalf.
-      expect(find.textContaining('2025-12-27 11:47'), findsOneWidget);
-      expect(find.textContaining('was 2025-12-27 16:47'), findsOneWidget);
+      expect(find.textContaining('Dec 27, 2025 11:47 AM'), findsOneWidget);
+      expect(find.textContaining('was Dec 27, 2025 4:47 PM'), findsOneWidget);
     });
   });
 

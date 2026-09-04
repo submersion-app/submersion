@@ -690,5 +690,10 @@ DragEndDetails _dragDown(double pixelsPerSecond) => DragEndDetails(
 
 /// Mirrors the overlay's own formatting so the assertion survives locale
 /// data changes (intl has moved the space inside `jm` before now).
+/// The overlay's timestamp line, built from the default unit preferences the
+/// test harness installs: 'MMM d, yyyy' dates and 12-hour times, joined by the
+/// localized "at" connector. The explicit patterns mirror what UnitFormatter
+/// emits, including the ordinary space before the meridiem.
 String _metadataLine(DateTime takenAt) =>
-    '${DateFormat.yMMMd().format(takenAt)} at ${DateFormat.jm().format(takenAt)}';
+    '${DateFormat('MMM d, yyyy').format(takenAt)} at '
+    '${DateFormat('h:mm a').format(takenAt)}';

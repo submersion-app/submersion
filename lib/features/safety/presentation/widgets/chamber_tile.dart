@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/entities/chamber_listing.dart';
@@ -50,7 +49,7 @@ class ChamberTile extends ConsumerWidget {
     final provenance = [
       if (chamber.lastVerified != null)
         l10n.emergencyCard_chamberVerified(
-          DateFormat.yMMM().format(chamber.lastVerified!),
+          units.formatMonthYear(chamber.lastVerified),
         ),
       if (chamber.verifiedVia == ChamberVerification.registry)
         l10n.emergencyCard_chamberUnverified,

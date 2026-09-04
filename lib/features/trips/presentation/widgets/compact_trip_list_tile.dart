@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
@@ -9,7 +11,7 @@ import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 ///
 /// Line 1: Trip name (expanded) | Date range (secondary text) | Chevron
 /// Line 2: Dive count with scuba icon | Total bottom time with timer icon
-class CompactTripListTile extends StatelessWidget {
+class CompactTripListTile extends ConsumerWidget {
   final TripWithStats tripWithStats;
   final bool isSelected;
   final VoidCallback? onTap;
@@ -30,7 +32,7 @@ class CompactTripListTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final trip = tripWithStats.trip;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -38,9 +40,10 @@ class CompactTripListTile extends StatelessWidget {
         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;
-    final dateFormat = DateFormat.yMMMd();
+    // Ordered by the diver's date format preference (#1512).
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final dateRangeStr =
-        '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}';
+        '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),

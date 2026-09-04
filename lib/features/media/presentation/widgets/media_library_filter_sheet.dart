@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/media/domain/entities/media_library_filter.d
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_labels.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -213,6 +215,7 @@ class _MediaLibraryFilterSheetState
     ]..sort((a, b) => a.$2.toLowerCase().compareTo(b.$2.toLowerCase()));
     final albums = ref.watch(mediaSmartAlbumsProvider).value ?? const [];
     final missingCount = ref.watch(missingCountProvider).value ?? 0;
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     final siteName = _siteId == null
         ? null
@@ -355,7 +358,7 @@ class _MediaLibraryFilterSheetState
                           _fromDate == null && _toDate == null
                               ? anyLabel
                               : formatFilterDateRange(
-                                  context,
+                                  units,
                                   _fromDate,
                                   _toDate,
                                 ),

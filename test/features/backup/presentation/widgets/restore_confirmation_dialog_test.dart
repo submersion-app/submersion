@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
@@ -26,21 +27,23 @@ void main() {
     RestoreMode? result;
     var completed = false;
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Builder(
-          builder: (context) => ElevatedButton(
-            onPressed: () async {
-              result = await RestoreConfirmationDialog.show(
-                context,
-                record,
-                currentSchemaVersion: 80,
-                offerReplace: offerReplace,
-              );
-              completed = true;
-            },
-            child: const Text('open'),
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                result = await RestoreConfirmationDialog.show(
+                  context,
+                  record,
+                  currentSchemaVersion: 80,
+                  offerReplace: offerReplace,
+                );
+                completed = true;
+              },
+              child: const Text('open'),
+            ),
           ),
         ),
       ),

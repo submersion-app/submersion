@@ -78,6 +78,43 @@ void main() {
     });
   });
 
+  group('formatMonthYear', () {
+    final date = DateTime(2026, 3, 15);
+
+    test('drops the day from the diver preference, keeping its shape', () {
+      expect(monthFirst.formatMonthYear(date), '03/2026');
+      expect(dayFirst.formatMonthYear(date), '03/2026');
+      expect(
+        const UnitFormatter(
+          AppSettings(dateFormat: DateFormatPreference.yyyymmdd),
+        ).formatMonthYear(date),
+        '2026-03',
+      );
+      expect(
+        const UnitFormatter(
+          AppSettings(dateFormat: DateFormatPreference.mmmDYYYY),
+        ).formatMonthYear(date),
+        'Mar 2026',
+      );
+      expect(
+        const UnitFormatter(
+          AppSettings(dateFormat: DateFormatPreference.dMMMYYYY),
+        ).formatMonthYear(date),
+        'Mar 2026',
+      );
+      expect(
+        const UnitFormatter(
+          AppSettings(dateFormat: DateFormatPreference.ddmmyyyyDots),
+        ).formatMonthYear(date),
+        '03.2026',
+      );
+    });
+
+    test('renders the placeholder for a null date', () {
+      expect(monthFirst.formatMonthYear(null), '--');
+    });
+  });
+
   group('static patterns', () {
     test('monthDayPattern follows the day-first preference', () {
       expect(
@@ -87,6 +124,33 @@ void main() {
       expect(
         UnitFormatter.monthDayPattern(DateFormatPreference.ddmmyyyy),
         'd MMM',
+      );
+    });
+
+    test('monthYearPattern removes the day and its separator', () {
+      expect(
+        UnitFormatter.monthYearPattern(DateFormatPreference.mmddyyyy),
+        'MM/yyyy',
+      );
+      expect(
+        UnitFormatter.monthYearPattern(DateFormatPreference.ddmmyyyy),
+        'MM/yyyy',
+      );
+      expect(
+        UnitFormatter.monthYearPattern(DateFormatPreference.yyyymmdd),
+        'yyyy-MM',
+      );
+      expect(
+        UnitFormatter.monthYearPattern(DateFormatPreference.mmmDYYYY),
+        'MMM yyyy',
+      );
+      expect(
+        UnitFormatter.monthYearPattern(DateFormatPreference.dMMMYYYY),
+        'MMM yyyy',
+      );
+      expect(
+        UnitFormatter.monthYearPattern(DateFormatPreference.ddmmyyyyDots),
+        'MM.yyyy',
       );
     });
 

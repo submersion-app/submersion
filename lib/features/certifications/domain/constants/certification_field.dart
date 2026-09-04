@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' show DateFormat;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -181,8 +180,6 @@ class CertificationFieldAdapter
     return map;
   }();
 
-  static final DateFormat _dateFormat = DateFormat.yMMMd();
-
   @override
   List<CertificationField> get allFields => _allFields;
 
@@ -220,8 +217,8 @@ class CertificationFieldAdapter
       // displayName, not name: the latter is the enum identifier, so the
       // column read "openWater" rather than "Open Water".
       CertificationField.level => (value as CertificationLevel).displayName,
-      CertificationField.issueDate => _dateFormat.format(value as DateTime),
-      CertificationField.expiryDate => _dateFormat.format(value as DateTime),
+      CertificationField.issueDate => units.formatDate(value as DateTime),
+      CertificationField.expiryDate => units.formatDate(value as DateTime),
       _ => value is String ? (value.isEmpty ? '--' : value) : value.toString(),
     };
   }

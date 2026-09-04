@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
@@ -21,7 +22,7 @@ class TripStoryHero extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final trip = story.trip;
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.yMMMd();
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final hasItinerary = story.days.any((d) => d.itineraryDay != null);
 
     return Column(
@@ -46,8 +47,8 @@ class TripStoryHero extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '${dateFormat.format(trip.startDate)}'
-          ' - ${dateFormat.format(trip.endDate)}'
+          '${units.formatDate(trip.startDate)}'
+          ' - ${units.formatDate(trip.endDate)}'
           ' (${context.l10n.trips_detail_durationDays(trip.durationDays)})',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
@@ -96,19 +97,19 @@ class TripStoryHero extends ConsumerWidget {
   }
 }
 
-class _ChecklistCard extends StatelessWidget {
+class _ChecklistCard extends ConsumerWidget {
   final TripStory story;
 
   const _ChecklistCard({required this.story});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final checklist = story.checklist;
     final progress = checklist.total == 0
         ? 0.0
         : checklist.done / checklist.total;
-    final dateFormat = DateFormat.MMMd();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Card(
       child: Padding(
@@ -151,7 +152,7 @@ class _ChecklistCard extends StatelessWidget {
                     ),
                     if (item.dueDate != null)
                       Text(
-                        dateFormat.format(item.dueDate!),
+                        units.formatMonthDay(item.dueDate),
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.primary,
                         ),

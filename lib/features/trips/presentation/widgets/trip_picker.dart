@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -68,8 +69,8 @@ class _TripPickerState extends ConsumerState<TripPicker> {
   }
 
   String _formatTripDates(Trip trip) {
-    final dateFormat = DateFormat.yMMMd();
-    return '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}';
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    return '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}';
   }
 
   Widget _buildSuggestedTrip() {
@@ -248,18 +249,18 @@ class TripPickerSheet extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final trip = trips[index];
                   final isSelected = selectedTrip?.id == trip.id;
-                  final dateFormat = DateFormat.yMMMd();
+                  final units = UnitFormatter(ref.watch(settingsProvider));
 
                   final tripLabel = isSelected
                       ? context.l10n.trips_picker_tileSemanticsSelected(
                           trip.name,
-                          dateFormat.format(trip.startDate),
-                          dateFormat.format(trip.endDate),
+                          units.formatDate(trip.startDate),
+                          units.formatDate(trip.endDate),
                         )
                       : context.l10n.trips_picker_tileSemantics(
                           trip.name,
-                          dateFormat.format(trip.startDate),
-                          dateFormat.format(trip.endDate),
+                          units.formatDate(trip.startDate),
+                          units.formatDate(trip.endDate),
                         );
 
                   return Semantics(
@@ -282,7 +283,7 @@ class TripPickerSheet extends ConsumerWidget {
                       ),
                       title: Text(trip.name),
                       subtitle: Text(
-                        '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+                        '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
                       ),
                       trailing: isSelected
                           ? Icon(

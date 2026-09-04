@@ -1,14 +1,15 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/data/services/repair/watched_folder_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Counts per source type for the browse list.
@@ -101,7 +102,6 @@ class MediaSourcesSectionView extends ConsumerWidget {
     final counts = ref.watch(sourceCountsProvider).value ?? const {};
     final roots = ref.watch(watchedRootsProvider).value ?? const [];
     final autoApply = ref.watch(watcherAutoApplyProvider);
-    final locale = Localizations.localeOf(context).toString();
 
     return ListView(
       children: [
@@ -131,7 +131,7 @@ class MediaSourcesSectionView extends ConsumerWidget {
             style: Theme.of(context).textTheme.titleSmall,
           ),
         ),
-        for (final root in roots) _WatchedRootTile(root: root, locale: locale),
+        for (final root in roots) _WatchedRootTile(root: root),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Row(
@@ -163,14 +163,14 @@ class MediaSourcesSectionView extends ConsumerWidget {
 }
 
 class _WatchedRootTile extends ConsumerWidget {
-  const _WatchedRootTile({required this.root, required this.locale});
+  const _WatchedRootTile({required this.root});
 
   final String root;
-  final String locale;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stamp = ref.watch(watchedRootLastScanProvider(root)).value;
+    final units = UnitFormatter(ref.watch(settingsProvider));
     return ListTile(
       leading: const Icon(Icons.folder_outlined),
       title: Text(root, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -178,7 +178,7 @@ class _WatchedRootTile extends ConsumerWidget {
         stamp == null
             ? context.l10n.media_sources_neverScanned
             : context.l10n.media_sources_lastScanned(
-                DateFormat.yMMMd(locale).add_jm().format(stamp),
+                units.formatDateTime(stamp, l10n: context.l10n),
               ),
       ),
       trailing: IconButton(

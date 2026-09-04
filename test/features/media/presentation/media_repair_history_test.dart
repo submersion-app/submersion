@@ -97,10 +97,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('/nas/Dives/a.jpg'), findsOneWidget);
-    // intl separates the time from the meridiem with U+202F (narrow no-break
-    // space), not an ordinary space.
+    // The stamp goes through UnitFormatter, so it carries the diver's date
+    // and time preferences (defaults here) and the localized "at" connector.
+    // The explicit 'h:mm a' pattern separates the meridiem with an ordinary
+    // space, unlike DateFormat.jm()'s U+202F.
     expect(
-      find.text('Aug 6, 2026 3:04\u202FPM via watched folders'),
+      find.text('Aug 6, 2026 at 3:04 PM via watched folders'),
       findsOneWidget,
     );
   });

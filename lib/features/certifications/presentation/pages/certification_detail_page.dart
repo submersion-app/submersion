@@ -3,9 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -119,6 +120,7 @@ class _CertificationDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
       padding: const EdgeInsets.all(16),
@@ -126,7 +128,7 @@ class _CertificationDetailContent extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Status banner
-          _buildStatusBanner(context),
+          _buildStatusBanner(context, units),
           const SizedBox(height: 24),
 
           // Header with agency logo
@@ -138,7 +140,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           const SizedBox(height: 16),
 
           // Dates
-          _buildDatesSection(context),
+          _buildDatesSection(context, units),
           const SizedBox(height: 16),
 
           // Instructor info
@@ -325,11 +327,11 @@ class _CertificationDetailContent extends ConsumerWidget {
     }
   }
 
-  Widget _buildStatusBanner(BuildContext context) {
+  Widget _buildStatusBanner(BuildContext context, UnitFormatter units) {
     if (certification.isExpired) {
       return Semantics(
         label:
-            'Warning: This certification has expired${certification.expiryDate != null ? ' on ${DateFormat.yMMMd().format(certification.expiryDate!)}' : ''}',
+            'Warning: This certification has expired${certification.expiryDate != null ? ' on ${units.formatDate(certification.expiryDate)}' : ''}',
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
@@ -356,7 +358,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     if (certification.expiryDate != null)
                       Text(
                         context.l10n.certifications_detail_status_expiredOn(
-                          DateFormat.yMMMd().format(certification.expiryDate!),
+                          units.formatDate(certification.expiryDate),
                         ),
                         style: TextStyle(
                           color: Colors.red.withValues(alpha: 0.8),
@@ -374,7 +376,7 @@ class _CertificationDetailContent extends ConsumerWidget {
       final days = certification.daysUntilExpiry ?? 0;
       return Semantics(
         label:
-            'Warning: Certification expires in $days days${certification.expiryDate != null ? ' on ${DateFormat.yMMMd().format(certification.expiryDate!)}' : ''}',
+            'Warning: Certification expires in $days days${certification.expiryDate != null ? ' on ${units.formatDate(certification.expiryDate)}' : ''}',
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
@@ -403,7 +405,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     if (certification.expiryDate != null)
                       Text(
                         context.l10n.certifications_detail_status_expiresOn(
-                          DateFormat.yMMMd().format(certification.expiryDate!),
+                          units.formatDate(certification.expiryDate),
                         ),
                         style: TextStyle(
                           color: Colors.orange.withValues(alpha: 0.8),
@@ -511,7 +513,7 @@ class _CertificationDetailContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildDatesSection(BuildContext context) {
+  Widget _buildDatesSection(BuildContext context, UnitFormatter units) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -529,13 +531,13 @@ class _CertificationDetailContent extends ConsumerWidget {
               _InfoRow(
                 icon: Icons.event_available,
                 label: context.l10n.certifications_detail_label_issueDate,
-                value: DateFormat.yMMMd().format(certification.issueDate!),
+                value: units.formatDate(certification.issueDate),
               ),
             if (certification.expiryDate != null)
               _InfoRow(
                 icon: Icons.event_busy,
                 label: context.l10n.certifications_detail_label_expiryDate,
-                value: DateFormat.yMMMd().format(certification.expiryDate!),
+                value: units.formatDate(certification.expiryDate),
                 valueColor: certification.isExpired
                     ? Colors.red
                     : certification.expiresWithin(90)

@@ -5,11 +5,13 @@
 /// and stay honest, so they plot real timestamps and need ticks chosen from the
 /// span rather than from the point count (issue #299).
 ///
-/// Deliberately free of Flutter and of locale: labels are formatted by the
-/// widget, which has a BuildContext. This file only decides where ticks go.
+/// Deliberately free of Flutter and of ambient locale: labels are formatted
+/// from the diver's own [DateFormatPreference], which the widget threads in.
+/// This file only decides where ticks go.
 library;
 
 import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/units.dart';
 
 enum DateAxisGranularity { day, month, quarter, year }
 
@@ -20,6 +22,7 @@ class DateAxis {
     required this.ticks,
     required this.granularity,
     required this.labelInterval,
+    this.dateFormat = DateFormatPreference.mmmDYYYY,
   });
 
   /// Lower bound, as `millisecondsSinceEpoch`, for fl_chart's `minX`.
@@ -32,6 +35,10 @@ class DateAxis {
   final List<DateTime> ticks;
 
   final DateAxisGranularity granularity;
+
+  /// The diver's date order, which only the day-granularity label reads: a
+  /// numeric "10/8" is the one label here that is ambiguous (#1512).
+  final DateFormatPreference dateFormat;
 
   /// Spacing, in milliseconds, to hand fl_chart as `SideTitles.interval`.
   ///
@@ -102,7 +109,8 @@ class DateAxis {
       case DateAxisGranularity.month:
         return "${DateFormat.MMM().format(date)} '${_shortYear(date)}";
       case DateAxisGranularity.day:
-        return "${DateFormat.Md().format(date)} '${_shortYear(date)}";
+        final md = dateFormat.isDayFirst ? 'd/M' : 'M/d';
+        return "${DateFormat(md).format(date)} '${_shortYear(date)}";
     }
   }
 
@@ -113,7 +121,11 @@ class DateAxis {
   ///
   /// A degenerate range (one dive, or several on one day) is widened to a day
   /// so fl_chart has a non-zero axis to draw.
-  factory DateAxis.forRange(DateTime first, DateTime last) {
+  factory DateAxis.forRange(
+    DateTime first,
+    DateTime last, {
+    DateFormatPreference dateFormat = DateFormatPreference.mmmDYYYY,
+  }) {
     final start = first;
     var end = last;
     if (!end.isAfter(start)) {
@@ -140,6 +152,7 @@ class DateAxis {
       ticks: ticks,
       granularity: granularity,
       labelInterval: (maxMs - minMs) / steps,
+      dateFormat: dateFormat,
     );
   }
 

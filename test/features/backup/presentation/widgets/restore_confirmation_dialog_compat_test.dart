@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
@@ -26,10 +27,12 @@ BackupRecord _preMigration({
 }
 
 Widget _wrap(Widget child) {
-  return MaterialApp(
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(body: child),
+  return ProviderScope(
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: child),
+    ),
   );
 }
 
@@ -115,21 +118,17 @@ void main() {
     ) async {
       RestoreMode? result;
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: Builder(
-              builder: (ctx) => TextButton(
-                onPressed: () async {
-                  result = await RestoreConfirmationDialog.show(
-                    ctx,
-                    record,
-                    currentSchemaVersion: currentSchemaVersion,
-                  );
-                },
-                child: const Text('open'),
-              ),
+        _wrap(
+          Builder(
+            builder: (ctx) => TextButton(
+              onPressed: () async {
+                result = await RestoreConfirmationDialog.show(
+                  ctx,
+                  record,
+                  currentSchemaVersion: currentSchemaVersion,
+                );
+              },
+              child: const Text('open'),
             ),
           ),
         ),

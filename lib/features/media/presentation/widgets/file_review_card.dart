@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
 import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 import 'package:submersion/features/media/domain/value_objects/unmatched_diagnostic.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/utils/capture_time_offset_format.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A single row in the [FileReviewPane], representing one [ExtractedFile]
@@ -66,6 +67,7 @@ class FileReviewCard extends ConsumerWidget {
     final canAssign =
         allowDiveAssignment && assignTo != null && assignTo != targetDiveId;
     final reason = diagnostic;
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return ListTile(
       isThreeLine: reason != null,
@@ -79,7 +81,7 @@ class FileReviewCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(_timeLine(context)),
+          Text(_timeLine(context, units)),
           if (reason != null)
             Text(
               _reasonLine(context, reason),
@@ -132,7 +134,7 @@ class FileReviewCard extends ConsumerWidget {
   /// When a session offset is in effect the corrected time leads and the value
   /// actually read from the file follows in parentheses, so a diver can see
   /// what was changed on their behalf before committing.
-  String _timeLine(BuildContext context) {
+  String _timeLine(BuildContext context, UnitFormatter units) {
     final l10n = context.l10n;
     final source = switch (file.metadata.takenAtSource) {
       TakenAtSource.nativeExif => l10n.media_photoPicker_files_sourceExif,
@@ -146,9 +148,9 @@ class FileReviewCard extends ConsumerWidget {
     final takenAt = file.metadata.takenAt;
     if (takenAt == null) return source;
 
-    final original = _format(takenAt);
+    final original = _format(units, takenAt);
     if (captureTimeOffset == Duration.zero) return '$original ($source)';
-    final shifted = _format(takenAt.add(captureTimeOffset));
+    final shifted = _format(units, takenAt.add(captureTimeOffset));
     return '${l10n.media_photoPicker_files_shiftedTime(shifted, original)} '
         '($source)';
   }
@@ -171,8 +173,13 @@ class FileReviewCard extends ConsumerWidget {
   /// `takenAt` is wall-clock-UTC by codebase convention, so format its UTC
   /// components directly. Running it through a local-timezone formatter would
   /// re-introduce the host-offset skew the convention exists to avoid.
-  String _format(DateTime value) =>
-      DateFormat('yyyy-MM-dd HH:mm').format(value.toUtc());
+  ///
+  /// The shape comes from the diver's date and time preferences rather than a
+  /// fixed pattern; only the UTC normalisation is fixed here.
+  String _format(UnitFormatter units, DateTime value) {
+    final utc = value.toUtc();
+    return '${units.formatDate(utc)} ${units.formatTime(utc)}';
+  }
 
   /// A 48x48 leading preview. Videos can't be decoded by [Image.file], so they
   /// get an explicit video icon rather than the broken-image error fallback.

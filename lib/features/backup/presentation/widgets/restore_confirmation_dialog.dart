@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Confirmation dialog shown before restoring from a backup.
@@ -14,7 +16,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// replacing the library everywhere; Replace requires a second confirmation.
 /// For pre-migration backups, branches on schema version compatibility
 /// (those emergency flows always restore in merge mode).
-class RestoreConfirmationDialog extends StatefulWidget {
+class RestoreConfirmationDialog extends ConsumerStatefulWidget {
   final BackupRecord record;
   final int currentSchemaVersion;
   final bool offerReplace;
@@ -44,11 +46,12 @@ class RestoreConfirmationDialog extends StatefulWidget {
   }
 
   @override
-  State<RestoreConfirmationDialog> createState() =>
+  ConsumerState<RestoreConfirmationDialog> createState() =>
       _RestoreConfirmationDialogState();
 }
 
-class _RestoreConfirmationDialogState extends State<RestoreConfirmationDialog> {
+class _RestoreConfirmationDialogState
+    extends ConsumerState<RestoreConfirmationDialog> {
   RestoreMode _mode = RestoreMode.merge;
 
   @override
@@ -61,7 +64,7 @@ class _RestoreConfirmationDialogState extends State<RestoreConfirmationDialog> {
 
   Widget _buildManual(BuildContext context) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.yMMMd().add_jm();
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final record = widget.record;
 
     return AlertDialog(
@@ -82,7 +85,7 @@ class _RestoreConfirmationDialogState extends State<RestoreConfirmationDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    dateFormat.format(record.timestamp),
+                    units.formatDateTime(record.timestamp, l10n: context.l10n),
                     style: theme.textTheme.titleSmall,
                   ),
                   const SizedBox(height: 4),
@@ -239,13 +242,13 @@ class _RestoreConfirmationDialogState extends State<RestoreConfirmationDialog> {
   Widget _buildPreMigration(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final dateFormat = DateFormat.yMMMd().add_jm();
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final record = widget.record;
     final fromSchemaVersion = record.fromSchemaVersion;
     final toSchemaVersion = record.toSchemaVersion;
     final appVersion =
         record.appVersion ?? l10n.backup_restore_preMigration_unknownVersion;
-    final timestamp = dateFormat.format(record.timestamp);
+    final timestamp = units.formatDateTime(record.timestamp, l10n: l10n);
 
     if (fromSchemaVersion == null || toSchemaVersion == null) {
       return AlertDialog(

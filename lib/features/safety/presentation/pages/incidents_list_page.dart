@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/formatters/incident_labels.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The near-miss log: newest first, deliberately quiet styling.
@@ -70,7 +71,8 @@ class _IncidentTile extends ConsumerWidget {
     final theme = Theme.of(context);
     // occurredAt is a wall-clock UTC date; format its components directly (no
     // toLocal) so the shown day is stable across synced devices/timezones.
-    final dateText = DateFormat.yMMMd().format(incident.occurredAt);
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    final dateText = units.formatDate(incident.occurredAt);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

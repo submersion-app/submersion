@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
@@ -814,8 +813,9 @@ class UniversalAdapter implements ImportSourceAdapter {
   // Helpers — entity item conversion
   // ---------------------------------------------------------------------------
 
-  static final _dateFormatter = DateFormat('MMM d, yyyy');
-  static final _timeFormatter = DateFormat('h:mm a');
+  /// Formatter for the review list's dates and times, built from the active
+  /// diver's unit settings so the wizard matches the rest of the app.
+  UnitFormatter get _units => UnitFormatter(_ref.read(settingsProvider));
 
   void _addGroupIfNotEmpty(
     Map<wizard.ImportEntityType, EntityGroup> groups,
@@ -837,10 +837,12 @@ class UniversalAdapter implements ImportSourceAdapter {
         data['siteName'] as String? ??
         (data['site'] as Map<String, dynamic>?)?['name'] as String?;
 
+    final units = _units;
+
     String title;
     if (dateTime != null) {
-      final dateStr = _dateFormatter.format(dateTime);
-      final timeStr = _timeFormatter.format(dateTime);
+      final dateStr = units.formatDate(dateTime);
+      final timeStr = units.formatTime(dateTime);
       title = '$dateStr \u2014 $timeStr';
     } else {
       title = 'Unknown date';
@@ -849,8 +851,6 @@ class UniversalAdapter implements ImportSourceAdapter {
     final parts = <String>[];
     if (siteName != null && siteName.isNotEmpty) parts.add(siteName);
     if (maxDepth != null) {
-      final settings = _ref.read(settingsProvider);
-      final units = UnitFormatter(settings);
       parts.add('${units.formatDepth(maxDepth)} max');
     }
     if (effectiveDuration != null) {
@@ -923,13 +923,14 @@ class UniversalAdapter implements ImportSourceAdapter {
     final startDate = data['startDate'] as DateTime?;
     final endDate = data['endDate'] as DateTime?;
 
+    final units = _units;
     String subtitle;
     if (startDate != null && endDate != null) {
       subtitle =
-          '${_dateFormatter.format(startDate)} - '
-          '${_dateFormatter.format(endDate)}';
+          '${units.formatDate(startDate)} - '
+          '${units.formatDate(endDate)}';
     } else if (startDate != null) {
-      subtitle = _dateFormatter.format(startDate);
+      subtitle = units.formatDate(startDate);
     } else {
       subtitle = '';
     }

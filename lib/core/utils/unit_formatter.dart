@@ -509,6 +509,26 @@ class UnitFormatter {
   static String weekdayMonthDayPattern(DateFormatPreference dateFormat) =>
       'EEE, ${monthDayPattern(dateFormat)}';
 
+  /// `DateFormat` pattern for a bare month and year in [dateFormat]'s shape.
+  ///
+  /// Derived by dropping the day token and the separator that binds it to its
+  /// neighbour, so every preference keeps its own punctuation and ordering:
+  /// 'MM/dd/yyyy' and 'dd/MM/yyyy' both collapse to 'MM/yyyy', 'yyyy-MM-dd' to
+  /// 'yyyy-MM', and the spelled-out forms to 'MMM yyyy'.
+  static String monthYearPattern(DateFormatPreference dateFormat) => dateFormat
+      .pattern
+      // A day followed by its separator: 'dd/', 'd ', 'd, '.
+      .replaceFirst(RegExp(r'd+[^A-Za-z]+'), '')
+      // Or a trailing day preceded by its separator: '-dd'.
+      .replaceFirst(RegExp(r'[^A-Za-z]+d+$'), '');
+
+  /// Format month and year only, in the diver's date shape.
+  /// Example: "Mar 2026", "03/2026" or "2026-03"
+  String formatMonthYear(DateTime? dateTime) {
+    if (dateTime == null) return '--';
+    return DateFormat(monthYearPattern(settings.dateFormat)).format(dateTime);
+  }
+
   /// Format month and day only (respects day-first vs month-first preference)
   /// Example: "Jan 15" or "15 Jan"
   String formatMonthDay(DateTime? dateTime) {

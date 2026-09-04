@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart' show DateFormat;
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -27,8 +27,10 @@ void main() {
     updatedAt: DateTime(2023, 6, 15),
   );
 
-  // DateFormat used by the adapter for formatting dates.
-  final dateFormat = DateFormat.yMMMd();
+  // A diver who picked DD/MM/YYYY in Manage - Units (#1512).
+  const dayFirstUnits = UnitFormatter(
+    AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
+  );
 
   group('CertificationFieldAdapter.allFields', () {
     test('has expected count matching CertificationField.values', () {
@@ -357,19 +359,30 @@ void main() {
       );
     });
 
-    test('formats issue date using DateFormat.yMMMd()', () {
+    // #1512: the certification list read 'Jun 15, 2023' whatever the diver
+    // picked, because the adapter formatted dates from a fixed pattern
+    // instead of the UnitFormatter it is already handed.
+    test('formats issue date using the diver date format', () {
       final date = DateTime(2023, 6, 15);
       expect(
         adapter.formatValue(CertificationField.issueDate, date, units),
-        equals(dateFormat.format(date)),
+        equals(units.formatDate(date)),
+      );
+      expect(
+        adapter.formatValue(CertificationField.issueDate, date, dayFirstUnits),
+        equals('15/06/2023'),
       );
     });
 
-    test('formats expiry date using DateFormat.yMMMd()', () {
+    test('formats expiry date using the diver date format', () {
       final date = DateTime(2026, 6, 15);
       expect(
         adapter.formatValue(CertificationField.expiryDate, date, units),
-        equals(dateFormat.format(date)),
+        equals(units.formatDate(date)),
+      );
+      expect(
+        adapter.formatValue(CertificationField.expiryDate, date, dayFirstUnits),
+        equals('15/06/2026'),
       );
     });
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -784,7 +783,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 }
 
 /// List item widget for displaying a trip
-class TripListTile extends StatelessWidget {
+class TripListTile extends ConsumerWidget {
   final TripWithStats tripWithStats;
   final bool isSelected;
   final VoidCallback? onTap;
@@ -805,9 +804,9 @@ class TripListTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final trip = tripWithStats.trip;
-    final dateFormat = DateFormat.yMMMd();
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
 
     final subtitleStr = trip.subtitle != null ? ', ${trip.subtitle}' : '';
@@ -821,7 +820,7 @@ class TripListTile extends StatelessWidget {
     // to match the compact tile and because a translated "to" would need an
     // ARB key per locale to read correctly.
     final dateRangeStr =
-        '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}';
+        '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}';
     final tripLabel =
         '${trip.name}, $dateRangeStr$subtitleStr, $diveCountStr$runtimeStr';
 
@@ -899,7 +898,7 @@ class TripListTile extends StatelessWidget {
               // Date range takes the subtitle role from the ListTile above,
               // matching the dive card's date line.
               Text(
-                '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+                '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
               ),
               if (trip.subtitle != null)
                 Text(
@@ -1050,7 +1049,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
               itemCount: trips.length,
               itemBuilder: (context, index) {
                 final trip = trips[index];
-                final dateFormat = DateFormat.yMMMd();
+                final units = UnitFormatter(ref.watch(settingsProvider));
                 return ListTile(
                   // Same text theme roles as TripListTile so search results do
                   // not fall back to ListTile's bodyLarge title default.
@@ -1085,7 +1084,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                   ),
                   title: Text(trip.name),
                   subtitle: Text(
-                    '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+                    '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
                   ),
                   onTap: () {
                     close(context, trip);
