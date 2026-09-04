@@ -1132,8 +1132,8 @@ jobs:
       # than an older distro. This job builds on ubuntu-latest, so its binary
       # requires that runner's glibc, and installing it on debian:12
       # (glibc 2.36) fails with "GLIBC_2.38 not found" no matter how correct
-      # the packaging is. build-all.yml builds inside an ubuntu:22.04
-      # container and is where installation on older distros is proven.
+      # the packaging is. build-all.yml builds on ubuntu-latest too, so no
+      # job proves installation on older distros: none is supported.
       #
       # The tag is derived from the runner rather than pinned, so this keeps
       # matching when GitHub moves ubuntu-latest to the next release.
@@ -1142,13 +1142,23 @@ jobs:
           set -euo pipefail
           UBUNTU_TAG="ubuntu:$(. /etc/os-release && echo "$VERSION_ID")"
           echo "runner is $UBUNTU_TAG"
+          # Every image runs even when an earlier one fails, so one run says
+          # whether the .deb, the .rpm, or both are broken. Testing the exit
+          # status with `if !` keeps the failure from tripping `set -e`.
+          failed=()
           for image in "$UBUNTU_TAG" fedora:latest; do
             echo "=== $image ==="
-            docker run --rm \
+            if ! docker run --rm \
               -v "$PWD/packages:/p" \
               -v "$PWD/scripts/release/verify_linux_package.sh:/verify.sh:ro" \
-              "$image" bash /verify.sh
+              "$image" bash /verify.sh; then
+              failed+=("$image")
+            fi
           done
+          if [ "${#failed[@]}" -gt 0 ]; then
+            echo "::error::package verification failed on: ${failed[*]}"
+            exit 1
+          fi
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v7

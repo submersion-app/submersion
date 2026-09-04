@@ -711,13 +711,23 @@ jobs:
           set -euo pipefail
           UBUNTU_TAG="ubuntu:$(. /etc/os-release && echo "$VERSION_ID")"
           echo "runner is $UBUNTU_TAG"
+          # Every image runs even when an earlier one fails, so one run says
+          # whether the .deb, the .rpm, or both are broken. Testing the exit
+          # status with `if !` keeps the failure from tripping `set -e`.
+          failed=()
           for image in "$UBUNTU_TAG" fedora:latest; do
             echo "=== $image ==="
-            docker run --rm \
+            if ! docker run --rm \
               -v "$PWD/packages:/p" \
               -v "$PWD/scripts/release/verify_linux_package.sh:/verify.sh:ro" \
-              "$image" bash /verify.sh
+              "$image" bash /verify.sh; then
+              failed+=("$image")
+            fi
           done
+          if [ "${#failed[@]}" -gt 0 ]; then
+            echo "::error::package verification failed on: ${failed[*]}"
+            exit 1
+          fi
 
   # ============================================================================
   # Android Build
