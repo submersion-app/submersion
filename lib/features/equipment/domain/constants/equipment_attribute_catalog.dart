@@ -455,9 +455,22 @@ Uri? parseWebLink(String? raw) {
   final text = raw?.trim() ?? '';
   if (text.isEmpty || text.contains(RegExp(r'\s'))) return null;
 
-  // A leading "scheme:" the diver did not type is not something to guess at;
-  // only add one when the text carries none.
-  final hasScheme = RegExp(r'^[A-Za-z][A-Za-z0-9+.\-]*:').hasMatch(text);
+  // Deciding whether a leading "word:" is a scheme or a host with a port.
+  // RFC 3986 allows dots in a scheme, so "shop.example.com:8080/item" parses
+  // as scheme "shop.example.com" -- which would then be rejected below as a
+  // non-web scheme, even though every browser reads it as host:port.
+  //
+  // The discriminator is the dot: real schemes ("mailto", "javascript",
+  // "file", "ftp") do not contain one, hostnames always do. Anything with a
+  // dotted prefix is treated as a host and gets https:// prepended.
+  //
+  // Deliberately NOT "prepend https:// unless it already starts with http(s)":
+  // that turns "mailto:shop@example.com" into
+  // "https://mailto:shop@example.com", which parses as userInfo "mailto:shop"
+  // on host "example.com" -- a launchable website conjured out of a mailto,
+  // exactly the substitution this function exists to prevent.
+  final schemeMatch = RegExp(r'^([A-Za-z][A-Za-z0-9+.\-]*):').firstMatch(text);
+  final hasScheme = schemeMatch != null && !schemeMatch.group(1)!.contains('.');
   final candidate = hasScheme ? text : 'https://$text';
 
   final uri = Uri.tryParse(candidate);

@@ -102,12 +102,35 @@ void main() {
       expect(parseWebLink('http://old.example.com')?.scheme, 'http');
     });
 
+    test('reads a bare host with a port as a host, not a scheme', () {
+      // RFC 3986 allows dots in a scheme, so a naive scheme check parses
+      // "shop.example.com:8080/item" as scheme "shop.example.com" and then
+      // rejects it. Retailers do quote ports.
+      expect(
+        parseWebLink('shop.example.com:8080/item').toString(),
+        'https://shop.example.com:8080/item',
+      );
+      expect(parseWebLink('shop.example.com:8080')?.port, 8080);
+      expect(parseWebLink('shop.example.com:8080')?.host, 'shop.example.com');
+    });
+
     test('refuses non-web schemes', () {
       // The stored value is handed to url_launcher, so anything that is not
       // http(s) is a launch we must never make on the diver's behalf.
       expect(parseWebLink('javascript:alert(1)'), isNull);
       expect(parseWebLink('file:///etc/passwd'), isNull);
       expect(parseWebLink('mailto:shop@example.com'), isNull);
+    });
+
+    test('a dotless prefix is still treated as a scheme and refused', () {
+      // The host:port fix keys on the dot. Anything without one is a real
+      // scheme, and prepending https:// to it would be the dangerous
+      // substitution: "https://mailto:shop@example.com" parses as userInfo
+      // "mailto:shop" on host "example.com", conjuring a launchable website
+      // out of a mailto.
+      expect(parseWebLink('mailto:shop@example.com'), isNull);
+      expect(parseWebLink('ftp://files.example.com'), isNull);
+      expect(parseWebLink('localhost:3000'), isNull);
     });
 
     test('refuses values that are not links at all', () {

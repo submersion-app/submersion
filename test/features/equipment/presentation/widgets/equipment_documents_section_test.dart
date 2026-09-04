@@ -147,6 +147,26 @@ void main() {
     expect(opened.map((m) => m.id), ['doc-1']);
   });
 
+  testWidgets('a tile is inert when no open callback is wired', (tester) async {
+    // A no-op onTap closure would still give the tile ripple feedback and a
+    // tap target it cannot honour.
+    await tester.pumpWidget(await host(documents: [invoice]));
+    await tester.pumpAndSettle();
+
+    final tile = tester.widget<ListTile>(find.byType(ListTile));
+    expect(tile.onTap, isNull);
+  });
+
+  testWidgets('a tile is tappable once an open callback is wired', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await host(documents: [invoice], onOpen: (_) {}));
+    await tester.pumpAndSettle();
+
+    final tile = tester.widget<ListTile>(find.byType(ListTile));
+    expect(tile.onTap, isNotNull);
+  });
+
   testWidgets('a still-loading provider shows a spinner', (tester) async {
     final completer = Completer<List<MediaItem>>();
     await tester.pumpWidget(await host(pending: completer.future));

@@ -127,7 +127,9 @@ class EquipmentDocumentsSection extends ConsumerWidget {
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
-      onTap: () => onOpenDocument?.call(item),
+      // Null, not a no-op closure: a non-null onTap gives the tile ripple
+      // feedback and a tap target it cannot honour when no opener was wired.
+      onTap: onOpenDocument == null ? null : () => onOpenDocument!(item),
       trailing: IconButton(
         icon: const Icon(Icons.close),
         tooltip: context.l10n.common_action_remove,
