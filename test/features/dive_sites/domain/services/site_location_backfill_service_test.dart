@@ -177,11 +177,8 @@ void main() {
     ).run(targets: [full], onProgress: (_, _) {}, isCancelled: () => false);
 
     expect(summary.total, 1);
-    expect(
-      location.asked,
-      ['47.2,8.6'],
-      reason: 'a candidate scan would have taken the two incomplete sites',
-    );
+    // A candidate scan would have taken the two incomplete sites instead.
+    expect(location.asked, ['47.2,8.6']);
   });
 
   test('a lookup that finds nothing counts as unchanged', () async {
