@@ -16,6 +16,7 @@ import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/test_database.dart';
 
 /// Idle fakes so the existing-data source steps render without real pickers,
 /// timers, or sync services when driven through the shell.
@@ -40,6 +41,14 @@ class _FakeSyncInit implements SyncInitializer {
     CloudStorageProvider provider,
   ) async => PeerLibraryState.none;
 
+  /// A genuinely empty account: nothing under a peer's id and nothing under
+  /// ours either, so there is no inherited identity to shed.
+  @override
+  Future<PeerLibraryState> firstContactLibraryState(
+    CloudStorageProvider provider, {
+    required bool localLibraryIsEmpty,
+  }) async => PeerLibraryState.none;
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -61,6 +70,12 @@ Future<void> pumpWizard(WidgetTester tester) async {
 }
 
 void main() {
+  // The sync-connect step reads the live diver count to decide whether this
+  // install has a library of its own, so these tests need a database even
+  // though they assert on navigation.
+  setUp(() async => setUpTestDatabase());
+  tearDown(() async => tearDownTestDatabase());
+
   testWidgets('wizard ocean background follows resolved brightness', (
     tester,
   ) async {

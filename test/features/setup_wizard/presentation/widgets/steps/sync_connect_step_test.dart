@@ -30,12 +30,31 @@ class _FakeSyncInit implements SyncInitializer {
   List<CloudFileInfo> peers = [];
   bool throwOnPeers = false;
 
+  /// Artifacts on the account that carry THIS install's own device id: the
+  /// inherited-identity case. Invisible to [peerLibraryState] by definition;
+  /// [firstContactLibraryState] recovers them by adopting a fresh identity,
+  /// after which they classify as any other peer's would.
+  List<CloudFileInfo> selfOwned = [];
+
   @override
   Future<PeerLibraryState> peerLibraryState(
     CloudStorageProvider provider,
   ) async {
     if (throwOnPeers) throw Exception('network down');
     return SyncInitializer.classifyPeerFiles(peers);
+  }
+
+  @override
+  Future<PeerLibraryState> firstContactLibraryState(
+    CloudStorageProvider provider, {
+    required bool localLibraryIsEmpty,
+  }) async {
+    final state = await peerLibraryState(provider);
+    if (state != PeerLibraryState.none || !localLibraryIsEmpty) return state;
+    if (SyncInitializer.classifyPeerFiles(selfOwned) == PeerLibraryState.none) {
+      return state;
+    }
+    return SyncInitializer.classifyPeerFiles([...peers, ...selfOwned]);
   }
 
   @override
@@ -230,6 +249,61 @@ void main() {
     expect(find.text('No library found'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, 'Start fresh'));
     expect(pivoted, 1);
+  });
+
+  testWidgets('a library under our own device id is not "no library"', (
+    tester,
+  ) async {
+    // The inherited-identity case: a reinstall on the same machine picked up
+    // the previous install's device-id anchor, so the library that install
+    // published lists as ours rather than a peer's. Offering Start Fresh here
+    // invites the user to walk away from live data.
+    syncInit.peers = [];
+    syncInit.selfOwned = [
+      CloudFileInfo(
+        id: 'a',
+        name: ChangesetLogLayout.manifestName('the-previous-install'),
+        modifiedTime: DateTime(2026),
+      ),
+    ];
+    var pivoted = 0;
+    late ProviderContainer container;
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: await overrides(onSync: _writeSyncedDiver),
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return SyncConnectStep(
+              mode: SetupWizardMode.firstRun,
+              onNoLibrary: () => pivoted++,
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    container
+        .read(setupWizardProvider(SetupWizardMode.firstRun).notifier)
+        .setConnectedProvider(CloudProviderType.s3);
+    await tester.pumpAndSettle();
+
+    await tester.runAsync(() async {
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.text('No library found'), findsNothing);
+    expect(pivoted, 0);
+    expect(
+      find.text('Library adopted'),
+      findsOneWidget,
+      reason:
+          'the self-owned library must actually be pulled, not just '
+          'stop rendering the pivot',
+    );
   });
 
   testWidgets('a failing pull returns to the connect UI with an error', (
