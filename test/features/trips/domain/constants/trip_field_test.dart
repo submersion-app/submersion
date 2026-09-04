@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -8,6 +10,26 @@ import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 void main() {
+  // These assertions are formatted by intl, which resolves against
+  // Intl.defaultLocale: a process global that app.dart sets from the app
+  // locale. There is no MaterialApp here to pin it, so without this the
+  // spelled months and the digits would ride on intl's implicit en_US
+  // fallback. Pin it, and restore it so the global stays contained.
+  //
+  // Setting the global explicitly means intl stops using its built-in fallback
+  // and demands real symbol data, so the locale must be initialized first.
+  late String? previousLocale;
+
+  // Symbol data does not depend on per-test state, so load it once.
+  setUpAll(() => initializeDateFormatting('en'));
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   // A UnitFormatter backed by metric default settings.
   const units = UnitFormatter(AppSettings());
 
