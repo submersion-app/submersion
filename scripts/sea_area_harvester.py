@@ -72,11 +72,13 @@ SIMPLIFY_TOLERANCE = 0.05
 # full float repr.
 COORD_DECIMALS = 3
 
-# Islands smaller than this (square degrees, ~3000 km2 at the equator) are
-# dropped from the polygon holes. A dive site on a small island should
-# report the sea around it; only landmasses big enough to hold an inland
-# dive site are worth carving out, and keeping every islet grows the asset
-# from ~1 MB to ~14 MB.
+# Islands smaller than this are dropped from the polygon holes. The unit is
+# square degrees, so the physical threshold shrinks towards the poles:
+# ~615 km2 at the equator, ~310 km2 at 60 degrees. A dive site on a small
+# island should report the sea around it, so only landmasses big enough to
+# hold an inland dive site of their own (Cuba, Sicily, Iceland, Tasmania)
+# are worth carving out. Keeping every islet instead grows the asset from
+# ~1 MB to ~14 MB.
 MIN_HOLE_AREA = 0.05
 
 # Names as a diver would write them. IHO's own labels are either split
