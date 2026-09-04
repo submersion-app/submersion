@@ -23,6 +23,11 @@ class FakeDriveServer {
   /// value (the adapter has no retry layer, so one shot works).
   int? failAfterChunkPuts;
 
+  /// Files returned per files.list page, forcing pagination regardless of
+  /// the pageSize the caller asked for -- which is what real Drive does
+  /// once a folder outgrows a page. Null serves everything in one page.
+  int? queryPageSize;
+
   MockClient get client => MockClient(_handle);
 
   Future<http.Response> _handle(http.Request request) async {
@@ -95,13 +100,21 @@ class FakeDriveServer {
       );
     }
 
-    final entries = filesById.entries.where(
-      (e) => nameMatch == null || e.value.name == nameMatch.group(1),
-    );
+    final entries = filesById.entries
+        .where((e) => nameMatch == null || e.value.name == nameMatch.group(1))
+        .toList();
+
+    // Page tokens are just the offset of the next entry, which is enough
+    // to make a caller that ignores nextPageToken visibly truncate.
+    final offset = int.parse(request.url.queryParameters['pageToken'] ?? '0');
+    final pageSize = queryPageSize ?? entries.length;
+    final end = (offset + pageSize).clamp(0, entries.length);
+    final page = entries.sublist(offset, end);
+
     return http.Response(
       jsonEncode({
         'files': [
-          for (final e in entries)
+          for (final e in page)
             {
               'id': e.key,
               'name': e.value.name,
@@ -109,6 +122,7 @@ class FakeDriveServer {
               'size': '${e.value.bytes.length}',
             },
         ],
+        if (end < entries.length) 'nextPageToken': '$end',
       }),
       200,
     );

@@ -307,29 +307,57 @@ class GoogleDriveMediaObjectStore implements MediaObjectStore {
     return files.isEmpty ? null : files.first;
   }
 
+  /// Drive's documented per-page maximum, requested explicitly so a large
+  /// media folder needs as few round trips as possible.
+  static const _queryPageSize = 1000;
+
+  /// Every file matching [q], following Drive's `nextPageToken` to
+  /// exhaustion.
+  ///
+  /// files.list serves one page at a time (100 results by default, 1000
+  /// max) and reports the rest only through `nextPageToken`. A single call
+  /// hid every media object past the cap from [list], and could return a
+  /// short or empty first page for a name lookup -- which [_findByKey]
+  /// would read as "absent" and re-upload.
+  ///
+  /// `nextPageToken` has to be named in `fields` alongside `files(...)`:
+  /// the projection applies to the whole response, so asking only for
+  /// `files(...)` strips the token and the loop would stop after one page.
   Future<List<_DriveFile>> _query(String q) async {
-    final uri = Uri.parse('$_apiBase/drive/v3/files').replace(
-      queryParameters: {
-        'spaces': 'appDataFolder',
-        'q': q,
-        'fields': 'files(id,name,modifiedTime,size)',
-      },
-    );
-    final response = await _send(http.Request('GET', uri));
-    if (response.statusCode != 200) {
-      throw _forStatus('query', q, response);
-    }
-    final decoded = jsonDecode(response.body) as Map<String, Object?>;
-    final files = decoded['files'] as List<Object?>? ?? const [];
-    return [
-      for (final raw in files.cast<Map<String, Object?>>())
-        _DriveFile(
-          id: raw['id'] as String,
-          name: raw['name'] as String,
-          size: int.tryParse(raw['size'] as String? ?? ''),
-          modified: DateTime.tryParse(raw['modifiedTime'] as String? ?? ''),
-        ),
-    ];
+    final results = <_DriveFile>[];
+    String? pageToken;
+    do {
+      final uri = Uri.parse('$_apiBase/drive/v3/files').replace(
+        queryParameters: {
+          'spaces': 'appDataFolder',
+          'q': q,
+          'pageSize': '$_queryPageSize',
+          'pageToken': ?pageToken,
+          'fields': 'nextPageToken,files(id,name,modifiedTime,size)',
+        },
+      );
+      final response = await _send(http.Request('GET', uri));
+      if (response.statusCode != 200) {
+        throw _forStatus('query', q, response);
+      }
+      final decoded = jsonDecode(response.body) as Map<String, Object?>;
+      final files = decoded['files'] as List<Object?>? ?? const [];
+      for (final raw in files.cast<Map<String, Object?>>()) {
+        results.add(
+          _DriveFile(
+            id: raw['id'] as String,
+            name: raw['name'] as String,
+            size: int.tryParse(raw['size'] as String? ?? ''),
+            modified: DateTime.tryParse(raw['modifiedTime'] as String? ?? ''),
+          ),
+        );
+      }
+      // An empty token means the same thing as an absent one; treating it
+      // as a real token would re-issue the first page forever.
+      final next = decoded['nextPageToken'] as String?;
+      pageToken = (next == null || next.isEmpty) ? null : next;
+    } while (pageToken != null);
+    return results;
   }
 
   Future<http.Response> _send(http.Request request) async {

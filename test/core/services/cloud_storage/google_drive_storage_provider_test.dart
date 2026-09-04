@@ -141,6 +141,145 @@ void main() {
     });
   });
 
+  group('listFiles pagination', () {
+    /// Serves [pages] one files.list call at a time, handing out a
+    /// nextPageToken for every page but the last -- Drive's own protocol.
+    /// Records each request so the test can assert what was asked for.
+    MockClient pagedDriveMock(
+      List<List<Map<String, Object?>>> pages, {
+      List<Uri>? listRequests,
+    }) {
+      return MockClient((request) async {
+        if (request.url.path != '/drive/v3/files' || request.method != 'GET') {
+          return http.Response(
+            'unexpected: ${request.method} ${request.url}',
+            500,
+          );
+        }
+        listRequests?.add(request.url);
+        final token = request.url.queryParameters['pageToken'];
+        final index = token == null ? 0 : int.parse(token);
+        return jsonResponse({
+          'files': pages[index],
+          if (index < pages.length - 1) 'nextPageToken': '${index + 1}',
+        });
+      });
+    }
+
+    Map<String, Object?> file(String name) => {
+      'id': 'id-$name',
+      'name': name,
+      'modifiedTime': '2026-01-01T00:00:00.000Z',
+      'size': '10',
+    };
+
+    test('follows nextPageToken and returns every page', () async {
+      final provider = providerWith(
+        pagedDriveMock([
+          [file('a'), file('b')],
+          [file('c')],
+        ]),
+      );
+
+      final files = await provider.listFiles(folderId: 'folder-1');
+
+      expect(files.map((f) => f.name), [
+        'a',
+        'b',
+        'c',
+      ], reason: 'a single files.list call truncates at Drive\'s page size');
+    });
+
+    test('asks for nextPageToken and an explicit page size', () async {
+      final requests = <Uri>[];
+      final provider = providerWith(
+        pagedDriveMock([
+          [file('a')],
+        ], listRequests: requests),
+      );
+
+      await provider.listFiles(folderId: 'folder-1');
+
+      expect(requests, hasLength(1));
+      expect(
+        requests.single.queryParameters['fields'],
+        contains('nextPageToken'),
+        reason:
+            'a \$fields listing only files(...) suppresses the token, so the '
+            'page loop would stop after one page with no error',
+      );
+      expect(requests.single.queryParameters['pageSize'], '1000');
+    });
+
+    test(
+      'paginates a name lookup, so an existing file is never duplicated',
+      () async {
+        final src = File('${tempDir.path}/backup.db')
+          ..writeAsBytesSync([1, 2, 3]);
+        final methods = <String>[];
+        final provider = GoogleDriveStorageProvider()
+          ..debugSetDriveApi(
+            drive.DriveApi(
+              MockClient((request) async {
+                methods.add(request.method);
+                if (request.url.path == '/drive/v3/files' &&
+                    request.method == 'GET') {
+                  final token = request.url.queryParameters['pageToken'];
+                  // Drive may hand back a short (even empty) page while more
+                  // results remain; the match only appears on page two.
+                  return jsonResponse(
+                    token == null
+                        ? {'files': <Object?>[], 'nextPageToken': '1'}
+                        : {
+                            'files': [
+                              {'id': 'uploaded-id', 'name': 'b.db'},
+                            ],
+                          },
+                  );
+                }
+                return jsonResponse({'id': 'uploaded-id', 'name': 'b.db'});
+              }),
+            ),
+          );
+
+        final result = await provider.uploadFileFromPath(
+          src.path,
+          'b.db',
+          folderId: 'folder-1',
+        );
+
+        expect(result.fileId, 'uploaded-id');
+        expect(
+          methods,
+          contains('PATCH'),
+          reason: 'the match on page two must update, not create a duplicate',
+        );
+      },
+    );
+
+    test('treats an empty token as the end of the listing', () async {
+      final provider = providerWith(
+        MockClient((request) async {
+          if (request.url.path != '/drive/v3/files') {
+            return http.Response('unexpected', 500);
+          }
+          // A token of '' would re-issue the same request forever if it were
+          // only null-checked.
+          return jsonResponse({
+            'files': [
+              {'id': 'id-a', 'name': 'a'},
+            ],
+            'nextPageToken': '',
+          });
+        }),
+      );
+
+      final files = await provider.listFiles(folderId: 'folder-1');
+
+      expect(files.map((f) => f.name), ['a']);
+    });
+  });
+
   group('downloadToFile', () {
     test('pipes the media stream straight to disk', () async {
       final data = List<int>.generate(64 * 1024, (i) => i % 249);

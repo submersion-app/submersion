@@ -171,6 +171,27 @@ void main() {
     expect(info!.sizeBytes, 2);
   });
 
+  test('list follows nextPageToken instead of stopping at the first '
+      'page', () async {
+    // Drive caps files.list at one page (100 by default) and reports the
+    // rest only through nextPageToken, so an unpaginated query silently
+    // hides every media object past the cap.
+    server.queryPageSize = 2;
+    for (var i = 0; i < 5; i++) {
+      server.filesById['id-$i'] = (
+        name: 'smv1/objects/aa/$i.jpg',
+        bytes: Uint8List.fromList([i]),
+      );
+    }
+    final store = build();
+
+    final keys = [
+      await for (final info in store.list('smv1/objects/')) info.key,
+    ];
+
+    expect(keys, hasLength(5));
+  });
+
   test('a 5xx from Drive surfaces as MediaStoreException on every '
       'verb', () async {
     final store = GoogleDriveMediaObjectStore(
