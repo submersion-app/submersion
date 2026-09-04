@@ -2582,6 +2582,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_action_close => 'إغلاق';
 
   @override
+  String get common_action_copyLink => 'نسخ الرابط';
+
+  @override
+  String get common_link_couldNotOpen => 'تعذر فتح الرابط';
+
+  @override
   String get common_action_continue => 'متابعة';
 
   @override
@@ -11065,6 +11071,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'مثلاً 5، 5/4، 7/5/3';
+
+  @override
+  String get equipment_edit_webLinkHint => 'مثال: shop.example.com/product';
 
   @override
   String get equipment_edit_thicknessHint => 'مثلاً 5 مم، 7 مم';
@@ -24510,6 +24519,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_speed_mps => 'السرعة القصوى';
 
   @override
+  String get attrLabel_sku => 'رمز المنتج (SKU)';
+
+  @override
+  String get attrLabel_retailer => 'المتجر';
+
+  @override
+  String get attrLabel_product_url => 'رابط الويب';
+
+  @override
   String get attrChoice_unit_type_eccr => 'CCR إلكتروني (eCCR)';
 
   @override
@@ -24757,6 +24775,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'استخدم 5 أو 5/4 أو 7/5/3';
+
+  @override
+  String get equipment_edit_invalidWebLink =>
+      'أدخل عنوان ويب، مثل shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title =>
@@ -32500,6 +32522,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get common_action_remove => 'إزالة';
+
+  @override
+  String get equipment_documents_title => 'المستندات';
+
+  @override
+  String get equipment_documents_subtitle =>
+      'الفواتير والإيصالات وأوراق الضمان';
+
+  @override
+  String get equipment_documents_attachButton => 'إرفاق';
+
+  @override
+  String get equipment_documents_empty => 'لا توجد مستندات مرفقة بعد';
+
+  @override
+  String get equipment_documents_removeTitle => 'إزالة المستند؟';
+
+  @override
+  String get equipment_documents_removeContent =>
+      'سيتوقف إرفاقه بهذا العنصر. لن يتم المساس بملفك الأصلي.';
+
+  @override
+  String get equipment_documents_removed => 'تمت إزالة المستند';
+
+  @override
+  String equipment_documents_loadError(String error) {
+    return 'تعذر تحميل المستندات: $error';
+  }
+
+  @override
+  String equipment_documents_removeError(String error) {
+    return 'تعذرت إزالة المستند: $error';
+  }
 
   @override
   String get common_action_unpin => 'إلغاء التثبيت';

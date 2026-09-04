@@ -128,6 +128,39 @@ class MediaRepository {
     return row.read(count) ?? 0;
   }
 
+  /// Get all documents and photos attached to a piece of equipment, oldest
+  /// first (issue #1517). Ordered by createdAt rather than takenAt: an
+  /// invoice's "taken" stamp is the moment it was attached, which carries no
+  /// meaning, while the attach order is the order the diver filed them in.
+  Future<List<domain.MediaItem>> getMediaForEquipment(
+    String equipmentId,
+  ) async {
+    try {
+      final query = _db.select(_db.media)
+        ..where((t) => t.equipmentId.equals(equipmentId))
+        ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
+      final rows = await query.get();
+      return rows.map(mediaItemFromRow).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get media for equipment: $equipmentId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Count of media attached to a piece of equipment (badges/headers).
+  Future<int> getMediaCountForEquipment(String equipmentId) async {
+    final count = _db.media.id.count();
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([count])
+      ..where(_db.media.equipmentId.equals(equipmentId));
+    final row = await query.getSingle();
+    return row.read(count) ?? 0;
+  }
+
   /// Get single media item by ID
   /// Includes enrichment data (depth, temperature) if available
   Future<domain.MediaItem?> getMediaById(String id) async {
@@ -232,6 +265,7 @@ class MediaRepository {
               id: Value(id),
               diveId: Value(item.diveId),
               siteId: Value(item.siteId),
+              equipmentId: Value(item.equipmentId),
               filePath: Value(item.filePath ?? ''),
               fileType: Value(mediaTypeToDbString(item.mediaType)),
               platformAssetId: Value(item.platformAssetId),
@@ -352,6 +386,7 @@ class MediaRepository {
         MediaCompanion(
           diveId: Value(item.diveId),
           siteId: Value(item.siteId),
+          equipmentId: Value(item.equipmentId),
           filePath: Value(item.filePath ?? ''),
           fileType: Value(mediaTypeToDbString(item.mediaType)),
           platformAssetId: Value(item.platformAssetId),
@@ -1480,12 +1515,16 @@ class MediaRepository {
     SyncEventBus.notifyLocalChange();
   }
 
-  /// A media row is linked to the logbook when it references a dive or a
-  /// site (orphan-prevention spec section 3). Single definition shared by
-  /// the deletion cascades, the unlink partitions, and the orphan backlog
-  /// sweep so the predicates cannot drift apart.
-  static Expression<bool> isLinkedToDiveOrSite($MediaTable m) =>
-      m.diveId.isNotNull() | m.siteId.isNotNull();
+  /// A media row is linked to the logbook when it references a dive, a site
+  /// or a piece of equipment (orphan-prevention spec section 3). Single
+  /// definition shared by the deletion cascades, the unlink partitions, and
+  /// the orphan backlog sweep so the predicates cannot drift apart.
+  ///
+  /// The equipment arm is what keeps an attached invoice out of the orphan
+  /// sweep: it is linked to no dive and no site, so without it every gear
+  /// document would be swept as unreferenced (issue #1517).
+  static Expression<bool> isLinkedToLogbook($MediaTable m) =>
+      m.diveId.isNotNull() | m.siteId.isNotNull() | m.equipmentId.isNotNull();
 
   /// Splits a dying dive's media (orphan-prevention spec 4.2): `doomed`
   /// rows die with the dive (dive-only; full items because the blob-delete
@@ -1507,7 +1546,9 @@ class MediaRepository {
     final doomed = <domain.MediaItem>[];
     final unlinkIds = <String>[];
     for (final row in rows) {
-      final keep = row.siteId != null;
+      // Any surviving link keeps the row: a photo the site gallery still
+      // shows, or an invoice still filed against a piece of gear.
+      final keep = row.siteId != null || row.equipmentId != null;
       if (keep) {
         unlinkIds.add(row.id);
       } else {
@@ -1555,7 +1596,7 @@ class MediaRepository {
     final doomed = <domain.MediaItem>[];
     final unlinkIds = <String>[];
     for (final row in rows) {
-      final keep = row.diveId != null;
+      final keep = row.diveId != null || row.equipmentId != null;
       if (keep) {
         unlinkIds.add(row.id);
       } else {
@@ -1580,6 +1621,58 @@ class MediaRepository {
     await _db.transaction(() async {
       await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
         MediaCompanion(siteId: const Value(null), updatedAt: Value(now)),
+      );
+      for (final id in mediaIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Splits a dying item's media: `doomed` rows die with the equipment
+  /// (equipment-only; full items because the blob-delete intent needs
+  /// contentHash/filename/type), `unlinkIds` survive as dive- or site-linked
+  /// rows with equipmentId nulled. Equipment counterpart of
+  /// [partitionMediaForSiteDeletion] (issue #1517).
+  Future<({List<domain.MediaItem> doomed, List<String> unlinkIds})>
+  partitionMediaForEquipmentDeletion(List<String> equipmentIds) async {
+    // Empty-guard mirrors the dive and site partitions: bulk callers
+    // legitimately hand over empty collections.
+    if (equipmentIds.isEmpty) {
+      return (doomed: const <domain.MediaItem>[], unlinkIds: const <String>[]);
+    }
+    final rows = await (_db.select(
+      _db.media,
+    )..where((t) => t.equipmentId.isIn(equipmentIds))).get();
+    final doomed = <domain.MediaItem>[];
+    final unlinkIds = <String>[];
+    for (final row in rows) {
+      final keep = row.diveId != null || row.siteId != null;
+      if (keep) {
+        unlinkIds.add(row.id);
+      } else {
+        doomed.add(mediaItemFromRow(row));
+      }
+    }
+    return (doomed: doomed, unlinkIds: unlinkIds);
+  }
+
+  /// Explicitly unlinks surviving media from deleted equipment, with the HLC
+  /// stamp the silent FK SET NULL never produced. Equipment counterpart of
+  /// [unlinkMediaFromDeletedSites], and deliberately NOT routed through
+  /// [_unlinkColumns] for the same reason: that path also sets
+  /// retain_in_library, a one-way latch that would permanently exclude the
+  /// row from the orphan sweep.
+  Future<void> unlinkMediaFromDeletedEquipment(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
+        MediaCompanion(equipmentId: const Value(null), updatedAt: Value(now)),
       );
       for (final id in mediaIds) {
         await _syncRepository.markRecordPending(
@@ -1713,50 +1806,73 @@ class MediaRepository {
   /// Splits [mediaIds] by whether anything other than the dive still needs
   /// the row, for the dive-unlink path.
   ///
-  /// `siteLinked` rows survive a dive unlink with the link merely cleared,
-  /// the same carve-out the dive-deletion cascade makes: a dive-scoped
-  /// action must never destroy a site's only photo as a side effect.
-  Future<({List<String> deletable, List<String> siteLinked})>
+  /// `keptIds` rows survive a dive unlink with the link merely cleared, the
+  /// same carve-out the dive-deletion cascade makes: a dive-scoped action
+  /// must never destroy a site's only photo -- or a piece of gear's only
+  /// invoice -- as a side effect.
+  Future<({List<String> deletable, List<String> keptIds})>
   partitionForDiveUnlink(List<String> mediaIds) async {
     if (mediaIds.isEmpty) {
-      return (deletable: const <String>[], siteLinked: const <String>[]);
+      return (deletable: const <String>[], keptIds: const <String>[]);
     }
     final rows = await (_db.select(
       _db.media,
     )..where((t) => t.id.isIn(mediaIds))).get();
     final deletable = <String>[];
-    final siteLinked = <String>[];
+    final keptIds = <String>[];
     for (final row in rows) {
-      if (row.siteId != null) {
-        siteLinked.add(row.id);
+      if (row.siteId != null || row.equipmentId != null) {
+        keptIds.add(row.id);
       } else {
         deletable.add(row.id);
       }
     }
-    return (deletable: deletable, siteLinked: siteLinked);
+    return (deletable: deletable, keptIds: keptIds);
   }
 
   /// Mirror of [partitionForDiveUnlink] for the site-unlink path: rows a
-  /// dive still references survive with only the site link cleared, the
-  /// rest leave the library.
-  Future<({List<String> deletable, List<String> diveLinked})>
+  /// dive or a piece of equipment still references survive with only the
+  /// site link cleared, the rest leave the library.
+  Future<({List<String> deletable, List<String> keptIds})>
   partitionForSiteUnlink(List<String> mediaIds) async {
     if (mediaIds.isEmpty) {
-      return (deletable: const <String>[], diveLinked: const <String>[]);
+      return (deletable: const <String>[], keptIds: const <String>[]);
     }
     final rows = await (_db.select(
       _db.media,
     )..where((t) => t.id.isIn(mediaIds))).get();
     final deletable = <String>[];
-    final diveLinked = <String>[];
+    final keptIds = <String>[];
     for (final row in rows) {
-      if (row.diveId != null) {
-        diveLinked.add(row.id);
+      if (row.diveId != null || row.equipmentId != null) {
+        keptIds.add(row.id);
       } else {
         deletable.add(row.id);
       }
     }
-    return (deletable: deletable, diveLinked: diveLinked);
+    return (deletable: deletable, keptIds: keptIds);
+  }
+
+  /// The equipment counterpart: rows a dive or site still references survive
+  /// with only the equipment link cleared, the rest leave the library.
+  Future<({List<String> deletable, List<String> keptIds})>
+  partitionForEquipmentUnlink(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) {
+      return (deletable: const <String>[], keptIds: const <String>[]);
+    }
+    final rows = await (_db.select(
+      _db.media,
+    )..where((t) => t.id.isIn(mediaIds))).get();
+    final deletable = <String>[];
+    final keptIds = <String>[];
+    for (final row in rows) {
+      if (row.diveId != null || row.siteId != null) {
+        keptIds.add(row.id);
+      } else {
+        deletable.add(row.id);
+      }
+    }
+    return (deletable: deletable, keptIds: keptIds);
   }
 
   /// Of [mediaIds], those carrying metadata a user typed or set that no
@@ -1843,6 +1959,18 @@ class MediaRepository {
   Future<void> linkMediaToSite(List<String> mediaIds, String siteId) =>
       _unlinkColumns(mediaIds, MediaCompanion(siteId: Value(siteId)));
 
+  /// Same mechanic for the equipment link, for media a dive or site still
+  /// needs.
+  Future<void> unlinkFromEquipment(List<String> mediaIds) =>
+      _unlinkColumns(mediaIds, const MediaCompanion(equipmentId: Value(null)));
+
+  /// Attaches the equipment link, same sync-safe shape.
+  Future<void> linkMediaToEquipment(
+    List<String> mediaIds,
+    String equipmentId,
+  ) =>
+      _unlinkColumns(mediaIds, MediaCompanion(equipmentId: Value(equipmentId)));
+
   Future<void> _unlinkColumns(
     List<String> mediaIds,
     MediaCompanion changes, {
@@ -1877,7 +2005,7 @@ class MediaRepository {
     final query = _db.selectOnly(_db.media)
       ..addColumns([id])
       ..where(
-        isLinkedToDiveOrSite(_db.media).not() &
+        isLinkedToLogbook(_db.media).not() &
             _db.media.createdAt.isSmallerThanValue(
               olderThan.millisecondsSinceEpoch,
             ),
@@ -2007,7 +2135,7 @@ class MediaRepository {
     final query = _db.selectOnly(_db.media)
       ..addColumns([id])
       ..where(
-        isLinkedToDiveOrSite(_db.media) &
+        isLinkedToLogbook(_db.media) &
             (_db.media.originDeviceId.isNull() |
                 _db.media.originDeviceId.equals(thisDevice)) &
             // Photos from any uploadable source.

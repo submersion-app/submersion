@@ -87,6 +87,10 @@ String formatAttributeValue(
   if (def == null) return attr.valueText ?? attr.valueNum?.toString() ?? '';
   switch (def.kind) {
     case AttributeKind.text:
+    // Shown exactly as the diver typed it: the https:// a bare host gets is
+    // assumed at launch time only, so the row never claims a scheme that is
+    // not in the stored value.
+    case AttributeKind.url:
       return attr.valueText ?? '';
     case AttributeKind.thickness:
       if (attr.valueText == null) return '';

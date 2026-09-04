@@ -2623,6 +2623,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_close => 'Bezaras';
 
   @override
+  String get common_action_copyLink => 'Hivatkozás másolása';
+
+  @override
+  String get common_link_couldNotOpen => 'A hivatkozás nem nyitható meg';
+
+  @override
   String get common_action_continue => 'Folytatás';
 
   @override
@@ -11226,6 +11232,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'pl. 5, 5/4, 7/5/3';
+
+  @override
+  String get equipment_edit_webLinkHint => 'pl. shop.example.com/product';
 
   @override
   String get equipment_edit_thicknessHint => 'pl. 5mm, 7mm';
@@ -24860,6 +24869,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_speed_mps => 'Végsebesség';
 
   @override
+  String get attrLabel_sku => 'Cikkszám';
+
+  @override
+  String get attrLabel_retailer => 'Forgalmazó';
+
+  @override
+  String get attrLabel_product_url => 'Webhivatkozás';
+
+  @override
   String get attrChoice_unit_type_eccr => 'Elektronikus CCR (eCCR)';
 
   @override
@@ -25107,6 +25125,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Formátum: 5, 5/4 vagy 7/5/3';
+
+  @override
+  String get equipment_edit_invalidWebLink =>
+      'Adjon meg egy webcimet, pl. shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title =>
@@ -32789,6 +32811,39 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get common_action_remove => 'Eltávolítás';
+
+  @override
+  String get equipment_documents_title => 'Dokumentumok';
+
+  @override
+  String get equipment_documents_subtitle =>
+      'Szamlak, nyugtak es garancialevelek';
+
+  @override
+  String get equipment_documents_attachButton => 'Csatolas';
+
+  @override
+  String get equipment_documents_empty => 'Meg nincs csatolt dokumentum';
+
+  @override
+  String get equipment_documents_removeTitle => 'Eltavolitja a dokumentumot?';
+
+  @override
+  String get equipment_documents_removeContent =>
+      'Tobbe nem lesz ehhez a felszereleshez csatolva. Az eredeti fajl erintetlen marad.';
+
+  @override
+  String get equipment_documents_removed => 'A dokumentum eltavolitva';
+
+  @override
+  String equipment_documents_loadError(String error) {
+    return 'A dokumentumok nem tolthetok be: $error';
+  }
+
+  @override
+  String equipment_documents_removeError(String error) {
+    return 'A dokumentum nem tavolithato el: $error';
+  }
 
   @override
   String get common_action_unpin => 'Rögzítés feloldása';

@@ -2640,6 +2640,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_action_close => 'Fermer';
 
   @override
+  String get common_action_copyLink => 'Copier le lien';
+
+  @override
+  String get common_link_couldNotOpen => 'Impossible d\'ouvrir le lien';
+
+  @override
   String get common_action_continue => 'Continuer';
 
   @override
@@ -11294,6 +11300,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'ex: 5, 5/4, 7/5/3';
+
+  @override
+  String get equipment_edit_webLinkHint => 'par ex. shop.example.com/product';
 
   @override
   String get equipment_edit_thicknessHint => 'ex: 5mm, 7mm';
@@ -25049,6 +25058,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_speed_mps => 'Vitesse maximale';
 
   @override
+  String get attrLabel_sku => 'Référence (SKU)';
+
+  @override
+  String get attrLabel_retailer => 'Revendeur';
+
+  @override
+  String get attrLabel_product_url => 'Lien web';
+
+  @override
   String get attrChoice_unit_type_eccr => 'CCR électronique (eCCR)';
 
   @override
@@ -25297,6 +25315,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Utilisez 5, 5/4 ou 7/5/3';
+
+  @override
+  String get equipment_edit_invalidWebLink =>
+      'Saisissez une adresse web, par ex. shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title =>
@@ -33016,6 +33038,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get common_action_remove => 'Retirer';
+
+  @override
+  String get equipment_documents_title => 'Documents';
+
+  @override
+  String get equipment_documents_subtitle =>
+      'Factures, recus et documents de garantie';
+
+  @override
+  String get equipment_documents_attachButton => 'Joindre';
+
+  @override
+  String get equipment_documents_empty =>
+      'Aucun document joint pour l\'instant';
+
+  @override
+  String get equipment_documents_removeTitle => 'Retirer le document ?';
+
+  @override
+  String get equipment_documents_removeContent =>
+      'Il ne sera plus joint a cet equipement. Votre fichier d\'origine n\'est jamais modifie.';
+
+  @override
+  String get equipment_documents_removed => 'Document retire';
+
+  @override
+  String equipment_documents_loadError(String error) {
+    return 'Impossible de charger les documents : $error';
+  }
+
+  @override
+  String equipment_documents_removeError(String error) {
+    return 'Impossible de retirer le document : $error';
+  }
 
   @override
   String get common_action_unpin => 'Désépingler';

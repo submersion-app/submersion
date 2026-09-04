@@ -7,7 +7,9 @@ class UnlinkOutcome {
   /// Rows removed from the library entirely.
   final int deleted;
 
-  /// Rows a dive site still needed, kept with the dive link cleared.
+  /// Rows something else still needed -- a dive site, or a piece of
+  /// equipment the document is filed against -- kept with the dive link
+  /// cleared.
   final int keptAsSiteMedia;
 
   int get total => deleted + keptAsSiteMedia;
@@ -26,6 +28,21 @@ class SiteUnlinkOutcome {
   final int keptAsDiveMedia;
 
   int get total => deleted + keptAsDiveMedia;
+}
+
+/// What an equipment unlink did. A third outcome type rather than a reused
+/// one for the same reason [SiteUnlinkOutcome] exists: the carve-out names
+/// what still needs the row, and here that is a dive or a site.
+class EquipmentUnlinkOutcome {
+  const EquipmentUnlinkOutcome({
+    required this.deleted,
+    required this.keptAsLogbookMedia,
+  });
+
+  final int deleted;
+  final int keptAsLogbookMedia;
+
+  int get total => deleted + keptAsLogbookMedia;
 }
 
 /// The single implementation of "unlink media from a dive or a site",
@@ -65,8 +82,8 @@ class MediaUnlinkService {
     // Kept first: it is the non-destructive half, so if the delete throws,
     // the site's media has already been correctly detached rather than left
     // pointing at a dive the user meant to leave.
-    if (split.siteLinked.isNotEmpty) {
-      await repository.unlinkFromDive(split.siteLinked);
+    if (split.keptIds.isNotEmpty) {
+      await repository.unlinkFromDive(split.keptIds);
     }
     if (split.deletable.isNotEmpty) {
       await deleteMedia(split.deletable);
@@ -74,7 +91,7 @@ class MediaUnlinkService {
 
     return UnlinkOutcome(
       deleted: split.deletable.length,
-      keptAsSiteMedia: split.siteLinked.length,
+      keptAsSiteMedia: split.keptIds.length,
     );
   }
 
@@ -100,15 +117,37 @@ class MediaUnlinkService {
       return const SiteUnlinkOutcome(deleted: 0, keptAsDiveMedia: 0);
     }
     final split = await repository.partitionForSiteUnlink(mediaIds);
-    if (split.diveLinked.isNotEmpty) {
-      await repository.unlinkFromSite(split.diveLinked);
+    if (split.keptIds.isNotEmpty) {
+      await repository.unlinkFromSite(split.keptIds);
     }
     if (split.deletable.isNotEmpty) {
       await deleteMedia(split.deletable);
     }
     return SiteUnlinkOutcome(
       deleted: split.deletable.length,
-      keptAsDiveMedia: split.diveLinked.length,
+      keptAsDiveMedia: split.keptIds.length,
+    );
+  }
+
+  /// The equipment twin of [unlinkFromSite]: rows a dive or site still
+  /// references keep their row with the equipment link cleared, everything
+  /// else leaves the library through the same destructive path.
+  Future<EquipmentUnlinkOutcome> unlinkFromEquipment(
+    List<String> mediaIds,
+  ) async {
+    if (mediaIds.isEmpty) {
+      return const EquipmentUnlinkOutcome(deleted: 0, keptAsLogbookMedia: 0);
+    }
+    final split = await repository.partitionForEquipmentUnlink(mediaIds);
+    if (split.keptIds.isNotEmpty) {
+      await repository.unlinkFromEquipment(split.keptIds);
+    }
+    if (split.deletable.isNotEmpty) {
+      await deleteMedia(split.deletable);
+    }
+    return EquipmentUnlinkOutcome(
+      deleted: split.deletable.length,
+      keptAsLogbookMedia: split.keptIds.length,
     );
   }
 

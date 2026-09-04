@@ -52,6 +52,9 @@ String attributeLabel(AppLocalizations l10n, String key) => switch (key) {
   'battery_capacity_wh' => l10n.attrLabel_battery_capacity_wh,
   'motor_type' => l10n.attrLabel_motor_type,
   'speed_mps' => l10n.attrLabel_speed_mps,
+  'sku' => l10n.attrLabel_sku,
+  'retailer' => l10n.attrLabel_retailer,
+  'product_url' => l10n.attrLabel_product_url,
   _ => key,
 };
 

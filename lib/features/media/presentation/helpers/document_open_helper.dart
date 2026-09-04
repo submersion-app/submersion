@@ -11,6 +11,7 @@ import 'package:submersion/features/media/data/services/document_import_service.
 import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/document_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
@@ -18,8 +19,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/files/picked_file_materializer.dart';
 
 /// Routes document attachments: PDFs to the in-app viewer, other formats
-/// to the platform; and hosts the pick-and-attach flow shared by dives and
-/// sites.
+/// to the platform; and hosts the pick-and-attach flow shared by dives,
+/// sites and equipment.
 class DocumentOpenHelper {
   /// Route a tapped document: PDFs to the in-app viewer, everything else
   /// to the platform (desktop-open vs mobile-share duality).
@@ -81,12 +82,13 @@ class DocumentOpenHelper {
   }
 
   /// Opens the document picker and attaches the selection to exactly one
-  /// of [diveId] / [siteId] by reference.
+  /// of [diveId] / [siteId] / [equipmentId] by reference.
   static Future<void> pickAndAttach({
     required BuildContext context,
     required WidgetRef ref,
     String? diveId,
     String? siteId,
+    String? equipmentId,
   }) async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
@@ -136,6 +138,7 @@ class DocumentOpenHelper {
         picked: picked,
         diveId: diveId,
         siteId: siteId,
+        equipmentId: equipmentId,
       );
       if (siteId != null) {
         ref.invalidate(mediaForSiteProvider(siteId));
@@ -144,6 +147,10 @@ class DocumentOpenHelper {
       if (diveId != null) {
         ref.invalidate(mediaForDiveProvider(diveId));
         ref.invalidate(mediaCountForDiveProvider(diveId));
+      }
+      if (equipmentId != null) {
+        ref.invalidate(mediaForEquipmentProvider(equipmentId));
+        ref.invalidate(mediaCountForEquipmentProvider(equipmentId));
       }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -29,11 +29,11 @@ enum DocumentRefStrategy {
   plainPath,
 }
 
-/// Links picked document files (PDFs and common formats) to a dive or a
-/// site by reference: security-scoped bookmark on iOS/macOS, persisted SAF
-/// URI on Android, plain path on Windows/Linux. Never copies bytes; the
-/// media store upload (enqueued via [onMediaCreated]) is the durability
-/// path.
+/// Links picked document files (PDFs and common formats) to a dive, a site
+/// or a piece of equipment by reference: security-scoped bookmark on
+/// iOS/macOS, persisted SAF URI on Android, plain path on Windows/Linux.
+/// Never copies bytes; the media store upload (enqueued via
+/// [onMediaCreated]) is the durability path.
 ///
 /// Unlike FilesTabNotifier, this is the one importer that can take an
 /// Android persistable URI: its picker asks for [allowedExtensions], which
@@ -89,7 +89,7 @@ class DocumentImportService {
   ];
 
   /// Persists each picked file as a `document` media row linked to exactly
-  /// one of [diveId] / [siteId]. Returns the created rows.
+  /// one of [diveId] / [siteId] / [equipmentId]. Returns the created rows.
   ///
   /// [picked] carries both halves of a `PlatformFile`: `path` is the local
   /// file the picker produced, and `identifier` is the platform's own
@@ -99,10 +99,11 @@ class DocumentImportService {
     required List<({String path, String filename, String? identifier})> picked,
     String? diveId,
     String? siteId,
+    String? equipmentId,
   }) async {
     assert(
-      (diveId == null) != (siteId == null),
-      'exactly one of diveId/siteId must be set',
+      [diveId, siteId, equipmentId].where((id) => id != null).length == 1,
+      'exactly one of diveId/siteId/equipmentId must be set',
     );
     final strategy = _refStrategy();
     final created = <MediaItem>[];
@@ -147,6 +148,7 @@ class DocumentImportService {
         id: '',
         diveId: diveId,
         siteId: siteId,
+        equipmentId: equipmentId,
         mediaType: MediaType.document,
         sourceType: MediaSourceType.localFile,
         originalFilename: file.filename,

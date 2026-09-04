@@ -66,6 +66,22 @@ void main() {
     expect(created.single.siteId, isNull);
   });
 
+  test('links to equipment when equipmentId is given', () async {
+    // The insurance paperwork path (issue #1517): an invoice belongs to the
+    // gear, not to a dive or a site.
+    final created = await service.importDocuments(
+      picked: [
+        (path: '/tmp/invoice.pdf', filename: 'invoice.pdf', identifier: null),
+      ],
+      equipmentId: 'equip-1',
+    );
+
+    expect(created.single.equipmentId, 'equip-1');
+    expect(created.single.diveId, isNull);
+    expect(created.single.siteId, isNull);
+    expect(created.single.mediaType, MediaType.document);
+  });
+
   test('fires onMediaCreated per row for media-store enqueue', () async {
     await service.importDocuments(
       picked: [

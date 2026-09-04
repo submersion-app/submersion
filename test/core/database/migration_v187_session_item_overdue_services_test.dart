@@ -50,8 +50,11 @@ void main() {
     expect(row.data['overdue_services'], isNull);
   });
 
-  test('v187 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 187);
+  test('v187 is in the ladder and the schema is at least 187', () {
+    // Not an equality assertion on currentSchemaVersion: later rungs land
+    // above this one, and pinning the literal would fail every one of them
+    // for a reason that has nothing to do with v187.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(187));
     expect(AppDatabase.migrationVersions, contains(187));
   });
 

@@ -4463,6 +4463,18 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get common_action_close;
 
+  /// No description provided for @common_action_copyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get common_action_copyLink;
+
+  /// No description provided for @common_link_couldNotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link'**
+  String get common_link_couldNotOpen;
+
   /// Continue button used in confirmation dialogs
   ///
   /// In en, this message translates to:
@@ -19051,6 +19063,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g., 5, 5/4, 7/5/3'**
   String get equipment_edit_thicknessDesignationHint;
+
+  /// No description provided for @equipment_edit_webLinkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., shop.example.com/product'**
+  String get equipment_edit_webLinkHint;
 
   /// No description provided for @equipment_edit_thicknessHint.
   ///
@@ -41153,6 +41171,24 @@ abstract class AppLocalizations {
   /// **'Top speed'**
   String get attrLabel_speed_mps;
 
+  /// No description provided for @attrLabel_sku.
+  ///
+  /// In en, this message translates to:
+  /// **'SKU'**
+  String get attrLabel_sku;
+
+  /// No description provided for @attrLabel_retailer.
+  ///
+  /// In en, this message translates to:
+  /// **'Retailer'**
+  String get attrLabel_retailer;
+
+  /// No description provided for @attrLabel_product_url.
+  ///
+  /// In en, this message translates to:
+  /// **'Web link'**
+  String get attrLabel_product_url;
+
   /// No description provided for @attrChoice_unit_type_eccr.
   ///
   /// In en, this message translates to:
@@ -41650,6 +41686,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use 5, 5/4 or 7/5/3'**
   String get equipment_edit_invalidThickness;
+
+  /// No description provided for @equipment_edit_invalidWebLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a web address, e.g. shop.example.com'**
+  String get equipment_edit_invalidWebLink;
 
   /// No description provided for @statistics_progression_divesBySuitThickness_title.
   ///
@@ -54633,6 +54675,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove'**
   String get common_action_remove;
+
+  /// No description provided for @equipment_documents_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get equipment_documents_title;
+
+  /// No description provided for @equipment_documents_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices, receipts and warranty paperwork'**
+  String get equipment_documents_subtitle;
+
+  /// No description provided for @equipment_documents_attachButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach'**
+  String get equipment_documents_attachButton;
+
+  /// No description provided for @equipment_documents_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents attached yet'**
+  String get equipment_documents_empty;
+
+  /// No description provided for @equipment_documents_removeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove document?'**
+  String get equipment_documents_removeTitle;
+
+  /// No description provided for @equipment_documents_removeContent.
+  ///
+  /// In en, this message translates to:
+  /// **'It stops being attached to this item. Your original file is never touched.'**
+  String get equipment_documents_removeContent;
+
+  /// No description provided for @equipment_documents_removed.
+  ///
+  /// In en, this message translates to:
+  /// **'Document removed'**
+  String get equipment_documents_removed;
+
+  /// No description provided for @equipment_documents_loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load documents: {error}'**
+  String equipment_documents_loadError(String error);
+
+  /// No description provided for @equipment_documents_removeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not remove the document: {error}'**
+  String equipment_documents_removeError(String error);
 
   /// No description provided for @common_action_unpin.
   ///

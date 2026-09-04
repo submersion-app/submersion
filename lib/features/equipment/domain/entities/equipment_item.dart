@@ -83,6 +83,12 @@ class EquipmentItem extends Equatable {
   /// demand comparison; null when unspecified.
   double? get liftCapacityKg => attrNum(EquipmentAttrKeys.liftCapacityKg);
 
+  /// Purchase record (issue #1517): the manufacturer or retailer SKU, who it
+  /// was bought from, and the product/receipt listing. Null when unrecorded.
+  String? get sku => attrText(EquipmentAttrKeys.sku);
+  String? get retailer => attrText(EquipmentAttrKeys.retailer);
+  String? get productUrl => attrText(EquipmentAttrKeys.productUrl);
+
   /// Full name including brand and model
   String get fullName {
     final parts = <String>[];

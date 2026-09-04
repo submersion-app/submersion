@@ -2379,6 +2379,7 @@ class SyncService {
     'media': [
       (field: 'diveId', parent: 'dives', nullable: true),
       (field: 'siteId', parent: 'diveSites', nullable: true),
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
       (field: 'signerId', parent: 'buddies', nullable: true),
     ],
     'siteSpecies': [

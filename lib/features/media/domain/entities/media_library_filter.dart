@@ -3,8 +3,8 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 /// Library health facet: rows whose backing file is missing (persisted
-/// orphan flag). Every row carries a dive or site link, so there is no
-/// "unlinked" facet; an album saved with one decodes to no constraint.
+/// orphan flag). Every row carries a dive, site or equipment link, so there
+/// is no "unlinked" facet; an album saved with one decodes to no constraint.
 enum MediaHealthFilter { missing }
 
 /// Cross-dive library filter. Compiled to SQL by MediaLibraryRepository;

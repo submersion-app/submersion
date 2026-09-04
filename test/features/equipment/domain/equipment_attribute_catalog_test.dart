@@ -47,7 +47,14 @@ void main() {
     );
     expect(
       keysFor(EquipmentType.other),
-      unorderedEquals(['buoyancy_kg', 'dry_weight_kg']),
+      unorderedEquals([
+        'buoyancy_kg',
+        'dry_weight_kg',
+        // Present on every type since issue #1517.
+        'sku',
+        'retailer',
+        'product_url',
+      ]),
     );
   });
 
@@ -142,6 +149,9 @@ void main() {
         'depth_rating_m',
         'buoyancy_kg',
         'dry_weight_kg',
+        'sku',
+        'retailer',
+        'product_url',
       ]);
     });
 
@@ -246,6 +256,9 @@ void main() {
         'depth_rating_m',
         'buoyancy_kg',
         'dry_weight_kg',
+        'sku',
+        'retailer',
+        'product_url',
       ]);
     });
 

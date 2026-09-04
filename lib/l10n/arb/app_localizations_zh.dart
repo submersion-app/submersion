@@ -2485,6 +2485,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_close => '关闭';
 
   @override
+  String get common_action_copyLink => '复制链接';
+
+  @override
+  String get common_link_couldNotOpen => '无法打开链接';
+
+  @override
   String get common_action_continue => '继续';
 
   @override
@@ -10746,6 +10752,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_thicknessDesignationHint => '例如：5, 5/4, 7/5/3';
+
+  @override
+  String get equipment_edit_webLinkHint => '例如 shop.example.com/product';
 
   @override
   String get equipment_edit_thicknessHint => '例如：5mm, 7mm';
@@ -23673,6 +23682,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_speed_mps => '最高速度';
 
   @override
+  String get attrLabel_sku => '商品编号 (SKU)';
+
+  @override
+  String get attrLabel_retailer => '零售商';
+
+  @override
+  String get attrLabel_product_url => '网页链接';
+
+  @override
   String get attrChoice_unit_type_eccr => '电子式 CCR (eCCR)';
 
   @override
@@ -23920,6 +23938,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';
+
+  @override
+  String get equipment_edit_invalidWebLink => '请输入网址，例如 shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title => '按潜水服厚度统计';
@@ -31065,6 +31086,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get common_action_remove => '移除';
+
+  @override
+  String get equipment_documents_title => '文档';
+
+  @override
+  String get equipment_documents_subtitle => '发票、收据和保修文件';
+
+  @override
+  String get equipment_documents_attachButton => '附加';
+
+  @override
+  String get equipment_documents_empty => '尚未附加任何文档';
+
+  @override
+  String get equipment_documents_removeTitle => '移除文档？';
+
+  @override
+  String get equipment_documents_removeContent => '它将不再附加到此装备。您的原始文件不会被改动。';
+
+  @override
+  String get equipment_documents_removed => '文档已移除';
+
+  @override
+  String equipment_documents_loadError(String error) {
+    return '无法加载文档：$error';
+  }
+
+  @override
+  String equipment_documents_removeError(String error) {
+    return '无法移除文档：$error';
+  }
 
   @override
   String get common_action_unpin => '取消固定';
