@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/geocoding/sea_area_index.dart';
@@ -69,6 +72,25 @@ void main() {
           }
         }
       }
+    });
+
+    test('stamps metadata a parser can actually read', () async {
+      // The generator used to append "Z" to an isoformat() that already
+      // carried "+00:00", producing a timestamp no ISO-8601 parser accepts.
+      // This asserts the shipped file, not just the generator.
+      final raw = await rootBundle.loadString(SeaAreaService.assetPath);
+      final metadata =
+          (jsonDecode(raw) as Map<String, dynamic>)['metadata']
+              as Map<String, dynamic>;
+
+      final stamp = metadata['generated_at'] as String;
+      expect(stamp, endsWith('Z'));
+      expect(stamp, isNot(contains('+00:00')));
+      expect(DateTime.parse(stamp).isUtc, isTrue);
+
+      expect(metadata['license'], 'CC-BY 4.0');
+      expect(metadata['citation'], contains('Flanders Marine Institute'));
+      expect(metadata['total_count'], index.areas.length);
     });
 
     test('uses the names a diver writes, not the IHO labels', () {

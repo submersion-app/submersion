@@ -110,6 +110,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def utc_timestamp() -> str:
+    """Now, as RFC3339 UTC: 2026-09-04T06:33:21Z.
+
+    `datetime.isoformat()` already writes the offset as "+00:00", so the
+    conventional-looking `isoformat() + "Z"` yields "...+00:00Z", which no
+    ISO-8601 parser accepts. Sub-second precision means nothing for a
+    dataset build stamp, so seconds it is.
+    """
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def download(url: str) -> dict[str, Any]:
     """Fetch the WFS layer as GeoJSON."""
     logger.info("Downloading IHO Sea Areas (this takes several minutes)...")
@@ -224,7 +235,7 @@ def build(payload: dict[str, Any]) -> dict[str, Any]:
     )
     return {
         "metadata": {
-            "generated_at": datetime.now(timezone.utc).isoformat() + "Z",
+            "generated_at": utc_timestamp(),
             "source": "IHO Sea Areas version 3 (Flanders Marine Institute)",
             "source_url": "https://doi.org/10.14284/323",
             "license": SOURCE_LICENSE,

@@ -13,6 +13,7 @@ would name the wrong sea on a diver's phone.
 import importlib.util
 import os
 import unittest
+from datetime import datetime, timezone
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -135,6 +136,18 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(
             [a["name"] for a in output["areas"]], ["Small Gulf", "Big Ocean"]
         )
+
+    def test_stamps_a_timestamp_that_actually_parses(self):
+        # isoformat() already writes "+00:00", so appending "Z" would give
+        # "...+00:00Z" and every ISO-8601 parser would reject it.
+        output = sea_area_harvester.build(
+            self._payload(("Test Sea", _polygon(_square(0, 0, 10))))
+        )
+        stamp = output["metadata"]["generated_at"]
+        self.assertTrue(stamp.endswith("Z"), stamp)
+        self.assertNotIn("+00:00", stamp)
+        parsed = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+        self.assertEqual(parsed.tzinfo, timezone.utc)
 
     def test_carries_the_attribution_the_licence_requires(self):
         output = sea_area_harvester.build(
