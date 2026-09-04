@@ -509,6 +509,26 @@ class UnitFormatter {
   static String weekdayMonthDayPattern(DateFormatPreference dateFormat) =>
       'EEE, ${monthDayPattern(dateFormat)}';
 
+  /// Narrow all-numeric month and day, in [dateFormat]'s order and with its
+  /// own separator: 'M/d', 'd/M', 'M-d' or 'd.M'.
+  ///
+  /// For the cramped surfaces that cannot afford a spelled month, above all a
+  /// chart axis, where a wide label is what crowds the ticks. Derived from the
+  /// pattern rather than from [DateFormatPreference.isDayFirst], which is also
+  /// true for the ISO preference: reading that flag alone hands an ISO diver a
+  /// day-first '8/10' and drops the dotted preference's dots.
+  static String numericMonthDayPattern(DateFormatPreference dateFormat) =>
+      dateFormat.pattern
+          // The year and the separator that binds it to its neighbour.
+          .replaceFirst(RegExp(r'y+[^A-Za-z]+'), '')
+          .replaceFirst(RegExp(r'[^A-Za-z]+y+$'), '')
+          // Narrowest numeric form of whichever tokens are left.
+          .replaceFirst(RegExp(r'M+'), 'M')
+          .replaceFirst(RegExp(r'd+'), 'd')
+          // A space or comma is what the spelled-out preferences separate
+          // with, and neither reads as a date once the month is a digit.
+          .replaceFirst(RegExp(r'[,\s]+'), '/');
+
   /// `DateFormat` pattern for a bare month and year in [dateFormat]'s shape.
   ///
   /// Derived by dropping the day token and the separator that binds it to its

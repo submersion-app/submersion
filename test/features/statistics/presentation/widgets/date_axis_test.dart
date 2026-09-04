@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/statistics/presentation/widgets/date_axis.dart';
 
 void main() {
@@ -231,6 +232,27 @@ void main() {
 
       final labels = drawn(axis);
       expect(labels.length, labels.toSet().length, reason: '$labels');
+    });
+
+    // #1512: the day label first derived its order from `isDayFirst`, which is
+    // true for the ISO preference as well, so an ISO diver read a day-first
+    // "8/10" and the dotted preference lost its dots.
+    test('day granularity labels follow the diver date preference', () {
+      String firstDayLabel(DateFormatPreference format) {
+        final axis = DateAxis.forRange(
+          DateTime.utc(2024, 8, 10),
+          DateTime.utc(2024, 8, 24),
+          dateFormat: format,
+        );
+        expect(axis.granularity, DateAxisGranularity.day);
+        return drawn(axis).first;
+      }
+
+      expect(firstDayLabel(DateFormatPreference.mmddyyyy), "8/10 '24");
+      expect(firstDayLabel(DateFormatPreference.ddmmyyyy), "10/8 '24");
+      // ISO reads month before day, and with a dash.
+      expect(firstDayLabel(DateFormatPreference.yyyymmdd), "8-10 '24");
+      expect(firstDayLabel(DateFormatPreference.ddmmyyyyDots), "10.8 '24");
     });
 
     test('year granularity stays a plain four-digit year', () {

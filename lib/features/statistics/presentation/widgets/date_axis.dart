@@ -12,6 +12,7 @@ library;
 
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 
 enum DateAxisGranularity { day, month, quarter, year }
 
@@ -109,8 +110,7 @@ class DateAxis {
       case DateAxisGranularity.month:
         return "${DateFormat.MMM().format(date)} '${_shortYear(date)}";
       case DateAxisGranularity.day:
-        final md = dateFormat.isDayFirst ? 'd/M' : 'M/d';
-        return "${DateFormat(md).format(date)} '${_shortYear(date)}";
+        return "${DateFormat(UnitFormatter.numericMonthDayPattern(dateFormat)).format(date)} '${_shortYear(date)}";
     }
   }
 

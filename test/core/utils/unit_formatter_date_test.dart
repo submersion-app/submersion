@@ -127,6 +127,38 @@ void main() {
       );
     });
 
+    // #1512 follow-up: the chart axis first derived this from `isDayFirst`,
+    // which is true for the ISO preference too, so an ISO diver got a
+    // day-first "8/10" and the dotted preference lost its dots.
+    test('numericMonthDayPattern keeps the order and the separator', () {
+      expect(
+        UnitFormatter.numericMonthDayPattern(DateFormatPreference.mmddyyyy),
+        'M/d',
+      );
+      expect(
+        UnitFormatter.numericMonthDayPattern(DateFormatPreference.ddmmyyyy),
+        'd/M',
+      );
+      expect(
+        UnitFormatter.numericMonthDayPattern(DateFormatPreference.yyyymmdd),
+        'M-d',
+      );
+      expect(
+        UnitFormatter.numericMonthDayPattern(DateFormatPreference.ddmmyyyyDots),
+        'd.M',
+      );
+      // The spelled-out preferences separate with a space or a comma, which
+      // does not read as a date on a cramped axis, so they take a slash.
+      expect(
+        UnitFormatter.numericMonthDayPattern(DateFormatPreference.mmmDYYYY),
+        'M/d',
+      );
+      expect(
+        UnitFormatter.numericMonthDayPattern(DateFormatPreference.dMMMYYYY),
+        'd/M',
+      );
+    });
+
     test('monthYearPattern removes the day and its separator', () {
       expect(
         UnitFormatter.monthYearPattern(DateFormatPreference.mmddyyyy),
