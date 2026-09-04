@@ -546,6 +546,16 @@ jobs:
           python3 scripts/chamber_harvester_test.py
           python3 scripts/chamber_sources_test.py
 
+      - name: Run sea area table generator tests
+        # The generator builds the offline body-of-water table. The runtime
+        # resolver trusts it for closed rings and ascending area order, so a
+        # regression here would name the wrong sea rather than fail loudly.
+        # shapely is the generator's only dependency; without it the test
+        # skips itself.
+        run: |
+          python3 -m pip install shapely
+          python3 scripts/sea_area_harvester_test.py
+
       - name: Run appcast beta feed test
         run: ./scripts/generate_appcast_beta_test.sh
 
