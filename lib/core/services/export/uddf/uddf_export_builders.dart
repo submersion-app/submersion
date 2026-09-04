@@ -1509,6 +1509,15 @@ class UddfExportBuilders {
                             nest: owner.insurance.expiryDate!.toIso8601String(),
                           );
                         }
+                        if (owner.insurance.emergencyPhone != null) {
+                          builder.element(
+                            'emergencyphone',
+                            nest: owner.insurance.emergencyPhone,
+                          );
+                        }
+                        if (owner.insurance.phone != null) {
+                          builder.element('phone', nest: owner.insurance.phone);
+                        }
                       },
                     );
                   }

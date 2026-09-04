@@ -31,7 +31,40 @@ class DiverInsurance extends Equatable {
   final String? policyNumber;
   final DateTime? expiryDate;
 
-  const DiverInsurance({this.provider, this.policyNumber, this.expiryDate});
+  /// The insurer's 24-hour dive emergency assistance line. This is the number
+  /// an insured diver is meant to call first: their own assistance provider
+  /// authorises the evacuation and coordinates the chamber referral, which is
+  /// the role the emergency card otherwise attributes to the regional diver
+  /// hotline. Preferred by [callNumber].
+  final String? emergencyPhone;
+
+  /// The insurer's general or office line. Answers during business hours only
+  /// for most providers, so it is a fallback for [callNumber], never the
+  /// number a card leads with when [emergencyPhone] is known.
+  final String? phone;
+
+  const DiverInsurance({
+    this.provider,
+    this.policyNumber,
+    this.expiryDate,
+    this.emergencyPhone,
+    this.phone,
+  });
+
+  /// The insurer number to dial, or null when the diver recorded neither.
+  /// Blank strings are treated as absent: an emptied text field round-trips
+  /// through the database as `''` on some paths, and dialling it would fail
+  /// silently at the very worst moment.
+  String? get callNumber {
+    final emergency = emergencyPhone?.trim();
+    if (emergency != null && emergency.isNotEmpty) return emergency;
+    final general = phone?.trim();
+    if (general != null && general.isNotEmpty) return general;
+    return null;
+  }
+
+  /// Whether the card has an insurer number worth leading with.
+  bool get hasCallNumber => callNumber != null;
 
   bool get isExpired {
     if (expiryDate == null) return false;
@@ -50,16 +83,26 @@ class DiverInsurance extends Equatable {
     String? provider,
     String? policyNumber,
     DateTime? expiryDate,
+    String? emergencyPhone,
+    String? phone,
   }) {
     return DiverInsurance(
       provider: provider ?? this.provider,
       policyNumber: policyNumber ?? this.policyNumber,
       expiryDate: expiryDate ?? this.expiryDate,
+      emergencyPhone: emergencyPhone ?? this.emergencyPhone,
+      phone: phone ?? this.phone,
     );
   }
 
   @override
-  List<Object?> get props => [provider, policyNumber, expiryDate];
+  List<Object?> get props => [
+    provider,
+    policyNumber,
+    expiryDate,
+    emergencyPhone,
+    phone,
+  ];
 }
 
 /// Diver profile entity

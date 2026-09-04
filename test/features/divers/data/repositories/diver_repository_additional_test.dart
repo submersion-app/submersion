@@ -120,6 +120,8 @@ void main() {
           provider: 'DAN',
           policyNumber: 'P-123',
           expiryDate: insDate,
+          emergencyPhone: '+1-919-684-9111',
+          phone: '+1-919-684-2948',
         ),
         createdAt: DateTime(2024),
         updatedAt: DateTime(2024),
@@ -141,6 +143,8 @@ void main() {
         read.insurance.expiryDate?.millisecondsSinceEpoch,
         equals(insDate.millisecondsSinceEpoch),
       );
+      expect(read.insurance.emergencyPhone, equals('+1-919-684-9111'));
+      expect(read.insurance.phone, equals('+1-919-684-2948'));
     });
   });
 

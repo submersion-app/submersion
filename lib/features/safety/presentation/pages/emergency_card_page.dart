@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/safety/presentation/widgets/chamber_tile.dart';
 import 'package:submersion/features/safety/presentation/providers/emergency_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The offline emergency card: one screen readable by a stranger under
@@ -64,32 +65,70 @@ class _CardBody extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final diver = data.diver;
+    final insurance = diver?.insurance;
+
+    // The diver's own insurer is the first call when they recorded a number:
+    // that is who authorizes the evacuation and coordinates the chamber
+    // referral, which is the role this card otherwise hands to the regional
+    // hotline. Leading with a hotline the diver is not a member of is the
+    // complaint in issue #1522. With no insurer number recorded the regional
+    // hotline leads, exactly as before.
+    final insurerNumber = insurance?.callNumber;
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Call DAN: always first and biggest.
-        FilledButton.icon(
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            textStyle: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+        if (insurerNumber != null) ...[
+          _CallAction(
+            emphasis: _CallEmphasis.primary,
+            label: l10n.emergencyCard_callDan(_insurerName(l10n, insurance!)),
+            number: insurerNumber,
+            onCall: _call,
           ),
-          icon: const Icon(Icons.phone, size: 28),
-          label: Text(
-            '${l10n.emergencyCard_callDan(data.hotline.name)}\n'
-            '${data.hotline.phone}',
+          const SizedBox(height: 8),
+          Text(
+            l10n.emergencyCard_callInsurer_subtitle,
+            style: theme.textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
-          onPressed: () => _call(data.hotline.phone),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          l10n.emergencyCard_callDan_subtitle,
-          style: theme.textTheme.bodyMedium,
-          textAlign: TextAlign.center,
-        ),
+          if (insurance.policyNumber != null &&
+              insurance.policyNumber!.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              l10n.emergencyCard_insurancePolicy(insurance.policyNumber!),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          const SizedBox(height: 20),
+          _CallAction(
+            emphasis: _CallEmphasis.secondary,
+            label: l10n.emergencyCard_callDan(data.hotline.name),
+            number: data.hotline.phone,
+            onCall: _call,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.emergencyCard_hotlineSecondary_subtitle,
+            style: theme.textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+        ] else ...[
+          _CallAction(
+            emphasis: _CallEmphasis.primary,
+            label: l10n.emergencyCard_callDan(data.hotline.name),
+            number: data.hotline.phone,
+            onCall: _call,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.emergencyCard_callDan_subtitle,
+            style: theme.textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
         const SizedBox(height: 4),
         Text(
           data.countryCode != null
@@ -163,6 +202,72 @@ class _CardBody extends ConsumerWidget {
       await launchUrl(uri);
     }
   }
+
+  /// What the lead button calls the insurer. A diver can save a number
+  /// without naming the provider, and "Call" on its own is not a button.
+  String _insurerName(AppLocalizations l10n, DiverInsurance insurance) {
+    final provider = insurance.provider?.trim();
+    if (provider != null && provider.isNotEmpty) return provider;
+    return l10n.emergencyCard_insuranceSection;
+  }
+}
+
+/// How loud a call button is. The card has at most one [primary]: two buttons
+/// of equal weight is the same "which do I press?" problem under stress as no
+/// button at all.
+enum _CallEmphasis { primary, secondary }
+
+/// A tap-to-call button showing who answers and the number that will be
+/// dialled, so the number stays readable to someone reading it aloud to
+/// a bystander rather than tapping it.
+class _CallAction extends StatelessWidget {
+  final _CallEmphasis emphasis;
+  final String label;
+  final String number;
+  final Future<void> Function(String) onCall;
+
+  const _CallAction({
+    required this.emphasis,
+    required this.label,
+    required this.number,
+    required this.onCall,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isPrimary = emphasis == _CallEmphasis.primary;
+    final child = Text('$label\n$number', textAlign: TextAlign.center);
+    final icon = Icon(Icons.phone, size: isPrimary ? 28 : 24);
+
+    void handleTap() => onCall(number);
+
+    if (isPrimary) {
+      return FilledButton.icon(
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          textStyle: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        icon: icon,
+        label: child,
+        onPressed: handleTap,
+      );
+    }
+
+    return FilledButton.tonalIcon(
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        textStyle: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      icon: icon,
+      label: child,
+      onPressed: handleTap,
+    );
+  }
 }
 
 class _DiverSection extends StatelessWidget {
@@ -192,6 +297,23 @@ class _DiverSection extends StatelessWidget {
       );
     }
 
+    Widget insurerNumber({
+      required String label,
+      required String? number,
+      required IconData icon,
+    }) {
+      final trimmed = number?.trim();
+      if (trimmed == null || trimmed.isEmpty) return const SizedBox.shrink();
+      return ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(icon),
+        title: Text(label, style: big),
+        subtitle: Text(trimmed),
+        trailing: const Icon(Icons.phone, size: 20),
+        onTap: () => onCall(trimmed),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -210,20 +332,54 @@ class _DiverSection extends StatelessWidget {
         _SectionHeader(title: l10n.emergencyCard_contactsSection),
         contact(diver.emergencyContact),
         contact(diver.emergencyContact2),
-        if (diver.insurance.provider != null &&
-            diver.insurance.provider!.isNotEmpty) ...[
+        if (_hasInsuranceDetails(diver.insurance)) ...[
           const SizedBox(height: 16),
           _SectionHeader(title: l10n.emergencyCard_insuranceSection),
-          Text(diver.insurance.provider!, style: big),
+          if (diver.insurance.provider != null &&
+              diver.insurance.provider!.isNotEmpty)
+            Text(diver.insurance.provider!, style: big),
           if (diver.insurance.policyNumber != null)
             Text(
               l10n.emergencyCard_insurancePolicy(diver.insurance.policyNumber!),
               style: big,
             ),
+          insurerNumber(
+            label: l10n.emergencyCard_insuranceEmergencyLine,
+            number: diver.insurance.emergencyPhone,
+            icon: Icons.emergency_share_outlined,
+          ),
+          insurerNumber(
+            label: l10n.emergencyCard_insuranceOfficeLine,
+            number: diver.insurance.phone,
+            icon: Icons.phone_outlined,
+          ),
+          // A provider with no number is the state issue #1522 describes:
+          // the card cannot lead with the insurer, so say why rather than
+          // leaving the diver to wonder where their number went.
+          if (!diver.insurance.hasCallNumber)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                l10n.emergencyCard_insuranceNoPhone,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
         ],
       ],
     );
   }
+}
+
+/// Whether the insurance block has anything worth a section header. A diver
+/// who saved only an assistance number still gets the section.
+bool _hasInsuranceDetails(DiverInsurance insurance) {
+  final provider = insurance.provider?.trim();
+  if (provider != null && provider.isNotEmpty) return true;
+  final policy = insurance.policyNumber?.trim();
+  if (policy != null && policy.isNotEmpty) return true;
+  return insurance.hasCallNumber;
 }
 
 class _SectionHeader extends StatelessWidget {

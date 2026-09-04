@@ -201,4 +201,72 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(DatePickerDialog), findsNothing);
   });
+
+  testWidgets('populates both insurer phone numbers (#1522)', (tester) async {
+    await pump(
+      tester,
+      makeDiver(
+        insurance: const DiverInsurance(
+          provider: 'ARENA',
+          emergencyPhone: '+49-30-555-0100',
+          phone: '+49-30-555-0199',
+        ),
+      ),
+    );
+
+    expect(find.text('+49-30-555-0100'), findsOneWidget);
+    expect(find.text('+49-30-555-0199'), findsOneWidget);
+  });
+
+  testWidgets('saving persists the trimmed insurer phone numbers (#1522)', (
+    tester,
+  ) async {
+    final notifier = await pump(tester, makeDiver());
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, '24h Emergency Assistance Number'),
+      '  +49-30-555-0100  ',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Insurance Office Number'),
+      '+49-30-555-0199',
+    );
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.updated, isNotNull);
+    expect(notifier.updated!.insurance.emergencyPhone, '+49-30-555-0100');
+    expect(notifier.updated!.insurance.phone, '+49-30-555-0199');
+  });
+
+  testWidgets('clearing an insurer phone number persists null (#1522)', (
+    tester,
+  ) async {
+    final notifier = await pump(
+      tester,
+      makeDiver(
+        insurance: const DiverInsurance(
+          provider: 'ARENA',
+          emergencyPhone: '+49-30-555-0100',
+          phone: '+49-30-555-0199',
+        ),
+      ),
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, '24h Emergency Assistance Number'),
+      '',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.updated, isNotNull);
+    expect(notifier.updated!.insurance.emergencyPhone, isNull);
+    expect(
+      notifier.updated!.insurance.phone,
+      '+49-30-555-0199',
+      reason: 'clearing one number must not clear the other',
+    );
+  });
 }

@@ -448,6 +448,11 @@ class UddfImportParsers {
       if (expiryDate != null) {
         owner['insuranceExpiryDate'] = DateTime.tryParse(expiryDate);
       }
+      owner['insuranceEmergencyPhone'] = getElementText(
+        insuranceElement,
+        'emergencyphone',
+      );
+      owner['insurancePhone'] = getElementText(insuranceElement, 'phone');
     }
   }
 
