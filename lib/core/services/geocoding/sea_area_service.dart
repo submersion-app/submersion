@@ -19,38 +19,53 @@ class SeaAreaService {
 
   static final _log = LoggerService.forClass(SeaAreaService);
 
-  static SeaAreaIndex? _cache;
-  static Future<SeaAreaIndex?>? _pending;
+  static SeaAreaIndex? _index;
+
+  /// Whether a load has finished, successfully or not.
+  ///
+  /// A failed read sets this too. The asset is bundled and immutable for
+  /// the life of the process, so a read that failed once fails every time,
+  /// and remembering that is what stops a backfill over a whole logbook
+  /// from retrying a 1.3 MB read, and logging the same warning, once per
+  /// site.
+  static bool _loaded = false;
+
+  /// The read in progress, so concurrent callers share one parse rather
+  /// than each decoding the asset. Cleared once it settles; [_loaded] is
+  /// what makes the result stick.
+  static Future<SeaAreaIndex?>? _inFlight;
 
   /// The shipped index, or null when the asset is missing or unreadable.
   ///
   /// A missing table is not worth failing a geocode over: the caller simply
   /// gets no body of water, exactly as before this table existed.
   static Future<SeaAreaIndex?> load() {
-    final cached = _cache;
-    if (cached != null) return Future.value(cached);
-    // Concurrent callers share one parse rather than each decoding 1.3 MB.
-    return _pending ??= _load();
+    // Built here rather than held as a completed future, so it belongs to
+    // the caller's zone. A future created in one zone and awaited inside a
+    // fakeAsync zone never resolves there.
+    if (_loaded) return Future<SeaAreaIndex?>.value(_index);
+    return _inFlight ??= _read();
   }
 
-  static Future<SeaAreaIndex?> _load() async {
+  static Future<SeaAreaIndex?> _read() async {
     try {
       final raw = await rootBundle.loadString(assetPath);
       final json = jsonDecode(raw) as Map<String, dynamic>;
       final index = SeaAreaIndex.fromJson(json);
-      _cache = index;
+      _index = index;
       _log.info('Loaded ${index.areas.length} sea areas');
-      return index;
     } catch (e, stackTrace) {
+      _index = null;
       _log.warning(
         'Sea area table unavailable, body of water will be left empty: $e',
         error: e,
         stackTrace: stackTrace,
       );
-      return null;
     } finally {
-      _pending = null;
+      _loaded = true;
+      _inFlight = null;
     }
+    return _index;
   }
 
   /// Adds the table's attribution to the app's license page.
@@ -79,15 +94,19 @@ scripts/sea_area_harvester.py for exactly how it was derived.''',
     });
   }
 
+  /// Stands in for a completed load. Passing null models an unreadable
+  /// asset, which callers must treat as "no body of water", not an error.
   @visibleForTesting
   static void setIndexForTesting(SeaAreaIndex? index) {
-    _cache = index;
-    _pending = null;
+    _index = index;
+    _loaded = true;
+    _inFlight = null;
   }
 
   @visibleForTesting
   static void resetCacheForTesting() {
-    _cache = null;
-    _pending = null;
+    _index = null;
+    _loaded = false;
+    _inFlight = null;
   }
 }

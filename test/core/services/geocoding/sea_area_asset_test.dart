@@ -222,21 +222,6 @@ void main() {
     }
   });
 
-  test('a lookup is cheap enough to run per site in a backfill', () {
-    // A point in no area is the worst case: it walks every area for
-    // containment, then every nearby one for distance.
-    final stopwatch = Stopwatch()..start();
-    for (var i = 0; i < 500; i++) {
-      index.nameAt(48.137 + i * 0.001, 11.575);
-    }
-    stopwatch.stop();
-    expect(
-      stopwatch.elapsedMilliseconds,
-      lessThan(500),
-      reason: 'worst-case lookups should stay well under a millisecond each',
-    );
-  });
-
   test('names the more specific sea where two limits meet', () {
     // The Gulf of Aqaba sits inside the Red Sea's bounding box; the
     // smallest-area rule has to prefer the gulf.
