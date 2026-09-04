@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
-import '../../../../helpers/mock_providers.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_item_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 TripChecklistItem _item({

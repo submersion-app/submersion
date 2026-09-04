@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../../../../helpers/mock_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 TripWithStats _makeTrip({

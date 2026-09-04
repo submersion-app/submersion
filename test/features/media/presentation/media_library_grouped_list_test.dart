@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../helpers/mock_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +12,8 @@ import 'package:submersion/features/media/presentation/widgets/media_library_gro
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../helpers/mock_providers.dart';
 
 MediaLibraryEntry entry(String id) => MediaLibraryEntry(
   item: MediaItem(

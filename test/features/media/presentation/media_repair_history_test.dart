@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../../../helpers/mock_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
 import 'package:submersion/features/media/presentation/pages/media_repair_history_view.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../helpers/mock_providers.dart';
 
 RepairLogEntry logEntry(
   String id, {
