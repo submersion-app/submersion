@@ -102,11 +102,18 @@ class MacDiveValueMapper {
         s.contains('base-layer')) {
       return EquipmentType.baselayer;
     }
-    // Same rule, same place (#1518): "rash guard", "rash vest" and "skin
-    // suit" name the garment outright, and neither suit check matches them.
-    // The fabric word "lycra" is a weaker signal and waits below, with the
-    // thermal ones.
-    if (s.contains('rash') || s.contains('skin suit')) {
+    // Same rule, same place (#1518): these name the garment outright, and
+    // neither suit check matches them. Spelled out rather than matching a
+    // bare "rash", which is a substring of "trash" -- and a trash bag is
+    // ordinary kit on a cleanup dive. The fabric word "lycra" is a weaker
+    // signal and waits below, with the thermal ones.
+    if (s.contains('rash guard') ||
+        s.contains('rashguard') ||
+        s.contains('rash-guard') ||
+        s.contains('rash vest') ||
+        s.contains('rash top') ||
+        s.contains('rashie') ||
+        s.contains('skin suit')) {
       return EquipmentType.rashGuard;
     }
     if (s.contains('drysuit') || s.contains('dry suit')) {

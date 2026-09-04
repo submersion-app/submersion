@@ -163,7 +163,9 @@ void main() {
       // #1518 types. MacDive's field is free text, so these are the words
       // real libraries actually contain.
       'Rash Guard': EquipmentType.rashGuard,
+      'Rashguard': EquipmentType.rashGuard,
       'Rash vest': EquipmentType.rashGuard,
+      'Rashie': EquipmentType.rashGuard,
       'Lycra top': EquipmentType.rashGuard,
       'Snorkel': EquipmentType.snorkel,
       'Compass': EquipmentType.compass,
@@ -219,6 +221,19 @@ void main() {
       expect(
         MacDiveValueMapper.equipmentType('Lycra top'),
         EquipmentType.rashGuard,
+      );
+    });
+
+    test('"trash" does not read as a rash guard', () {
+      // "rash" is a substring of "trash", and a mesh trash bag is ordinary
+      // kit on a cleanup dive, so the rule spells the garment out.
+      expect(
+        MacDiveValueMapper.equipmentType('Trash bag'),
+        EquipmentType.other,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Trash collection hook'),
+        EquipmentType.other,
       );
     });
 
