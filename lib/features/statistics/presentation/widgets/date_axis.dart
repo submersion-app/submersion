@@ -5,9 +5,14 @@
 /// and stay honest, so they plot real timestamps and need ticks chosen from the
 /// span rather than from the point count (issue #299).
 ///
-/// Deliberately free of Flutter and of ambient locale: labels are formatted
-/// from the diver's own [DateFormatPreference], which the widget threads in.
-/// This file only decides where ticks go.
+/// Deliberately free of Flutter and Riverpod: the widget threads in the
+/// diver's [DateFormatPreference], and this file only decides where ticks go.
+///
+/// Free of the ambient locale only where the reading order is ambiguous, which
+/// is the numeric day label. The month and year labels still go through intl's
+/// named constructors and so resolve against `Intl.defaultLocale`, which is
+/// what makes "Mar" read as "mars" on a French UI. That is the intended split:
+/// the preference owns the order, the locale owns the words.
 library;
 
 import 'package:intl/intl.dart';

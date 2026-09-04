@@ -1489,7 +1489,9 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
     } else if (difference.inDays < 7) {
       return l10n.settings_cloudSync_time_daysAgo(difference.inDays);
     } else {
-      return UnitFormatter(ref.read(settingsProvider)).formatDate(dateTime);
+      // watch, not read: both callers render this into the widget tree, so a
+      // preference change while the page is open must repaint it.
+      return UnitFormatter(ref.watch(settingsProvider)).formatDate(dateTime);
     }
   }
 }

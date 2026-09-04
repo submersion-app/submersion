@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../helpers/mock_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
 import 'package:submersion/features/media/presentation/pages/media_repair_history_view.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 RepairLogEntry logEntry(
@@ -26,7 +28,14 @@ RepairLogEntry logEntry(
 void main() {
   Widget host(List<RepairLogEntry> entries) {
     return ProviderScope(
-      overrides: [repairHistoryProvider.overrideWith((ref) async => entries)],
+      // The view watches settingsProvider to format its timestamps. The real
+      // notifier reaches for DiverSettingsRepository and a DatabaseService this
+      // harness never starts, and its constructor load is unlistened, so a
+      // failure would escape to the zone and fail a stranger test.
+      overrides: [
+        repairHistoryProvider.overrideWith((ref) async => entries),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
       child: const MaterialApp(
         locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,

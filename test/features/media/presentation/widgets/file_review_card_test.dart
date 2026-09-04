@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/media/domain/value_objects/taken_at_source.d
 import 'package:submersion/features/media/domain/value_objects/unmatched_diagnostic.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -74,7 +76,12 @@ Future<void> _pumpCard(
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
-      overrides: [filesTabNotifierProvider.overrideWith((ref) => seeded)],
+      // The card watches settingsProvider for the diver's date and time format;
+      // stand in so the real notifier never reaches for the database.
+      overrides: [
+        filesTabNotifierProvider.overrideWith((ref) => seeded),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
       child: FileReviewCard(
         file: file,
         targetDiveId: targetDiveId,
