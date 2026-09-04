@@ -9502,6 +9502,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'تاريخ الانتهاء';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'يظهر أولاً في بطاقة الطوارئ الخاصة بك.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'مثال: +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      'رقم المساعدة الطارئة على مدار 24 ساعة';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'رقم مكتب شركة التأمين';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'مثال: DAN، DiveAssure';
 
   @override
@@ -24881,6 +24895,25 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'خط طوارئ الغواصين. اتصل به أولاً: فهم ينسقون الإخلاء والإحالة إلى غرفة الضغط.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'خط الطوارئ الخاص بتأمين الغوص. اتصل به أولاً: شركة التأمين تعتمد الإخلاء وتنسق الإحالة إلى غرفة الضغط.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'خط طوارئ الغواصين الإقليمي. اتصل به إذا لم يرد خط شركة التأمين.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine =>
+      'خط الطوارئ على مدار 24 ساعة';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'خط المكتب';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'لم يتم حفظ رقم طوارئ شركة التأمين. أضفه في إعدادات ملف الغواص لتبدأ هذه البطاقة به.';
 
   @override
   String emergencyCard_ems(String number) {

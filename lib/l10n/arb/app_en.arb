@@ -5680,6 +5680,10 @@
   "divers_edit_errorSaving": "Error saving diver: {error}",
   "divers_edit_expiryDateNotSet": "Not set",
   "divers_edit_expiryDateTitle": "Expiry Date",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Shown first on your emergency card.",
+  "divers_edit_insuranceEmergencyPhoneHint": "e.g., +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "24h Emergency Assistance Number",
+  "divers_edit_insurancePhoneLabel": "Insurance Office Number",
   "divers_edit_insuranceProviderHint": "e.g., DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Insurance Provider",
   "divers_edit_insuranceSection": "Dive Insurance",
@@ -16326,6 +16330,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.",
+  "emergencyCard_callInsurer_subtitle": "Your dive insurance emergency line. Call first: your insurer authorizes the evacuation and coordinates the chamber referral.",
+  "emergencyCard_hotlineSecondary_subtitle": "Regional diver emergency hotline. Call this if your insurer's line does not answer.",
+  "emergencyCard_insuranceEmergencyLine": "24h emergency line",
+  "emergencyCard_insuranceOfficeLine": "Office line",
+  "emergencyCard_insuranceNoPhone": "No insurer emergency number saved. Add it in Diver Profile settings so this card can lead with it.",
   "emergencyCard_ems": "Local emergency services: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

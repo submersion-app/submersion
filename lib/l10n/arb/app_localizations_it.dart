@@ -9681,6 +9681,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'Data di scadenza';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Mostrato per primo sulla tua scheda di emergenza.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'es. +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      'Numero di assistenza di emergenza 24 h';
+
+  @override
+  String get divers_edit_insurancePhoneLabel =>
+      'Telefono dell\'ufficio assicurativo';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'es. DAN, DiveAssure';
 
   @override
@@ -25339,6 +25354,24 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Linea di emergenza subacquei. Chiama prima: coordinano evacuazione e invio in camera iperbarica.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'Linea di emergenza della tua assicurazione subacquea. Chiama prima: il tuo assicuratore autorizza l\'evacuazione e coordina l\'invio in camera iperbarica.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Linea di emergenza subacquei regionale. Chiamala se la linea del tuo assicuratore non risponde.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => 'Linea di emergenza 24 h';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Linea ufficio';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'Nessun numero di emergenza dell\'assicuratore salvato. Aggiungilo nelle impostazioni del profilo subacqueo così questa scheda potrà mostrarlo per primo.';
 
   @override
   String emergencyCard_ems(String number) {

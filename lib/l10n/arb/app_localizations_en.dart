@@ -9520,6 +9520,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'Expiry Date';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Shown first on your emergency card.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'e.g., +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      '24h Emergency Assistance Number';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'Insurance Office Number';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'e.g., DAN, DiveAssure';
 
   @override
@@ -24915,6 +24929,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'Your dive insurance emergency line. Call first: your insurer authorizes the evacuation and coordinates the chamber referral.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Regional diver emergency hotline. Call this if your insurer\'s line does not answer.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24h emergency line';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Office line';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'No insurer emergency number saved. Add it in Diver Profile settings so this card can lead with it.';
 
   @override
   String emergencyCard_ems(String number) {

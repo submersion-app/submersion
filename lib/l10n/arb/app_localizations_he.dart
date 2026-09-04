@@ -9446,6 +9446,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'תאריך תפוגה';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'מוצג ראשון בכרטיס החירום שלך.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint =>
+      'לדוגמה, +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      'מספר סיוע חירום 24 שעות';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'מספר משרד חברת הביטוח';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'לדוגמה, DAN, DiveAssure';
 
   @override
@@ -24711,6 +24726,24 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'קו חירום לצוללים. התקשר אליו קודם: הם מתאמים פינוי והפניה לתא לחץ.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'קו החירום של ביטוח הצלילה שלך. התקשר אליו קודם: המבטח מאשר את הפינוי ומתאם את ההפניה לתא לחץ.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'קו חירום אזורי לצוללים. התקשר אליו אם קו המבטח אינו עונה.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => 'קו חירום 24 שעות';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'קו המשרד';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'לא נשמר מספר חירום של המבטח. הוסף אותו בהגדרות פרופיל הצולל כדי שהכרטיס יתחיל בו.';
 
   @override
   String emergencyCard_ems(String number) {

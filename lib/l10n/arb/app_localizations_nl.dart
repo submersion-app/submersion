@@ -9606,6 +9606,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'Vervaldatum';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Wordt als eerste op je noodkaart getoond.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'bijv. +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      '24-uurs noodhulpnummer';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'Kantoornummer verzekering';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'bijv. DAN, DiveAssure';
 
   @override
@@ -25146,6 +25160,24 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Noodlijn voor duikers. Bel eerst: zij coördineren evacuatie en doorverwijzing naar een kamer.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'Noodlijn van je duikverzekering. Bel eerst: je verzekeraar autoriseert de evacuatie en coördineert de doorverwijzing naar een kamer.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Regionale noodlijn voor duikers. Bel deze als de lijn van je verzekeraar niet opneemt.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24-uurs noodlijn';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Kantoornummer';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'Geen noodnummer van de verzekeraar opgeslagen. Voeg het toe in de duikerprofielinstellingen zodat deze kaart ermee begint.';
 
   @override
   String emergencyCard_ems(String number) {

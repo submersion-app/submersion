@@ -9681,6 +9681,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'Fecha de vencimiento';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Se muestra primero en tu tarjeta de emergencia.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'ej., +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      'Número de asistencia de emergencia 24 h';
+
+  @override
+  String get divers_edit_insurancePhoneLabel =>
+      'Teléfono de oficina del seguro';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'ej., DAN, DiveAssure';
 
   @override
@@ -25358,6 +25373,24 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Línea de emergencias para buceadores. Llama primero: coordinan la evacuación y la derivación a cámara.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'Línea de emergencia de tu seguro de buceo. Llama primero: tu aseguradora autoriza la evacuación y coordina la derivación a cámara.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Línea regional de emergencias para buceadores. Llama aquí si la línea de tu aseguradora no responde.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => 'Línea de emergencia 24 h';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Teléfono de oficina';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'No hay número de emergencia de la aseguradora guardado. Añádelo en los ajustes del perfil de buceador para que esta tarjeta lo muestre primero.';
 
   @override
   String emergencyCard_ems(String number) {

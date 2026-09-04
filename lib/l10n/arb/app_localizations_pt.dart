@@ -9683,6 +9683,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'Data de Validade';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Aparece primeiro no seu cartão de emergência.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'ex., +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      'Número de assistência de emergência 24 h';
+
+  @override
+  String get divers_edit_insurancePhoneLabel =>
+      'Telefone do escritório do seguro';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'ex., DAN, DiveAssure';
 
   @override
@@ -25337,6 +25352,24 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Linha de emergência para mergulhadores. Ligue primeiro: eles coordenam a evacuação e o encaminhamento para câmara.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'Linha de emergência do seu seguro de mergulho. Ligue primeiro: a seguradora autoriza a evacuação e coordena o encaminhamento para câmara.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Linha regional de emergência para mergulhadores. Ligue se a linha da sua seguradora não atender.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => 'Linha de emergência 24 h';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Linha do escritório';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'Nenhum número de emergência da seguradora guardado. Adicione-o nas definições do perfil de mergulhador para que este cartão o mostre primeiro.';
 
   @override
   String emergencyCard_ems(String number) {

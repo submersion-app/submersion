@@ -3122,6 +3122,10 @@
   "divers_edit_errorSaving": "Fout bij opslaan van duiker: {error}",
   "divers_edit_expiryDateNotSet": "Niet ingesteld",
   "divers_edit_expiryDateTitle": "Vervaldatum",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Wordt als eerste op je noodkaart getoond.",
+  "divers_edit_insuranceEmergencyPhoneHint": "bijv. +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "24-uurs noodhulpnummer",
+  "divers_edit_insurancePhoneLabel": "Kantoornummer verzekering",
   "divers_edit_insuranceProviderHint": "bijv. DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Verzekeraar",
   "divers_edit_insuranceSection": "Duikverzekering",
@@ -7547,6 +7551,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Noodlijn voor duikers. Bel eerst: zij coördineren evacuatie en doorverwijzing naar een kamer.",
+  "emergencyCard_callInsurer_subtitle": "Noodlijn van je duikverzekering. Bel eerst: je verzekeraar autoriseert de evacuatie en coördineert de doorverwijzing naar een kamer.",
+  "emergencyCard_hotlineSecondary_subtitle": "Regionale noodlijn voor duikers. Bel deze als de lijn van je verzekeraar niet opneemt.",
+  "emergencyCard_insuranceEmergencyLine": "24-uurs noodlijn",
+  "emergencyCard_insuranceOfficeLine": "Kantoornummer",
+  "emergencyCard_insuranceNoPhone": "Geen noodnummer van de verzekeraar opgeslagen. Voeg het toe in de duikerprofielinstellingen zodat deze kaart ermee begint.",
   "emergencyCard_ems": "Lokale hulpdiensten: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

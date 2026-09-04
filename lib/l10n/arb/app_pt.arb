@@ -3122,6 +3122,10 @@
   "divers_edit_errorSaving": "Erro ao salvar mergulhador: {error}",
   "divers_edit_expiryDateNotSet": "Nao definida",
   "divers_edit_expiryDateTitle": "Data de Validade",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Aparece primeiro no seu cartão de emergência.",
+  "divers_edit_insuranceEmergencyPhoneHint": "ex., +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "Número de assistência de emergência 24 h",
+  "divers_edit_insurancePhoneLabel": "Telefone do escritório do seguro",
   "divers_edit_insuranceProviderHint": "ex., DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Seguradora",
   "divers_edit_insuranceSection": "Seguro de Mergulho",
@@ -7547,6 +7551,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Linha de emergência para mergulhadores. Ligue primeiro: eles coordenam a evacuação e o encaminhamento para câmara.",
+  "emergencyCard_callInsurer_subtitle": "Linha de emergência do seu seguro de mergulho. Ligue primeiro: a seguradora autoriza a evacuação e coordena o encaminhamento para câmara.",
+  "emergencyCard_hotlineSecondary_subtitle": "Linha regional de emergência para mergulhadores. Ligue se a linha da sua seguradora não atender.",
+  "emergencyCard_insuranceEmergencyLine": "Linha de emergência 24 h",
+  "emergencyCard_insuranceOfficeLine": "Linha do escritório",
+  "emergencyCard_insuranceNoPhone": "Nenhum número de emergência da seguradora guardado. Adicione-o nas definições do perfil de mergulhador para que este cartão o mostre primeiro.",
   "emergencyCard_ems": "Emergência local: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

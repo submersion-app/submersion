@@ -141,7 +141,7 @@ class GaugeStrip extends ConsumerWidget {
     //
     // Narrowed to a nullable local rather than a bool so the branches below
     // get null promotion on the policy itself.
-    final policy = insurance != null && !(insurance.provider?.isEmpty ?? true)
+    final policy = insurance != null && insurance.providerLabel != null
         ? insurance
         : null;
     if (policy != null && policy.isExpired) {

@@ -3038,6 +3038,10 @@
   "divers_edit_errorSaving": "Erreur lors de l'enregistrement du plongeur : {error}",
   "divers_edit_expiryDateNotSet": "Non defini",
   "divers_edit_expiryDateTitle": "Date d'expiration",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Affiché en premier sur votre carte d'urgence.",
+  "divers_edit_insuranceEmergencyPhoneHint": "ex. +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "Numéro d'assistance d'urgence 24 h",
+  "divers_edit_insurancePhoneLabel": "Téléphone du bureau de l'assurance",
   "divers_edit_insuranceProviderHint": "ex. DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Assureur",
   "divers_edit_insuranceSection": "Assurance plongee",
@@ -7547,6 +7551,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Ligne d'urgence plongeurs. Appelez d'abord : ils coordonnent l'évacuation et l'orientation vers un caisson.",
+  "emergencyCard_callInsurer_subtitle": "Ligne d'urgence de votre assurance plongée. Appelez d'abord : votre assureur autorise l'évacuation et coordonne l'orientation vers un caisson.",
+  "emergencyCard_hotlineSecondary_subtitle": "Ligne d'urgence plongeurs régionale. Appelez-la si la ligne de votre assureur ne répond pas.",
+  "emergencyCard_insuranceEmergencyLine": "Ligne d'urgence 24 h",
+  "emergencyCard_insuranceOfficeLine": "Ligne de bureau",
+  "emergencyCard_insuranceNoPhone": "Aucun numéro d'urgence de l'assureur enregistré. Ajoutez-le dans les réglages du profil plongeur pour que cette carte le place en premier.",
   "emergencyCard_ems": "Secours locaux : {number}",
   "@emergencyCard_ems": {
     "placeholders": {

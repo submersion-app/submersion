@@ -3122,6 +3122,10 @@
   "divers_edit_errorSaving": "Fehler beim Speichern des Tauchers: {error}",
   "divers_edit_expiryDateNotSet": "Nicht festgelegt",
   "divers_edit_expiryDateTitle": "Ablaufdatum",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Wird auf deiner Notfallkarte zuerst angezeigt.",
+  "divers_edit_insuranceEmergencyPhoneHint": "z.B. +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "24-h-Notrufnummer der Versicherung",
+  "divers_edit_insurancePhoneLabel": "Bürotelefon der Versicherung",
   "divers_edit_insuranceProviderHint": "z.B. DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Versicherungsanbieter",
   "divers_edit_insuranceSection": "Tauchversicherung",
@@ -7547,6 +7551,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Taucher-Notfallhotline. Zuerst anrufen: sie koordiniert Evakuierung und Kammerzuweisung.",
+  "emergencyCard_callInsurer_subtitle": "Notfallnummer deiner Tauchversicherung. Zuerst anrufen: dein Versicherer genehmigt die Evakuierung und koordiniert die Kammerzuweisung.",
+  "emergencyCard_hotlineSecondary_subtitle": "Regionale Taucher-Notfallhotline. Anrufen, wenn die Nummer deines Versicherers nicht erreichbar ist.",
+  "emergencyCard_insuranceEmergencyLine": "24-h-Notrufnummer",
+  "emergencyCard_insuranceOfficeLine": "Bürotelefon",
+  "emergencyCard_insuranceNoPhone": "Keine Notrufnummer des Versicherers gespeichert. Trage sie im Taucherprofil ein, damit diese Karte damit beginnt.",
   "emergencyCard_ems": "Örtlicher Notruf: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

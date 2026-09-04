@@ -3122,6 +3122,10 @@
   "divers_edit_errorSaving": "خطأ في حفظ الغواص: {error}",
   "divers_edit_expiryDateNotSet": "غير محدد",
   "divers_edit_expiryDateTitle": "تاريخ الانتهاء",
+  "divers_edit_insuranceEmergencyPhoneHelper": "يظهر أولاً في بطاقة الطوارئ الخاصة بك.",
+  "divers_edit_insuranceEmergencyPhoneHint": "مثال: +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "رقم المساعدة الطارئة على مدار 24 ساعة",
+  "divers_edit_insurancePhoneLabel": "رقم مكتب شركة التأمين",
   "divers_edit_insuranceProviderHint": "مثال: DAN، DiveAssure",
   "divers_edit_insuranceProviderLabel": "مزود التأمين",
   "divers_edit_insuranceSection": "تأمين الغوص",
@@ -7547,6 +7551,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "خط طوارئ الغواصين. اتصل به أولاً: فهم ينسقون الإخلاء والإحالة إلى غرفة الضغط.",
+  "emergencyCard_callInsurer_subtitle": "خط الطوارئ الخاص بتأمين الغوص. اتصل به أولاً: شركة التأمين تعتمد الإخلاء وتنسق الإحالة إلى غرفة الضغط.",
+  "emergencyCard_hotlineSecondary_subtitle": "خط طوارئ الغواصين الإقليمي. اتصل به إذا لم يرد خط شركة التأمين.",
+  "emergencyCard_insuranceEmergencyLine": "خط الطوارئ على مدار 24 ساعة",
+  "emergencyCard_insuranceOfficeLine": "خط المكتب",
+  "emergencyCard_insuranceNoPhone": "لم يتم حفظ رقم طوارئ شركة التأمين. أضفه في إعدادات ملف الغواص لتبدأ هذه البطاقة به.",
   "emergencyCard_ems": "خدمات الطوارئ المحلية: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

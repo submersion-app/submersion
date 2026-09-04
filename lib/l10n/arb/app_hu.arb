@@ -3038,6 +3038,10 @@
   "divers_edit_errorSaving": "Hiba a merülo mentesekor: {error}",
   "divers_edit_expiryDateNotSet": "Nincs megadva",
   "divers_edit_expiryDateTitle": "Lejarat datuma",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Elsőként jelenik meg a vészhelyzeti kártyán.",
+  "divers_edit_insuranceEmergencyPhoneHint": "pl. +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "24 órás segélyhívó szám",
+  "divers_edit_insurancePhoneLabel": "Biztosító irodai telefonszáma",
   "divers_edit_insuranceProviderHint": "pl. DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Biztosito",
   "divers_edit_insuranceSection": "Merülesi biztositas",
@@ -7547,6 +7551,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Búvár segélyvonal. Először ezt hívd: ők koordinálják az evakuálást és a kamrába irányítást.",
+  "emergencyCard_callInsurer_subtitle": "A búvárbiztosításod segélyvonala. Először ezt hívd: a biztosító engedélyezi az evakuálást és koordinálja a kamrába irányítást.",
+  "emergencyCard_hotlineSecondary_subtitle": "Regionális búvár segélyvonal. Akkor hívd, ha a biztosító vonala nem válaszol.",
+  "emergencyCard_insuranceEmergencyLine": "24 órás segélyvonal",
+  "emergencyCard_insuranceOfficeLine": "Irodai vonal",
+  "emergencyCard_insuranceNoPhone": "Nincs mentve a biztosító segélyhívó száma. Add meg a búvárprofil beállításaiban, hogy ez a kártya azzal kezdjen.",
   "emergencyCard_ems": "Helyi segélyhívó: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

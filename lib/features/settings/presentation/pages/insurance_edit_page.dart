@@ -21,6 +21,8 @@ class _InsuranceEditPageState extends ConsumerState<InsuranceEditPage> {
   final _formKey = GlobalKey<FormState>();
   final _providerCtrl = TextEditingController();
   final _policyCtrl = TextEditingController();
+  final _emergencyPhoneCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
 
   DateTime? _insuranceExpiry;
   bool _populated = false;
@@ -32,6 +34,8 @@ class _InsuranceEditPageState extends ConsumerState<InsuranceEditPage> {
     super.initState();
     _providerCtrl.addListener(_onFieldChanged);
     _policyCtrl.addListener(_onFieldChanged);
+    _emergencyPhoneCtrl.addListener(_onFieldChanged);
+    _phoneCtrl.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() {
@@ -44,6 +48,8 @@ class _InsuranceEditPageState extends ConsumerState<InsuranceEditPage> {
   void dispose() {
     _providerCtrl.dispose();
     _policyCtrl.dispose();
+    _emergencyPhoneCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -52,6 +58,8 @@ class _InsuranceEditPageState extends ConsumerState<InsuranceEditPage> {
     _populated = true;
     _providerCtrl.text = diver.insurance.provider ?? '';
     _policyCtrl.text = diver.insurance.policyNumber ?? '';
+    _emergencyPhoneCtrl.text = diver.insurance.emergencyPhone ?? '';
+    _phoneCtrl.text = diver.insurance.phone ?? '';
     _insuranceExpiry = diver.insurance.expiryDate;
     _hasChanges = false;
   }
@@ -72,6 +80,8 @@ class _InsuranceEditPageState extends ConsumerState<InsuranceEditPage> {
           provider: _trimOrNull(_providerCtrl),
           policyNumber: _trimOrNull(_policyCtrl),
           expiryDate: _insuranceExpiry,
+          emergencyPhone: _trimOrNull(_emergencyPhoneCtrl),
+          phone: _trimOrNull(_phoneCtrl),
         ),
         updatedAt: DateTime.now(),
       );
@@ -216,6 +226,35 @@ class _InsuranceEditPageState extends ConsumerState<InsuranceEditPage> {
                       decoration: InputDecoration(
                         labelText: context.l10n.divers_edit_policyNumberLabel,
                         prefixIcon: const Icon(Icons.numbers),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // The assistance line comes before the office line: it is
+                    // the one the emergency card leads with, so it is the one
+                    // a diver filling this in should not skip.
+                    TextFormField(
+                      controller: _emergencyPhoneCtrl,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        labelText: context
+                            .l10n
+                            .divers_edit_insuranceEmergencyPhoneLabel,
+                        prefixIcon: const Icon(Icons.emergency_share_outlined),
+                        hintText: context
+                            .l10n
+                            .divers_edit_insuranceEmergencyPhoneHint,
+                        helperText: context
+                            .l10n
+                            .divers_edit_insuranceEmergencyPhoneHelper,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _phoneCtrl,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        labelText: context.l10n.divers_edit_insurancePhoneLabel,
+                        prefixIcon: const Icon(Icons.phone_outlined),
                       ),
                     ),
                     const SizedBox(height: 16),

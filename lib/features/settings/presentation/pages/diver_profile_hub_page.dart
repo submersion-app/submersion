@@ -374,22 +374,23 @@ class DiverProfileHubPage extends ConsumerWidget {
 
   String _insuranceSubtitle(BuildContext context, WidgetRef ref, Diver diver) {
     final insurance = diver.insurance;
-    if (insurance.provider == null || insurance.provider!.isEmpty) {
+    final provider = insurance.providerLabel;
+    if (provider == null) {
       return context.l10n.settings_profileHub_insurance_notSet;
     }
 
     if (insurance.isExpired) {
-      return '${insurance.provider} - ${context.l10n.settings_profileHub_insurance_expired}';
+      return '$provider - ${context.l10n.settings_profileHub_insurance_expired}';
     }
 
     if (insurance.expiryDate != null) {
       final formatted = UnitFormatter(
         ref.watch(settingsProvider),
       ).formatDate(insurance.expiryDate);
-      return '${insurance.provider} - $formatted';
+      return '$provider - $formatted';
     }
 
-    return insurance.provider!;
+    return provider;
   }
 
   String _notesSubtitle(BuildContext context, Diver diver) {

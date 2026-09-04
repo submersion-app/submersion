@@ -3122,6 +3122,10 @@
   "divers_edit_errorSaving": "Error al guardar buceador: {error}",
   "divers_edit_expiryDateNotSet": "No establecida",
   "divers_edit_expiryDateTitle": "Fecha de vencimiento",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Se muestra primero en tu tarjeta de emergencia.",
+  "divers_edit_insuranceEmergencyPhoneHint": "ej., +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "Número de asistencia de emergencia 24 h",
+  "divers_edit_insurancePhoneLabel": "Teléfono de oficina del seguro",
   "divers_edit_insuranceProviderHint": "ej., DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Proveedor de seguro",
   "divers_edit_insuranceSection": "Seguro de buceo",
@@ -7547,6 +7551,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Línea de emergencias para buceadores. Llama primero: coordinan la evacuación y la derivación a cámara.",
+  "emergencyCard_callInsurer_subtitle": "Línea de emergencia de tu seguro de buceo. Llama primero: tu aseguradora autoriza la evacuación y coordina la derivación a cámara.",
+  "emergencyCard_hotlineSecondary_subtitle": "Línea regional de emergencias para buceadores. Llama aquí si la línea de tu aseguradora no responde.",
+  "emergencyCard_insuranceEmergencyLine": "Línea de emergencia 24 h",
+  "emergencyCard_insuranceOfficeLine": "Teléfono de oficina",
+  "emergencyCard_insuranceNoPhone": "No hay número de emergencia de la aseguradora guardado. Añádelo en los ajustes del perfil de buceador para que esta tarjeta lo muestre primero.",
   "emergencyCard_ems": "Emergencias locales: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

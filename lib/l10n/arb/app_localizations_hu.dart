@@ -9657,6 +9657,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'Lejarat datuma';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Elsőként jelenik meg a vészhelyzeti kártyán.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'pl. +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      '24 órás segélyhívó szám';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'Biztosító irodai telefonszáma';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'pl. DAN, DiveAssure';
 
   @override
@@ -25233,6 +25247,24 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Búvár segélyvonal. Először ezt hívd: ők koordinálják az evakuálást és a kamrába irányítást.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'A búvárbiztosításod segélyvonala. Először ezt hívd: a biztosító engedélyezi az evakuálást és koordinálja a kamrába irányítást.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Regionális búvár segélyvonal. Akkor hívd, ha a biztosító vonala nem válaszol.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24 órás segélyvonal';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Irodai vonal';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'Nincs mentve a biztosító segélyhívó száma. Add meg a búvárprofil beállításaiban, hogy ez a kártya azzal kezdjen.';
 
   @override
   String emergencyCard_ems(String number) {

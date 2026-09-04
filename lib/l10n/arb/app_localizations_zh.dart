@@ -9218,6 +9218,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_expiryDateTitle => '到期日';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper => '在紧急卡片上优先显示。';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => '例如 +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel => '24 小时紧急救援电话';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => '保险公司办公电话';
+
+  @override
   String get divers_edit_insuranceProviderHint => '例如 DAN、DiveAssure';
 
   @override
@@ -24039,6 +24051,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get emergencyCard_callDan_subtitle => '潜水员紧急热线。请先拨打:他们负责协调撤离和减压舱转诊。';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      '你的潜水保险紧急专线。请先拨打:保险公司负责批准撤离并协调减压舱转诊。';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      '区域潜水员紧急热线。若保险公司专线无人接听,请拨打此号码。';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24 小时紧急专线';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => '办公电话';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      '尚未保存保险公司紧急电话。请在潜水员资料设置中添加,以便此卡优先显示该号码。';
 
   @override
   String emergencyCard_ems(String number) {
