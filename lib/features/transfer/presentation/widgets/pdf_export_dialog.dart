@@ -10,6 +10,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// - Template style (Simple, Detailed, PADI, NAUI)
 /// - Page size (A4, Letter)
 /// - Whether to include certification cards
+/// - Whether to include verification areas (stamp and signature blocks)
 class PdfExportDialog extends ConsumerStatefulWidget {
   const PdfExportDialog({super.key});
 

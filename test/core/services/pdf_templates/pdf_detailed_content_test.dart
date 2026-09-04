@@ -358,4 +358,56 @@ void main() {
       expect(text, isNot(contains('Notes')));
     });
   });
+
+  /// #1017 lists marine life among the groups a detailed logbook carries, and
+  /// `Dive.sightings` is already hydrated by the export paths, but the rebuilt
+  /// page went straight from the technical group to the notes.
+  group('marine life', () {
+    final spotted = dive.copyWith(
+      sightings: const [
+        MarineSighting(
+          id: 's1',
+          speciesId: 'sp1',
+          speciesName: 'Green Sea Turtle',
+          count: 2,
+          notes: 'Resting under a ledge',
+        ),
+        MarineSighting(
+          id: 's2',
+          speciesId: 'sp2',
+          speciesName: 'Spotted Eagle Ray',
+        ),
+      ],
+    );
+
+    test('renders the species that were recorded', () async {
+      final text = pdfVisibleText(await render(spotted));
+
+      expect(text, contains('MARINE LIFE'));
+      expect(text, contains('Green Sea Turtle'));
+      expect(text, contains('Spotted Eagle Ray'));
+    });
+
+    test('renders a count only when more than one was seen', () async {
+      final text = pdfVisibleText(await render(spotted));
+
+      expect(text, contains('x2'), reason: 'two turtles');
+      expect(
+        text,
+        isNot(contains('x1')),
+        reason: 'a single animal reads as noise with a count',
+      );
+    });
+
+    test('renders the per-sighting notes', () async {
+      expect(
+        pdfVisibleText(await render(spotted)),
+        contains('Resting under a ledge'),
+      );
+    });
+
+    test('omits the group when nothing was recorded', () async {
+      expect(pdfVisibleText(await render(dive)), isNot(contains('MARINE')));
+    });
+  });
 }

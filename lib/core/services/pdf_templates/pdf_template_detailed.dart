@@ -169,6 +169,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       ..._section('Team', _teamFields(dive)),
       ..._section('Equipment', _equipmentFields(dive, units: units)),
       ..._section('Technical', _technicalFields(dive)),
+      ..._marineLifeSection(dive),
       ..._notesSection(dive),
       ..._customFieldsSection(dive),
       ..._signatureSection(signatures, dates: dates),
@@ -504,6 +505,51 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   }
 
   /// Full text. The truncation here is the reported bug.
+  /// Recorded marine life, which #1017 lists among the detailed groups.
+  ///
+  /// A list rather than the `_section` chips: a sighting carries free-text
+  /// notes that would not survive a fixed-width chip.
+  List<pw.Widget> _marineLifeSection(Dive dive) {
+    if (dive.sightings.isEmpty) return const [];
+
+    return [
+      _sectionTitle('Marine Life'),
+      pw.SizedBox(height: 6),
+      ...dive.sightings.map(_sightingLine),
+      pw.SizedBox(height: 14),
+    ];
+  }
+
+  pw.Widget _sightingLine(MarineSighting sighting) {
+    // A count on a lone animal reads as noise, so only a real tally is shown.
+    final species = sighting.count > 1
+        ? '${sighting.speciesName} x${sighting.count}'
+        : sighting.speciesName;
+
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 3),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Expanded(
+            flex: 2,
+            child: pw.Text(
+              species,
+              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+            ),
+          ),
+          pw.Expanded(
+            flex: 3,
+            child: pw.Text(
+              sighting.notes,
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   List<pw.Widget> _notesSection(Dive dive) {
     if (dive.notes.isEmpty) return const [];
 

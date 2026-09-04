@@ -34,7 +34,7 @@ class PdfProfileChart {
         // The axis labels are bare numbers to keep them narrow, so the units
         // are stated once in the heading.
         pw.Text(
-          'Depth Profile (${units.depthSymbol} / min)',
+          'Depth Profile (${units.depthSymbol} vs min)',
           style: const pw.TextStyle(
             fontSize: 9,
             fontWeight: pw.FontWeight.bold,
