@@ -86,9 +86,11 @@ class MacDiveValueMapper {
     // regulator family must not swallow "octopus", which is its own type in
     // neither vocabulary but reads as a regulator to divers.
     //
-    // The drysuit layers (#1537) come before the suits they go under: a
-    // "thermal undersuit" must not be read as a wetsuit, and "dry undersuit"
-    // -- a real product name -- must not be read as a drysuit.
+    // The drysuit layers (#1537) come before the suits they go under, but
+    // only on words that name the garment outright: a "thermal undersuit"
+    // must not be read as a wetsuit, and "dry undersuit" -- a real product
+    // name -- must not be read as a drysuit. Fabric words are a weaker
+    // signal and are handled below the suits instead.
     if (s.contains('undersuit') ||
         s.contains('under suit') ||
         s.contains('undergarment') ||
@@ -97,8 +99,8 @@ class MacDiveValueMapper {
     }
     if (s.contains('baselayer') ||
         s.contains('base layer') ||
-        s.contains('thermal') ||
-        s.contains('wicking')) {
+        s.contains('base-layer') ||
+        s.contains('thermals')) {
       return EquipmentType.baselayer;
     }
     if (s.contains('drysuit') || s.contains('dry suit')) {
@@ -106,6 +108,20 @@ class MacDiveValueMapper {
     }
     if (s.contains('wetsuit') || s.contains('wet suit')) {
       return EquipmentType.wetsuit;
+    }
+    // "Thermal" and "wicking" name a fabric, not a garment: they are printed
+    // on hoods, gloves and boots as readily as on tops, so a bare fabric word
+    // would claim "Thermal Gloves" long before the accessory checks below.
+    // The word only counts when the label also says which garment it is, and
+    // this guess sits below the suits so any explicit suit word still wins.
+    if ((s.contains('thermal') || s.contains('wicking')) &&
+        (s.contains('top') ||
+            s.contains('layer') ||
+            s.contains('shirt') ||
+            s.contains('underwear') ||
+            s.contains('leggings') ||
+            s.contains('vest'))) {
+      return EquipmentType.baselayer;
     }
     if (s.contains('rebreather') || s.contains('ccr') || s.contains('scr')) {
       return EquipmentType.rebreather;
