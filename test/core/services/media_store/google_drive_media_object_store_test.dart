@@ -4,10 +4,12 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/media_store/google_drive_media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 
 import '../../../helpers/fake_drive_server.dart';
+import '../../../helpers/revocable_client.dart';
 import 'media_object_store_contract.dart';
 
 void main() {
@@ -15,8 +17,8 @@ void main() {
   late FakeDriveServer server;
 
   GoogleDriveMediaObjectStore build({int? chunkSizeBytes}) {
-    return GoogleDriveMediaObjectStore(
-      client: server.client,
+    return GoogleDriveMediaObjectStore.withClient(
+      server.client,
       chunkSizeBytes: chunkSizeBytes ?? 8 * 1024 * 1024,
       apiBase: 'https://fake.googleapis.test',
     );
@@ -171,10 +173,31 @@ void main() {
     expect(info!.sizeBytes, 2);
   });
 
+  test('list follows nextPageToken instead of stopping at the first '
+      'page', () async {
+    // Drive caps files.list at one page (100 by default) and reports the
+    // rest only through nextPageToken, so an unpaginated query silently
+    // hides every media object past the cap.
+    server.queryPageSize = 2;
+    for (var i = 0; i < 5; i++) {
+      server.filesById['id-$i'] = (
+        name: 'smv1/objects/aa/$i.jpg',
+        bytes: Uint8List.fromList([i]),
+      );
+    }
+    final store = build();
+
+    final keys = [
+      await for (final info in store.list('smv1/objects/')) info.key,
+    ];
+
+    expect(keys, hasLength(5));
+  });
+
   test('a 5xx from Drive surfaces as MediaStoreException on every '
       'verb', () async {
-    final store = GoogleDriveMediaObjectStore(
-      client: MockClient(
+    final store = GoogleDriveMediaObjectStore.withClient(
+      MockClient(
         (_) async => http.Response('{"error":{"message":"boom"}}', 500),
       ),
       apiBase: 'https://fake.googleapis.test',
@@ -224,6 +247,100 @@ void main() {
     expect(
       await build().reapStaleUploadSessions(olderThan: DateTime.utc(2026)),
       0,
+    );
+  });
+
+  test('a re-auth that closes and replaces the client is followed on the '
+      'next request', () async {
+    var live = RevocableClient(server.client);
+    final store = GoogleDriveMediaObjectStore(
+      clientSupplier: () async => live,
+      apiBase: 'https://fake.googleapis.test',
+    );
+    final src = File('${tmp.path}/reauth.jpg')..writeAsBytesSync([7, 7, 7]);
+    await store.putFile(
+      'smv1/objects/aa/before.jpg',
+      src,
+      contentType: 'image/jpeg',
+    );
+
+    // What the authenticator does on every re-auth (the 401 retry being
+    // the routine trigger): close the published client, then publish a
+    // fresh one for the same account.
+    live.close();
+    live = RevocableClient(server.client);
+
+    await store.putFile(
+      'smv1/objects/aa/after.jpg',
+      src,
+      contentType: 'image/jpeg',
+    );
+
+    expect(
+      server.filesById.values.map((f) => f.name),
+      containsAll(<String>[
+        'smv1/objects/aa/before.jpg',
+        'smv1/objects/aa/after.jpg',
+      ]),
+    );
+  });
+
+  test('a client closed with no replacement surfaces as a transient '
+      'transport failure', () async {
+    // The re-auth that never lands: the authenticator tore its client down
+    // and no fresh one arrived. This is the exact shape of the bug the
+    // supplier exists to prevent, so pin the symptom as well as the kind.
+    final dead = RevocableClient(server.client)..close();
+    final store = GoogleDriveMediaObjectStore(
+      clientSupplier: () async => dead,
+      apiBase: 'https://fake.googleapis.test',
+    );
+    await expectLater(
+      store.head('smv1/objects/aa/x.jpg'),
+      throwsA(
+        isA<MediaStoreException>()
+            .having((e) => e.kind, 'kind', MediaStoreErrorKind.transient)
+            .having(
+              (e) => (e.cause as http.ClientException).message,
+              'cause',
+              contains('Client is already closed'),
+            ),
+      ),
+    );
+  });
+
+  test('a supplier that fails to produce a client is transient', () async {
+    final store = GoogleDriveMediaObjectStore(
+      clientSupplier: () async =>
+          throw const CloudStorageException('silent auth exploded'),
+      apiBase: 'https://fake.googleapis.test',
+    );
+    await expectLater(
+      store.head('smv1/objects/aa/x.jpg'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.transient,
+        ),
+      ),
+    );
+  });
+
+  test('a supplier with no Google session fails as an auth error', () async {
+    final store = GoogleDriveMediaObjectStore(
+      clientSupplier: () async => null,
+      apiBase: 'https://fake.googleapis.test',
+    );
+    await expectLater(
+      store.head('smv1/objects/aa/x.jpg'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.auth,
+        ),
+      ),
     );
   });
 }

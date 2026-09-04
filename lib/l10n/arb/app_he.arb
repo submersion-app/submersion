@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "ביטול",
   "diveSites_backfill_summary": "עודכנו {updated}, ללא שינוי {unchanged}, נכשלו {failed}",
   "diveSites_backfill_offline": "חיפוש המיקום אינו זמין. בדקו את החיבור ונסו שוב.",
+  "diveSites_list_menu_refreshPlaceNames": "עדכון שמות המקומות",
+  "diveSites_refresh_confirm_title": "לעדכן את שמות המקומות?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{אתר אחד עם קואורדינטות ייבדק מחדש.} other{{count} אתרים עם קואורדינטות ייבדקו מחדש.}} המדינה, האזור, היישוב וגוף המים יוחלפו בכל מקום שבו הם שונים משפת שמות המקומות ({language}), כולל ערכים שהזנת בעצמך. הפעולה נמשכת כ{minutes, plural, =1{דקה אחת} other{{minutes} דקות}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "מעדכן את שמות המקומות",
+  "diveSites_refresh_nothing": "לאף אתר אין קואורדינטות לבדיקה.",
   "diveLog_edit_flightWindowWarning": "הצלילה הזו מסתיימת אחרי הזמן הבטוח האחרון לעלייה לפני הטיסה שלך ({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {
@@ -3040,6 +3058,10 @@
   "divers_edit_errorSaving": "שגיאה בשמירת צולל: {error}",
   "divers_edit_expiryDateNotSet": "לא הוגדר",
   "divers_edit_expiryDateTitle": "תאריך תפוגה",
+  "divers_edit_insuranceEmergencyPhoneHelper": "מוצג ראשון בכרטיס החירום שלך.",
+  "divers_edit_insuranceEmergencyPhoneHint": "לדוגמה, +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "מספר סיוע חירום 24 שעות",
+  "divers_edit_insurancePhoneLabel": "מספר משרד חברת הביטוח",
   "divers_edit_insuranceProviderHint": "לדוגמה, DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "ספק ביטוח",
   "divers_edit_insuranceSection": "ביטוח צלילה",
@@ -7554,6 +7576,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "קו חירום לצוללים. התקשר אליו קודם: הם מתאמים פינוי והפניה לתא לחץ.",
+  "emergencyCard_callInsurer_subtitle": "קו החירום של ביטוח הצלילה שלך. התקשר אליו קודם: המבטח מאשר את הפינוי ומתאם את ההפניה לתא לחץ.",
+  "emergencyCard_hotlineSecondary_subtitle": "קו חירום אזורי לצוללים. התקשר אליו אם קו המבטח אינו עונה.",
+  "emergencyCard_insuranceEmergencyLine": "קו חירום 24 שעות",
+  "emergencyCard_insuranceOfficeLine": "קו המשרד",
+  "emergencyCard_insuranceNoPhone": "לא נשמר מספר חירום של המבטח. הוסף אותו בהגדרות פרופיל הצולל כדי שהכרטיס יתחיל בו.",
   "emergencyCard_ems": "שירותי חירום מקומיים: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

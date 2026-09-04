@@ -57,9 +57,14 @@ Future<MediaObjectStore?> buildMediaObjectStore(
       final provider =
           cloudProviderInstanceFor(CloudProviderType.googledrive)
               as GoogleDriveStorageProvider;
-      final client = await provider.mediaHttpClient();
-      if (client == null) return null;
-      return GoogleDriveMediaObjectStore(client: client);
+      // Probe once for "is there a session at all", then let the store
+      // resolve the client per request: the authenticator closes and
+      // replaces its client on every re-auth and this store is cached in a
+      // long-lived runtime.
+      if (await provider.mediaHttpClient() == null) return null;
+      return GoogleDriveMediaObjectStore(
+        clientSupplier: provider.mediaHttpClient,
+      );
     case CloudProviderType.icloud:
       final availability = await ICloudNativeService.getAvailability();
       if (availability != ICloudAvailability.available) return null;

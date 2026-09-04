@@ -9044,6 +9044,41 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Ortssuche ist nicht verfügbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'Ortsnamen aktualisieren';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Ortsnamen aktualisieren?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze mit Koordinaten werden erneut abgefragt.',
+      one: '1 Tauchplatz mit Koordinaten wird erneut abgefragt.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes Minuten',
+      one: '1 Minute',
+    );
+    return '$_temp0 Land, Region, Ort und Gewässer werden überall dort ersetzt, wo sie von der Sprache der Ortsnamen ($language) abweichen, auch selbst eingegebene Werte. Das dauert etwa $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title =>
+      'Ortsnamen werden aktualisiert';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Kein Tauchplatz hat Koordinaten für eine Abfrage.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Zurück';
 
   @override
@@ -9686,6 +9721,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get divers_edit_expiryDateTitle => 'Ablaufdatum';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Wird auf deiner Notfallkarte zuerst angezeigt.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'z.B. +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      '24-h-Notrufnummer der Versicherung';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'Bürotelefon der Versicherung';
 
   @override
   String get divers_edit_insuranceProviderHint => 'z.B. DAN, DiveAssure';
@@ -25312,6 +25361,24 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Taucher-Notfallhotline. Zuerst anrufen: sie koordiniert Evakuierung und Kammerzuweisung.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'Notfallnummer deiner Tauchversicherung. Zuerst anrufen: dein Versicherer genehmigt die Evakuierung und koordiniert die Kammerzuweisung.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Regionale Taucher-Notfallhotline. Anrufen, wenn die Nummer deines Versicherers nicht erreichbar ist.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24-h-Notrufnummer';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Bürotelefon';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'Keine Notrufnummer des Versicherers gespeichert. Trage sie im Taucherprofil ein, damit diese Karte damit beginnt.';
 
   @override
   String emergencyCard_ems(String number) {

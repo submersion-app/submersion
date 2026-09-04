@@ -9,6 +9,7 @@ import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -100,12 +101,15 @@ void main() {
   test('starts idle and counts candidates', () async {
     expect(container.read(siteLocationBackfillProvider), isA<BackfillIdle>());
     final notifier = container.read(siteLocationBackfillProvider.notifier);
-    expect(await notifier.countCandidates(), 2);
+    final found = await notifier.findCandidates(
+      SiteLocationLookupMode.fillMissing,
+    );
+    expect(found, hasLength(2));
   });
 
   test('reports progress while running and finishes with a summary', () async {
     final notifier = container.read(siteLocationBackfillProvider.notifier);
-    final run = notifier.start();
+    final run = notifier.start(SiteLocationLookupMode.fillMissing);
     while (location.gates.isEmpty) {
       await tick();
     }
@@ -136,11 +140,11 @@ void main() {
 
   test('a second start while running is a no-op', () async {
     final notifier = container.read(siteLocationBackfillProvider.notifier);
-    final first = notifier.start();
+    final first = notifier.start(SiteLocationLookupMode.fillMissing);
     while (location.gates.isEmpty) {
       await tick();
     }
-    await notifier.start();
+    await notifier.start(SiteLocationLookupMode.fillMissing);
     expect(location.gates, hasLength(1), reason: 'no second run began');
 
     location.release();
@@ -153,7 +157,7 @@ void main() {
 
   test('cancel stops after the current site', () async {
     final notifier = container.read(siteLocationBackfillProvider.notifier);
-    final run = notifier.start();
+    final run = notifier.start(SiteLocationLookupMode.fillMissing);
     while (location.gates.isEmpty) {
       await tick();
     }
@@ -169,7 +173,7 @@ void main() {
 
   test('reset returns to idle', () async {
     final notifier = container.read(siteLocationBackfillProvider.notifier);
-    await runToCompletion(notifier.start());
+    await runToCompletion(notifier.start(SiteLocationLookupMode.fillMissing));
 
     notifier.reset();
     expect(container.read(siteLocationBackfillProvider), isA<BackfillIdle>());
@@ -177,7 +181,77 @@ void main() {
 
   test('looks up in the place name language', () async {
     final notifier = container.read(siteLocationBackfillProvider.notifier);
-    await runToCompletion(notifier.start());
+    await runToCompletion(notifier.start(SiteLocationLookupMode.fillMissing));
     expect(location.languages, ['de', 'de']);
+  });
+
+  test('a refresh run counts sites a fill run would skip', () async {
+    await sites.createSite(
+      const DiveSite(
+        id: 'c',
+        name: 'C',
+        country: 'Schweiz',
+        region: 'Luzern',
+        city: 'Weggis',
+        bodyOfWater: 'Vierwaldstattersee',
+        location: GeoPoint(47.2, 8.6),
+      ),
+    );
+    final notifier = container.read(siteLocationBackfillProvider.notifier);
+
+    final filling = await notifier.findCandidates(
+      SiteLocationLookupMode.fillMissing,
+    );
+    final refreshing = await notifier.findCandidates(
+      SiteLocationLookupMode.refreshAll,
+    );
+
+    expect(filling, hasLength(2));
+    expect(refreshing, hasLength(3));
+  });
+
+  test('a started run looks up only the candidates it was handed', () async {
+    final notifier = container.read(siteLocationBackfillProvider.notifier);
+    final candidates = await notifier.findCandidates(
+      SiteLocationLookupMode.fillMissing,
+    );
+    // A site added between listing and starting is not part of this run.
+    await sites.createSite(
+      const DiveSite(id: 'c', name: 'C', location: GeoPoint(47.2, 8.6)),
+    );
+
+    final run = notifier.start(
+      SiteLocationLookupMode.fillMissing,
+      targets: candidates,
+    );
+    while (location.gates.isEmpty) {
+      await tick();
+    }
+    expect(
+      container.read(siteLocationBackfillProvider),
+      isA<BackfillRunning>().having((s) => s.total, 'total', 2),
+    );
+
+    await runToCompletion(run);
+    final state = container.read(siteLocationBackfillProvider);
+    expect((state as BackfillFinished).summary.total, 2);
+    expect((await sites.getSiteById('c'))!.city, isNull);
+  });
+
+  test('the running state carries the mode it was started with', () async {
+    final notifier = container.read(siteLocationBackfillProvider.notifier);
+    final run = notifier.start(SiteLocationLookupMode.refreshAll);
+    while (location.gates.isEmpty) {
+      await tick();
+    }
+    expect(
+      container.read(siteLocationBackfillProvider),
+      isA<BackfillRunning>().having(
+        (s) => s.mode,
+        'mode',
+        SiteLocationLookupMode.refreshAll,
+      ),
+    );
+    await runToCompletion(run);
   });
 }

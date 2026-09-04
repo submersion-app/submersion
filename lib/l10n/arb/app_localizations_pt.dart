@@ -9055,6 +9055,43 @@ class AppLocalizationsPt extends AppLocalizations {
       'A consulta de localização não está disponível. Verifique a sua ligação e tente novamente.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames =>
+      'Atualizar os nomes de lugares';
+
+  @override
+  String get diveSites_refresh_confirm_title =>
+      'Atualizar os nomes de lugares?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count locais com coordenadas serão consultados de novo.',
+      one: '1 local com coordenadas será consultado de novo.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutos',
+      one: '1 minuto',
+    );
+    return '$_temp0 O país, a região, a localidade e a massa de água serão substituídos sempre que diferirem do idioma dos nomes de lugares ($language), incluindo os valores que escreveu. Demora cerca de $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title =>
+      'A atualizar os nomes de lugares';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Nenhum local tem coordenadas para consultar.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Voltar';
 
   @override
@@ -9687,6 +9724,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get divers_edit_expiryDateTitle => 'Data de Validade';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Aparece primeiro no seu cartão de emergência.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'ex., +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      'Número de assistência de emergência 24 h';
+
+  @override
+  String get divers_edit_insurancePhoneLabel =>
+      'Telefone do escritório do seguro';
 
   @override
   String get divers_edit_insuranceProviderHint => 'ex., DAN, DiveAssure';
@@ -25359,6 +25411,24 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Linha de emergência para mergulhadores. Ligue primeiro: eles coordenam a evacuação e o encaminhamento para câmara.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'Linha de emergência do seu seguro de mergulho. Ligue primeiro: a seguradora autoriza a evacuação e coordena o encaminhamento para câmara.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Linha regional de emergência para mergulhadores. Ligue se a linha da sua seguradora não atender.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => 'Linha de emergência 24 h';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Linha do escritório';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'Nenhum número de emergência da seguradora guardado. Adicione-o nas definições do perfil de mergulhador para que este cartão o mostre primeiro.';
 
   @override
   String emergencyCard_ems(String number) {

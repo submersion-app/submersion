@@ -28,7 +28,10 @@ import 'package:submersion/features/settings/presentation/pages/section_appearan
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -43,6 +46,27 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 typedef Override = riverpod.Override;
+
+/// Records the mode the place name language flow asks for and answers "no
+/// candidates", which ends the flow at its snackbar without a database.
+class _RecordingBackfill extends StateNotifier<BackfillState>
+    implements SiteLocationBackfillNotifier {
+  _RecordingBackfill() : super(const BackfillIdle());
+
+  final List<SiteLocationLookupMode> counted = [];
+
+  @override
+  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
+    counted.add(mode);
+    return const [];
+  }
+
+  @override
+  void reset() => state = const BackfillIdle();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /// Mock SettingsNotifier that doesn't access the database
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
@@ -1858,6 +1882,79 @@ void main() {
 
       expect(find.text('70 bar'), findsOneWidget);
       expect(find.text('50 bar'), findsNothing);
+    });
+  });
+
+  group('UnitsSectionContent place name language', () {
+    late _RecordingBackfill backfill;
+
+    setUp(() => backfill = _RecordingBackfill());
+
+    Widget buildUnitsWidget(AppSettings settings) {
+      final router = GoRouter(
+        initialLocation: '/settings?selected=units',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
+      );
+      return ProviderScope(
+        overrides: [
+          ...getOverrides(settings),
+          siteLocationBackfillProvider.overrideWith((_) => backfill),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    Future<void> pick(WidgetTester tester, String language) async {
+      await tester.scrollUntilVisible(find.text('Place name language'), 200);
+      await tester.ensureVisible(find.text('Place name language'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Place name language'));
+      await tester.pumpAndSettle();
+      // Scoped to the dialog: the tile behind it shows the current language
+      // by the same native name.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(language),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('changing it offers to refresh the sites already stored', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildUnitsWidget(const AppSettings()));
+      await tester.pumpAndSettle();
+
+      await pick(tester, 'Deutsch');
+
+      // Existing sites keep the language they were geocoded in, so a change
+      // splits the database unless the diver is offered the repair (#1187).
+      expect(backfill.counted, [SiteLocationLookupMode.refreshAll]);
+    });
+
+    testWidgets('picking the language already in force offers nothing', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildUnitsWidget(const AppSettings(placeNameLanguage: 'de')),
+      );
+      await tester.pumpAndSettle();
+
+      await pick(tester, 'Deutsch');
+
+      expect(backfill.counted, isEmpty);
     });
   });
 }

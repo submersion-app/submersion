@@ -2746,157 +2746,141 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       };
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CollapsibleCardSection(
-          title: context.l10n.diveLog_detail_section_sacRateBySegment,
-          icon: Icons.air,
-          collapsedSubtitle: getSubtitle(),
-          isExpanded: isExpanded,
-          onToggle: (expanded) {
-            ref
-                .read(collapsibleSectionProvider.notifier)
-                .setSacSegmentsExpanded(expanded);
-          },
-          contentBuilder: (context) => Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (display == GasConsumptionDisplay.both) ...[
-                  _buildLaneSelector(context, ref, lane),
-                  const SizedBox(height: 8),
-                ],
-                // Segmentation method selector
-                _buildSegmentationSelector(
-                  context,
-                  ref,
-                  selectedMethod,
-                  hasGasSwitches,
-                ),
-                const SizedBox(height: 12),
-
-                // Segment list
-                ...renderSegments.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final segment = entry.value;
-                  final avgDepthDisplay = units.formatDepth(segment.avgDepth);
-
-                  // In phase mode, highlight by matching phase name;
-                  // otherwise match by index into the original list
-                  final isSelected = isPhaseMode
-                      ? segment.phase == selectedPhase
-                      : index == selectedSegmentIndex;
-
-                  // Get segment label based on type
-                  final segmentLabel = segment.displayLabel;
-
-                  return Container(
-                    margin: EdgeInsets.only(
-                      bottom: index < renderSegments.length - 1 ? 8 : 0,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 6,
-                    ),
-                    decoration: isSelected
-                        ? BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primaryContainer
-                                .withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 1,
-                            ),
-                          )
-                        : null,
-                    child: Row(
-                      children: [
-                        // Phase icon for depth-phase segmentation
-                        if (segment.phase != null) ...[
-                          Text(
-                            segment.phase!.shortLabel,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(width: 4),
-                        ],
-                        SizedBox(
-                          width: segment.phase != null ? 70 : 62,
-                          child: Text(
-                            segmentLabel,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : null,
-                                  color: isSelected
-                                      ? Theme.of(context).colorScheme.primary
-                                      : null,
-                                ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildSacBar(
-                            context,
-                            segment.sacRate,
-                            renderSegments
-                                .map((s) => s.sacRate)
-                                .reduce((a, b) => a > b ? a : b),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          width: 90,
-                          child: Text(
-                            formatSacValue(
-                              segment.sacRate,
-                              segmentTankId: segment.tankId,
-                            ),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.end,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          width: 50,
-                          child: Text(
-                            avgDepthDisplay,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                            textAlign: TextAlign.end,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-                // Some segment fell back to the pressure lane above: say why.
-                if (lane == GasConsumptionLane.rmv &&
-                    renderSegments.any(
-                      (s) => volumeForSegment(s.tankId) == null,
-                    )) ...[
-                  const SizedBox(height: 8),
-                  SacVolumeHint(
-                    volumeSymbol: units.volumeSymbol,
-                    onTap: () => context.push('/dives/${dive.id}/edit'),
-                  ),
-                ],
-              ],
+    return CollapsibleCardSection(
+      title: context.l10n.diveLog_detail_section_sacRateBySegment,
+      icon: Icons.air,
+      collapsedSubtitle: getSubtitle(),
+      isExpanded: isExpanded,
+      onToggle: (expanded) {
+        ref
+            .read(collapsibleSectionProvider.notifier)
+            .setSacSegmentsExpanded(expanded);
+      },
+      contentBuilder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (display == GasConsumptionDisplay.both) ...[
+              _buildLaneSelector(context, ref, lane),
+              const SizedBox(height: 8),
+            ],
+            // Segmentation method selector
+            _buildSegmentationSelector(
+              context,
+              ref,
+              selectedMethod,
+              hasGasSwitches,
             ),
-          ),
-        ),
+            const SizedBox(height: 12),
 
-        const SizedBox(height: 24),
-      ],
+            // Segment list
+            ...renderSegments.asMap().entries.map((entry) {
+              final index = entry.key;
+              final segment = entry.value;
+              final avgDepthDisplay = units.formatDepth(segment.avgDepth);
+
+              // In phase mode, highlight by matching phase name;
+              // otherwise match by index into the original list
+              final isSelected = isPhaseMode
+                  ? segment.phase == selectedPhase
+                  : index == selectedSegmentIndex;
+
+              // Get segment label based on type
+              final segmentLabel = segment.displayLabel;
+
+              return Container(
+                margin: EdgeInsets.only(
+                  bottom: index < renderSegments.length - 1 ? 8 : 0,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: isSelected
+                    ? BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 1,
+                        ),
+                      )
+                    : null,
+                child: Row(
+                  children: [
+                    // Phase icon for depth-phase segmentation
+                    if (segment.phase != null) ...[
+                      Text(
+                        segment.phase!.shortLabel,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                    SizedBox(
+                      width: segment.phase != null ? 70 : 62,
+                      child: Text(
+                        segmentLabel,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: isSelected ? FontWeight.bold : null,
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildSacBar(
+                        context,
+                        segment.sacRate,
+                        renderSegments
+                            .map((s) => s.sacRate)
+                            .reduce((a, b) => a > b ? a : b),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 90,
+                      child: Text(
+                        formatSacValue(
+                          segment.sacRate,
+                          segmentTankId: segment.tankId,
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 50,
+                      child: Text(
+                        avgDepthDisplay,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            // Some segment fell back to the pressure lane above: say why.
+            if (lane == GasConsumptionLane.rmv &&
+                renderSegments.any(
+                  (s) => volumeForSegment(s.tankId) == null,
+                )) ...[
+              const SizedBox(height: 8),
+              SacVolumeHint(
+                volumeSymbol: units.volumeSymbol,
+                onTap: () => context.push('/dives/${dive.id}/edit'),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 

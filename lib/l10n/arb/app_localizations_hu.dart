@@ -9022,6 +9022,41 @@ class AppLocalizationsHu extends AppLocalizations {
       'A helylekérdezés nem érhető el. Ellenőrizze a kapcsolatot, és próbálja újra.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'Helynevek frissítése';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Frissíti a helyneveket?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count koordinátákkal rendelkező merülőhely lekérdezése történik újra.',
+      one: '1 koordinátákkal rendelkező merülőhely lekérdezése történik újra.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes percet',
+      one: '1 percet',
+    );
+    return '$_temp0 Az ország, a régió, a település és a víz neve mindenütt lecserélődik, ahol eltér a helynevek nyelvétől ($language), a kézzel beírt értékek is. Ez körülbelül $_temp1 vesz igénybe.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'Helynevek frissítése';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Egyetlen merülőhelynek sincs lekérdezhető koordinátája.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Vissza';
 
   @override
@@ -9661,6 +9696,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get divers_edit_expiryDateTitle => 'Lejarat datuma';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Elsőként jelenik meg a vészhelyzeti kártyán.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'pl. +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      '24 órás segélyhívó szám';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'Biztosító irodai telefonszáma';
 
   @override
   String get divers_edit_insuranceProviderHint => 'pl. DAN, DiveAssure';
@@ -25255,6 +25304,24 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Búvár segélyvonal. Először ezt hívd: ők koordinálják az evakuálást és a kamrába irányítást.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'A búvárbiztosításod segélyvonala. Először ezt hívd: a biztosító engedélyezi az evakuálást és koordinálja a kamrába irányítást.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Regionális búvár segélyvonal. Akkor hívd, ha a biztosító vonala nem válaszol.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24 órás segélyvonal';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Irodai vonal';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'Nincs mentve a biztosító segélyhívó száma. Add meg a búvárprofil beállításaiban, hogy ez a kártya azzal kezdjen.';
 
   @override
   String emergencyCard_ems(String number) {

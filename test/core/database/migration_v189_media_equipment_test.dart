@@ -2,9 +2,9 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Pre-v188 media shape: no equipment link. Only the columns the rung and
+/// Pre-v189 media shape: no equipment link. Only the columns the rung and
 /// its assertions touch, mirroring the other migration fixtures.
-const _preV188Media = '''
+const _preV189Media = '''
   CREATE TABLE media (
     id TEXT NOT NULL PRIMARY KEY,
     dive_id TEXT,
@@ -17,11 +17,11 @@ const _preV188Media = '''
 ''';
 
 void main() {
-  test('v188 adds media.equipment_id and its index, preserving rows', () async {
+  test('v189 adds media.equipment_id and its index, preserving rows', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 187');
-        rawDb.execute(_preV188Media);
+        rawDb.execute('PRAGMA user_version = 188');
+        rawDb.execute(_preV189Media);
         rawDb.execute(
           "INSERT INTO media (id, dive_id, file_path, file_type, "
           "created_at, updated_at) "
@@ -53,20 +53,23 @@ void main() {
     expect(row.data['equipment_id'], isNull);
   });
 
-  test('migration list includes v188 and schema is at least 188', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(188));
-    expect(AppDatabase.migrationVersions, contains(188));
+  test('v189 is the current schema version and is in the ladder', () {
+    // The newest rung owns the exact-version tripwire; the rung below has
+    // been relaxed to greaterThanOrEqualTo. Move both together when the next
+    // rung lands.
+    expect(AppDatabase.currentSchemaVersion, 189);
+    expect(AppDatabase.migrationVersions, contains(189));
   });
 
-  test('v188 is idempotent when equipment_id already exists', () async {
+  test('v189 is idempotent when equipment_id already exists', () async {
     // An interrupted upgrade, or a database that reached this version from a
     // parallel branch, leaves the column already added. The PRAGMA guard
     // must skip the ALTER rather than fail on a duplicate column, and the
     // index creation must stay IF NOT EXISTS.
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 187');
-        rawDb.execute(_preV188Media);
+        rawDb.execute('PRAGMA user_version = 188');
+        rawDb.execute(_preV189Media);
         rawDb.execute('ALTER TABLE media ADD COLUMN equipment_id TEXT');
         rawDb.execute(
           'CREATE INDEX idx_media_equipment_id ON media(equipment_id)',
@@ -82,11 +85,11 @@ void main() {
     expect(names.where((n) => n == 'equipment_id'), hasLength(1));
   });
 
-  test('v188 is a no-op when the media table is absent', () async {
+  test('v189 is a no-op when the media table is absent', () async {
     // Minimal migration fixtures build only the tables their rung touches,
     // so the helper must self-guard rather than throw on a missing table.
     final nativeDb = NativeDatabase.memory(
-      setup: (rawDb) => rawDb.execute('PRAGMA user_version = 187'),
+      setup: (rawDb) => rawDb.execute('PRAGMA user_version = 188'),
     );
 
     final db = AppDatabase(nativeDb);

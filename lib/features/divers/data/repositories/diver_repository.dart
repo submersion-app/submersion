@@ -165,6 +165,8 @@ class DiverRepository {
               insuranceExpiryDate: Value(
                 diver.insurance.expiryDate?.millisecondsSinceEpoch,
               ),
+              insuranceEmergencyPhone: Value(diver.insurance.emergencyPhone),
+              insurancePhone: Value(diver.insurance.phone),
               notes: Value(diver.notes),
               isDefault: Value(diver.isDefault),
               createdAt: Value(now.millisecondsSinceEpoch),
@@ -228,6 +230,8 @@ class DiverRepository {
           insuranceExpiryDate: Value(
             diver.insurance.expiryDate?.millisecondsSinceEpoch,
           ),
+          insuranceEmergencyPhone: Value(diver.insurance.emergencyPhone),
+          insurancePhone: Value(diver.insurance.phone),
           notes: Value(diver.notes),
           isDefault: Value(diver.isDefault),
           updatedAt: Value(now),
@@ -785,6 +789,8 @@ class DiverRepository {
         expiryDate: row.insuranceExpiryDate != null
             ? DateTime.fromMillisecondsSinceEpoch(row.insuranceExpiryDate!)
             : null,
+        emergencyPhone: row.insuranceEmergencyPhone,
+        phone: row.insurancePhone,
       ),
       notes: row.notes,
       isDefault: row.isDefault,
