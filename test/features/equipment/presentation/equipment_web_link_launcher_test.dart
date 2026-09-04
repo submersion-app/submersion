@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,6 +78,34 @@ void main() {
     await tester.pump();
 
     expect(find.text('Could not open the link'), findsOneWidget);
+  });
+
+  testWidgets('stays silent when the tree goes away mid-launch', (
+    tester,
+  ) async {
+    // showSnackBar builds its AnimationController with `vsync: this`, so
+    // firing it at a ScaffoldMessengerState that was disposed while the
+    // platform launch was in flight throws. Capturing the messenger before
+    // the await is not enough on its own.
+    final context = await pumpHost(tester);
+    final gate = Completer<bool>();
+
+    final pending = launchEquipmentWebLink(
+      context,
+      Uri.parse('https://shop.example.com/mk25'),
+      launch: (_) => gate.future,
+    );
+
+    // The route goes away while the launch is still outstanding.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
+
+    gate.complete(false);
+    await pending;
+    await tester.pump();
+
+    expect(find.byType(SnackBar), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('the copy action puts the link on the clipboard', (tester) async {

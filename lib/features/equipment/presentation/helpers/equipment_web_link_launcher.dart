@@ -25,6 +25,13 @@ Future<void> launchEquipmentWebLink(
   Uri uri, {
   required UrlLauncher launch,
 }) async {
+  // Both halves matter. Resolving the messenger and l10n BEFORE the await
+  // keeps a BuildContext from being dereferenced across the gap (what the
+  // use_build_context_synchronously lint is about), but it does not make the
+  // captured ScaffoldMessengerState safe to use afterwards: showSnackBar
+  // builds the SnackBar's AnimationController with `vsync: this`, so calling
+  // it on a state that was disposed while the platform launch was in flight
+  // throws. The mounted check is what covers that.
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
   var didLaunch = false;
@@ -33,7 +40,7 @@ Future<void> launchEquipmentWebLink(
   } catch (_) {
     didLaunch = false;
   }
-  if (didLaunch) return;
+  if (didLaunch || !context.mounted) return;
   messenger.showSnackBar(
     SnackBar(
       content: Text(l10n.common_link_couldNotOpen),
