@@ -549,41 +549,9 @@ jobs:
   build-linux:
     name: Build Linux
     runs-on: ubuntu-latest
-    # The glibc floor is pinned by the container image, not the runner label:
-    # GitHub retires runner images on its own schedule, and a label-pinned
-    # floor would rise silently the day 22.04 is removed. glibc 2.35 covers
-    # Ubuntu 22.04+, Debian 12+, and every current Fedora and openSUSE.
-    container: ubuntu:22.04
-    timeout-minutes: 40
+    timeout-minutes: 30
 
     steps:
-      # Before checkout: a bare image has no git, so actions/checkout cannot
-      # fetch submodules, and none of the tools the Flutter setup assumes.
-      #
-      # The last two lines are things the GitHub-hosted image preinstalls and
-      # a bare container does not, so nothing outside this job needs them:
-      #   jq                        subosito/flutter-action parses its release
-      #                             manifest with it and exits 1 without it
-      #   zip, xz-utils, libglu1-mesa  Flutter's own documented Linux
-      #                             prerequisites
-      #   binutils                  readelf, for scripts/linux_package_deps.py
-      #   file                      used by fpm to classify packaged files
-      - name: Install Linux dependencies
-        run: |
-          apt-get update -y
-          DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            clang cmake ninja-build pkg-config \
-            libgtk-3-dev liblzma-dev libstdc++-12-dev \
-            libsqlite3-dev libsecret-1-dev libwebkit2gtk-4.1-dev \
-            libssl-dev \
-            curl git unzip xz-utils zip ca-certificates \
-            jq file binutils libglu1-mesa
-
-      # actions/checkout inside a container trips git's dubious-ownership
-      # check, which makes every later git command fail.
-      - name: Trust the workspace
-        run: git config --global --add safe.directory '*'
-
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
@@ -593,6 +561,26 @@ jobs:
       - name: Read Flutter version
         id: flutter-ver
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      # The runner image sets the glibc floor of everything shipped here.
+      # Deliberately left as ubuntu-latest: the released tarball has always
+      # required GLIBC_2.38, pinned by libsqlcipher.so and the two plugin
+      # libraries rather than by the app, so building on an older host would
+      # buy reach the project has never claimed at the cost of a container
+      # and its toolchain. See docs/guide/installation.md for the distro
+      # requirement this implies.
+      #
+      # binutils supplies readelf for scripts/linux_package_deps.py; the
+      # hosted image already has it, and it is named here so a future image
+      # change cannot remove it silently.
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            libsqlite3-dev libsecret-1-dev libwebkit2gtk-4.1-dev \
+            libssl-dev binutils
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -640,9 +628,8 @@ jobs:
 
       - name: Install packaging tools
         run: |
-          DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            ruby ruby-dev build-essential rpm python3-pil
-          gem install --no-document fpm
+          sudo apt-get install -y ruby ruby-dev build-essential rpm python3-pil
+          sudo gem install --no-document fpm
 
       # Staged before the tarball step, so the installer scripts the tarball
       # carries never leak into the package trees.
@@ -696,15 +683,6 @@ jobs:
     needs: build-linux
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - image: debian:12
-            format: deb
-          - image: fedora:latest
-            format: rpm
-
     steps:
       # Checkout first: actions/checkout cleans the workspace by default, so
       # downloading the artifact before it would delete the download.
@@ -723,13 +701,23 @@ jobs:
       # Installing through the real package manager is the point: it proves
       # every declared dependency is resolvable on a stock system, which is
       # exactly what the tar.gz could never demonstrate.
-      - name: Install and run in a clean ${{ matrix.image }}
+      # The .deb is verified against the runner's own Ubuntu release, not an
+      # older distro: build-linux runs on ubuntu-latest, so its binaries
+      # require that runner's glibc and cannot run anywhere older. The tag is
+      # derived rather than pinned so it keeps matching when GitHub moves
+      # ubuntu-latest. Mirrors the same step in ci.yaml.
+      - name: Install and run in clean containers
         run: |
           set -euo pipefail
-          docker run --rm \
-            -v "$PWD/packages:/p" \
-            -v "$PWD/scripts/release/verify_linux_package.sh:/verify.sh:ro" \
-            ${{ matrix.image }} bash /verify.sh
+          UBUNTU_TAG="ubuntu:$(. /etc/os-release && echo "$VERSION_ID")"
+          echo "runner is $UBUNTU_TAG"
+          for image in "$UBUNTU_TAG" fedora:latest; do
+            echo "=== $image ==="
+            docker run --rm \
+              -v "$PWD/packages:/p" \
+              -v "$PWD/scripts/release/verify_linux_package.sh:/verify.sh:ro" \
+              "$image" bash /verify.sh
+          done
 
   # ============================================================================
   # Android Build

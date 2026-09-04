@@ -24,7 +24,7 @@ get:
 | Any dependency declaration | GTK3, `libwebkit2gtk-4.1`, `libsoup-3.0`, `libsecret-1`, `liblzma`, `libstdc++` must already be present. Absent any of them, the loader emits a soname error, not a message. |
 | `.desktop` file and icons | No menu entry, no dock icon, no `StartupWMClass` binding. Launch is `./submersion` from a terminal. |
 | Device permissions | The Linux dive computer path opens `/dev/hidraw*` (`packages/libdivecomputer_plugin/linux/usbhid_enumerator.c`), `/dev/ttyUSB*` and `/dev/ttyACM*` (`serial_scanner.c`), and BlueZ over D-Bus (`ble_scanner.c`). `hidraw` is root-only by default, so USB dive computers simply never appear. |
-| A glibc floor anyone chose | Built on `ubuntu-latest`, so the binary refuses to start on anything older than whatever image GitHub happens to be shipping. |
+| A stated distro requirement | Built on `ubuntu-latest`, and the shipped libraries require GLIBC_2.38, so the binary refuses to start on Debian 12 or Ubuntu 22.04. Nothing said so anywhere, which is the part this design fixes; the floor itself is kept (see Section 3). |
 | A working updater | `lib/features/auto_update/presentation/providers/update_providers.dart:43` points Linux at the `Linux.tar.gz` asset, and `update_banner.dart:49` opens it in a browser. There is no install step to hand it to. |
 
 This was a deliberate deferral, not an oversight:
@@ -36,7 +36,7 @@ formats (Snap, Flatpak, AppImage) -- tar.gz only for now."
 | Decision | Choice |
 | --- | --- |
 | Formats | `.deb` and `.rpm` as the primary path, plus an upgraded tarball for everything else. No Flatpak, AppImage, or Snap. |
-| Compatibility floor | glibc 2.35 (Ubuntu 22.04), covering Ubuntu 22.04/24.04/26.04, Debian 12 and 13, Mint 21/22, and every current Fedora and openSUSE. |
+| Compatibility floor | glibc 2.38, the floor the released tarball has always had. Covers Ubuntu 24.04+, Debian 13+, Fedora 39+, Mint 22, Arch and Tumbleweed. Excludes Debian 12, Ubuntu 22.04, and RHEL 9, which keep the tarball as today. |
 | Updates | Self-hosted APT and DNF repositories, so `apt upgrade` and `dnf upgrade` carry Submersion along with everything else. |
 | Repo hosting | A new `submersion-app/linux-packages` repo published to GitHub Pages, rebuilt statelessly on each release. |
 | Channels | `stable` and `beta` suites from day one. |
@@ -164,17 +164,44 @@ Both `Recommends`, never `Requires`:
 
 ## Section 3: Build and CI wiring
 
-### The glibc floor is pinned by a container, not a runner label
+### The glibc floor is the runner's, and is left alone
 
-`runs-on: ubuntu-22.04` is the obvious move and the wrong one: GitHub retires
-runner images on its own schedule, and when 22.04 goes the floor would rise
-silently on some future Tuesday with no commit to blame.
+An earlier revision of this design built inside an `ubuntu:22.04` container to
+pin a glibc 2.35 floor. That was reverted, for two reasons.
+
+The first is that it reversed a decision without saying so. The floor question
+was asked and answered as "build on the ubuntu-22.04 runner"; the container
+arrived later in the design, argued as a fresh recommendation rather than as a
+change, on the premise that a retired runner label would raise the floor
+silently. Retired labels fail loudly, so the premise was wrong.
+
+The second is that the reach was never real to begin with. Measured against
+the shipped v1.7.6.7161 tarball, the released binaries already require
+GLIBC_2.38:
+
+| File | Requires |
+| --- | --- |
+| `libflutter_secure_storage_linux_plugin.so` | GLIBC_2.38 |
+| `liblibdivecomputer_plugin_plugin.so` | GLIBC_2.38 |
+| `libsqlcipher.so` | GLIBC_2.38 |
+| `submersion` | GLIBC_2.34 |
+
+The floor is set by three libraries, not by the app. Lowering it would have
+extended Submersion to distros it has never supported, at the cost of a
+container, a toolchain install on every run, and a class of missing-tool
+failures that no pull request can catch, since `build-all.yml` is
+`workflow_call`-only. Debian 12 and Ubuntu 22.04 users keep the tarball, which
+works for them today and continues to.
 
 ```yaml
 build-linux:
-  runs-on: ubuntu-latest
-  container: ubuntu:22.04     # glibc 2.35 floor, explicit and durable
+  runs-on: ubuntu-latest      # glibc floor follows the runner image
 ```
+
+The consequence to accept: when GitHub moves `ubuntu-latest` to the next
+release, the floor rises with it and nothing announces that. The distro
+requirement in the install docs is therefore a statement about the current
+build environment rather than a guarantee.
 
 The existing `apt-get install` step (`build-all.yml:565`) moves inside the
 container and gains `curl git unzip xz-utils ca-certificates`, which a bare
@@ -366,8 +393,9 @@ Listed so they are deliberate rather than forgotten:
 
 | Risk | Mitigation |
 | --- | --- |
-| ~~`libwebkit2gtk-4.1` may be unavailable on Ubuntu 22.04~~ | Resolved 2026-09-03. The Ubuntu archive publishes `libwebkit2gtk-4.1-dev` 2.50.4-0ubuntu0.22.04.1 and `libsoup-3.0-dev` 3.0.5-1 for jammy, so the chosen floor gets webkit 4.1 paired with libsoup 3.0 and no CMake fallback occurs. The webkit build sits in the updates pocket, which the stock `ubuntu:22.04` image already has in its sources. Residual risk is covered by construction: a fallback would put `libwebkit2gtk-4.0.so.37` in the derived dependency list, and an unmapped soname fails the build. |
+| ~~`libwebkit2gtk-4.1` may be unavailable on Ubuntu 22.04~~ | Moot as of 2026-09-04: the 22.04 build environment was reverted, so the build uses the runner's own webkit 4.1. The fallback remains impossible to ship unnoticed either way, since it would put `libwebkit2gtk-4.0.so.37` in the derived dependency list and an unmapped soname fails the build. |
 | A libdivecomputer submodule bump changes the descriptor table's shape and the udev generator emits nothing. | Fixture test on the generator's output. |
 | A plugin update introduces a new shared-library dependency. | `linux_package_deps.py` fails the build on any unmapped soname. |
 | Pages bandwidth or size limits are reached as the Linux audience grows. | Two-versions-per-suite retention, an 800 MB pre-deploy guard, and a documented migration path to a package registry if the limits bind. |
 | The repository publish dispatch is dropped and users stop seeing updates. | Daily reconcile job republishes when the site and the latest releases disagree. |
+| The glibc floor rises silently when GitHub moves `ubuntu-latest` to a newer release, invalidating the distro requirement in the install docs. | Accepted deliberately in exchange for build simplicity. The requirement is documented as a statement about the current build environment, not a guarantee. A CI guard asserting the maximum required GLIBC symbol version would make the drift visible; not implemented. |
