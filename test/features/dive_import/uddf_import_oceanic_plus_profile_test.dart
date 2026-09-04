@@ -172,6 +172,11 @@ void main() {
         expect(dive.runtime, isNotNull);
         expect(dive.runtime!.inSeconds, greaterThan(1000));
       }
-    });
+      // Imports nine real dives of 99-250 samples each through the entity
+      // importer and a database round trip, then reads every one back. That
+      // costs ~18s on an idle machine, which leaves almost no headroom under
+      // the 30s default and times out on a loaded CI shard (seen on PR #1530,
+      // shard 3, where the file passes on its own).
+    }, timeout: const Timeout(Duration(minutes: 2)));
   });
 }
