@@ -314,6 +314,32 @@ void main() {
       },
     );
 
+    test('lists the account exactly once, recovery included', () async {
+      // The Connect step waits on this, and listFiles is a network round trip
+      // on every real provider, so the recovery must not cost extra listings.
+      final inheritedId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName(inheritedId));
+      provider.operationLog.clear();
+
+      await initializer.firstContactLibraryState(
+        provider,
+        localLibraryIsEmpty: true,
+      );
+
+      expect(provider.operationLog.where((op) => op == 'list').length, 1);
+    });
+
+    test('lists the account exactly once for an empty account', () async {
+      provider.operationLog.clear();
+
+      await initializer.firstContactLibraryState(
+        provider,
+        localLibraryIsEmpty: true,
+      );
+
+      expect(provider.operationLog.where((op) => op == 'list').length, 1);
+    });
+
     test('leaves a real peer library untouched', () async {
       final ownId = await repository.getDeviceId();
       await provider.uploadFile(_payload, peerFileName('deviceB'));

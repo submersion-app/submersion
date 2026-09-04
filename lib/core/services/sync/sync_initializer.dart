@@ -404,13 +404,21 @@ class SyncInitializer {
     CloudStorageProvider provider,
   ) async {
     final deviceId = await _syncRepository.getDeviceId();
+    return (await _changesetLogFiles(
+      provider,
+    )).where((f) => ChangesetLogLayout.deviceIdOf(f.name) != deviceId).toList();
+  }
+
+  /// Every changeset-log artifact on the account, this device's own included.
+  /// One listing, so callers that need both halves of the split can take the
+  /// snapshot once instead of paying a second network round trip.
+  Future<List<CloudFileInfo>> _changesetLogFiles(
+    CloudStorageProvider provider,
+  ) async {
     final files = await provider.listFiles(
       namePattern: ChangesetLogLayout.prefix,
     );
-    return files
-        .where((f) => ChangesetLogLayout.isOurs(f.name))
-        .where((f) => ChangesetLogLayout.deviceIdOf(f.name) != deviceId)
-        .toList();
+    return files.where((f) => ChangesetLogLayout.isOurs(f.name)).toList();
   }
 
   /// What a peer listing says about this account, in one round trip.
@@ -438,14 +446,18 @@ class SyncInitializer {
     CloudStorageProvider provider, {
     required bool localLibraryIsEmpty,
   }) async {
-    final state = await peerLibraryState(provider);
+    // One listing serves every branch below, including the re-classification
+    // after an identity swap: the Connect step waits on this, and listFiles is
+    // a network round trip on every real provider.
+    final files = await _changesetLogFiles(provider);
+    final deviceId = await _syncRepository.getDeviceId();
+    bool isOurOwn(CloudFileInfo f) =>
+        ChangesetLogLayout.deviceIdOf(f.name) == deviceId;
+
+    final state = classifyPeerFiles(files.where((f) => !isOurOwn(f)).toList());
     if (state != PeerLibraryState.none || !localLibraryIsEmpty) return state;
 
-    final deviceId = await _syncRepository.getDeviceId();
-    final ours = (await provider.listFiles(
-      namePattern: ChangesetLogLayout.prefix,
-    )).where((f) => ChangesetLogLayout.deviceIdOf(f.name) == deviceId).toList();
-    if (ours.isEmpty) return state;
+    final ours = files.where(isOurOwn).toList();
     if (classifyPeerFiles(ours) == PeerLibraryState.none) return state;
 
     _log.warning(
@@ -454,7 +466,10 @@ class SyncInitializer {
       'can be pulled as a peer\'s',
     );
     await adoptFreshIdentity();
-    return peerLibraryState(provider);
+    // The id just minted is brand new, so no file in the snapshot can carry
+    // it: every one of them belongs to a peer now, and re-classifying is
+    // local work.
+    return classifyPeerFiles(files);
   }
 
   /// Classifies a peer listing. Static and visible for testing for the same
