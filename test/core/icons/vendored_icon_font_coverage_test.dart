@@ -99,6 +99,49 @@ void main() {
     }
   });
 
+  group('the format 12 lookup derives a glyph id, not just containment', () {
+    // Neither vendored font maps a code point onto glyph 0, so the real
+    // files cannot exercise the .notdef branch. A hand-built font can: this
+    // is a minimal sfnt carrying one format 12 subtable whose first group
+    // starts at glyph 0, so the group contains two code points that derive
+    // different answers.
+    late Directory dir;
+    late _Cmap cmap;
+
+    setUpAll(() {
+      dir = Directory.systemTemp.createTempSync('submersion_cmap_');
+      final file = File('${dir.path}/format12.ttf')
+        ..writeAsBytesSync(_syntheticFormat12Font());
+      cmap = _Cmap.fromFile(file);
+    });
+
+    tearDownAll(() => dir.deleteSync(recursive: true));
+
+    test('the subtable is found at all', () {
+      expect(cmap.isEmpty, isFalse);
+    });
+
+    test('a code point deriving glyph 0 is not a mapping', () {
+      // Inside the group, but startGlyphID 0 + offset 0 is .notdef.
+      expect(cmap.maps(0xE000), isFalse);
+    });
+
+    test('the next code point in the same group is', () {
+      // Same group, so a containment-only lookup answers the same for both.
+      expect(cmap.maps(0xE001), isTrue);
+    });
+
+    test('a later group past the BMP resolves', () {
+      expect(cmap.maps(0xF0000), isTrue);
+    });
+
+    test('code points outside every group do not', () {
+      expect(cmap.maps(0xDFFF), isFalse);
+      expect(cmap.maps(0xE002), isFalse);
+      expect(cmap.maps(0xF0001), isFalse);
+    });
+  });
+
   test('a code point the fonts do not have is reported as missing', () {
     // Guards the parser itself: a `maps` that answered true for everything
     // would make all of the above vacuous.
@@ -206,8 +249,60 @@ class _Cmap {
       final record = sub + 16 + g * 12;
       final start = _data.getUint32(record);
       if (codePoint < start) return false; // Groups are sorted.
-      if (codePoint <= _data.getUint32(record + 4)) return true;
+      if (codePoint > _data.getUint32(record + 4)) continue;
+      // A group carries a startGlyphID that advances with the code point
+      // across it, so containment alone is not a mapping: a group can run
+      // through glyph 0 (.notdef). Derive the id and hold it to the same
+      // non-zero contract the format 4 path applies.
+      final glyphId = _data.getUint32(record + 8) + (codePoint - start);
+      return glyphId != 0;
     }
     return false;
   }
+}
+
+/// A minimal TrueType container holding nothing but a `cmap` with one format
+/// 12 subtable, used to reach the .notdef branch that real fonts never take.
+///
+/// Two groups: U+E000..U+E001 starting at glyph 0 (so the first code point in
+/// it derives .notdef and the second does not), and U+F0000 starting at glyph
+/// 5. Only the bytes [_Cmap] reads are filled in; this is not a loadable font.
+Uint8List _syntheticFormat12Font() {
+  const headerLength = 12;
+  const recordLength = 16;
+  const cmapStart = headerLength + recordLength;
+  const subtableStart = cmapStart + 12;
+  const groupCount = 2;
+  const subtableLength = 16 + groupCount * 12;
+
+  final bytes = Uint8List(subtableStart + subtableLength);
+  final data = ByteData.sublistView(bytes);
+
+  data.setUint32(0, 0x00010000); // sfntVersion
+  data.setUint16(4, 1); // numTables
+
+  bytes.setAll(headerLength, 'cmap'.codeUnits);
+  data.setUint32(headerLength + 8, cmapStart);
+  data.setUint32(headerLength + 12, bytes.length - cmapStart);
+
+  data.setUint16(cmapStart, 0); // cmap version
+  data.setUint16(cmapStart + 2, 1); // subtable count
+  data.setUint16(cmapStart + 4, 3); // platformID: Windows
+  data.setUint16(cmapStart + 6, 10); // encodingID: full repertoire
+  data.setUint32(cmapStart + 8, subtableStart - cmapStart);
+
+  data.setUint16(subtableStart, 12); // format
+  data.setUint32(subtableStart + 4, subtableLength);
+  data.setUint32(subtableStart + 12, groupCount);
+
+  void group(int index, int start, int end, int startGlyphId) {
+    final at = subtableStart + 16 + index * 12;
+    data.setUint32(at, start);
+    data.setUint32(at + 4, end);
+    data.setUint32(at + 8, startGlyphId);
+  }
+
+  group(0, 0xE000, 0xE001, 0);
+  group(1, 0xF0000, 0xF0000, 5);
+  return bytes;
 }
