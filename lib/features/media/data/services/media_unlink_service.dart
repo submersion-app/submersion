@@ -1,33 +1,39 @@
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 
 /// What an unlink actually did, so the caller can report it.
+///
+/// The three outcome types stay distinct because each unlink path leaves a
+/// different link behind, but they share one field name: [keptLinked] counts
+/// rows SOME OTHER attachment still needed, whatever that attachment is. The
+/// field was named for the site case until equipment attachments landed
+/// (issue #1517), at which point the name claimed more than it knew: a row
+/// can now be kept because a piece of gear still files it.
 class UnlinkOutcome {
-  const UnlinkOutcome({required this.deleted, required this.keptAsSiteMedia});
+  const UnlinkOutcome({required this.deleted, required this.keptLinked});
 
   /// Rows removed from the library entirely.
   final int deleted;
 
-  /// Rows something else still needed -- a dive site, or a piece of
-  /// equipment the document is filed against -- kept with the dive link
-  /// cleared.
-  final int keptAsSiteMedia;
+  /// Rows a dive site or a piece of equipment still needed, kept with only
+  /// the dive link cleared.
+  final int keptLinked;
 
-  int get total => deleted + keptAsSiteMedia;
+  int get total => deleted + keptLinked;
 }
 
 /// What a site unlink did. Kept separate from [UnlinkOutcome] because the
-/// carve-out runs the other way: here it is the DIVE that can still need
-/// the row.
+/// carve-out runs the other way: here it is the DIVE (or the equipment) that
+/// can still need the row.
 class SiteUnlinkOutcome {
-  const SiteUnlinkOutcome({
-    required this.deleted,
-    required this.keptAsDiveMedia,
-  });
+  const SiteUnlinkOutcome({required this.deleted, required this.keptLinked});
 
   final int deleted;
-  final int keptAsDiveMedia;
 
-  int get total => deleted + keptAsDiveMedia;
+  /// Rows a dive or a piece of equipment still needed, kept with only the
+  /// site link cleared.
+  final int keptLinked;
+
+  int get total => deleted + keptLinked;
 }
 
 /// What an equipment unlink did. A third outcome type rather than a reused
@@ -36,13 +42,16 @@ class SiteUnlinkOutcome {
 class EquipmentUnlinkOutcome {
   const EquipmentUnlinkOutcome({
     required this.deleted,
-    required this.keptAsLogbookMedia,
+    required this.keptLinked,
   });
 
   final int deleted;
-  final int keptAsLogbookMedia;
 
-  int get total => deleted + keptAsLogbookMedia;
+  /// Rows a dive or a site still needed, kept with only the equipment link
+  /// cleared.
+  final int keptLinked;
+
+  int get total => deleted + keptLinked;
 }
 
 /// The single implementation of "unlink media from a dive or a site",
@@ -75,7 +84,7 @@ class MediaUnlinkService {
 
   Future<UnlinkOutcome> unlinkFromDive(List<String> mediaIds) async {
     if (mediaIds.isEmpty) {
-      return const UnlinkOutcome(deleted: 0, keptAsSiteMedia: 0);
+      return const UnlinkOutcome(deleted: 0, keptLinked: 0);
     }
     final split = await repository.partitionForDiveUnlink(mediaIds);
 
@@ -91,7 +100,7 @@ class MediaUnlinkService {
 
     return UnlinkOutcome(
       deleted: split.deletable.length,
-      keptAsSiteMedia: split.keptIds.length,
+      keptLinked: split.keptIds.length,
     );
   }
 
@@ -114,7 +123,7 @@ class MediaUnlinkService {
   /// library through the same destructive path.
   Future<SiteUnlinkOutcome> unlinkFromSite(List<String> mediaIds) async {
     if (mediaIds.isEmpty) {
-      return const SiteUnlinkOutcome(deleted: 0, keptAsDiveMedia: 0);
+      return const SiteUnlinkOutcome(deleted: 0, keptLinked: 0);
     }
     final split = await repository.partitionForSiteUnlink(mediaIds);
     if (split.keptIds.isNotEmpty) {
@@ -125,7 +134,7 @@ class MediaUnlinkService {
     }
     return SiteUnlinkOutcome(
       deleted: split.deletable.length,
-      keptAsDiveMedia: split.keptIds.length,
+      keptLinked: split.keptIds.length,
     );
   }
 
@@ -136,7 +145,7 @@ class MediaUnlinkService {
     List<String> mediaIds,
   ) async {
     if (mediaIds.isEmpty) {
-      return const EquipmentUnlinkOutcome(deleted: 0, keptAsLogbookMedia: 0);
+      return const EquipmentUnlinkOutcome(deleted: 0, keptLinked: 0);
     }
     final split = await repository.partitionForEquipmentUnlink(mediaIds);
     if (split.keptIds.isNotEmpty) {
@@ -147,7 +156,7 @@ class MediaUnlinkService {
     }
     return EquipmentUnlinkOutcome(
       deleted: split.deletable.length,
-      keptAsLogbookMedia: split.keptIds.length,
+      keptLinked: split.keptIds.length,
     );
   }
 

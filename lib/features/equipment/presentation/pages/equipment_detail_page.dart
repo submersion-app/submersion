@@ -24,6 +24,7 @@ import 'package:submersion/features/equipment/presentation/helpers/equipment_web
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/unit_configurations_card.dart';
+import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
@@ -173,7 +174,16 @@ class _EquipmentDetailContent extends ConsumerWidget {
             UnitConfigurationsCard(equipmentId: equipmentId),
           ],
           const SizedBox(height: 24),
-          EquipmentDocumentsSection(equipmentId: equipmentId),
+          EquipmentDocumentsSection(
+            equipmentId: equipmentId,
+            onAttachPressed: () => DocumentOpenHelper.pickAndAttach(
+              context: context,
+              ref: ref,
+              equipmentId: equipmentId,
+            ),
+            onOpenDocument: (item) =>
+                DocumentOpenHelper.open(context, ref, item),
+          ),
           const SizedBox(height: 24),
           ServiceHistorySection(equipmentId: equipmentId),
           if (equipment.notes.isNotEmpty) ...[

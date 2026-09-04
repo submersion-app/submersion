@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -16,10 +15,26 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// Documents are linked by reference, never copied -- the media store upload
 /// is what makes them durable, exactly as on the dive and site sections.
+///
+/// Attaching and opening are injected by the page rather than called here,
+/// mirroring [SiteMediaSection]: both reach the file picker, the platform
+/// opener and the PDF viewer, so keeping them out leaves this widget a pure
+/// function of its provider and its callbacks.
 class EquipmentDocumentsSection extends ConsumerWidget {
   final String equipmentId;
 
-  const EquipmentDocumentsSection({super.key, required this.equipmentId});
+  /// Opens the document picker. Null hides the attach action.
+  final VoidCallback? onAttachPressed;
+
+  /// Routes a tapped document (PDF viewer, or the platform opener).
+  final void Function(MediaItem)? onOpenDocument;
+
+  const EquipmentDocumentsSection({
+    super.key,
+    required this.equipmentId,
+    this.onAttachPressed,
+    this.onOpenDocument,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,16 +59,13 @@ class EquipmentDocumentsSection extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                TextButton.icon(
-                  key: const ValueKey('equipment-documents-attach'),
-                  onPressed: () => DocumentOpenHelper.pickAndAttach(
-                    context: context,
-                    ref: ref,
-                    equipmentId: equipmentId,
+                if (onAttachPressed != null)
+                  TextButton.icon(
+                    key: const ValueKey('equipment-documents-attach'),
+                    onPressed: onAttachPressed,
+                    icon: const Icon(Icons.attach_file),
+                    label: Text(context.l10n.equipment_documents_attachButton),
                   ),
-                  icon: const Icon(Icons.attach_file),
-                  label: Text(context.l10n.equipment_documents_attachButton),
-                ),
               ],
             ),
             Text(
@@ -115,7 +127,7 @@ class EquipmentDocumentsSection extends ConsumerWidget {
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
-      onTap: () => DocumentOpenHelper.open(context, ref, item),
+      onTap: () => onOpenDocument?.call(item),
       trailing: IconButton(
         icon: const Icon(Icons.close),
         tooltip: context.l10n.common_action_remove,

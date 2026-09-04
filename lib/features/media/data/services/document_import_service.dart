@@ -101,10 +101,23 @@ class DocumentImportService {
     String? siteId,
     String? equipmentId,
   }) async {
-    assert(
-      [diveId, siteId, equipmentId].where((id) => id != null).length == 1,
-      'exactly one of diveId/siteId/equipmentId must be set',
-    );
+    // A runtime check, not just an assert: asserts are stripped in release,
+    // and a row created with no parent (or two) is not a benign bug. With no
+    // parent it is unreferenced the moment it is written, so the orphan sweep
+    // collects the diver's document; with two it survives cascades that
+    // should have taken it. Fail at the call rather than in a sweep weeks
+    // later.
+    final parentCount = [
+      diveId,
+      siteId,
+      equipmentId,
+    ].where((id) => id != null).length;
+    if (parentCount != 1) {
+      throw ArgumentError(
+        'importDocuments needs exactly one of diveId/siteId/equipmentId, '
+        'got $parentCount',
+      );
+    }
     final strategy = _refStrategy();
     final created = <MediaItem>[];
     for (final file in picked) {

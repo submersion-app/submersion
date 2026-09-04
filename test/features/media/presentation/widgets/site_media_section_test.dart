@@ -47,7 +47,7 @@ class _RecordingSiteMediaNotifier extends SiteMediaListNotifier {
   Future<SiteUnlinkOutcome> unlinkMultipleMedia(List<String> ids) async {
     deleteCalls.add(List<String>.of(ids));
     if (failWith != null) throw failWith!;
-    return SiteUnlinkOutcome(deleted: ids.length, keptAsDiveMedia: 0);
+    return SiteUnlinkOutcome(deleted: ids.length, keptLinked: 0);
   }
 }
 
