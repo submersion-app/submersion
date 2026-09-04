@@ -13,11 +13,13 @@ import 'package:flutter/widgets.dart';
 ///
 /// Code points are taken verbatim from material_design_icons_flutter 7.0.7296.
 abstract final class MdiIcons {
-  static const String _family = 'Material Design Icons';
+  /// The family declared for the vendored font in `pubspec.yaml`. Public so
+  /// tests can look the code points below up in the committed `.ttf`.
+  static const String fontFamily = 'Material Design Icons';
 
   static const IconData divingScubaTank = IconData(
     0xf0dc3,
-    fontFamily: _family,
+    fontFamily: fontFamily,
   );
 
   // Dive glyphs that were sitting unused in the bundled font while the
@@ -25,17 +27,23 @@ abstract final class MdiIcons {
   // eyeball for a mask, scissors for a knife, a gym dumbbell for weights and a
   // generic flag for an SMB (#1189). `knifeMilitary` rather than `knife`,
   // which is a chef's knife.
-  static const IconData divingFlippers = IconData(0xf0dbf, fontFamily: _family);
+  static const IconData divingFlippers = IconData(
+    0xf0dbf,
+    fontFamily: fontFamily,
+  );
   static const IconData divingScubaMask = IconData(
     0xf0dc1,
-    fontFamily: _family,
+    fontFamily: fontFamily,
   );
   static const IconData divingScubaFlag = IconData(
     0xf0dc2,
-    fontFamily: _family,
+    fontFamily: fontFamily,
   );
-  static const IconData knifeMilitary = IconData(0xf09fc, fontFamily: _family);
-  static const IconData weight = IconData(0xf05a1, fontFamily: _family);
+  static const IconData knifeMilitary = IconData(
+    0xf09fc,
+    fontFamily: fontFamily,
+  );
+  static const IconData weight = IconData(0xf05a1, fontFamily: fontFamily);
 
   // Five of the six equipment types added for #1518 found their shape already
   // sitting in the bundled font: a literal snorkel, a bezelled compass card, a
@@ -43,15 +51,18 @@ abstract final class MdiIcons {
   // crossed screwdriver and wrench for a save-a-dive kit, and a crew-neck
   // shirt for a rash guard. The sixth, the undergarment, is drawn in
   // `SubmersionIcons`: no icon font has a thermal base layer.
-  static const IconData divingSnorkel = IconData(0xf0dc5, fontFamily: _family);
-  static const IconData compass = IconData(0xf018b, fontFamily: _family);
-  static const IconData gauge = IconData(0xf029a, fontFamily: _family);
-  static const IconData tools = IconData(0xf1064, fontFamily: _family);
-  static const IconData tshirtCrew = IconData(0xf0a7b, fontFamily: _family);
+  static const IconData divingSnorkel = IconData(
+    0xf0dc5,
+    fontFamily: fontFamily,
+  );
+  static const IconData compass = IconData(0xf018b, fontFamily: fontFamily);
+  static const IconData gauge = IconData(0xf029a, fontFamily: fontFamily);
+  static const IconData tools = IconData(0xf1064, fontFamily: fontFamily);
+  static const IconData tshirtCrew = IconData(0xf0a7b, fontFamily: fontFamily);
 
-  static const IconData fish = IconData(0xf023a, fontFamily: _family);
-  static const IconData turtle = IconData(0xf0cd7, fontFamily: _family);
-  static const IconData shark = IconData(0xf18ba, fontFamily: _family);
-  static const IconData jellyfish = IconData(0xf0f01, fontFamily: _family);
-  static const IconData dolphin = IconData(0xf18b4, fontFamily: _family);
+  static const IconData fish = IconData(0xf023a, fontFamily: fontFamily);
+  static const IconData turtle = IconData(0xf0cd7, fontFamily: fontFamily);
+  static const IconData shark = IconData(0xf18ba, fontFamily: fontFamily);
+  static const IconData jellyfish = IconData(0xf0f01, fontFamily: fontFamily);
+  static const IconData dolphin = IconData(0xf18b4, fontFamily: fontFamily);
 }

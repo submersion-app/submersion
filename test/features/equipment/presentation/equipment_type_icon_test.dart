@@ -64,8 +64,11 @@ void main() {
 
   group('the drawn glyphs', () {
     // Every type whose glyph had to be drawn because no icon font has the
-    // shape. A code point that never made it into the generated font would
-    // render as tofu on a device, so the family is asserted here.
+    // shape. This pins the type-to-constant wiring and the family string
+    // only; that the code point exists in the committed `.ttf` is a separate
+    // question, answered by
+    // test/core/icons/vendored_icon_font_coverage_test.dart, which reads the
+    // font's cmap.
     const drawn = <EquipmentType, IconData>{
       EquipmentType.regulator: SubmersionIcons.regulator,
       EquipmentType.bcd: SubmersionIcons.bcd,
@@ -110,8 +113,11 @@ void main() {
       // Five of these swapped from a Material metaphor (waves for fins, an
       // eyeball for a mask) to dive glyphs that were already in the bundled
       // webfont. `tank` was not remapped and is here as a regression guard: it
-      // was the only type already pointing at the MDI font, so it is what proves
-      // the family assertion below can fail.
+      // was the only type already pointing at the MDI font, so it is what
+      // proves the family assertion below can fail. As above, the family
+      // string is all that is asserted here; whether the vendored font
+      // actually maps these code points is checked by
+      // test/core/icons/vendored_icon_font_coverage_test.dart.
       const onMdiFont = <EquipmentType, IconData>{
         EquipmentType.fins: MdiIcons.divingFlippers,
         EquipmentType.mask: MdiIcons.divingScubaMask,
@@ -119,9 +125,9 @@ void main() {
         EquipmentType.weights: MdiIcons.weight,
         EquipmentType.smb: MdiIcons.divingScubaFlag,
         EquipmentType.tank: MdiIcons.divingScubaTank,
-        // Added with the types themselves in #1518. Every one of these code
-        // points has to be present in the vendored webfont or the icon renders
-        // as tofu, which is exactly what the family assertion below catches.
+        // Added with the types themselves in #1518. These five code points
+        // were transcribed by hand from the Material Design Icons release
+        // notes, which is why the cmap test exists alongside this one.
         EquipmentType.snorkel: MdiIcons.divingSnorkel,
         EquipmentType.compass: MdiIcons.compass,
         EquipmentType.instrument: MdiIcons.gauge,
@@ -137,7 +143,7 @@ void main() {
         );
         expect(
           entry.value.fontFamily,
-          'Material Design Icons',
+          MdiIcons.fontFamily,
           reason: entry.key.name,
         );
       }
