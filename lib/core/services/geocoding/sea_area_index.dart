@@ -50,6 +50,13 @@ class SeaAreaIndex {
   /// Returning null is a real answer, not a failure: lakes, quarries,
   /// cenotes and fjord interiors are not in the IHO table, and the caller
   /// falls back to the online lookup, which is good at exactly those.
+  ///
+  /// A few narrow bands of open water answer null too, because IHO assigns
+  /// them to no sea at all. The archipelagic waters inside Fiji are the
+  /// one that touches diving: around 16.8 degrees south, the source itself
+  /// leaves roughly 180.0E to 179.87W unassigned. That is the dataset, not
+  /// the simplification -- the raw layer has the same gap -- so it is
+  /// documented rather than papered over.
   String? nameAt(double latitude, double longitude) {
     for (final area in areas) {
       if (area.contains(longitude, latitude)) return area.name;

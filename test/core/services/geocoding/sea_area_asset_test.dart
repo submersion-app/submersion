@@ -148,6 +148,73 @@ void main() {
     }
   });
 
+  group('the antimeridian and the poles', () {
+    // The Pacific, Bering and Chukchi polygons are split at 180 degrees,
+    // while the Arctic and Southern oceans are single circumpolar rings
+    // that close along the top and bottom edges. Ray casting is done in
+    // flat lon/lat space, so both shapes have to come out right.
+    test('resolves on both sides of the antimeridian', () {
+      expect(index.nameAt(0, 179.5), 'North Pacific Ocean');
+      expect(index.nameAt(0, -179.5), 'North Pacific Ocean');
+      expect(index.nameAt(0, 180), 'North Pacific Ocean');
+    });
+
+    test('resolves a split sea across the seam', () {
+      expect(index.nameAt(60, 179), 'Bering Sea');
+      expect(index.nameAt(60, -179), 'Bering Sea');
+    });
+
+    test('resolves the circumpolar rings', () {
+      expect(index.nameAt(89.9, 0), 'Arctic Ocean');
+      expect(index.nameAt(85, 180), 'Arctic Ocean');
+      expect(index.nameAt(-70, 0), 'Southern Ocean');
+      expect(index.nameAt(-75, 175), 'Southern Ocean');
+    });
+
+    test('the South Pole is land, so it has no sea', () {
+      expect(index.nameAt(-89.9, 0), isNull);
+    });
+  });
+
+  group('Pacific island destinations', () {
+    // Small islands are not carved out of the ocean polygons, so a site
+    // just off one still reports the ocean around it.
+    const sites = <String, (double, double, String)>{
+      'Fiji Beqa Lagoon': (-18.40, 178.05, 'South Pacific Ocean'),
+      'Fiji Bligh Water': (-17.20, 178.20, 'South Pacific Ocean'),
+      'Tonga Vavau': (-18.65, -173.98, 'South Pacific Ocean'),
+      'Rarotonga': (-21.23, -159.78, 'South Pacific Ocean'),
+      'Fakarava': (-16.05, -145.62, 'South Pacific Ocean'),
+      'Vanuatu Espiritu Santo': (-15.52, 167.17, 'Coral Sea'),
+      'New Caledonia': (-22.30, 166.45, 'Coral Sea'),
+      'Solomon Islands': (-8.10, 157.00, 'Solomon Sea'),
+      'Hawaii, Kona': (19.60, -156.05, 'North Pacific Ocean'),
+      'Galapagos': (1.68, -91.99, 'North Pacific Ocean'),
+    };
+
+    for (final entry in sites.entries) {
+      test(entry.key, () {
+        final (lat, lon, expected) = entry.value;
+        expect(index.nameAt(lat, lon), expected);
+      });
+    }
+  });
+
+  test('a lookup is cheap enough to run per site in a backfill', () {
+    // A point in no area is the worst case: it walks every area for
+    // containment, then every nearby one for distance.
+    final stopwatch = Stopwatch()..start();
+    for (var i = 0; i < 500; i++) {
+      index.nameAt(48.137 + i * 0.001, 11.575);
+    }
+    stopwatch.stop();
+    expect(
+      stopwatch.elapsedMilliseconds,
+      lessThan(500),
+      reason: 'worst-case lookups should stay well under a millisecond each',
+    );
+  });
+
   test('names the more specific sea where two limits meet', () {
     // The Gulf of Aqaba sits inside the Red Sea's bounding box; the
     // smallest-area rule has to prefer the gulf.
