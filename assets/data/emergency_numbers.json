@@ -12,7 +12,7 @@
       "id": "dan-europe",
       "name": "DAN Europe",
       "phone": "+39-06-4211-8685",
-      "countries": ["IT", "FR", "ES", "PT", "DE", "AT", "CH", "NL", "BE", "GB", "IE", "MT", "HR", "GR", "CY", "EG", "TR", "NO", "SE", "DK", "FI", "PL", "CZ", "HU", "IL"]
+      "countries": ["IT", "FR", "ES", "PT", "DE", "AT", "CH", "NL", "BE", "GB", "IE", "MT", "HR", "GR", "CY", "EG", "TR", "NO", "SE", "DK", "FI", "PL", "CZ", "HU", "IL", "LU"]
     },
     {
       "id": "dan-world",

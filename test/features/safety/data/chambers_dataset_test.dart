@@ -143,6 +143,65 @@ void main() {
     }
   });
 
+  test('the Benelux hyperbaric centres are all present', () async {
+    // Issue #1521: the directory carried one chamber for Belgium and one for
+    // the Netherlands, so a diver in Flanders was shown a facility hours away
+    // while the centre in the next town was missing. ACHOBEL and the NVvHG
+    // both publish a national list; every centre on them that could be
+    // confirmed against its own hospital is in the dataset.
+    final chambers = await EmergencyDataService.loadBundledChambers();
+    final ids = chambers.map((c) => c.id).toSet();
+
+    const belgium = [
+      'be-aalst',
+      'be-antwerpen',
+      'be-brugge',
+      'be-brussels',
+      'be-genk',
+    ];
+    const netherlands = [
+      'nl-amsterdam',
+      'nl-goes',
+      'nl-sneek',
+      'nl-denhelder',
+      'nl-rijswijk',
+    ];
+
+    for (final id in [...belgium, ...netherlands, 'lu-esch']) {
+      expect(ids, contains(id), reason: 'missing Benelux chamber: $id');
+    }
+  });
+
+  test('the Benelux acute chambers are reachable around the clock', () async {
+    // The whole point of listing these is the 3am call. A row that lands in
+    // the diving_emergency band without an availability to match is a row
+    // nobody checked.
+    final chambers = await EmergencyDataService.loadBundledChambers();
+
+    for (final chamber in chambers.where(
+      (c) => c.country == 'BE' || c.country == 'NL' || c.country == 'LU',
+    )) {
+      if (chamber.capability != ChamberCapability.divingEmergency) continue;
+      expect(
+        chamber.availability,
+        ChamberAvailability.h24,
+        reason: 'acute chamber without 24h cover: ${chamber.id}',
+      );
+    }
+  });
+
+  test('the suspended Charleroi chamber stays out of the dataset', () async {
+    // CHU de Charleroi (HUmani) suspended the Hopital Andre Vesale caisson on
+    // 2026-06-25, the last multiplace chamber in Wallonia, over the cost of
+    // the safety refit. It is still on the ACHOBEL member list, which is why
+    // this guard exists: the list is a lead, not the truth, and sending a bent
+    // diver to a chamber that cannot pressurise costs them the time that
+    // matters most.
+    final chambers = await EmergencyDataService.loadBundledChambers();
+
+    expect(chambers.map((c) => c.id), isNot(contains('be-charleroi')));
+  });
+
   test('the Koh Samui chamber stays out of the dataset', () async {
     // `th-samui` shipped in the placeholder dataset, and this is the one
     // preserved id deliberately dropped rather than carried across. The SSS
