@@ -12,9 +12,7 @@ import 'package:submersion/core/services/logger_service.dart';
 /// The asset is about 1.3 MB, so it is parsed on first use and kept for the
 /// process: a backfill run over a whole logbook pays for it once, and a
 /// diver who never touches a coordinate never pays at all.
-class SeaAreaService {
-  SeaAreaService._();
-
+abstract final class SeaAreaService {
   static const String assetPath = 'assets/data/sea_areas.json';
 
   static final _log = LoggerService.forClass(SeaAreaService);

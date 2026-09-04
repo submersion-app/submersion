@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show LicenseRegistry;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -57,6 +58,24 @@ void main() {
   test('a missing table leaves the geocode without a body of water', () {
     SeaAreaService.setIndexForTesting(null);
     expect(SeaAreaService.load(), completion(isNull));
+  });
+
+  test('registers the attribution the CC-BY licence requires', () async {
+    // Shipping the table means carrying its credit. This is a licence
+    // obligation, so it is asserted rather than assumed.
+    LicenseRegistry.reset();
+    addTearDown(LicenseRegistry.reset);
+
+    SeaAreaService.registerLicense();
+    final entries = await LicenseRegistry.licenses.toList();
+    final entry = entries.singleWhere(
+      (e) => e.packages.contains('IHO Sea Areas'),
+    );
+    final text = entry.paragraphs.map((p) => p.text).join(' ');
+
+    expect(text, contains('CC-BY 4.0'));
+    expect(text, contains('Flanders Marine Institute'));
+    expect(text, contains('10.14284/323'));
   });
 
   test('a seeded table is handed back as-is', () async {
