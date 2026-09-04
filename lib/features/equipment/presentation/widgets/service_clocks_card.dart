@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Service clocks card on the equipment detail page: one row per
@@ -34,16 +36,20 @@ class ServiceClocksCard extends ConsumerWidget {
     };
   }
 
-  String _triggerText(BuildContext context, ServiceClockStatus status) =>
-      formatServiceTriggerText(
-        context,
-        now: status.now,
-        dueDate: status.dueDate,
-        divesSinceAnchor: status.divesSinceAnchor,
-        divesRemaining: status.divesRemaining,
-        hoursSinceAnchor: status.hoursSinceAnchor,
-        hoursRemaining: status.hoursRemaining,
-      );
+  String _triggerText(
+    BuildContext context,
+    UnitFormatter units,
+    ServiceClockStatus status,
+  ) => formatServiceTriggerText(
+    context,
+    units: units,
+    now: status.now,
+    dueDate: status.dueDate,
+    divesSinceAnchor: status.divesSinceAnchor,
+    divesRemaining: status.divesRemaining,
+    hoursSinceAnchor: status.hoursSinceAnchor,
+    hoursRemaining: status.hoursRemaining,
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,6 +58,7 @@ class ServiceClocksCard extends ConsumerWidget {
       serviceSchedulesForEquipmentProvider(equipmentId),
     );
     final kindsAsync = ref.watch(serviceKindsProvider);
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final l10n = context.l10n;
 
     return Card(
@@ -133,7 +140,7 @@ class ServiceClocksCard extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(_triggerText(context, status)),
+                            Text(_triggerText(context, units, status)),
                             // An hours clock accrues from logged dive
                             // duration, which approximates but is not
                             // identical to rebreather loop time. Say so

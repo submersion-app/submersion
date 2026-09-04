@@ -41,6 +41,11 @@ void main() {
     // the width budget is the constraint rather than the reading order.
     'lib/features/certifications/presentation/services/certification_card_renderer.dart':
         'CR80 card art, fixed width budget',
+    // The terminal startup-failure screen renders when the database could not
+    // be opened, so the diver's saved preferences are not readable at all and
+    // the resolved system locale is the only source of formatting there.
+    'lib/core/presentation/widgets/startup_failure_view.dart':
+        'renders before settings are readable',
     // The printed card face imitates a physical certification card, so it
     // keeps that card's compact month/year whatever the diver picked. There is
     // no day to reorder; the spoken Semantics label carries the full date in
@@ -68,6 +73,26 @@ void main() {
   // ISO ordering is unambiguous anyway.
   final handRolled = RegExp(r'\.month\}/\$\{[A-Za-z_.!?]*\.day\}');
 
+  // MaterialLocalizations formats from the resolved UI locale, which is the
+  // same defect as DateFormat.yMMMd() wearing different clothes: it was how
+  // the pre-dive, planner and equipment surfaces still ignored the preference
+  // after the first sweep, because no search for "DateFormat" reaches them.
+  //
+  // Only the four `format*Date` names are matched unconditionally: they exist
+  // nowhere else. `formatMonthYear` is also a UnitFormatter method, and the
+  // correct one, so it counts only alongside the MaterialLocalizations
+  // receiver on the same line.
+  final materialDate = RegExp(r'\.format(Medium|Full|Compact|Short)Date\b');
+  final materialMonthYear = RegExp(
+    r'MaterialLocalizations[\s\S]*formatMonthYear\b',
+  );
+
+  // TimeOfDay.format reads MediaQuery's alwaysUse24HourFormat, the platform
+  // setting, rather than the diver's TimeFormat.
+  final timeOfDay = RegExp(
+    r'\bTimeOfDay[^;\n]*\.format\(context\)|\.formatTimeOfDay\b',
+  );
+
   test('presentation code formats dates from the diver preference', () {
     final violations = <String>[];
 
@@ -93,6 +118,12 @@ void main() {
           }
           if (handRolled.hasMatch(line)) {
             violations.add('$path:${i + 1}  hand-rolled M/D/Y interpolation');
+          }
+          if (materialDate.hasMatch(line) || materialMonthYear.hasMatch(line)) {
+            violations.add('$path:${i + 1}  MaterialLocalizations date');
+          }
+          if (timeOfDay.hasMatch(line)) {
+            violations.add('$path:${i + 1}  TimeOfDay.format(context)');
           }
         }
       }

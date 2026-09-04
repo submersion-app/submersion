@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/models/pre_dive_session_filter.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -85,6 +87,7 @@ class _PreDiveSessionFilterSheetState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final templateNames = ref.watch(preDiveSessionTemplateNamesProvider);
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -188,9 +191,9 @@ class _PreDiveSessionFilterSheetState
                         title: Text(
                           _dateRange == null
                               ? l10n.preDive_sessions_filterAnyDate
-                              : '${MaterialLocalizations.of(context).formatMediumDate(_dateRange!.start)}'
+                              : '${units.formatDate(_dateRange!.start)}'
                                     ' - '
-                                    '${MaterialLocalizations.of(context).formatMediumDate(_dateRange!.end)}',
+                                    '${units.formatDate(_dateRange!.end)}',
                         ),
                         trailing: _dateRange == null
                             ? null

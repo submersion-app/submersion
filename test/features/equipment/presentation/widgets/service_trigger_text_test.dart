@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   Future<String> format(
     WidgetTester tester, {
     required DateTime now,
+    AppSettings settings = const AppSettings(),
     DateTime? dueDate,
     int? divesSinceAnchor,
     int? divesRemaining,
@@ -23,6 +27,7 @@ void main() {
           builder: (context) {
             result = formatServiceTriggerText(
               context,
+              units: UnitFormatter(settings),
               now: now,
               dueDate: dueDate,
               divesSinceAnchor: divesSinceAnchor,
@@ -45,6 +50,18 @@ void main() {
       dueDate: DateTime(2026, 1, 1),
     );
     expect(text, contains('Overdue since'));
+  });
+
+  // #1512: the due date came from MaterialLocalizations.formatShortDate, which
+  // follows the UI locale rather than the diver's date preference.
+  testWidgets('the due date follows the diver date format', (tester) async {
+    final text = await format(
+      tester,
+      settings: const AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
+      now: DateTime(2026, 1, 1),
+      dueDate: DateTime(2026, 6, 15),
+    );
+    expect(text, contains('15/06/2026'));
   });
 
   testWidgets('future date trigger reads "Due"', (tester) async {

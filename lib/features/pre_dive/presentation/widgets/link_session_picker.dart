@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Picks the checklist run to attach to a dive (#1066), from the dive's own
@@ -49,14 +51,14 @@ class _LinkSessionPicker extends ConsumerWidget {
   }
 }
 
-class _SessionList extends StatelessWidget {
+class _SessionList extends ConsumerWidget {
   final List<PreDiveSession> sessions;
 
   const _SessionList({required this.sessions});
 
   @override
-  Widget build(BuildContext context) {
-    final materialL10n = MaterialLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return ListView.builder(
       itemCount: sessions.length,
@@ -75,8 +77,7 @@ class _SessionList extends StatelessWidget {
           }),
           title: Text(session.templateName),
           subtitle: Text(
-            '${materialL10n.formatMediumDate(when)} - '
-            '${TimeOfDay.fromDateTime(when).format(context)}',
+            '${units.formatDate(when)} - ${units.formatTime(when)}',
           ),
           onTap: () => Navigator.of(context).pop(session.id),
         );

@@ -300,8 +300,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                       subtitle: Text(
                         _returnFlightAt == null
                             ? context.l10n.trips_edit_returnFlightNotSet
+                            // TimeOfDay.format reads MediaQuery's
+                            // alwaysUse24HourFormat, which is the platform
+                            // setting, not the diver's TimeFormat (#1512).
                             : '${units.formatDate(_returnFlightAt)}, '
-                                  '${TimeOfDay.fromDateTime(_returnFlightAt!).format(context)}',
+                                  '${units.formatTime(_returnFlightAt)}',
                       ),
                       trailing: _returnFlightAt == null
                           ? const Icon(Icons.edit)
