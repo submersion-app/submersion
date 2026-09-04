@@ -319,15 +319,24 @@ void main() {
         'buoyancy_kg',
         'dry_weight_kg',
       ]);
-      // Full scale of the dial, not a cylinder's working pressure: a 300 bar
-      // gauge on a 232 bar tank is a different object, so the keys stay apart.
       expect(
         EquipmentAttributeCatalog.defFor('gauge_max_pressure_bar')!.dimension,
         AttributeDimension.pressureBar,
       );
+      // Full scale of the dial, not a cylinder's working pressure: a 300 bar
+      // gauge on a 232 bar tank is a different object. What has to hold is
+      // that neither type offers the other's key, so a future edit cannot
+      // quietly collapse the two into one.
       expect(
-        EquipmentAttributeCatalog.defFor('working_pressure_bar')!.key,
-        isNot('gauge_max_pressure_bar'),
+        keysFor(EquipmentType.instrument),
+        isNot(contains('working_pressure_bar')),
+      );
+      expect(
+        keysFor(EquipmentType.tank),
+        allOf(
+          contains('working_pressure_bar'),
+          isNot(contains('gauge_max_pressure_bar')),
+        ),
       );
     });
 
