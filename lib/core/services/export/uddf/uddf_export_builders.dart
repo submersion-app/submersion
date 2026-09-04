@@ -1496,16 +1496,16 @@ class UddfExportBuilders {
                     builder.element(
                       'insurance',
                       nest: () {
-                        if (owner.insurance.provider != null) {
+                        if (owner.insurance.providerLabel != null) {
                           builder.element(
                             'provider',
-                            nest: owner.insurance.provider,
+                            nest: owner.insurance.providerLabel,
                           );
                         }
-                        if (owner.insurance.policyNumber != null) {
+                        if (owner.insurance.policyLabel != null) {
                           builder.element(
                             'policynumber',
-                            nest: owner.insurance.policyNumber,
+                            nest: owner.insurance.policyLabel,
                           );
                         }
                         if (owner.insurance.expiryDate != null) {
@@ -1514,14 +1514,17 @@ class UddfExportBuilders {
                             nest: owner.insurance.expiryDate!.toIso8601String(),
                           );
                         }
-                        if (owner.insurance.emergencyPhone != null) {
+                        if (owner.insurance.assistanceLine != null) {
                           builder.element(
                             'emergencyphone',
-                            nest: owner.insurance.emergencyPhone,
+                            nest: owner.insurance.assistanceLine,
                           );
                         }
-                        if (owner.insurance.phone != null) {
-                          builder.element('phone', nest: owner.insurance.phone);
+                        if (owner.insurance.officeLine != null) {
+                          builder.element(
+                            'phone',
+                            nest: owner.insurance.officeLine,
+                          );
                         }
                       },
                     );

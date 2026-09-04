@@ -52,20 +52,30 @@ class DiverInsurance extends Equatable {
     this.phone,
   });
 
-  /// Trims a stored number and reports a blank one as absent. An emptied text
-  /// field round-trips through the database as `''` on some paths, and
-  /// dialling that would fail silently at the very worst moment.
-  static String? _dialable(String? value) {
+  /// Trims a stored value and reports a blank one as absent. An emptied text
+  /// field round-trips through the database as `''` on some paths: a blank
+  /// number would fail to dial silently at the very worst moment, and a blank
+  /// policy number would print an empty "Policy" line on the emergency card.
+  ///
+  /// Every getter below goes through this, so "is it there?" gets one answer
+  /// across the card, the export, and the persistence gates.
+  static String? _presentOrNull(String? value) {
     final trimmed = value?.trim();
     return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
   }
 
   /// The 24-hour assistance line, ready to dial, or null if not recorded.
   /// This is the only insurer number the emergency card will lead with.
-  String? get assistanceLine => _dialable(emergencyPhone);
+  String? get assistanceLine => _presentOrNull(emergencyPhone);
 
   /// The office line, ready to dial, or null if not recorded.
-  String? get officeLine => _dialable(phone);
+  String? get officeLine => _presentOrNull(phone);
+
+  /// The insurer's name, ready to display, or null if not recorded.
+  String? get providerLabel => _presentOrNull(provider);
+
+  /// The policy number, ready to display, or null if not recorded.
+  String? get policyLabel => _presentOrNull(policyNumber);
 
   /// An insurer number to dial at all, preferring the assistance line. Used to
   /// decide whether the insurance block has anything to show; deciding what
@@ -81,14 +91,11 @@ class DiverInsurance extends Equatable {
   /// Persistence and export must key off this rather than [provider]: a policy
   /// number or an assistance line can be saved without ever naming the
   /// insurer, and gating on the name alone silently drops the rest.
-  bool get hasAnyDetail {
-    final name = provider?.trim();
-    if (name != null && name.isNotEmpty) return true;
-    final policy = policyNumber?.trim();
-    if (policy != null && policy.isNotEmpty) return true;
-    if (expiryDate != null) return true;
-    return hasCallNumber;
-  }
+  bool get hasAnyDetail =>
+      providerLabel != null ||
+      policyLabel != null ||
+      expiryDate != null ||
+      hasCallNumber;
 
   bool get isExpired {
     if (expiryDate == null) return false;

@@ -96,11 +96,10 @@ class _CardBody extends ConsumerWidget {
             style: theme.textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
-          if (insurance.policyNumber != null &&
-              insurance.policyNumber!.isNotEmpty) ...[
+          if (insurance.policyLabel != null) ...[
             const SizedBox(height: 4),
             Text(
-              l10n.emergencyCard_insurancePolicy(insurance.policyNumber!),
+              l10n.emergencyCard_insurancePolicy(insurance.policyLabel!),
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -211,9 +210,7 @@ class _CardBody extends ConsumerWidget {
   /// What the lead button calls the insurer. A diver can save a number
   /// without naming the provider, and "Call" on its own is not a button.
   String _insurerName(AppLocalizations l10n, DiverInsurance insurance) {
-    final provider = insurance.provider?.trim();
-    if (provider != null && provider.isNotEmpty) return provider;
-    return l10n.emergencyCard_insuranceSection;
+    return insurance.providerLabel ?? l10n.emergencyCard_insuranceSection;
   }
 }
 
@@ -340,12 +337,11 @@ class _DiverSection extends StatelessWidget {
         if (_hasInsuranceDetails(diver.insurance)) ...[
           const SizedBox(height: 16),
           _SectionHeader(title: l10n.emergencyCard_insuranceSection),
-          if (diver.insurance.provider != null &&
-              diver.insurance.provider!.isNotEmpty)
-            Text(diver.insurance.provider!, style: big),
-          if (diver.insurance.policyNumber != null)
+          if (diver.insurance.providerLabel != null)
+            Text(diver.insurance.providerLabel!, style: big),
+          if (diver.insurance.policyLabel != null)
             Text(
-              l10n.emergencyCard_insurancePolicy(diver.insurance.policyNumber!),
+              l10n.emergencyCard_insurancePolicy(diver.insurance.policyLabel!),
               style: big,
             ),
           insurerNumber(
@@ -386,11 +382,9 @@ class _DiverSection extends StatelessWidget {
 /// print a header over an empty block. Persistence and export use the wider
 /// one.
 bool _hasInsuranceDetails(DiverInsurance insurance) {
-  final provider = insurance.provider?.trim();
-  if (provider != null && provider.isNotEmpty) return true;
-  final policy = insurance.policyNumber?.trim();
-  if (policy != null && policy.isNotEmpty) return true;
-  return insurance.hasCallNumber;
+  return insurance.providerLabel != null ||
+      insurance.policyLabel != null ||
+      insurance.hasCallNumber;
 }
 
 class _SectionHeader extends StatelessWidget {

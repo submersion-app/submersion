@@ -25,6 +25,28 @@ void main() {
       expect(insurance.officeLine, '+49-30-111-111');
     });
 
+    test('provider and policy labels trim, and blanks read as absent', () {
+      const blank = DiverInsurance(provider: '   ', policyNumber: '');
+      expect(blank.providerLabel, isNull);
+      expect(blank.policyLabel, isNull);
+      expect(blank.hasAnyDetail, isFalse);
+
+      const padded = DiverInsurance(
+        provider: '  ARENA  ',
+        policyNumber: '  A-777  ',
+      );
+      expect(padded.providerLabel, 'ARENA');
+      expect(padded.policyLabel, 'A-777');
+      expect(padded.hasAnyDetail, isTrue);
+    });
+
+    test('hasAnyDetail counts an expiry date on its own', () {
+      // Export keys off this, so an expiry-only record must still round-trip.
+      final insurance = DiverInsurance(expiryDate: DateTime.utc(2030));
+      expect(insurance.hasAnyDetail, isTrue);
+      expect(insurance.hasCallNumber, isFalse);
+    });
+
     test('both lines are trimmed, and blanks read as absent', () {
       const insurance = DiverInsurance(
         emergencyPhone: '  +49-30-000-000  ',

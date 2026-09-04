@@ -409,6 +409,27 @@ void main() {
       );
     });
 
+    testWidgets('a whitespace-only policy number prints no policy line', (
+      tester,
+    ) async {
+      // A blank "Policy" line is noise on a screen read under stress.
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(
+        tester,
+        diverOverride: diver.copyWith(
+          insurance: const DiverInsurance(
+            provider: 'ARENA',
+            policyNumber: '   ',
+            emergencyPhone: '+49-30-555-0100',
+          ),
+        ),
+      );
+
+      expect(find.textContaining('Policy'), findsNothing);
+    });
+
     testWidgets('the office line stays reachable in the insurance block', (
       tester,
     ) async {
