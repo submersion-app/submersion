@@ -9639,6 +9639,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_drysuit => '干衣';
 
   @override
+  String get enum_equipmentType_baselayer => '基础层';
+
+  @override
+  String get enum_equipmentType_undersuit => '内胆保暖服';
+
+  @override
   String get enum_equipmentType_fins => '脚蹼';
 
   @override
@@ -23625,6 +23631,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_glove_type => '类型';
 
   @override
+  String get attrLabel_insulation_level => '保暖等级';
+
+  @override
+  String get attrLabel_fill_material => '材质';
+
+  @override
   String get attrLabel_sole_type => '鞋底';
 
   @override
@@ -23737,6 +23749,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => '氯丁橡胶';
+
+  @override
+  String get attrChoice_insulation_level_light => '轻薄';
+
+  @override
+  String get attrChoice_insulation_level_mid => '中等';
+
+  @override
+  String get attrChoice_insulation_level_heavy => '厚实';
+
+  @override
+  String get attrChoice_insulation_level_extreme => '极厚';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => '中空纤维';
+
+  @override
+  String get attrChoice_fill_material_fleece => '抓绒';
+
+  @override
+  String get attrChoice_fill_material_merino => '美利奴羊毛';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => '聚丙烯';
 
   @override
   String get attrChoice_tank_material_aluminum => '铝';

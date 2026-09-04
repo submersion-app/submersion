@@ -10082,6 +10082,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_drysuit => 'Szaraz ruha';
 
   @override
+  String get enum_equipmentType_baselayer => 'Alapréteg';
+
+  @override
+  String get enum_equipmentType_undersuit => 'Alsóöltözet';
+
+  @override
   String get enum_equipmentType_fins => 'Uszonyok';
 
   @override
@@ -24812,6 +24818,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_glove_type => 'Típus';
 
   @override
+  String get attrLabel_insulation_level => 'Szigetelési szint';
+
+  @override
+  String get attrLabel_fill_material => 'Anyag';
+
+  @override
   String get attrLabel_sole_type => 'Talp';
 
   @override
@@ -24924,6 +24936,36 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'Neoprén';
+
+  @override
+  String get attrChoice_insulation_level_light => 'Könnyű';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'Közepes';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'Vastag';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'Extrém';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'Üreges szál';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'Polár';
+
+  @override
+  String get attrChoice_fill_material_merino => 'Merinógyapjú';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'Polipropilén';
 
   @override
   String get attrChoice_tank_material_aluminum => 'Alumínium';

@@ -10109,6 +10109,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentType_drysuit => 'Trockentauchanzug';
 
   @override
+  String get enum_equipmentType_baselayer => 'Basisschicht';
+
+  @override
+  String get enum_equipmentType_undersuit => 'Unterzieher';
+
+  @override
   String get enum_equipmentType_fins => 'Flossen';
 
   @override
@@ -24867,6 +24873,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_glove_type => 'Typ';
 
   @override
+  String get attrLabel_insulation_level => 'Isolationsstufe';
+
+  @override
+  String get attrLabel_fill_material => 'Material';
+
+  @override
   String get attrLabel_sole_type => 'Sohle';
 
   @override
@@ -24981,6 +24993,36 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'Neopren';
+
+  @override
+  String get attrChoice_insulation_level_light => 'Leicht';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'Mittel';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'Schwer';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'Extrem';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'Hohlfaser';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'Fleece';
+
+  @override
+  String get attrChoice_fill_material_merino => 'Merinowolle';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'Polypropylen';
 
   @override
   String get attrChoice_tank_material_aluminum => 'Aluminium';

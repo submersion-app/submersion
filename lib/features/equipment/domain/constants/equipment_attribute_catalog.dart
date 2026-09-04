@@ -44,6 +44,8 @@ abstract final class EquipmentAttrKeys {
   static const liftCapacityKg = 'lift_capacity_kg';
   static const gloveType = 'glove_type';
   static const weightStyle = 'weight_style';
+  static const insulationLevel = 'insulation_level';
+  static const fillMaterial = 'fill_material';
 }
 
 class EquipmentAttributeDef {
@@ -88,6 +90,32 @@ abstract final class EquipmentAttributeCatalog {
     dimension: AttributeDimension.thicknessMm,
   );
 
+  /// How warm the garment is, in the four steps drysuit makers actually
+  /// print on a label. Undergarments are sold by warmth rating rather than by
+  /// millimetres, so [EquipmentAttrKeys.thicknessMm] would be the wrong
+  /// question: a 400g Thinsulate suit and a fleece of the same loft are not
+  /// the same garment.
+  static const _insulationLevel = EquipmentAttributeDef(
+    key: EquipmentAttrKeys.insulationLevel,
+    kind: AttributeKind.choice,
+    choiceKeys: ['light', 'mid', 'heavy', 'extreme'],
+  );
+
+  /// What the garment is made of. Shared by both layers: the same fibres show
+  /// up in undersuits and in the base layers worn beneath them.
+  static const _fillMaterial = EquipmentAttributeDef(
+    key: EquipmentAttrKeys.fillMaterial,
+    kind: AttributeKind.choice,
+    choiceKeys: [
+      'thinsulate',
+      'primaloft',
+      'hollowfibre',
+      'fleece',
+      'merino',
+      'polypropylene',
+    ],
+  );
+
   static const Map<EquipmentType, List<EquipmentAttributeDef>> _byType = {
     EquipmentType.wetsuit: [
       _size,
@@ -116,6 +144,8 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['latex', 'silicone', 'neoprene'],
       ),
     ],
+    EquipmentType.undersuit: [_size, _insulationLevel, _fillMaterial],
+    EquipmentType.baselayer: [_size, _insulationLevel, _fillMaterial],
     EquipmentType.tank: [
       EquipmentAttributeDef(
         key: 'volume_l',

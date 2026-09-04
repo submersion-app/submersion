@@ -85,6 +85,22 @@ class MacDiveValueMapper {
     // Ordered longest-idea-first: "drysuit" must beat "suit", and the
     // regulator family must not swallow "octopus", which is its own type in
     // neither vocabulary but reads as a regulator to divers.
+    //
+    // The drysuit layers (#1537) come before the suits they go under: a
+    // "thermal undersuit" must not be read as a wetsuit, and "dry undersuit"
+    // -- a real product name -- must not be read as a drysuit.
+    if (s.contains('undersuit') ||
+        s.contains('under suit') ||
+        s.contains('undergarment') ||
+        s.contains('under garment')) {
+      return EquipmentType.undersuit;
+    }
+    if (s.contains('baselayer') ||
+        s.contains('base layer') ||
+        s.contains('thermal') ||
+        s.contains('wicking')) {
+      return EquipmentType.baselayer;
+    }
     if (s.contains('drysuit') || s.contains('dry suit')) {
       return EquipmentType.drysuit;
     }

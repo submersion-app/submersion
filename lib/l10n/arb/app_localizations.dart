@@ -17024,6 +17024,18 @@ abstract class AppLocalizations {
   /// **'Drysuit'**
   String get enum_equipmentType_drysuit;
 
+  /// No description provided for @enum_equipmentType_baselayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Layer'**
+  String get enum_equipmentType_baselayer;
+
+  /// No description provided for @enum_equipmentType_undersuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Undersuit'**
+  String get enum_equipmentType_undersuit;
+
   /// No description provided for @enum_equipmentType_fins.
   ///
   /// In en, this message translates to:
@@ -41057,6 +41069,18 @@ abstract class AppLocalizations {
   /// **'Type'**
   String get attrLabel_glove_type;
 
+  /// No description provided for @attrLabel_insulation_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Insulation level'**
+  String get attrLabel_insulation_level;
+
+  /// No description provided for @attrLabel_fill_material.
+  ///
+  /// In en, this message translates to:
+  /// **'Material'**
+  String get attrLabel_fill_material;
+
   /// No description provided for @attrLabel_sole_type.
   ///
   /// In en, this message translates to:
@@ -41284,6 +41308,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Neoprene'**
   String get attrChoice_seal_type_neoprene;
+
+  /// No description provided for @attrChoice_insulation_level_light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get attrChoice_insulation_level_light;
+
+  /// No description provided for @attrChoice_insulation_level_mid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid-weight'**
+  String get attrChoice_insulation_level_mid;
+
+  /// No description provided for @attrChoice_insulation_level_heavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy'**
+  String get attrChoice_insulation_level_heavy;
+
+  /// No description provided for @attrChoice_insulation_level_extreme.
+  ///
+  /// In en, this message translates to:
+  /// **'Extreme'**
+  String get attrChoice_insulation_level_extreme;
+
+  /// No description provided for @attrChoice_fill_material_thinsulate.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinsulate'**
+  String get attrChoice_fill_material_thinsulate;
+
+  /// No description provided for @attrChoice_fill_material_primaloft.
+  ///
+  /// In en, this message translates to:
+  /// **'PrimaLoft'**
+  String get attrChoice_fill_material_primaloft;
+
+  /// No description provided for @attrChoice_fill_material_hollowfibre.
+  ///
+  /// In en, this message translates to:
+  /// **'Hollowfibre'**
+  String get attrChoice_fill_material_hollowfibre;
+
+  /// No description provided for @attrChoice_fill_material_fleece.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleece'**
+  String get attrChoice_fill_material_fleece;
+
+  /// No description provided for @attrChoice_fill_material_merino.
+  ///
+  /// In en, this message translates to:
+  /// **'Merino wool'**
+  String get attrChoice_fill_material_merino;
+
+  /// No description provided for @attrChoice_fill_material_polypropylene.
+  ///
+  /// In en, this message translates to:
+  /// **'Polypropylene'**
+  String get attrChoice_fill_material_polypropylene;
 
   /// No description provided for @attrChoice_tank_material_aluminum.
   ///

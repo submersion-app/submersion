@@ -152,6 +152,10 @@ void main() {
       'Scooter': EquipmentType.dpv,
       'Suex XJoy Scooter': EquipmentType.dpv,
       'Diver Propulsion Vehicle': EquipmentType.dpv,
+      'Undersuit': EquipmentType.undersuit,
+      'Santi BZ400 undergarment': EquipmentType.undersuit,
+      'Base layer': EquipmentType.baselayer,
+      'Thermal top': EquipmentType.baselayer,
     };
 
     cases.forEach((input, expected) {
@@ -177,6 +181,20 @@ void main() {
       expect(
         MacDiveValueMapper.equipmentType('Wetsuit'),
         EquipmentType.wetsuit,
+      );
+    });
+
+    test('prefers the layer over the suit it goes under (#1537)', () {
+      // Both of these contain "suit", and the second contains "dry": the
+      // layer checks have to run first or a diver's undergarments import as
+      // duplicate suits.
+      expect(
+        MacDiveValueMapper.equipmentType('Thermal undersuit'),
+        EquipmentType.undersuit,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Weezle Dry Undersuit'),
+        EquipmentType.undersuit,
       );
     });
 

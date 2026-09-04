@@ -32,6 +32,26 @@ void main() {
     }
   });
 
+  test('the drysuit layers are told apart from the suits (#1537)', () {
+    // An undersuit reuses the suit silhouette, so the quilting is the only
+    // thing keeping it from reading as a wetsuit in the equipment list.
+    final layers = [EquipmentType.undersuit, EquipmentType.baselayer];
+    final suits = [EquipmentType.wetsuit, EquipmentType.drysuit];
+    for (final layer in layers) {
+      for (final suit in suits) {
+        expect(
+          equipmentTypeIcon(layer),
+          isNot(equipmentTypeIcon(suit)),
+          reason: '${layer.name} vs ${suit.name}',
+        );
+      }
+    }
+    expect(
+      equipmentTypeIcon(EquipmentType.undersuit),
+      isNot(equipmentTypeIcon(EquipmentType.baselayer)),
+    );
+  });
+
   test('the two exposure suits no longer share a glyph', () {
     // They did until #1189, which reported the shared hanger as a defect: the
     // drysuit is drawn with its attached hood and boots.
@@ -56,6 +76,8 @@ void main() {
       EquipmentType.boots: SubmersionIcons.boots,
       EquipmentType.reel: SubmersionIcons.reel,
       EquipmentType.dpv: SubmersionIcons.dpv,
+      EquipmentType.undersuit: SubmersionIcons.undersuit,
+      EquipmentType.baselayer: SubmersionIcons.baselayer,
     };
 
     test('are wired to the equipment font', () {

@@ -9927,6 +9927,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_drysuit => 'بدلة جافة';
 
   @override
+  String get enum_equipmentType_baselayer => 'طبقة أساسية';
+
+  @override
+  String get enum_equipmentType_undersuit => 'بدلة داخلية';
+
+  @override
   String get enum_equipmentType_fins => 'زعانف';
 
   @override
@@ -24462,6 +24468,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_glove_type => 'النوع';
 
   @override
+  String get attrLabel_insulation_level => 'مستوى العزل';
+
+  @override
+  String get attrLabel_fill_material => 'الخامة';
+
+  @override
   String get attrLabel_sole_type => 'النعل';
 
   @override
@@ -24574,6 +24586,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'نيوبرين';
+
+  @override
+  String get attrChoice_insulation_level_light => 'خفيف';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'متوسط';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'ثقيل';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'فائق';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'ألياف مجوفة';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'فراء صناعي';
+
+  @override
+  String get attrChoice_fill_material_merino => 'صوف ميرينو';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'بولي بروبيلين';
 
   @override
   String get attrChoice_tank_material_aluminum => 'ألومنيوم';
