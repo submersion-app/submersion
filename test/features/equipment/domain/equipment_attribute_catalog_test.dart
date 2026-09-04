@@ -235,13 +235,13 @@ void main() {
   });
 
   group('the #1518 equipment types', () {
-    // Five types added for large/team/family inventories. The sixth the issue
-    // asked for, a thermal undergarment, landed on main first as `undersuit`
-    // and `baselayer` (#1537), so this branch drops its own rather than
-    // offering the diver two names for one garment. Each one is asserted
-    // as an exact ordered key list rather than a `containsAll`, because the
-    // order is what the edit form renders and a silently dropped field would
-    // otherwise pass.
+    // Five of the six types #1518 asked for. The sixth, an undergarment, is
+    // covered by `undersuit` and `baselayer` (#1537): it is the same garment,
+    // and one dropdown offering two names for it would serve nobody.
+    //
+    // Each is asserted as an exact ordered key list rather than a
+    // `containsAll`, because the order is what the edit form renders and a
+    // silently dropped field would otherwise pass.
     List<String> keysFor(EquipmentType t) =>
         EquipmentAttributeCatalog.attributesFor(t).map((d) => d.key).toList();
 
