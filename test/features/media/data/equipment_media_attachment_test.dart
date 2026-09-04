@@ -53,14 +53,24 @@ void main() {
         ),
       );
 
+  /// createMedia stamps its OWN `DateTime.now()` and ignores the entity's
+  /// createdAt, so any test that cares about created_at ordering has to write
+  /// the column afterwards. Without this, an "ordered by createdAt" assertion
+  /// silently tests insertion order instead.
+  Future<void> setCreatedAt(String id, DateTime when) => db.customStatement(
+    'UPDATE media SET created_at = ? WHERE id = ?',
+    [when.millisecondsSinceEpoch, id],
+  );
+
   MediaItem doc(
     String name, {
     String? diveId,
     String? siteId,
     String? equipmentId,
     DateTime? createdAt,
+    String id = '',
   }) => MediaItem(
-    id: '',
+    id: id,
     mediaType: MediaType.document,
     sourceType: MediaSourceType.localFile,
     filePath: '/tmp/$name',
@@ -91,16 +101,43 @@ void main() {
     await insertEquipment('e1');
     // takenAt is identical for both (it is only the attach moment for a
     // document), so createdAt is what has to carry the ordering.
-    final first = await repo.createMedia(
-      doc('older.pdf', equipmentId: 'e1', createdAt: DateTime(2026, 1, 1)),
-    );
-    final second = await repo.createMedia(
-      doc('newer.pdf', equipmentId: 'e1', createdAt: DateTime(2026, 6, 1)),
-    );
+    // Inserted newest-first and then stamped, so a query leaning on insertion
+    // order fails here instead of passing by coincidence.
+    final second = await repo.createMedia(doc('newer.pdf', equipmentId: 'e1'));
+    final first = await repo.createMedia(doc('older.pdf', equipmentId: 'e1'));
+    await setCreatedAt(second.id, DateTime(2026, 6, 1));
+    await setCreatedAt(first.id, DateTime(2026, 1, 1));
 
     final ordered = await repo.getMediaForEquipment('e1');
     expect(ordered.map((m) => m.id), [first.id, second.id]);
   });
+
+  test(
+    'attachments stamped in the same millisecond keep a stable order',
+    () async {
+      // createdAt is stored to the millisecond and importDocuments stamps
+      // DateTime.now() per file inside its loop, so one picker selection can
+      // give several rows the same value. SQLite leaves tied ordering
+      // undefined, so without a deterministic tie-break the list reshuffles
+      // between runs and between devices.
+      //
+      // Ids are inserted in reverse order deliberately, so rowid order and id
+      // order disagree and a query leaning on insertion order fails here
+      // rather than passing by luck on a random UUID draw.
+      await insertEquipment('e1');
+      await repo.createMedia(doc('b.pdf', id: 'zzz', equipmentId: 'e1'));
+      await repo.createMedia(doc('a.pdf', id: 'aaa', equipmentId: 'e1'));
+      // Stamped equal rather than hoped equal: createMedia writes real
+      // wall-clock times, so leaving the collision to chance makes this flaky
+      // in exactly the direction that would hide the bug.
+      final sameInstant = DateTime(2026, 4, 1, 9, 30, 15, 250);
+      await setCreatedAt('zzz', sameInstant);
+      await setCreatedAt('aaa', sameInstant);
+
+      final ordered = await repo.getMediaForEquipment('e1');
+      expect(ordered.map((m) => m.id), ['aaa', 'zzz']);
+    },
+  );
 
   test('an equipment attachment is not a sweepable orphan', () async {
     // The whole point of widening isLinkedToLogbook: an invoice references

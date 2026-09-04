@@ -132,13 +132,23 @@ class MediaRepository {
   /// first (issue #1517). Ordered by createdAt rather than takenAt: an
   /// invoice's "taken" stamp is the moment it was attached, which carries no
   /// meaning, while the attach order is the order the diver filed them in.
+  ///
+  /// Id breaks the ties, and it is load-bearing rather than decorative:
+  /// created_at is stored to the MILLISECOND and DocumentImportService stamps
+  /// DateTime.now() per file inside its loop, so one picker selection of
+  /// several documents routinely lands them in the same millisecond. SQLite
+  /// leaves tied ordering undefined, so without this the diver's document
+  /// list reshuffles between runs and between devices.
   Future<List<domain.MediaItem>> getMediaForEquipment(
     String equipmentId,
   ) async {
     try {
       final query = _db.select(_db.media)
         ..where((t) => t.equipmentId.equals(equipmentId))
-        ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.createdAt),
+          (t) => OrderingTerm.asc(t.id),
+        ]);
       final rows = await query.get();
       return rows.map(mediaItemFromRow).toList();
     } catch (e, stackTrace) {
