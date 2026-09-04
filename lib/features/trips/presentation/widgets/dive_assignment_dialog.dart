@@ -247,8 +247,10 @@ class _DiveAssignmentDialogState extends ConsumerState<DiveAssignmentDialog> {
       final siteName =
           dive.site?.name ?? context.l10n.trips_diveScan_unknownSite;
       final dateStr = units.formatDate(dive.dateTime);
+      // Metres were hardcoded here, so an imperial diver read the wrong
+      // unit; the formatter is already in scope for the date.
       final depthStr = dive.maxDepth != null
-          ? '${dive.maxDepth!.toStringAsFixed(1)}m'
+          ? units.formatDepth(dive.maxDepth)
           : '';
 
       return InkWell(

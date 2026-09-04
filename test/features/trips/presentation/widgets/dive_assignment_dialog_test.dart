@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 Dive _makeDive({
   required String id,
@@ -56,6 +60,14 @@ List<DiveCandidate> _testCandidates() {
   ];
 }
 
+/// The dialog watches settingsProvider for the diver's date and depth units.
+/// The real notifier reaches for DiverSettingsRepository and a DatabaseService
+/// this harness never starts, so stand in with the shared mock.
+Widget _scoped(Widget child) => ProviderScope(
+  overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
+  child: child,
+);
+
 Future<void> _openDialog(
   WidgetTester tester,
   List<DiveCandidate> candidates,
@@ -63,15 +75,17 @@ Future<void> _openDialog(
   late BuildContext savedContext;
 
   await tester.pumpWidget(
-    MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: Builder(
-          builder: (context) {
-            savedContext = context;
-            return const SizedBox.shrink();
-          },
+    _scoped(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) {
+              savedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
         ),
       ),
     ),
@@ -124,15 +138,17 @@ void main() {
 
       late BuildContext savedContext;
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: Builder(
-              builder: (context) {
-                savedContext = context;
-                return const SizedBox.shrink();
-              },
+        _scoped(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) {
+                  savedContext = context;
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
           ),
         ),
@@ -163,15 +179,17 @@ void main() {
     testWidgets('returns null on cancel', (tester) async {
       late BuildContext savedContext;
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: Builder(
-              builder: (context) {
-                savedContext = context;
-                return const SizedBox.shrink();
-              },
+        _scoped(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) {
+                  savedContext = context;
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
           ),
         ),
@@ -195,15 +213,17 @@ void main() {
     testWidgets('returns null when close (X) button is tapped', (tester) async {
       late BuildContext savedContext;
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: Builder(
-              builder: (context) {
-                savedContext = context;
-                return const SizedBox.shrink();
-              },
+        _scoped(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) {
+                  savedContext = context;
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
           ),
         ),

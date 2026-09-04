@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
@@ -12,7 +10,7 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 ///
 /// Shows the uploaded front photo when the diver captured one, otherwise a
 /// generated card in the issuing agency's colours.
-class CertificationEcardFront extends ConsumerWidget {
+class CertificationEcardFront extends StatelessWidget {
   /// The certification to display.
   final Certification certification;
 
@@ -26,8 +24,7 @@ class CertificationEcardFront extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+  Widget build(BuildContext context) {
     final photo = certification.photoFront;
     if (photo != null) {
       return CertificationCardPhoto(
@@ -36,7 +33,7 @@ class CertificationEcardFront extends ConsumerWidget {
         infoLines: _buildInfoLines(),
       );
     }
-    return _buildGeneratedFront(context, units);
+    return _buildGeneratedFront(context);
   }
 
   /// Lines repeated over a photographed card.
@@ -62,7 +59,7 @@ class CertificationEcardFront extends ConsumerWidget {
     return [if (headline.isNotEmpty) headline, if (detail.isNotEmpty) detail];
   }
 
-  Widget _buildGeneratedFront(BuildContext context, UnitFormatter units) {
+  Widget _buildGeneratedFront(BuildContext context) {
     final agency = certification.agency;
 
     return Container(
@@ -107,7 +104,7 @@ class CertificationEcardFront extends ConsumerWidget {
                 // narrow phone. The header and grid are the facts a dive
                 // operator reads, so they keep their intrinsic height.
                 Flexible(child: _buildHero()),
-                _buildFieldGrid(context, units),
+                _buildFieldGrid(context),
               ],
             ),
           ),
@@ -181,8 +178,8 @@ class CertificationEcardFront extends ConsumerWidget {
   /// Cells with no value are dropped rather than rendered blank, and the
   /// remaining cells reflow two per row, so a bare certification produces a
   /// tighter card instead of a grid of holes.
-  Widget _buildFieldGrid(BuildContext context, UnitFormatter units) {
-    final cells = _buildFieldCells(context, units);
+  Widget _buildFieldGrid(BuildContext context) {
+    final cells = _buildFieldCells(context);
     if (cells.isEmpty) return const SizedBox.shrink();
 
     final rows = <List<_CardField>>[];
@@ -215,8 +212,9 @@ class CertificationEcardFront extends ConsumerWidget {
     );
   }
 
-  List<_CardField> _buildFieldCells(BuildContext context, UnitFormatter units) {
+  List<_CardField> _buildFieldCells(BuildContext context) {
     final l10n = context.l10n;
+    final dateFormat = DateFormat.yMMM();
     final cardNumber = certification.cardNumber;
 
     return [
@@ -233,12 +231,12 @@ class CertificationEcardFront extends ConsumerWidget {
       if (certification.issueDate != null)
         _CardField(
           label: l10n.certifications_ecard_label_issued,
-          value: units.formatMonthYear(certification.issueDate),
+          value: dateFormat.format(certification.issueDate!),
         ),
       if (certification.expiryDate != null)
         _CardField(
           label: l10n.certifications_ecard_label_validUntil,
-          value: units.formatMonthYear(certification.expiryDate),
+          value: dateFormat.format(certification.expiryDate!),
           valueColor: _expiryColor(),
         ),
     ];

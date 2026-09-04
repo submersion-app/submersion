@@ -41,6 +41,14 @@ void main() {
     // the width budget is the constraint rather than the reading order.
     'lib/features/certifications/presentation/services/certification_card_renderer.dart':
         'CR80 card art, fixed width budget',
+    // The printed card face imitates a physical certification card, so it
+    // keeps that card's compact month/year whatever the diver picked. There is
+    // no day to reorder; the spoken Semantics label carries the full date in
+    // the diver's own order instead. Pinned by
+    // certification_ecard_test.dart, "keeps the card face month/year under a
+    // day-first preference".
+    'lib/features/certifications/presentation/widgets/certification_ecard_front.dart':
+        'card face imitates the physical card',
   };
 
   /// A named constructor is ambiguous when it carries a day, or a month
