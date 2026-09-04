@@ -108,7 +108,11 @@ class DiverInsurance extends Equatable {
     return expiryDate!.isBefore(thirtyDaysFromNow) && !isExpired;
   }
 
-  bool get isValid => provider != null && provider!.isNotEmpty && !isExpired;
+  /// Goes through [providerLabel] so a whitespace-only provider is "not
+  /// recorded" here too. Every presence question about insurance has to give
+  /// the same answer, or the dashboard calls a policy valid that the emergency
+  /// card refuses to show.
+  bool get isValid => providerLabel != null && !isExpired;
 
   DiverInsurance copyWith({
     String? provider,

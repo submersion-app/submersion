@@ -40,6 +40,18 @@ void main() {
       expect(padded.hasAnyDetail, isTrue);
     });
 
+    test('a whitespace-only provider is not valid insurance', () {
+      // isValid feeds Diver.hasValidInsurance, the dashboard gauge strip and
+      // the profile hub. If it disagreed with providerLabel, the dashboard
+      // would call a policy valid that the emergency card refuses to show.
+      const blank = DiverInsurance(provider: '   ');
+      expect(blank.isValid, isFalse);
+      expect(blank.providerLabel, isNull);
+
+      const named = DiverInsurance(provider: '  ARENA  ');
+      expect(named.isValid, isTrue);
+    });
+
     test('hasAnyDetail counts an expiry date on its own', () {
       // Export keys off this, so an expiry-only record must still round-trip.
       final insurance = DiverInsurance(expiryDate: DateTime.utc(2030));

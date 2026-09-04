@@ -304,15 +304,16 @@ class _DiverSection extends StatelessWidget {
       required String? number,
       required IconData icon,
     }) {
-      final trimmed = number?.trim();
-      if (trimmed == null || trimmed.isEmpty) return const SizedBox.shrink();
+      // Callers pass the entity's already-normalized getters, so a blank is
+      // null by the time it arrives here.
+      if (number == null) return const SizedBox.shrink();
       return ListTile(
         contentPadding: EdgeInsets.zero,
         leading: Icon(icon),
         title: Text(label, style: big),
-        subtitle: Text(trimmed),
+        subtitle: Text(number),
         trailing: const Icon(Icons.phone, size: 20),
-        onTap: () => onCall(trimmed),
+        onTap: () => onCall(number),
       );
     }
 
@@ -346,12 +347,12 @@ class _DiverSection extends StatelessWidget {
             ),
           insurerNumber(
             label: l10n.emergencyCard_insuranceEmergencyLine,
-            number: diver.insurance.emergencyPhone,
+            number: diver.insurance.assistanceLine,
             icon: Icons.emergency_share_outlined,
           ),
           insurerNumber(
             label: l10n.emergencyCard_insuranceOfficeLine,
-            number: diver.insurance.phone,
+            number: diver.insurance.officeLine,
             icon: Icons.phone_outlined,
           ),
           // No 24h assistance line is the state issue #1522 describes: the
