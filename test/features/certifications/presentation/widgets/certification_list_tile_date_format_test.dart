@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -10,6 +11,10 @@ import '../../../../helpers/test_app.dart';
 
 /// #1512: the certification tile dated its subtitle with `DateFormat.yMMMd()`,
 /// so a diver on DD/MM/YYYY still read "Jun 15, 2023".
+///
+/// Both hosts pin `Locale('en')`. These assertions are numeric, but intl
+/// renders digits in the locale's own numbering system, so an unpinned host
+/// could produce Arabic-Indic digits on an `ar` machine.
 
 /// The tile watches [settingsProvider]; the real notifier reaches for the
 /// database, so stand in with a fixed [AppSettings].
@@ -45,6 +50,7 @@ void main() {
     testWidgets('subtitle carries the day-first issue date', (tester) async {
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           overrides: _overridesFor(DateFormatPreference.ddmmyyyy),
           child: CertificationListTile(certification: _certification()),
         ),
@@ -61,6 +67,7 @@ void main() {
     testWidgets('subtitle carries the ISO issue date', (tester) async {
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           overrides: _overridesFor(DateFormatPreference.yyyymmdd),
           child: CertificationListTile(certification: _certification()),
         ),

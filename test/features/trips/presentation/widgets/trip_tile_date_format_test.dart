@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -11,6 +12,11 @@ import '../../../../helpers/test_app.dart';
 
 /// #1512: the trip tiles dated every row with `DateFormat.yMMMd()`, so a diver
 /// on D MMM YYYY still read "Jun 1, 2025".
+///
+/// Every host pins `Locale('en')`. UnitFormatter's patterns spell the month
+/// with `MMM`, which intl resolves against `Intl.defaultLocale` (set from the
+/// app locale), so an unpinned host would translate "Jun" on a non-English
+/// machine.
 
 /// The tiles watch [settingsProvider]; the real notifier reaches for the
 /// database, so stand in with a fixed [AppSettings].
@@ -53,6 +59,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           overrides: _overridesFor(DateFormatPreference.ddmmyyyy),
           child: CompactTripListTile(tripWithStats: _trip()),
         ),
@@ -66,6 +73,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           overrides: _overridesFor(DateFormatPreference.mmmDYYYY),
           child: CompactTripListTile(tripWithStats: _trip()),
         ),
@@ -80,6 +88,7 @@ void main() {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           overrides: _overridesFor(DateFormatPreference.dMMMYYYY),
           child: TripListTile(tripWithStats: _trip()),
         ),

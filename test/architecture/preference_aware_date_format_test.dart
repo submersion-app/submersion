@@ -76,7 +76,10 @@ void main() {
       if (!dir.existsSync()) continue;
       for (final entity in dir.listSync(recursive: true)) {
         if (entity is! File || !entity.path.endsWith('.dart')) continue;
-        final path = entity.path;
+        // Normalise separators: Directory.listSync yields platform paths, so
+        // on Windows every 'lib/features/' prefix and allowlist key below
+        // would miss and the scan would report phantom violations.
+        final path = entity.path.replaceAll('\\', '/');
         if (!isScanned(path) || allowed.containsKey(path)) continue;
 
         final lines = entity.readAsLinesSync();
