@@ -168,7 +168,7 @@ class EquipmentDocumentsSection extends ConsumerWidget {
     final l10n = context.l10n;
     final errorColor = Theme.of(context).colorScheme.error;
     try {
-      await unlinkEquipmentMedia(ref, [item.id]);
+      await unlinkEquipmentMedia(ref, equipmentId, [item.id]);
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.equipment_documents_removed)),
       );

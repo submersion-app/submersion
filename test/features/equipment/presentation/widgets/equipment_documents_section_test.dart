@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show ProviderScope;
 
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -245,6 +246,59 @@ void main() {
         ['doc-1'],
       ]);
       expect(find.text('Document removed'), findsOneWidget);
+    });
+
+    testWidgets('leaves other equipment items alone', (tester) async {
+      // The invalidation is scoped to this item's id. Invalidating the family
+      // root would rebuild every other equipment item's list and count, and
+      // each rebuild is a database read.
+      final calls = <List<String>>[];
+      var otherBuilds = 0;
+      await tester.pumpWidget(
+        await host(
+          documents: [invoice],
+          onAttach: () {},
+          extraOverrides: [
+            mediaForEquipmentProvider('other-equipment').overrideWith((
+              ref,
+            ) async {
+              otherBuilds++;
+              return const <MediaItem>[];
+            }),
+            mediaUnlinkServiceProvider.overrideWithValue(
+              _RecordingUnlinkService(calls: calls),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // A LIVE listener, not a one-off read: an invalidated FutureProvider
+      // with nothing listening simply drops its state and rebuilds lazily on
+      // the next read, so a bare read would make this assertion vacuous --
+      // it passes against the family-wide invalidation too. Verified both
+      // directions.
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(EquipmentDocumentsSection)),
+      );
+      final sub = container.listen(
+        mediaForEquipmentProvider('other-equipment'),
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(sub.close);
+      await container.read(mediaForEquipmentProvider('other-equipment').future);
+      expect(otherBuilds, 1);
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+
+      expect(calls, [
+        ['doc-1'],
+      ]);
+      expect(otherBuilds, 1, reason: 'unrelated equipment was rebuilt');
     });
 
     testWidgets('surfaces a failure instead of pretending it worked', (
