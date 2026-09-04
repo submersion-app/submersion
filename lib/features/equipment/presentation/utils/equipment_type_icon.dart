@@ -30,6 +30,13 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return SubmersionIcons.wetsuit;
     case EquipmentType.drysuit:
       return SubmersionIcons.drysuit;
+    // The drysuit layers (#1537) share the wardrobe family without sharing a
+    // glyph: the undersuit is the suit silhouette quilted, the base layer a
+    // short-bodied top that cannot be mistaken for a suit at 20px.
+    case EquipmentType.undersuit:
+      return SubmersionIcons.undersuit;
+    case EquipmentType.baselayer:
+      return SubmersionIcons.baselayer;
     case EquipmentType.mask:
       return MdiIcons.divingScubaMask;
     case EquipmentType.fins:

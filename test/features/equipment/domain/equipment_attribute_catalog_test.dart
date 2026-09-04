@@ -56,6 +56,17 @@ void main() {
         'product_url',
       ]),
     );
+    // The drysuit layers (#1537) are rated by warmth, not by millimetres:
+    // asking for thickness_mm would be the wrong question for a garment sold
+    // as "400g Thinsulate".
+    for (final type in [EquipmentType.undersuit, EquipmentType.baselayer]) {
+      expect(
+        keysFor(type),
+        containsAll(['size', 'insulation_level', 'fill_material']),
+        reason: type.name,
+      );
+      expect(keysFor(type), isNot(contains('thickness_mm')), reason: type.name);
+    }
   });
 
   test('choice kinds always have at least two options', () {

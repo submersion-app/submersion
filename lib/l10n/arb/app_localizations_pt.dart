@@ -10167,6 +10167,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentType_drysuit => 'Roupa Seca';
 
   @override
+  String get enum_equipmentType_baselayer => 'Camada base';
+
+  @override
+  String get enum_equipmentType_undersuit => 'Fato interior';
+
+  @override
   String get enum_equipmentType_fins => 'Nadadeiras';
 
   @override
@@ -11733,7 +11739,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Registro de manutencao excluido';
 
   @override
-  String get equipment_service_totalCostLabel => 'Custo Total de Manutencao';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'Custo Total de Manutencao ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Adicionar Equipamento';
@@ -11974,7 +11982,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_summary_totalItems => 'Total de Itens';
 
   @override
-  String get equipment_summary_totalValue => 'Valor Total';
+  String equipment_summary_totalValue(String currency) {
+    return 'Valor Total ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'Equipamento';
@@ -24975,6 +24985,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_glove_type => 'Tipo';
 
   @override
+  String get attrLabel_insulation_level => 'Nível de isolamento';
+
+  @override
+  String get attrLabel_fill_material => 'Material';
+
+  @override
   String get attrLabel_sole_type => 'Sola';
 
   @override
@@ -25098,6 +25114,36 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'Neoprene';
+
+  @override
+  String get attrChoice_insulation_level_light => 'Leve';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'Médio';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'Pesado';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'Extremo';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'Fibra oca';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'Polar';
+
+  @override
+  String get attrChoice_fill_material_merino => 'Lã merino';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'Polipropileno';
 
   @override
   String get attrChoice_tank_material_aluminum => 'Alumínio';

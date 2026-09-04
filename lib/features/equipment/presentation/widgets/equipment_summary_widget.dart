@@ -142,7 +142,10 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                   icon: Icons.attach_money,
                   value:
                       '${currencySymbol(entry.key)}${entry.value.toStringAsFixed(0)}',
-                  label: context.l10n.equipment_summary_totalValue,
+                  // The ISO code, not just the symbol: intl renders USD and
+                  // CAD alike as "$", so two totals were indistinguishable
+                  // (#1519).
+                  label: context.l10n.equipment_summary_totalValue(entry.key),
                   color: Colors.orange,
                 ),
           ],

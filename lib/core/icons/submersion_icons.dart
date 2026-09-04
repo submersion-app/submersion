@@ -63,4 +63,10 @@ abstract final class SubmersionIcons {
 
   /// Diver propulsion vehicle: torpedo hull with a shrouded prop.
   static const IconData dpv = IconData(0xe909, fontFamily: fontFamily);
+
+  /// Drysuit undersuit: the suit silhouette again, quilted.
+  static const IconData undersuit = IconData(0xe90a, fontFamily: fontFamily);
+
+  /// Base layer: a long-sleeved thermal top, stopping at the hips.
+  static const IconData baselayer = IconData(0xe90b, fontFamily: fontFamily);
 }

@@ -270,7 +270,8 @@ void main() {
       // Mixed currencies never sum into one figure.
       expect(find.textContaining('45'), findsWidgets);
       expect(find.textContaining('12'), findsWidgets);
-      expect(find.text('Total Service Cost'), findsNWidgets(2));
+      expect(find.text('Total Service Cost (EUR)'), findsOneWidget);
+      expect(find.text('Total Service Cost (USD)'), findsOneWidget);
     });
 
     testWidgets('a zero total is not shown at all', (tester) async {
@@ -280,7 +281,7 @@ void main() {
         kinds: [kind('disinfect', 'Disinfect')],
       );
 
-      expect(find.text('Total Service Cost'), findsNothing);
+      expect(find.textContaining('Total Service Cost'), findsNothing);
     });
 
     testWidgets('the total reflects only the filtered rows (#1236)', (

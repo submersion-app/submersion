@@ -556,6 +556,15 @@ jobs:
           python3 -m pip install shapely
           python3 scripts/sea_area_harvester_test.py
 
+      - name: Run dive site harvester tests
+        # The harvester stamps the bundled dive site and dive centre assets.
+        # Its dependency set is the one scripts/requirements.txt declares;
+        # without it the module-level tests skip themselves and only the
+        # source scan runs.
+        run: |
+          python3 -m pip install -r scripts/requirements.txt
+          python3 scripts/dive_site_harvester_test.py
+
       - name: Run appcast beta feed test
         run: ./scripts/generate_appcast_beta_test.sh
 

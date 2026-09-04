@@ -10137,6 +10137,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_drysuit => 'Szaraz ruha';
 
   @override
+  String get enum_equipmentType_baselayer => 'Alapréteg';
+
+  @override
+  String get enum_equipmentType_undersuit => 'Alsóöltözet';
+
+  @override
   String get enum_equipmentType_fins => 'Uszonyok';
 
   @override
@@ -11696,7 +11702,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'Szervizrekord torolve';
 
   @override
-  String get equipment_service_totalCostLabel => 'Osszes szerviz koltseg';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'Osszes szerviz koltseg ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Felszereles hozzaadasa';
@@ -11934,7 +11942,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_summary_totalItems => 'Osszes elem';
 
   @override
-  String get equipment_summary_totalValue => 'Osszes ertek';
+  String equipment_summary_totalValue(String currency) {
+    return 'Osszes ertek ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'Felszerelés';
@@ -24870,6 +24880,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_glove_type => 'Típus';
 
   @override
+  String get attrLabel_insulation_level => 'Szigetelési szint';
+
+  @override
+  String get attrLabel_fill_material => 'Anyag';
+
+  @override
   String get attrLabel_sole_type => 'Talp';
 
   @override
@@ -24991,6 +25007,36 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'Neoprén';
+
+  @override
+  String get attrChoice_insulation_level_light => 'Könnyű';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'Közepes';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'Vastag';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'Extrém';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'Üreges szál';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'Polár';
+
+  @override
+  String get attrChoice_fill_material_merino => 'Merinógyapjú';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'Polipropilén';
 
   @override
   String get attrChoice_tank_material_aluminum => 'Alumínium';

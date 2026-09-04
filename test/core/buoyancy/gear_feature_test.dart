@@ -391,6 +391,77 @@ void main() {
     });
   });
 
+  group('drysuit layers (#1537)', () {
+    GearFeature layer(EquipmentType type, {String? insulation}) =>
+        GearFeature.fromEquipment(
+          id: 'u1',
+          type: type,
+          name: 'Undergarment',
+          traits: insulation == null
+              ? null
+              : GearBuoyancyTraits(insulationLevel: insulation),
+        );
+
+    test('undersuit warmth drives the prior', () {
+      // The reason the issue asks for the type at all: the same drysuit needs
+      // materially more lead over a heavy undersuit than over a light one.
+      expect(layer(EquipmentType.undersuit, insulation: 'light').priorKg, 0.7);
+      expect(layer(EquipmentType.undersuit, insulation: 'mid').priorKg, 1.5);
+      expect(layer(EquipmentType.undersuit, insulation: 'heavy').priorKg, 2.5);
+      expect(
+        layer(EquipmentType.undersuit, insulation: 'extreme').priorKg,
+        3.5,
+      );
+      expect(
+        layer(EquipmentType.undersuit, insulation: 'heavy').priorStrength,
+        4.0,
+      );
+    });
+
+    test('a base layer moves far less lead than an undersuit', () {
+      expect(layer(EquipmentType.baselayer, insulation: 'light').priorKg, 0.1);
+      expect(layer(EquipmentType.baselayer, insulation: 'mid').priorKg, 0.2);
+      expect(layer(EquipmentType.baselayer, insulation: 'heavy').priorKg, 0.4);
+      expect(
+        layer(EquipmentType.baselayer, insulation: 'extreme').priorKg,
+        0.5,
+      );
+    });
+
+    test('unrated layers fall back to a weak type default', () {
+      final undersuit = layer(EquipmentType.undersuit);
+      expect(undersuit.priorKg, 1.5);
+      expect(undersuit.priorStrength, 2.0);
+      final baselayer = layer(EquipmentType.baselayer);
+      expect(baselayer.priorKg, 0.2);
+      expect(baselayer.priorStrength, 2.0);
+      // An unknown future warmth key is no signal, not a wrong signal.
+      expect(layer(EquipmentType.undersuit, insulation: 'toasty').priorKg, 1.5);
+      expect(
+        layer(EquipmentType.undersuit, insulation: 'toasty').priorStrength,
+        2.0,
+      );
+    });
+
+    test('layers carry their own dry mass', () {
+      expect(layer(EquipmentType.undersuit).dryMassKg, 1.5);
+      expect(layer(EquipmentType.baselayer).dryMassKg, 0.4);
+    });
+
+    test('an explicit buoyancy still wins over the warmth rating', () {
+      final f = GearFeature.fromEquipment(
+        id: 'u1',
+        type: EquipmentType.undersuit,
+        name: 'Weezle Extreme Plus',
+        buoyancyKg: 4.2,
+        traits: const GearBuoyancyTraits(insulationLevel: 'light'),
+      );
+      expect(f.priorKg, 4.2);
+      expect(f.priorStrength, 8.0);
+      expect(f.hasUserSpec, isTrue);
+    });
+  });
+
   group('dive computers', () {
     test('contribute no dry mass', () {
       // Gear twins (v175) put a computer on every downloaded dive. The

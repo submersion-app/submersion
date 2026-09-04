@@ -19,7 +19,7 @@ Marine Institute under CC-BY 4.0:
 The full layer is ~250 MB of coordinates. This script simplifies it to
 roughly a megabyte, which is the resolution the runtime lookup actually
 needs: the resolver already tolerates a few kilometres of coastline error
-(see NEAR_SHORE_KM in sea_area_index.dart), because IHO limits stop at the
+(see nearShoreKm in sea_area_index.dart), because IHO limits stop at the
 legal boundary of a sea and dive-site coordinates are routinely recorded
 from a beach or a moored boat.
 
@@ -62,9 +62,14 @@ SOURCE_CITATION = (
 )
 SOURCE_LICENSE = "CC-BY 4.0"
 
-# Coastline simplification, in degrees. 0.05 deg is ~5.5 km, which matches
-# the resolver's near-shore tolerance; finer detail doubles the asset for no
-# measurable gain in which sea a dive site lands in.
+# Coastline simplification, in degrees. 0.05 deg is ~5.5 km of latitude,
+# and less longitude the further from the equator (~2.8 km at 60 degrees).
+# So the error it introduces is not equal to the resolver's 4 km near-shore
+# tolerance (nearShoreKm in sea_area_index.dart), but it sits in the same
+# few-kilometre band -- which is the point: detail finer than that band is
+# swallowed by the tolerance rather than changing which sea a dive site
+# lands in, and it doubles the asset. Measured: halving this to 0.02 deg
+# left all 30 curated sites and the 3,256-site corpus unchanged.
 SIMPLIFY_TOLERANCE = 0.05
 
 # Coordinates are stored to this many decimals: ~110 m, far below the

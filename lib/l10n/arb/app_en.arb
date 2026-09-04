@@ -5928,6 +5928,8 @@
   "enum_equipmentType_dpv": "DPV",
   "enum_equipmentType_computer": "Dive Computer",
   "enum_equipmentType_drysuit": "Drysuit",
+  "enum_equipmentType_baselayer": "Base Layer",
+  "enum_equipmentType_undersuit": "Undersuit",
   "enum_equipmentType_fins": "Fins",
   "enum_equipmentType_gloves": "Gloves",
   "enum_equipmentType_hood": "Hood",
@@ -6525,6 +6527,13 @@
       }
     }
   },
+  "@equipment_service_totalCostLabel": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceKinds_defaultCategoryLabel": "Default category",
   "equipment_serviceKinds_defaultCategoryNone": "No default",
   "equipment_serviceKinds_defaultCostLabel": "Default price",
@@ -6540,7 +6549,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Use default currency",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Currency for this item",
   "equipment_service_snackbar_deleted": "Service record deleted",
-  "equipment_service_totalCostLabel": "Total Service Cost",
+  "equipment_service_totalCostLabel": "Total Service Cost ({currency})",
   "equipment_setDetail_addEquipmentButton": "Add Equipment",
   "equipment_setDetail_deleteDialog_cancel": "Cancel",
   "equipment_setDetail_deleteDialog_confirm": "Delete",
@@ -6607,7 +6616,7 @@
   "equipment_summary_serviceDueTitle": "Service Due",
   "equipment_summary_title": "Equipment",
   "equipment_summary_totalItems": "Total Items",
-  "equipment_summary_totalValue": "Total Value",
+  "equipment_summary_totalValue": "Total Value ({currency})",
   "equipment_tab_equipment": "Equipment",
   "equipment_tab_sets": "Sets",
   "@equipment_detail_daysOverdue": {
@@ -6891,6 +6900,13 @@
       },
       "type": {
         "type": "Object"
+      }
+    }
+  },
+  "@equipment_summary_totalValue": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
       }
     }
   },
@@ -16151,6 +16167,8 @@
   "attrLabel_blade_material": "Blade material",
   "attrLabel_tip_type": "Tip",
   "attrLabel_glove_type": "Type",
+  "attrLabel_insulation_level": "Insulation level",
+  "attrLabel_fill_material": "Material",
   "attrLabel_sole_type": "Sole",
   "attrLabel_buoyancy_kg": "Buoyancy",
   "attrLabel_dry_weight_kg": "Dry weight",
@@ -16192,6 +16210,16 @@
   "attrChoice_seal_type_latex": "Latex",
   "attrChoice_seal_type_silicone": "Silicone",
   "attrChoice_seal_type_neoprene": "Neoprene",
+  "attrChoice_insulation_level_light": "Light",
+  "attrChoice_insulation_level_mid": "Mid-weight",
+  "attrChoice_insulation_level_heavy": "Heavy",
+  "attrChoice_insulation_level_extreme": "Extreme",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "Hollowfibre",
+  "attrChoice_fill_material_fleece": "Fleece",
+  "attrChoice_fill_material_merino": "Merino wool",
+  "attrChoice_fill_material_polypropylene": "Polypropylene",
   "attrChoice_tank_material_aluminum": "Aluminum",
   "attrChoice_tank_material_steel": "Steel",
   "attrChoice_tank_material_carbon_composite": "Carbon composite",

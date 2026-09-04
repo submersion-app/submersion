@@ -9924,6 +9924,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_drysuit => 'חליפה יבשה';
 
   @override
+  String get enum_equipmentType_baselayer => 'שכבת בסיס';
+
+  @override
+  String get enum_equipmentType_undersuit => 'חליפה תחתונה';
+
+  @override
   String get enum_equipmentType_fins => 'סנפירים';
 
   @override
@@ -11454,7 +11460,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'רשומת טיפול נמחקה';
 
   @override
-  String get equipment_service_totalCostLabel => 'סה\"כ עלות טיפול';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'סה\"כ עלות טיפול ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'הוסף ציוד';
@@ -11679,7 +11687,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_summary_totalItems => 'סה\"כ פריטים';
 
   @override
-  String get equipment_summary_totalValue => 'ערך כולל';
+  String equipment_summary_totalValue(String currency) {
+    return 'ערך כולל ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'ציוד';
@@ -24350,6 +24360,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_glove_type => 'סוג';
 
   @override
+  String get attrLabel_insulation_level => 'רמת בידוד';
+
+  @override
+  String get attrLabel_fill_material => 'חומר';
+
+  @override
   String get attrLabel_sole_type => 'סוליה';
 
   @override
@@ -24471,6 +24487,36 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'ניאופרן';
+
+  @override
+  String get attrChoice_insulation_level_light => 'קל';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'בינוני';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'כבד';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'קיצוני';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'סיב חלול';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'פליס';
+
+  @override
+  String get attrChoice_fill_material_merino => 'צמר מרינו';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'פוליפרופילן';
 
   @override
   String get attrChoice_tank_material_aluminum => 'אלומיניום';
