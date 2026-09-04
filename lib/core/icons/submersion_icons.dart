@@ -10,7 +10,7 @@ import 'package:flutter/widgets.dart';
 /// a reel, a kick scooter for a DPV. Issue #1189 reported the result as icons
 /// that "don't really fit the equipment".
 ///
-/// These eleven are drawn in `tool/equipment_glyphs.py` and compiled into
+/// These ten are drawn in `tool/equipment_glyphs.py` and compiled into
 /// `assets/fonts/submersion-equipment.ttf` by
 /// `tool/build_equipment_icon_font.py`. Regenerate with:
 ///
@@ -64,8 +64,9 @@ abstract final class SubmersionIcons {
   /// Diver propulsion vehicle: torpedo hull with a shrouded prop.
   static const IconData dpv = IconData(0xe909, fontFamily: fontFamily);
 
-  /// The suit silhouette with quilted chest bands: a drysuit undergarment
-  /// (#1518). No icon font has a thermal base layer, and the nearest MDI
-  /// shapes (a hanger, a t-shirt) are the metaphors #1189 asked us to drop.
-  static const IconData undergarment = IconData(0xe90a, fontFamily: fontFamily);
+  /// Drysuit undersuit: the suit silhouette again, quilted.
+  static const IconData undersuit = IconData(0xe90a, fontFamily: fontFamily);
+
+  /// Base layer: a long-sleeved thermal top, stopping at the hips.
+  static const IconData baselayer = IconData(0xe90b, fontFamily: fontFamily);
 }

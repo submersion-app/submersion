@@ -8871,6 +8871,39 @@ class AppLocalizationsAr extends AppLocalizations {
       'البحث عن الموقع غير متاح. تحقق من الاتصال وحاول مرة أخرى.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'تحديث أسماء الأماكن';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'تحديث أسماء الأماكن؟';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيتم البحث من جديد عن $count مواقع غوص لها إحداثيات.',
+      one: 'سيتم البحث من جديد عن موقع غوص واحد له إحداثيات.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes دقائق',
+      one: 'دقيقة واحدة',
+    );
+    return '$_temp0 وستُستبدل الدولة والمنطقة والمدينة والمسطح المائي حيثما اختلفت عن لغة أسماء الأماكن ($language)، بما في ذلك القيم التي أدخلتها بنفسك. يستغرق ذلك نحو $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'جارٍ تحديث أسماء الأماكن';
+
+  @override
+  String get diveSites_refresh_nothing => 'لا يوجد موقع غوص له إحداثيات للبحث.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'رجوع';
 
   @override
@@ -9502,6 +9535,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'تاريخ الانتهاء';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'يظهر أولاً في بطاقة الطوارئ الخاصة بك.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'مثال: +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      'رقم المساعدة الطارئة على مدار 24 ساعة';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'رقم مكتب شركة التأمين';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'مثال: DAN، DiveAssure';
 
   @override
@@ -9925,6 +9972,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentType_drysuit => 'بدلة جافة';
+
+  @override
+  String get enum_equipmentType_baselayer => 'طبقة أساسية';
+
+  @override
+  String get enum_equipmentType_undersuit => 'بدلة داخلية';
 
   @override
   String get enum_equipmentType_fins => 'زعانف';
@@ -11466,7 +11519,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'تم حذف سجل الصيانة';
 
   @override
-  String get equipment_service_totalCostLabel => 'إجمالي تكلفة الصيانة';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'إجمالي تكلفة الصيانة ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'إضافة معدات';
@@ -11694,7 +11749,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_summary_totalItems => 'إجمالي العناصر';
 
   @override
-  String get equipment_summary_totalValue => 'القيمة الإجمالية';
+  String equipment_summary_totalValue(String currency) {
+    return 'القيمة الإجمالية ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'المعدات';
@@ -24462,6 +24519,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_glove_type => 'النوع';
 
   @override
+  String get attrLabel_insulation_level => 'مستوى العزل';
+
+  @override
+  String get attrLabel_fill_material => 'الخامة';
+
+  @override
   String get attrLabel_sole_type => 'النعل';
 
   @override
@@ -24510,25 +24573,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_speed_mps => 'السرعة القصوى';
 
   @override
-  String get attrLabel_undergarment_style => 'النمط';
-
-  @override
-  String get attrLabel_insulation_material => 'العزل';
-
-  @override
-  String get attrLabel_fill_weight_gsm => 'وزن الحشو (g/m²)';
-
-  @override
-  String get attrLabel_heated => 'مُدفأ';
-
-  @override
   String get attrLabel_sleeve_length => 'الأكمام';
 
   @override
   String get attrLabel_upf_rating => 'تصنيف UPF';
-
-  @override
-  String get attrLabel_thermal_lined => 'بطانة حرارية';
 
   @override
   String get attrLabel_snorkel_type => 'النوع';
@@ -24619,6 +24667,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'نيوبرين';
+
+  @override
+  String get attrChoice_insulation_level_light => 'خفيف';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'متوسط';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'ثقيل';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'فائق';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'ألياف مجوفة';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'فراء صناعي';
+
+  @override
+  String get attrChoice_fill_material_merino => 'صوف ميرينو';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'بولي بروبيلين';
 
   @override
   String get attrChoice_tank_material_aluminum => 'ألومنيوم';
@@ -24787,33 +24865,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'بفرشات';
-
-  @override
-  String get attrChoice_undergarment_style_one_piece => 'قطعة واحدة';
-
-  @override
-  String get attrChoice_undergarment_style_two_piece => 'قطعتان';
-
-  @override
-  String get attrChoice_undergarment_style_vest => 'صدرية';
-
-  @override
-  String get attrChoice_undergarment_style_base_layer => 'طبقة أساسية';
-
-  @override
-  String get attrChoice_insulation_material_thinsulate => 'ثينسوليت';
-
-  @override
-  String get attrChoice_insulation_material_primaloft => 'بريمالوفت';
-
-  @override
-  String get attrChoice_insulation_material_fleece => 'صوف بوليستر';
-
-  @override
-  String get attrChoice_insulation_material_merino_wool => 'صوف مرينو';
-
-  @override
-  String get attrChoice_insulation_material_down => 'زغب';
 
   @override
   String get attrChoice_sleeve_length_short => 'قصيرة';
@@ -25022,6 +25073,25 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'خط طوارئ الغواصين. اتصل به أولاً: فهم ينسقون الإخلاء والإحالة إلى غرفة الضغط.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'خط الطوارئ الخاص بتأمين الغوص. اتصل به أولاً: شركة التأمين تعتمد الإخلاء وتنسق الإحالة إلى غرفة الضغط.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'خط طوارئ الغواصين الإقليمي. اتصل به إذا لم يرد خط شركة التأمين.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine =>
+      'خط الطوارئ على مدار 24 ساعة';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'خط المكتب';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'لم يتم حفظ رقم طوارئ شركة التأمين. أضفه في إعدادات ملف الغواص لتبدأ هذه البطاقة به.';
 
   @override
   String emergencyCard_ems(String number) {

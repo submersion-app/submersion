@@ -30,10 +30,15 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return SubmersionIcons.wetsuit;
     case EquipmentType.drysuit:
       return SubmersionIcons.drysuit;
-    // The same silhouette again, banded: a thermal layer is a one-piece suit
-    // too, and the bands are what tell it apart in a list of suits.
-    case EquipmentType.undergarment:
-      return SubmersionIcons.undergarment;
+    // The drysuit layers (#1537) share the wardrobe family without sharing a
+    // glyph: the undersuit is the suit silhouette quilted, the base layer a
+    // short-bodied top that cannot be mistaken for a suit at 20px.
+    case EquipmentType.undersuit:
+      return SubmersionIcons.undersuit;
+    case EquipmentType.baselayer:
+      return SubmersionIcons.baselayer;
+    // A crew-neck shirt: the warm-water top, drawn from the bundled MDI font
+    // rather than the wardrobe family, so it does not read as a third layer.
     case EquipmentType.rashGuard:
       return MdiIcons.tshirtCrew;
     case EquipmentType.mask:

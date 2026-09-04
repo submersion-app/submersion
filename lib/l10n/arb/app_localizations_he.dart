@@ -8819,6 +8819,39 @@ class AppLocalizationsHe extends AppLocalizations {
       'חיפוש המיקום אינו זמין. בדקו את החיבור ונסו שוב.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'עדכון שמות המקומות';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'לעדכן את שמות המקומות?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים עם קואורדינטות ייבדקו מחדש.',
+      one: 'אתר אחד עם קואורדינטות ייבדק מחדש.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes דקות',
+      one: 'דקה אחת',
+    );
+    return '$_temp0 המדינה, האזור, היישוב וגוף המים יוחלפו בכל מקום שבו הם שונים משפת שמות המקומות ($language), כולל ערכים שהזנת בעצמך. הפעולה נמשכת כ$_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'מעדכן את שמות המקומות';
+
+  @override
+  String get diveSites_refresh_nothing => 'לאף אתר אין קואורדינטות לבדיקה.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'חזרה';
 
   @override
@@ -9446,6 +9479,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'תאריך תפוגה';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'מוצג ראשון בכרטיס החירום שלך.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint =>
+      'לדוגמה, +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      'מספר סיוע חירום 24 שעות';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'מספר משרד חברת הביטוח';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'לדוגמה, DAN, DiveAssure';
 
   @override
@@ -9868,6 +9916,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_drysuit => 'חליפה יבשה';
+
+  @override
+  String get enum_equipmentType_baselayer => 'שכבת בסיס';
+
+  @override
+  String get enum_equipmentType_undersuit => 'חליפה תחתונה';
 
   @override
   String get enum_equipmentType_fins => 'סנפירים';
@@ -11397,7 +11451,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'רשומת טיפול נמחקה';
 
   @override
-  String get equipment_service_totalCostLabel => 'סה\"כ עלות טיפול';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'סה\"כ עלות טיפול ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'הוסף ציוד';
@@ -11622,7 +11678,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_summary_totalItems => 'סה\"כ פריטים';
 
   @override
-  String get equipment_summary_totalValue => 'ערך כולל';
+  String equipment_summary_totalValue(String currency) {
+    return 'ערך כולל ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'ציוד';
@@ -24293,6 +24351,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_glove_type => 'סוג';
 
   @override
+  String get attrLabel_insulation_level => 'רמת בידוד';
+
+  @override
+  String get attrLabel_fill_material => 'חומר';
+
+  @override
   String get attrLabel_sole_type => 'סוליה';
 
   @override
@@ -24341,25 +24405,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_speed_mps => 'מהירות מרבית';
 
   @override
-  String get attrLabel_undergarment_style => 'גזרה';
-
-  @override
-  String get attrLabel_insulation_material => 'בידוד';
-
-  @override
-  String get attrLabel_fill_weight_gsm => 'משקל מילוי (g/m²)';
-
-  @override
-  String get attrLabel_heated => 'מחומם';
-
-  @override
   String get attrLabel_sleeve_length => 'שרוולים';
 
   @override
   String get attrLabel_upf_rating => 'דירוג UPF';
-
-  @override
-  String get attrLabel_thermal_lined => 'בטנה תרמית';
 
   @override
   String get attrLabel_snorkel_type => 'סוג';
@@ -24450,6 +24499,36 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'ניאופרן';
+
+  @override
+  String get attrChoice_insulation_level_light => 'קל';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'בינוני';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'כבד';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'קיצוני';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'סיב חלול';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'פליס';
+
+  @override
+  String get attrChoice_fill_material_merino => 'צמר מרינו';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'פוליפרופילן';
 
   @override
   String get attrChoice_tank_material_aluminum => 'אלומיניום';
@@ -24618,33 +24697,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'עם מברשות';
-
-  @override
-  String get attrChoice_undergarment_style_one_piece => 'חלק אחד';
-
-  @override
-  String get attrChoice_undergarment_style_two_piece => 'שני חלקים';
-
-  @override
-  String get attrChoice_undergarment_style_vest => 'אפוד';
-
-  @override
-  String get attrChoice_undergarment_style_base_layer => 'שכבת בסיס';
-
-  @override
-  String get attrChoice_insulation_material_thinsulate => 'Thinsulate';
-
-  @override
-  String get attrChoice_insulation_material_primaloft => 'PrimaLoft';
-
-  @override
-  String get attrChoice_insulation_material_fleece => 'פליס';
-
-  @override
-  String get attrChoice_insulation_material_merino_wool => 'צמר מרינו';
-
-  @override
-  String get attrChoice_insulation_material_down => 'פוך';
 
   @override
   String get attrChoice_sleeve_length_short => 'קצרים';
@@ -24852,6 +24904,24 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'קו חירום לצוללים. התקשר אליו קודם: הם מתאמים פינוי והפניה לתא לחץ.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'קו החירום של ביטוח הצלילה שלך. התקשר אליו קודם: המבטח מאשר את הפינוי ומתאם את ההפניה לתא לחץ.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'קו חירום אזורי לצוללים. התקשר אליו אם קו המבטח אינו עונה.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => 'קו חירום 24 שעות';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'קו המשרד';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'לא נשמר מספר חירום של המבטח. הוסף אותו בהגדרות פרופיל הצולל כדי שהכרטיס יתחיל בו.';
 
   @override
   String emergencyCard_ems(String number) {

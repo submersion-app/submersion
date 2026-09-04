@@ -49,6 +49,17 @@ void main() {
       keysFor(EquipmentType.other),
       unorderedEquals(['buoyancy_kg', 'dry_weight_kg']),
     );
+    // The drysuit layers (#1537) are rated by warmth, not by millimetres:
+    // asking for thickness_mm would be the wrong question for a garment sold
+    // as "400g Thinsulate".
+    for (final type in [EquipmentType.undersuit, EquipmentType.baselayer]) {
+      expect(
+        keysFor(type),
+        containsAll(['size', 'insulation_level', 'fill_material']),
+        reason: type.name,
+      );
+      expect(keysFor(type), isNot(contains('thickness_mm')), reason: type.name);
+    }
   });
 
   test('choice kinds always have at least two options', () {
@@ -224,18 +235,20 @@ void main() {
   });
 
   group('the #1518 equipment types', () {
-    // Six types added for large/team/family inventories. Each one is asserted
+    // Five types added for large/team/family inventories. The sixth the issue
+    // asked for, a thermal undergarment, landed on main first as `undersuit`
+    // and `baselayer` (#1537), so this branch drops its own rather than
+    // offering the diver two names for one garment. Each one is asserted
     // as an exact ordered key list rather than a `containsAll`, because the
     // order is what the edit form renders and a silently dropped field would
     // otherwise pass.
     List<String> keysFor(EquipmentType t) =>
         EquipmentAttributeCatalog.attributesFor(t).map((d) => d.key).toList();
 
-    test('all six exist with the names they are persisted under', () {
+    test('all five exist with the names they are persisted under', () {
       // `equipment.type` is a text column holding `EquipmentType.name`, so
       // these strings are a storage contract: renaming one orphans every row
       // written before the rename.
-      expect(EquipmentType.undergarment.name, 'undergarment');
       expect(EquipmentType.rashGuard.name, 'rashGuard');
       expect(EquipmentType.snorkel.name, 'snorkel');
       expect(EquipmentType.tool.name, 'tool');
@@ -243,36 +256,24 @@ void main() {
       expect(EquipmentType.compass.name, 'compass');
     });
 
-    test('an undergarment carries its loft and cut', () {
-      expect(keysFor(EquipmentType.undergarment), [
-        'size',
-        'undergarment_style',
-        'insulation_material',
-        'fill_weight_gsm',
-        'heated',
-        'buoyancy_kg',
-        'dry_weight_kg',
-      ]);
-      // Grams per square metre are the same figure in every market.
-      expect(
-        EquipmentAttributeCatalog.defFor('fill_weight_gsm')!.dimension,
-        AttributeDimension.none,
-      );
-      expect(
-        EquipmentAttributeCatalog.defFor('heated')!.kind,
-        AttributeKind.flag,
-      );
-    });
-
-    test('a rash guard carries its sun and thermal specs', () {
+    test('a rash guard carries its sun specs, and not warmth', () {
       expect(keysFor(EquipmentType.rashGuard), [
         'size',
         'sleeve_length',
         'upf_rating',
-        'thermal_lined',
         'buoyancy_kg',
         'dry_weight_kg',
       ]);
+      // Warmth belongs to baselayer (#1537). Two ways to say "this one is
+      // warm" is how one idea drifts into two words per locale.
+      expect(
+        keysFor(EquipmentType.rashGuard),
+        isNot(contains(EquipmentAttrKeys.insulationLevel)),
+      );
+      expect(
+        keysFor(EquipmentType.baselayer),
+        contains(EquipmentAttrKeys.insulationLevel),
+      );
       // A UPF number is a ratio, not a measurement, so it converts nowhere.
       expect(
         EquipmentAttributeCatalog.defFor('upf_rating')!.dimension,
@@ -368,7 +369,6 @@ void main() {
     test('every new attribute and option resolves to a localized label', () {
       final l10n = lookupAppLocalizations(const Locale('en'));
       const types = [
-        EquipmentType.undergarment,
         EquipmentType.rashGuard,
         EquipmentType.snorkel,
         EquipmentType.tool,

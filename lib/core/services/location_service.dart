@@ -8,6 +8,7 @@ import 'package:geocoding/geocoding.dart';
 
 import 'package:submersion/core/services/geocoding/nominatim_throttle.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
+import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 /// Check if we're on a mobile platform (iOS/Android)
@@ -88,8 +89,9 @@ class LocationService {
 
   /// Nominatim reverse-geocode URI for the natural layer, which answers with
   /// the lake, bay or strait a point lies in. zoom=14 keeps the answer to a
-  /// named feature rather than the whole region. Nominatim has no ocean
-  /// polygons, so open-sea points come back "Unable to geocode".
+  /// named feature rather than the whole region. Nominatim has no ocean or
+  /// sea polygons, so open-sea points come back "Unable to geocode"; the
+  /// bundled table in [SeaAreaService] covers those instead.
   static Uri buildNaturalFeatureUri(
     double latitude,
     double longitude, {
@@ -396,11 +398,30 @@ class LocationService {
   }
 
   /// Best-effort: any failure here leaves the address result untouched.
+  ///
+  /// The bundled ocean and sea table answers first. OpenStreetMap has no
+  /// ocean or sea polygons at all, so the natural layer used to answer
+  /// "Unable to geocode" for any point in open salt water and to snap to
+  /// the nearest land feature near a coast, which left the body of water
+  /// empty for most dive sites. Asking the table first also spares
+  /// Nominatim a throttled request per marine site, and works with no
+  /// signal.
+  ///
+  /// Inland and coastal fresh water is the other way round: lakes, quarries
+  /// and fjord interiors are not in the IHO table, and the natural layer
+  /// names them well, so a miss there falls through to the network.
   Future<String?> _lookupBodyOfWater(
     double latitude,
     double longitude,
     String languageCode,
   ) async {
+    final index = await SeaAreaService.load();
+    final sea = index?.nameAt(latitude, longitude);
+    if (sea != null) {
+      _log.info('Sea area table: $sea');
+      return sea;
+    }
+
     try {
       final json = await _fetchNominatimJson(
         buildNaturalFeatureUri(latitude, longitude, languageCode: languageCode),

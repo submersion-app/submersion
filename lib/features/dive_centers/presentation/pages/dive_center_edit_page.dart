@@ -869,6 +869,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       final locationService = LocationService.instance;
       final result = await locationService.getCurrentLocation(
         includeGeocoding: true,
+        // Without this the centre's country and region are geocoded in
+        // English while the diver's sites use their chosen place name
+        // language, so one place ends up stored two ways (issue #1187).
+        languageCode: ref.read(placeNameLanguageProvider),
       );
 
       if (result == null) {

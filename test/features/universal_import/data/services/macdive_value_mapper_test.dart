@@ -152,11 +152,18 @@ void main() {
       'Scooter': EquipmentType.dpv,
       'Suex XJoy Scooter': EquipmentType.dpv,
       'Diver Propulsion Vehicle': EquipmentType.dpv,
+      'Undersuit': EquipmentType.undersuit,
+      'Santi BZ400 undergarment': EquipmentType.undersuit,
+      'Base layer': EquipmentType.baselayer,
+      'Baselayer': EquipmentType.baselayer,
+      'Thermal top': EquipmentType.baselayer,
+      'Thermal underwear': EquipmentType.baselayer,
+      'Thermals': EquipmentType.baselayer,
+      'Wicking base layer': EquipmentType.baselayer,
       // #1518 types. MacDive's field is free text, so these are the words
       // real libraries actually contain.
-      'Undergarment': EquipmentType.undergarment,
-      'Santi BZ400 Undersuit': EquipmentType.undergarment,
       'Rash Guard': EquipmentType.rashGuard,
+      'Rash vest': EquipmentType.rashGuard,
       'Lycra top': EquipmentType.rashGuard,
       'Snorkel': EquipmentType.snorkel,
       'Compass': EquipmentType.compass,
@@ -196,13 +203,31 @@ void main() {
       );
     });
 
-    test('a bare "thermal" is left alone', () {
-      // Plenty of divers label a wetsuit "3mm thermal", so the undergarment
-      // match is deliberately narrow: it must not pull suits into the liner
-      // bucket.
+    test('an accessory word outranks "lycra" (#1518)', () {
+      // Same trap main hit twice with "thermal": a fabric word sitting above
+      // the accessory checks steals real product names. Lycra hoods and
+      // gloves exist, so the rule waits below them.
       expect(
-        MacDiveValueMapper.equipmentType('3mm Thermal'),
-        EquipmentType.other,
+        MacDiveValueMapper.equipmentType('Lycra hood'),
+        EquipmentType.hood,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Lycra gloves'),
+        EquipmentType.gloves,
+      );
+      // A garment nothing else claims still reaches it.
+      expect(
+        MacDiveValueMapper.equipmentType('Lycra top'),
+        EquipmentType.rashGuard,
+      );
+    });
+
+    test('a rash guard beats the suit checks on its own words', () {
+      // "skin suit" carries the word "suit" but neither suit check matches
+      // it, so it must not fall through to Other.
+      expect(
+        MacDiveValueMapper.equipmentType('Skin suit'),
+        EquipmentType.rashGuard,
       );
     });
 
@@ -215,6 +240,65 @@ void main() {
       );
       expect(
         MacDiveValueMapper.equipmentType('Wetsuit'),
+        EquipmentType.wetsuit,
+      );
+    });
+
+    test('prefers the layer over the suit it goes under (#1537)', () {
+      // Both of these contain "suit", and the second contains "dry": the
+      // layer checks have to run first or a diver's undergarments import as
+      // duplicate suits.
+      expect(
+        MacDiveValueMapper.equipmentType('Thermal undersuit'),
+        EquipmentType.undersuit,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Weezle Dry Undersuit'),
+        EquipmentType.undersuit,
+      );
+    });
+
+    test('"thermal" alone names a fabric, not a garment', () {
+      // "Thermal" and "wicking" are printed on hoods, gloves and boots as
+      // often as on tops, and the layer checks run before the accessory
+      // ones, so a bare fabric word must not claim the label.
+      expect(
+        MacDiveValueMapper.equipmentType('Thermal hood'),
+        EquipmentType.hood,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Fourth Element Thermal Gloves'),
+        EquipmentType.gloves,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Thermal boots'),
+        EquipmentType.boots,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Thermal socks'),
+        EquipmentType.other,
+      );
+      // Same for the plural noun: it names the garment on its own, but an
+      // accessory word next to it is the more specific signal.
+      expect(
+        MacDiveValueMapper.equipmentType('Thermals gloves'),
+        EquipmentType.gloves,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Thermals hood'),
+        EquipmentType.hood,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Fourth Element Thermals'),
+        EquipmentType.baselayer,
+      );
+    });
+
+    test('an explicit suit word beats the fabric guess', () {
+      // The fabric rule sits below the suits, so a "thermal wetsuit top" is
+      // still a wetsuit even though it carries a garment word too.
+      expect(
+        MacDiveValueMapper.equipmentType('Thermal wetsuit top'),
         EquipmentType.wetsuit,
       );
     });

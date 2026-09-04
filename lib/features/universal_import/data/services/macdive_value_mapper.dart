@@ -85,23 +85,35 @@ class MacDiveValueMapper {
     // Ordered longest-idea-first: "drysuit" must beat "suit", and the
     // regulator family must not swallow "octopus", which is its own type in
     // neither vocabulary but reads as a regulator to divers.
+    //
+    // The drysuit layers (#1537) come before the suits they go under, but
+    // only on words that name the garment outright: a "thermal undersuit"
+    // must not be read as a wetsuit, and "dry undersuit" -- a real product
+    // name -- must not be read as a drysuit. Fabric words are a weaker
+    // signal and are handled further down, below the accessories.
+    if (s.contains('undersuit') ||
+        s.contains('under suit') ||
+        s.contains('undergarment') ||
+        s.contains('under garment')) {
+      return EquipmentType.undersuit;
+    }
+    if (s.contains('baselayer') ||
+        s.contains('base layer') ||
+        s.contains('base-layer')) {
+      return EquipmentType.baselayer;
+    }
+    // Same rule, same place (#1518): "rash guard", "rash vest" and "skin
+    // suit" name the garment outright, and neither suit check matches them.
+    // The fabric word "lycra" is a weaker signal and waits below, with the
+    // thermal ones.
+    if (s.contains('rash') || s.contains('skin suit')) {
+      return EquipmentType.rashGuard;
+    }
     if (s.contains('drysuit') || s.contains('dry suit')) {
       return EquipmentType.drysuit;
     }
     if (s.contains('wetsuit') || s.contains('wet suit')) {
       return EquipmentType.wetsuit;
-    }
-    // Both are worn under the suits above, and are only reached once those
-    // failed on their own words. Deliberately narrow: a bare "thermal" is
-    // how plenty of divers label a wetsuit, so matching it here would move
-    // suits into the liner bucket rather than leaving them as they were.
-    if (s.contains('rash') || s.contains('lycra') || s.contains('skin suit')) {
-      return EquipmentType.rashGuard;
-    }
-    if (s.contains('undergarment') ||
-        s.contains('undersuit') ||
-        s.contains('under suit')) {
-      return EquipmentType.undergarment;
     }
     if (s.contains('rebreather') || s.contains('ccr') || s.contains('scr')) {
       return EquipmentType.rebreather;
@@ -156,6 +168,27 @@ class MacDiveValueMapper {
     if (s.contains('hood')) return EquipmentType.hood;
     if (s.contains('glove') || s.contains('mitt')) return EquipmentType.gloves;
     if (s.contains('boot') || s.contains('bootie')) return EquipmentType.boots;
+    // The thermal words land here, below every garment they could be printed
+    // on. "Thermal" and "wicking" name a fabric rather than a garment, and
+    // even the plural noun "thermals" -- which does name the garment on its
+    // own -- loses to an accessory word sitting next to it, so "Thermals
+    // gloves" is gloves while "Fourth Element Thermals" is a base layer.
+    // Explicit "base layer" and the suits are matched far above, so nothing
+    // here can steal a label that already named itself.
+    // A lycra hood and lycra gloves are real products, and both are caught
+    // above, so the fabric only reaches here on a garment nothing else
+    // claimed.
+    if (s.contains('lycra')) return EquipmentType.rashGuard;
+    if (s.contains('thermals')) return EquipmentType.baselayer;
+    if ((s.contains('thermal') || s.contains('wicking')) &&
+        (s.contains('top') ||
+            s.contains('layer') ||
+            s.contains('shirt') ||
+            s.contains('underwear') ||
+            s.contains('leggings') ||
+            s.contains('vest'))) {
+      return EquipmentType.baselayer;
+    }
     if (s.contains('light') || s.contains('torch')) return EquipmentType.light;
     if (s.contains('camera') ||
         s.contains('housing') ||

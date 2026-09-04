@@ -8887,6 +8887,39 @@ class AppLocalizationsEn extends AppLocalizations {
       'Location lookup is unavailable. Check your connection and try again.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'Refresh place names';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Refresh place names?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites with coordinates are looked up again.',
+      one: '1 site with coordinates is looked up again.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes',
+      one: '1 minute',
+    );
+    return '$_temp0 Country, region, town and body of water are replaced wherever they differ from the place name language ($language), including values you typed yourself. This takes about $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'Refreshing place names';
+
+  @override
+  String get diveSites_refresh_nothing => 'No site has coordinates to look up.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Back';
 
   @override
@@ -9520,6 +9553,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'Expiry Date';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Shown first on your emergency card.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'e.g., +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      '24h Emergency Assistance Number';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'Insurance Office Number';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'e.g., DAN, DiveAssure';
 
   @override
@@ -9942,6 +9989,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_equipmentType_drysuit => 'Drysuit';
+
+  @override
+  String get enum_equipmentType_baselayer => 'Base Layer';
+
+  @override
+  String get enum_equipmentType_undersuit => 'Undersuit';
 
   @override
   String get enum_equipmentType_fins => 'Fins';
@@ -11484,7 +11537,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'Service record deleted';
 
   @override
-  String get equipment_service_totalCostLabel => 'Total Service Cost';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'Total Service Cost ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Add Equipment';
@@ -11711,7 +11766,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_summary_totalItems => 'Total Items';
 
   @override
-  String get equipment_summary_totalValue => 'Total Value';
+  String equipment_summary_totalValue(String currency) {
+    return 'Total Value ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'Equipment';
@@ -24496,6 +24553,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_glove_type => 'Type';
 
   @override
+  String get attrLabel_insulation_level => 'Insulation level';
+
+  @override
+  String get attrLabel_fill_material => 'Material';
+
+  @override
   String get attrLabel_sole_type => 'Sole';
 
   @override
@@ -24544,25 +24607,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_speed_mps => 'Top speed';
 
   @override
-  String get attrLabel_undergarment_style => 'Style';
-
-  @override
-  String get attrLabel_insulation_material => 'Insulation';
-
-  @override
-  String get attrLabel_fill_weight_gsm => 'Fill weight (g/m²)';
-
-  @override
-  String get attrLabel_heated => 'Heated';
-
-  @override
   String get attrLabel_sleeve_length => 'Sleeves';
 
   @override
   String get attrLabel_upf_rating => 'UPF rating';
-
-  @override
-  String get attrLabel_thermal_lined => 'Thermal lining';
 
   @override
   String get attrLabel_snorkel_type => 'Type';
@@ -24653,6 +24701,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'Neoprene';
+
+  @override
+  String get attrChoice_insulation_level_light => 'Light';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'Mid-weight';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'Heavy';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'Extreme';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'Hollowfibre';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'Fleece';
+
+  @override
+  String get attrChoice_fill_material_merino => 'Merino wool';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'Polypropylene';
 
   @override
   String get attrChoice_tank_material_aluminum => 'Aluminum';
@@ -24821,33 +24899,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'Brushed';
-
-  @override
-  String get attrChoice_undergarment_style_one_piece => 'One-piece';
-
-  @override
-  String get attrChoice_undergarment_style_two_piece => 'Two-piece';
-
-  @override
-  String get attrChoice_undergarment_style_vest => 'Vest';
-
-  @override
-  String get attrChoice_undergarment_style_base_layer => 'Base layer';
-
-  @override
-  String get attrChoice_insulation_material_thinsulate => 'Thinsulate';
-
-  @override
-  String get attrChoice_insulation_material_primaloft => 'PrimaLoft';
-
-  @override
-  String get attrChoice_insulation_material_fleece => 'Fleece';
-
-  @override
-  String get attrChoice_insulation_material_merino_wool => 'Merino wool';
-
-  @override
-  String get attrChoice_insulation_material_down => 'Down';
 
   @override
   String get attrChoice_sleeve_length_short => 'Short';
@@ -25056,6 +25107,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'Your dive insurance emergency line. Call first: your insurer authorizes the evacuation and coordinates the chamber referral.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Regional diver emergency hotline. Call this if your insurer\'s line does not answer.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24h emergency line';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Office line';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'No insurer emergency number saved. Add it in Diver Profile settings so this card can lead with it.';
 
   @override
   String emergencyCard_ems(String number) {

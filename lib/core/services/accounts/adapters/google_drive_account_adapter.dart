@@ -48,8 +48,13 @@ class GoogleDriveAccountAdapter extends AccountProviderAdapter
   Future<MediaObjectStore?> mediaObjectStore(
     domain.ConnectedAccount account,
   ) async {
-    final client = await _provider.mediaHttpClient();
-    if (client == null) return null;
-    return GoogleDriveMediaObjectStore(client: client);
+    // Probe once so an unusable Google session still yields null here,
+    // then hand the store the supplier rather than the client: the
+    // authenticator closes and replaces its client on every re-auth, and
+    // the media store runtime holding this store outlives that.
+    if (await _provider.mediaHttpClient() == null) return null;
+    return GoogleDriveMediaObjectStore(
+      clientSupplier: _provider.mediaHttpClient,
+    );
   }
 }

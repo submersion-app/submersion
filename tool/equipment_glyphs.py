@@ -83,14 +83,6 @@ def bar(p1, p2, w, solid=True):
     return quad + circle(x1, y1, w / 2, solid) + circle(x2, y2, w / 2, solid)
 
 
-def stripe(x1, x2, y, h, solid=True):
-    """Horizontal band between two x values, centred on y."""
-    return poly(
-        [(x1, y - h / 2), (x2, y - h / 2), (x2, y + h / 2), (x1, y + h / 2)],
-        solid,
-    )
-
-
 def g(*parts):
     return "".join(parts)
 
@@ -261,21 +253,44 @@ add(
 )
 
 
+# Drysuit layers. Both hang off the same wardrobe idea as the suits above but
+# must never be mistaken for them at 20px, so each carries a shape the suits
+# do not: the undersuit its quilting, the base layer its short body and
+# straight sleeves.
 add(
-    "undergarment",
-    "Undergarment",
-    "The suit silhouette with quilted chest bands: a thermal base layer.",
+    "undersuit",
+    "Undersuit",
+    "The suit silhouette again, quilted: a drysuit undersuit is worn inside one.",
     g(
         WETSUIT_BODY,
-        # Two bands rather than full quilting. A quilt grid, and even four
-        # thinner stripes, turned to mush at the 18-20 px the equipment list
-        # actually renders; two thick bands still read as quilting there and
-        # keep the undergarment unmistakable next to the plain wetsuit.
-        stripe(6.4, 17.2, 8.7, 1.6, solid=False),
-        stripe(6.4, 17.2, 11.6, 1.6, solid=False),
+        rrect(7.6, 5.8, 8.8, 1.2, 0.6, solid=False),  # quilting seam
+        rrect(7.6, 8.6, 8.8, 1.2, 0.6, solid=False),
+        rrect(7.6, 11.4, 8.8, 1.2, 0.6, solid=False),
     ),
 )
 
+add(
+    "baselayer",
+    "Base layer",
+    "Long-sleeved thermal top: a garment, not a suit, so it stops at the hips.",
+    poly(
+        [
+            (8.4, 4.2),                                # left shoulder
+            (10.3, 4.2),
+            (12.0, 6.3),                               # crew neck
+            (13.7, 4.2),
+            (15.6, 4.2),                               # right shoulder
+            (21.2, 6.6),                               # right sleeve, top
+            (21.2, 11.4),                              # right cuff
+            (16.6, 9.8),                               # right armpit
+            (16.6, 20.2),                              # right hem
+            (7.4, 20.2),                               # left hem
+            (7.4, 9.8),                                # left armpit
+            (2.8, 11.4),                               # left cuff
+            (2.8, 6.6),                                # left sleeve, top
+        ]
+    ),
+)
 
 # Private Use Area code points, assigned in declaration order and never
 # renumbered: they are baked into the committed font and into

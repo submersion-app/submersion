@@ -83,7 +83,8 @@ void main() {
       'hood': SubmersionIcons.hood,
       'reel': SubmersionIcons.reel,
       'dpv': SubmersionIcons.dpv,
-      'undergarment': SubmersionIcons.undergarment,
+      'undersuit': SubmersionIcons.undersuit,
+      'baselayer': SubmersionIcons.baselayer,
     };
     final cmap = cmaps[SubmersionIcons.fontFamily]!;
     for (final entry in drawn.entries) {

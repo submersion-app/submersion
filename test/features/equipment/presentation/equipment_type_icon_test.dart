@@ -32,16 +32,24 @@ void main() {
     }
   });
 
-  test('the three worn layers are told apart', () {
-    // Wetsuit, drysuit and undergarment share one silhouette, so #1518 had to
-    // keep them separable: the drysuit by its attached hood and boots, the
-    // undergarment by its quilted chest bands.
-    final layers = [
-      equipmentTypeIcon(EquipmentType.wetsuit),
-      equipmentTypeIcon(EquipmentType.drysuit),
-      equipmentTypeIcon(EquipmentType.undergarment),
-    ];
-    expect(layers.map((i) => i.codePoint).toSet(), hasLength(3));
+  test('the drysuit layers are told apart from the suits (#1537)', () {
+    // An undersuit reuses the suit silhouette, so the quilting is the only
+    // thing keeping it from reading as a wetsuit in the equipment list.
+    final layers = [EquipmentType.undersuit, EquipmentType.baselayer];
+    final suits = [EquipmentType.wetsuit, EquipmentType.drysuit];
+    for (final layer in layers) {
+      for (final suit in suits) {
+        expect(
+          equipmentTypeIcon(layer),
+          isNot(equipmentTypeIcon(suit)),
+          reason: '${layer.name} vs ${suit.name}',
+        );
+      }
+    }
+    expect(
+      equipmentTypeIcon(EquipmentType.undersuit),
+      isNot(equipmentTypeIcon(EquipmentType.baselayer)),
+    );
   });
 
   test('a tool no longer looks like the catch-all', () {
@@ -80,7 +88,8 @@ void main() {
       EquipmentType.boots: SubmersionIcons.boots,
       EquipmentType.reel: SubmersionIcons.reel,
       EquipmentType.dpv: SubmersionIcons.dpv,
-      EquipmentType.undergarment: SubmersionIcons.undergarment,
+      EquipmentType.undersuit: SubmersionIcons.undersuit,
+      EquipmentType.baselayer: SubmersionIcons.baselayer,
     };
 
     test('are wired to the equipment font', () {

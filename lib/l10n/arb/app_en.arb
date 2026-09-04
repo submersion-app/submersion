@@ -5118,6 +5118,24 @@
     }
   },
   "diveSites_backfill_offline": "Location lookup is unavailable. Check your connection and try again.",
+  "diveSites_list_menu_refreshPlaceNames": "Refresh place names",
+  "diveSites_refresh_confirm_title": "Refresh place names?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced wherever they differ from the place name language ({language}), including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "Refreshing place names",
+  "diveSites_refresh_nothing": "No site has coordinates to look up.",
   "diveSites_list_search_backTooltip": "Back",
   "diveSites_list_search_clearTooltip": "Clear Search",
   "diveSites_list_search_emptyHint": "Search by site name, country, or region",
@@ -5680,6 +5698,10 @@
   "divers_edit_errorSaving": "Error saving diver: {error}",
   "divers_edit_expiryDateNotSet": "Not set",
   "divers_edit_expiryDateTitle": "Expiry Date",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Shown first on your emergency card.",
+  "divers_edit_insuranceEmergencyPhoneHint": "e.g., +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "24h Emergency Assistance Number",
+  "divers_edit_insurancePhoneLabel": "Insurance Office Number",
   "divers_edit_insuranceProviderHint": "e.g., DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Insurance Provider",
   "divers_edit_insuranceSection": "Dive Insurance",
@@ -5904,6 +5926,8 @@
   "enum_equipmentType_dpv": "DPV",
   "enum_equipmentType_computer": "Dive Computer",
   "enum_equipmentType_drysuit": "Drysuit",
+  "enum_equipmentType_baselayer": "Base Layer",
+  "enum_equipmentType_undersuit": "Undersuit",
   "enum_equipmentType_fins": "Fins",
   "enum_equipmentType_gloves": "Gloves",
   "enum_equipmentType_hood": "Hood",
@@ -6500,6 +6524,13 @@
       }
     }
   },
+  "@equipment_service_totalCostLabel": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceKinds_defaultCategoryLabel": "Default category",
   "equipment_serviceKinds_defaultCategoryNone": "No default",
   "equipment_serviceKinds_defaultCostLabel": "Default price",
@@ -6515,7 +6546,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Use default currency",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Currency for this item",
   "equipment_service_snackbar_deleted": "Service record deleted",
-  "equipment_service_totalCostLabel": "Total Service Cost",
+  "equipment_service_totalCostLabel": "Total Service Cost ({currency})",
   "equipment_setDetail_addEquipmentButton": "Add Equipment",
   "equipment_setDetail_deleteDialog_cancel": "Cancel",
   "equipment_setDetail_deleteDialog_confirm": "Delete",
@@ -6582,7 +6613,7 @@
   "equipment_summary_serviceDueTitle": "Service Due",
   "equipment_summary_title": "Equipment",
   "equipment_summary_totalItems": "Total Items",
-  "equipment_summary_totalValue": "Total Value",
+  "equipment_summary_totalValue": "Total Value ({currency})",
   "equipment_tab_equipment": "Equipment",
   "equipment_tab_sets": "Sets",
   "@equipment_detail_daysOverdue": {
@@ -6866,6 +6897,13 @@
       },
       "type": {
         "type": "Object"
+      }
+    }
+  },
+  "@equipment_summary_totalValue": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
       }
     }
   },
@@ -16126,6 +16164,8 @@
   "attrLabel_blade_material": "Blade material",
   "attrLabel_tip_type": "Tip",
   "attrLabel_glove_type": "Type",
+  "attrLabel_insulation_level": "Insulation level",
+  "attrLabel_fill_material": "Material",
   "attrLabel_sole_type": "Sole",
   "attrLabel_buoyancy_kg": "Buoyancy",
   "attrLabel_dry_weight_kg": "Dry weight",
@@ -16142,13 +16182,8 @@
   "attrLabel_battery_capacity_wh": "Battery capacity (Wh)",
   "attrLabel_motor_type": "Motor",
   "attrLabel_speed_mps": "Top speed",
-  "attrLabel_undergarment_style": "Style",
-  "attrLabel_insulation_material": "Insulation",
-  "attrLabel_fill_weight_gsm": "Fill weight (g/m²)",
-  "attrLabel_heated": "Heated",
   "attrLabel_sleeve_length": "Sleeves",
   "attrLabel_upf_rating": "UPF rating",
-  "attrLabel_thermal_lined": "Thermal lining",
   "attrLabel_snorkel_type": "Type",
   "attrLabel_purge_valve": "Purge valve",
   "attrLabel_instrument_type": "Instrument",
@@ -16179,6 +16214,16 @@
   "attrChoice_seal_type_latex": "Latex",
   "attrChoice_seal_type_silicone": "Silicone",
   "attrChoice_seal_type_neoprene": "Neoprene",
+  "attrChoice_insulation_level_light": "Light",
+  "attrChoice_insulation_level_mid": "Mid-weight",
+  "attrChoice_insulation_level_heavy": "Heavy",
+  "attrChoice_insulation_level_extreme": "Extreme",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "Hollowfibre",
+  "attrChoice_fill_material_fleece": "Fleece",
+  "attrChoice_fill_material_merino": "Merino wool",
+  "attrChoice_fill_material_polypropylene": "Polypropylene",
   "attrChoice_tank_material_aluminum": "Aluminum",
   "attrChoice_tank_material_steel": "Steel",
   "attrChoice_tank_material_carbon_composite": "Carbon composite",
@@ -16235,15 +16280,6 @@
   "attrChoice_battery_type_lead_acid": "Lead-acid",
   "attrChoice_motor_type_brushless": "Brushless",
   "attrChoice_motor_type_brushed": "Brushed",
-  "attrChoice_undergarment_style_one_piece": "One-piece",
-  "attrChoice_undergarment_style_two_piece": "Two-piece",
-  "attrChoice_undergarment_style_vest": "Vest",
-  "attrChoice_undergarment_style_base_layer": "Base layer",
-  "attrChoice_insulation_material_thinsulate": "Thinsulate",
-  "attrChoice_insulation_material_primaloft": "PrimaLoft",
-  "attrChoice_insulation_material_fleece": "Fleece",
-  "attrChoice_insulation_material_merino_wool": "Merino wool",
-  "attrChoice_insulation_material_down": "Down",
   "attrChoice_sleeve_length_short": "Short",
   "attrChoice_sleeve_length_long": "Long",
   "attrChoice_sleeve_length_sleeveless": "Sleeveless",
@@ -16373,6 +16409,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.",
+  "emergencyCard_callInsurer_subtitle": "Your dive insurance emergency line. Call first: your insurer authorizes the evacuation and coordinates the chamber referral.",
+  "emergencyCard_hotlineSecondary_subtitle": "Regional diver emergency hotline. Call this if your insurer's line does not answer.",
+  "emergencyCard_insuranceEmergencyLine": "24h emergency line",
+  "emergencyCard_insuranceOfficeLine": "Office line",
+  "emergencyCard_insuranceNoPhone": "No insurer emergency number saved. Add it in Diver Profile settings so this card can lead with it.",
   "emergencyCard_ems": "Local emergency services: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' show Locale;
 
 import 'package:clock/clock.dart';
@@ -12,16 +13,54 @@ import 'package:geocoding_platform_interface/geocoding_platform_interface.dart'
     as gpi;
 import 'package:submersion/core/services/geocoding/nominatim_throttle.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
+import 'package:submersion/core/services/geocoding/sea_area.dart';
+import 'package:submersion/core/services/geocoding/sea_area_index.dart';
+import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/core/services/location_service.dart';
 
 import '../../helpers/fake_nominatim.dart';
 
+/// A square sea area covering [size] degrees from its lower-left corner.
+SeaArea _seaArea(String name, double lon, double lat, double size) => SeaArea(
+  name: name,
+  minLon: lon,
+  minLat: lat,
+  maxLon: lon + size,
+  maxLat: lat + size,
+  areaSquareDegrees: size * size,
+  polygons: [
+    SeaAreaPolygon(
+      outer: SeaAreaRing(
+        Float64List.fromList([
+          lon,
+          lat,
+          lon + size,
+          lat,
+          lon + size,
+          lat + size,
+          lon,
+          lat + size,
+          lon,
+          lat,
+        ]),
+      ),
+    ),
+  ],
+);
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   final service = LocationService.instance;
 
   setUp(() {
     LocationService.throttle = NominatimThrottle(minimumGap: Duration.zero);
     addTearDown(() => LocationService.throttle = NominatimThrottle());
+    // Every test states its own sea table. The default is an empty one, so
+    // a test that says nothing about oceans exercises the online path and
+    // never reaches for the 1.3 MB asset.
+    SeaAreaService.setIndexForTesting(const SeaAreaIndex([]));
+    addTearDown(SeaAreaService.resetCacheForTesting);
   });
 
   group('Nominatim URIs pin English results (#214)', () {
@@ -696,6 +735,80 @@ void main() {
       expect(result.locality, 'Weggis');
       expect(result.bodyOfWater, isNull);
       expect(result.networkFailed, isFalse);
+    });
+
+    test(
+      'a sea from the bundled table wins without a second request',
+      () async {
+        // Nominatim has no ocean or sea polygons, so the natural layer can
+        // only ever answer "Unable to geocode" here. The bundled table is
+        // asked first, which also spares Nominatim a throttled request.
+        SeaAreaService.setIndexForTesting(
+          SeaAreaIndex([_seaArea('Red Sea', 32.0, 12.0, 20.0)]),
+        );
+        final server = FakeNominatim(
+          body: jsonEncode(<String, dynamic>{
+            'address': <String, dynamic>{'country': 'Egypt'},
+          }),
+        );
+
+        final result = await server.run(
+          () => service.reverseGeocode(27.7275, 34.2544, languageCode: 'en'),
+        );
+
+        expect(result.bodyOfWater, 'Red Sea');
+        expect(result.country, 'Egypt');
+        expect(
+          server.requestedUris.where(
+            (u) => u.queryParameters['layer'] == 'natural',
+          ),
+          isEmpty,
+          reason: 'the table answered, so the natural layer is not consulted',
+        );
+      },
+    );
+
+    test('fresh water still falls through to the natural layer', () async {
+      // Lakes, quarries and fjord interiors are not in the IHO table, and
+      // the natural layer names them well.
+      SeaAreaService.setIndexForTesting(
+        SeaAreaIndex([_seaArea('Red Sea', 32.0, 12.0, 20.0)]),
+      );
+      final server = FakeNominatim(
+        body: jsonEncode(address()),
+        bodyFor: (uri) => natural(uri, {
+          'class': 'water',
+          'type': 'lake',
+          'name': 'Lake Lucerne',
+        }),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(47.027631, 8.400640, languageCode: 'en'),
+      );
+
+      expect(result.bodyOfWater, 'Lake Lucerne');
+      expect(server.requestedUris.last.queryParameters['layer'], 'natural');
+    });
+
+    test('an empty table degrades to the online lookup alone', () async {
+      // The table is consulted first but never required: a point it has no
+      // answer for still gets whatever the natural layer knows, which is
+      // how fjord interiors and quarries keep their names.
+      final server = FakeNominatim(
+        body: jsonEncode(address()),
+        bodyFor: (uri) => natural(uri, {
+          'class': 'natural',
+          'type': 'bay',
+          'name': 'Vestfjorden',
+        }),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(68.2, 13.6, languageCode: 'en'),
+      );
+
+      expect(result.bodyOfWater, 'Vestfjorden');
     });
 
     test('the address and natural requests are a second apart', () {

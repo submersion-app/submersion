@@ -12,7 +12,16 @@ enum EquipmentType {
   bcd('BCD'),
   wetsuit('Wetsuit'),
   drysuit('Drysuit'),
-  undergarment('Undergarment'),
+  // The two drysuit layers, requested in #1537. They sit next to the suits
+  // because that is where a diver looks for them, and they are separate types
+  // rather than `other` because their thermal rating is what moves a drysuit
+  // diver's lead between a summer and a winter dive.
+  undersuit('Undersuit'),
+  baselayer('Base Layer'),
+  // Requested in #1518 alongside the two above. It is neither of them: a rash
+  // guard is worn for sun and abrasion in warm water, so it is rated in UPF
+  // rather than in warmth, and a diver owns one for the reason they own a
+  // baselayer for the opposite one.
   rashGuard('Rash Guard'),
   fins('Fins'),
   mask('Mask'),

@@ -44,6 +44,8 @@ abstract final class EquipmentAttrKeys {
   static const liftCapacityKg = 'lift_capacity_kg';
   static const gloveType = 'glove_type';
   static const weightStyle = 'weight_style';
+  static const insulationLevel = 'insulation_level';
+  static const fillMaterial = 'fill_material';
 }
 
 class EquipmentAttributeDef {
@@ -97,6 +99,32 @@ abstract final class EquipmentAttributeCatalog {
     choiceKeys: ['wrist', 'console', 'hud'],
   );
 
+  /// How warm the garment is, in the four steps drysuit makers actually
+  /// print on a label. Undergarments are sold by warmth rating rather than by
+  /// millimetres, so [EquipmentAttrKeys.thicknessMm] would be the wrong
+  /// question: a 400g Thinsulate suit and a fleece of the same loft are not
+  /// the same garment.
+  static const _insulationLevel = EquipmentAttributeDef(
+    key: EquipmentAttrKeys.insulationLevel,
+    kind: AttributeKind.choice,
+    choiceKeys: ['light', 'mid', 'heavy', 'extreme'],
+  );
+
+  /// What the garment is made of. Shared by both layers: the same fibres show
+  /// up in undersuits and in the base layers worn beneath them.
+  static const _fillMaterial = EquipmentAttributeDef(
+    key: EquipmentAttrKeys.fillMaterial,
+    kind: AttributeKind.choice,
+    choiceKeys: [
+      'thinsulate',
+      'primaloft',
+      'hollowfibre',
+      'fleece',
+      'merino',
+      'polypropylene',
+    ],
+  );
+
   static const Map<EquipmentType, List<EquipmentAttributeDef>> _byType = {
     EquipmentType.wetsuit: [
       _size,
@@ -125,32 +153,11 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['latex', 'silicone', 'neoprene'],
       ),
     ],
-    EquipmentType.undergarment: [
-      _size,
-      EquipmentAttributeDef(
-        key: 'undergarment_style',
-        kind: AttributeKind.choice,
-        choiceKeys: ['one_piece', 'two_piece', 'vest', 'base_layer'],
-      ),
-      EquipmentAttributeDef(
-        key: 'insulation_material',
-        kind: AttributeKind.choice,
-        choiceKeys: [
-          'thinsulate',
-          'primaloft',
-          'fleece',
-          'merino_wool',
-          'down',
-        ],
-      ),
-      // Grams per square metre, the number printed on every undergarment
-      // ("200 g", "400 g") and the one divers compare across seasons. It is
-      // the same figure in every market, so there is nothing to convert.
-      EquipmentAttributeDef(key: 'fill_weight_gsm', kind: AttributeKind.number),
-      // Battery-heated vests and suits are common enough under a drysuit to
-      // be worth finding a charger for before a trip.
-      EquipmentAttributeDef(key: 'heated', kind: AttributeKind.flag),
-    ],
+    EquipmentType.undersuit: [_size, _insulationLevel, _fillMaterial],
+    EquipmentType.baselayer: [_size, _insulationLevel, _fillMaterial],
+    // Warmth is deliberately absent: that is what `baselayer` is for, and a
+    // second way to say "this one is warm" is how two keys for one idea drift
+    // apart per locale. A rash guard is the sun-and-abrasion garment.
     EquipmentType.rashGuard: [
       _size,
       EquipmentAttributeDef(
@@ -161,9 +168,6 @@ abstract final class EquipmentAttributeCatalog {
       // The rating printed on the garment (UPF 50+ is the common ceiling).
       // Dimensionless: a UPF number is a ratio, not a measurement.
       EquipmentAttributeDef(key: 'upf_rating', kind: AttributeKind.number),
-      // A thermal-lined top is warmth, a plain lycra one is only abrasion and
-      // sun cover; the difference decides what goes in the bag.
-      EquipmentAttributeDef(key: 'thermal_lined', kind: AttributeKind.flag),
     ],
     EquipmentType.tank: [
       EquipmentAttributeDef(
