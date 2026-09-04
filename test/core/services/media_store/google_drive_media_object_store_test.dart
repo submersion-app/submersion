@@ -15,8 +15,8 @@ void main() {
   late FakeDriveServer server;
 
   GoogleDriveMediaObjectStore build({int? chunkSizeBytes}) {
-    return GoogleDriveMediaObjectStore(
-      client: server.client,
+    return GoogleDriveMediaObjectStore.withClient(
+      server.client,
       chunkSizeBytes: chunkSizeBytes ?? 8 * 1024 * 1024,
       apiBase: 'https://fake.googleapis.test',
     );
@@ -173,8 +173,8 @@ void main() {
 
   test('a 5xx from Drive surfaces as MediaStoreException on every '
       'verb', () async {
-    final store = GoogleDriveMediaObjectStore(
-      client: MockClient(
+    final store = GoogleDriveMediaObjectStore.withClient(
+      MockClient(
         (_) async => http.Response('{"error":{"message":"boom"}}', 500),
       ),
       apiBase: 'https://fake.googleapis.test',
@@ -226,4 +226,84 @@ void main() {
       0,
     );
   });
+
+  test('a re-auth that closes and replaces the client is followed on the '
+      'next request', () async {
+    var live = _RevocableClient(server.client);
+    final store = GoogleDriveMediaObjectStore(
+      clientSupplier: () async => live,
+      apiBase: 'https://fake.googleapis.test',
+    );
+    final src = File('${tmp.path}/reauth.jpg')..writeAsBytesSync([7, 7, 7]);
+    await store.putFile(
+      'smv1/objects/aa/before.jpg',
+      src,
+      contentType: 'image/jpeg',
+    );
+
+    // What the authenticator does on every re-auth (the 401 retry being
+    // the routine trigger): close the published client, then publish a
+    // fresh one for the same account.
+    live.close();
+    live = _RevocableClient(server.client);
+
+    await store.putFile(
+      'smv1/objects/aa/after.jpg',
+      src,
+      contentType: 'image/jpeg',
+    );
+
+    expect(
+      server.filesById.values.map((f) => f.name),
+      containsAll(<String>[
+        'smv1/objects/aa/before.jpg',
+        'smv1/objects/aa/after.jpg',
+      ]),
+    );
+  });
+
+  test('a supplier with no Google session fails as an auth error', () async {
+    final store = GoogleDriveMediaObjectStore(
+      clientSupplier: () async => null,
+      apiBase: 'https://fake.googleapis.test',
+    );
+    await expectLater(
+      store.head('smv1/objects/aa/x.jpg'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.auth,
+        ),
+      ),
+    );
+  });
+}
+
+/// A transport with the real `IOClient` lifecycle: every request after
+/// [close] throws, exactly as the authenticator's client does once a
+/// re-auth has torn it down. `MockClient` alone cannot model this - its
+/// inherited `close` is a no-op, so a closed one keeps answering.
+class _RevocableClient extends http.BaseClient {
+  _RevocableClient(this._inner);
+
+  final http.Client _inner;
+  bool _closed = false;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    if (_closed) {
+      throw http.ClientException(
+        'HTTP request failed. Client is already closed.',
+        request.url,
+      );
+    }
+    return _inner.send(request);
+  }
+
+  @override
+  void close() {
+    _closed = true;
+    _inner.close();
+  }
 }
