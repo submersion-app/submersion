@@ -20,6 +20,10 @@ void main() {
   }) async {
     await tester.pumpWidget(
       MaterialApp(
+        // Pinned: flutter_test forwards the HOST machine's locale list, so an
+        // unpinned MaterialApp resolves to a translated UI on a non-English
+        // dev machine and the validation-message assertion below fails.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -126,6 +130,37 @@ void main() {
   });
 
   testWidgets('a web link that is not a link fails validation', (tester) async {
+    final formKey = GlobalKey<FormState>();
+    await pumpSection(
+      tester,
+      type: EquipmentType.regulator,
+      group: AttributeGroup.purchase,
+      formKey: formKey,
+    );
+
+    await tester.enterText(
+      find.byKey(const ValueKey('attr-field-product_url')),
+      'receipt in the drawer',
+    );
+    expect(formKey.currentState!.validate(), isFalse);
+    await tester.pump();
+    expect(
+      find.text('Enter a web address, e.g. shop.example.com'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the pinned locale survives a non-English host', (tester) async {
+    // Proves the `locale:` pin above is load-bearing rather than decorative:
+    // flutter_test forwards the host machine's locale list, and this app
+    // supports French, so without the pin the form would render in French and
+    // the assertion below would find nothing.
+    tester.platformDispatcher.localesTestValue = const [
+      Locale('fr'),
+      Locale('en'),
+    ];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
     final formKey = GlobalKey<FormState>();
     await pumpSection(
       tester,

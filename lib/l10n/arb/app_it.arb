@@ -9800,7 +9800,7 @@
   "equipment_documents_attachButton": "Allega",
   "equipment_documents_empty": "Nessun documento allegato",
   "equipment_documents_removeTitle": "Rimuovere il documento?",
-  "equipment_documents_removeContent": "Non sara piu allegato a questo articolo. Il file originale non viene mai toccato.",
+  "equipment_documents_removeContent": "Non sarà più allegato a questo articolo. Il file originale non viene mai toccato.",
   "equipment_documents_removed": "Documento rimosso",
   "equipment_documents_loadError": "Impossibile caricare i documenti: {error}",
   "equipment_documents_removeError": "Impossibile rimuovere il documento: {error}",

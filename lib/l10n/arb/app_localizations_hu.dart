@@ -25177,7 +25177,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidWebLink =>
-      'Adjon meg egy webcimet, pl. shop.example.com';
+      'Adjon meg egy webcímet, pl. shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title =>
@@ -32884,32 +32884,32 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_documents_subtitle =>
-      'Szamlak, nyugtak es garancialevelek';
+      'Számlák, nyugták és garancialevelek';
 
   @override
-  String get equipment_documents_attachButton => 'Csatolas';
+  String get equipment_documents_attachButton => 'Csatolás';
 
   @override
-  String get equipment_documents_empty => 'Meg nincs csatolt dokumentum';
+  String get equipment_documents_empty => 'Még nincs csatolt dokumentum';
 
   @override
-  String get equipment_documents_removeTitle => 'Eltavolitja a dokumentumot?';
+  String get equipment_documents_removeTitle => 'Eltávolítja a dokumentumot?';
 
   @override
   String get equipment_documents_removeContent =>
-      'Tobbe nem lesz ehhez a felszereleshez csatolva. Az eredeti fajl erintetlen marad.';
+      'Többé nem lesz ehhez a felszereléshez csatolva. Az eredeti fájl érintetlen marad.';
 
   @override
-  String get equipment_documents_removed => 'A dokumentum eltavolitva';
+  String get equipment_documents_removed => 'A dokumentum eltávolítva';
 
   @override
   String equipment_documents_loadError(String error) {
-    return 'A dokumentumok nem tolthetok be: $error';
+    return 'A dokumentumok nem tölthetők be: $error';
   }
 
   @override
   String equipment_documents_removeError(String error) {
-    return 'A dokumentum nem tavolithato el: $error';
+    return 'A dokumentum nem távolítható el: $error';
   }
 
   @override

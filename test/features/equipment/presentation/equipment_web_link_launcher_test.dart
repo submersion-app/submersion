@@ -10,6 +10,10 @@ void main() {
     late BuildContext captured;
     await tester.pumpWidget(
       MaterialApp(
+        // Pinned: flutter_test forwards the HOST machine's locale list, so an
+        // unpinned MaterialApp resolves to a translated UI on a non-English
+        // dev machine and every English assertion below fails.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(

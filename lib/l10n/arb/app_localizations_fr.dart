@@ -33114,7 +33114,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_documents_subtitle =>
-      'Factures, recus et documents de garantie';
+      'Factures, reçus et documents de garantie';
 
   @override
   String get equipment_documents_attachButton => 'Joindre';
@@ -33128,10 +33128,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_documents_removeContent =>
-      'Il ne sera plus joint a cet equipement. Votre fichier d\'origine n\'est jamais modifie.';
+      'Il ne sera plus joint à cet équipement. Votre fichier d\'origine n\'est jamais modifié.';
 
   @override
-  String get equipment_documents_removed => 'Document retire';
+  String get equipment_documents_removed => 'Document retiré';
 
   @override
   String equipment_documents_loadError(String error) {

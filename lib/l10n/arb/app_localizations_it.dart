@@ -33047,7 +33047,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_documents_removeContent =>
-      'Non sara piu allegato a questo articolo. Il file originale non viene mai toccato.';
+      'Non sarà più allegato a questo articolo. Il file originale non viene mai toccato.';
 
   @override
   String get equipment_documents_removed => 'Documento rimosso';

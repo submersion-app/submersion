@@ -25305,7 +25305,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidWebLink =>
-      'Introduce una direccion web, p. ej. shop.example.com';
+      'Introduce una dirección web, p. ej. shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title =>
@@ -33048,20 +33048,20 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_documents_subtitle =>
-      'Facturas, recibos y documentacion de garantia';
+      'Facturas, recibos y documentación de garantía';
 
   @override
   String get equipment_documents_attachButton => 'Adjuntar';
 
   @override
-  String get equipment_documents_empty => 'Aun no hay documentos adjuntos';
+  String get equipment_documents_empty => 'Aún no hay documentos adjuntos';
 
   @override
   String get equipment_documents_removeTitle => '¿Quitar documento?';
 
   @override
   String get equipment_documents_removeContent =>
-      'Dejara de estar adjunto a este equipo. Tu archivo original no se toca.';
+      'Dejará de estar adjunto a este equipo. Tu archivo original no se toca.';
 
   @override
   String get equipment_documents_removed => 'Documento eliminado';

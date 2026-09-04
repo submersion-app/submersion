@@ -25285,7 +25285,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidWebLink =>
-      'Introduza um endereco web, p. ex. shop.example.com';
+      'Introduza um endereço web, p. ex. shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title =>
@@ -33049,19 +33049,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_documents_removeContent =>
-      'Deixa de estar anexado a este equipamento. O seu ficheiro original nunca e alterado.';
+      'Deixa de estar anexado a este equipamento. O seu ficheiro original nunca é alterado.';
 
   @override
   String get equipment_documents_removed => 'Documento removido';
 
   @override
   String equipment_documents_loadError(String error) {
-    return 'Nao foi possivel carregar os documentos: $error';
+    return 'Não foi possível carregar os documentos: $error';
   }
 
   @override
   String equipment_documents_removeError(String error) {
-    return 'Nao foi possivel remover o documento: $error';
+    return 'Não foi possível remover o documento: $error';
   }
 
   @override
