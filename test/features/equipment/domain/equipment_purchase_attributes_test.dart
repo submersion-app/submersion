@@ -133,6 +133,17 @@ void main() {
       expect(parseWebLink('localhost:3000'), isNull);
     });
 
+    test('refuses a userInfo host swap', () {
+      // "shop.example.com@evil.com" parses with host evil.com while the
+      // detail row still displays the stored text, so what the diver reads
+      // and what the tap opens are different hosts. Nothing about a product
+      // listing needs credentials in the URL, and the value can arrive from
+      // a synced device or an import rather than from this diver's keyboard.
+      expect(parseWebLink('shop.example.com@evil.com'), isNull);
+      expect(parseWebLink('https://shop.example.com@evil.com/mk25'), isNull);
+      expect(parseWebLink('user:pw@shop.example.com'), isNull);
+    });
+
     test('refuses values that are not links at all', () {
       expect(parseWebLink(''), isNull);
       expect(parseWebLink('   '), isNull);

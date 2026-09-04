@@ -478,6 +478,13 @@ Uri? parseWebLink(String? raw) {
   if (uri.scheme != 'http' && uri.scheme != 'https') return null;
   // A host with no dot is a typo or a local name, not a retailer's site.
   if (!uri.host.contains('.')) return null;
+  // No userInfo. "shop.example.com@evil.com" parses with host evil.com while
+  // the detail row still shows the text as stored, so what the diver reads
+  // and what the tap opens disagree -- the classic phishing shape. Nothing
+  // legitimate about a product listing needs credentials in the URL, and a
+  // url attribute can arrive from a synced device or an import rather than
+  // from this diver's keyboard.
+  if (uri.userInfo.isNotEmpty) return null;
   return uri;
 }
 
