@@ -98,8 +98,8 @@ final pdfThumbnailServiceProvider = Provider<PdfThumbnailService>(
 );
 
 /// Singleton [LocalFileResolver] (Phase 2 — multi-platform).
-final localFileResolverProvider = Provider<LocalFileResolver>(
-  (ref) => LocalFileResolver(
+final localFileResolverProvider = Provider<LocalFileResolver>((ref) {
+  final resolver = LocalFileResolver(
     bookmarkStorage: ref.watch(localBookmarkStorageProvider),
     platform: ref.watch(localMediaPlatformProvider),
     exifExtractor: ref.watch(exifExtractorProvider),
@@ -108,8 +108,13 @@ final localFileResolverProvider = Provider<LocalFileResolver>(
     // and memoized by the resolver; the provider itself never touches the
     // database.
     localDeviceId: () => SyncRepository().getDeviceId(),
-  ),
-);
+  );
+  // The resolver's fetch gate holds timers that outlive the fetch they bound,
+  // so a rebuild or a container teardown with a tile still resolving would
+  // leave them armed against a resolver nothing can reach.
+  ref.onDispose(resolver.dispose);
+  return resolver;
+});
 
 /// Singleton [HttpUrlMediaResolver] for [MediaSourceType.manifestEntry]
 /// items (Phase 3b).

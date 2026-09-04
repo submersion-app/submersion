@@ -281,4 +281,108 @@ void main() {
       });
     });
   });
+
+  /// Teardown. The budgets above are what keep a stalled fetch from freezing
+  /// the gallery, and they are implemented with timers that outlive the fetch
+  /// they bound. Once the container that owns the gate is gone those timers
+  /// are pure dead weight: nothing will read their answer, and in a widget
+  /// test they trip the binding's "a Timer is still pending even after the
+  /// widget tree was disposed" invariant, which is how this surfaced: as a
+  /// load-dependent failure in an unrelated media widget test whenever a tile
+  /// resolution was still in flight at teardown.
+  group('dispose', () {
+    testWidgets('leaves no pending timer behind', (tester) async {
+      final gate = MediaFetchGate(maxConcurrent: 1);
+      // Never completes: both budget timers stay armed for their full
+      // duration, exactly as an unreachable share behaves.
+      gate.run('never', () => Completer<MediaSourceData?>().future).ignore();
+      await tester.pump();
+      expect(gate.runningCount, 1, reason: 'the fetch holds a slot');
+
+      gate.dispose();
+
+      // The assertion is the binding's own: reaching the end of this test
+      // with either budget timer still armed fails it during teardown.
+    });
+
+    test('answers an outstanding caller with stillFetching', () {
+      fakeAsync((async) {
+        final gate = MediaFetchGate(maxConcurrent: 1);
+        MediaSourceData? seen;
+        gate
+            .run('never', () => Completer<MediaSourceData?>().future)
+            .then((v) => seen = v);
+        async.flushMicrotasks();
+        expect(seen, isNull);
+
+        gate.dispose();
+        async.flushMicrotasks();
+
+        // The same answer the total budget would have given, just earlier:
+        // a caller is never left waiting on a gate that no longer exists.
+        expect(
+          seen,
+          isA<UnavailableData>().having(
+            (d) => d.kind,
+            'kind',
+            UnavailableKind.stillFetching,
+          ),
+        );
+      });
+    });
+
+    test('answers a later caller without starting the fetch', () {
+      fakeAsync((async) {
+        final gate = MediaFetchGate(maxConcurrent: 1);
+        gate.dispose();
+
+        var started = false;
+        MediaSourceData? seen;
+        gate
+            .run('late', () async {
+              started = true;
+              return result('late');
+            })
+            .then((v) => seen = v);
+        async.flushMicrotasks();
+
+        expect(started, isFalse);
+        expect(
+          seen,
+          isA<UnavailableData>().having(
+            (d) => d.kind,
+            'kind',
+            UnavailableKind.stillFetching,
+          ),
+        );
+        // And no timer to elapse into: a disposed gate arms nothing.
+        async.elapse(const Duration(minutes: 1));
+      });
+    });
+
+    test('a fetch settling after dispose disturbs nothing', () {
+      fakeAsync((async) {
+        final gate = MediaFetchGate(maxConcurrent: 1);
+        final late_ = Completer<MediaSourceData?>();
+        gate.run('k', () => late_.future).ignore();
+        async.flushMicrotasks();
+
+        gate.dispose();
+        late_.complete(result('arrived late'));
+        async.flushMicrotasks();
+        async.elapse(const Duration(minutes: 1));
+
+        // Counters stay put rather than drifting negative: the fetch's
+        // bookkeeping is skipped wholesale once the gate is torn down.
+        expect(gate.runningCount, 0);
+        expect(gate.detachedCount, 0);
+      });
+    });
+
+    test('is idempotent', () {
+      final gate = MediaFetchGate(maxConcurrent: 1);
+      gate.dispose();
+      expect(gate.dispose, returnsNormally);
+    });
+  });
 }

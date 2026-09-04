@@ -476,4 +476,13 @@ class LocalFileResolver implements MediaSourceResolver {
     }
     return VerifyResult.notFound;
   }
+
+  /// Releases the fetch gate's budget timers.
+  ///
+  /// Called from `localFileResolverProvider`'s `onDispose`. The resolver is a
+  /// singleton per container, so without this a container that goes away with
+  /// a tile still resolving leaves the gate's slot and caller budgets ticking
+  /// against nobody. That is harmless in the app but fatal to a widget test,
+  /// which fails teardown on any timer the tree left behind.
+  void dispose() => _gate.dispose();
 }

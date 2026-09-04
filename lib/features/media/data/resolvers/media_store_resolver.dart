@@ -261,4 +261,9 @@ class MediaStoreResolver {
       // Best-effort: an undeletable staging file is not worth surfacing.
     }
   }
+
+  /// Releases the fetch gate's budget timers. Called when the store runtime
+  /// that owns this resolver is torn down or replaced; see
+  /// [LocalFileResolver.dispose] for why a stray budget timer matters.
+  void dispose() => _gate.dispose();
 }
