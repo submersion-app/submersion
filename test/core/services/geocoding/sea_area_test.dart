@@ -169,7 +169,10 @@ void main() {
       );
       expect(translated.nameIn('de'), 'Testsee');
 
-      // Areas Wikidata had no label for ship without the key at all.
+      // The key is optional in the format, and an area without it falls
+      // back to English. No area in the shipped table is in that state --
+      // sea_area_harvester_test.py holds it that way -- but the parser
+      // must not require what the format does not.
       final plain = SeaArea.fromJson(json({}));
       expect(plain.localizedNames, isEmpty);
       expect(plain.nameIn('de'), 'Test Sea');
