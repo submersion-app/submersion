@@ -56,6 +56,10 @@ class GoogleDriveStorageProvider
 
   final GoogleDriveAuthenticator _authenticator;
   drive.DriveApi? _driveApi;
+
+  /// The client [_driveApi] was built over, compared by identity so a client
+  /// swapped underneath us is never kept in use.
+  http.Client? _driveApiClient;
   drive.DriveApi? _injectedApi;
   String? _syncFolderId;
 
@@ -114,6 +118,13 @@ class GoogleDriveStorageProvider
   /// when not authenticated. Rebuilt lazily so a re-auth (new client)
   /// transparently produces a new API instance.
   ///
+  /// The cache is keyed on the client's IDENTITY, not merely on its
+  /// nullness. A re-auth closes the client it replaces, and an api cached
+  /// over that closed client kept sending through it -- "HTTP request
+  /// failed. Client is already closed." on every Drive call for the rest of
+  /// the process, while isAuthenticated() went on answering true because
+  /// authClient was non-null the whole time.
+  ///
   /// An api injected by [debugSetDriveApi] wins outright: tests exercise the
   /// transfer paths with no authenticator at all, so deriving from
   /// [GoogleDriveAuthenticator.authClient] would resolve to null and every
@@ -125,9 +136,14 @@ class GoogleDriveStorageProvider
     final client = _authenticator.authClient;
     if (client == null) {
       _driveApi = null;
+      _driveApiClient = null;
       return null;
     }
-    return _driveApi ??= drive.DriveApi(client);
+    if (_driveApi == null || !identical(client, _driveApiClient)) {
+      _driveApi = drive.DriveApi(client);
+      _driveApiClient = client;
+    }
+    return _driveApi;
   }
 
   drive.DriveApi get _requireApi {

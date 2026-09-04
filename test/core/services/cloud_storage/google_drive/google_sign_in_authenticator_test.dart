@@ -63,10 +63,17 @@ class _FakePlatform extends GoogleSignInPlatform
   @override
   bool authorizationRequiresUserInteraction() => false;
 
+  /// How many times a scope authorization was requested. One per installed
+  /// client, so it counts clients without reaching into the authenticator.
+  int authorizationCalls = 0;
+
   @override
   Future<ClientAuthorizationTokenData?> clientAuthorizationTokensForScopes(
     ClientAuthorizationTokensForScopesParameters params,
-  ) async => authorizationToken;
+  ) async {
+    authorizationCalls++;
+    return authorizationToken;
+  }
 
   @override
   Future<ServerAuthorizationTokenData?> serverAuthorizationTokensForScopes(
@@ -148,6 +155,30 @@ void main() {
       expect(await auth.attemptSilentAuth(), isTrue);
       expect(auth.authClient, same(first));
     });
+
+    test(
+      'two concurrent callers authorize once and install one client',
+      () async {
+        // The reuse guard above is read BEFORE the SDK round trip, so without
+        // single-flighting both callers install and the second _installClient
+        // closes the client the first already handed to the provider and to the
+        // media store. Nothing rebuilds from a still-non-null authClient, so
+        // every later Drive call fails with "Client is already closed" for the
+        // rest of the process.
+        platform.lightweightResult = _FakePlatform.resultsFor(
+          'diver@example.com',
+        );
+
+        final results = await Future.wait([
+          auth.attemptSilentAuth(),
+          auth.attemptSilentAuth(),
+        ]);
+
+        expect(results, [true, true]);
+        expect(platform.authorizationCalls, 1);
+        expect(auth.authClient, isNotNull);
+      },
+    );
 
     test('swallows platform errors and reports failure', () async {
       GoogleSignInPlatform.instance = _ThrowingInitPlatform();

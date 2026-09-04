@@ -171,8 +171,28 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
     }
   }
 
+  /// Single-flights [attemptSilentAuth]: the `_authClient != null` guard is
+  /// read before the token-store await, so two concurrent callers would both
+  /// get past it and both install. The second install closes the client the
+  /// first already published to the provider and the media store, and nothing
+  /// rebuilds from a still-non-null authClient -- so every later Drive call
+  /// failed with "HTTP request failed. Client is already closed." until the
+  /// process restarted.
+  ///
+  /// Two callers is the ordinary case: the Cloud Sync page fires an unawaited
+  /// refreshState() -> isAuthenticated() while a launch sync sits inside its
+  /// own isAuthenticated().
+  Future<bool>? _silentAuthInFlight;
+
   @override
-  Future<bool> attemptSilentAuth() async {
+  Future<bool> attemptSilentAuth() {
+    if (_authClient != null) return Future.value(true);
+    return _silentAuthInFlight ??= _runSilentAuth().whenComplete(
+      () => _silentAuthInFlight = null,
+    );
+  }
+
+  Future<bool> _runSilentAuth() async {
     try {
       if (_authClient != null) return true;
 

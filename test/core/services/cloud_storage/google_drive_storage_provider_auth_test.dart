@@ -31,6 +31,9 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   @override
   http.Client? get authClient => _client;
 
+  /// Swaps the published client, the way a re-auth does.
+  set authClient(http.Client? client) => _client = client;
+
   @override
   Future<void> authenticate() async => authenticateCalls++;
 
@@ -177,6 +180,28 @@ void main() {
       authenticator: _FakeAuthenticator(null)..silentAuthResult = false,
     );
     expect(await unauthenticated.isAuthenticated(), isFalse);
+  });
+
+  test('a swapped auth client rebuilds the Drive api', () async {
+    // The api cache was keyed on nothing: it was dropped only when authClient
+    // read back NULL, never when it read back a DIFFERENT client. A re-auth
+    // closes the old client, so the cached api went on sending through a
+    // closed transport -- "HTTP request failed. Client is already closed." on
+    // every Drive call for the rest of the process, with isAuthenticated()
+    // still answering true.
+    await provider.listFiles(folderId: 'folder-7');
+    expect(drive_.requests, isNotEmpty);
+
+    final reauthenticated = _FakeDrive();
+    auth.authClient = reauthenticated.client();
+
+    await provider.listFiles(folderId: 'folder-7');
+
+    expect(
+      reauthenticated.requests,
+      isNotEmpty,
+      reason: 'the api must follow the authenticator to the new client',
+    );
   });
 
   test('getUserEmail delegates to the authenticator', () async {
