@@ -97,6 +97,49 @@ void main() {
       expect(area.contains(5, 5), isFalse);
     });
 
+    test('names itself in a language it has, and English otherwise', () {
+      final area = SeaArea(
+        name: 'Red Sea',
+        minLon: 0,
+        minLat: 0,
+        maxLon: 10,
+        maxLat: 10,
+        areaSquareDegrees: 100,
+        polygons: [SeaAreaPolygon(outer: _square(0, 0, 10))],
+        localizedNames: const {'de': 'Rotes Meer'},
+      );
+
+      expect(area.nameIn('de'), 'Rotes Meer');
+      expect(area.nameIn('en'), 'Red Sea');
+      expect(area.nameIn('hu'), 'Red Sea');
+    });
+
+    test('parses the names map, and tolerates its absence', () {
+      Map<String, dynamic> json(Map<String, dynamic> extra) => {
+        'name': 'Test Sea',
+        'bbox': <dynamic>[0, 0, 10, 10],
+        'area': 100.0,
+        'polygons': <dynamic>[
+          <String, dynamic>{
+            'outer': <dynamic>[0, 0, 10, 0, 10, 10, 0, 10, 0, 0],
+          },
+        ],
+        ...extra,
+      };
+
+      final translated = SeaArea.fromJson(
+        json({
+          'names': <String, dynamic>{'de': 'Testsee'},
+        }),
+      );
+      expect(translated.nameIn('de'), 'Testsee');
+
+      // Areas Wikidata had no label for ship without the key at all.
+      final plain = SeaArea.fromJson(json({}));
+      expect(plain.localizedNames, isEmpty);
+      expect(plain.nameIn('de'), 'Test Sea');
+    });
+
     test('rejects points outside its bounding box without ring work', () {
       final area = SeaArea(
         name: 'Test Sea',

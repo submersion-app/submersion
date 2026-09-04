@@ -155,6 +155,7 @@ class SeaArea {
     required this.maxLat,
     required this.areaSquareDegrees,
     required this.polygons,
+    this.localizedNames = const {},
   });
 
   factory SeaArea.fromJson(Map<String, dynamic> json) {
@@ -170,6 +171,11 @@ class SeaArea {
         for (final p in json['polygons'] as List)
           _polygonFromJson(p as Map<String, dynamic>),
       ],
+      localizedNames: {
+        for (final e
+            in (json['names'] as Map<String, dynamic>? ?? const {}).entries)
+          e.key: e.value as String,
+      },
     );
   }
 
@@ -185,6 +191,15 @@ class SeaArea {
   final double areaSquareDegrees;
 
   final List<SeaAreaPolygon> polygons;
+
+  /// The sea's name by language code, English excluded: [name] is the
+  /// English one and the fallback for everything else. Coverage is not
+  /// uniform -- Wikidata has no Hungarian label for about one sea in six --
+  /// and a language simply absent here falls back rather than being guessed.
+  final Map<String, String> localizedNames;
+
+  /// The name in [languageCode], falling back to the English [name].
+  String nameIn(String languageCode) => localizedNames[languageCode] ?? name;
 
   bool contains(double lon, double lat) {
     if (lon < minLon || lon > maxLon || lat < minLat || lat > maxLat) {

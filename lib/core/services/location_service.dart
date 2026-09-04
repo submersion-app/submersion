@@ -416,7 +416,7 @@ class LocationService {
     String languageCode,
   ) async {
     final index = await SeaAreaService.load();
-    final sea = index?.nameAt(latitude, longitude);
+    final sea = index?.nameAt(latitude, longitude, languageCode: languageCode);
     if (sea != null) {
       _log.info('Sea area table: $sea');
       return sea;

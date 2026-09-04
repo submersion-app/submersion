@@ -170,6 +170,89 @@ void main() {
     }
   });
 
+  group('names in the diver\'s language', () {
+    // Every other geocoded field honours PlaceNameLanguage, so the table
+    // has to as well or one column ends up holding two languages.
+    test('answers in the requested language', () {
+      expect(index.nameAt(27.7275, 34.2544, languageCode: 'de'), 'Rotes Meer');
+      expect(index.nameAt(27.7275, 34.2544, languageCode: 'fr'), 'mer Rouge');
+      expect(index.nameAt(27.7275, 34.2544, languageCode: 'zh'), '红海');
+    });
+
+    test('defaults to English', () {
+      expect(index.nameAt(27.7275, 34.2544), 'Red Sea');
+      expect(index.nameAt(27.7275, 34.2544, languageCode: 'en'), 'Red Sea');
+    });
+
+    test('falls back to English for a language it has no name in', () {
+      // A synced peer on a newer build could ask for anything.
+      expect(index.nameAt(27.7275, 34.2544, languageCode: 'xx'), 'Red Sea');
+      expect(index.nameAt(27.7275, 34.2544, languageCode: ''), 'Red Sea');
+    });
+
+    test('localizes the near-shore answer too, not just containment', () {
+      // Ras Mohammed is outside the IHO limit and resolved by proximity.
+      expect(index.nameAt(27.7275, 34.2544), 'Red Sea');
+      expect(
+        index.nameAt(12.21, -68.33, languageCode: 'de'),
+        isNot('Caribbean Sea'),
+      );
+      expect(
+        index.nameAt(12.21, -68.33, languageCode: 'de'),
+        contains('Karibisch'),
+      );
+    });
+
+    test('every area carries an English name, and most carry the rest', () {
+      final counts = <String, int>{};
+      for (final area in index.areas) {
+        expect(area.name.trim(), isNotEmpty);
+        for (final code in area.localizedNames.keys) {
+          counts[code] = (counts[code] ?? 0) + 1;
+        }
+        expect(
+          area.localizedNames.containsKey('en'),
+          isFalse,
+          reason: 'English lives in name, not in the map: ${area.name}',
+        );
+      }
+      // Hungarian is the thinnest at roughly five sixths; the rest are
+      // near total. A collapse here means the harvester lost its labels.
+      for (final code in [
+        'es',
+        'fr',
+        'de',
+        'it',
+        'nl',
+        'pt',
+        'ar',
+        'he',
+        'zh',
+      ]) {
+        expect(
+          counts[code] ?? 0,
+          greaterThanOrEqualTo(90),
+          reason: 'thin coverage for \$code',
+        );
+      }
+      expect(counts['hu'] ?? 0, greaterThanOrEqualTo(80));
+    });
+
+    test('no label carries a typographic ligature', () {
+      // The French Pacific labels arrive from Wikidata with U+FB01.
+      for (final area in index.areas) {
+        for (final entry in area.localizedNames.entries) {
+          expect(
+            entry.value.contains('\uFB01'),
+            isFalse,
+            reason: '${area.name} ${entry.key} has an unnormalized ligature',
+          );
+          expect(entry.value.trim(), entry.value);
+        }
+      }
+    });
+  });
+
   group('the antimeridian and the poles', () {
     // The Pacific, Bering and Chukchi polygons are split at 180 degrees,
     // while the Arctic and Southern oceans are single circumpolar rings

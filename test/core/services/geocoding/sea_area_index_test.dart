@@ -5,8 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/geocoding/sea_area.dart';
 import 'package:submersion/core/services/geocoding/sea_area_index.dart';
 
-SeaArea _box(String name, double lon, double lat, double size) => SeaArea(
+SeaArea _box(
+  String name,
+  double lon,
+  double lat,
+  double size, {
+  Map<String, String> localizedNames = const {},
+}) => SeaArea(
   name: name,
+  localizedNames: localizedNames,
   minLon: lon,
   minLat: lat,
   maxLon: lon + size,
@@ -69,6 +76,21 @@ void main() {
       // In the gap between them, but nearer the western limit.
       expect(index.nameAt(5, 10.01), 'West Sea');
       expect(index.nameAt(5, 10.04), 'East Sea');
+    });
+
+    test('answers in the requested language, containment and near-shore', () {
+      final index = SeaAreaIndex([
+        _box('Red Sea', 0, 0, 10, localizedNames: const {'de': 'Rotes Meer'}),
+      ]);
+
+      // Inside the box.
+      expect(index.nameAt(5, 5, languageCode: 'de'), 'Rotes Meer');
+      expect(index.nameAt(5, 5), 'Red Sea');
+
+      // Just outside it, resolved by the near-shore tolerance: the
+      // localized name has to survive that path too.
+      expect(index.nameAt(-0.018, 5, languageCode: 'de'), 'Rotes Meer');
+      expect(index.nameAt(-0.018, 5, languageCode: 'hu'), 'Red Sea');
     });
 
     test('parses the shipped JSON shape', () {

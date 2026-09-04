@@ -47,11 +47,12 @@ class SeaAreaIndex {
   /// at sea and 11us for the worst case, a point in no area at all, against
   /// the shipped 93,000-vertex table.
   ///
-  /// Names are English regardless of the diver's geocoding language. The
-  /// column is free text that statistics group on, and issue #214 pinned
-  /// that grouping to English precisely so one place could not split across
-  /// two spellings; a German diver now gets "Red Sea" where they used to
-  /// get an empty field.
+  /// Answers in [languageCode] where the table has that language, and in
+  /// English otherwise. Every other geocoded field already honours the
+  /// diver's place-name setting, so a sea that stayed English would leave
+  /// one column holding two languages: a German diver would read
+  /// "Vierwaldstaettersee" from the online lookup next to "Red Sea" from
+  /// here.
   ///
   /// Returning null is a real answer, not a failure: lakes, quarries,
   /// cenotes and fjord interiors are not in the IHO table, and the caller
@@ -63,21 +64,25 @@ class SeaAreaIndex {
   /// leaves roughly 180.0E to 179.87W unassigned. That is the dataset, not
   /// the simplification -- the raw layer has the same gap -- so it is
   /// documented rather than papered over.
-  String? nameAt(double latitude, double longitude) {
+  String? nameAt(
+    double latitude,
+    double longitude, {
+    String languageCode = 'en',
+  }) {
     for (final area in areas) {
-      if (area.contains(longitude, latitude)) return area.name;
+      if (area.contains(longitude, latitude)) return area.nameIn(languageCode);
     }
 
-    String? nearest;
+    SeaArea? nearest;
     var nearestKm = double.infinity;
     for (final area in areas) {
       if (!area.isNear(longitude, latitude, nearShoreKm)) continue;
       final distance = area.distanceKm(longitude, latitude);
       if (distance <= nearShoreKm && distance < nearestKm) {
-        nearest = area.name;
+        nearest = area;
         nearestKm = distance;
       }
     }
-    return nearest;
+    return nearest?.nameIn(languageCode);
   }
 }

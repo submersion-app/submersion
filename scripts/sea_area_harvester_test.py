@@ -117,6 +117,71 @@ class BuildAreaTest(unittest.TestCase):
 
 
 @unittest.skipUnless(_HAS_SHAPELY, "shapely is not installed")
+class NormalizeLabelTest(unittest.TestCase):
+    def test_folds_a_ligature_back_to_plain_letters(self):
+        # The French Pacific labels really do arrive this way.
+        self.assertEqual(
+            sea_area_harvester.normalize_label("oc\u00e9an Paci\ufb01que nord"),
+            "oc\u00e9an Pacifique nord",
+        )
+
+    def test_trims_surrounding_whitespace(self):
+        self.assertEqual(sea_area_harvester.normalize_label("  Rotes Meer "), "Rotes Meer")
+
+    def test_leaves_ordinary_labels_alone(self):
+        for label in ("Rotes Meer", "\u7ea2\u6d77", "\u0627\u0644\u0628\u062d\u0631 \u0627\u0644\u0623\u062d\u0645\u0631", "mer Rouge"):
+            self.assertEqual(sea_area_harvester.normalize_label(label), label)
+
+
+@unittest.skipUnless(_HAS_SHAPELY, "shapely is not installed")
+class TranslationTest(unittest.TestCase):
+    def test_attaches_translations_to_the_matching_area(self):
+        output = sea_area_harvester.build(
+            {
+                "features": [
+                    {
+                        "properties": {"name": "Red Sea"},
+                        "geometry": _polygon(_square(0, 0, 10)),
+                    }
+                ]
+            },
+            {"Red Sea": {"de": "Rotes Meer", "fr": "mer Rouge"}},
+        )
+        self.assertEqual(
+            output["areas"][0]["names"], {"de": "Rotes Meer", "fr": "mer Rouge"}
+        )
+
+    def test_omits_the_key_entirely_when_nothing_is_translated(self):
+        output = sea_area_harvester.build(
+            {
+                "features": [
+                    {
+                        "properties": {"name": "Red Sea"},
+                        "geometry": _polygon(_square(0, 0, 10)),
+                    }
+                ]
+            },
+            {},
+        )
+        self.assertNotIn("names", output["areas"][0])
+
+    def test_every_shipped_sea_has_a_reviewed_wikidata_item(self):
+        # A name added to NAME_OVERRIDES without a QID would silently ship
+        # untranslated.
+        qids = set(sea_area_harvester.WIKIDATA_QIDS.values())
+        self.assertEqual(
+            len(qids),
+            len(sea_area_harvester.WIKIDATA_QIDS),
+            "two seas point at the same Wikidata item",
+        )
+        for name, qid in sea_area_harvester.WIKIDATA_QIDS.items():
+            self.assertRegex(qid, r"^Q\d+$", f"{name} has a malformed QID")
+
+    def test_english_is_not_fetched_because_the_name_is_the_fallback(self):
+        self.assertNotIn("en", sea_area_harvester.TRANSLATION_LANGUAGES)
+
+
+@unittest.skipUnless(_HAS_SHAPELY, "shapely is not installed")
 class BuildTest(unittest.TestCase):
     def _payload(self, *features):
         return {

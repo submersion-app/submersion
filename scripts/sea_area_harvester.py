@@ -36,6 +36,9 @@ import argparse
 import json
 import logging
 import sys
+import time
+import unicodedata
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -107,6 +110,143 @@ NAME_OVERRIDES = {
         "Coastal Waters of Southeast Alaska and British Columbia"
     ),
     "The Northwestern Passages": "Northwestern Passages",
+}
+
+# Languages the app can display place names in, matching
+# PlaceNameLanguage.supportedCodes. English is not fetched: the IHO display
+# name above is the English one, and it is what every other language falls
+# back to.
+TRANSLATION_LANGUAGES = [
+    "es",
+    "fr",
+    "de",
+    "it",
+    "nl",
+    "pt",
+    "hu",
+    "ar",
+    "he",
+    "zh",
+]
+
+WIKIDATA_ENDPOINT = "https://www.wikidata.org/w/api.php"
+
+# Wikidata item per sea, so the shipped table can name a sea in the diver's
+# own language. Hand-reviewed rather than matched by name at build time,
+# and worth keeping that way: these were resolved by checking each
+# candidate's coordinate falls inside that sea's own polygon, and three
+# still came back wrong because a coordinate inside a polygon does not make
+# an entity the polygon. "North Pacific Ocean" matched the Marshall
+# Islands, which really are in the North Pacific; "Arctic Ocean" matched
+# the polar land region; "Mediterranean Sea" matched the basin of
+# surrounding countries. A second pass comparing each item's English label
+# against the name here is what caught them.
+#
+# A handful legitimately differ in spelling from the IHO label and are
+# correct: Ceram/Seram Sea, Gulf of St./Saint Lawrence, Malacca
+# Strait/Strait of Malacca, and Rio/Rio de la Plata. "The Northwestern
+# Passages" has no better item than the Northwest Passage route.
+WIKIDATA_QIDS = {
+    "Adriatic Sea":                                            "Q13924",
+    "Aegean Sea":                                              "Q34575",
+    "Alboran Sea":                                             "Q199408",
+    "Andaman Sea":                                             "Q47632",
+    "Arabian Sea":                                             "Q58705",
+    "Arafura Sea":                                             "Q128880",
+    "Arctic Ocean":                                            "Q788",
+    "Baffin Bay":                                              "Q37040",
+    "Balearic Sea":                                            "Q200712",
+    "Bali Sea":                                                "Q277014",
+    "Baltic Sea":                                              "Q545",
+    "Banda Sea":                                               "Q171510",
+    "Barents Sea":                                             "Q45823",
+    "Bass Strait":                                             "Q171846",
+    "Bay of Bengal":                                           "Q38684",
+    "Bay of Biscay":                                           "Q41573",
+    "Bay of Fundy":                                            "Q181857",
+    "Beaufort Sea":                                            "Q131274",
+    "Bering Sea":                                              "Q44725",
+    "Bismarck Sea":                                            "Q199436",
+    "Black Sea":                                               "Q166",
+    "Bristol Channel":                                         "Q188203",
+    "Caribbean Sea":                                           "Q1247",
+    "Celebes Sea":                                             "Q19270",
+    "Celtic Sea":                                              "Q81499",
+    "Ceram Sea":                                               "Q210855",
+    "Chukchi Sea":                                             "Q159252",
+    "Coastal Waters of Southeast Alaska and British Columbia": "Q5138334",
+    "Coral Sea":                                               "Q82931",
+    "Davis Strait":                                            "Q189262",
+    "East China Sea":                                          "Q45341",
+    "East Siberian Sea":                                       "Q163434",
+    "English Channel":                                         "Q34640",
+    "Flores Sea":                                              "Q150370",
+    "Great Australian Bight":                                  "Q186733",
+    "Greenland Sea":                                           "Q132868",
+    "Gulf of Aden":                                            "Q41837",
+    "Gulf of Alaska":                                          "Q180531",
+    "Gulf of Aqaba":                                           "Q81611",
+    "Gulf of Boni":                                            "Q641148",
+    "Gulf of Bothnia":                                         "Q122574",
+    "Gulf of California":                                      "Q132811",
+    "Gulf of Finland":                                         "Q14686",
+    "Gulf of Guinea":                                          "Q41430",
+    "Gulf of Mexico":                                          "Q12630",
+    "Gulf of Oman":                                            "Q79948",
+    "Gulf of Riga":                                            "Q174731",
+    "Gulf of St. Lawrence":                                    "Q169523",
+    "Gulf of Suez":                                            "Q168277",
+    "Gulf of Thailand":                                        "Q131217",
+    "Gulf of Tomini":                                          "Q1507546",
+    "Halmahera Sea":                                           "Q212083",
+    "Hudson Bay":                                              "Q3040",
+    "Hudson Strait":                                           "Q207702",
+    "Indian Ocean":                                            "Q1239",
+    "Inner Seas off the West Coast of Scotland":               "Q5762423",
+    "Ionian Sea":                                              "Q37495",
+    "Irish Sea":                                               "Q41735",
+    "Java Sea":                                                "Q49364",
+    "Kara Sea":                                                "Q33629",
+    "Kattegat":                                                "Q131716",
+    "Labrador Sea":                                            "Q184189",
+    "Laccadive Sea":                                           "Q544914",
+    "Laptev Sea":                                              "Q7988",
+    "Ligurian Sea":                                            "Q42820",
+    "Lincoln Sea":                                             "Q243125",
+    "Makassar Strait":                                         "Q194477",
+    "Malacca Strait":                                          "Q48359",
+    "Mediterranean Sea":                                       "Q4918",
+    "Molucca Sea":                                             "Q185291",
+    "Mozambique Channel":                                      "Q165100",
+    "North Atlantic Ocean":                                    "Q350134",
+    "North Pacific Ocean":                                     "Q12353254",
+    "North Sea":                                               "Q1693",
+    "Northwestern Passages":                                   "Q81136",
+    "Norwegian Sea":                                           "Q47545",
+    "Persian Gulf":                                            "Q34675",
+    "Philippine Sea":                                          "Q159183",
+    "Red Sea":                                                 "Q23406",
+    "Rio de la Plata":                                         "Q35827",
+    "Savu Sea":                                                "Q193465",
+    "Sea of Azov":                                             "Q35000",
+    "Sea of Japan":                                            "Q27092",
+    "Sea of Marmara":                                          "Q35367",
+    "Sea of Okhotsk":                                          "Q41602",
+    "Seto Inland Sea":                                         "Q231312",
+    "Singapore Strait":                                        "Q205655",
+    "Skagerrak":                                               "Q1695",
+    "Solomon Sea":                                             "Q199479",
+    "South Atlantic Ocean":                                    "Q1482804",
+    "South China Sea":                                         "Q37660",
+    "South Pacific Ocean":                                     "Q12355425",
+    "Southern Ocean":                                          "Q7354",
+    "Strait of Gibraltar":                                     "Q36124",
+    "Sulu Sea":                                                "Q160194",
+    "Tasman Sea":                                              "Q33254",
+    "Timor Sea":                                               "Q131418",
+    "Tyrrhenian Sea":                                          "Q38882",
+    "White Sea":                                               "Q44133",
+    "Yellow Sea":                                              "Q37960",
 }
 
 logging.basicConfig(
@@ -213,13 +353,90 @@ def build_area(name: str, geometry: Any) -> dict[str, Any] | None:
     }
 
 
-def build(payload: dict[str, Any]) -> dict[str, Any]:
+def normalize_label(label: str) -> str:
+    """Fold typographic variants back to plain characters.
+
+    Wikidata labels are human-entered and a few carry ligatures: the French
+    Pacific labels arrive with U+FB01 in "Paci(fi)que", which sorts and
+    searches as its own character and renders inconsistently. NFKC also
+    settles Arabic presentation forms and non-breaking spaces.
+    """
+    return unicodedata.normalize("NFKC", label).strip()
+
+
+def wikidata_request(url: str) -> dict[str, Any]:
+    """One Wikidata API call, backing off when it rate-limits us."""
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    delay = 1.0
+    for attempt in range(8):
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as error:
+            if error.code == 429:
+                time.sleep(delay)
+                delay = min(delay * 2, 60)
+                continue
+            if attempt >= 4:
+                raise
+            time.sleep(delay)
+            delay *= 2
+        except OSError:
+            if attempt >= 4:
+                raise
+            time.sleep(delay)
+            delay *= 2
+    raise RuntimeError(f"Wikidata kept refusing: {url}")
+
+
+def fetch_translations() -> dict[str, dict[str, str]]:
+    """Sea name per language, keyed by the English display name.
+
+    English is absent on purpose: it is the area's own `name`, which every
+    language falls back to. Coverage is not uniform -- Hungarian labels
+    exist for about five sixths of these seas -- and a missing language is
+    simply left out rather than guessed at.
+    """
+    names: dict[str, dict[str, str]] = {}
+    by_qid = {qid: name for name, qid in WIKIDATA_QIDS.items()}
+    qids = sorted(by_qid)
+    languages = "|".join(TRANSLATION_LANGUAGES)
+    for start in range(0, len(qids), 40):
+        chunk = qids[start : start + 40]
+        logger.info(
+            "Fetching labels %d-%d of %d", start + 1, start + len(chunk), len(qids)
+        )
+        payload = wikidata_request(
+            f"{WIKIDATA_ENDPOINT}?action=wbgetentities"
+            f"&ids={'|'.join(chunk)}&props=labels"
+            f"&languages={languages}&format=json"
+        )
+        for qid, entity in payload["entities"].items():
+            labels = {
+                language: normalize_label(label["value"])
+                for language, label in entity.get("labels", {}).items()
+                if language in TRANSLATION_LANGUAGES
+            }
+            if labels:
+                names[by_qid[qid]] = labels
+        time.sleep(1.0)
+    return names
+
+
+def build(
+    payload: dict[str, Any],
+    translations: dict[str, dict[str, str]] | None = None,
+) -> dict[str, Any]:
+    translations = translations or {}
     areas = []
     for feature in payload["features"]:
         area = build_area(feature["properties"]["name"], feature["geometry"])
         if area is None:
             logger.warning("Dropped empty feature: %s", feature["properties"])
             continue
+        localized = translations.get(area["name"])
+        if localized:
+            area["names"] = dict(sorted(localized.items()))
         areas.append(area)
 
     # Ascending area is the resolver's precedence: the smallest polygon
@@ -248,6 +465,8 @@ def build(payload: dict[str, Any]) -> dict[str, Any]:
             "simplify_tolerance_degrees": SIMPLIFY_TOLERANCE,
             "coordinate_decimals": COORD_DECIMALS,
             "min_hole_area_square_degrees": MIN_HOLE_AREA,
+            "translation_source": "Wikidata labels (CC0)",
+            "translation_languages": list(TRANSLATION_LANGUAGES),
             "total_count": len(areas),
         },
         "areas": areas,
@@ -262,6 +481,14 @@ def main() -> int:
         help="Read the raw WFS GeoJSON from a file instead of downloading it",
     )
     parser.add_argument("--output", type=Path, default=OUTPUT_FILE)
+    parser.add_argument(
+        "--names-cache",
+        type=Path,
+        help=(
+            "Read sea name translations from this JSON file instead of "
+            "querying Wikidata, and write them there after a fetch"
+        ),
+    )
     args = parser.parse_args()
 
     payload = (
@@ -269,7 +496,19 @@ def main() -> int:
         if args.input
         else download(WFS_URL)
     )
-    output = build(payload)
+
+    if args.names_cache and args.names_cache.exists():
+        translations = json.loads(args.names_cache.read_text(encoding="utf-8"))
+        logger.info("Loaded %d translated names from cache", len(translations))
+    else:
+        translations = fetch_translations()
+        if args.names_cache:
+            args.names_cache.write_text(
+                json.dumps(translations, ensure_ascii=False, indent=1),
+                encoding="utf-8",
+            )
+
+    output = build(payload, translations)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(output, separators=(",", ":"), ensure_ascii=False),

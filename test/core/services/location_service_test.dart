@@ -768,6 +768,53 @@ void main() {
       },
     );
 
+    test('the sea is named in the diver\'s language', () async {
+      // Every other geocoded field honours the place-name setting; the
+      // table has to as well, or one column holds two languages.
+      SeaAreaService.setIndexForTesting(
+        SeaAreaIndex([
+          SeaArea(
+            name: 'Red Sea',
+            minLon: 32,
+            minLat: 12,
+            maxLon: 52,
+            maxLat: 32,
+            areaSquareDegrees: 400,
+            polygons: [
+              SeaAreaPolygon(
+                outer: SeaAreaRing(
+                  Float64List.fromList([
+                    32,
+                    12,
+                    52,
+                    12,
+                    52,
+                    32,
+                    32,
+                    32,
+                    32,
+                    12,
+                  ]),
+                ),
+              ),
+            ],
+            localizedNames: const {'de': 'Rotes Meer'},
+          ),
+        ]),
+      );
+      final server = FakeNominatim(
+        body: jsonEncode(<String, dynamic>{
+          'address': <String, dynamic>{'country': 'Ägypten'},
+        }),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(27.7275, 34.2544, languageCode: 'de'),
+      );
+
+      expect(result.bodyOfWater, 'Rotes Meer');
+    });
+
     test('fresh water still falls through to the natural layer', () async {
       // Lakes, quarries and fjord interiors are not in the IHO table, and
       // the natural layer names them well.
