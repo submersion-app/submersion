@@ -558,7 +558,16 @@ jobs:
 
     steps:
       # Before checkout: a bare image has no git, so actions/checkout cannot
-      # fetch submodules, and no curl/unzip for subosito/flutter-action.
+      # fetch submodules, and none of the tools the Flutter setup assumes.
+      #
+      # The last two lines are things the GitHub-hosted image preinstalls and
+      # a bare container does not, so nothing outside this job needs them:
+      #   jq                        subosito/flutter-action parses its release
+      #                             manifest with it and exits 1 without it
+      #   zip, xz-utils, libglu1-mesa  Flutter's own documented Linux
+      #                             prerequisites
+      #   binutils                  readelf, for scripts/linux_package_deps.py
+      #   file                      used by fpm to classify packaged files
       - name: Install Linux dependencies
         run: |
           apt-get update -y
@@ -567,7 +576,8 @@ jobs:
             libgtk-3-dev liblzma-dev libstdc++-12-dev \
             libsqlite3-dev libsecret-1-dev libwebkit2gtk-4.1-dev \
             libssl-dev \
-            curl git unzip xz-utils ca-certificates file binutils
+            curl git unzip xz-utils zip ca-certificates \
+            jq file binutils libglu1-mesa
 
       # actions/checkout inside a container trips git's dubious-ownership
       # check, which makes every later git command fail.
