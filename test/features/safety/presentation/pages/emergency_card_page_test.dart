@@ -409,6 +409,41 @@ void main() {
       );
     });
 
+    testWidgets('an unnamed insurer still leads, under a generic label', (
+      tester,
+    ) async {
+      // A diver can save the number off their card without typing the
+      // insurer's name. "Call" on its own is not a button, so the section
+      // heading stands in for the name.
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(
+        tester,
+        diverOverride: diver.copyWith(
+          insurance: const DiverInsurance(emergencyPhone: '+49-30-555-0100'),
+        ),
+      );
+
+      final primary = tester.widget<FilledButton>(
+        find.byType(FilledButton).first,
+      );
+      expect(
+        find.descendant(
+          of: find.byWidget(primary),
+          matching: find.textContaining('Call Dive insurance'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byWidget(primary),
+          matching: find.textContaining('+49-30-555-0100'),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a whitespace-only policy number prints no policy line', (
       tester,
     ) async {
