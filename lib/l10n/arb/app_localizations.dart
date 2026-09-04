@@ -19757,8 +19757,8 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_service_totalCostLabel.
   ///
   /// In en, this message translates to:
-  /// **'Total Service Cost'**
-  String get equipment_service_totalCostLabel;
+  /// **'Total Service Cost ({currency})'**
+  String equipment_service_totalCostLabel(String currency);
 
   /// No description provided for @equipment_setDetail_addEquipmentButton.
   ///
@@ -20159,8 +20159,8 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_summary_totalValue.
   ///
   /// In en, this message translates to:
-  /// **'Total Value'**
-  String get equipment_summary_totalValue;
+  /// **'Total Value ({currency})'**
+  String equipment_summary_totalValue(String currency);
 
   /// No description provided for @equipment_tab_equipment.
   ///

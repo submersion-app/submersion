@@ -11466,7 +11466,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'تم حذف سجل الصيانة';
 
   @override
-  String get equipment_service_totalCostLabel => 'إجمالي تكلفة الصيانة';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'إجمالي تكلفة الصيانة ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'إضافة معدات';
@@ -11694,7 +11696,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_summary_totalItems => 'إجمالي العناصر';
 
   @override
-  String get equipment_summary_totalValue => 'القيمة الإجمالية';
+  String equipment_summary_totalValue(String currency) {
+    return 'القيمة الإجمالية ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'المعدات';

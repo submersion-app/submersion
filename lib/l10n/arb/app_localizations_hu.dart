@@ -11638,7 +11638,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'Szervizrekord torolve';
 
   @override
-  String get equipment_service_totalCostLabel => 'Osszes szerviz koltseg';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'Osszes szerviz koltseg ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Felszereles hozzaadasa';
@@ -11876,7 +11878,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_summary_totalItems => 'Osszes elem';
 
   @override
-  String get equipment_summary_totalValue => 'Osszes ertek';
+  String equipment_summary_totalValue(String currency) {
+    return 'Osszes ertek ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'Felszerelés';

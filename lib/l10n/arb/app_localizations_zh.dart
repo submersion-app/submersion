@@ -11127,7 +11127,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_service_snackbar_deleted => '维护记录已删除';
 
   @override
-  String get equipment_service_totalCostLabel => '维护总费用';
+  String equipment_service_totalCostLabel(String currency) {
+    return '维护总费用 ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => '添加装备';
@@ -11348,7 +11350,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_summary_totalItems => '总件数';
 
   @override
-  String get equipment_summary_totalValue => '总价值';
+  String equipment_summary_totalValue(String currency) {
+    return '总价值 ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => '装备';
