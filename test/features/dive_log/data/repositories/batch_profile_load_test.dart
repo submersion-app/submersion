@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNotNull, isNull;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
@@ -140,5 +144,110 @@ void main() {
 
     expect(result, hasLength(120));
     expect(result['dive119'], hasLength(2));
+  });
+
+  /// A dive with a promoted series alongside a demoted one that still names a
+  /// computer is the only case where the primary `dive_data_sources` row
+  /// decides which series survive. That read is the sole SQL the per-dive
+  /// merge performs, so a bulk export of such dives is where an N+1 would
+  /// show up.
+  group('mixed-source dives', () {
+    /// A demoted original from computer A plus a promoted series, which is
+    /// what `needsPrimary` keys on.
+    Future<void> insertMixedSource(String diveId, String computerId) async {
+      await insertDive(diveId);
+      // dive_data_sources.computer_id is a real FK, so the computer has to
+      // exist before anything can point at it.
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion(
+              id: Value(computerId),
+              name: Value('Perdix $computerId'),
+              createdAt: const Value(now),
+              updatedAt: const Value(now),
+            ),
+          );
+      await insertSeries(
+        diveId,
+        [(0, 0), (60, 10), (120, 20)],
+        computerId: computerId,
+        isPrimary: false,
+      );
+      await insertSeries(diveId, [(0, 0), (60, 10)]);
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value('src-$diveId'),
+              diveId: Value(diveId),
+              computerId: Value(computerId),
+              isPrimary: const Value(true),
+              importedAt: Value(DateTime.fromMillisecondsSinceEpoch(now)),
+              createdAt: Value(DateTime.fromMillisecondsSinceEpoch(now)),
+            ),
+          );
+    }
+
+    test('reads dive_data_sources once, not once per dive', () async {
+      // Statement logging rather than a stopwatch: the regression this guards
+      // is the query count, which timing on an in-memory database would hide.
+      await tearDownTestDatabase();
+      db = AppDatabase(NativeDatabase.memory(logStatements: true));
+      DatabaseService.instance.setTestDatabase(db);
+      repository = DiveRepository();
+      seriesRepository = ProfileSeriesRepository();
+
+      final ids = List.generate(12, (i) => 'mixed$i');
+      for (final id in ids) {
+        await insertMixedSource(id, 'computer-$id');
+      }
+
+      final logged = <String>[];
+      await runZoned(
+        () => repository.getMergedProfilesForDives(ids),
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) => logged.add(line),
+        ),
+      );
+
+      final sourceReads = logged
+          .where((line) => line.contains('dive_data_sources'))
+          .length;
+      expect(
+        sourceReads,
+        1,
+        reason:
+            'one batched read for all ${ids.length} dives, not one per dive',
+      );
+    });
+
+    test('lands on the same points as the single-dive path', () async {
+      await insertMixedSource('mixedA', 'computer-A');
+      await insertMixedSource('mixedB', 'computer-B');
+
+      final batched = await repository.getMergedProfilesForDives([
+        'mixedA',
+        'mixedB',
+      ]);
+
+      for (final id in ['mixedA', 'mixedB']) {
+        final single = await repository.getMergedProfile(id);
+        expect(
+          batched[id]!.map((p) => (p.timestamp, p.depth)),
+          single.map((p) => (p.timestamp, p.depth)),
+          reason: 'the export and the on-screen chart must not drift apart',
+        );
+      }
+    });
+
+    test('still drops the superseded original', () async {
+      await insertMixedSource('mixedC', 'computer-C');
+
+      final result = await repository.getMergedProfilesForDives(['mixedC']);
+
+      expect(result['mixedC'], hasLength(2));
+      expect(result['mixedC']!.map((p) => p.timestamp), [0, 60]);
+    });
   });
 }
