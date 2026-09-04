@@ -11,6 +11,7 @@ would name the wrong sea on a diver's phone.
 """
 
 import importlib.util
+import json
 import os
 import unittest
 from datetime import datetime, timezone
@@ -165,17 +166,57 @@ class TranslationTest(unittest.TestCase):
         )
         self.assertNotIn("names", output["areas"][0])
 
-    def test_every_shipped_sea_has_a_reviewed_wikidata_item(self):
-        # A name added to NAME_OVERRIDES without a QID would silently ship
-        # untranslated.
-        qids = set(sea_area_harvester.WIKIDATA_QIDS.values())
+    def test_qids_are_unique_and_well_formed(self):
+        qids = list(sea_area_harvester.WIKIDATA_QIDS.values())
         self.assertEqual(
-            len(qids),
-            len(sea_area_harvester.WIKIDATA_QIDS),
-            "two seas point at the same Wikidata item",
+            len(set(qids)), len(qids), "two seas point at the same Wikidata item"
         )
         for name, qid in sea_area_harvester.WIKIDATA_QIDS.items():
             self.assertRegex(qid, r"^Q\d+$", f"{name} has a malformed QID")
+
+    def test_every_renamed_sea_has_a_reviewed_wikidata_item(self):
+        # NAME_OVERRIDES rewrites the IHO label, so the QID table has to be
+        # keyed by the rewritten name or the rename silently ships
+        # untranslated.
+        for source, display in sea_area_harvester.NAME_OVERRIDES.items():
+            self.assertIn(
+                display,
+                sea_area_harvester.WIKIDATA_QIDS,
+                f"{source!r} was renamed to {display!r} with no QID",
+            )
+
+    def test_every_name_in_the_shipped_asset_has_a_wikidata_item(self):
+        # The real guard: whatever the generator actually emitted last time
+        # must all be translatable. Catches an IHO name that reaches the
+        # asset without ever passing through NAME_OVERRIDES.
+        asset = os.path.join(
+            os.path.dirname(_HERE), "assets", "data", "sea_areas.json"
+        )
+        if not os.path.exists(asset):  # pragma: no cover - asset is committed
+            self.skipTest("shipped asset not present")
+        with open(asset, encoding="utf-8") as handle:
+            areas = json.load(handle)["areas"]
+        missing = sorted(
+            {
+                a["name"]
+                for a in areas
+                if a["name"] not in sea_area_harvester.WIKIDATA_QIDS
+            }
+        )
+        self.assertEqual(missing, [], f"shipped names with no QID: {missing}")
+
+    def test_the_shipped_asset_is_translated(self):
+        asset = os.path.join(
+            os.path.dirname(_HERE), "assets", "data", "sea_areas.json"
+        )
+        if not os.path.exists(asset):  # pragma: no cover - asset is committed
+            self.skipTest("shipped asset not present")
+        with open(asset, encoding="utf-8") as handle:
+            areas = json.load(handle)["areas"]
+        untranslated = [a["name"] for a in areas if not a.get("names")]
+        self.assertEqual(
+            untranslated, [], f"areas shipped with no translations: {untranslated}"
+        )
 
     def test_english_is_not_fetched_because_the_name_is_the_fallback(self):
         self.assertNotIn("en", sea_area_harvester.TRANSLATION_LANGUAGES)

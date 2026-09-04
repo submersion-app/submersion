@@ -114,6 +114,41 @@ void main() {
       expect(area.nameIn('hu'), 'Red Sea');
     });
 
+    test('forgives case and padding in the language code', () {
+      // PlaceNameLanguage.normalize already tolerates these on the stored
+      // setting, so the table must not be stricter than its own input.
+      final area = SeaArea(
+        name: 'Red Sea',
+        minLon: 0,
+        minLat: 0,
+        maxLon: 10,
+        maxLat: 10,
+        areaSquareDegrees: 100,
+        polygons: [SeaAreaPolygon(outer: _square(0, 0, 10))],
+        localizedNames: const {'de': 'Rotes Meer'},
+      );
+
+      expect(area.nameIn('DE'), 'Rotes Meer');
+      expect(area.nameIn(' de '), 'Rotes Meer');
+      expect(area.nameIn('De'), 'Rotes Meer');
+    });
+
+    test('lower-cases the language keys it parses', () {
+      final area = SeaArea.fromJson(<String, dynamic>{
+        'name': 'Test Sea',
+        'bbox': <dynamic>[0, 0, 10, 10],
+        'area': 100.0,
+        'polygons': <dynamic>[
+          <String, dynamic>{
+            'outer': <dynamic>[0, 0, 10, 0, 10, 10, 0, 10, 0, 0],
+          },
+        ],
+        'names': <String, dynamic>{'DE': 'Testsee'},
+      });
+
+      expect(area.nameIn('de'), 'Testsee');
+    });
+
     test('parses the names map, and tolerates its absence', () {
       Map<String, dynamic> json(Map<String, dynamic> extra) => {
         'name': 'Test Sea',

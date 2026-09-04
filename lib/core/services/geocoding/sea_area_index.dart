@@ -51,7 +51,7 @@ class SeaAreaIndex {
   /// English otherwise. Every other geocoded field already honours the
   /// diver's place-name setting, so a sea that stayed English would leave
   /// one column holding two languages: a German diver would read
-  /// "Vierwaldstaettersee" from the online lookup next to "Red Sea" from
+  /// "Vierwaldstättersee" from the online lookup next to "Red Sea" from
   /// here.
   ///
   /// Returning null is a real answer, not a failure: lakes, quarries,

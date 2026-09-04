@@ -174,7 +174,7 @@ class SeaArea {
       localizedNames: {
         for (final e
             in (json['names'] as Map<String, dynamic>? ?? const {}).entries)
-          e.key: e.value as String,
+          e.key.trim().toLowerCase(): e.value as String,
       },
     );
   }
@@ -199,7 +199,12 @@ class SeaArea {
   final Map<String, String> localizedNames;
 
   /// The name in [languageCode], falling back to the English [name].
-  String nameIn(String languageCode) => localizedNames[languageCode] ?? name;
+  ///
+  /// Case and surrounding whitespace are forgiven, matching what
+  /// `PlaceNameLanguage.normalize` already tolerates on the stored setting:
+  /// a padded or upper-cased 'DE ' must not silently read as English.
+  String nameIn(String languageCode) =>
+      localizedNames[languageCode.trim().toLowerCase()] ?? name;
 
   bool contains(double lon, double lat) {
     if (lon < minLon || lon > maxLon || lat < minLat || lat > maxLat) {

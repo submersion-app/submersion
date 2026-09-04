@@ -381,7 +381,11 @@ def wikidata_request(url: str) -> dict[str, Any]:
                 raise
             time.sleep(delay)
             delay *= 2
-        except OSError:
+        except (OSError, ValueError):
+            # ValueError covers json.JSONDecodeError: an overloaded Wikidata
+            # answers 200 with an HTML error page, and a dropped connection
+            # truncates the JSON. Both deserve another try rather than
+            # losing the whole harvest.
             if attempt >= 4:
                 raise
             time.sleep(delay)
