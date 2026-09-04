@@ -8602,6 +8602,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_backfill_offline => '地点查找不可用。请检查网络连接后重试。';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => '刷新地名';
+
+  @override
+  String get diveSites_refresh_confirm_title => '刷新地名？';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将重新查询 $count 个有坐标的潜点。',
+      one: '将重新查询 1 个有坐标的潜点。',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes 分钟',
+      one: '1 分钟',
+    );
+    return '$_temp0国家、地区、城镇和水域凡与地名语言（$language）不一致的都会被替换，包括你自己填写的内容。大约需要 $_temp1。';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => '正在刷新地名';
+
+  @override
+  String get diveSites_refresh_nothing => '没有潜点带有可查询的坐标。';
+
+  @override
   String get diveSites_list_search_backTooltip => '返回';
 
   @override
@@ -9218,6 +9251,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_expiryDateTitle => '到期日';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper => '在紧急卡片上优先显示。';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => '例如 +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel => '24 小时紧急救援电话';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => '保险公司办公电话';
+
+  @override
   String get divers_edit_insuranceProviderHint => '例如 DAN、DiveAssure';
 
   @override
@@ -9637,6 +9682,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_drysuit => '干衣';
+
+  @override
+  String get enum_equipmentType_baselayer => '基础层';
+
+  @override
+  String get enum_equipmentType_undersuit => '内胆保暖服';
 
   @override
   String get enum_equipmentType_fins => '脚蹼';
@@ -11127,7 +11178,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_service_snackbar_deleted => '维护记录已删除';
 
   @override
-  String get equipment_service_totalCostLabel => '维护总费用';
+  String equipment_service_totalCostLabel(String currency) {
+    return '维护总费用 ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => '添加装备';
@@ -11348,7 +11401,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_summary_totalItems => '总件数';
 
   @override
-  String get equipment_summary_totalValue => '总价值';
+  String equipment_summary_totalValue(String currency) {
+    return '总价值 ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => '装备';
@@ -23625,6 +23680,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_glove_type => '类型';
 
   @override
+  String get attrLabel_insulation_level => '保暖等级';
+
+  @override
+  String get attrLabel_fill_material => '材质';
+
+  @override
   String get attrLabel_sole_type => '鞋底';
 
   @override
@@ -23737,6 +23798,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => '氯丁橡胶';
+
+  @override
+  String get attrChoice_insulation_level_light => '轻薄';
+
+  @override
+  String get attrChoice_insulation_level_mid => '中等';
+
+  @override
+  String get attrChoice_insulation_level_heavy => '厚实';
+
+  @override
+  String get attrChoice_insulation_level_extreme => '极厚';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => '中空纤维';
+
+  @override
+  String get attrChoice_fill_material_fleece => '抓绒';
+
+  @override
+  String get attrChoice_fill_material_merino => '美利奴羊毛';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => '聚丙烯';
 
   @override
   String get attrChoice_tank_material_aluminum => '铝';
@@ -24048,6 +24139,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get emergencyCard_callDan_subtitle => '潜水员紧急热线。请先拨打:他们负责协调撤离和减压舱转诊。';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      '你的潜水保险紧急专线。请先拨打:保险公司负责批准撤离并协调减压舱转诊。';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      '区域潜水员紧急热线。若保险公司专线无人接听,请拨打此号码。';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24 小时紧急专线';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => '办公电话';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      '尚未保存保险公司紧急电话。请在潜水员资料设置中添加,以便此卡优先显示该号码。';
 
   @override
   String emergencyCard_ems(String number) {

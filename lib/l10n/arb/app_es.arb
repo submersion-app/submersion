@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "Cancelar",
   "diveSites_backfill_summary": "Actualizados {updated}, sin cambios {unchanged}, fallidos {failed}",
   "diveSites_backfill_offline": "La consulta de ubicación no está disponible. Comprueba tu conexión e inténtalo de nuevo.",
+  "diveSites_list_menu_refreshPlaceNames": "Actualizar los nombres de lugares",
+  "diveSites_refresh_confirm_title": "¿Actualizar los nombres de lugares?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{Se volverá a consultar 1 punto de buceo con coordenadas.} other{Se volverán a consultar {count} puntos de buceo con coordenadas.}} El país, la región, la localidad y la masa de agua se sustituirán allí donde difieran del idioma de los nombres de lugar ({language}), incluidos los valores que hayas escrito. Tarda unos {minutes, plural, =1{1 minuto} other{{minutes} minutos}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "Actualizando los nombres de lugares",
+  "diveSites_refresh_nothing": "Ningún punto de buceo tiene coordenadas que consultar.",
   "diveLog_edit_flightWindowWarning": "Esta inmersión termina después de la última hora segura para emerger antes de tu vuelo ({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {
@@ -3122,6 +3140,10 @@
   "divers_edit_errorSaving": "Error al guardar buceador: {error}",
   "divers_edit_expiryDateNotSet": "No establecida",
   "divers_edit_expiryDateTitle": "Fecha de vencimiento",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Se muestra primero en tu tarjeta de emergencia.",
+  "divers_edit_insuranceEmergencyPhoneHint": "ej., +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "Número de asistencia de emergencia 24 h",
+  "divers_edit_insurancePhoneLabel": "Teléfono de oficina del seguro",
   "divers_edit_insuranceProviderHint": "ej., DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Proveedor de seguro",
   "divers_edit_insuranceSection": "Seguro de buceo",
@@ -3261,6 +3283,8 @@
   "enum_equipmentType_camera": "Cámara",
   "enum_equipmentType_computer": "Ordenador de buceo",
   "enum_equipmentType_drysuit": "Traje seco",
+  "enum_equipmentType_baselayer": "Capa base",
+  "enum_equipmentType_undersuit": "Traje interior",
   "enum_equipmentType_fins": "Aletas",
   "enum_equipmentType_gloves": "Guantes",
   "enum_equipmentType_hood": "Capucha",
@@ -3728,7 +3752,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Usar la moneda predeterminada",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Moneda para este equipo",
   "equipment_service_snackbar_deleted": "Registro de servicio eliminado",
-  "equipment_service_totalCostLabel": "Costo total de servicio",
+  "equipment_service_totalCostLabel": "Costo total de servicio ({currency})",
   "equipment_setDetail_addEquipmentButton": "Agregar equipo",
   "equipment_setDetail_deleteDialog_cancel": "Cancelar",
   "equipment_setDetail_deleteDialog_confirm": "Eliminar",
@@ -3795,7 +3819,7 @@
   "equipment_summary_serviceDueTitle": "Servicio pendiente",
   "equipment_summary_title": "Equipo",
   "equipment_summary_totalItems": "Total de articulos",
-  "equipment_summary_totalValue": "Valor total",
+  "equipment_summary_totalValue": "Valor total ({currency})",
   "equipment_tab_equipment": "Equipo",
   "equipment_tab_sets": "Conjuntos",
   "formatter_approximate_prefix": "~",
@@ -7184,6 +7208,8 @@
   "attrLabel_blade_material": "Material de la hoja",
   "attrLabel_tip_type": "Punta",
   "attrLabel_glove_type": "Tipo",
+  "attrLabel_insulation_level": "Nivel de aislamiento",
+  "attrLabel_fill_material": "Material",
   "attrLabel_sole_type": "Suela",
   "attrLabel_buoyancy_kg": "Flotabilidad",
   "attrLabel_dry_weight_kg": "Peso en seco",
@@ -7222,6 +7248,16 @@
   "attrChoice_seal_type_latex": "Látex",
   "attrChoice_seal_type_silicone": "Silicona",
   "attrChoice_seal_type_neoprene": "Neopreno",
+  "attrChoice_insulation_level_light": "Ligero",
+  "attrChoice_insulation_level_mid": "Medio",
+  "attrChoice_insulation_level_heavy": "Grueso",
+  "attrChoice_insulation_level_extreme": "Extremo",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "Fibra hueca",
+  "attrChoice_fill_material_fleece": "Forro polar",
+  "attrChoice_fill_material_merino": "Lana merina",
+  "attrChoice_fill_material_polypropylene": "Polipropileno",
   "attrChoice_tank_material_aluminum": "Aluminio",
   "attrChoice_tank_material_steel": "Acero",
   "attrChoice_tank_material_carbon_composite": "Compuesto de carbono",
@@ -7550,6 +7586,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Línea de emergencias para buceadores. Llama primero: coordinan la evacuación y la derivación a cámara.",
+  "emergencyCard_callInsurer_subtitle": "Línea de emergencia de tu seguro de buceo. Llama primero: tu aseguradora autoriza la evacuación y coordina la derivación a cámara.",
+  "emergencyCard_hotlineSecondary_subtitle": "Línea regional de emergencias para buceadores. Llama aquí si la línea de tu aseguradora no responde.",
+  "emergencyCard_insuranceEmergencyLine": "Línea de emergencia 24 h",
+  "emergencyCard_insuranceOfficeLine": "Teléfono de oficina",
+  "emergencyCard_insuranceNoPhone": "No hay número de emergencia de la aseguradora guardado. Añádelo en los ajustes del perfil de buceador para que esta tarjeta lo muestre primero.",
   "emergencyCard_ems": "Emergencias locales: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "Cancelar",
   "diveSites_backfill_summary": "Atualizados {updated}, inalterados {unchanged}, falhados {failed}",
   "diveSites_backfill_offline": "A consulta de localização não está disponível. Verifique a sua ligação e tente novamente.",
+  "diveSites_list_menu_refreshPlaceNames": "Atualizar os nomes de lugares",
+  "diveSites_refresh_confirm_title": "Atualizar os nomes de lugares?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 local com coordenadas será consultado de novo.} other{{count} locais com coordenadas serão consultados de novo.}} O país, a região, a localidade e a massa de água serão substituídos sempre que diferirem do idioma dos nomes de lugares ({language}), incluindo os valores que escreveu. Demora cerca de {minutes, plural, =1{1 minuto} other{{minutes} minutos}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "A atualizar os nomes de lugares",
+  "diveSites_refresh_nothing": "Nenhum local tem coordenadas para consultar.",
   "diveLog_edit_flightWindowWarning": "Este mergulho termina depois do último horário seguro para emergir antes do seu voo ({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {
@@ -3122,6 +3140,10 @@
   "divers_edit_errorSaving": "Erro ao salvar mergulhador: {error}",
   "divers_edit_expiryDateNotSet": "Nao definida",
   "divers_edit_expiryDateTitle": "Data de Validade",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Aparece primeiro no seu cartão de emergência.",
+  "divers_edit_insuranceEmergencyPhoneHint": "ex., +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "Número de assistência de emergência 24 h",
+  "divers_edit_insurancePhoneLabel": "Telefone do escritório do seguro",
   "divers_edit_insuranceProviderHint": "ex., DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Seguradora",
   "divers_edit_insuranceSection": "Seguro de Mergulho",
@@ -3261,6 +3283,8 @@
   "enum_equipmentType_camera": "Camera",
   "enum_equipmentType_computer": "Computador de Mergulho",
   "enum_equipmentType_drysuit": "Roupa Seca",
+  "enum_equipmentType_baselayer": "Camada base",
+  "enum_equipmentType_undersuit": "Fato interior",
   "enum_equipmentType_fins": "Nadadeiras",
   "enum_equipmentType_gloves": "Luvas",
   "enum_equipmentType_hood": "Capuz",
@@ -3728,7 +3752,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Usar a moeda padrão",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Moeda para este equipamento",
   "equipment_service_snackbar_deleted": "Registro de manutencao excluido",
-  "equipment_service_totalCostLabel": "Custo Total de Manutencao",
+  "equipment_service_totalCostLabel": "Custo Total de Manutencao ({currency})",
   "equipment_setDetail_addEquipmentButton": "Adicionar Equipamento",
   "equipment_setDetail_deleteDialog_cancel": "Cancelar",
   "equipment_setDetail_deleteDialog_confirm": "Excluir",
@@ -3795,7 +3819,7 @@
   "equipment_summary_serviceDueTitle": "Manutencao Pendente",
   "equipment_summary_title": "Equipamento",
   "equipment_summary_totalItems": "Total de Itens",
-  "equipment_summary_totalValue": "Valor Total",
+  "equipment_summary_totalValue": "Valor Total ({currency})",
   "equipment_tab_equipment": "Equipamento",
   "equipment_tab_sets": "Conjuntos",
   "formatter_approximate_prefix": "~",
@@ -7184,6 +7208,8 @@
   "attrLabel_blade_material": "Material da lâmina",
   "attrLabel_tip_type": "Ponta",
   "attrLabel_glove_type": "Tipo",
+  "attrLabel_insulation_level": "Nível de isolamento",
+  "attrLabel_fill_material": "Material",
   "attrLabel_sole_type": "Sola",
   "attrLabel_buoyancy_kg": "Flutuabilidade",
   "attrLabel_dry_weight_kg": "Peso seco",
@@ -7222,6 +7248,16 @@
   "attrChoice_seal_type_latex": "Látex",
   "attrChoice_seal_type_silicone": "Silicone",
   "attrChoice_seal_type_neoprene": "Neoprene",
+  "attrChoice_insulation_level_light": "Leve",
+  "attrChoice_insulation_level_mid": "Médio",
+  "attrChoice_insulation_level_heavy": "Pesado",
+  "attrChoice_insulation_level_extreme": "Extremo",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "Fibra oca",
+  "attrChoice_fill_material_fleece": "Polar",
+  "attrChoice_fill_material_merino": "Lã merino",
+  "attrChoice_fill_material_polypropylene": "Polipropileno",
   "attrChoice_tank_material_aluminum": "Alumínio",
   "attrChoice_tank_material_steel": "Aço",
   "attrChoice_tank_material_carbon_composite": "Compósito de carbono",
@@ -7550,6 +7586,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Linha de emergência para mergulhadores. Ligue primeiro: eles coordenam a evacuação e o encaminhamento para câmara.",
+  "emergencyCard_callInsurer_subtitle": "Linha de emergência do seu seguro de mergulho. Ligue primeiro: a seguradora autoriza a evacuação e coordena o encaminhamento para câmara.",
+  "emergencyCard_hotlineSecondary_subtitle": "Linha regional de emergência para mergulhadores. Ligue se a linha da sua seguradora não atender.",
+  "emergencyCard_insuranceEmergencyLine": "Linha de emergência 24 h",
+  "emergencyCard_insuranceOfficeLine": "Linha do escritório",
+  "emergencyCard_insuranceNoPhone": "Nenhum número de emergência da seguradora guardado. Adicione-o nas definições do perfil de mergulhador para que este cartão o mostre primeiro.",
   "emergencyCard_ems": "Emergência local: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

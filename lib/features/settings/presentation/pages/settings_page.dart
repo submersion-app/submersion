@@ -17,6 +17,8 @@ import 'package:submersion/features/settings/presentation/pages/safety_settings_
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/place_name_language_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/visibility_scale_picker.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
@@ -585,7 +587,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                     ],
                   ),
                   onTap: () =>
-                      showPlaceNameLanguagePicker(context, ref, settings),
+                      unawaited(_pickPlaceNameLanguage(context, ref, settings)),
                 ),
               ],
             ),
@@ -3815,4 +3817,26 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
       ],
     );
   }
+}
+
+/// Picks the place name language and, when it changed, offers to look the
+/// diver's sites up again in the new language.
+///
+/// Without that offer a change quietly splits the database: sites geocoded
+/// before it keep their old names, so statistics group one region under two
+/// spellings (issue #1187). The refresh flow asks for confirmation itself,
+/// so a diver who only wants the language changed can decline.
+Future<void> _pickPlaceNameLanguage(
+  BuildContext context,
+  WidgetRef ref,
+  AppSettings settings,
+) async {
+  final previous = settings.placeNameLanguage;
+  final chosen = await showPlaceNameLanguagePicker(context, ref, settings);
+  if (chosen == null || chosen == previous || !context.mounted) return;
+  await showSiteLocationBackfillFlow(
+    context,
+    ref,
+    mode: SiteLocationLookupMode.refreshAll,
+  );
 }

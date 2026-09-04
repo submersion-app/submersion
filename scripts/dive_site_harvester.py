@@ -73,6 +73,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def utc_timestamp() -> str:
+    """Now, as RFC3339 UTC: 2026-09-04T06:33:21Z.
+
+    `datetime.isoformat()` already writes the offset as "+00:00", so the
+    conventional-looking `isoformat() + "Z"` yields "...+00:00Z", which no
+    ISO-8601 parser accepts. Sub-second precision means nothing for a
+    dataset build stamp, so seconds it is.
+    """
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 class ReverseGeocoder:
     """Reverse geocoder using OpenStreetMap Nominatim API with caching."""
 
@@ -836,7 +847,7 @@ class DiveSiteHarvester:
         sites_output = {
             "sites": named_sites,
             "metadata": {
-                "generated_at": datetime.now(timezone.utc).isoformat() + "Z",
+                "generated_at": utc_timestamp(),
                 "source": "OpenStreetMap via Overpass API",
                 "total_count": len(named_sites),
                 "query_tags": ["sport=scuba_diving"],
@@ -855,7 +866,7 @@ class DiveSiteHarvester:
         centers_output = {
             "centers": named_centers,
             "metadata": {
-                "generated_at": datetime.now(timezone.utc).isoformat() + "Z",
+                "generated_at": utc_timestamp(),
                 "source": "OpenStreetMap via Overpass API",
                 "total_count": len(named_centers),
                 "query_tags": [
@@ -889,7 +900,7 @@ class DiveSiteHarvester:
         """Write output in original raw OSM format."""
         output = {
             "metadata": {
-                "generated_at": datetime.now(timezone.utc).isoformat() + "Z",
+                "generated_at": utc_timestamp(),
                 "total_count": len(self.all_sites),
                 "query_tags": [f"{k}={v}" for k, v in DIVE_TAGS],
             },

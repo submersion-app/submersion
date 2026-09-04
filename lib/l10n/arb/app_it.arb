@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "Annulla",
   "diveSites_backfill_summary": "Aggiornati {updated}, invariati {unchanged}, falliti {failed}",
   "diveSites_backfill_offline": "La ricerca della località non è disponibile. Controlla la connessione e riprova.",
+  "diveSites_list_menu_refreshPlaceNames": "Aggiorna i nomi dei luoghi",
+  "diveSites_refresh_confirm_title": "Aggiornare i nomi dei luoghi?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 sito con coordinate verrà cercato di nuovo.} other{{count} siti con coordinate verranno cercati di nuovo.}} Paese, regione, località e specchio d'acqua verranno sostituiti dove differiscono dalla lingua dei nomi dei luoghi ({language}), compresi i valori inseriti da te. Richiede circa {minutes, plural, =1{1 minuto} other{{minutes} minuti}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "Aggiornamento dei nomi dei luoghi",
+  "diveSites_refresh_nothing": "Nessun sito ha coordinate da cercare.",
   "diveLog_edit_flightWindowWarning": "Questa immersione termina dopo l'ultimo orario sicuro di riemersione per il tuo volo ({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {
@@ -3038,6 +3056,10 @@
   "divers_edit_errorSaving": "Errore nel salvataggio del subacqueo: {error}",
   "divers_edit_expiryDateNotSet": "Non impostata",
   "divers_edit_expiryDateTitle": "Data di scadenza",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Mostrato per primo sulla tua scheda di emergenza.",
+  "divers_edit_insuranceEmergencyPhoneHint": "es. +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "Numero di assistenza di emergenza 24 h",
+  "divers_edit_insurancePhoneLabel": "Telefono dell'ufficio assicurativo",
   "divers_edit_insuranceProviderHint": "es. DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Fornitore assicurazione",
   "divers_edit_insuranceSection": "Assicurazione subacquea",
@@ -3177,6 +3199,8 @@
   "enum_equipmentType_camera": "Fotocamera",
   "enum_equipmentType_computer": "Computer subacqueo",
   "enum_equipmentType_drysuit": "Muta stagna",
+  "enum_equipmentType_baselayer": "Strato base",
+  "enum_equipmentType_undersuit": "Sottomuta",
   "enum_equipmentType_fins": "Pinne",
   "enum_equipmentType_gloves": "Guanti",
   "enum_equipmentType_hood": "Cappuccio",
@@ -3644,7 +3668,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Usa la valuta predefinita",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Valuta per questa attrezzatura",
   "equipment_service_snackbar_deleted": "Registro manutenzione eliminato",
-  "equipment_service_totalCostLabel": "Costo totale manutenzione",
+  "equipment_service_totalCostLabel": "Costo totale manutenzione ({currency})",
   "equipment_setDetail_addEquipmentButton": "Aggiungi attrezzatura",
   "equipment_setDetail_deleteDialog_cancel": "Annulla",
   "equipment_setDetail_deleteDialog_confirm": "Elimina",
@@ -3711,7 +3735,7 @@
   "equipment_summary_serviceDueTitle": "Manutenzione prevista",
   "equipment_summary_title": "Attrezzatura",
   "equipment_summary_totalItems": "Articoli totali",
-  "equipment_summary_totalValue": "Valore totale",
+  "equipment_summary_totalValue": "Valore totale ({currency})",
   "equipment_tab_equipment": "Attrezzatura",
   "equipment_tab_sets": "Set",
   "formatter_approximate_prefix": "~",
@@ -7184,6 +7208,8 @@
   "attrLabel_blade_material": "Materiale della lama",
   "attrLabel_tip_type": "Punta",
   "attrLabel_glove_type": "Tipo",
+  "attrLabel_insulation_level": "Livello di isolamento",
+  "attrLabel_fill_material": "Materiale",
   "attrLabel_sole_type": "Suola",
   "attrLabel_buoyancy_kg": "Galleggiabilità",
   "attrLabel_dry_weight_kg": "Peso a secco",
@@ -7222,6 +7248,16 @@
   "attrChoice_seal_type_latex": "Lattice",
   "attrChoice_seal_type_silicone": "Silicone",
   "attrChoice_seal_type_neoprene": "Neoprene",
+  "attrChoice_insulation_level_light": "Leggero",
+  "attrChoice_insulation_level_mid": "Medio",
+  "attrChoice_insulation_level_heavy": "Pesante",
+  "attrChoice_insulation_level_extreme": "Estremo",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "Fibra cava",
+  "attrChoice_fill_material_fleece": "Pile",
+  "attrChoice_fill_material_merino": "Lana merino",
+  "attrChoice_fill_material_polypropylene": "Polipropilene",
   "attrChoice_tank_material_aluminum": "Alluminio",
   "attrChoice_tank_material_steel": "Acciaio",
   "attrChoice_tank_material_carbon_composite": "Composito di carbonio",
@@ -7550,6 +7586,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Linea di emergenza subacquei. Chiama prima: coordinano evacuazione e invio in camera iperbarica.",
+  "emergencyCard_callInsurer_subtitle": "Linea di emergenza della tua assicurazione subacquea. Chiama prima: il tuo assicuratore autorizza l'evacuazione e coordina l'invio in camera iperbarica.",
+  "emergencyCard_hotlineSecondary_subtitle": "Linea di emergenza subacquei regionale. Chiamala se la linea del tuo assicuratore non risponde.",
+  "emergencyCard_insuranceEmergencyLine": "Linea di emergenza 24 h",
+  "emergencyCard_insuranceOfficeLine": "Linea ufficio",
+  "emergencyCard_insuranceNoPhone": "Nessun numero di emergenza dell'assicuratore salvato. Aggiungilo nelle impostazioni del profilo subacqueo così questa scheda potrà mostrarlo per primo.",
   "emergencyCard_ems": "Emergenze locali: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

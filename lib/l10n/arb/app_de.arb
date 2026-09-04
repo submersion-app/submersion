@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "Abbrechen",
   "diveSites_backfill_summary": "Aktualisiert {updated}, unverändert {unchanged}, fehlgeschlagen {failed}",
   "diveSites_backfill_offline": "Die Ortssuche ist nicht verfügbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+  "diveSites_list_menu_refreshPlaceNames": "Ortsnamen aktualisieren",
+  "diveSites_refresh_confirm_title": "Ortsnamen aktualisieren?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 Tauchplatz mit Koordinaten wird erneut abgefragt.} other{{count} Tauchplätze mit Koordinaten werden erneut abgefragt.}} Land, Region, Ort und Gewässer werden überall dort ersetzt, wo sie von der Sprache der Ortsnamen ({language}) abweichen, auch selbst eingegebene Werte. Das dauert etwa {minutes, plural, =1{1 Minute} other{{minutes} Minuten}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "Ortsnamen werden aktualisiert",
+  "diveSites_refresh_nothing": "Kein Tauchplatz hat Koordinaten für eine Abfrage.",
   "diveLog_edit_flightWindowWarning": "Dieser Tauchgang endet nach der letzten sicheren Auftauchzeit für deinen Flug ({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {
@@ -3122,6 +3140,10 @@
   "divers_edit_errorSaving": "Fehler beim Speichern des Tauchers: {error}",
   "divers_edit_expiryDateNotSet": "Nicht festgelegt",
   "divers_edit_expiryDateTitle": "Ablaufdatum",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Wird auf deiner Notfallkarte zuerst angezeigt.",
+  "divers_edit_insuranceEmergencyPhoneHint": "z.B. +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "24-h-Notrufnummer der Versicherung",
+  "divers_edit_insurancePhoneLabel": "Bürotelefon der Versicherung",
   "divers_edit_insuranceProviderHint": "z.B. DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Versicherungsanbieter",
   "divers_edit_insuranceSection": "Tauchversicherung",
@@ -3261,6 +3283,8 @@
   "enum_equipmentType_camera": "Kamera",
   "enum_equipmentType_computer": "Tauchcomputer",
   "enum_equipmentType_drysuit": "Trockentauchanzug",
+  "enum_equipmentType_baselayer": "Basisschicht",
+  "enum_equipmentType_undersuit": "Unterzieher",
   "enum_equipmentType_fins": "Flossen",
   "enum_equipmentType_gloves": "Handschuhe",
   "enum_equipmentType_hood": "Kopfhaube",
@@ -3728,7 +3752,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Standardwährung verwenden",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Währung für dieses Teil",
   "equipment_service_snackbar_deleted": "Wartungseintrag gelöscht",
-  "equipment_service_totalCostLabel": "Gesamte Wartungskosten",
+  "equipment_service_totalCostLabel": "Gesamte Wartungskosten ({currency})",
   "equipment_setDetail_addEquipmentButton": "Ausrüstung hinzufügen",
   "equipment_setDetail_deleteDialog_cancel": "Abbrechen",
   "equipment_setDetail_deleteDialog_confirm": "Löschen",
@@ -3795,7 +3819,7 @@
   "equipment_summary_serviceDueTitle": "Wartung fällig",
   "equipment_summary_title": "Ausrüstung",
   "equipment_summary_totalItems": "Gegenstände gesamt",
-  "equipment_summary_totalValue": "Gesamtwert",
+  "equipment_summary_totalValue": "Gesamtwert ({currency})",
   "equipment_tab_equipment": "Ausrüstung",
   "equipment_tab_sets": "Sets",
   "formatter_approximate_prefix": "~",
@@ -7184,6 +7208,8 @@
   "attrLabel_blade_material": "Klingenmaterial",
   "attrLabel_tip_type": "Spitze",
   "attrLabel_glove_type": "Typ",
+  "attrLabel_insulation_level": "Isolationsstufe",
+  "attrLabel_fill_material": "Material",
   "attrLabel_sole_type": "Sohle",
   "attrLabel_buoyancy_kg": "Auftrieb",
   "attrLabel_dry_weight_kg": "Trockengewicht",
@@ -7222,6 +7248,16 @@
   "attrChoice_seal_type_latex": "Latex",
   "attrChoice_seal_type_silicone": "Silikon",
   "attrChoice_seal_type_neoprene": "Neopren",
+  "attrChoice_insulation_level_light": "Leicht",
+  "attrChoice_insulation_level_mid": "Mittel",
+  "attrChoice_insulation_level_heavy": "Schwer",
+  "attrChoice_insulation_level_extreme": "Extrem",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "Hohlfaser",
+  "attrChoice_fill_material_fleece": "Fleece",
+  "attrChoice_fill_material_merino": "Merinowolle",
+  "attrChoice_fill_material_polypropylene": "Polypropylen",
   "attrChoice_tank_material_aluminum": "Aluminium",
   "attrChoice_tank_material_steel": "Stahl",
   "attrChoice_tank_material_carbon_composite": "Carbon-Verbund",
@@ -7550,6 +7586,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Taucher-Notfallhotline. Zuerst anrufen: sie koordiniert Evakuierung und Kammerzuweisung.",
+  "emergencyCard_callInsurer_subtitle": "Notfallnummer deiner Tauchversicherung. Zuerst anrufen: dein Versicherer genehmigt die Evakuierung und koordiniert die Kammerzuweisung.",
+  "emergencyCard_hotlineSecondary_subtitle": "Regionale Taucher-Notfallhotline. Anrufen, wenn die Nummer deines Versicherers nicht erreichbar ist.",
+  "emergencyCard_insuranceEmergencyLine": "24-h-Notrufnummer",
+  "emergencyCard_insuranceOfficeLine": "Bürotelefon",
+  "emergencyCard_insuranceNoPhone": "Keine Notrufnummer des Versicherers gespeichert. Trage sie im Taucherprofil ein, damit diese Karte damit beginnt.",
   "emergencyCard_ems": "Örtlicher Notruf: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

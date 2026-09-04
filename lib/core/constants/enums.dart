@@ -6,6 +6,12 @@ enum EquipmentType {
   bcd('BCD'),
   wetsuit('Wetsuit'),
   drysuit('Drysuit'),
+  // The two drysuit layers, requested in #1537. They sit next to the suits
+  // because that is where a diver looks for them, and they are separate types
+  // rather than `other` because their thermal rating is what moves a drysuit
+  // diver's lead between a summer and a winter dive.
+  undersuit('Undersuit'),
+  baselayer('Base Layer'),
   fins('Fins'),
   mask('Mask'),
   computer('Dive Computer'),

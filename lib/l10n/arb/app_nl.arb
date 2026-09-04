@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "Annuleren",
   "diveSites_backfill_summary": "Bijgewerkt {updated}, ongewijzigd {unchanged}, mislukt {failed}",
   "diveSites_backfill_offline": "Locatie opzoeken is niet beschikbaar. Controleer je verbinding en probeer het opnieuw.",
+  "diveSites_list_menu_refreshPlaceNames": "Plaatsnamen bijwerken",
+  "diveSites_refresh_confirm_title": "Plaatsnamen bijwerken?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 duikstek met coördinaten wordt opnieuw opgezocht.} other{{count} duikstekken met coördinaten worden opnieuw opgezocht.}} Land, regio, plaats en water worden vervangen waar ze afwijken van de taal van plaatsnamen ({language}), ook waarden die je zelf hebt ingevuld. Dit duurt ongeveer {minutes, plural, =1{1 minuut} other{{minutes} minuten}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "Plaatsnamen bijwerken",
+  "diveSites_refresh_nothing": "Geen enkele duikstek heeft coördinaten om op te zoeken.",
   "diveLog_edit_flightWindowWarning": "Deze duik eindigt na het laatste veilige opstijgmoment voor je vlucht ({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {
@@ -3122,6 +3140,10 @@
   "divers_edit_errorSaving": "Fout bij opslaan van duiker: {error}",
   "divers_edit_expiryDateNotSet": "Niet ingesteld",
   "divers_edit_expiryDateTitle": "Vervaldatum",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Wordt als eerste op je noodkaart getoond.",
+  "divers_edit_insuranceEmergencyPhoneHint": "bijv. +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "24-uurs noodhulpnummer",
+  "divers_edit_insurancePhoneLabel": "Kantoornummer verzekering",
   "divers_edit_insuranceProviderHint": "bijv. DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Verzekeraar",
   "divers_edit_insuranceSection": "Duikverzekering",
@@ -3261,6 +3283,8 @@
   "enum_equipmentType_camera": "Camera",
   "enum_equipmentType_computer": "Duikcomputer",
   "enum_equipmentType_drysuit": "Droogpak",
+  "enum_equipmentType_baselayer": "Basislaag",
+  "enum_equipmentType_undersuit": "Onderpak",
   "enum_equipmentType_fins": "Vinnen",
   "enum_equipmentType_gloves": "Handschoenen",
   "enum_equipmentType_hood": "Kap",
@@ -3728,7 +3752,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Standaardvaluta gebruiken",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Valuta voor dit item",
   "equipment_service_snackbar_deleted": "Servicerecord verwijderd",
-  "equipment_service_totalCostLabel": "Totale servicekosten",
+  "equipment_service_totalCostLabel": "Totale servicekosten ({currency})",
   "equipment_setDetail_addEquipmentButton": "Uitrusting toevoegen",
   "equipment_setDetail_deleteDialog_cancel": "Annuleren",
   "equipment_setDetail_deleteDialog_confirm": "Verwijderen",
@@ -3795,7 +3819,7 @@
   "equipment_summary_serviceDueTitle": "Service nodig",
   "equipment_summary_title": "Uitrusting",
   "equipment_summary_totalItems": "Totaal onderdelen",
-  "equipment_summary_totalValue": "Totale waarde",
+  "equipment_summary_totalValue": "Totale waarde ({currency})",
   "equipment_tab_equipment": "Uitrusting",
   "equipment_tab_sets": "Sets",
   "formatter_approximate_prefix": "~",
@@ -7184,6 +7208,8 @@
   "attrLabel_blade_material": "Lemmetmateriaal",
   "attrLabel_tip_type": "Punt",
   "attrLabel_glove_type": "Type",
+  "attrLabel_insulation_level": "Isolatieniveau",
+  "attrLabel_fill_material": "Materiaal",
   "attrLabel_sole_type": "Zool",
   "attrLabel_buoyancy_kg": "Drijfvermogen",
   "attrLabel_dry_weight_kg": "Drooggewicht",
@@ -7222,6 +7248,16 @@
   "attrChoice_seal_type_latex": "Latex",
   "attrChoice_seal_type_silicone": "Siliconen",
   "attrChoice_seal_type_neoprene": "Neopreen",
+  "attrChoice_insulation_level_light": "Licht",
+  "attrChoice_insulation_level_mid": "Middel",
+  "attrChoice_insulation_level_heavy": "Zwaar",
+  "attrChoice_insulation_level_extreme": "Extreem",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "Holle vezel",
+  "attrChoice_fill_material_fleece": "Fleece",
+  "attrChoice_fill_material_merino": "Merinowol",
+  "attrChoice_fill_material_polypropylene": "Polypropeen",
   "attrChoice_tank_material_aluminum": "Aluminium",
   "attrChoice_tank_material_steel": "Staal",
   "attrChoice_tank_material_carbon_composite": "Carboncomposiet",
@@ -7550,6 +7586,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Noodlijn voor duikers. Bel eerst: zij coördineren evacuatie en doorverwijzing naar een kamer.",
+  "emergencyCard_callInsurer_subtitle": "Noodlijn van je duikverzekering. Bel eerst: je verzekeraar autoriseert de evacuatie en coördineert de doorverwijzing naar een kamer.",
+  "emergencyCard_hotlineSecondary_subtitle": "Regionale noodlijn voor duikers. Bel deze als de lijn van je verzekeraar niet opneemt.",
+  "emergencyCard_insuranceEmergencyLine": "24-uurs noodlijn",
+  "emergencyCard_insuranceOfficeLine": "Kantoornummer",
+  "emergencyCard_insuranceNoPhone": "Geen noodnummer van de verzekeraar opgeslagen. Voeg het toe in de duikerprofielinstellingen zodat deze kaart ermee begint.",
   "emergencyCard_ems": "Lokale hulpdiensten: {number}",
   "@emergencyCard_ems": {
     "placeholders": {

@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "取消",
   "diveSites_backfill_summary": "已更新 {updated}，未变 {unchanged}，失败 {failed}",
   "diveSites_backfill_offline": "地点查找不可用。请检查网络连接后重试。",
+  "diveSites_list_menu_refreshPlaceNames": "刷新地名",
+  "diveSites_refresh_confirm_title": "刷新地名？",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{将重新查询 1 个有坐标的潜点。} other{将重新查询 {count} 个有坐标的潜点。}}国家、地区、城镇和水域凡与地名语言（{language}）不一致的都会被替换，包括你自己填写的内容。大约需要 {minutes, plural, =1{1 分钟} other{{minutes} 分钟}}。",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "正在刷新地名",
+  "diveSites_refresh_nothing": "没有潜点带有可查询的坐标。",
   "diveLog_edit_flightWindowWarning": "此次潜水的结束时间晚于您航班的最后安全出水时间({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {
@@ -3255,6 +3273,10 @@
   "divers_edit_errorSaving": "保存潜水员出错：{error}",
   "divers_edit_expiryDateNotSet": "未设置",
   "divers_edit_expiryDateTitle": "到期日",
+  "divers_edit_insuranceEmergencyPhoneHelper": "在紧急卡片上优先显示。",
+  "divers_edit_insuranceEmergencyPhoneHint": "例如 +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "24 小时紧急救援电话",
+  "divers_edit_insurancePhoneLabel": "保险公司办公电话",
   "divers_edit_insuranceProviderHint": "例如 DAN、DiveAssure",
   "divers_edit_insuranceProviderLabel": "保险提供商",
   "divers_edit_insuranceSection": "潜水保险",
@@ -3398,6 +3420,8 @@
   "enum_equipmentType_camera": "相机",
   "enum_equipmentType_computer": "潜水电脑",
   "enum_equipmentType_drysuit": "干衣",
+  "enum_equipmentType_baselayer": "基础层",
+  "enum_equipmentType_undersuit": "内胆保暖服",
   "enum_equipmentType_fins": "脚蹼",
   "enum_equipmentType_gloves": "手套",
   "enum_equipmentType_hood": "潜水头套",
@@ -3873,7 +3897,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "使用默认货币",
   "equipment_scheduleDialog_defaultCurrencyLabel": "此装备的货币",
   "equipment_service_snackbar_deleted": "维护记录已删除",
-  "equipment_service_totalCostLabel": "维护总费用",
+  "equipment_service_totalCostLabel": "维护总费用 ({currency})",
   "equipment_setDetail_addEquipmentButton": "添加装备",
   "equipment_setDetail_deleteDialog_cancel": "取消",
   "equipment_setDetail_deleteDialog_confirm": "删除",
@@ -3940,7 +3964,7 @@
   "equipment_summary_serviceDueTitle": "需要维护",
   "equipment_summary_title": "装备",
   "equipment_summary_totalItems": "总件数",
-  "equipment_summary_totalValue": "总价值",
+  "equipment_summary_totalValue": "总价值 ({currency})",
   "equipment_tab_equipment": "装备",
   "equipment_tab_sets": "套装",
   "formatter_approximate_prefix": "~",
@@ -7184,6 +7208,8 @@
   "attrLabel_blade_material": "刀刃材质",
   "attrLabel_tip_type": "刀尖",
   "attrLabel_glove_type": "类型",
+  "attrLabel_insulation_level": "保暖等级",
+  "attrLabel_fill_material": "材质",
   "attrLabel_sole_type": "鞋底",
   "attrLabel_buoyancy_kg": "浮力",
   "attrLabel_dry_weight_kg": "干重",
@@ -7222,6 +7248,16 @@
   "attrChoice_seal_type_latex": "乳胶",
   "attrChoice_seal_type_silicone": "硅胶",
   "attrChoice_seal_type_neoprene": "氯丁橡胶",
+  "attrChoice_insulation_level_light": "轻薄",
+  "attrChoice_insulation_level_mid": "中等",
+  "attrChoice_insulation_level_heavy": "厚实",
+  "attrChoice_insulation_level_extreme": "极厚",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "中空纤维",
+  "attrChoice_fill_material_fleece": "抓绒",
+  "attrChoice_fill_material_merino": "美利奴羊毛",
+  "attrChoice_fill_material_polypropylene": "聚丙烯",
   "attrChoice_tank_material_aluminum": "铝",
   "attrChoice_tank_material_steel": "钢",
   "attrChoice_tank_material_carbon_composite": "碳纤维复合",
@@ -7550,6 +7586,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "潜水员紧急热线。请先拨打:他们负责协调撤离和减压舱转诊。",
+  "emergencyCard_callInsurer_subtitle": "你的潜水保险紧急专线。请先拨打:保险公司负责批准撤离并协调减压舱转诊。",
+  "emergencyCard_hotlineSecondary_subtitle": "区域潜水员紧急热线。若保险公司专线无人接听,请拨打此号码。",
+  "emergencyCard_insuranceEmergencyLine": "24 小时紧急专线",
+  "emergencyCard_insuranceOfficeLine": "办公电话",
+  "emergencyCard_insuranceNoPhone": "尚未保存保险公司紧急电话。请在潜水员资料设置中添加,以便此卡优先显示该号码。",
   "emergencyCard_ems": "当地急救电话:{number}",
   "@emergencyCard_ems": {
     "placeholders": {

@@ -15107,6 +15107,40 @@ abstract class AppLocalizations {
   /// **'Location lookup is unavailable. Check your connection and try again.'**
   String get diveSites_backfill_offline;
 
+  /// No description provided for @diveSites_list_menu_refreshPlaceNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh place names'**
+  String get diveSites_list_menu_refreshPlaceNames;
+
+  /// No description provided for @diveSites_refresh_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh place names?'**
+  String get diveSites_refresh_confirm_title;
+
+  /// No description provided for @diveSites_refresh_confirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced wherever they differ from the place name language ({language}), including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.'**
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  );
+
+  /// No description provided for @diveSites_refresh_progress_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshing place names'**
+  String get diveSites_refresh_progress_title;
+
+  /// No description provided for @diveSites_refresh_nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No site has coordinates to look up.'**
+  String get diveSites_refresh_nothing;
+
   /// No description provided for @diveSites_list_search_backTooltip.
   ///
   /// In en, this message translates to:
@@ -16202,6 +16236,30 @@ abstract class AppLocalizations {
   /// **'Expiry Date'**
   String get divers_edit_expiryDateTitle;
 
+  /// No description provided for @divers_edit_insuranceEmergencyPhoneHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown first on your emergency card.'**
+  String get divers_edit_insuranceEmergencyPhoneHelper;
+
+  /// No description provided for @divers_edit_insuranceEmergencyPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., +1 919 684 9111'**
+  String get divers_edit_insuranceEmergencyPhoneHint;
+
+  /// No description provided for @divers_edit_insuranceEmergencyPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'24h Emergency Assistance Number'**
+  String get divers_edit_insuranceEmergencyPhoneLabel;
+
+  /// No description provided for @divers_edit_insurancePhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance Office Number'**
+  String get divers_edit_insurancePhoneLabel;
+
   /// No description provided for @divers_edit_insuranceProviderHint.
   ///
   /// In en, this message translates to:
@@ -17023,6 +17081,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drysuit'**
   String get enum_equipmentType_drysuit;
+
+  /// No description provided for @enum_equipmentType_baselayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Layer'**
+  String get enum_equipmentType_baselayer;
+
+  /// No description provided for @enum_equipmentType_undersuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Undersuit'**
+  String get enum_equipmentType_undersuit;
 
   /// No description provided for @enum_equipmentType_fins.
   ///
@@ -19757,8 +19827,8 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_service_totalCostLabel.
   ///
   /// In en, this message translates to:
-  /// **'Total Service Cost'**
-  String get equipment_service_totalCostLabel;
+  /// **'Total Service Cost ({currency})'**
+  String equipment_service_totalCostLabel(String currency);
 
   /// No description provided for @equipment_setDetail_addEquipmentButton.
   ///
@@ -20159,8 +20229,8 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_summary_totalValue.
   ///
   /// In en, this message translates to:
-  /// **'Total Value'**
-  String get equipment_summary_totalValue;
+  /// **'Total Value ({currency})'**
+  String equipment_summary_totalValue(String currency);
 
   /// No description provided for @equipment_tab_equipment.
   ///
@@ -41057,6 +41127,18 @@ abstract class AppLocalizations {
   /// **'Type'**
   String get attrLabel_glove_type;
 
+  /// No description provided for @attrLabel_insulation_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Insulation level'**
+  String get attrLabel_insulation_level;
+
+  /// No description provided for @attrLabel_fill_material.
+  ///
+  /// In en, this message translates to:
+  /// **'Material'**
+  String get attrLabel_fill_material;
+
   /// No description provided for @attrLabel_sole_type.
   ///
   /// In en, this message translates to:
@@ -41284,6 +41366,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Neoprene'**
   String get attrChoice_seal_type_neoprene;
+
+  /// No description provided for @attrChoice_insulation_level_light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get attrChoice_insulation_level_light;
+
+  /// No description provided for @attrChoice_insulation_level_mid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid-weight'**
+  String get attrChoice_insulation_level_mid;
+
+  /// No description provided for @attrChoice_insulation_level_heavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy'**
+  String get attrChoice_insulation_level_heavy;
+
+  /// No description provided for @attrChoice_insulation_level_extreme.
+  ///
+  /// In en, this message translates to:
+  /// **'Extreme'**
+  String get attrChoice_insulation_level_extreme;
+
+  /// No description provided for @attrChoice_fill_material_thinsulate.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinsulate'**
+  String get attrChoice_fill_material_thinsulate;
+
+  /// No description provided for @attrChoice_fill_material_primaloft.
+  ///
+  /// In en, this message translates to:
+  /// **'PrimaLoft'**
+  String get attrChoice_fill_material_primaloft;
+
+  /// No description provided for @attrChoice_fill_material_hollowfibre.
+  ///
+  /// In en, this message translates to:
+  /// **'Hollowfibre'**
+  String get attrChoice_fill_material_hollowfibre;
+
+  /// No description provided for @attrChoice_fill_material_fleece.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleece'**
+  String get attrChoice_fill_material_fleece;
+
+  /// No description provided for @attrChoice_fill_material_merino.
+  ///
+  /// In en, this message translates to:
+  /// **'Merino wool'**
+  String get attrChoice_fill_material_merino;
+
+  /// No description provided for @attrChoice_fill_material_polypropylene.
+  ///
+  /// In en, this message translates to:
+  /// **'Polypropylene'**
+  String get attrChoice_fill_material_polypropylene;
 
   /// No description provided for @attrChoice_tank_material_aluminum.
   ///
@@ -41854,6 +41996,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.'**
   String get emergencyCard_callDan_subtitle;
+
+  /// No description provided for @emergencyCard_callInsurer_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive insurance emergency line. Call first: your insurer authorizes the evacuation and coordinates the chamber referral.'**
+  String get emergencyCard_callInsurer_subtitle;
+
+  /// No description provided for @emergencyCard_hotlineSecondary_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Regional diver emergency hotline. Call this if your insurer\'s line does not answer.'**
+  String get emergencyCard_hotlineSecondary_subtitle;
+
+  /// No description provided for @emergencyCard_insuranceEmergencyLine.
+  ///
+  /// In en, this message translates to:
+  /// **'24h emergency line'**
+  String get emergencyCard_insuranceEmergencyLine;
+
+  /// No description provided for @emergencyCard_insuranceOfficeLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Office line'**
+  String get emergencyCard_insuranceOfficeLine;
+
+  /// No description provided for @emergencyCard_insuranceNoPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'No insurer emergency number saved. Add it in Diver Profile settings so this card can lead with it.'**
+  String get emergencyCard_insuranceNoPhone;
 
   /// No description provided for @emergencyCard_ems.
   ///

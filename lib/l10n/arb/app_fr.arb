@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "Annuler",
   "diveSites_backfill_summary": "Mis à jour {updated}, inchangés {unchanged}, échoués {failed}",
   "diveSites_backfill_offline": "La recherche de lieu est indisponible. Vérifiez votre connexion et réessayez.",
+  "diveSites_list_menu_refreshPlaceNames": "Actualiser les noms de lieux",
+  "diveSites_refresh_confirm_title": "Actualiser les noms de lieux ?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 site avec coordonnées sera consulté à nouveau.} other{{count} sites avec coordonnées seront consultés à nouveau.}} Le pays, la région, la ville et l'étendue d'eau seront remplacés là où ils diffèrent de la langue des noms de lieux ({language}), y compris les valeurs que vous avez saisies. Cela prend environ {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "Actualisation des noms de lieux",
+  "diveSites_refresh_nothing": "Aucun site n'a de coordonnées à consulter.",
   "diveLog_edit_flightWindowWarning": "Cette plongée se termine après l'heure limite de remontée pour votre vol ({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {
@@ -3038,6 +3056,10 @@
   "divers_edit_errorSaving": "Erreur lors de l'enregistrement du plongeur : {error}",
   "divers_edit_expiryDateNotSet": "Non defini",
   "divers_edit_expiryDateTitle": "Date d'expiration",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Affiché en premier sur votre carte d'urgence.",
+  "divers_edit_insuranceEmergencyPhoneHint": "ex. +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "Numéro d'assistance d'urgence 24 h",
+  "divers_edit_insurancePhoneLabel": "Téléphone du bureau de l'assurance",
   "divers_edit_insuranceProviderHint": "ex. DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Assureur",
   "divers_edit_insuranceSection": "Assurance plongee",
@@ -3177,6 +3199,8 @@
   "enum_equipmentType_camera": "Camera",
   "enum_equipmentType_computer": "Ordinateur de plongee",
   "enum_equipmentType_drysuit": "Combinaison etanche",
+  "enum_equipmentType_baselayer": "Sous-couche",
+  "enum_equipmentType_undersuit": "Sous-combinaison",
   "enum_equipmentType_fins": "Palmes",
   "enum_equipmentType_gloves": "Gants",
   "enum_equipmentType_hood": "Cagoule",
@@ -3644,7 +3668,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Utiliser la devise par défaut",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Devise pour cet équipement",
   "equipment_service_snackbar_deleted": "Enregistrement de revision supprime",
-  "equipment_service_totalCostLabel": "Cout total de revision",
+  "equipment_service_totalCostLabel": "Cout total de revision ({currency})",
   "equipment_setDetail_addEquipmentButton": "Ajouter un equipement",
   "equipment_setDetail_deleteDialog_cancel": "Annuler",
   "equipment_setDetail_deleteDialog_confirm": "Supprimer",
@@ -3711,7 +3735,7 @@
   "equipment_summary_serviceDueTitle": "Revision due",
   "equipment_summary_title": "Equipement",
   "equipment_summary_totalItems": "Total elements",
-  "equipment_summary_totalValue": "Valeur totale",
+  "equipment_summary_totalValue": "Valeur totale ({currency})",
   "equipment_tab_equipment": "Equipement",
   "equipment_tab_sets": "Ensembles",
   "formatter_approximate_prefix": "~",
@@ -7184,6 +7208,8 @@
   "attrLabel_blade_material": "Matériau de la lame",
   "attrLabel_tip_type": "Pointe",
   "attrLabel_glove_type": "Type",
+  "attrLabel_insulation_level": "Niveau d'isolation",
+  "attrLabel_fill_material": "Matière",
   "attrLabel_sole_type": "Semelle",
   "attrLabel_buoyancy_kg": "Flottabilité",
   "attrLabel_dry_weight_kg": "Poids à sec",
@@ -7222,6 +7248,16 @@
   "attrChoice_seal_type_latex": "Latex",
   "attrChoice_seal_type_silicone": "Silicone",
   "attrChoice_seal_type_neoprene": "Néoprène",
+  "attrChoice_insulation_level_light": "Léger",
+  "attrChoice_insulation_level_mid": "Intermédiaire",
+  "attrChoice_insulation_level_heavy": "Épais",
+  "attrChoice_insulation_level_extreme": "Extrême",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "Fibre creuse",
+  "attrChoice_fill_material_fleece": "Polaire",
+  "attrChoice_fill_material_merino": "Laine mérinos",
+  "attrChoice_fill_material_polypropylene": "Polypropylène",
   "attrChoice_tank_material_aluminum": "Aluminium",
   "attrChoice_tank_material_steel": "Acier",
   "attrChoice_tank_material_carbon_composite": "Composite carbone",
@@ -7550,6 +7586,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Ligne d'urgence plongeurs. Appelez d'abord : ils coordonnent l'évacuation et l'orientation vers un caisson.",
+  "emergencyCard_callInsurer_subtitle": "Ligne d'urgence de votre assurance plongée. Appelez d'abord : votre assureur autorise l'évacuation et coordonne l'orientation vers un caisson.",
+  "emergencyCard_hotlineSecondary_subtitle": "Ligne d'urgence plongeurs régionale. Appelez-la si la ligne de votre assureur ne répond pas.",
+  "emergencyCard_insuranceEmergencyLine": "Ligne d'urgence 24 h",
+  "emergencyCard_insuranceOfficeLine": "Ligne de bureau",
+  "emergencyCard_insuranceNoPhone": "Aucun numéro d'urgence de l'assureur enregistré. Ajoutez-le dans les réglages du profil plongeur pour que cette carte le place en premier.",
   "emergencyCard_ems": "Secours locaux : {number}",
   "@emergencyCard_ems": {
     "placeholders": {

@@ -31,7 +31,71 @@ class DiverInsurance extends Equatable {
   final String? policyNumber;
   final DateTime? expiryDate;
 
-  const DiverInsurance({this.provider, this.policyNumber, this.expiryDate});
+  /// The insurer's 24-hour dive emergency assistance line. This is the number
+  /// an insured diver is meant to call first: their own assistance provider
+  /// authorises the evacuation and coordinates the chamber referral, which is
+  /// the role the emergency card otherwise attributes to the regional diver
+  /// hotline. Exposed as [assistanceLine].
+  final String? emergencyPhone;
+
+  /// The insurer's general or office line, exposed as [officeLine]. For most
+  /// providers this answers during business hours only, so it is never what
+  /// the emergency card leads with: an unanswered number at 2am is worse
+  /// than the regional hotline, which does answer.
+  final String? phone;
+
+  const DiverInsurance({
+    this.provider,
+    this.policyNumber,
+    this.expiryDate,
+    this.emergencyPhone,
+    this.phone,
+  });
+
+  /// Trims a stored value and reports a blank one as absent. An emptied text
+  /// field round-trips through the database as `''` on some paths: a blank
+  /// number would fail to dial silently at the very worst moment, and a blank
+  /// policy number would print an empty "Policy" line on the emergency card.
+  ///
+  /// Every getter below goes through this, so "is it there?" gets one answer
+  /// across the card, the export, and the persistence gates.
+  static String? _presentOrNull(String? value) {
+    final trimmed = value?.trim();
+    return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+  }
+
+  /// The 24-hour assistance line, ready to dial, or null if not recorded.
+  /// This is the only insurer number the emergency card will lead with.
+  String? get assistanceLine => _presentOrNull(emergencyPhone);
+
+  /// The office line, ready to dial, or null if not recorded.
+  String? get officeLine => _presentOrNull(phone);
+
+  /// The insurer's name, ready to display, or null if not recorded.
+  String? get providerLabel => _presentOrNull(provider);
+
+  /// The policy number, ready to display, or null if not recorded.
+  String? get policyLabel => _presentOrNull(policyNumber);
+
+  /// An insurer number to dial at all, preferring the assistance line. Used to
+  /// decide whether the insurance block has anything to show; deciding what
+  /// the card *leads* with is [assistanceLine]'s job, because a number that
+  /// only answers in business hours must not be presented as a first call.
+  String? get callNumber => assistanceLine ?? officeLine;
+
+  /// Whether the diver recorded any insurer number at all.
+  bool get hasCallNumber => callNumber != null;
+
+  /// Whether the diver recorded anything at all under insurance.
+  ///
+  /// Persistence and export must key off this rather than [provider]: a policy
+  /// number or an assistance line can be saved without ever naming the
+  /// insurer, and gating on the name alone silently drops the rest.
+  bool get hasAnyDetail =>
+      providerLabel != null ||
+      policyLabel != null ||
+      expiryDate != null ||
+      hasCallNumber;
 
   bool get isExpired {
     if (expiryDate == null) return false;
@@ -44,22 +108,36 @@ class DiverInsurance extends Equatable {
     return expiryDate!.isBefore(thirtyDaysFromNow) && !isExpired;
   }
 
-  bool get isValid => provider != null && provider!.isNotEmpty && !isExpired;
+  /// Goes through [providerLabel] so a whitespace-only provider is "not
+  /// recorded" here too. Every presence question about insurance has to give
+  /// the same answer, or the dashboard calls a policy valid that the emergency
+  /// card refuses to show.
+  bool get isValid => providerLabel != null && !isExpired;
 
   DiverInsurance copyWith({
     String? provider,
     String? policyNumber,
     DateTime? expiryDate,
+    String? emergencyPhone,
+    String? phone,
   }) {
     return DiverInsurance(
       provider: provider ?? this.provider,
       policyNumber: policyNumber ?? this.policyNumber,
       expiryDate: expiryDate ?? this.expiryDate,
+      emergencyPhone: emergencyPhone ?? this.emergencyPhone,
+      phone: phone ?? this.phone,
     );
   }
 
   @override
-  List<Object?> get props => [provider, policyNumber, expiryDate];
+  List<Object?> get props => [
+    provider,
+    policyNumber,
+    expiryDate,
+    emergencyPhone,
+    phone,
+  ];
 }
 
 /// Diver profile entity
