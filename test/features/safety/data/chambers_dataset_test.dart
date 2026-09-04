@@ -165,6 +165,14 @@ void main() {
       'nl-sneek',
       'nl-denhelder',
       'nl-rijswijk',
+      // The Eurocept sites are elective rather than acute, but they are on the
+      // NVvHG list and they are what a diver in Brabant or Drenthe has nearby,
+      // so losing them silently is the same regression as losing a chamber.
+      'nl-amersfoort',
+      'nl-geldrop',
+      'nl-hoogeveen',
+      'nl-rotterdam',
+      'nl-waalwijk',
     ];
 
     for (final id in [...belgium, ...netherlands, 'lu-esch']) {
