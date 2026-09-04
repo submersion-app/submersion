@@ -9045,6 +9045,43 @@ class AppLocalizationsEs extends AppLocalizations {
       'La consulta de ubicación no está disponible. Comprueba tu conexión e inténtalo de nuevo.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames =>
+      'Actualizar los nombres de lugares';
+
+  @override
+  String get diveSites_refresh_confirm_title =>
+      '¿Actualizar los nombres de lugares?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se volverán a consultar $count puntos de buceo con coordenadas.',
+      one: 'Se volverá a consultar 1 punto de buceo con coordenadas.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutos',
+      one: '1 minuto',
+    );
+    return '$_temp0 El país, la región, la localidad y la masa de agua se sustituirán por el nombre en $language allí donde difieran, incluidos los valores que hayas escrito. Tarda unos $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title =>
+      'Actualizando los nombres de lugares';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Ningún punto de buceo tiene coordenadas que consultar.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Atras';
 
   @override

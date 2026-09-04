@@ -8887,6 +8887,39 @@ class AppLocalizationsEn extends AppLocalizations {
       'Location lookup is unavailable. Check your connection and try again.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'Refresh place names';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Refresh place names?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites with coordinates are looked up again.',
+      one: '1 site with coordinates is looked up again.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes',
+      one: '1 minute',
+    );
+    return '$_temp0 Country, region, town and body of water are replaced with the $language name wherever they differ, including values you typed yourself. This takes about $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'Refreshing place names';
+
+  @override
+  String get diveSites_refresh_nothing => 'No site has coordinates to look up.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Back';
 
   @override

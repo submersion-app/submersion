@@ -8602,6 +8602,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_backfill_offline => '地点查找不可用。请检查网络连接后重试。';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => '刷新地名';
+
+  @override
+  String get diveSites_refresh_confirm_title => '刷新地名？';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将重新查询 $count 个有坐标的潜点。',
+      one: '将重新查询 1 个有坐标的潜点。',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes 分钟',
+      one: '1 分钟',
+    );
+    return '$_temp0国家、地区、城镇和水域在不一致时会替换为$language名称，包括你自己填写的内容。大约需要 $_temp1。';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => '正在刷新地名';
+
+  @override
+  String get diveSites_refresh_nothing => '没有潜点带有可查询的坐标。';
+
+  @override
   String get diveSites_list_search_backTooltip => '返回';
 
   @override

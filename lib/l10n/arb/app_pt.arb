@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "Cancelar",
   "diveSites_backfill_summary": "Atualizados {updated}, inalterados {unchanged}, falhados {failed}",
   "diveSites_backfill_offline": "A consulta de localização não está disponível. Verifique a sua ligação e tente novamente.",
+  "diveSites_list_menu_refreshPlaceNames": "Atualizar os nomes de lugares",
+  "diveSites_refresh_confirm_title": "Atualizar os nomes de lugares?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 local com coordenadas será consultado de novo.} other{{count} locais com coordenadas serão consultados de novo.}} O país, a região, a localidade e a massa de água serão substituídos pelo nome em {language} sempre que diferirem, incluindo os valores que escreveu. Demora cerca de {minutes, plural, =1{1 minuto} other{{minutes} minutos}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "A atualizar os nomes de lugares",
+  "diveSites_refresh_nothing": "Nenhum local tem coordenadas para consultar.",
   "diveLog_edit_flightWindowWarning": "Este mergulho termina depois do último horário seguro para emergir antes do seu voo ({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {

@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "Abbrechen",
   "diveSites_backfill_summary": "Aktualisiert {updated}, unverändert {unchanged}, fehlgeschlagen {failed}",
   "diveSites_backfill_offline": "Die Ortssuche ist nicht verfügbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+  "diveSites_list_menu_refreshPlaceNames": "Ortsnamen aktualisieren",
+  "diveSites_refresh_confirm_title": "Ortsnamen aktualisieren?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 Tauchplatz mit Koordinaten wird erneut abgefragt.} other{{count} Tauchplätze mit Koordinaten werden erneut abgefragt.}} Land, Region, Ort und Gewässer werden überall dort durch den Namen auf {language} ersetzt, wo sie abweichen, auch selbst eingegebene Werte. Das dauert etwa {minutes, plural, =1{1 Minute} other{{minutes} Minuten}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "Ortsnamen werden aktualisiert",
+  "diveSites_refresh_nothing": "Kein Tauchplatz hat Koordinaten für eine Abfrage.",
   "diveLog_edit_flightWindowWarning": "Dieser Tauchgang endet nach der letzten sicheren Auftauchzeit für deinen Flug ({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {

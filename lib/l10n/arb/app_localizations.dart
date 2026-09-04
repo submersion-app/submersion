@@ -15107,6 +15107,40 @@ abstract class AppLocalizations {
   /// **'Location lookup is unavailable. Check your connection and try again.'**
   String get diveSites_backfill_offline;
 
+  /// No description provided for @diveSites_list_menu_refreshPlaceNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh place names'**
+  String get diveSites_list_menu_refreshPlaceNames;
+
+  /// No description provided for @diveSites_refresh_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh place names?'**
+  String get diveSites_refresh_confirm_title;
+
+  /// No description provided for @diveSites_refresh_confirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced with the {language} name wherever they differ, including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.'**
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  );
+
+  /// No description provided for @diveSites_refresh_progress_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshing place names'**
+  String get diveSites_refresh_progress_title;
+
+  /// No description provided for @diveSites_refresh_nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No site has coordinates to look up.'**
+  String get diveSites_refresh_nothing;
+
   /// No description provided for @diveSites_list_search_backTooltip.
   ///
   /// In en, this message translates to:

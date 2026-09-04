@@ -8819,6 +8819,39 @@ class AppLocalizationsHe extends AppLocalizations {
       'חיפוש המיקום אינו זמין. בדקו את החיבור ונסו שוב.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'עדכון שמות המקומות';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'לעדכן את שמות המקומות?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים עם קואורדינטות ייבדקו מחדש.',
+      one: 'אתר אחד עם קואורדינטות ייבדק מחדש.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes דקות',
+      one: 'דקה אחת',
+    );
+    return '$_temp0 המדינה, האזור, היישוב וגוף המים יוחלפו בשם ב$language בכל מקום שבו הם שונים, כולל ערכים שהזנת בעצמך. הפעולה נמשכת כ$_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'מעדכן את שמות המקומות';
+
+  @override
+  String get diveSites_refresh_nothing => 'לאף אתר אין קואורדינטות לבדיקה.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'חזרה';
 
   @override

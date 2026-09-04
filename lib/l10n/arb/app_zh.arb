@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "取消",
   "diveSites_backfill_summary": "已更新 {updated}，未变 {unchanged}，失败 {failed}",
   "diveSites_backfill_offline": "地点查找不可用。请检查网络连接后重试。",
+  "diveSites_list_menu_refreshPlaceNames": "刷新地名",
+  "diveSites_refresh_confirm_title": "刷新地名？",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{将重新查询 1 个有坐标的潜点。} other{将重新查询 {count} 个有坐标的潜点。}}国家、地区、城镇和水域在不一致时会替换为{language}名称，包括你自己填写的内容。大约需要 {minutes, plural, =1{1 分钟} other{{minutes} 分钟}}。",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "正在刷新地名",
+  "diveSites_refresh_nothing": "没有潜点带有可查询的坐标。",
   "diveLog_edit_flightWindowWarning": "此次潜水的结束时间晚于您航班的最后安全出水时间({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {

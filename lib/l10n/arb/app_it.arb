@@ -23,6 +23,24 @@
   "diveSites_backfill_cancel": "Annulla",
   "diveSites_backfill_summary": "Aggiornati {updated}, invariati {unchanged}, falliti {failed}",
   "diveSites_backfill_offline": "La ricerca della località non è disponibile. Controlla la connessione e riprova.",
+  "diveSites_list_menu_refreshPlaceNames": "Aggiorna i nomi dei luoghi",
+  "diveSites_refresh_confirm_title": "Aggiornare i nomi dei luoghi?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 sito con coordinate verrà cercato di nuovo.} other{{count} siti con coordinate verranno cercati di nuovo.}} Paese, regione, località e specchio d'acqua verranno sostituiti con il nome in {language} dove differiscono, compresi i valori inseriti da te. Richiede circa {minutes, plural, =1{1 minuto} other{{minutes} minuti}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "Aggiornamento dei nomi dei luoghi",
+  "diveSites_refresh_nothing": "Nessun sito ha coordinate da cercare.",
   "diveLog_edit_flightWindowWarning": "Questa immersione termina dopo l'ultimo orario sicuro di riemersione per il tuo volo ({time})",
   "@diveLog_edit_flightWindowWarning": {
     "placeholders": {

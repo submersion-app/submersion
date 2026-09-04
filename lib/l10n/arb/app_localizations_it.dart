@@ -9047,6 +9047,42 @@ class AppLocalizationsIt extends AppLocalizations {
       'La ricerca della località non è disponibile. Controlla la connessione e riprova.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames =>
+      'Aggiorna i nomi dei luoghi';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Aggiornare i nomi dei luoghi?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count siti con coordinate verranno cercati di nuovo.',
+      one: '1 sito con coordinate verrà cercato di nuovo.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minuti',
+      one: '1 minuto',
+    );
+    return '$_temp0 Paese, regione, località e specchio d\'acqua verranno sostituiti con il nome in $language dove differiscono, compresi i valori inseriti da te. Richiede circa $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title =>
+      'Aggiornamento dei nomi dei luoghi';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Nessun sito ha coordinate da cercare.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Indietro';
 
   @override

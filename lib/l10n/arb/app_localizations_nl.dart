@@ -8972,6 +8972,40 @@ class AppLocalizationsNl extends AppLocalizations {
       'Locatie opzoeken is niet beschikbaar. Controleer je verbinding en probeer het opnieuw.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'Plaatsnamen bijwerken';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Plaatsnamen bijwerken?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duikstekken met coördinaten worden opnieuw opgezocht.',
+      one: '1 duikstek met coördinaten wordt opnieuw opgezocht.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minuten',
+      one: '1 minuut',
+    );
+    return '$_temp0 Land, regio, plaats en water worden vervangen door de naam in het $language waar ze afwijken, ook waarden die je zelf hebt ingevuld. Dit duurt ongeveer $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'Plaatsnamen bijwerken';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Geen enkele duikstek heeft coördinaten om op te zoeken.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Terug';
 
   @override

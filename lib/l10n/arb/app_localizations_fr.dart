@@ -9081,6 +9081,43 @@ class AppLocalizationsFr extends AppLocalizations {
       'La recherche de lieu est indisponible. Vérifiez votre connexion et réessayez.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames =>
+      'Actualiser les noms de lieux';
+
+  @override
+  String get diveSites_refresh_confirm_title =>
+      'Actualiser les noms de lieux ?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites avec coordonnées seront consultés à nouveau.',
+      one: '1 site avec coordonnées sera consulté à nouveau.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes',
+      one: '1 minute',
+    );
+    return '$_temp0 Le pays, la région, la ville et l\'étendue d\'eau seront remplacés par le nom en $language là où ils diffèrent, y compris les valeurs que vous avez saisies. Cela prend environ $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title =>
+      'Actualisation des noms de lieux';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Aucun site n\'a de coordonnées à consulter.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Retour';
 
   @override

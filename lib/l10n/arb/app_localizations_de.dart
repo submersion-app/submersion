@@ -9038,6 +9038,41 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Ortssuche ist nicht verfügbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'Ortsnamen aktualisieren';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Ortsnamen aktualisieren?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze mit Koordinaten werden erneut abgefragt.',
+      one: '1 Tauchplatz mit Koordinaten wird erneut abgefragt.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes Minuten',
+      one: '1 Minute',
+    );
+    return '$_temp0 Land, Region, Ort und Gewässer werden überall dort durch den Namen auf $language ersetzt, wo sie abweichen, auch selbst eingegebene Werte. Das dauert etwa $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title =>
+      'Ortsnamen werden aktualisiert';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Kein Tauchplatz hat Koordinaten für eine Abfrage.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Zurück';
 
   @override

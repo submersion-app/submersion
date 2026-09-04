@@ -9049,6 +9049,43 @@ class AppLocalizationsPt extends AppLocalizations {
       'A consulta de localização não está disponível. Verifique a sua ligação e tente novamente.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames =>
+      'Atualizar os nomes de lugares';
+
+  @override
+  String get diveSites_refresh_confirm_title =>
+      'Atualizar os nomes de lugares?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count locais com coordenadas serão consultados de novo.',
+      one: '1 local com coordenadas será consultado de novo.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutos',
+      one: '1 minuto',
+    );
+    return '$_temp0 O país, a região, a localidade e a massa de água serão substituídos pelo nome em $language sempre que diferirem, incluindo os valores que escreveu. Demora cerca de $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title =>
+      'A atualizar os nomes de lugares';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Nenhum local tem coordenadas para consultar.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Voltar';
 
   @override

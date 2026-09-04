@@ -8871,6 +8871,39 @@ class AppLocalizationsAr extends AppLocalizations {
       'البحث عن الموقع غير متاح. تحقق من الاتصال وحاول مرة أخرى.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'تحديث أسماء الأماكن';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'تحديث أسماء الأماكن؟';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيتم البحث من جديد عن $count مواقع غوص لها إحداثيات.',
+      one: 'سيتم البحث من جديد عن موقع غوص واحد له إحداثيات.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes دقائق',
+      one: 'دقيقة واحدة',
+    );
+    return '$_temp0 وستُستبدل الدولة والمنطقة والمدينة والمسطح المائي بالاسم بلغة $language حيثما اختلفت، بما في ذلك القيم التي أدخلتها بنفسك. يستغرق ذلك نحو $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'جارٍ تحديث أسماء الأماكن';
+
+  @override
+  String get diveSites_refresh_nothing => 'لا يوجد موقع غوص له إحداثيات للبحث.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'رجوع';
 
   @override

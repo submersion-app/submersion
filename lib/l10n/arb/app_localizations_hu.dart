@@ -9016,6 +9016,41 @@ class AppLocalizationsHu extends AppLocalizations {
       'A helylekérdezés nem érhető el. Ellenőrizze a kapcsolatot, és próbálja újra.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'Helynevek frissítése';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Frissíti a helyneveket?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count koordinátákkal rendelkező merülőhely lekérdezése történik újra.',
+      one: '1 koordinátákkal rendelkező merülőhely lekérdezése történik újra.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes percet',
+      one: '1 percet',
+    );
+    return '$_temp0 Az ország, a régió, a település és a víz neve mindenütt a(z) $language nyelvű névre cserélődik, ahol eltér, a kézzel beírt értékek is. Ez körülbelül $_temp1 vesz igénybe.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'Helynevek frissítése';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Egyetlen merülőhelynek sincs lekérdezhető koordinátája.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Vissza';
 
   @override

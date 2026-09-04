@@ -11,6 +11,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
@@ -182,7 +183,21 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
                 );
                 ref.read(siteListViewModeProvider.notifier).state = mode;
               } else if (value == 'fill_location_details') {
-                unawaited(showSiteLocationBackfillFlow(context, ref));
+                unawaited(
+                  showSiteLocationBackfillFlow(
+                    context,
+                    ref,
+                    mode: SiteLocationLookupMode.fillMissing,
+                  ),
+                );
+              } else if (value == 'refresh_place_names') {
+                unawaited(
+                  showSiteLocationBackfillFlow(
+                    context,
+                    ref,
+                    mode: SiteLocationLookupMode.refreshAll,
+                  ),
+                );
               }
             },
             itemBuilder: (context) {
@@ -204,6 +219,16 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
                     leading: const Icon(Icons.travel_explore),
                     title: Text(
                       context.l10n.diveSites_list_menu_fillLocationDetails,
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'refresh_place_names',
+                  child: ListTile(
+                    leading: const Icon(Icons.translate),
+                    title: Text(
+                      context.l10n.diveSites_list_menu_refreshPlaceNames,
                     ),
                     contentPadding: EdgeInsets.zero,
                   ),

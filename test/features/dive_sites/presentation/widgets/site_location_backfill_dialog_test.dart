@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// A scripted notifier so the dialog can be driven without a database or
@@ -22,12 +23,15 @@ class _ScriptedBackfill extends StateNotifier<BackfillState>
   int startCalls = 0;
   bool cancelled = false;
 
-  @override
-  Future<int> countCandidates() async => candidates;
+  SiteLocationLookupMode? startedWith;
 
   @override
-  Future<void> start() async {
+  Future<int> countCandidates(SiteLocationLookupMode mode) async => candidates;
+
+  @override
+  Future<void> start(SiteLocationLookupMode mode) async {
     startCalls++;
+    startedWith = mode;
     for (final s in script) {
       await Future<void>.delayed(stepDelay);
       state = s;
@@ -38,7 +42,11 @@ class _ScriptedBackfill extends StateNotifier<BackfillState>
   void cancel() => cancelled = true;
 
   /// Puts the notifier mid-run without going through [start].
-  void pretendRunning() => state = const BackfillRunning(done: 1, total: 3);
+  void pretendRunning() => state = const BackfillRunning(
+    mode: SiteLocationLookupMode.fillMissing,
+    done: 1,
+    total: 3,
+  );
 
   @override
   void reset() => state = const BackfillIdle();
@@ -47,9 +55,26 @@ class _ScriptedBackfill extends StateNotifier<BackfillState>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Settings without a database round-trip. The place name language names the
+/// target language in the refresh copy.
+class _FixedSettings extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _FixedSettings(String code) : super(AppSettings(placeNameLanguage: code));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void main() {
-  Widget host(_ScriptedBackfill notifier) => ProviderScope(
-    overrides: [siteLocationBackfillProvider.overrideWith((_) => notifier)],
+  Widget host(
+    _ScriptedBackfill notifier, {
+    SiteLocationLookupMode mode = SiteLocationLookupMode.fillMissing,
+    String placeNameLanguage = 'en',
+  }) => ProviderScope(
+    overrides: [
+      siteLocationBackfillProvider.overrideWith((_) => notifier),
+      settingsProvider.overrideWith((_) => _FixedSettings(placeNameLanguage)),
+    ],
     child: MaterialApp(
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -57,7 +82,8 @@ void main() {
       home: Scaffold(
         body: Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () => showSiteLocationBackfillFlow(context, ref),
+            onPressed: () =>
+                showSiteLocationBackfillFlow(context, ref, mode: mode),
             child: const Text('go'),
           ),
         ),
@@ -85,8 +111,16 @@ void main() {
     final notifier = _ScriptedBackfill(
       candidates: 104,
       script: const [
-        BackfillRunning(done: 0, total: 104),
-        BackfillRunning(done: 12, total: 104),
+        BackfillRunning(
+          mode: SiteLocationLookupMode.fillMissing,
+          done: 0,
+          total: 104,
+        ),
+        BackfillRunning(
+          mode: SiteLocationLookupMode.fillMissing,
+          done: 12,
+          total: 104,
+        ),
         BackfillFinished(
           BackfillSummary(total: 104, updated: 90, unchanged: 13, failed: 1),
         ),
@@ -129,7 +163,11 @@ void main() {
       candidates: 3,
       stepDelay: const Duration(milliseconds: 500),
       script: const [
-        BackfillRunning(done: 0, total: 3),
+        BackfillRunning(
+          mode: SiteLocationLookupMode.fillMissing,
+          done: 0,
+          total: 3,
+        ),
         BackfillFinished(
           BackfillSummary(
             total: 3,
@@ -167,7 +205,11 @@ void main() {
     final notifier = _ScriptedBackfill(
       candidates: 3,
       script: const [
-        BackfillRunning(done: 0, total: 3),
+        BackfillRunning(
+          mode: SiteLocationLookupMode.fillMissing,
+          done: 0,
+          total: 3,
+        ),
         BackfillFinished(
           BackfillSummary(
             total: 3,
@@ -205,6 +247,57 @@ void main() {
     expect(find.text('Filling in location details'), findsOneWidget);
     expect(find.text('1 of 3'), findsOneWidget);
     expect(find.text('Fill in missing location details?'), findsNothing);
+    expect(notifier.startCalls, 0);
+  });
+
+  testWidgets('the refresh flow names the language and the mode it runs', (
+    tester,
+  ) async {
+    final notifier = _ScriptedBackfill(
+      candidates: 30,
+      script: const [
+        BackfillRunning(
+          mode: SiteLocationLookupMode.refreshAll,
+          done: 0,
+          total: 30,
+        ),
+        BackfillFinished(
+          BackfillSummary(total: 30, updated: 30, unchanged: 0, failed: 0),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      host(
+        notifier,
+        mode: SiteLocationLookupMode.refreshAll,
+        placeNameLanguage: 'de',
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Refresh place names?'), findsOneWidget);
+    expect(
+      find.textContaining('replaced with the Deutsch name'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Start'));
+    await tester.pump(const Duration(milliseconds: 15));
+    expect(find.text('Refreshing place names'), findsOneWidget);
+    expect(notifier.startedWith, SiteLocationLookupMode.refreshAll);
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a refresh with no coordinates anywhere says so', (tester) async {
+    final notifier = _ScriptedBackfill(candidates: 0, script: const []);
+    await tester.pumpWidget(
+      host(notifier, mode: SiteLocationLookupMode.refreshAll),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No site has coordinates to look up.'), findsOneWidget);
     expect(notifier.startCalls, 0);
   });
 }
