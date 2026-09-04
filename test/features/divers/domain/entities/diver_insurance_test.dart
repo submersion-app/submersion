@@ -7,8 +7,31 @@ void main() {
       const insurance = DiverInsurance(provider: 'ARENA');
       expect(insurance.emergencyPhone, isNull);
       expect(insurance.phone, isNull);
+      expect(insurance.assistanceLine, isNull);
+      expect(insurance.officeLine, isNull);
       expect(insurance.callNumber, isNull);
       expect(insurance.hasCallNumber, isFalse);
+    });
+
+    test('assistanceLine is null when only an office line is recorded', () {
+      // The emergency card leads with assistanceLine and nothing else, so
+      // this null is what keeps a business-hours number out of the primary
+      // button.
+      const insurance = DiverInsurance(
+        provider: 'ARENA',
+        phone: '+49-30-111-111',
+      );
+      expect(insurance.assistanceLine, isNull);
+      expect(insurance.officeLine, '+49-30-111-111');
+    });
+
+    test('both lines are trimmed, and blanks read as absent', () {
+      const insurance = DiverInsurance(
+        emergencyPhone: '  +49-30-000-000  ',
+        phone: '   ',
+      );
+      expect(insurance.assistanceLine, '+49-30-000-000');
+      expect(insurance.officeLine, isNull);
     });
 
     test('callNumber prefers the 24h assistance line over the office line', () {

@@ -67,13 +67,18 @@ class _CardBody extends ConsumerWidget {
     final diver = data.diver;
     final insurance = diver?.insurance;
 
-    // The diver's own insurer is the first call when they recorded a number:
-    // that is who authorizes the evacuation and coordinates the chamber
-    // referral, which is the role this card otherwise hands to the regional
-    // hotline. Leading with a hotline the diver is not a member of is the
-    // complaint in issue #1522. With no insurer number recorded the regional
-    // hotline leads, exactly as before.
-    final insurerNumber = insurance?.callNumber;
+    // The diver's own insurer is the first call when they recorded a 24h
+    // assistance line: that is who authorizes the evacuation and coordinates
+    // the chamber referral, which is the role this card otherwise hands to the
+    // regional hotline. Leading with a hotline the diver is not a member of is
+    // the complaint in issue #1522.
+    //
+    // Only the assistance line qualifies. An insurer's office line typically
+    // answers in business hours only, so promoting it would promise a first
+    // call that rings an empty desk at 2am -- worse than the regional hotline,
+    // which does answer. The office line stays in the insurance block below,
+    // and the block nudges the diver to record the 24h number.
+    final insurerNumber = insurance?.assistanceLine;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -353,10 +358,11 @@ class _DiverSection extends StatelessWidget {
             number: diver.insurance.phone,
             icon: Icons.phone_outlined,
           ),
-          // A provider with no number is the state issue #1522 describes:
-          // the card cannot lead with the insurer, so say why rather than
-          // leaving the diver to wonder where their number went.
-          if (!diver.insurance.hasCallNumber)
+          // No 24h assistance line is the state issue #1522 describes: the
+          // card cannot lead with the insurer, so say why rather than leaving
+          // the diver to wonder. An office line alone still lands here, since
+          // it is not a number this card will promote.
+          if (diver.insurance.assistanceLine == null)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(

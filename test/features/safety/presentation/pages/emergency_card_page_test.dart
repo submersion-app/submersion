@@ -373,9 +373,12 @@ void main() {
       );
     });
 
-    testWidgets('the office line is used only when there is no 24h line', (
+    testWidgets('an office line alone never displaces the 24h hotline', (
       tester,
     ) async {
+      // An insurer's office line typically answers in business hours only.
+      // Promoting it would promise a first call that rings an empty desk at
+      // 2am, which is worse than the regional hotline that does answer.
       await tester.binding.setSurfaceSize(const Size(500, 2400));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -395,9 +398,39 @@ void main() {
       expect(
         find.descendant(
           of: find.byWidget(primary),
-          matching: find.textContaining('+49-30-555-0199'),
+          matching: find.textContaining('DES Australia'),
         ),
         findsOneWidget,
+      );
+      expect(
+        find.textContaining('Your dive insurance emergency line'),
+        findsNothing,
+        reason: 'an office line must not be described as an emergency line',
+      );
+    });
+
+    testWidgets('the office line stays reachable in the insurance block', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(
+        tester,
+        diverOverride: diver.copyWith(
+          insurance: const DiverInsurance(
+            provider: 'ARENA',
+            phone: '+49-30-555-0199',
+          ),
+        ),
+      );
+
+      expect(find.text('Office line'), findsOneWidget);
+      expect(find.text('+49-30-555-0199'), findsOneWidget);
+      expect(
+        find.textContaining('No insurer emergency number saved'),
+        findsOneWidget,
+        reason: 'an office line alone still needs the 24h number nudge',
       );
     });
 

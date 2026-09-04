@@ -35,12 +35,13 @@ class DiverInsurance extends Equatable {
   /// an insured diver is meant to call first: their own assistance provider
   /// authorises the evacuation and coordinates the chamber referral, which is
   /// the role the emergency card otherwise attributes to the regional diver
-  /// hotline. Preferred by [callNumber].
+  /// hotline. Exposed as [assistanceLine].
   final String? emergencyPhone;
 
-  /// The insurer's general or office line. Answers during business hours only
-  /// for most providers, so it is a fallback for [callNumber], never the
-  /// number a card leads with when [emergencyPhone] is known.
+  /// The insurer's general or office line, exposed as [officeLine]. For most
+  /// providers this answers during business hours only, so it is never what
+  /// the emergency card leads with: an unanswered number at 2am is worse
+  /// than the regional hotline, which does answer.
   final String? phone;
 
   const DiverInsurance({
@@ -51,19 +52,28 @@ class DiverInsurance extends Equatable {
     this.phone,
   });
 
-  /// The insurer number to dial, or null when the diver recorded neither.
-  /// Blank strings are treated as absent: an emptied text field round-trips
-  /// through the database as `''` on some paths, and dialling it would fail
-  /// silently at the very worst moment.
-  String? get callNumber {
-    final emergency = emergencyPhone?.trim();
-    if (emergency != null && emergency.isNotEmpty) return emergency;
-    final general = phone?.trim();
-    if (general != null && general.isNotEmpty) return general;
-    return null;
+  /// Trims a stored number and reports a blank one as absent. An emptied text
+  /// field round-trips through the database as `''` on some paths, and
+  /// dialling that would fail silently at the very worst moment.
+  static String? _dialable(String? value) {
+    final trimmed = value?.trim();
+    return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
   }
 
-  /// Whether the card has an insurer number worth leading with.
+  /// The 24-hour assistance line, ready to dial, or null if not recorded.
+  /// This is the only insurer number the emergency card will lead with.
+  String? get assistanceLine => _dialable(emergencyPhone);
+
+  /// The office line, ready to dial, or null if not recorded.
+  String? get officeLine => _dialable(phone);
+
+  /// An insurer number to dial at all, preferring the assistance line. Used to
+  /// decide whether the insurance block has anything to show; deciding what
+  /// the card *leads* with is [assistanceLine]'s job, because a number that
+  /// only answers in business hours must not be presented as a first call.
+  String? get callNumber => assistanceLine ?? officeLine;
+
+  /// Whether the diver recorded any insurer number at all.
   bool get hasCallNumber => callNumber != null;
 
   bool get isExpired {
