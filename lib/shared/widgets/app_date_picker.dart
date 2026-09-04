@@ -96,14 +96,20 @@ DateFormatPreference _resolveFormat(BuildContext context) {
 
 /// The all-numeric pattern the picker's text field types and parses.
 ///
-/// [DateFormatPreference.pattern] is not usable directly for the text-month
-/// preferences: a compact field has no room for `MMM`, so they fall back to
-/// the numeric pattern with the same field order.
+/// Every arm reads a [DateFormatPreference.pattern] rather than repeating one,
+/// so a preference whose pattern is edited carries the picker with it. The
+/// text-month preferences are the only ones that cannot use their own: a
+/// compact field has no room for `MMM`, so they borrow the numeric pattern
+/// with the same field order.
+///
+/// Listed one preference per arm, with no wildcard, so adding a preference is
+/// a compile error here rather than a silent fall-through to a pattern the
+/// field cannot parse.
 String _compactPatternFor(DateFormatPreference format) => switch (format) {
-  DateFormatPreference.mmddyyyy => 'MM/dd/yyyy',
-  DateFormatPreference.ddmmyyyy => 'dd/MM/yyyy',
-  DateFormatPreference.yyyymmdd => 'yyyy-MM-dd',
-  DateFormatPreference.ddmmyyyyDots => 'dd.MM.yyyy',
-  DateFormatPreference.mmmDYYYY => 'MM/dd/yyyy',
-  DateFormatPreference.dMMMYYYY => 'dd/MM/yyyy',
+  DateFormatPreference.mmddyyyy ||
+  DateFormatPreference.ddmmyyyy ||
+  DateFormatPreference.yyyymmdd ||
+  DateFormatPreference.ddmmyyyyDots => format.pattern,
+  DateFormatPreference.mmmDYYYY => DateFormatPreference.mmddyyyy.pattern,
+  DateFormatPreference.dMMMYYYY => DateFormatPreference.ddmmyyyy.pattern,
 };

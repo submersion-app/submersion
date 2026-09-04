@@ -266,8 +266,15 @@ void main() {
       );
 
       // Dialog chrome follows the app language, never the date format
-      // (#1510), so the cancel label is English for every preference.
-      await tester.tap(find.text('Cancel'));
+      // (#1510). Read the label the dialog actually resolved rather than
+      // assuming Material's wording, then assert it is the pinned locale's:
+      // under the old locale override this said 'Abbrechen'.
+      final cancelLabel = MaterialLocalizations.of(
+        tester.element(find.byType(DatePickerDialog)),
+      ).cancelButtonLabel;
+      expect(cancelLabel, 'Cancel');
+
+      await tester.tap(find.text(cancelLabel));
       await tester.pumpAndSettle();
       expect(find.byType(DatePickerDialog), findsNothing);
     });
