@@ -17,6 +17,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -342,8 +343,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final ids = dives.map((d) => d.id).toList();
       final thinned = <String, PdfProfileSeries>{};
 
-      for (var i = 0; i < ids.length; i += chunkSize) {
-        final chunk = ids.skip(i).take(chunkSize).toList();
+      for (final chunk in seriesIdChunks(ids, size: chunkSize)) {
         final raw = await repository.getMergedProfilesForDives(chunk);
         for (final entry in raw.entries) {
           thinned[entry.key] = PdfProfileSeries.downsampled(entry.value);
