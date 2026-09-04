@@ -190,8 +190,9 @@ The floor is set by three libraries, not by the app. Lowering it would have
 extended Submersion to distros it has never supported, at the cost of a
 container, a toolchain install on every run, and a class of missing-tool
 failures that no pull request can catch, since `build-all.yml` is
-`workflow_call`-only. Debian 12 and Ubuntu 22.04 users keep the tarball, which
-works for them today and continues to.
+`workflow_call`-only. Debian 12 and Ubuntu 22.04 have never been able to run a
+release and gain no fallback here: the tarball bundles the same three libraries
+and fails on those distros for the same reason.
 
 ```yaml
 build-linux:
