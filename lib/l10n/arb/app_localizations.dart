@@ -41549,6 +41549,12 @@ abstract class AppLocalizations {
   /// **'Five-finger'**
   String get attrChoice_glove_type_five_finger;
 
+  /// No description provided for @attrChoice_glove_type_three_finger.
+  ///
+  /// In en, this message translates to:
+  /// **'Three-finger'**
+  String get attrChoice_glove_type_three_finger;
+
   /// No description provided for @attrChoice_glove_type_mitt.
   ///
   /// In en, this message translates to:
@@ -41560,6 +41566,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dry'**
   String get attrChoice_glove_type_dry;
+
+  /// No description provided for @attrChoice_glove_type_dry_liner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry glove liner'**
+  String get attrChoice_glove_type_dry_liner;
+
+  /// No description provided for @attrChoice_glove_type_utility.
+  ///
+  /// In en, this message translates to:
+  /// **'Utility'**
+  String get attrChoice_glove_type_utility;
 
   /// No description provided for @attrChoice_sole_type_hard.
   ///

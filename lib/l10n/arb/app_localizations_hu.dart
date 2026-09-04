@@ -25058,10 +25058,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'Ötujjas';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'Háromujjas';
+
+  @override
   String get attrChoice_glove_type_mitt => 'Egyujjas';
 
   @override
   String get attrChoice_glove_type_dry => 'Száraz';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'Szárazkesztyű-bélés';
+
+  @override
+  String get attrChoice_glove_type_utility => 'Munka';
 
   @override
   String get attrChoice_sole_type_hard => 'Kemény talp';

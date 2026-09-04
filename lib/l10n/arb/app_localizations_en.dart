@@ -24742,10 +24742,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'Five-finger';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'Three-finger';
+
+  @override
   String get attrChoice_glove_type_mitt => 'Mitt';
 
   @override
   String get attrChoice_glove_type_dry => 'Dry';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'Dry glove liner';
+
+  @override
+  String get attrChoice_glove_type_utility => 'Utility';
 
   @override
   String get attrChoice_sole_type_hard => 'Hard sole';

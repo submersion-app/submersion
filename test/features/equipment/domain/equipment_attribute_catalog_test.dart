@@ -249,6 +249,20 @@ void main() {
       ]);
     });
 
+    test('glove_type covers wet, dry and utility hand protection', () {
+      final def = EquipmentAttributeCatalog.defFor(EquipmentAttrKeys.gloveType);
+      expect(def, isNotNull);
+      expect(def!.kind, AttributeKind.choice);
+      expect(def.choiceKeys, [
+        'five_finger',
+        'three_finger',
+        'mitt',
+        'dry',
+        'dry_liner',
+        'utility',
+      ]);
+    });
+
     test('unit_type covers both CCR and SCR variants', () {
       final def = EquipmentAttributeCatalog.defFor('unit_type');
       expect(def, isNotNull);

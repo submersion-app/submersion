@@ -23871,10 +23871,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => '五指';
 
   @override
+  String get attrChoice_glove_type_three_finger => '三指';
+
+  @override
   String get attrChoice_glove_type_mitt => '连指';
 
   @override
   String get attrChoice_glove_type_dry => '干式';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => '干式手套内胆';
+
+  @override
+  String get attrChoice_glove_type_utility => '工作';
 
   @override
   String get attrChoice_sole_type_hard => '硬底';

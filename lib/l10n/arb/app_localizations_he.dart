@@ -24539,10 +24539,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'חמש אצבעות';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'שלוש אצבעות';
+
+  @override
   String get attrChoice_glove_type_mitt => 'כפפת אגרוף';
 
   @override
   String get attrChoice_glove_type_dry => 'יבש';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'בטנה לכפפה יבשה';
+
+  @override
+  String get attrChoice_glove_type_utility => 'עבודה';
 
   @override
   String get attrChoice_sole_type_hard => 'סוליה קשה';

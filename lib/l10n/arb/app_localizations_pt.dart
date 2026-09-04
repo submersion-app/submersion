@@ -25163,10 +25163,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'Cinco dedos';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'Três dedos';
+
+  @override
   String get attrChoice_glove_type_mitt => 'Mitene';
 
   @override
   String get attrChoice_glove_type_dry => 'Seco';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'Forro de luva seca';
+
+  @override
+  String get attrChoice_glove_type_utility => 'Trabalho';
 
   @override
   String get attrChoice_sole_type_hard => 'Sola rígida';

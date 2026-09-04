@@ -24708,10 +24708,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'خمسة أصابع';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'ثلاثة أصابع';
+
+  @override
   String get attrChoice_glove_type_mitt => 'قفاز كفي';
 
   @override
   String get attrChoice_glove_type_dry => 'جاف';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'بطانة قفاز جاف';
+
+  @override
+  String get attrChoice_glove_type_utility => 'عمل';
 
   @override
   String get attrChoice_sole_type_hard => 'نعل صلب';
