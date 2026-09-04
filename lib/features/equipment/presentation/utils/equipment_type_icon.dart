@@ -15,9 +15,16 @@ import 'package:submersion/core/icons/submersion_icons.dart';
 ///
 /// Issue #1189 reported that the glyphs "don't really fit the equipment": most
 /// types pointed at a metaphor rather than the object, and the two exposure
-/// suits shared one hanger. Eleven shapes that no icon font has are now drawn in
-/// [SubmersionIcons]; five more moved to dive glyphs that were already present
-/// in the bundled Material Design Icons font but never exposed.
+/// suits shared one hanger. Three sources answer that, tried in this order:
+/// a shape drawn for Submersion when no icon font has the object at all
+/// ([SubmersionIcons]); a dive glyph already sitting unused in the bundled
+/// Material Design Icons font ([MdiIcons]); and a Material icon where the
+/// object is generic enough to have one.
+///
+/// No tallies here on purpose: every type added to [EquipmentType] moves them,
+/// and a stale count in a comment is worse than none when someone is checking
+/// icon coverage. `test/core/icons/vendored_icon_font_coverage_test.dart` is
+/// what actually holds each glyph to the font it names.
 IconData equipmentTypeIcon(EquipmentType type) {
   switch (type) {
     case EquipmentType.regulator:
