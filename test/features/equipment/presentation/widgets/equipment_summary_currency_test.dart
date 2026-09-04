@@ -101,6 +101,42 @@ void main() {
     expect(find.text(card(100, 'GBP')), findsOneWidget);
   });
 
+  testWidgets('each total card names the currency it is counted in', (
+    tester,
+  ) async {
+    await pumpSummary(tester, [_priced('a', 250.0, 'EUR')]);
+
+    expect(find.text('Total Value (EUR)'), findsOneWidget);
+    expect(find.text('Total Value'), findsNothing);
+  });
+
+  testWidgets('currencies sharing a symbol stay distinguishable', (
+    tester,
+  ) async {
+    // The reported bug (#1519): intl renders both USD and CAD as a bare "$",
+    // so two "Total Value" cards read as "$900" and "$400" with nothing to
+    // say which pile of gear was bought in which country's dollars.
+    await pumpSummary(tester, [
+      _priced('a', 900.0, 'USD'),
+      _priced('b', 400.0, 'CAD'),
+    ]);
+
+    expect(currencySymbol('CAD'), currencySymbol('USD'));
+    expect(find.text('Total Value (USD)'), findsOneWidget);
+    expect(find.text('Total Value (CAD)'), findsOneWidget);
+  });
+
+  testWidgets('the currency reaches the stat card semantics', (tester) async {
+    // A screen reader announces the label, never the "$" glyph's origin, so
+    // the code has to be in the spoken string too. Matched with findsWidgets
+    // because the card's Semantics node and its merge container both carry it.
+    final handle = tester.ensureSemantics();
+    await pumpSummary(tester, [_priced('a', 900.0, 'CAD')]);
+
+    expect(find.bySemanticsLabel('Total Value (CAD): \$900'), findsWidgets);
+    handle.dispose();
+  });
+
   testWidgets('items without a price contribute no total card', (tester) async {
     await pumpSummary(tester, [
       _priced('a', null, 'EUR'),

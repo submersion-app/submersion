@@ -170,9 +170,10 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    context
-                                        .l10n
-                                        .equipment_service_totalCostLabel,
+                                    context.l10n
+                                        .equipment_service_totalCostLabel(
+                                          entry.key,
+                                        ),
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodyMedium,
