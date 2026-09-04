@@ -8910,7 +8910,7 @@ class AppLocalizationsEn extends AppLocalizations {
       other: '$minutes minutes',
       one: '1 minute',
     );
-    return '$_temp0 Country, region, town and body of water are replaced with the $language name wherever they differ, including values you typed yourself. This takes about $_temp1.';
+    return '$_temp0 Country, region, town and body of water are replaced wherever they differ from the place name language ($language), including values you typed yourself. This takes about $_temp1.';
   }
 
   @override

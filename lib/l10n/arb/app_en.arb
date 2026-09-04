@@ -5120,7 +5120,7 @@
   "diveSites_backfill_offline": "Location lookup is unavailable. Check your connection and try again.",
   "diveSites_list_menu_refreshPlaceNames": "Refresh place names",
   "diveSites_refresh_confirm_title": "Refresh place names?",
-  "diveSites_refresh_confirm_body": "{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced with the {language} name wherever they differ, including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced wherever they differ from the place name language ({language}), including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",
   "@diveSites_refresh_confirm_body": {
     "placeholders": {
       "count": {

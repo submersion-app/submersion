@@ -9061,7 +9061,7 @@ class AppLocalizationsDe extends AppLocalizations {
       other: '$minutes Minuten',
       one: '1 Minute',
     );
-    return '$_temp0 Land, Region, Ort und Gewässer werden überall dort durch den Namen auf $language ersetzt, wo sie abweichen, auch selbst eingegebene Werte. Das dauert etwa $_temp1.';
+    return '$_temp0 Land, Region, Ort und Gewässer werden überall dort ersetzt, wo sie von der Sprache der Ortsnamen ($language) abweichen, auch selbst eingegebene Werte. Das dauert etwa $_temp1.';
   }
 
   @override

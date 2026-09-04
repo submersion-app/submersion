@@ -25,7 +25,7 @@
   "diveSites_backfill_offline": "地点查找不可用。请检查网络连接后重试。",
   "diveSites_list_menu_refreshPlaceNames": "刷新地名",
   "diveSites_refresh_confirm_title": "刷新地名？",
-  "diveSites_refresh_confirm_body": "{count, plural, =1{将重新查询 1 个有坐标的潜点。} other{将重新查询 {count} 个有坐标的潜点。}}国家、地区、城镇和水域在不一致时会替换为{language}名称，包括你自己填写的内容。大约需要 {minutes, plural, =1{1 分钟} other{{minutes} 分钟}}。",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{将重新查询 1 个有坐标的潜点。} other{将重新查询 {count} 个有坐标的潜点。}}国家、地区、城镇和水域凡与地名语言（{language}）不一致的都会被替换，包括你自己填写的内容。大约需要 {minutes, plural, =1{1 分钟} other{{minutes} 分钟}}。",
   "@diveSites_refresh_confirm_body": {
     "placeholders": {
       "count": {

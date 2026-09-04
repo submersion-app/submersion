@@ -9040,7 +9040,7 @@ class AppLocalizationsHu extends AppLocalizations {
       other: '$minutes percet',
       one: '1 percet',
     );
-    return '$_temp0 Az ország, a régió, a település és a víz neve mindenütt a(z) $language nyelvű névre cserélődik, ahol eltér, a kézzel beírt értékek is. Ez körülbelül $_temp1 vesz igénybe.';
+    return '$_temp0 Az ország, a régió, a település és a víz neve mindenütt lecserélődik, ahol eltér a helynevek nyelvétől ($language), a kézzel beírt értékek is. Ez körülbelül $_temp1 vesz igénybe.';
   }
 
   @override

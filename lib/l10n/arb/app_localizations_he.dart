@@ -8842,7 +8842,7 @@ class AppLocalizationsHe extends AppLocalizations {
       other: '$minutes דקות',
       one: 'דקה אחת',
     );
-    return '$_temp0 המדינה, האזור, היישוב וגוף המים יוחלפו בשם ב$language בכל מקום שבו הם שונים, כולל ערכים שהזנת בעצמך. הפעולה נמשכת כ$_temp1.';
+    return '$_temp0 המדינה, האזור, היישוב וגוף המים יוחלפו בכל מקום שבו הם שונים משפת שמות המקומות ($language), כולל ערכים שהזנת בעצמך. הפעולה נמשכת כ$_temp1.';
   }
 
   @override

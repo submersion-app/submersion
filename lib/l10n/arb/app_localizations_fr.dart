@@ -9106,7 +9106,7 @@ class AppLocalizationsFr extends AppLocalizations {
       other: '$minutes minutes',
       one: '1 minute',
     );
-    return '$_temp0 Le pays, la région, la ville et l\'étendue d\'eau seront remplacés par le nom en $language là où ils diffèrent, y compris les valeurs que vous avez saisies. Cela prend environ $_temp1.';
+    return '$_temp0 Le pays, la région, la ville et l\'étendue d\'eau seront remplacés là où ils diffèrent de la langue des noms de lieux ($language), y compris les valeurs que vous avez saisies. Cela prend environ $_temp1.';
   }
 
   @override

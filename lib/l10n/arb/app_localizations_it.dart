@@ -9071,7 +9071,7 @@ class AppLocalizationsIt extends AppLocalizations {
       other: '$minutes minuti',
       one: '1 minuto',
     );
-    return '$_temp0 Paese, regione, località e specchio d\'acqua verranno sostituiti con il nome in $language dove differiscono, compresi i valori inseriti da te. Richiede circa $_temp1.';
+    return '$_temp0 Paese, regione, località e specchio d\'acqua verranno sostituiti dove differiscono dalla lingua dei nomi dei luoghi ($language), compresi i valori inseriti da te. Richiede circa $_temp1.';
   }
 
   @override

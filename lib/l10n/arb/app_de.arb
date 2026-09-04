@@ -25,7 +25,7 @@
   "diveSites_backfill_offline": "Die Ortssuche ist nicht verfügbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
   "diveSites_list_menu_refreshPlaceNames": "Ortsnamen aktualisieren",
   "diveSites_refresh_confirm_title": "Ortsnamen aktualisieren?",
-  "diveSites_refresh_confirm_body": "{count, plural, =1{1 Tauchplatz mit Koordinaten wird erneut abgefragt.} other{{count} Tauchplätze mit Koordinaten werden erneut abgefragt.}} Land, Region, Ort und Gewässer werden überall dort durch den Namen auf {language} ersetzt, wo sie abweichen, auch selbst eingegebene Werte. Das dauert etwa {minutes, plural, =1{1 Minute} other{{minutes} Minuten}}.",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 Tauchplatz mit Koordinaten wird erneut abgefragt.} other{{count} Tauchplätze mit Koordinaten werden erneut abgefragt.}} Land, Region, Ort und Gewässer werden überall dort ersetzt, wo sie von der Sprache der Ortsnamen ({language}) abweichen, auch selbst eingegebene Werte. Das dauert etwa {minutes, plural, =1{1 Minute} other{{minutes} Minuten}}.",
   "@diveSites_refresh_confirm_body": {
     "placeholders": {
       "count": {

@@ -25,7 +25,7 @@
   "diveSites_backfill_offline": "Locatie opzoeken is niet beschikbaar. Controleer je verbinding en probeer het opnieuw.",
   "diveSites_list_menu_refreshPlaceNames": "Plaatsnamen bijwerken",
   "diveSites_refresh_confirm_title": "Plaatsnamen bijwerken?",
-  "diveSites_refresh_confirm_body": "{count, plural, =1{1 duikstek met coördinaten wordt opnieuw opgezocht.} other{{count} duikstekken met coördinaten worden opnieuw opgezocht.}} Land, regio, plaats en water worden vervangen door de naam in het {language} waar ze afwijken, ook waarden die je zelf hebt ingevuld. Dit duurt ongeveer {minutes, plural, =1{1 minuut} other{{minutes} minuten}}.",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 duikstek met coördinaten wordt opnieuw opgezocht.} other{{count} duikstekken met coördinaten worden opnieuw opgezocht.}} Land, regio, plaats en water worden vervangen waar ze afwijken van de taal van plaatsnamen ({language}), ook waarden die je zelf hebt ingevuld. Dit duurt ongeveer {minutes, plural, =1{1 minuut} other{{minutes} minuten}}.",
   "@diveSites_refresh_confirm_body": {
     "placeholders": {
       "count": {

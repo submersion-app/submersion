@@ -25,7 +25,7 @@
   "diveSites_backfill_offline": "La recherche de lieu est indisponible. Vérifiez votre connexion et réessayez.",
   "diveSites_list_menu_refreshPlaceNames": "Actualiser les noms de lieux",
   "diveSites_refresh_confirm_title": "Actualiser les noms de lieux ?",
-  "diveSites_refresh_confirm_body": "{count, plural, =1{1 site avec coordonnées sera consulté à nouveau.} other{{count} sites avec coordonnées seront consultés à nouveau.}} Le pays, la région, la ville et l'étendue d'eau seront remplacés par le nom en {language} là où ils diffèrent, y compris les valeurs que vous avez saisies. Cela prend environ {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 site avec coordonnées sera consulté à nouveau.} other{{count} sites avec coordonnées seront consultés à nouveau.}} Le pays, la région, la ville et l'étendue d'eau seront remplacés là où ils diffèrent de la langue des noms de lieux ({language}), y compris les valeurs que vous avez saisies. Cela prend environ {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",
   "@diveSites_refresh_confirm_body": {
     "placeholders": {
       "count": {

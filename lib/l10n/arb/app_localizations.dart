@@ -15122,7 +15122,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveSites_refresh_confirm_body.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced with the {language} name wherever they differ, including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.'**
+  /// **'{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced wherever they differ from the place name language ({language}), including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.'**
   String diveSites_refresh_confirm_body(
     int count,
     String language,

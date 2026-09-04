@@ -8995,7 +8995,7 @@ class AppLocalizationsNl extends AppLocalizations {
       other: '$minutes minuten',
       one: '1 minuut',
     );
-    return '$_temp0 Land, regio, plaats en water worden vervangen door de naam in het $language waar ze afwijken, ook waarden die je zelf hebt ingevuld. Dit duurt ongeveer $_temp1.';
+    return '$_temp0 Land, regio, plaats en water worden vervangen waar ze afwijken van de taal van plaatsnamen ($language), ook waarden die je zelf hebt ingevuld. Dit duurt ongeveer $_temp1.';
   }
 
   @override

@@ -9074,7 +9074,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other: '$minutes minutos',
       one: '1 minuto',
     );
-    return '$_temp0 O país, a região, a localidade e a massa de água serão substituídos pelo nome em $language sempre que diferirem, incluindo os valores que escreveu. Demora cerca de $_temp1.';
+    return '$_temp0 O país, a região, a localidade e a massa de água serão substituídos sempre que diferirem do idioma dos nomes de lugares ($language), incluindo os valores que escreveu. Demora cerca de $_temp1.';
   }
 
   @override

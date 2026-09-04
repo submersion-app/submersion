@@ -25,7 +25,7 @@
   "diveSites_backfill_offline": "A helylekérdezés nem érhető el. Ellenőrizze a kapcsolatot, és próbálja újra.",
   "diveSites_list_menu_refreshPlaceNames": "Helynevek frissítése",
   "diveSites_refresh_confirm_title": "Frissíti a helyneveket?",
-  "diveSites_refresh_confirm_body": "{count, plural, =1{1 koordinátákkal rendelkező merülőhely lekérdezése történik újra.} other{{count} koordinátákkal rendelkező merülőhely lekérdezése történik újra.}} Az ország, a régió, a település és a víz neve mindenütt a(z) {language} nyelvű névre cserélődik, ahol eltér, a kézzel beírt értékek is. Ez körülbelül {minutes, plural, =1{1 percet} other{{minutes} percet}} vesz igénybe.",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 koordinátákkal rendelkező merülőhely lekérdezése történik újra.} other{{count} koordinátákkal rendelkező merülőhely lekérdezése történik újra.}} Az ország, a régió, a település és a víz neve mindenütt lecserélődik, ahol eltér a helynevek nyelvétől ({language}), a kézzel beírt értékek is. Ez körülbelül {minutes, plural, =1{1 percet} other{{minutes} percet}} vesz igénybe.",
   "@diveSites_refresh_confirm_body": {
     "placeholders": {
       "count": {

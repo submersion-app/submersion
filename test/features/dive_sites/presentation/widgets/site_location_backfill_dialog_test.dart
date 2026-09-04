@@ -278,7 +278,7 @@ void main() {
 
     expect(find.text('Refresh place names?'), findsOneWidget);
     expect(
-      find.textContaining('replaced with the Deutsch name'),
+      find.textContaining('differ from the place name language (Deutsch)'),
       findsOneWidget,
     );
 

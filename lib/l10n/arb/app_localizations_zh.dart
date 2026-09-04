@@ -8625,7 +8625,7 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '$minutes 分钟',
       one: '1 分钟',
     );
-    return '$_temp0国家、地区、城镇和水域在不一致时会替换为$language名称，包括你自己填写的内容。大约需要 $_temp1。';
+    return '$_temp0国家、地区、城镇和水域凡与地名语言（$language）不一致的都会被替换，包括你自己填写的内容。大约需要 $_temp1。';
   }
 
   @override

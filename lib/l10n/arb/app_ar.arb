@@ -25,7 +25,7 @@
   "diveSites_backfill_offline": "البحث عن الموقع غير متاح. تحقق من الاتصال وحاول مرة أخرى.",
   "diveSites_list_menu_refreshPlaceNames": "تحديث أسماء الأماكن",
   "diveSites_refresh_confirm_title": "تحديث أسماء الأماكن؟",
-  "diveSites_refresh_confirm_body": "{count, plural, =1{سيتم البحث من جديد عن موقع غوص واحد له إحداثيات.} other{سيتم البحث من جديد عن {count} مواقع غوص لها إحداثيات.}} وستُستبدل الدولة والمنطقة والمدينة والمسطح المائي بالاسم بلغة {language} حيثما اختلفت، بما في ذلك القيم التي أدخلتها بنفسك. يستغرق ذلك نحو {minutes, plural, =1{دقيقة واحدة} other{{minutes} دقائق}}.",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{سيتم البحث من جديد عن موقع غوص واحد له إحداثيات.} other{سيتم البحث من جديد عن {count} مواقع غوص لها إحداثيات.}} وستُستبدل الدولة والمنطقة والمدينة والمسطح المائي حيثما اختلفت عن لغة أسماء الأماكن ({language})، بما في ذلك القيم التي أدخلتها بنفسك. يستغرق ذلك نحو {minutes, plural, =1{دقيقة واحدة} other{{minutes} دقائق}}.",
   "@diveSites_refresh_confirm_body": {
     "placeholders": {
       "count": {
