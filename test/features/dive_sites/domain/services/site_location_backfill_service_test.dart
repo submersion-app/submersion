@@ -172,11 +172,9 @@ void main() {
     final location = _MapLocationService({'47.2,8.6': weggis});
     final full = (await sites.getSiteById('full'))!;
 
-    final summary = await service(location).run(
-      targets: [full],
-      onProgress: (_, _) {},
-      isCancelled: () => false,
-    );
+    final summary = await service(
+      location,
+    ).run(targets: [full], onProgress: (_, _) {}, isCancelled: () => false);
 
     expect(summary.total, 1);
     expect(
