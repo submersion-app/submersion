@@ -222,6 +222,20 @@ void main() {
         MacDiveValueMapper.equipmentType('Thermal socks'),
         EquipmentType.other,
       );
+      // Same for the plural noun: it names the garment on its own, but an
+      // accessory word next to it is the more specific signal.
+      expect(
+        MacDiveValueMapper.equipmentType('Thermals gloves'),
+        EquipmentType.gloves,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Thermals hood'),
+        EquipmentType.hood,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Fourth Element Thermals'),
+        EquipmentType.baselayer,
+      );
     });
 
     test('an explicit suit word beats the fabric guess', () {

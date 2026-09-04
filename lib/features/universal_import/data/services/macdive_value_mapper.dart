@@ -90,7 +90,7 @@ class MacDiveValueMapper {
     // only on words that name the garment outright: a "thermal undersuit"
     // must not be read as a wetsuit, and "dry undersuit" -- a real product
     // name -- must not be read as a drysuit. Fabric words are a weaker
-    // signal and are handled below the suits instead.
+    // signal and are handled further down, below the accessories.
     if (s.contains('undersuit') ||
         s.contains('under suit') ||
         s.contains('undergarment') ||
@@ -99,8 +99,7 @@ class MacDiveValueMapper {
     }
     if (s.contains('baselayer') ||
         s.contains('base layer') ||
-        s.contains('base-layer') ||
-        s.contains('thermals')) {
+        s.contains('base-layer')) {
       return EquipmentType.baselayer;
     }
     if (s.contains('drysuit') || s.contains('dry suit')) {
@@ -108,20 +107,6 @@ class MacDiveValueMapper {
     }
     if (s.contains('wetsuit') || s.contains('wet suit')) {
       return EquipmentType.wetsuit;
-    }
-    // "Thermal" and "wicking" name a fabric, not a garment: they are printed
-    // on hoods, gloves and boots as readily as on tops, so a bare fabric word
-    // would claim "Thermal Gloves" long before the accessory checks below.
-    // The word only counts when the label also says which garment it is, and
-    // this guess sits below the suits so any explicit suit word still wins.
-    if ((s.contains('thermal') || s.contains('wicking')) &&
-        (s.contains('top') ||
-            s.contains('layer') ||
-            s.contains('shirt') ||
-            s.contains('underwear') ||
-            s.contains('leggings') ||
-            s.contains('vest'))) {
-      return EquipmentType.baselayer;
     }
     if (s.contains('rebreather') || s.contains('ccr') || s.contains('scr')) {
       return EquipmentType.rebreather;
@@ -163,6 +148,23 @@ class MacDiveValueMapper {
     if (s.contains('hood')) return EquipmentType.hood;
     if (s.contains('glove') || s.contains('mitt')) return EquipmentType.gloves;
     if (s.contains('boot') || s.contains('bootie')) return EquipmentType.boots;
+    // The thermal words land here, below every garment they could be printed
+    // on. "Thermal" and "wicking" name a fabric rather than a garment, and
+    // even the plural noun "thermals" -- which does name the garment on its
+    // own -- loses to an accessory word sitting next to it, so "Thermals
+    // gloves" is gloves while "Fourth Element Thermals" is a base layer.
+    // Explicit "base layer" and the suits are matched far above, so nothing
+    // here can steal a label that already named itself.
+    if (s.contains('thermals')) return EquipmentType.baselayer;
+    if ((s.contains('thermal') || s.contains('wicking')) &&
+        (s.contains('top') ||
+            s.contains('layer') ||
+            s.contains('shirt') ||
+            s.contains('underwear') ||
+            s.contains('leggings') ||
+            s.contains('vest'))) {
+      return EquipmentType.baselayer;
+    }
     if (s.contains('light') || s.contains('torch')) return EquipmentType.light;
     if (s.contains('camera') ||
         s.contains('housing') ||
