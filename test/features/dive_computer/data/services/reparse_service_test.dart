@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -3898,5 +3901,35 @@ void main() {
         expect(result.profilesPreserved, 2);
       },
     );
+  });
+
+  test('re-parse receives the exact bytes that were downloaded', () async {
+    // The path that matters most: these bytes go straight to
+    // libdivecomputer, and a decode this misses would hand it a zlib stream.
+    final raw = Uint8List.fromList(
+      File(
+        'packages/libdivecomputer_plugin/android/src/androidTest/assets/'
+        'shearwater_teric_dive.bin',
+      ).readAsBytesSync(),
+    );
+    await insertDive('dive-raw');
+    final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion(
+            id: const Value('src-raw'),
+            diveId: const Value('dive-raw'),
+            isPrimary: const Value(true),
+            rawData: Value(raw),
+            importedAt: Value(now),
+            createdAt: Value(now),
+          ),
+        );
+
+    final sources = await service.getSourcesForDiveReparse('dive-raw');
+
+    expect(sources, hasLength(1));
+    expect(sources.single.rawData, equals(raw));
   });
 }

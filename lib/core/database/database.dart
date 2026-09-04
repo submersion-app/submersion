@@ -9,6 +9,7 @@ import 'package:submersion/core/database/imported_computer_backfill.dart';
 import 'package:submersion/core/database/performance_indexes.dart';
 import 'package:submersion/core/database/profile_series_pack_coverage.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
+import 'package:submersion/core/database/raw_dive_data_codec.dart';
 import 'package:submersion/core/database/tag_uniqueness.dart';
 import 'package:submersion/core/constants/enums.dart';
 
@@ -2607,7 +2608,13 @@ class DiveDataSources extends Table {
   IntColumn get gradientFactorHigh => integer().nullable()();
   DateTimeColumn get importedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
-  BlobColumn get rawData => blob().nullable()();
+
+  /// The raw bytes libdivecomputer returned for this download, zlib-compressed
+  /// at rest behind a self-describing header (issue #227). The converter runs
+  /// on every read and write, so callers see the original bytes and the sync
+  /// layer keeps exchanging them uncompressed. See [RawDiveDataConverter].
+  BlobColumn get rawData =>
+      blob().map(const RawDiveDataConverter()).nullable()();
   BlobColumn get rawFingerprint => blob().nullable()();
   TextColumn get sourceUuid => text().nullable()();
   TextColumn get descriptorVendor => text().nullable()();

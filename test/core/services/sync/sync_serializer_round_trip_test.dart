@@ -1,5 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -61,5 +67,50 @@ void main() {
         );
       },
     );
+
+    test('exports raw dive data uncompressed (#227 wire contract)', () async {
+      // Compression is at-rest only. Sync payloads are gzipped whole before
+      // encryption, so compressing this column would buy nothing on the wire,
+      // and shipping compressed bytes would need the schema floor raised,
+      // which stops older peers syncing at all. If this test ever fails, the
+      // fix is to put the encoding back behind the column converter, NOT to
+      // update the expectation.
+      final raw = Uint8List.fromList(
+        File(
+          'packages/libdivecomputer_plugin/android/src/androidTest/assets/'
+          'shearwater_teric_dive.bin',
+        ).readAsBytesSync(),
+      );
+      final dive = createTestDiveWithBottomTime(id: 'dive-wire', diveNumber: 9);
+      await DiveRepository().createDive(dive);
+
+      final db = DatabaseService.instance.database;
+      final now = DateTime.fromMillisecondsSinceEpoch(0);
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: const Value('src-wire'),
+              diveId: const Value('dive-wire'),
+              isPrimary: const Value(true),
+              rawData: Value(raw),
+              importedAt: Value(now),
+              createdAt: Value(now),
+            ),
+          );
+
+      final serializer = SyncDataSerializer();
+      final repo = SyncRepository();
+      final payload = await serializer.exportData(
+        deviceId: await repo.getDeviceId(),
+        lastSyncTimestamp: null,
+        deletions: await repo.getAllDeletions(),
+      );
+      final row = payload.data.diveDataSources.singleWhere(
+        (r) => r['id'] == 'src-wire',
+      );
+
+      expect(base64Decode(row['rawData'] as String), equals(raw));
+    });
   });
 }
