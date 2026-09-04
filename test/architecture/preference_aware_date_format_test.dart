@@ -71,7 +71,9 @@ void main() {
   // honour any preference at all. Slash-separated only, so a dash-joined map
   // key such as '$y-$m-$d' stays out of it: that is a machine string, and an
   // ISO ordering is unambiguous anyway.
-  final handRolled = RegExp(r'\.month\}/\$\{[A-Za-z_.!?]*\.day\}');
+  final handRolled = RegExp(
+    r'\.month\}/[^A-Za-z]{0,6}\$\{[A-Za-z_.!?]*\.day\}',
+  );
 
   // MaterialLocalizations formats from the resolved UI locale, which is the
   // same defect as DateFormat.yMMMd() wearing different clothes: it was how
@@ -84,7 +86,7 @@ void main() {
   // receiver on the same line.
   final materialDate = RegExp(r'\.format(Medium|Full|Compact|Short)Date\b');
   final materialMonthYear = RegExp(
-    r'MaterialLocalizations[\s\S]*formatMonthYear\b',
+    r'MaterialLocalizations[^;]{0,200}formatMonthYear\b',
   );
 
   // TimeOfDay.format reads MediaQuery's alwaysUse24HourFormat, the platform
@@ -92,6 +94,19 @@ void main() {
   final timeOfDay = RegExp(
     r'\bTimeOfDay[^;\n]*\.format\(context\)|\.formatTimeOfDay\b',
   );
+
+  /// Joins [lines] into one string, trimmed and space-separated, appending
+  /// each line's start offset to [lineStarts] so a match can be mapped back to
+  /// the line its call began on.
+  String flatten(List<String> lines, [List<int>? lineStarts]) {
+    final flat = StringBuffer();
+    for (final line in lines) {
+      lineStarts?.add(flat.length);
+      flat.write(line.trim());
+      flat.write(' ');
+    }
+    return flat.toString();
+  }
 
   test('presentation code formats dates from the diver preference', () {
     final violations = <String>[];
@@ -107,25 +122,54 @@ void main() {
         final path = entity.path.replaceAll('\\', '/');
         if (!isScanned(path) || allowed.containsKey(path)) continue;
 
+        // Scan the file as one flattened string, not line by line. dart
+        // format splits a chain the moment it runs long, and
+        // `MaterialLocalizations.of(\n  context,\n).formatShortDate(x)` is the
+        // shape it produces for exactly the calls this scan hunts. A per-line
+        // test sees three fragments and matches none of them.
+        //
+        // Each line is trimmed and joined with a single space, so the patterns
+        // below tolerate the whitespace the join introduces. `lineStarts`
+        // maps a match offset back to the line the call began on.
         final lines = entity.readAsLinesSync();
-        for (var i = 0; i < lines.length; i++) {
-          final line = lines[i];
-          for (final match in namedConstructor.allMatches(line)) {
-            final name = match.group(1)!;
-            if (isAmbiguous(name)) {
-              violations.add('$path:${i + 1}  DateFormat.$name()');
+        final lineStarts = <int>[];
+        final text = flatten(lines, lineStarts);
+
+        int lineOf(int offset) {
+          var low = 0;
+          var high = lineStarts.length - 1;
+          while (low < high) {
+            final mid = (low + high + 1) ~/ 2;
+            if (lineStarts[mid] <= offset) {
+              low = mid;
+            } else {
+              high = mid - 1;
             }
           }
-          if (handRolled.hasMatch(line)) {
-            violations.add('$path:${i + 1}  hand-rolled M/D/Y interpolation');
-          }
-          if (materialDate.hasMatch(line) || materialMonthYear.hasMatch(line)) {
-            violations.add('$path:${i + 1}  MaterialLocalizations date');
-          }
-          if (timeOfDay.hasMatch(line)) {
-            violations.add('$path:${i + 1}  TimeOfDay.format(context)');
+          return low + 1;
+        }
+
+        void report(
+          RegExp pattern,
+          String what, {
+          bool Function(RegExpMatch)? when,
+        }) {
+          for (final match in pattern.allMatches(text)) {
+            if (when != null && !when(match)) continue;
+            violations.add('$path:${lineOf(match.start)}  $what');
           }
         }
+
+        for (final match in namedConstructor.allMatches(text)) {
+          final name = match.group(1)!;
+          if (isAmbiguous(name)) {
+            violations.add('$path:${lineOf(match.start)}  DateFormat.$name()');
+          }
+        }
+        report(handRolled, 'hand-rolled M/D/Y interpolation');
+        report(materialDate, 'MaterialLocalizations date');
+        report(materialMonthYear, 'MaterialLocalizations date');
+        report(timeOfDay, 'TimeOfDay.format(context)');
       }
     }
 
@@ -138,6 +182,76 @@ void main() {
           'UnitFormatter(ref.watch(settingsProvider)). If a fixed format is '
           'genuinely required, add the file to the allowlist above with its '
           'reason.\n${violations.join('\n')}',
+    );
+  });
+
+  // The scan is only worth trusting if it survives dart format. Each sample
+  // below is the shape the formatter produces once the call runs long, which
+  // is precisely when a line-by-line scan stops seeing it.
+  test('the patterns survive a call split across lines', () {
+    expect(
+      materialDate.hasMatch(
+        flatten([
+          'final formatted = MaterialLocalizations.of(',
+          '  context,',
+          ').formatShortDate(dueDate);',
+        ]),
+      ),
+      isTrue,
+    );
+
+    expect(
+      materialMonthYear.hasMatch(
+        flatten([
+          'final label = MaterialLocalizations.of(',
+          '  context,',
+          ').formatMonthYear(when);',
+        ]),
+      ),
+      isTrue,
+    );
+
+    expect(
+      timeOfDay.hasMatch(
+        flatten([
+          'final t = TimeOfDay.fromDateTime(',
+          '  value,',
+          ').format(context);',
+        ]),
+      ),
+      isTrue,
+    );
+
+    expect(
+      handRolled.hasMatch(
+        flatten(["final s = '\${d.month}/'", "    '\${d.day}/\${d.year}';"]),
+      ),
+      isTrue,
+    );
+
+    expect(
+      namedConstructor
+          .allMatches(flatten(['DateFormat', '  .yMMMd()', '  .format(x);']))
+          .isEmpty,
+      isTrue,
+      reason:
+          'a receiver split before the dot is not a shape dart format emits, '
+          'and matching it would need a parser rather than a regex',
+    );
+
+    // The two shapes that must stay quiet: an ISO map key, and
+    // UnitFormatter's own formatMonthYear.
+    expect(
+      handRolled.hasMatch(
+        flatten(["return '\${d.year}-\${d.month}-\${d.day}';"]),
+      ),
+      isFalse,
+    );
+    expect(
+      materialMonthYear.hasMatch(
+        flatten(['units.formatMonthYear(header.monthStart),']),
+      ),
+      isFalse,
     );
   });
 }
