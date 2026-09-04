@@ -15,7 +15,7 @@ import 'package:submersion/core/icons/submersion_icons.dart';
 ///
 /// Issue #1189 reported that the glyphs "don't really fit the equipment": most
 /// types pointed at a metaphor rather than the object, and the two exposure
-/// suits shared one hanger. Ten shapes that no icon font has are now drawn in
+/// suits shared one hanger. Eleven shapes that no icon font has are now drawn in
 /// [SubmersionIcons]; five more moved to dive glyphs that were already present
 /// in the bundled Material Design Icons font but never exposed.
 IconData equipmentTypeIcon(EquipmentType type) {
@@ -30,10 +30,18 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return SubmersionIcons.wetsuit;
     case EquipmentType.drysuit:
       return SubmersionIcons.drysuit;
+    // The same silhouette again, banded: a thermal layer is a one-piece suit
+    // too, and the bands are what tell it apart in a list of suits.
+    case EquipmentType.undergarment:
+      return SubmersionIcons.undergarment;
+    case EquipmentType.rashGuard:
+      return MdiIcons.tshirtCrew;
     case EquipmentType.mask:
       return MdiIcons.divingScubaMask;
     case EquipmentType.fins:
       return MdiIcons.divingFlippers;
+    case EquipmentType.snorkel:
+      return MdiIcons.divingSnorkel;
     case EquipmentType.boots:
       return SubmersionIcons.boots;
     case EquipmentType.gloves:
@@ -50,12 +58,22 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return MdiIcons.weight;
     case EquipmentType.computer:
       return Icons.watch;
+    // A needle gauge covers the whole analog family the type stands for: SPG,
+    // depth gauge, bottom timer, console.
+    case EquipmentType.instrument:
+      return MdiIcons.gauge;
+    case EquipmentType.compass:
+      return MdiIcons.compass;
     case EquipmentType.light:
       return Icons.flashlight_on;
     case EquipmentType.camera:
       return Icons.camera_alt;
     case EquipmentType.knife:
       return MdiIcons.knifeMilitary;
+    // Crossed screwdriver and wrench: a save-a-dive kit, not one wrench, which
+    // is what `other` used to show.
+    case EquipmentType.tool:
+      return MdiIcons.tools;
     // A diver-down flag rather than a literal sausage buoy: it is the closest
     // dive-domain shape in the bundled font, and it beats a generic pennant.
     case EquipmentType.smb:
@@ -64,7 +82,9 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return SubmersionIcons.reel;
     case EquipmentType.dpv:
       return SubmersionIcons.dpv;
+    // A wrench until #1518, when Tool became a type of its own and the two
+    // would have read as the same idea. The catch-all now says catch-all.
     case EquipmentType.other:
-      return Icons.build;
+      return Icons.category;
   }
 }

@@ -91,6 +91,18 @@ class MacDiveValueMapper {
     if (s.contains('wetsuit') || s.contains('wet suit')) {
       return EquipmentType.wetsuit;
     }
+    // Both are worn under the suits above, and are only reached once those
+    // failed on their own words. Deliberately narrow: a bare "thermal" is
+    // how plenty of divers label a wetsuit, so matching it here would move
+    // suits into the liner bucket rather than leaving them as they were.
+    if (s.contains('rash') || s.contains('lycra') || s.contains('skin suit')) {
+      return EquipmentType.rashGuard;
+    }
+    if (s.contains('undergarment') ||
+        s.contains('undersuit') ||
+        s.contains('under suit')) {
+      return EquipmentType.undergarment;
+    }
     if (s.contains('rebreather') || s.contains('ccr') || s.contains('scr')) {
       return EquipmentType.rebreather;
     }
@@ -106,6 +118,18 @@ class MacDiveValueMapper {
     }
     if (s.contains('computer') || s.contains('watch')) {
       return EquipmentType.computer;
+    }
+    // After the computer, so a "console computer" stays a computer, and
+    // before the instrument family, because a compass console is carried --
+    // and thought of -- as a compass.
+    if (s.contains('compass')) return EquipmentType.compass;
+    if (s.contains('spg') ||
+        s.contains('gauge') ||
+        s.contains('console') ||
+        s.contains('bottom timer') ||
+        s.contains('analyser') ||
+        s.contains('analyzer')) {
+      return EquipmentType.instrument;
     }
     if (s.contains('octo') ||
         s.contains('regulator') ||
@@ -128,6 +152,7 @@ class MacDiveValueMapper {
     }
     if (s.contains('fin')) return EquipmentType.fins;
     if (s.contains('mask') || s.contains('goggle')) return EquipmentType.mask;
+    if (s.contains('snorkel')) return EquipmentType.snorkel;
     if (s.contains('hood')) return EquipmentType.hood;
     if (s.contains('glove') || s.contains('mitt')) return EquipmentType.gloves;
     if (s.contains('boot') || s.contains('bootie')) return EquipmentType.boots;
@@ -147,6 +172,15 @@ class MacDiveValueMapper {
     if (s.contains('reel') || s.contains('spool')) return EquipmentType.reel;
     if (s.contains('knife') || s.contains('shear') || s.contains('cutter')) {
       return EquipmentType.knife;
+    }
+    if (s.contains('tool') ||
+        s.contains('wrench') ||
+        s.contains('spanner') ||
+        s.contains('o-ring') ||
+        s.contains('o ring') ||
+        s.contains('save a dive') ||
+        s.contains('save-a-dive')) {
+      return EquipmentType.tool;
     }
     return EquipmentType.other;
   }

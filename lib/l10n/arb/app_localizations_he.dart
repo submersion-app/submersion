@@ -24341,6 +24341,51 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_speed_mps => 'מהירות מרבית';
 
   @override
+  String get attrLabel_undergarment_style => 'גזרה';
+
+  @override
+  String get attrLabel_insulation_material => 'בידוד';
+
+  @override
+  String get attrLabel_fill_weight_gsm => 'משקל מילוי (g/m²)';
+
+  @override
+  String get attrLabel_heated => 'מחומם';
+
+  @override
+  String get attrLabel_sleeve_length => 'שרוולים';
+
+  @override
+  String get attrLabel_upf_rating => 'דירוג UPF';
+
+  @override
+  String get attrLabel_thermal_lined => 'בטנה תרמית';
+
+  @override
+  String get attrLabel_snorkel_type => 'סוג';
+
+  @override
+  String get attrLabel_purge_valve => 'שסתום ניקוז';
+
+  @override
+  String get attrLabel_instrument_type => 'מכשיר';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'טווח המד';
+
+  @override
+  String get attrLabel_compass_type => 'סוג';
+
+  @override
+  String get attrLabel_balance_zone => 'אזור איזון';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'סבילות הטיה (°)';
+
+  @override
+  String get attrLabel_tool_type => 'סוג הכלי';
+
+  @override
   String get attrChoice_unit_type_eccr => 'CCR אלקטרוני (eCCR)';
 
   @override
@@ -24573,6 +24618,102 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'עם מברשות';
+
+  @override
+  String get attrChoice_undergarment_style_one_piece => 'חלק אחד';
+
+  @override
+  String get attrChoice_undergarment_style_two_piece => 'שני חלקים';
+
+  @override
+  String get attrChoice_undergarment_style_vest => 'אפוד';
+
+  @override
+  String get attrChoice_undergarment_style_base_layer => 'שכבת בסיס';
+
+  @override
+  String get attrChoice_insulation_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_insulation_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_insulation_material_fleece => 'פליס';
+
+  @override
+  String get attrChoice_insulation_material_merino_wool => 'צמר מרינו';
+
+  @override
+  String get attrChoice_insulation_material_down => 'פוך';
+
+  @override
+  String get attrChoice_sleeve_length_short => 'קצרים';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'ארוכים';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'ללא שרוולים';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'קלאסי';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'חצי יבש';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'יבש';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'מתקפל';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'מד לחץ (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'מד עומק';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'שעון תחתית';
+
+  @override
+  String get attrChoice_instrument_type_console => 'קונסולה';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'מנתח גזים';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'מדחום';
+
+  @override
+  String get attrChoice_compass_type_analog => 'אנלוגי';
+
+  @override
+  String get attrChoice_compass_type_digital => 'דיגיטלי';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'חצי הכדור הצפוני';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'חצי הכדור הדרומי';
+
+  @override
+  String get attrChoice_balance_zone_global => 'גלובלי';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'כלי יד';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'ערכת אטמים';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'ערכת חילוץ צלילה';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'מפתח מומנט';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'ערכת חלפים';
 
   @override
   String get equipment_edit_customFieldsTitle => 'שדות מותאמים אישית';

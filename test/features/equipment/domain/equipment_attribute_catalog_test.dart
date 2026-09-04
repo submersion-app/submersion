@@ -223,6 +223,177 @@ void main() {
     });
   });
 
+  group('the #1518 equipment types', () {
+    // Six types added for large/team/family inventories. Each one is asserted
+    // as an exact ordered key list rather than a `containsAll`, because the
+    // order is what the edit form renders and a silently dropped field would
+    // otherwise pass.
+    List<String> keysFor(EquipmentType t) =>
+        EquipmentAttributeCatalog.attributesFor(t).map((d) => d.key).toList();
+
+    test('all six exist with the names they are persisted under', () {
+      // `equipment.type` is a text column holding `EquipmentType.name`, so
+      // these strings are a storage contract: renaming one orphans every row
+      // written before the rename.
+      expect(EquipmentType.undergarment.name, 'undergarment');
+      expect(EquipmentType.rashGuard.name, 'rashGuard');
+      expect(EquipmentType.snorkel.name, 'snorkel');
+      expect(EquipmentType.tool.name, 'tool');
+      expect(EquipmentType.instrument.name, 'instrument');
+      expect(EquipmentType.compass.name, 'compass');
+    });
+
+    test('an undergarment carries its loft and cut', () {
+      expect(keysFor(EquipmentType.undergarment), [
+        'size',
+        'undergarment_style',
+        'insulation_material',
+        'fill_weight_gsm',
+        'heated',
+        'buoyancy_kg',
+        'dry_weight_kg',
+      ]);
+      // Grams per square metre are the same figure in every market.
+      expect(
+        EquipmentAttributeCatalog.defFor('fill_weight_gsm')!.dimension,
+        AttributeDimension.none,
+      );
+      expect(
+        EquipmentAttributeCatalog.defFor('heated')!.kind,
+        AttributeKind.flag,
+      );
+    });
+
+    test('a rash guard carries its sun and thermal specs', () {
+      expect(keysFor(EquipmentType.rashGuard), [
+        'size',
+        'sleeve_length',
+        'upf_rating',
+        'thermal_lined',
+        'buoyancy_kg',
+        'dry_weight_kg',
+      ]);
+      // A UPF number is a ratio, not a measurement, so it converts nowhere.
+      expect(
+        EquipmentAttributeCatalog.defFor('upf_rating')!.dimension,
+        AttributeDimension.none,
+      );
+    });
+
+    test('a snorkel carries the two things divers pick between', () {
+      expect(keysFor(EquipmentType.snorkel), [
+        'snorkel_type',
+        'purge_valve',
+        'buoyancy_kg',
+        'dry_weight_kg',
+      ]);
+      expect(EquipmentAttributeCatalog.defFor('snorkel_type')!.choiceKeys, [
+        'classic',
+        'semi_dry',
+        'dry',
+        'foldable',
+      ]);
+    });
+
+    test('a tool carries its kind and a free-text size', () {
+      expect(keysFor(EquipmentType.tool), [
+        'tool_type',
+        'size',
+        'buoyancy_kg',
+        'dry_weight_kg',
+      ]);
+      // A spanner width or a hex key has no closed list to pick from.
+      expect(
+        EquipmentAttributeCatalog.defFor('size')!.kind,
+        AttributeKind.text,
+      );
+    });
+
+    test('an instrument carries a gauge range distinct from a tank one', () {
+      expect(keysFor(EquipmentType.instrument), [
+        'instrument_type',
+        'gauge_max_pressure_bar',
+        'depth_rating_m',
+        'mount',
+        'buoyancy_kg',
+        'dry_weight_kg',
+      ]);
+      // Full scale of the dial, not a cylinder's working pressure: a 300 bar
+      // gauge on a 232 bar tank is a different object, so the keys stay apart.
+      expect(
+        EquipmentAttributeCatalog.defFor('gauge_max_pressure_bar')!.dimension,
+        AttributeDimension.pressureBar,
+      );
+      expect(
+        EquipmentAttributeCatalog.defFor('working_pressure_bar')!.key,
+        isNot('gauge_max_pressure_bar'),
+      );
+    });
+
+    test('a compass carries the specs that decide where it works', () {
+      expect(keysFor(EquipmentType.compass), [
+        'compass_type',
+        'balance_zone',
+        'tilt_tolerance_deg',
+        'mount',
+        'buoyancy_kg',
+        'dry_weight_kg',
+      ]);
+      expect(EquipmentAttributeCatalog.defFor('balance_zone')!.choiceKeys, [
+        'northern',
+        'southern',
+        'global',
+      ]);
+      // Degrees convert nowhere.
+      expect(
+        EquipmentAttributeCatalog.defFor('tilt_tolerance_deg')!.dimension,
+        AttributeDimension.none,
+      );
+    });
+
+    test('the instrument and compass reuse the computer mount definition', () {
+      // One key, one set of translations. Two twins carrying the same English
+      // "Mount" would drift into different words per locale.
+      final viaComputer = EquipmentAttributeCatalog.attributesFor(
+        EquipmentType.computer,
+      ).firstWhere((d) => d.key == 'mount');
+      for (final type in [EquipmentType.instrument, EquipmentType.compass]) {
+        final def = EquipmentAttributeCatalog.attributesFor(
+          type,
+        ).firstWhere((d) => d.key == 'mount');
+        expect(def.choiceKeys, viaComputer.choiceKeys, reason: type.name);
+      }
+    });
+
+    test('every new attribute and option resolves to a localized label', () {
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      const types = [
+        EquipmentType.undergarment,
+        EquipmentType.rashGuard,
+        EquipmentType.snorkel,
+        EquipmentType.tool,
+        EquipmentType.instrument,
+        EquipmentType.compass,
+      ];
+      for (final type in types) {
+        for (final def in EquipmentAttributeCatalog.attributesFor(type)) {
+          expect(
+            attributeLabel(l10n, def.key),
+            isNot(def.key),
+            reason: 'missing attrLabel_${def.key}',
+          );
+          for (final option in def.choiceKeys) {
+            expect(
+              attributeChoiceLabel(l10n, def.key, option),
+              isNot(option),
+              reason: 'missing attrChoice_${def.key}_$option',
+            );
+          }
+        }
+      }
+    });
+  });
+
   test('rebreather is a distinct equipment type with a stable name', () {
     expect(EquipmentType.values, contains(EquipmentType.rebreather));
     expect(EquipmentType.rebreather.name, 'rebreather');

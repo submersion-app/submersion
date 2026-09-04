@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/uddf/dialects/macdive_dialect.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
@@ -758,6 +759,39 @@ void main() {
       expect(bcd['name'], 'Hollis SS BP/W');
       expect(bcd['manufacturer'], 'Hollis');
       expect(bcd['model'], 'SS BP/W');
+    });
+
+    test('a UDDF <compass> imports as a compass, not as Other', () async {
+      // UDDF 3.2 has had a <compass> element all along; until #1518 there was
+      // no equipment type to land it on, so every imported compass arrived as
+      // an untyped accessory.
+      const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <diver>
+    <owner id="owner-1">
+      <personal><firstname>M</firstname></personal>
+      <equipment>
+        <compass id="gear-COMPASS-UUID">
+          <name>SK-8</name>
+          <manufacturer id="man-suunto"><name>Suunto</name></manufacturer>
+        </compass>
+      </equipment>
+    </owner>
+  </diver>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-1">
+      <informationbeforedive><datetime>2024-06-01T09:00:00</datetime></informationbeforedive>
+      <informationafterdive><greatestdepth>12</greatestdepth><diveduration>1800</diveduration></informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+      final r = await service.importAllDataFromUddf(uddf);
+      final compass = r.equipment.firstWhere(
+        (e) => e['sourceUuid'] == 'gear-COMPASS-UUID',
+      );
+      expect(compass['name'], 'SK-8');
+      expect(compass['type'], EquipmentType.compass);
     });
 
     test(

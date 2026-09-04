@@ -24860,6 +24860,51 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_speed_mps => 'Végsebesség';
 
   @override
+  String get attrLabel_undergarment_style => 'Fazon';
+
+  @override
+  String get attrLabel_insulation_material => 'Szigetelés';
+
+  @override
+  String get attrLabel_fill_weight_gsm => 'Töltetsúly (g/m²)';
+
+  @override
+  String get attrLabel_heated => 'Fűtött';
+
+  @override
+  String get attrLabel_sleeve_length => 'Ujjak';
+
+  @override
+  String get attrLabel_upf_rating => 'UPF-érték';
+
+  @override
+  String get attrLabel_thermal_lined => 'Termikus bélés';
+
+  @override
+  String get attrLabel_snorkel_type => 'Típus';
+
+  @override
+  String get attrLabel_purge_valve => 'Ürítőszelep';
+
+  @override
+  String get attrLabel_instrument_type => 'Műszer';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'Nyomásmérő tartománya';
+
+  @override
+  String get attrLabel_compass_type => 'Típus';
+
+  @override
+  String get attrLabel_balance_zone => 'Kiegyensúlyozási zóna';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'Dőléstűrés (°)';
+
+  @override
+  String get attrLabel_tool_type => 'Szerszám típusa';
+
+  @override
   String get attrChoice_unit_type_eccr => 'Elektronikus CCR (eCCR)';
 
   @override
@@ -25092,6 +25137,103 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'Szénkefés';
+
+  @override
+  String get attrChoice_undergarment_style_one_piece => 'Egyrészes';
+
+  @override
+  String get attrChoice_undergarment_style_two_piece => 'Kétrészes';
+
+  @override
+  String get attrChoice_undergarment_style_vest => 'Mellény';
+
+  @override
+  String get attrChoice_undergarment_style_base_layer => 'Alsóréteg';
+
+  @override
+  String get attrChoice_insulation_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_insulation_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_insulation_material_fleece => 'Polár';
+
+  @override
+  String get attrChoice_insulation_material_merino_wool => 'Merinógyapjú';
+
+  @override
+  String get attrChoice_insulation_material_down => 'Pehely';
+
+  @override
+  String get attrChoice_sleeve_length_short => 'Rövid';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'Hosszú';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'Ujjatlan';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'Klasszikus';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'Félszáraz';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'Száraz';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'Összehajtható';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'Nyomásmérő (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'Mélységmérő';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'Merülésidőmérő';
+
+  @override
+  String get attrChoice_instrument_type_console => 'Konzol';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'Gázanalizátor';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'Hőmérő';
+
+  @override
+  String get attrChoice_compass_type_analog => 'Analóg';
+
+  @override
+  String get attrChoice_compass_type_digital => 'Digitális';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'Északi félteke';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'Déli félteke';
+
+  @override
+  String get attrChoice_balance_zone_global => 'Globális';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'Kéziszerszám';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'O-gyűrű készlet';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit =>
+      'Vészhelyzeti szerszámkészlet';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'Nyomatékkulcs';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'Alkatrészkészlet';
 
   @override
   String get equipment_edit_customFieldsTitle => 'Egyéni mezők';

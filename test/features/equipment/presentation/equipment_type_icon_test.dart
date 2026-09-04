@@ -32,6 +32,27 @@ void main() {
     }
   });
 
+  test('the three worn layers are told apart', () {
+    // Wetsuit, drysuit and undergarment share one silhouette, so #1518 had to
+    // keep them separable: the drysuit by its attached hood and boots, the
+    // undergarment by its quilted chest bands.
+    final layers = [
+      equipmentTypeIcon(EquipmentType.wetsuit),
+      equipmentTypeIcon(EquipmentType.drysuit),
+      equipmentTypeIcon(EquipmentType.undergarment),
+    ];
+    expect(layers.map((i) => i.codePoint).toSet(), hasLength(3));
+  });
+
+  test('a tool no longer looks like the catch-all', () {
+    // `other` was a wrench until Tool became a type of its own; two wrenches
+    // in one list is the ambiguity #1189 complained about.
+    expect(
+      equipmentTypeIcon(EquipmentType.tool),
+      isNot(equipmentTypeIcon(EquipmentType.other)),
+    );
+  });
+
   test('the two exposure suits no longer share a glyph', () {
     // They did until #1189, which reported the shared hanger as a defect: the
     // drysuit is drawn with its attached hood and boots.
@@ -56,6 +77,7 @@ void main() {
       EquipmentType.boots: SubmersionIcons.boots,
       EquipmentType.reel: SubmersionIcons.reel,
       EquipmentType.dpv: SubmersionIcons.dpv,
+      EquipmentType.undergarment: SubmersionIcons.undergarment,
     };
 
     test('are wired to the equipment font', () {
@@ -97,6 +119,14 @@ void main() {
         EquipmentType.weights: MdiIcons.weight,
         EquipmentType.smb: MdiIcons.divingScubaFlag,
         EquipmentType.tank: MdiIcons.divingScubaTank,
+        // Added with the types themselves in #1518. Every one of these code
+        // points has to be present in the vendored webfont or the icon renders
+        // as tofu, which is exactly what the family assertion below catches.
+        EquipmentType.snorkel: MdiIcons.divingSnorkel,
+        EquipmentType.compass: MdiIcons.compass,
+        EquipmentType.instrument: MdiIcons.gauge,
+        EquipmentType.tool: MdiIcons.tools,
+        EquipmentType.rashGuard: MdiIcons.tshirtCrew,
       };
 
       for (final entry in onMdiFont.entries) {

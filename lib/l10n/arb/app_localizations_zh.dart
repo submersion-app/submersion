@@ -23673,6 +23673,51 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_speed_mps => '最高速度';
 
   @override
+  String get attrLabel_undergarment_style => '款式';
+
+  @override
+  String get attrLabel_insulation_material => '保暖材质';
+
+  @override
+  String get attrLabel_fill_weight_gsm => '填充克重（g/m²）';
+
+  @override
+  String get attrLabel_heated => '加热';
+
+  @override
+  String get attrLabel_sleeve_length => '袖长';
+
+  @override
+  String get attrLabel_upf_rating => 'UPF 防晒指数';
+
+  @override
+  String get attrLabel_thermal_lined => '保暖内衬';
+
+  @override
+  String get attrLabel_snorkel_type => '类型';
+
+  @override
+  String get attrLabel_purge_valve => '排水阀';
+
+  @override
+  String get attrLabel_instrument_type => '仪表类型';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => '量程';
+
+  @override
+  String get attrLabel_compass_type => '类型';
+
+  @override
+  String get attrLabel_balance_zone => '平衡区域';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => '倾斜容差（°）';
+
+  @override
+  String get attrLabel_tool_type => '工具类型';
+
+  @override
   String get attrChoice_unit_type_eccr => '电子式 CCR (eCCR)';
 
   @override
@@ -23905,6 +23950,102 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => '有刷';
+
+  @override
+  String get attrChoice_undergarment_style_one_piece => '连体式';
+
+  @override
+  String get attrChoice_undergarment_style_two_piece => '两件式';
+
+  @override
+  String get attrChoice_undergarment_style_vest => '背心';
+
+  @override
+  String get attrChoice_undergarment_style_base_layer => '打底层';
+
+  @override
+  String get attrChoice_insulation_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_insulation_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_insulation_material_fleece => '抓绒';
+
+  @override
+  String get attrChoice_insulation_material_merino_wool => '美利奴羊毛';
+
+  @override
+  String get attrChoice_insulation_material_down => '羽绒';
+
+  @override
+  String get attrChoice_sleeve_length_short => '短袖';
+
+  @override
+  String get attrChoice_sleeve_length_long => '长袖';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => '无袖';
+
+  @override
+  String get attrChoice_snorkel_type_classic => '经典式';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => '半干式';
+
+  @override
+  String get attrChoice_snorkel_type_dry => '全干式';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => '可折叠';
+
+  @override
+  String get attrChoice_instrument_type_spg => '压力表（SPG）';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => '深度表';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => '潜水计时器';
+
+  @override
+  String get attrChoice_instrument_type_console => '组合表';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => '气体分析仪';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => '温度计';
+
+  @override
+  String get attrChoice_compass_type_analog => '指针式';
+
+  @override
+  String get attrChoice_compass_type_digital => '电子式';
+
+  @override
+  String get attrChoice_balance_zone_northern => '北半球';
+
+  @override
+  String get attrChoice_balance_zone_southern => '南半球';
+
+  @override
+  String get attrChoice_balance_zone_global => '全球通用';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => '手工具';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'O 形圈套件';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => '应急工具包';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => '扭力扳手';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => '备件包';
 
   @override
   String get equipment_edit_customFieldsTitle => '自定义字段';

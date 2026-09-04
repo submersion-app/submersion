@@ -24774,6 +24774,51 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_speed_mps => 'Topsnelheid';
 
   @override
+  String get attrLabel_undergarment_style => 'Snit';
+
+  @override
+  String get attrLabel_insulation_material => 'Isolatie';
+
+  @override
+  String get attrLabel_fill_weight_gsm => 'Vulgewicht (g/m²)';
+
+  @override
+  String get attrLabel_heated => 'Verwarmd';
+
+  @override
+  String get attrLabel_sleeve_length => 'Mouwen';
+
+  @override
+  String get attrLabel_upf_rating => 'UPF-waarde';
+
+  @override
+  String get attrLabel_thermal_lined => 'Thermische voering';
+
+  @override
+  String get attrLabel_snorkel_type => 'Type';
+
+  @override
+  String get attrLabel_purge_valve => 'Uitblaasventiel';
+
+  @override
+  String get attrLabel_instrument_type => 'Instrument';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'Meetbereik';
+
+  @override
+  String get attrLabel_compass_type => 'Type';
+
+  @override
+  String get attrLabel_balance_zone => 'Balanszone';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'Kanteltolerantie (°)';
+
+  @override
+  String get attrLabel_tool_type => 'Soort gereedschap';
+
+  @override
   String get attrChoice_unit_type_eccr => 'Elektronische CCR (eCCR)';
 
   @override
@@ -25007,6 +25052,102 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'Met borstels';
+
+  @override
+  String get attrChoice_undergarment_style_one_piece => 'Eendelig';
+
+  @override
+  String get attrChoice_undergarment_style_two_piece => 'Tweedelig';
+
+  @override
+  String get attrChoice_undergarment_style_vest => 'Vest';
+
+  @override
+  String get attrChoice_undergarment_style_base_layer => 'Basislaag';
+
+  @override
+  String get attrChoice_insulation_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_insulation_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_insulation_material_fleece => 'Fleece';
+
+  @override
+  String get attrChoice_insulation_material_merino_wool => 'Merinowol';
+
+  @override
+  String get attrChoice_insulation_material_down => 'Dons';
+
+  @override
+  String get attrChoice_sleeve_length_short => 'Kort';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'Lang';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'Mouwloos';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'Klassiek';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'Semi-droog';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'Droog';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'Opvouwbaar';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'Manometer (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'Dieptemeter';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'Bottomtimer';
+
+  @override
+  String get attrChoice_instrument_type_console => 'Console';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'Gasanalyser';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'Thermometer';
+
+  @override
+  String get attrChoice_compass_type_analog => 'Analoog';
+
+  @override
+  String get attrChoice_compass_type_digital => 'Digitaal';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'Noordelijk halfrond';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'Zuidelijk halfrond';
+
+  @override
+  String get attrChoice_balance_zone_global => 'Globaal';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'Handgereedschap';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'O-ringset';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'Save-a-dive-set';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'Momentsleutel';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'Reserveonderdelenset';
 
   @override
   String get equipment_edit_customFieldsTitle => 'Aangepaste velden';

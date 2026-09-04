@@ -227,6 +227,13 @@ class GearFeature extends Equatable {
   static double _typeDryMass(EquipmentType type) => switch (type) {
     EquipmentType.wetsuit => 2.0,
     EquipmentType.drysuit => 3.0,
+    // A mid-weight one-piece undergarment (#1518). The 0.5 kg fallthrough is
+    // the mass of a pair of gloves and would under-read a drysuit rig by more
+    // than a kilo. Its buoyancy prior is deliberately left at the 0.0
+    // fallthrough: the drysuit's own 9-13 kg prior is measured with an
+    // undergarment inside it, so giving the liner a second positive term
+    // would count the same loft twice.
+    EquipmentType.undergarment => 1.2,
     EquipmentType.bcd => 3.5,
     // A wrist computer's dry mass is negligible against the rig, and gear
     // twins (v175) put one on every downloaded dive: the 0.5 kg fallthrough

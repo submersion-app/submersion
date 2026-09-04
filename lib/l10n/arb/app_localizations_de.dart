@@ -24915,6 +24915,51 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_speed_mps => 'Höchstgeschwindigkeit';
 
   @override
+  String get attrLabel_undergarment_style => 'Schnitt';
+
+  @override
+  String get attrLabel_insulation_material => 'Isolation';
+
+  @override
+  String get attrLabel_fill_weight_gsm => 'Füllgewicht (g/m²)';
+
+  @override
+  String get attrLabel_heated => 'Beheizt';
+
+  @override
+  String get attrLabel_sleeve_length => 'Ärmel';
+
+  @override
+  String get attrLabel_upf_rating => 'UPF-Wert';
+
+  @override
+  String get attrLabel_thermal_lined => 'Thermofutter';
+
+  @override
+  String get attrLabel_snorkel_type => 'Typ';
+
+  @override
+  String get attrLabel_purge_valve => 'Ausblasventil';
+
+  @override
+  String get attrLabel_instrument_type => 'Instrument';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'Anzeigebereich';
+
+  @override
+  String get attrLabel_compass_type => 'Typ';
+
+  @override
+  String get attrLabel_balance_zone => 'Balancezone';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'Neigungstoleranz (°)';
+
+  @override
+  String get attrLabel_tool_type => 'Werkzeugart';
+
+  @override
   String get attrChoice_unit_type_eccr => 'Elektronischer CCR (eCCR)';
 
   @override
@@ -25149,6 +25194,102 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'Mit Bürsten';
+
+  @override
+  String get attrChoice_undergarment_style_one_piece => 'Einteiler';
+
+  @override
+  String get attrChoice_undergarment_style_two_piece => 'Zweiteiler';
+
+  @override
+  String get attrChoice_undergarment_style_vest => 'Weste';
+
+  @override
+  String get attrChoice_undergarment_style_base_layer => 'Unterwäsche';
+
+  @override
+  String get attrChoice_insulation_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_insulation_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_insulation_material_fleece => 'Fleece';
+
+  @override
+  String get attrChoice_insulation_material_merino_wool => 'Merinowolle';
+
+  @override
+  String get attrChoice_insulation_material_down => 'Daune';
+
+  @override
+  String get attrChoice_sleeve_length_short => 'Kurz';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'Lang';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'Ärmellos';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'Klassisch';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'Halbtrocken';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'Trocken';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'Faltbar';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'Finimeter (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'Tiefenmesser';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'Tauchzeitmesser';
+
+  @override
+  String get attrChoice_instrument_type_console => 'Konsole';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'Gasanalysator';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'Thermometer';
+
+  @override
+  String get attrChoice_compass_type_analog => 'Analog';
+
+  @override
+  String get attrChoice_compass_type_digital => 'Digital';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'Nordhalbkugel';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'Südhalbkugel';
+
+  @override
+  String get attrChoice_balance_zone_global => 'Global';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'Handwerkzeug';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'O-Ring-Set';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'Notfall-Werkzeugset';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'Drehmomentschlüssel';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'Ersatzteilset';
 
   @override
   String get equipment_edit_customFieldsTitle => 'Benutzerdefinierte Felder';

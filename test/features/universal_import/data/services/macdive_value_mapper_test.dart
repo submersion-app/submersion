@@ -152,6 +152,21 @@ void main() {
       'Scooter': EquipmentType.dpv,
       'Suex XJoy Scooter': EquipmentType.dpv,
       'Diver Propulsion Vehicle': EquipmentType.dpv,
+      // #1518 types. MacDive's field is free text, so these are the words
+      // real libraries actually contain.
+      'Undergarment': EquipmentType.undergarment,
+      'Santi BZ400 Undersuit': EquipmentType.undergarment,
+      'Rash Guard': EquipmentType.rashGuard,
+      'Lycra top': EquipmentType.rashGuard,
+      'Snorkel': EquipmentType.snorkel,
+      'Compass': EquipmentType.compass,
+      'SPG': EquipmentType.instrument,
+      'Depth Gauge': EquipmentType.instrument,
+      'Bottom Timer': EquipmentType.instrument,
+      'O2 Analyzer': EquipmentType.instrument,
+      'Save-a-dive kit': EquipmentType.tool,
+      'Torque wrench': EquipmentType.tool,
+      'O-ring kit': EquipmentType.tool,
     };
 
     cases.forEach((input, expected) {
@@ -164,6 +179,30 @@ void main() {
       expect(
         MacDiveValueMapper.equipmentType('  WETSUIT  '),
         EquipmentType.wetsuit,
+      );
+    });
+
+    test('a console computer stays a computer', () {
+      // The instrument family matches "console", so it has to be tried after
+      // the computer check or every console-mounted computer would import as
+      // a gauge.
+      expect(
+        MacDiveValueMapper.equipmentType('Console Computer'),
+        EquipmentType.computer,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Compass console'),
+        EquipmentType.compass,
+      );
+    });
+
+    test('a bare "thermal" is left alone', () {
+      // Plenty of divers label a wetsuit "3mm thermal", so the undergarment
+      // match is deliberately narrow: it must not pull suits into the liner
+      // bucket.
+      expect(
+        MacDiveValueMapper.equipmentType('3mm Thermal'),
+        EquipmentType.other,
       );
     });
 

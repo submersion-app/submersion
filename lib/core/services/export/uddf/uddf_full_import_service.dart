@@ -2356,7 +2356,7 @@ class UddfFullImportService {
     'bcd': (label: 'BCD', type: enums.EquipmentType.bcd),
     'boots': (label: 'Boots', type: enums.EquipmentType.boots),
     'fins': (label: 'Fins', type: enums.EquipmentType.fins),
-    'compass': (label: 'Compass', type: enums.EquipmentType.other),
+    'compass': (label: 'Compass', type: enums.EquipmentType.compass),
     'knife': (label: 'Knife', type: enums.EquipmentType.knife),
     'tankrelatedequipment': (label: 'Tank', type: enums.EquipmentType.tank),
   };

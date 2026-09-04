@@ -83,6 +83,14 @@ def bar(p1, p2, w, solid=True):
     return quad + circle(x1, y1, w / 2, solid) + circle(x2, y2, w / 2, solid)
 
 
+def stripe(x1, x2, y, h, solid=True):
+    """Horizontal band between two x values, centred on y."""
+    return poly(
+        [(x1, y - h / 2), (x2, y - h / 2), (x2, y + h / 2), (x1, y + h / 2)],
+        solid,
+    )
+
+
 def g(*parts):
     return "".join(parts)
 
@@ -249,6 +257,22 @@ add(
         rrect(7.0, 4.0, 6.6, 2.4, 1.0),               # handle bar
         bar((8.8, 5.8), (8.8, 9.2), 1.8),             # left stem
         bar((11.8, 5.8), (11.8, 9.2), 1.8),           # right stem
+    ),
+)
+
+
+add(
+    "undergarment",
+    "Undergarment",
+    "The suit silhouette with quilted chest bands: a thermal base layer.",
+    g(
+        WETSUIT_BODY,
+        # Two bands rather than full quilting. A quilt grid, and even four
+        # thinner stripes, turned to mush at the 18-20 px the equipment list
+        # actually renders; two thick bands still read as quilting there and
+        # keep the undergarment unmistakable next to the plain wetsuit.
+        stripe(6.4, 17.2, 8.7, 1.6, solid=False),
+        stripe(6.4, 17.2, 11.6, 1.6, solid=False),
     ),
 )
 

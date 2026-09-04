@@ -1,15 +1,26 @@
 import 'dart:ui' show Color;
 
-/// Types of diving equipment
+/// A category of gear a diver owns.
+///
+/// Persisted by [name] (the `equipment.type` column is text), so the order of
+/// the values is free to change and new values need no migration: an older
+/// build reading a newer library falls back to [other] rather than failing.
+/// The declaration order is the order the type dropdown and the filter chips
+/// offer, so related gear is grouped rather than alphabetised.
 enum EquipmentType {
   regulator('Regulator'),
   bcd('BCD'),
   wetsuit('Wetsuit'),
   drysuit('Drysuit'),
+  undergarment('Undergarment'),
+  rashGuard('Rash Guard'),
   fins('Fins'),
   mask('Mask'),
+  snorkel('Snorkel'),
   computer('Dive Computer'),
   transmitter('Transmitter'),
+  instrument('Instrument / Gauge'),
+  compass('Compass'),
   tank('Tank'),
   rebreather('Rebreather'),
   weights('Weights'),
@@ -18,6 +29,7 @@ enum EquipmentType {
   smb('SMB'),
   reel('Reel'),
   knife('Knife'),
+  tool('Tool'),
   hood('Hood'),
   gloves('Gloves'),
   boots('Boots'),

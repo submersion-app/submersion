@@ -24962,6 +24962,51 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_speed_mps => 'Velocidade máxima';
 
   @override
+  String get attrLabel_undergarment_style => 'Corte';
+
+  @override
+  String get attrLabel_insulation_material => 'Isolamento';
+
+  @override
+  String get attrLabel_fill_weight_gsm => 'Gramagem (g/m²)';
+
+  @override
+  String get attrLabel_heated => 'Aquecido';
+
+  @override
+  String get attrLabel_sleeve_length => 'Mangas';
+
+  @override
+  String get attrLabel_upf_rating => 'Índice UPF';
+
+  @override
+  String get attrLabel_thermal_lined => 'Forro térmico';
+
+  @override
+  String get attrLabel_snorkel_type => 'Tipo';
+
+  @override
+  String get attrLabel_purge_valve => 'Válvula de purga';
+
+  @override
+  String get attrLabel_instrument_type => 'Instrumento';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'Escala do manómetro';
+
+  @override
+  String get attrLabel_compass_type => 'Tipo';
+
+  @override
+  String get attrLabel_balance_zone => 'Zona de equilíbrio';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'Tolerância de inclinação (°)';
+
+  @override
+  String get attrLabel_tool_type => 'Tipo de ferramenta';
+
+  @override
   String get attrChoice_unit_type_eccr => 'CCR eletrónico (eCCR)';
 
   @override
@@ -25197,6 +25242,102 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'Com escovas';
+
+  @override
+  String get attrChoice_undergarment_style_one_piece => 'Uma peça';
+
+  @override
+  String get attrChoice_undergarment_style_two_piece => 'Duas peças';
+
+  @override
+  String get attrChoice_undergarment_style_vest => 'Colete';
+
+  @override
+  String get attrChoice_undergarment_style_base_layer => 'Camada base';
+
+  @override
+  String get attrChoice_insulation_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_insulation_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_insulation_material_fleece => 'Polar';
+
+  @override
+  String get attrChoice_insulation_material_merino_wool => 'Lã merino';
+
+  @override
+  String get attrChoice_insulation_material_down => 'Penas';
+
+  @override
+  String get attrChoice_sleeve_length_short => 'Curtas';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'Compridas';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'Sem mangas';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'Clássico';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'Semi-seco';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'Seco';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'Dobrável';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'Manómetro (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'Profundímetro';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'Cronómetro de fundo';
+
+  @override
+  String get attrChoice_instrument_type_console => 'Console';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'Analisador de gás';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'Termómetro';
+
+  @override
+  String get attrChoice_compass_type_analog => 'Analógica';
+
+  @override
+  String get attrChoice_compass_type_digital => 'Digital';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'Hemisfério norte';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'Hemisfério sul';
+
+  @override
+  String get attrChoice_balance_zone_global => 'Global';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'Ferramenta manual';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'Kit de O-rings';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'Kit de emergência';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'Chave dinamométrica';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'Kit de peças';
 
   @override
   String get equipment_edit_customFieldsTitle => 'Campos personalizados';
