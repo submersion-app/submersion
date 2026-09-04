@@ -4,10 +4,12 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/media_store/google_drive_media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 
 import '../../../helpers/fake_drive_server.dart';
+import '../../../helpers/revocable_client.dart';
 import 'media_object_store_contract.dart';
 
 void main() {
@@ -229,7 +231,7 @@ void main() {
 
   test('a re-auth that closes and replaces the client is followed on the '
       'next request', () async {
-    var live = _RevocableClient(server.client);
+    var live = RevocableClient(server.client);
     final store = GoogleDriveMediaObjectStore(
       clientSupplier: () async => live,
       apiBase: 'https://fake.googleapis.test',
@@ -245,7 +247,7 @@ void main() {
     // the routine trigger): close the published client, then publish a
     // fresh one for the same account.
     live.close();
-    live = _RevocableClient(server.client);
+    live = RevocableClient(server.client);
 
     await store.putFile(
       'smv1/objects/aa/after.jpg',
@@ -259,6 +261,48 @@ void main() {
         'smv1/objects/aa/before.jpg',
         'smv1/objects/aa/after.jpg',
       ]),
+    );
+  });
+
+  test('a client closed with no replacement surfaces as a transient '
+      'transport failure', () async {
+    // The re-auth that never lands: the authenticator tore its client down
+    // and no fresh one arrived. This is the exact shape of the bug the
+    // supplier exists to prevent, so pin the symptom as well as the kind.
+    final dead = RevocableClient(server.client)..close();
+    final store = GoogleDriveMediaObjectStore(
+      clientSupplier: () async => dead,
+      apiBase: 'https://fake.googleapis.test',
+    );
+    await expectLater(
+      store.head('smv1/objects/aa/x.jpg'),
+      throwsA(
+        isA<MediaStoreException>()
+            .having((e) => e.kind, 'kind', MediaStoreErrorKind.transient)
+            .having(
+              (e) => (e.cause as http.ClientException).message,
+              'cause',
+              contains('Client is already closed'),
+            ),
+      ),
+    );
+  });
+
+  test('a supplier that fails to produce a client is transient', () async {
+    final store = GoogleDriveMediaObjectStore(
+      clientSupplier: () async =>
+          throw const CloudStorageException('silent auth exploded'),
+      apiBase: 'https://fake.googleapis.test',
+    );
+    await expectLater(
+      store.head('smv1/objects/aa/x.jpg'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.transient,
+        ),
+      ),
     );
   });
 
@@ -278,32 +322,4 @@ void main() {
       ),
     );
   });
-}
-
-/// A transport with the real `IOClient` lifecycle: every request after
-/// [close] throws, exactly as the authenticator's client does once a
-/// re-auth has torn it down. `MockClient` alone cannot model this - its
-/// inherited `close` is a no-op, so a closed one keeps answering.
-class _RevocableClient extends http.BaseClient {
-  _RevocableClient(this._inner);
-
-  final http.Client _inner;
-  bool _closed = false;
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
-    if (_closed) {
-      throw http.ClientException(
-        'HTTP request failed. Client is already closed.',
-        request.url,
-      );
-    }
-    return _inner.send(request);
-  }
-
-  @override
-  void close() {
-    _closed = true;
-    _inner.close();
-  }
 }
