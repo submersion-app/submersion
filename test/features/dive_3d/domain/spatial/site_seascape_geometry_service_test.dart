@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
@@ -130,6 +131,27 @@ void main() {
     final scene = service.build(input());
     expect(scene.bounds.maxDepthMeters, 40); // grid max beats siteMaxDepth
     expect(scene.bounds.sceneMaxY, greaterThan(0));
+  });
+
+  test('a siteMaxDepth beyond the grid does not squash the terrain scale', () {
+    // Walensee-shaped case: the diver's recorded max depth (elsewhere in
+    // a large lake) far exceeds what this site's local grid measured.
+    final scene = service.build(
+      SiteSeascapeInput(
+        grid: grid(),
+        center: const GeoPoint(12.151, -68.299),
+        siteName: 'Salt Pier',
+        siteMaxDepth: 200,
+        divePaths: const [],
+        nearbySites: const [],
+      ),
+    );
+    // The scene's vertical scale stays tied to the measured terrain, not
+    // the recorded site depth, so the terrain always fills its box.
+    expect(scene.bounds.maxDepthMeters, 40);
+    // The camera frame grows instead, so the "this deep" pin stays in
+    // view rather than getting clipped below the terrain's floor.
+    expect(scene.bounds.sceneMinY, lessThan(-SceneBounds.ySpan));
   });
 
   test('real terrain gains contour and water-gated layers plus labels', () {

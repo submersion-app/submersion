@@ -5744,6 +5744,8 @@
   "tankPresets_noPresets": "Keine Flaschenvorlagen verfügbar",
   "tankPresets_setAsDefault": "Als Standard festlegen",
   "tankPresets_title": "Flaschenvorlagen",
+  "tank_al100_description": "Aluminium 100 cuft",
+  "tank_al100_displayName": "AL100",
   "tank_al30Stage_description": "Aluminium 30 cuft Stageflasche",
   "tank_al30Stage_displayName": "AL30 Stage",
   "tank_al40Stage_description": "Aluminium 40 cuft Stageflasche",

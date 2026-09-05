@@ -5656,6 +5656,8 @@
   "tankPresets_noPresets": "Nessun preset bombola disponibile",
   "tankPresets_setAsDefault": "Imposta come predefinito",
   "tankPresets_title": "Preset bombole",
+  "tank_al100_description": "Alluminio 100 cu ft",
+  "tank_al100_displayName": "AL100",
   "tank_al30Stage_description": "Bombola stage in alluminio da 30 cu ft",
   "tank_al30Stage_displayName": "AL30 Stage",
   "tank_al40Stage_description": "Bombola stage in alluminio da 40 cu ft",

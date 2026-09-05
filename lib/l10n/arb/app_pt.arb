@@ -5744,6 +5744,8 @@
   "tankPresets_noPresets": "Nenhum preset de cilindro disponivel",
   "tankPresets_setAsDefault": "Definir como padrão",
   "tankPresets_title": "Presets de Cilindro",
+  "tank_al100_description": "Aluminio 100 cu ft",
+  "tank_al100_displayName": "AL100",
   "tank_al30Stage_description": "Cilindro stage de aluminio 30 cu ft",
   "tank_al30Stage_displayName": "AL30 Stage",
   "tank_al40Stage_description": "Cilindro stage de aluminio 40 cu ft",

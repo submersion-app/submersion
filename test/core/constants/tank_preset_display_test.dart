@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'dart:ui' show Locale;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/tank_preset_display.dart';
@@ -9,8 +9,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 ///
 /// `builtInTankPresetName` and `builtInTankPresetDescription` switch on
 /// [TankPreset.name] with a `_ => null` fallthrough, and the extension getters
-/// fall back to the stored English value when they miss. A preset added
-/// without a switch arm therefore ships silently untranslated in every locale.
+/// fall back to the stored English value when they miss. gen-l10n also falls
+/// back to English silently. So a preset added without a switch arm or without
+/// ARB keys ships looking fine in English and untranslated everywhere else.
 /// These tests turn that into a failure. Same class of guard as
 /// `tank_catalog_test.dart`: a map keyed by a slug that no compiler checks.
 void main() {
@@ -32,8 +33,10 @@ void main() {
 
     test('returns null for an unknown slug', () {
       final en = lookupAppLocalizations(const Locale('en'));
+      // The camelCase Dart identifiers are not slugs; passing one is the
+      // mistake that left kTankCatalog's stage rows unreachable.
       expect(builtInTankPresetName(en, 'al30Stage'), isNull);
-      expect(builtInTankPresetName(en, 'not-a-tank'), isNull);
+      expect(builtInTankPresetName(en, 'nonexistent'), isNull);
     });
 
     test('matches the const table for the English locale', () {
@@ -63,6 +66,7 @@ void main() {
     test('returns null for an unknown slug', () {
       final en = lookupAppLocalizations(const Locale('en'));
       expect(builtInTankPresetDescription(en, 'al40Stage'), isNull);
+      expect(builtInTankPresetDescription(en, 'nonexistent'), isNull);
     });
   });
 
@@ -99,5 +103,18 @@ void main() {
         }
       });
     }
+
+    test('cylinder designations are not translated', () {
+      // "AL100" is stamped on the cylinder and quoted on every fill-station
+      // price list, so it stays byte-identical across locales.
+      for (final locale in AppLocalizations.supportedLocales) {
+        final l10n = lookupAppLocalizations(locale);
+        expect(
+          builtInTankPresetName(l10n, 'al100'),
+          'AL100',
+          reason: 'locale $locale',
+        );
+      }
+    });
   });
 }

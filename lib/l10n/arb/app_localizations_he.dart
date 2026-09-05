@@ -18848,6 +18848,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_title_manageTags => 'נהל תגיות';
 
   @override
+  String get tank_al100_description => 'אלומיניום 100 cuft';
+
+  @override
+  String get tank_al100_displayName => 'AL100';
+
+  @override
   String get tank_al30Stage_description => 'בלון סטייג\' אלומיניום 30 cuft';
 
   @override

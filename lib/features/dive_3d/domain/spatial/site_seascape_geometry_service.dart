@@ -117,10 +117,16 @@ class SiteSeascapeGeometryService {
     SiteSeascapeInput input,
   ) {
     final box = BathymetryTerrainBuilder.enuBounds(input.grid, input.center);
-    final maxDepth = math.max(
-      math.max(input.grid.maxDepthMeters, input.siteMaxDepth ?? 0),
-      1.0,
-    );
+    // Scaled from the MEASURED grid alone: input.siteMaxDepth is the site's
+    // recorded max depth, which can come from anywhere in a large lake and
+    // need not fall inside this local box. Folding it in here used to
+    // squash the real terrain toward the surface whenever it exceeded the
+    // grid's own range, making proportionally shallow sites look flat and
+    // deep ones look stretched (issue #45). The site pin below still
+    // reaches the diver's recorded depth even when that is deeper than the
+    // visible terrain; only the scene's overall vertical scale stays tied
+    // to what the grid actually measured.
+    final maxDepth = math.max(input.grid.maxDepthMeters, 1.0);
     final proj = SpatialProjection(
       minEast: box.minEast,
       maxEast: box.maxEast,
@@ -195,8 +201,9 @@ class SiteSeascapeGeometryService {
           ),
         );
     }
+    final pinDepth = input.siteMaxDepth ?? maxDepth;
     layers
-      ..add(SceneLayer(_sitePin(proj, input.siteMaxDepth ?? maxDepth)))
+      ..add(SceneLayer(_sitePin(proj, pinDepth)))
       ..add(SceneLayer(terrain.water, overlay: SceneOverlay.water));
 
     final markers = <SceneMarker>[
@@ -234,13 +241,17 @@ class SiteSeascapeGeometryService {
     ];
 
     final zHalf = proj.zHalfExtent + SceneBounds.zHalfWidth;
+    // The camera frame grows to keep the pin in view when the diver's
+    // recorded max depth reaches past the measured terrain; it never
+    // shrinks below the terrain's own -ySpan floor.
+    final sceneMinY = math.min(-SceneBounds.ySpan, proj.yOf(pinDepth));
     final scene = Scene3d(
       layers: layers,
       markers: markers,
       bounds: SceneBounds(
         durationSeconds: 1,
         maxDepthMeters: maxDepth,
-        sceneMinY: -SceneBounds.ySpan,
+        sceneMinY: sceneMinY,
         sceneMaxY: _surfaceHeadroom,
         sceneMinZ: -zHalf,
         sceneMaxZ: zHalf,

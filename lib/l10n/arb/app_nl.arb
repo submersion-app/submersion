@@ -5744,6 +5744,8 @@
   "tankPresets_noPresets": "Geen flesinstellingen beschikbaar",
   "tankPresets_setAsDefault": "Als standaard instellen",
   "tankPresets_title": "Flesinstellingen",
+  "tank_al100_description": "Aluminium 100 cu ft",
+  "tank_al100_displayName": "AL100",
   "tank_al30Stage_description": "Aluminium 30 cu ft stagefles",
   "tank_al30Stage_displayName": "AL30 Stage",
   "tank_al40Stage_description": "Aluminium 40 cu ft stagefles",

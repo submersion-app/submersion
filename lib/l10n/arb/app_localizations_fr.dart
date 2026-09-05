@@ -19427,6 +19427,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags_title_manageTags => 'Gérer les étiquettes';
 
   @override
+  String get tank_al100_description => 'Bloc aluminium 100 cu ft';
+
+  @override
+  String get tank_al100_displayName => 'AL100';
+
+  @override
   String get tank_al30Stage_description => 'Bloc aluminium 30 cu ft stage';
 
   @override

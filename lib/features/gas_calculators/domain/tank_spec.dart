@@ -82,6 +82,7 @@ List<TankSpec> imperialTankChoices() => [
   TankSpec.fromPreset(TankPresets.al63),
   TankSpec.fromPreset(TankPresets.al80),
   TankSpec.fromPreset(TankPresets.hp100),
+  TankSpec.fromPreset(TankPresets.al100),
   TankSpec.fromPreset(TankPresets.hp120),
 ];
 

@@ -41,6 +41,15 @@ void main() {
       expect(al80.material, TankMaterial.aluminum);
     });
 
+    test('AL100 has correct specs', () {
+      const al100 = TankPresets.al100;
+      expect(al100.volumeLiters, 13.1);
+      expect(al100.workingPressureBar, closeTo(227.527, 0.001));
+      expect(al100.ratedCapacityCuft, 100.0);
+      expect(al100.volumeCuft, 100.0);
+      expect(al100.material, TankMaterial.aluminum);
+    });
+
     test('HP100 has correct specs', () {
       const hp100 = TankPresets.hp100;
       expect(hp100.volumeLiters, 12.9);
@@ -84,7 +93,7 @@ void main() {
     });
 
     test('all presets list contains expected count', () {
-      expect(TankPresets.all.length, 12);
+      expect(TankPresets.all.length, 13);
     });
 
     test('US tank pressures convert cleanly to PSI', () {
@@ -113,6 +122,11 @@ void main() {
         expect(psi, 3442, reason: '${preset.displayName} should be 3442 PSI');
       }
 
+      // 3300 PSI tank
+      final al100Psi = (TankPresets.al100.workingPressureBar * psiConversion)
+          .round();
+      expect(al100Psi, 3300);
+
       // 2640 PSI tank
       final lp85Psi = (TankPresets.lp85.workingPressureBar * psiConversion)
           .round();
@@ -133,6 +147,19 @@ void main() {
       final match = TankPresets.matchBySpecs(12.9, 237.0);
       expect(match, isNotNull);
       expect(match!.name, 'hp100');
+    });
+
+    test('matches AL100 by volume and pressure', () {
+      final match = TankPresets.matchBySpecs(13.1, 228.0);
+      expect(match, isNotNull);
+      expect(match!.name, 'al100');
+      expect(match.ratedCapacityCuft, 100.0);
+    });
+
+    test('AL100 and HP100 stay distinct despite the same rated capacity', () {
+      // Same 100 cu ft rating, different water volume and service pressure.
+      expect(TankPresets.matchBySpecs(13.1, 227.5)!.name, 'al100');
+      expect(TankPresets.matchBySpecs(12.9, 237.3)!.name, 'hp100');
     });
 
     test('returns null for non-matching specs', () {

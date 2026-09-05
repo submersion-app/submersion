@@ -74,6 +74,11 @@ void main() {
 
       // AL80 working pressure 206.843 bar = ~3000 psi, displayed as "3000 psi"
       expect(find.textContaining('3000 psi'), findsWidgets);
+
+      // AL100 (issue #1557): 100 cuft at its own 3300 psi service pressure,
+      // listed alongside the 3000 psi aluminium tanks.
+      expect(find.text('AL100'), findsOneWidget);
+      expect(find.textContaining('3300 psi'), findsOneWidget);
     });
 
     testWidgets('a custom preset whose slug collides with a built-in keeps its '

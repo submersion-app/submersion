@@ -5915,6 +5915,8 @@
   "tankPresets_noPresets": "无可用气瓶预设",
   "tankPresets_setAsDefault": "设为默认",
   "tankPresets_title": "气瓶预设",
+  "tank_al100_description": "铝制 100 立方英尺",
+  "tank_al100_displayName": "AL100",
   "tank_al30Stage_description": "铝制 30 立方英尺阶段瓶",
   "tank_al30Stage_displayName": "AL30 阶段瓶",
   "tank_al40Stage_description": "铝制 40 立方英尺阶段瓶",

@@ -19359,6 +19359,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tags_title_manageTags => 'Gerenciar Tags';
 
   @override
+  String get tank_al100_description => 'Aluminio 100 cu ft';
+
+  @override
+  String get tank_al100_displayName => 'AL100';
+
+  @override
   String get tank_al30Stage_description =>
       'Cilindro stage de aluminio 30 cu ft';
 

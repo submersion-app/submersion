@@ -19185,6 +19185,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tags_title_manageTags => 'Tags beheren';
 
   @override
+  String get tank_al100_description => 'Aluminium 100 cu ft';
+
+  @override
+  String get tank_al100_displayName => 'AL100';
+
+  @override
   String get tank_al30Stage_description => 'Aluminium 30 cu ft stagefles';
 
   @override
