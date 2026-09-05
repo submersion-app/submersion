@@ -98,12 +98,28 @@ class BuhlmannAlgorithm {
   }
 
   /// Set compartments to a specific state (for loading from saved data).
+  ///
+  /// Treats [compartments] as the start of a new dive: the GF-low anchor is
+  /// re-derived from that loading via [deriveGfAnchorFromLoading].
   void setCompartments(List<TissueCompartment> compartments) {
     if (compartments.length == zhl16CompartmentCount) {
       _compartments = List.from(compartments);
-      _gfLowCeilingAnchor = 0.0;
-      _updateGfAnchor();
+      deriveGfAnchorFromLoading();
     }
+  }
+
+  /// Re-derive the GF-low anchor from the current loading, discarding any
+  /// previously recorded maximum.
+  ///
+  /// Only for starting a new dive from a seeded state, once that state is
+  /// final -- notably after off-gassing a surface interval, so the anchor
+  /// reflects the loading the dive actually begins with rather than the prior
+  /// dive's. Never call this mid-dive: within a dive the anchor is deliberately
+  /// a running maximum (see [_gfLowCeilingAnchor]), and resetting it would
+  /// collapse shallow stops toward GF-low.
+  void deriveGfAnchorFromLoading() {
+    _gfLowCeilingAnchor = 0.0;
+    _updateGfAnchor();
   }
 
   /// Deepest GF-low ceiling reached so far this dive (meters).

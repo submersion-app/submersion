@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/tissue_seed.dart';
 
@@ -52,6 +53,11 @@ List<TissueCompartment> _priorDiveCompartments() {
   return algorithm.compartments;
 }
 
+/// The stop schedule as (depth, duration) pairs, for readable comparisons.
+List<List<num>> _schedule(PlanOutcome outcome) => outcome.stops
+    .map((s) => <num>[s.depthMeters, s.durationSeconds])
+    .toList(growable: false);
+
 void main() {
   group('tissue seeding', () {
     test('null compartments produce no seed', () {
@@ -79,6 +85,26 @@ void main() {
       final repetitive = engine.compute(_plan(), startState: seeded);
 
       expect(repetitive.totalDecoSeconds, greaterThan(fresh.totalDecoSeconds));
+    });
+
+    test('a plan seeded from a long-ago dive matches the fresh plan', () {
+      const engine = PlanEngine();
+      final fresh = engine.compute(_plan());
+
+      // Four days at the surface is roughly nine half-times of the slowest
+      // ZH-L16C compartment: the tissues, and so the GF-low ceiling anchor the
+      // plan starts from, are indistinguishable from a fresh diver's.
+      final seeded = engine.compute(
+        _plan(),
+        startState: seededTissueState(
+          compartments: _priorDiveCompartments(),
+          surfaceInterval: const Duration(hours: 96),
+          gfLow: 0.40,
+          gfHigh: 0.80,
+        ),
+      );
+
+      expect(_schedule(seeded), equals(_schedule(fresh)));
     });
 
     test('a long surface interval trends back toward the fresh plan', () {
@@ -109,11 +135,9 @@ void main() {
         longInterval.totalDecoSeconds,
         lessThan(shortInterval.totalDecoSeconds),
       );
-      // After a day at the surface the tissues are essentially clean again.
-      expect(
-        (longInterval.totalDecoSeconds - fresh.totalDecoSeconds).abs(),
-        lessThanOrEqualTo(60),
-      );
+      // After a day at the surface the tissues are clean enough that the plan
+      // is indistinguishable from a fresh one, stop for stop.
+      expect(_schedule(longInterval), equals(_schedule(fresh)));
     });
   });
 }

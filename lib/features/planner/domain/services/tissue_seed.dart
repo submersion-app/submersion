@@ -11,7 +11,7 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 /// Mirrors the residual-tissue lookback the dive details page performs in
 /// profile_analysis_provider so a plan seeded from a dive agrees with the
 /// log's own repetitive-dive math. The GF-low ceiling anchor is re-derived
-/// from the seeded loading, as a fresh dive would.
+/// from the off-gassed loading, as a fresh dive would.
 ///
 /// Returns null when [compartments] is null (nothing to seed).
 TissueState? seededTissueState({
@@ -28,7 +28,12 @@ TissueState? seededTissueState({
     gfHigh: gfHigh,
     environment: environment,
   );
-  algorithm.setCompartments(List.from(compartments));
+  // restoreState, not setCompartments: loading the prior dive's compartments
+  // must not derive the anchor yet, or the anchor would record that dive's
+  // deepest ceiling and -- being a running maximum -- survive the surface
+  // interval untouched, leaving every repetitive plan less conservative than
+  // an identical fresh one.
+  algorithm.restoreState(List.from(compartments));
 
   final intervalSeconds = surfaceInterval?.inSeconds ?? 0;
   if (intervalSeconds > 0) {
@@ -39,6 +44,9 @@ TissueState? seededTissueState({
       fHe: 0.0,
     );
   }
+
+  // Anchor the plan to the loading it actually starts from, post-interval.
+  algorithm.deriveGfAnchorFromLoading();
 
   return BuhlmannState(
     compartments: algorithm.compartments,
