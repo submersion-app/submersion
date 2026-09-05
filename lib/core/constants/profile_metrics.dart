@@ -72,7 +72,7 @@ enum ProfileRightAxisMetric {
   gasDensity(
     displayName: 'Gas Density',
     shortName: 'Density',
-    color: Colors.brown,
+    color: Color(0xFF827717),
     unitSuffix: 'g/L',
     category: ProfileMetricCategory.gasAnalysis,
   ),

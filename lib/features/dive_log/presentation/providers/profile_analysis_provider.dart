@@ -173,26 +173,43 @@ final _log = LoggerService.forClass(_ProfileAnalysisProvider);
 
 /// Builds a time-ordered gas schedule for decompression analysis.
 ///
-/// The schedule always starts at timestamp 0 using the primary tank gas when
-/// available, otherwise air. Gas switches then replace the active gas from
-/// their timestamp onward.
-DiveTank? _selectOcPrimaryTank(Dive dive) {
-  if (dive.tanks.isEmpty) return null;
-  return dive.tanks.firstWhere(
+/// The schedule starts at [buildProfileGasSegments]'s `startTimestamp`
+/// (0 by default) using the primary tank gas when available, otherwise air.
+/// Gas switches then replace the active gas from their timestamp onward.
+DiveTank? _selectOcPrimaryTank(List<DiveTank> tanks) {
+  if (tanks.isEmpty) return null;
+  return tanks.firstWhere(
     (t) => t.role == TankRole.backGas,
-    orElse: () => dive.tanks.first,
+    orElse: () => tanks.first,
   );
 }
 
+/// [tanks] scopes which tank's mix seeds the first segment; defaults to
+/// [dive.tanks] (every tank) when omitted, which is correct for a
+/// single-source dive. A per-computer analysis on a multi-source dive must
+/// pass that computer's own tanks -- otherwise the seed segment can pick up
+/// the WRONG computer's back-gas tank.
+///
+/// [startTimestamp] seeds the first segment's timestamp; defaults to 0 (the
+/// profile-starts-at-zero assumption that holds for a single-source dive
+/// and for the primary bucket of a merged one). A secondary computer's own
+/// bucket on a multi-source dive can start before the merged timeline's
+/// zero point (e.g. it was switched on earlier), so its own first sample
+/// timestamp can be negative -- seeding at a hardcoded 0 then places this
+/// schedule's first segment AFTER that profile's first sample, which
+/// BuhlmannAlgorithm rejects outright.
 List<ProfileGasSegment> buildProfileGasSegments(
   Dive dive,
-  List<GasSwitchWithTank> gasSwitches,
-) {
-  final primaryMix = _selectOcPrimaryTank(dive)?.gasMix ?? const GasMix();
+  List<GasSwitchWithTank> gasSwitches, {
+  List<DiveTank>? tanks,
+  int startTimestamp = 0,
+}) {
+  final primaryMix =
+      _selectOcPrimaryTank(tanks ?? dive.tanks)?.gasMix ?? const GasMix();
 
   final segments = <ProfileGasSegment>[
     ProfileGasSegment(
-      startTimestamp: 0,
+      startTimestamp: startTimestamp,
       fN2: primaryMix.isAir
           ? airN2Fraction
           : (100.0 - primaryMix.o2 - primaryMix.he) / 100.0,
@@ -200,15 +217,19 @@ List<ProfileGasSegment> buildProfileGasSegments(
     ),
   ];
 
-  final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
-    ..sort((a, b) {
-      final timestampCompare = a.timestamp.compareTo(b.timestamp);
-      if (timestampCompare != 0) {
-        return timestampCompare;
-      }
+  // Drop switches timestamped before this schedule's own start: appending
+  // one after the seed segment above would leave the list non-monotonic,
+  // the same failure mode the seed-timestamp fix above addresses.
+  final sortedSwitches =
+      gasSwitches.where((s) => s.timestamp >= startTimestamp).toList()
+        ..sort((a, b) {
+          final timestampCompare = a.timestamp.compareTo(b.timestamp);
+          if (timestampCompare != 0) {
+            return timestampCompare;
+          }
 
-      return a.id.compareTo(b.id);
-    });
+          return a.id.compareTo(b.id);
+        });
 
   for (final gasSwitch in sortedSwitches) {
     final nextSegment = ProfileGasSegment(
@@ -952,6 +973,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         : dive.tanks
               .where((t) => t.computerId == null || t.computerId == computerId)
               .toList();
+    final tankIds = {for (final t in tanks) t.id};
     final repository = ref.watch(diveRepositoryProvider);
     // Resolve GF values: use dive-specific if provided, else user settings.
     // Resolved here rather than inside the isolate because only this side
@@ -985,7 +1007,6 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       );
       // Scope pressure curves to the requested computer's tanks; null keeps
       // every tank (primary-source / legacy behavior).
-      final tankIds = {for (final t in tanks) t.id};
       final tankPressures = computerId == null
           ? allTankPressures
           : <String, List<TankPressurePoint>>{
@@ -1062,7 +1083,23 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     final gasSegments = switch (dive.diveMode) {
       DiveMode.oc => buildProfileGasSegments(
         dive,
-        await repository.getGasSwitchesForDive(diveId),
+        // Scope switches to this computer's own tanks: on a multi-source
+        // dive, getGasSwitchesForDive returns every computer's switches on
+        // its own clock, and mixing another computer's timestamps into this
+        // source's schedule can produce a non-monotonic list that
+        // BuhlmannAlgorithm rejects outright (#garmin-cloud-merge-analysis-
+        // blank), silently blanking every decompression/gas overlay.
+        (await repository.getGasSwitchesForDive(diveId))
+            .where(
+              (gs) =>
+                  computerId == null || tankIds.contains(gs.gasSwitch.tankId),
+            )
+            .toList(),
+        tanks: tanks,
+        // A secondary computer's own bucket on a multi-source dive can
+        // start before the merged timeline's zero point (it was switched on
+        // earlier); seed the schedule there instead of a hardcoded 0.
+        startTimestamp: timestamps.isEmpty ? 0 : timestamps.first,
       ),
       DiveMode.ccr => buildCcrProfileGasSegments(
         timestamps: timestamps,
@@ -1147,8 +1184,15 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       rebreatherPpO2: rebreatherPpO2,
     );
 
-    // Publish actual source info for legend badge display
-    ref.read(metricSourceInfoProvider.notifier).state = sourceInfo;
+    // Publish actual source info for legend badge display. Guard with
+    // ref.mounted: this runs right after the compute() isolate call (a real
+    // async gap), and with several per-source analyses now in flight at
+    // once (active source + overlays), this provider instance can have
+    // been disposed by a rebuild before the isolate returns -- using a
+    // disposed Ref throws.
+    if (ref.mounted) {
+      ref.read(metricSourceInfoProvider.notifier).state = sourceInfo;
+    }
 
     // Override o2Exposure with computer-reported CNS start/end
     final withCns = computerCns != null

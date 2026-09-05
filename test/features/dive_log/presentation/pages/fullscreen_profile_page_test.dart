@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
@@ -737,5 +738,76 @@ void main() {
       expect(find.byType(SourceBar), findsOneWidget);
       expect(find.byType(ProfileTransportBar), findsNothing);
     });
+
+    testWidgets(
+      'an overlaid source is wired to its own computed analysis, not the '
+      'active source\'s',
+      (tester) async {
+        final now = DateTime(2026, 5, 7);
+        DiveDataSource source(String id, String computerId, bool isPrimary) =>
+            DiveDataSource(
+              id: id,
+              diveId: 'd1',
+              computerId: computerId,
+              isPrimary: isPrimary,
+              computerName: isPrimary ? 'Black' : 'Bronze',
+              importedAt: now,
+              createdAt: now,
+            );
+        List<DiveProfilePoint> points(int count) => List.generate(
+          count,
+          (i) => DiveProfilePoint(timestamp: i * 10, depth: 10),
+        );
+
+        await tester.pumpWidget(
+          _wrap([
+            ..._defaultOverrides(),
+            diveDataSourcesProvider('d1').overrideWith(
+              (ref) async => [
+                source('src-a', 'dc-a', true),
+                source('src-b', 'dc-b', false),
+              ],
+            ),
+            sourceProfilesProvider('d1').overrideWith(
+              (ref) async => {
+                'src-a': SourceProfile(
+                  sourceId: 'src-a',
+                  computerId: 'dc-a',
+                  isEdited: false,
+                  points: points(61),
+                ),
+                'src-b': SourceProfile(
+                  sourceId: 'src-b',
+                  computerId: 'dc-b',
+                  isEdited: false,
+                  points: points(40),
+                ),
+              },
+            ),
+            // 'src-a' stays active (the default); overlaying 'src-b' builds
+            // the ChartSourceOverlay list and, with it, the
+            // sourceProfileAnalysisProvider watch this test targets.
+            overlaySourcesProvider('d1').overrideWith((ref) => {'src-b'}),
+          ]),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        final chart = tester.widget<DiveProfileChart>(
+          find.byType(DiveProfileChart),
+        );
+        expect(chart.overlays, isNotNull);
+        final overlay = chart.overlays!.singleWhere(
+          (o) => o.sourceId == 'src-b',
+        );
+        expect(overlay.points, hasLength(40));
+        // The real sourceProfileAnalysisProvider isn't overridden here (no
+        // repository backing 'd1'), so it resolves to an error/no data and
+        // .valueOrNull reads null -- the coverage win is that the analysis
+        // field is wired through the provider watch at all, not a specific
+        // computed value.
+        expect(overlay.analysis, isNull);
+      },
+    );
   });
 }

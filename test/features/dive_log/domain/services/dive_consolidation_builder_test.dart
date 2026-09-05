@@ -228,7 +228,7 @@ void main() {
       expect(plan.tankMerges.containsKey('s1'), isFalse);
     });
 
-    test('a null secondary startPressure conservatively blocks the merge', () {
+    test('a null secondary startPressure still merges on gas mix alone', () {
       const primaryTank = DiveTank(
         id: 'p1',
         gasMix: GasMix(o2: 32.0),
@@ -254,7 +254,7 @@ void main() {
         tanks: [secondaryTank],
       );
       final plan = builder.build([primary, secondary]);
-      expect(plan.tankMerges.containsKey('s1'), isFalse);
+      expect(plan.tankMerges, {'s1': 'p1'});
     });
 
     test(

@@ -1928,6 +1928,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       for (final (index, s) in dataSources.indexed) s.id: sourceColorAt(index),
     };
 
+    // Per-computer color, so the Cylinders / Tank Pressures rows can mark
+    // which computer a tank belongs to when two computers logged tanks
+    // sharing the same gas mix (otherwise identical swatches).
+    final computerColorById = <String, Color>{
+      for (final (index, s) in dataSources.indexed)
+        if (s.computerId != null) s.computerId!: sourceColorAt(index),
+    };
+    final tankSourceColors = isMultiSource
+        ? <String, Color>{
+            for (final t in dive.tanks)
+              if (t.computerId != null &&
+                  computerColorById[t.computerId] != null)
+                t.id: computerColorById[t.computerId]!,
+          }
+        : null;
+
     // The chart's main series: the active source's own points on a
     // multi-source dive; dive.profile otherwise (identical for the primary).
     // activeSourceProfileProvider is the one rule for this, shared with the
@@ -2031,6 +2047,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             color: sourceColorById[id] ?? sourceColorAt(0),
             computerId: sourceProfiles[id]!.computerId,
             points: sourceProfiles[id]!.points,
+            // This source's own computed analysis, for overlay curves with
+            // no raw per-point device field (deco stops, and future
+            // metrics) to fall back on. Cached by the (diveId, sourceId)
+            // family key, so toggling the eye icon doesn't re-run Buhlmann.
+            analysis: ref
+                .watch(
+                  sourceProfileAnalysisProvider((
+                    diveId: dive.id,
+                    sourceId: id,
+                  )),
+                )
+                .valueOrNull,
           ),
       ?plannedOverlay,
     ];
@@ -2255,6 +2283,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                             estimatedTankPressures?.pressures ?? tankPressures,
                         estimatedTankIds:
                             estimatedTankPressures?.estimatedTankIds,
+                        tankSourceColors: tankSourceColors,
                         gasSwitches: gasSwitchesAsync.value,
                         gasSegments:
                             (dive.tanks.isEmpty || chartProfile.isEmpty)

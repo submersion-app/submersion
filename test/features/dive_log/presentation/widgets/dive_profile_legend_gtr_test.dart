@@ -26,7 +26,9 @@ Finder _inDialog(Finder matching) =>
 Future<void> _pumpLegend(
   WidgetTester tester, {
   required ProfileLegendConfig config,
-  double width = 1200,
+  // Must fit the 800px test surface: the options button is right-aligned,
+  // so a wider box would push it off-screen and the tap would miss.
+  double width = 600,
 }) async {
   await tester.pumpWidget(
     testApp(
@@ -58,20 +60,27 @@ Future<void> _openDialog(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('offers a GTR toggle only when the dive has GTR data', (
+  // One dialog per test: re-pumping the same app type updates the existing
+  // tree, so an already-open dialog's barrier would swallow the second tap.
+  testWidgets('offers no GTR toggle when the dive has no GTR data', (
     tester,
   ) async {
     await _pumpLegend(
       tester,
       config: const ProfileLegendConfig(hasTtsData: true),
     );
+    await _openDialog(tester);
+    expect(_inDialog(find.text('TTS')), findsOneWidget);
     expect(find.text('GTR'), findsNothing);
+  });
 
+  testWidgets('offers a GTR toggle when the dive has GTR data', (tester) async {
     await _pumpLegend(
       tester,
       config: const ProfileLegendConfig(hasTtsData: true, hasGtrData: true),
     );
-    expect(find.text('GTR'), findsOneWidget);
+    await _openDialog(tester);
+    expect(_inDialog(find.text('GTR')), findsOneWidget);
   });
 
   testWidgets('the options dialog gives GTR a computer/calculated selector', (

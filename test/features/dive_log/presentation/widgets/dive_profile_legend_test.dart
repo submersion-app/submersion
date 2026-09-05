@@ -5,8 +5,8 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 
 import '../../../../helpers/test_app.dart';
@@ -37,11 +37,9 @@ const _testTanks = [
 Finder _inDialog(Finder matching) =>
     find.descendant(of: find.byType(ExpansionTile), matching: matching);
 
-/// Pumps the legend constrained to [width], top-left aligned so the row gets
-/// exactly that much horizontal space.
-Future<void> _pumpLegendAt(
+/// Pumps the legend for [config].
+Future<void> _pumpLegend(
   WidgetTester tester, {
-  required double width,
   required ProfileLegendConfig config,
 }) async {
   await tester.pumpWidget(
@@ -50,18 +48,12 @@ Future<void> _pumpLegendAt(
       overrides: [
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
       ],
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: SizedBox(
-          width: width,
-          child: DiveProfileLegend(
-            config: config,
-            zoomLevel: 1.0,
-            onZoomIn: () {},
-            onZoomOut: () {},
-            onResetZoom: () {},
-          ),
-        ),
+      child: DiveProfileLegend(
+        config: config,
+        zoomLevel: 1.0,
+        onZoomIn: () {},
+        onZoomOut: () {},
+        onResetZoom: () {},
       ),
     ),
   );
@@ -106,61 +98,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('(est.)'), findsWidgets);
-    });
-  });
-
-  group('DiveProfileLegend - primary toggles', () {
-    testWidgets('shows Events toggle when hasEvents is true', (tester) async {
-      await tester.pumpWidget(
-        testApp(
-          locale: const Locale('en'),
-          overrides: [
-            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-          ],
-          child: DiveProfileLegend(
-            config: const ProfileLegendConfig(
-              hasTemperatureData: true,
-              hasEvents: true,
-              hasCeilingCurve: true,
-            ),
-            zoomLevel: 1.0,
-            onZoomIn: () {},
-            onZoomOut: () {},
-            onResetZoom: () {},
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Events should be in the primary legend
-      expect(find.text('Events'), findsOneWidget);
-    });
-
-    testWidgets('shows Ceiling inline when space allows', (tester) async {
-      await tester.pumpWidget(
-        testApp(
-          locale: const Locale('en'),
-          overrides: [
-            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-          ],
-          child: DiveProfileLegend(
-            config: const ProfileLegendConfig(
-              hasCeilingCurve: true,
-              hasEvents: true,
-            ),
-            zoomLevel: 1.0,
-            onZoomIn: () {},
-            onZoomOut: () {},
-            onResetZoom: () {},
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // The adaptive row promotes both active toggles at the 800px default
-      // test width.
-      expect(find.text('Events'), findsOneWidget);
-      expect(find.text('Ceiling'), findsOneWidget);
     });
   });
 
@@ -335,6 +272,52 @@ void main() {
       },
     );
 
+    testWidgets(
+      'Cylinders rows use the same checkbox toggle as every other row and '
+      'flip that tank\'s visibility',
+      (tester) async {
+        await _pumpLegend(
+          tester,
+          config: const ProfileLegendConfig(
+            hasGasSwitches: true,
+            tanks: _testTanks,
+          ),
+        );
+        await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        final label = _inDialog(find.text('D80 (Air)'));
+        expect(label, findsOneWidget);
+        // No static dot/dash legend chrome: the row is a checkbox like the rest.
+        expect(_inDialog(find.byIcon(Icons.circle)), findsNothing);
+        final row = find
+            .ancestor(of: label, matching: find.byType(InkWell))
+            .first;
+        expect(
+          find.descendant(of: row, matching: find.byIcon(Icons.check_box)),
+          findsOneWidget,
+        );
+
+        await tester.tap(label);
+        await tester.pumpAndSettle();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DiveProfileLegend)),
+        );
+        expect(
+          container.read(profileLegendProvider).showTankPressure['tank-1'],
+          isFalse,
+        );
+        expect(
+          find.descendant(
+            of: row,
+            matching: find.byIcon(Icons.check_box_outline_blank),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
     testWidgets('keeps Tank Pressures section for multi-tank pressure dives', (
       tester,
     ) async {
@@ -384,47 +367,45 @@ void main() {
     });
   });
 
-  group('Badge count', () {
-    testWidgets('badge counts active toggles hidden from the inline row', (
+  group('options button', () {
+    testWidgets('shows no active-count badge', (tester) async {
+      // Ceiling and the gas strip are both active by default; the button
+      // must still render as a plain icon with no count bubble.
+      await _pumpLegend(
+        tester,
+        config: const ProfileLegendConfig(
+          hasCeilingCurve: true,
+          hasGasData: true,
+        ),
+      );
+
+      expect(find.byIcon(Icons.tune), findsOneWidget);
+      expect(find.byType(Badge), findsNothing);
+      expect(find.text('2'), findsNothing);
+    });
+
+    testWidgets('sits at the trailing end of the row, after zoom controls', (
       tester,
     ) async {
-      // At 250px nothing fits inline; Ceiling is active by default, so
-      // exactly one active toggle is hidden behind the More button.
-      await _pumpLegendAt(
+      await _pumpLegend(
         tester,
-        width: 250,
         config: const ProfileLegendConfig(hasCeilingCurve: true),
       );
 
-      expect(find.text('Ceiling'), findsNothing);
-      expect(find.text('1'), findsOneWidget);
+      final tuneDx = tester.getCenter(find.byIcon(Icons.tune)).dx;
+      final zoomDx = tester.getCenter(find.byIcon(Icons.add)).dx;
+      expect(tuneDx, greaterThan(zoomDx));
     });
 
-    testWidgets('badge is hidden when every active toggle is inline', (
+    testWidgets('is shown for primary-only toggles such as temperature', (
       tester,
     ) async {
-      await _pumpLegendAt(
+      await _pumpLegend(
         tester,
-        width: 1200,
-        config: const ProfileLegendConfig(hasCeilingCurve: true),
+        config: const ProfileLegendConfig(hasTemperatureData: true),
       );
 
-      expect(find.text('Ceiling'), findsOneWidget);
-      expect(find.text('1'), findsNothing);
-    });
-
-    testWidgets('hidden gas strip toggle counts toward the badge', (
-      tester,
-    ) async {
-      // showGas defaults to true; at 250px it cannot render inline.
-      await _pumpLegendAt(
-        tester,
-        width: 250,
-        config: const ProfileLegendConfig(hasGasData: true),
-      );
-
-      expect(find.text('Gases'), findsNothing);
-      expect(find.text('1'), findsOneWidget);
+      expect(find.byIcon(Icons.tune), findsOneWidget);
     });
   });
 
@@ -586,80 +567,45 @@ void main() {
       expect(_inDialog(find.text('Deco stops')), findsNothing);
     });
 
-    testWidgets('deco stops swatch is a filled block, not a line', (
-      tester,
-    ) async {
+    testWidgets('deco stops shows a checkbox indicator', (tester) async {
       await pumpLegend(
         tester,
         const ProfileLegendConfig(hasDecoStopCurve: true),
       );
 
-      // The band is drawn on the chart as a translucent shaded region, so its
-      // legend swatch must be the taller filled block rather than the 4px line
-      // used for stroked metrics. Locate it by the row containing the label.
-      final swatch = tester.widgetList<Container>(
-        find
-                .ancestor(
-                  of: _inDialog(find.text('Deco stops')),
-                  matching: find.byType(Row),
-                )
-                .first
-                .evaluate()
-                .isEmpty
-            ? find.byType(Container)
-            : find.descendant(
-                of: find
-                    .ancestor(
-                      of: _inDialog(find.text('Deco stops')),
-                      matching: find.byType(Row),
-                    )
-                    .first,
-                matching: find.byType(Container),
-              ),
-      );
-
-      final blocks = swatch.where(
-        (c) => c.constraints?.maxHeight == 12 && c.constraints?.maxWidth == 16,
-      );
+      // Deco stops defaults active.
       expect(
-        blocks,
-        isNotEmpty,
-        reason: 'expected a 16x12 filled swatch block for the deco stop band',
+        find.descendant(
+          of: find
+              .ancestor(
+                of: _inDialog(find.text('Deco stops')),
+                matching: find.byType(Row),
+              )
+              .first,
+          matching: find.byIcon(Icons.check_box),
+        ),
+        findsOneWidget,
       );
-
-      final decoration = blocks.first.decoration! as BoxDecoration;
-      expect(decoration.border, isNotNull);
-      expect(decoration.color!.a, lessThan(1.0));
-      expect(decoration.color!.a, greaterThan(0.0));
     });
 
-    testWidgets('ceiling swatch stays a line while deco stops is a block', (
-      tester,
-    ) async {
+    testWidgets('ceiling shows a checkbox indicator', (tester) async {
       await pumpLegend(
         tester,
         const ProfileLegendConfig(hasCeilingCurve: true),
       );
 
-      final containers = tester
-          .widgetList<Container>(
-            find.descendant(
-              of: find
-                  .ancestor(
-                    of: _inDialog(find.text('Ceiling')),
-                    matching: find.byType(Row),
-                  )
-                  .first,
-              matching: find.byType(Container),
-            ),
-          )
-          .where((c) => c.constraints?.maxWidth == 16);
-
-      expect(containers, isNotEmpty);
+      // Ceiling defaults active.
       expect(
-        containers.first.constraints?.maxHeight,
-        4,
-        reason: 'stroked metrics keep the thin line swatch',
+        find.descendant(
+          of: find
+              .ancestor(
+                of: _inDialog(find.text('Ceiling')),
+                matching: find.byType(Row),
+              )
+              .first,
+          matching: find.byIcon(Icons.check_box),
+        ),
+        findsOneWidget,
       );
     });
   });
@@ -738,157 +684,136 @@ void main() {
     });
   });
 
-  group('adaptive inline row', () {
-    testWidgets('narrow width keeps one line and drops low-priority toggles', (
-      tester,
-    ) async {
-      // Available toggle budget at 400px is roughly
-      // 400 - 128 (zoom) - 4 - 72 (depth) - 32 (more) - 8 (margin) = 156.
-      // Actives admit first: Temp (81) fits, Events (103) does not -> stop.
-      await _pumpLegendAt(
+  group('inline legend', () {
+    testWidgets('lists active metrics with a dash in the line colour and '
+        'no checkbox', (tester) async {
+      // Temperature is on by default; heart rate is off by default.
+      await _pumpLegend(
         tester,
-        width: 400,
         config: const ProfileLegendConfig(
           hasTemperatureData: true,
-          hasEvents: true,
           hasHeartRateData: true,
-          hasSacCurve: true,
         ),
       );
 
       expect(find.text('Temp'), findsOneWidget);
       expect(find.text('Heart Rate'), findsNothing);
-      expect(find.text('Consumption'), findsNothing);
+      expect(find.byIcon(Icons.check_box), findsNothing);
+      expect(find.byIcon(Icons.check_box_outline_blank), findsNothing);
+
+      final dash = tester.widget<Container>(
+        find.descendant(
+          of: find.byType(LegendDash),
+          matching: find.byType(Container),
+        ),
+      );
+      final decoration = dash.decoration! as BoxDecoration;
       expect(
-        tester.getSize(find.byType(DiveProfileLegend)).height,
-        lessThanOrEqualTo(56),
-        reason: 'legend must stay a single line',
+        decoration.color,
+        Theme.of(tester.element(find.text('Temp'))).colorScheme.tertiary,
       );
     });
 
-    testWidgets('wide width fills remaining space with inactive toggles', (
-      tester,
-    ) async {
-      // Heart Rate and Consumption default OFF; at 1200px they are admitted as
-      // inactive fillers after the active toggles.
-      await _pumpLegendAt(
+    testWidgets('never lists depth', (tester) async {
+      await _pumpLegend(
         tester,
-        width: 1200,
-        config: const ProfileLegendConfig(
-          hasTemperatureData: true,
-          hasEvents: true,
-          hasHeartRateData: true,
-          hasSacCurve: true,
-        ),
+        config: const ProfileLegendConfig(hasTemperatureData: true),
       );
 
-      expect(find.text('Heart Rate'), findsOneWidget);
-      expect(find.text('Consumption'), findsOneWidget);
-      expect(
-        tester.getSize(find.byType(DiveProfileLegend)).height,
-        lessThanOrEqualTo(56),
-      );
+      // Depth is the chart itself, not an option, so it gets no legend entry.
+      expect(find.text('Depth'), findsNothing);
     });
 
-    testWidgets('an active low-priority toggle evicts inactive higher ones', (
+    testWidgets('uses a smaller font than the dialog rows', (tester) async {
+      await _pumpLegend(
+        tester,
+        config: const ProfileLegendConfig(hasTemperatureData: true),
+      );
+
+      final inline = tester.widget<Text>(find.text('Temp'));
+      final labelSmall = Theme.of(
+        tester.element(find.text('Temp')),
+      ).textTheme.labelSmall!;
+      expect(inline.style!.fontSize, lessThan(labelSmall.fontSize!));
+    });
+
+    testWidgets('is not clickable: tapping an entry changes nothing', (
       tester,
     ) async {
-      // OTU (priority last) is toggled ON; Heart Rate (priority higher) is
-      // OFF. Budget at 400px is ~156: OTU (33 + 33 + 4 = 70) admits first as
-      // the only active candidate; Heart Rate (147) then no longer fits even
-      // though it would have fit alone (147 < 156).
-      await _pumpLegendAt(
+      await _pumpLegend(
         tester,
-        width: 400,
-        config: const ProfileLegendConfig(
-          hasHeartRateData: true,
-          hasOtuData: true,
-        ),
+        config: const ProfileLegendConfig(hasTemperatureData: true),
       );
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(DiveProfileLegend)),
-      );
-      container.read(profileLegendProvider.notifier).toggleOtu();
+
+      await tester.tap(find.text('Temp'));
       await tester.pumpAndSettle();
-
-      expect(find.text('OTU'), findsOneWidget);
-      expect(find.text('Heart Rate'), findsNothing);
-    });
-
-    testWidgets('visible toggles render in canonical order, not active order', (
-      tester,
-    ) async {
-      await _pumpLegendAt(
-        tester,
-        width: 1200,
-        config: const ProfileLegendConfig(
-          hasTemperatureData: true,
-          hasOtuData: true,
-        ),
-      );
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(DiveProfileLegend)),
-      );
-      container.read(profileLegendProvider.notifier).toggleOtu();
-      await tester.pumpAndSettle();
-
-      // OTU was activated after Temp, but Temp (priority 0) stays left of OTU.
-      expect(
-        tester.getTopLeft(find.text('Temp')).dx,
-        lessThan(tester.getTopLeft(find.text('OTU')).dx),
-      );
-    });
-
-    testWidgets('large text scale admits fewer toggles but keeps one line', (
-      tester,
-    ) async {
-      // At 1x a 550px legend admits Temp and Events; at 2x every label
-      // doubles (Depth reserve 127, Temp 125, Events 169 against a ~171
-      // budget once the 48px zoom tap targets are subtracted), so only
-      // Temp fits.
-      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-
-      await _pumpLegendAt(
-        tester,
-        width: 550,
-        config: const ProfileLegendConfig(
-          hasTemperatureData: true,
-          hasEvents: true,
-        ),
-      );
 
       expect(find.text('Temp'), findsOneWidget);
-      expect(find.text('Events'), findsNothing);
-      expect(
-        tester.getSize(find.byType(DiveProfileLegend)).height,
-        lessThanOrEqualTo(56),
-      );
+      expect(find.byType(ExpansionTile), findsNothing);
     });
 
-    testWidgets('multi-tank dives promote per-tank pressure toggles', (
-      tester,
-    ) async {
-      await _pumpLegendAt(
+    testWidgets('follows toggles made in the dialog', (tester) async {
+      await _pumpLegend(
         tester,
-        width: 1200,
-        config: const ProfileLegendConfig(
-          hasMultiTankPressure: true,
-          tanks: _testTanks,
-          tankPressures: {
-            'tank-1': [
-              TankPressurePoint(tankId: 'tank-1', timestamp: 0, pressure: 200),
-            ],
-            'tank-2': [
-              TankPressurePoint(tankId: 'tank-2', timestamp: 0, pressure: 200),
-            ],
-          },
-        ),
+        config: const ProfileLegendConfig(hasTemperatureData: true),
       );
+      expect(find.text('Temp'), findsOneWidget);
 
-      // Inline row (dialog not open) shows one toggle per tank.
-      expect(find.text('D80 (Air)'), findsOneWidget);
-      expect(find.text('AL80 (EAN50)'), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      await tester.tap(_inDialog(find.text('Temp')));
+      await tester.pumpAndSettle();
+
+      // Only the dialog row remains once the metric is switched off.
+      expect(find.text('Temp'), findsOneWidget);
+      expect(_inDialog(find.text('Temp')), findsOneWidget);
+      expect(find.byType(LegendDash), findsNothing);
     });
+  });
+
+  group('multi-tank pressure toggles', () {
+    testWidgets(
+      'live in the dialog while the visible tanks are listed inline',
+      (tester) async {
+        await _pumpLegend(
+          tester,
+          config: const ProfileLegendConfig(
+            hasMultiTankPressure: true,
+            tanks: _testTanks,
+            tankPressures: {
+              'tank-1': [
+                TankPressurePoint(
+                  tankId: 'tank-1',
+                  timestamp: 0,
+                  pressure: 200,
+                ),
+              ],
+              'tank-2': [
+                TankPressurePoint(
+                  tankId: 'tank-2',
+                  timestamp: 0,
+                  pressure: 200,
+                ),
+              ],
+            },
+          ),
+        );
+
+        expect(find.text('D80 (Air)'), findsOneWidget);
+        expect(find.text('AL80 (EAN50)'), findsOneWidget);
+        expect(find.byIcon(Icons.check_box), findsNothing);
+
+        await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(_inDialog(find.text('D80 (Air)')), findsOneWidget);
+        expect(_inDialog(find.text('AL80 (EAN50)')), findsOneWidget);
+
+        await tester.tap(_inDialog(find.text('AL80 (EAN50)')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(LegendDash), findsOneWidget);
+      },
+    );
   });
 }

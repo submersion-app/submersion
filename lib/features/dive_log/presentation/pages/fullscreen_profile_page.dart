@@ -370,6 +370,14 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
             color: sourceColorById[id] ?? sourceColorAt(0),
             computerId: sourceProfiles[id]!.computerId,
             points: sourceProfiles[id]!.points,
+            analysis: ref
+                .watch(
+                  sourceProfileAnalysisProvider((
+                    diveId: widget.diveId,
+                    sourceId: id,
+                  )),
+                )
+                .valueOrNull,
           ),
     ];
 

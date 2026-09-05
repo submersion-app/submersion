@@ -51,7 +51,7 @@ Widget _buildChartHarness({
 LineChartBarData _ceilingBar(WidgetTester tester) {
   final chart = tester.widget<LineChart>(find.byType(LineChart));
   return chart.data.lineBarsData.firstWhere(
-    (b) => b.color == const Color(0xFFD32F2F) && b.dashArray != null,
+    (b) => b.color == const Color(0xFF7B1FA2) && b.dashArray != null,
   );
 }
 

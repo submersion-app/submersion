@@ -61,7 +61,8 @@ class ProfileMarker {
   /// Get the color for this marker based on type and tank index
   Color getColor({List<Color>? tankColors}) {
     if (type == ProfileMarkerType.maxDepth) {
-      return Colors.red;
+      // Pink 900 - distinct from the heart-rate red curve.
+      return const Color(0xFF880E4F);
     }
 
     // Default tank colors

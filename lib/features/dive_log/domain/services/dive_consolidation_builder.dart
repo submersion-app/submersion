@@ -132,10 +132,14 @@ class DiveConsolidationBuilder {
     final heClose =
         (primary.gasMix.he - secondary.gasMix.he).abs() <= _gasTolerancePct;
     if (!o2Close || !heClose) return false;
-    // Conservative: both pressures must exist on both tanks and agree.
+    // Pressures rarely agree across computers (different logging cadence,
+    // missing air-integration, etc.), so gas mix alone identifies the same
+    // physical tank. When both sides do have pressure, require it to agree
+    // so we don't merge two genuinely different tanks that happen to share
+    // a gas mix (e.g. twin identical cylinders).
     final ps = primary.startPressure, pe = primary.endPressure;
     final ss = secondary.startPressure, se = secondary.endPressure;
-    if (ps == null || pe == null || ss == null || se == null) return false;
+    if (ps == null || pe == null || ss == null || se == null) return true;
     return (ps - ss).abs() <= _pressureToleranceBar &&
         (pe - se).abs() <= _pressureToleranceBar;
   }
