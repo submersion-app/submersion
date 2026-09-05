@@ -27,8 +27,9 @@ manufacturers can read them too.
 ## Scope
 
 - Both UDDF export paths (`UddfExportService`, `UddfFullExportService`), behind
-  an opt-in toggle.
-- The UDDF import path, restoring bytes and the metadata re-parse needs.
+  a toggle that is checked by default in both.
+- The UDDF import path, restoring bytes and the metadata re-parse needs,
+  losslessly, including every source row of a multi-source dive.
 - Compression and base64 encoding per the UDDF specification.
 
 ## Out of Scope
@@ -37,8 +38,8 @@ manufacturers can read them too.
 |---|---|
 | Compressing `raw_data` at rest | #227 owns it. This design consumes its output transparently; see below. |
 | Any other export format (CSV, PDF, KML, DiveCloud) | UDDF is the only one of them with a standard place for a device dump. |
-| Restoring more than one dump per dive | See "The multi-source asymmetry". |
 | A new schema rung | Nothing in this design changes the schema. |
+| Exporting source rows when the toggle is off | The provenance record exists to make the dumps restorable. With no dumps there is nothing to make restorable, and emitting it anyway would change every existing export. |
 | Interpreting dumps written by other applications | We restore their bytes; we do not claim to know their parser. |
 
 ## Background: what the UDDF standard provides
@@ -81,6 +82,23 @@ to travel somewhere, and `<applicationdata><submersion>`, which this exporter
 already writes (`uddf_export_builders.dart:895`), is where Submersion-specific
 data already lives.
 
+The descriptor is only where it starts. A lossless restore needs the whole
+`dive_data_sources` row, for two reasons the standard cannot address:
+
+1. A UDDF `<dive>` carries one set of values, the consolidated ones. The
+   per-source snapshots (`maxDepth`, `avgDepth`, `waterTemp`, `cns`, `otu`,
+   `decoAlgorithm`, the gradient factors, entry and exit times and positions,
+   ascent and descent rates, surface interval) live only in
+   `dive_data_sources`. Restoring bytes without them would restore blobs
+   losslessly and drop everything around them.
+2. A dive can have a source row with no raw bytes at all, next to one that has
+   them. Emitting entries only for rows with dumps would restore such a dive
+   with fewer sources than it had.
+
+So the sidecar is a full per-source provenance record: one entry for **every**
+source row of every exported dive, carrying every column except the blob.
+Rows that have bytes additionally get a `<dcdump>` in the standard section.
+
 ## Document Shape
 
 Both new pieces sit at the end of the document. `<divecomputercontrol>` goes
@@ -91,8 +109,8 @@ last, per the spec, after the existing `<applicationdata>` that
   <applicationdata>
     <submersion version="1.0">
       <!-- existing equipment / trips / courses / etc -->
-      <dcdumpindex>
-        <entry diveref="dive_7f3a..." ordinal="0">
+      <datasources>
+        <source diveref="dive_7f3a..." ordinal="0" hasdump="true">
           <descriptor vendor="Shearwater" product="Perdix" model="5"/>
           <libdivecomputerversion>0.9.0-devel</libdivecomputerversion>
           <sourceuuid>...</sourceuuid>
@@ -100,8 +118,21 @@ last, per the spec, after the existing `<applicationdata>` that
           <primary>true</primary>
           <mergesourceslot>0</mergesourceslot>
           <timeoffsetseconds>0</timeoffsetseconds>
-        </entry>
-      </dcdumpindex>
+          <computermodel>Perdix AI</computermodel>
+          <computerserial>...</computerserial>
+          <sourceformat>...</sourceformat>
+          <sourcefilename>...</sourcefilename>
+          <sourcefileformat>...</sourcefileformat>
+          <importedat>2019-06-02T18:41:07</importedat>
+          <createdat>2019-06-02T18:41:07</createdat>
+          <lastparsedat>2026-03-11T09:02:00</lastparsedat>
+          <!-- per-source snapshot: maxdepth, avgdepth, duration, watertemp,
+               entrytime, exittime, entrylatitude, entrylongitude,
+               exitlatitude, exitlongitude, maxascentrate, maxdescentrate,
+               surfaceinterval, cns, otu, decoalgorithm,
+               gradientfactorlow, gradientfactorhigh -->
+        </source>
+      </datasources>
     </submersion>
   </applicationdata>
 
@@ -124,8 +155,13 @@ comparable to a stored one.
 ### Pairing
 
 `<divecomputerdump>` cannot carry an id, so a sidecar entry cannot point at one
-directly. Dumps are emitted grouped by dive in source order, and each sidecar
-entry addresses one by `(diveref, ordinal)`.
+directly. `<source>` entries are emitted grouped by dive in source-row order
+and numbered from zero within each dive; dumps are emitted in that same order,
+skipping rows with no bytes. A dump therefore pairs with the entry whose
+`(diveref, ordinal)` it matches, and `hasdump` on the entry says whether to
+expect one. An entry claiming a dump that is absent, or a dump with no matching
+entry, is a malformed file: the bytes are still restored where present, and the
+mismatch is counted and reported rather than guessed at.
 
 Every `ref` this design emits points at an id the standard itself declares:
 `dive_<id>` on `<dive>`, and the computer id on `<divecomputer>` under
@@ -161,8 +197,8 @@ per-dive inline one carrying custom fields
 (`uddf_export_service.dart:525`), shaped `<name>Submersion</name>` plus
 `<customfield>`.
 
-So `<dcdumpindex>` is built by a small shared
-`UddfExportBuilders.buildDcDumpIndex(builder, entries)`, called from two
+So `<datasources>` is built by a small shared
+`UddfExportBuilders.buildDataSources(builder, entries)`, called from two
 places:
 
 - The full export calls it from inside the existing `buildApplicationData`,
@@ -174,7 +210,7 @@ places:
   not collide.
 
 The importer therefore has to accept a `<submersion>` block containing nothing
-but a `<dcdumpindex>`, with none of the full export's other payload present.
+but a `<datasources>`, with none of the full export's other payload present.
 
 ### `<datetime>`
 
@@ -206,20 +242,32 @@ to `findAllElements('datetime')`.
 
 A new `UddfExportOptions`, mirroring `PdfExportOptions`
 (`lib/core/constants/pdf_templates.dart:95`): a const class with defaults,
-whose only field for now is `includeRawData`, defaulting to `false`. It threads
-through `ExportService`'s four UDDF entry points as a defaulted named
+whose only field for now is `includeRawData`, defaulting to **`true`**. It
+threads through `ExportService`'s four UDDF entry points as a defaulted named
 parameter, so every existing call site compiles unchanged.
 
-The full-backup UI presents the checkbox pre-checked, the dives-only share
-paths present it unchecked. Same class, different presented default, so the
-safe value stays the code-level default.
+Every UI presents the checkbox pre-checked, in both the full backup and the
+dives-only share paths, and the code-level default matches what the UI shows
+rather than diverging from it. A caller that omits options therefore gets raw
+data, which is the intended behaviour: the export is meant to be complete
+unless the user says otherwise.
+
+The consequence worth stating plainly is that sharing a single dive from the
+dive detail page now carries that dive's raw bytes by default, and costs a
+bzip2 encode on a worker isolate. That is the point of the feature, and the
+checkbox is how a user opts out for a particular share.
 
 ### Fetching
 
-A new value type `DiveRawDump` and one bulk repository method,
-`getRawDumpsForDives(List<String> diveIds)`: a single
-`diveId.isIn(ids) & rawData.isNotNull()` query ordered by dive, then
-`isPrimary`, then `createdAt`.
+A new value type `DiveSourceExport` and one bulk repository method,
+`getSourcesForExport(List<String> diveIds)`: a single `diveId.isIn(ids)` query
+ordered by dive, then `isPrimary`, then `createdAt`.
+
+It returns **every** source row, not only those with bytes, because the
+provenance record has to cover blob-less rows for the restore to be lossless.
+The `rawData` column being null is what sets `hasdump="false"` on that row's
+entry. The ordering is part of the contract, not incidental: it defines the
+ordinals that pair entries with dumps.
 
 **It must be a Drift-typed select, never `customSelect`.** Two independent
 reasons:
@@ -289,11 +337,15 @@ it. Import is a different matter; see below.
 
 ### Parsing
 
-`UddfFullImportService` gains a `<divecomputercontrol>` pass producing, per
-dump: the dive ref, the ordinal, the decoded bytes, and whatever the paired
-`<dcdumpindex>` entry supplies. It stays a pure parser returning maps, matching
-the rest of that file. Dumps whose dive ref resolves to no imported dive are
-dropped.
+`UddfFullImportService` gains two passes: one over `<datasources>` producing a
+source record per `<source>` entry, and one over `<divecomputercontrol>`
+producing decoded bytes per dump. The two are joined on `(diveref, ordinal)`,
+so the parser emits, per dive, an ordered list of source records with bytes
+attached where a dump was present.
+
+It stays a pure parser returning maps, matching the rest of that file. Records
+whose dive ref resolves to no imported dive are dropped, as are dumps with no
+matching entry, both counted.
 
 ### Bounding untrusted input
 
@@ -314,33 +366,52 @@ establishes. There must be exactly one definition of it; see "Relationship to
 
 ### Restore
 
-This lands in a seam that already exists. `uddf_entity_importer.dart:2078`
-builds one `DiveDataSourcesCompanion` per imported dive and writes it through
-`saveComputerReading`. Restoring a dump adds `rawData`, `rawFingerprint`, the
-descriptor triple, `libdivecomputerVersion` and `timeOffsetSeconds` to that
-companion.
+`uddf_entity_importer.dart:2078` currently builds exactly one
+`DiveDataSourcesCompanion` per imported dive, synthesised from the dive's own
+parsed fields, and writes it through `saveComputerReading` with
+`isPrimary: true`. That single-row assumption is what has to change for the
+restore to be lossless.
 
-No new table write, no new repository method, no change to import ordering.
+The rule is deterministic:
 
-### The multi-source asymmetry
+- **A dive with `<source>` entries:** the entries define its source rows
+  completely. One `saveComputerReading` call per entry, populated from the
+  entry rather than from the dive's parsed fields, and the synthesised row is
+  **not** written. This is what restores a two-computer dive as two rows.
+- **A dive with no entries:** unchanged. The synthesised row is written exactly
+  as today, so every existing import path and every foreign UDDF file behaves
+  as it does now.
 
-The exporter writes one dump per source row. The importer writes one source row
-per dive. A dive consolidated from two computers therefore exports two dumps
-and restores one.
+Restoring from the entry rather than synthesising also restores `importedAt`,
+which is user-visible: the data sources panel renders it as "Imported"
+(`data_sources_section.dart:631`). Today a restore relabels a 2019 dive's
+source as imported at the restore moment. Carrying the row means the restored
+library looks like the library that was backed up, which is the same fidelity
+requirement that drives the rest of this section.
 
-The primary source's dump is restored and the rest are dropped, with the count
-of dropped dumps reported in the import result. The exported file stays
-complete, both for other tools and for a future importer that learns to write
-additional rows, so nothing is lost that cannot be recovered later. Only our
-restore is lossy, only for multi-source dives, and visibly so.
+**Exactly one row per dive must be primary.** Entries carry `<primary>`, but a
+hand-edited or malformed file could claim zero or several. The importer takes
+the first entry claiming primary and clears the flag on the rest; if none
+claims it, the first entry is promoted. A dive silently ending up with no
+primary source would break primary-source resolution
+(`dive_repository_impl.dart:5028`) for that dive forever.
 
-Building multi-row restore now means teaching the importer a second write path
-for a case the export already makes recoverable. That is speculative work, and
-the count in the import result is what would justify it with evidence.
+**Computer resolution goes through model and serial, not the dump's link.**
+`computerIdByKey` (`uddf_entity_importer.dart:1343`) is keyed by normalised
+model plus serial via `_importedComputerKey`, not by the exported computer id.
+Each restored source therefore resolves its computer from the
+`computermodel` and `computerserial` it carries, through that same mechanism
+and its existing best-effort failure handling. The `<link ref="computer_...">`
+inside a dump is there for other tools; wiring the restore to it would couple
+the restore to an id space the importer does not use.
+
+This is the one part of the design that is meaningfully more work than the
+first draft, and it is where the implementation plan should expect the most
+care.
 
 ### Importing a foreign file
 
-A spec-shaped `<divecomputerdump>` with no `<dcdumpindex>` restores its bytes
+A spec-shaped `<divecomputerdump>` with no `<datasources>` restores its bytes
 with a null descriptor. Re-parse then reports that source as a failure, which
 it already does for any source missing a descriptor
 (`reparseAllForComputer` returns `succeeded`/`failed`). The bytes are kept
@@ -410,17 +481,20 @@ TDD throughout, per the project's rules.
 **Export**
 
 - A dive with raw data produces one `<divecomputerdump>` carrying the dive link,
-  the computer link, a datetime and a dcdump, plus a paired `<dcdumpindex>`
+  the computer link, a datetime and a dcdump, plus a paired `<datasources>`
   entry with the descriptor triple.
 - With `includeRawData` false, neither `<divecomputercontrol>` nor
-  `<dcdumpindex>` appears at all, and the raw-dump query is never issued.
+  `<datasources>` appears at all, and the raw-dump query is never issued.
 - A dump that fails to compress is skipped and counted; its siblings still
   export and the document is still valid.
 - A dive with two source rows carrying bytes exports two dumps with ordinals 0
   and 1, both paired. This is the test that fails if the query is ever routed
   through `_canonicalDataSourceRows`.
+- A dive with two source rows where only one has bytes exports two `<source>`
+  entries, one `hasdump="true"` and one `hasdump="false"`, and one dump. This
+  is what makes a mixed multi-source dive restore losslessly.
 - A dives-only export emits the dive link and **no** computer link, since that
-  path declares no `<divecomputer>`, and hosts its `<dcdumpindex>` in a
+  path declares no `<divecomputer>`, and hosts its `<datasources>` in a
   top-level `<applicationdata><submersion>` alongside the untouched per-dive
   inline `<applicationdata>` custom-field elements. A full export of the same
   dive emits both links. This pins the no-dangling-ref invariant in the path
@@ -429,7 +503,7 @@ TDD throughout, per the project's rules.
 **The load-bearing test**
 
 Write a download through the repository, read it back through
-`getRawDumpsForDives`, and assert the bytes are byte-identical to what went in.
+`getSourcesForExport`, and assert the bytes are byte-identical to what went in.
 Under #227 this fails loudly if anyone converts that query to `customSelect`
 for speed. It is the only thing standing between a plausible refactor and a
 corrupted backup.
@@ -439,14 +513,28 @@ corrupted backup.
 - Full round trip: export a logbook with raw data, import it, assert the
   restored source row's bytes and descriptor triple are byte-identical, and
   that `ReparseService` can consume the restored row.
-- A spec-shaped dump with no `<dcdumpindex>` restores bytes with a null
+- **The lossless test.** A dive with two source rows, only one carrying bytes,
+  round-trips to two source rows: same count, same order, same `isPrimary`,
+  same `mergeSourceSlot`, same per-source metrics, same `importedAt`, and the
+  bytes on the row that had them. This is the assertion the whole multi-source
+  design exists to satisfy.
+- A dive with entries restores no synthesised row, so it ends up with exactly
+  as many sources as it was exported with and no phantom extra.
+- A file claiming two primary sources, and a file claiming none, both restore a
+  dive with exactly one primary.
+- Each restored source resolves its computer from its own model and serial, so
+  a two-computer dive restores two rows attributed to two different registered
+  computers.
+- A spec-shaped dump with no `<datasources>` restores bytes with a null
   descriptor, and re-parse reports the failure rather than crashing.
-- A `<submersion>` block containing nothing but a `<dcdumpindex>` imports
+- A `<submersion>` block containing nothing but a `<datasources>` imports
   cleanly, which is what a dives-only export produces.
 - A document whose dive datetime and dump datetime differ imports the dive at
   its own time. This pins the section scoping described under `<datetime>`.
-- A dive whose export carried two dumps restores one and reports one dropped.
 - An oversized dump is refused without taking the import down.
+- An entry claiming `hasdump="true"` whose dump is absent restores the row
+  without bytes and reports the mismatch, rather than pairing with the next
+  dump along.
 
 ## Files Touched
 
@@ -454,17 +542,17 @@ corrupted backup.
 |---|---|
 | `lib/core/services/export/uddf/uddf_dump_codec.dart` | New. bzip2 + base64, the isolate hop, the bounded output stream. |
 | `lib/core/services/export/models/uddf_export_options.dart` | New. `includeRawData`. |
-| `lib/core/services/export/uddf/uddf_export_builders.dart` | `buildDiveComputerControl`; shared `buildDcDumpIndex`, called from `buildApplicationData`. |
-| `lib/core/services/export/uddf/uddf_export_service.dart` | Accept options; emit `<divecomputercontrol>` and a top-level `<applicationdata><submersion>` wrapper for the index. |
+| `lib/core/services/export/uddf/uddf_export_builders.dart` | `buildDiveComputerControl`; shared `buildDataSources`, called from `buildApplicationData`. |
+| `lib/core/services/export/uddf/uddf_export_service.dart` | Accept options; emit `<divecomputercontrol>` and a top-level `<applicationdata><submersion>` wrapper for the source records. |
 | `lib/core/services/export/uddf/uddf_full_export_service.dart` | Same. |
 | `lib/core/services/export/export_service.dart` | Thread options through four entry points. |
-| `lib/core/services/export/uddf/uddf_full_import_service.dart` | Parse `<divecomputercontrol>` and `<dcdumpindex>`. |
-| `lib/features/dive_import/data/services/uddf_entity_importer.dart` | Extend the existing provenance companion. |
-| `lib/features/dive_log/data/repositories/dive_repository_impl.dart` | `getRawDumpsForDives`. |
-| `lib/features/dive_log/domain/entities/dive_raw_dump.dart` | New value type. |
-| `lib/features/settings/presentation/providers/export_providers.dart` | Fetch dumps when enabled; carry counts into export state. |
+| `lib/core/services/export/uddf/uddf_full_import_service.dart` | Parse `<divecomputercontrol>` and `<datasources>`. |
+| `lib/features/dive_import/data/services/uddf_entity_importer.dart` | Replace the single synthesised provenance row with one row per `<source>` entry when entries exist; primary-flag normalisation; per-source computer resolution. |
+| `lib/features/dive_log/data/repositories/dive_repository_impl.dart` | `getSourcesForExport`. |
+| `lib/features/dive_log/domain/entities/dive_source_export.dart` | New value type. |
+| `lib/features/settings/presentation/providers/export_providers.dart` | Fetch sources when enabled; carry counts into export state. |
 | UI: settings export, dive detail, dive list, buddy detail, transfer page | The toggle. |
-| `lib/l10n/arb/app_en.arb` and every other locale | Toggle label, help text, skipped/dropped counts. |
+| `lib/l10n/arb/app_en.arb` and every other locale | Toggle label, help text, and the counts of dumps skipped on export or unpaired on import. |
 
 New user-facing strings mean ARB work across all locales, and the generated
 l10n must be regenerated and committed or CI's staleness gate fails.
