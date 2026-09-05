@@ -47,7 +47,7 @@ without any group membership or `usermod` step.
 
 #### **Debian / Ubuntu / Mint**
 
-Download `Submersion-<version>-Linux-amd64.deb` from the
+Download `Submersion-v<version>-Linux-amd64.deb` from the
 [beta releases](https://github.com/submersion-app/beta-builds/releases):
 
 ```bash
@@ -56,7 +56,7 @@ sudo apt install ./Submersion-*-Linux-amd64.deb
 
 #### **Fedora / RHEL**
 
-Download `Submersion-<version>-Linux-x86_64.rpm` from the
+Download `Submersion-v<version>-Linux-x86_64.rpm` from the
 [beta releases](https://github.com/submersion-app/beta-builds/releases):
 
 ```bash

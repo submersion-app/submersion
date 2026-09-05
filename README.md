@@ -350,7 +350,7 @@ The built app will be at `build\windows\x64\runner\Release\`.
 
 **Debian, Ubuntu, Mint, and derivatives**
 
-Download `Submersion-<version>-Linux-amd64.deb` from
+Download `Submersion-v<version>-Linux-amd64.deb` from
 [beta releases](https://github.com/submersion-app/beta-builds/releases), then:
 
 ```bash
@@ -359,7 +359,7 @@ sudo apt install ./Submersion-*-Linux-amd64.deb
 
 **Fedora and RHEL**
 
-Download `Submersion-<version>-Linux-x86_64.rpm` from the
+Download `Submersion-v<version>-Linux-x86_64.rpm` from the
 [beta releases](https://github.com/submersion-app/beta-builds/releases), then:
 
 ```bash
@@ -381,7 +381,7 @@ packages recommend but do not require.
 
 **Everything else (Arch, NixOS, and anyone who prefers not to install packages)**
 
-Download `Submersion-<version>-Linux.tar.gz`, unpack it, and run the included
+Download `Submersion-v<version>-Linux.tar.gz`, unpack it, and run the included
 installer:
 
 ```bash
