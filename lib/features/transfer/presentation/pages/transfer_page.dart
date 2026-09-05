@@ -334,17 +334,19 @@ class _ExportSectionContent extends ConsumerWidget {
                   title: Text(context.l10n.transfer_export_uddfTitle),
                   subtitle: Text(context.l10n.transfer_export_uddfSubtitle),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showExportOptions(
-                    context,
-                    ref,
-                    title: context.l10n.transfer_export_uddfTitle,
-                    offerRawData: true,
-                    shareAction: (options) => ref
-                        .read(exportNotifierProvider.notifier)
-                        .exportDivesToUddf(options),
-                    saveAction: (options) => ref
-                        .read(exportNotifierProvider.notifier)
-                        .saveUddfToFile(options),
+                  onTap: () => unawaited(
+                    _showExportOptions(
+                      context,
+                      ref,
+                      title: context.l10n.transfer_export_uddfTitle,
+                      offerRawData: true,
+                      shareAction: (options) => ref
+                          .read(exportNotifierProvider.notifier)
+                          .exportDivesToUddf(options),
+                      saveAction: (options) => ref
+                          .read(exportNotifierProvider.notifier)
+                          .saveUddfToFile(options),
+                    ),
                   ),
                 ),
                 const Divider(height: 1),
@@ -372,16 +374,18 @@ class _ExportSectionContent extends ConsumerWidget {
                   title: Text(context.l10n.transfer_export_excelTitle),
                   subtitle: Text(context.l10n.transfer_export_excelSubtitle),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showExportOptions(
-                    context,
-                    ref,
-                    title: context.l10n.transfer_export_excelTitle,
-                    shareAction: (_) => ref
-                        .read(exportNotifierProvider.notifier)
-                        .exportToExcel(),
-                    saveAction: (_) => ref
-                        .read(exportNotifierProvider.notifier)
-                        .saveExcelToFile(),
+                  onTap: () => unawaited(
+                    _showExportOptions(
+                      context,
+                      ref,
+                      title: context.l10n.transfer_export_excelTitle,
+                      shareAction: (_) => ref
+                          .read(exportNotifierProvider.notifier)
+                          .exportToExcel(),
+                      saveAction: (_) => ref
+                          .read(exportNotifierProvider.notifier)
+                          .saveExcelToFile(),
+                    ),
                   ),
                 ),
                 const Divider(height: 1),
@@ -392,16 +396,18 @@ class _ExportSectionContent extends ConsumerWidget {
                     context.l10n.transfer_export_maintenanceSubtitle,
                   ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showExportOptions(
-                    context,
-                    ref,
-                    title: context.l10n.transfer_export_maintenanceTitle,
-                    shareAction: (_) => ref
-                        .read(exportNotifierProvider.notifier)
-                        .exportMaintenanceLog(),
-                    saveAction: (_) => ref
-                        .read(exportNotifierProvider.notifier)
-                        .saveMaintenanceLogToFile(),
+                  onTap: () => unawaited(
+                    _showExportOptions(
+                      context,
+                      ref,
+                      title: context.l10n.transfer_export_maintenanceTitle,
+                      shareAction: (_) => ref
+                          .read(exportNotifierProvider.notifier)
+                          .exportMaintenanceLog(),
+                      saveAction: (_) => ref
+                          .read(exportNotifierProvider.notifier)
+                          .saveMaintenanceLogToFile(),
+                    ),
                   ),
                 ),
                 const Divider(height: 1),
@@ -410,15 +416,18 @@ class _ExportSectionContent extends ConsumerWidget {
                   title: Text(context.l10n.transfer_export_kmlTitle),
                   subtitle: Text(context.l10n.transfer_export_kmlSubtitle),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showExportOptions(
-                    context,
-                    ref,
-                    title: context.l10n.transfer_export_kmlTitle,
-                    shareAction: (_) =>
-                        ref.read(exportNotifierProvider.notifier).exportToKml(),
-                    saveAction: (_) => ref
-                        .read(exportNotifierProvider.notifier)
-                        .saveKmlToFile(),
+                  onTap: () => unawaited(
+                    _showExportOptions(
+                      context,
+                      ref,
+                      title: context.l10n.transfer_export_kmlTitle,
+                      shareAction: (_) => ref
+                          .read(exportNotifierProvider.notifier)
+                          .exportToKml(),
+                      saveAction: (_) => ref
+                          .read(exportNotifierProvider.notifier)
+                          .saveKmlToFile(),
+                    ),
                   ),
                 ),
               ],
@@ -448,7 +457,7 @@ class _ExportSectionContent extends ConsumerWidget {
     if (options == null || !context.mounted) return;
 
     // Now show share/save options
-    _showExportOptions(
+    await _showExportOptions(
       context,
       ref,
       title: context.l10n.transfer_export_pdfTitle,
@@ -467,7 +476,7 @@ class _ExportSectionContent extends ConsumerWidget {
     final notifier = ref.read(exportNotifierProvider.notifier);
     switch (type) {
       case CsvExportType.dives:
-        _showExportOptions(
+        await _showExportOptions(
           context,
           ref,
           title: context.l10n.transfer_csvExport_optionDivesTitle,
@@ -475,7 +484,7 @@ class _ExportSectionContent extends ConsumerWidget {
           saveAction: (_) => notifier.saveDivesCsvToFile(),
         );
       case CsvExportType.sites:
-        _showExportOptions(
+        await _showExportOptions(
           context,
           ref,
           title: context.l10n.transfer_csvExport_optionSitesTitle,
@@ -483,7 +492,7 @@ class _ExportSectionContent extends ConsumerWidget {
           saveAction: (_) => notifier.saveSitesCsvToFile(),
         );
       case CsvExportType.equipment:
-        _showExportOptions(
+        await _showExportOptions(
           context,
           ref,
           title: context.l10n.transfer_csvExport_optionEquipmentTitle,

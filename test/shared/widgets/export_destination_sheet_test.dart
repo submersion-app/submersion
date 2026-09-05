@@ -11,6 +11,11 @@ Future<ValueGetter<Object?>> _pumpSheetHost(WidgetTester tester) async {
   Object? result = #pending;
   await tester.pumpWidget(
     MaterialApp(
+      // Pinned: without this the app resolves against the HOST machine's
+      // locales, and it supports 11 of them, so the English assertions below
+      // fail for a contributor whose machine is de, fr, es or zh. CI is en_US,
+      // so that failure would never show up here.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -41,6 +46,11 @@ Future<ValueGetter<Object?>> _pumpOptionsHost(
   Object? result = #pending;
   await tester.pumpWidget(
     MaterialApp(
+      // Pinned: without this the app resolves against the HOST machine's
+      // locales, and it supports 11 of them, so the English assertions below
+      // fail for a contributor whose machine is de, fr, es or zh. CI is en_US,
+      // so that failure would never show up here.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
