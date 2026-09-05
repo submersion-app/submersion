@@ -13,6 +13,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not open your browser. Use Copy link and paste the address into your browser.';
 
   @override
+  String equipment_documents_removeError(String error) {
+    return 'Could not remove the document: $error';
+  }
+
+  @override
   String get settings_oauth_connect_copyFailed => 'Could not copy the link.';
 
   @override
@@ -24625,6 +24630,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_product_url => 'Web link';
 
   @override
+  String get attrLabel_sleeve_length => 'Sleeves';
+
+  @override
+  String get attrLabel_upf_rating => 'UPF rating';
+
+  @override
+  String get attrLabel_snorkel_type => 'Type';
+
+  @override
+  String get attrLabel_purge_valve => 'Purge valve';
+
+  @override
+  String get attrLabel_instrument_type => 'Instrument';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'Gauge range';
+
+  @override
+  String get attrLabel_compass_type => 'Type';
+
+  @override
+  String get attrLabel_balance_zone => 'Balance zone';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'Tilt tolerance (°)';
+
+  @override
+  String get attrLabel_tool_type => 'Tool type';
+
+  @override
   String get attrChoice_unit_type_eccr => 'Electronic CCR (eCCR)';
 
   @override
@@ -24853,10 +24888,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'Five-finger';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'Three-finger';
+
+  @override
   String get attrChoice_glove_type_mitt => 'Mitt';
 
   @override
   String get attrChoice_glove_type_dry => 'Dry';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'Dry glove liner';
+
+  @override
+  String get attrChoice_glove_type_utility => 'Utility';
 
   @override
   String get attrChoice_sole_type_hard => 'Hard sole';
@@ -24887,6 +24931,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'Brushed';
+
+  @override
+  String get attrChoice_sleeve_length_short => 'Short';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'Long';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'Sleeveless';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'Classic';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'Semi-dry';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'Dry';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'Foldable';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'Pressure gauge (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'Depth gauge';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'Bottom timer';
+
+  @override
+  String get attrChoice_instrument_type_console => 'Console';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'Gas analyzer';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'Thermometer';
+
+  @override
+  String get attrChoice_compass_type_analog => 'Analog';
+
+  @override
+  String get attrChoice_compass_type_digital => 'Digital';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'Northern hemisphere';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'Southern hemisphere';
+
+  @override
+  String get attrChoice_balance_zone_global => 'Global';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'Hand tool';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'O-ring kit';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'Save-a-dive kit';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'Torque wrench';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'Spares kit';
 
   @override
   String get equipment_edit_customFieldsTitle => 'Custom fields';
@@ -32621,11 +32734,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String equipment_documents_loadError(String error) {
     return 'Could not load documents: $error';
-  }
-
-  @override
-  String equipment_documents_removeError(String error) {
-    return 'Could not remove the document: $error';
   }
 
   @override

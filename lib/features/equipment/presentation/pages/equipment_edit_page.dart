@@ -574,8 +574,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               onPressed: _selectPurchaseDate,
               icon: const Icon(Icons.calendar_today),
               label: Text(
+                // #1512: hand-rolled M/D/YYYY ignored the diver's preference,
+                // which the detail page for the same field already honours.
                 _purchaseDate != null
-                    ? '${_purchaseDate!.month}/${_purchaseDate!.day}/${_purchaseDate!.year}'
+                    ? UnitFormatter(
+                        ref.watch(settingsProvider),
+                      ).formatDate(_purchaseDate)
                     : context.l10n.equipment_edit_selectDate,
               ),
               style: OutlinedButton.styleFrom(

@@ -162,17 +162,22 @@ class EquipmentDocumentsSection extends ConsumerWidget {
     );
     if (confirmed != true || !context.mounted) return;
 
-    // Captured before the await: the snackbar and its error colour must not
-    // reach for a BuildContext across the async gap.
+    // Captured before the await so no BuildContext is dereferenced across the
+    // async gap -- and then checked for mounted before showing, because that
+    // capture does not make the ScaffoldMessengerState itself safe to use:
+    // showSnackBar builds its AnimationController with `vsync: this`, so
+    // firing it at a state disposed during the unlink throws.
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final errorColor = Theme.of(context).colorScheme.error;
     try {
       await unlinkEquipmentMedia(ref, equipmentId, [item.id]);
+      if (!context.mounted) return;
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.equipment_documents_removed)),
       );
     } catch (e) {
+      if (!context.mounted) return;
       messenger.showSnackBar(
         SnackBar(
           content: Text(l10n.equipment_documents_removeError('$e')),

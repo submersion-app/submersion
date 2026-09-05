@@ -13,6 +13,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر فتح المتصفح. استخدم نسخ الرابط والصق العنوان في متصفحك.';
 
   @override
+  String equipment_documents_removeError(String error) {
+    return 'تعذرت إزالة المستند: $error';
+  }
+
+  @override
   String get settings_oauth_connect_copyFailed => 'تعذر نسخ الرابط.';
 
   @override
@@ -24591,6 +24596,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_product_url => 'رابط الويب';
 
   @override
+  String get attrLabel_sleeve_length => 'الأكمام';
+
+  @override
+  String get attrLabel_upf_rating => 'تصنيف UPF';
+
+  @override
+  String get attrLabel_snorkel_type => 'النوع';
+
+  @override
+  String get attrLabel_purge_valve => 'صمام التفريغ';
+
+  @override
+  String get attrLabel_instrument_type => 'الجهاز';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'نطاق المقياس';
+
+  @override
+  String get attrLabel_compass_type => 'النوع';
+
+  @override
+  String get attrLabel_balance_zone => 'منطقة الاتزان';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'تحمل الميل (°)';
+
+  @override
+  String get attrLabel_tool_type => 'نوع الأداة';
+
+  @override
   String get attrChoice_unit_type_eccr => 'CCR إلكتروني (eCCR)';
 
   @override
@@ -24819,10 +24854,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'خمسة أصابع';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'ثلاثة أصابع';
+
+  @override
   String get attrChoice_glove_type_mitt => 'قفاز كفي';
 
   @override
   String get attrChoice_glove_type_dry => 'جاف';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'بطانة قفاز جاف';
+
+  @override
+  String get attrChoice_glove_type_utility => 'عمل';
 
   @override
   String get attrChoice_sole_type_hard => 'نعل صلب';
@@ -24853,6 +24897,75 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'بفرشات';
+
+  @override
+  String get attrChoice_sleeve_length_short => 'قصيرة';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'طويلة';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'بدون أكمام';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'كلاسيكي';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'شبه جاف';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'جاف';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'قابل للطي';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'مقياس الضغط (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'مقياس العمق';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'مؤقت القاع';
+
+  @override
+  String get attrChoice_instrument_type_console => 'كونسول';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'محلل الغاز';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'مقياس الحرارة';
+
+  @override
+  String get attrChoice_compass_type_analog => 'تناظري';
+
+  @override
+  String get attrChoice_compass_type_digital => 'رقمي';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'نصف الكرة الشمالي';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'نصف الكرة الجنوبي';
+
+  @override
+  String get attrChoice_balance_zone_global => 'عالمي';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'أداة يدوية';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'طقم حلقات مطاطية';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'طقم إنقاذ الغوصة';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'مفتاح عزم';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'طقم قطع غيار';
 
   @override
   String get equipment_edit_customFieldsTitle => 'حقول مخصصة';
@@ -32661,11 +32774,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String equipment_documents_loadError(String error) {
     return 'تعذر تحميل المستندات: $error';
-  }
-
-  @override
-  String equipment_documents_removeError(String error) {
-    return 'تعذرت إزالة المستند: $error';
   }
 
   @override

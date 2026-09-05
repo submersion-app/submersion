@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.da
 import 'package:submersion/features/pre_dive/domain/services/checklist_session_engine.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/session_item_tile.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Runs (or, once locked, displays) a pre-dive checklist session. Every tap
@@ -295,7 +297,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
               child: Text(
                 '${l10n.preDive_runner_locked} - '
                 '${_statusLabel(context, session.status)}'
-                '${session.completedAt == null ? '' : ' - ${MaterialLocalizations.of(context).formatMediumDate(session.completedAt!)}'}',
+                '${session.completedAt == null ? '' : ' - ${UnitFormatter(ref.watch(settingsProvider)).formatDate(session.completedAt)}'}',
                 style: theme.textTheme.bodyMedium,
               ),
             ),

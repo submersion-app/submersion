@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Could not open your browser. Use Copy link and paste the address into your browser.'**
   String get settings_oauth_connect_browserFailed;
 
+  /// No description provided for @equipment_documents_removeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not remove the document: {error}'**
+  String equipment_documents_removeError(String error);
+
   /// No description provided for @settings_oauth_connect_copyFailed.
   ///
   /// In en, this message translates to:
@@ -41271,6 +41277,66 @@ abstract class AppLocalizations {
   /// **'Web link'**
   String get attrLabel_product_url;
 
+  /// No description provided for @attrLabel_sleeve_length.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleeves'**
+  String get attrLabel_sleeve_length;
+
+  /// No description provided for @attrLabel_upf_rating.
+  ///
+  /// In en, this message translates to:
+  /// **'UPF rating'**
+  String get attrLabel_upf_rating;
+
+  /// No description provided for @attrLabel_snorkel_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get attrLabel_snorkel_type;
+
+  /// No description provided for @attrLabel_purge_valve.
+  ///
+  /// In en, this message translates to:
+  /// **'Purge valve'**
+  String get attrLabel_purge_valve;
+
+  /// No description provided for @attrLabel_instrument_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument'**
+  String get attrLabel_instrument_type;
+
+  /// No description provided for @attrLabel_gauge_max_pressure_bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Gauge range'**
+  String get attrLabel_gauge_max_pressure_bar;
+
+  /// No description provided for @attrLabel_compass_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get attrLabel_compass_type;
+
+  /// No description provided for @attrLabel_balance_zone.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance zone'**
+  String get attrLabel_balance_zone;
+
+  /// No description provided for @attrLabel_tilt_tolerance_deg.
+  ///
+  /// In en, this message translates to:
+  /// **'Tilt tolerance (°)'**
+  String get attrLabel_tilt_tolerance_deg;
+
+  /// No description provided for @attrLabel_tool_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool type'**
+  String get attrLabel_tool_type;
+
   /// No description provided for @attrChoice_unit_type_eccr.
   ///
   /// In en, this message translates to:
@@ -41727,6 +41793,12 @@ abstract class AppLocalizations {
   /// **'Five-finger'**
   String get attrChoice_glove_type_five_finger;
 
+  /// No description provided for @attrChoice_glove_type_three_finger.
+  ///
+  /// In en, this message translates to:
+  /// **'Three-finger'**
+  String get attrChoice_glove_type_three_finger;
+
   /// No description provided for @attrChoice_glove_type_mitt.
   ///
   /// In en, this message translates to:
@@ -41738,6 +41810,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dry'**
   String get attrChoice_glove_type_dry;
+
+  /// No description provided for @attrChoice_glove_type_dry_liner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry glove liner'**
+  String get attrChoice_glove_type_dry_liner;
+
+  /// No description provided for @attrChoice_glove_type_utility.
+  ///
+  /// In en, this message translates to:
+  /// **'Utility'**
+  String get attrChoice_glove_type_utility;
 
   /// No description provided for @attrChoice_sole_type_hard.
   ///
@@ -41798,6 +41882,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Brushed'**
   String get attrChoice_motor_type_brushed;
+
+  /// No description provided for @attrChoice_sleeve_length_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Short'**
+  String get attrChoice_sleeve_length_short;
+
+  /// No description provided for @attrChoice_sleeve_length_long.
+  ///
+  /// In en, this message translates to:
+  /// **'Long'**
+  String get attrChoice_sleeve_length_long;
+
+  /// No description provided for @attrChoice_sleeve_length_sleeveless.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleeveless'**
+  String get attrChoice_sleeve_length_sleeveless;
+
+  /// No description provided for @attrChoice_snorkel_type_classic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get attrChoice_snorkel_type_classic;
+
+  /// No description provided for @attrChoice_snorkel_type_semi_dry.
+  ///
+  /// In en, this message translates to:
+  /// **'Semi-dry'**
+  String get attrChoice_snorkel_type_semi_dry;
+
+  /// No description provided for @attrChoice_snorkel_type_dry.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry'**
+  String get attrChoice_snorkel_type_dry;
+
+  /// No description provided for @attrChoice_snorkel_type_foldable.
+  ///
+  /// In en, this message translates to:
+  /// **'Foldable'**
+  String get attrChoice_snorkel_type_foldable;
+
+  /// No description provided for @attrChoice_instrument_type_spg.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure gauge (SPG)'**
+  String get attrChoice_instrument_type_spg;
+
+  /// No description provided for @attrChoice_instrument_type_depth_gauge.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth gauge'**
+  String get attrChoice_instrument_type_depth_gauge;
+
+  /// No description provided for @attrChoice_instrument_type_bottom_timer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom timer'**
+  String get attrChoice_instrument_type_bottom_timer;
+
+  /// No description provided for @attrChoice_instrument_type_console.
+  ///
+  /// In en, this message translates to:
+  /// **'Console'**
+  String get attrChoice_instrument_type_console;
+
+  /// No description provided for @attrChoice_instrument_type_gas_analyzer.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas analyzer'**
+  String get attrChoice_instrument_type_gas_analyzer;
+
+  /// No description provided for @attrChoice_instrument_type_thermometer.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermometer'**
+  String get attrChoice_instrument_type_thermometer;
+
+  /// No description provided for @attrChoice_compass_type_analog.
+  ///
+  /// In en, this message translates to:
+  /// **'Analog'**
+  String get attrChoice_compass_type_analog;
+
+  /// No description provided for @attrChoice_compass_type_digital.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital'**
+  String get attrChoice_compass_type_digital;
+
+  /// No description provided for @attrChoice_balance_zone_northern.
+  ///
+  /// In en, this message translates to:
+  /// **'Northern hemisphere'**
+  String get attrChoice_balance_zone_northern;
+
+  /// No description provided for @attrChoice_balance_zone_southern.
+  ///
+  /// In en, this message translates to:
+  /// **'Southern hemisphere'**
+  String get attrChoice_balance_zone_southern;
+
+  /// No description provided for @attrChoice_balance_zone_global.
+  ///
+  /// In en, this message translates to:
+  /// **'Global'**
+  String get attrChoice_balance_zone_global;
+
+  /// No description provided for @attrChoice_tool_type_hand_tool.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand tool'**
+  String get attrChoice_tool_type_hand_tool;
+
+  /// No description provided for @attrChoice_tool_type_o_ring_kit.
+  ///
+  /// In en, this message translates to:
+  /// **'O-ring kit'**
+  String get attrChoice_tool_type_o_ring_kit;
+
+  /// No description provided for @attrChoice_tool_type_save_a_dive_kit.
+  ///
+  /// In en, this message translates to:
+  /// **'Save-a-dive kit'**
+  String get attrChoice_tool_type_save_a_dive_kit;
+
+  /// No description provided for @attrChoice_tool_type_torque_wrench.
+  ///
+  /// In en, this message translates to:
+  /// **'Torque wrench'**
+  String get attrChoice_tool_type_torque_wrench;
+
+  /// No description provided for @attrChoice_tool_type_spares_kit.
+  ///
+  /// In en, this message translates to:
+  /// **'Spares kit'**
+  String get attrChoice_tool_type_spares_kit;
 
   /// No description provided for @equipment_edit_customFieldsTitle.
   ///
@@ -54895,12 +55117,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load documents: {error}'**
   String equipment_documents_loadError(String error);
-
-  /// No description provided for @equipment_documents_removeError.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not remove the document: {error}'**
-  String equipment_documents_removeError(String error);
 
   /// No description provided for @common_action_unpin.
   ///

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -127,7 +130,7 @@ Future<void> showScheduleOverrideDialog(
   );
 }
 
-class _ScheduleOverrideDialog extends StatefulWidget {
+class _ScheduleOverrideDialog extends ConsumerStatefulWidget {
   final ServiceSchedule schedule;
   final ServiceKind kind;
   final WidgetRef ref;
@@ -139,11 +142,12 @@ class _ScheduleOverrideDialog extends StatefulWidget {
   });
 
   @override
-  State<_ScheduleOverrideDialog> createState() =>
+  ConsumerState<_ScheduleOverrideDialog> createState() =>
       _ScheduleOverrideDialogState();
 }
 
-class _ScheduleOverrideDialogState extends State<_ScheduleOverrideDialog> {
+class _ScheduleOverrideDialogState
+    extends ConsumerState<_ScheduleOverrideDialog> {
   late final TextEditingController _days;
   late final TextEditingController _dives;
   late final TextEditingController _hours;
@@ -322,9 +326,9 @@ class _ScheduleOverrideDialogState extends State<_ScheduleOverrideDialog> {
                     child: Text(
                       _anchorDate == null
                           ? '-'
-                          : MaterialLocalizations.of(
-                              context,
-                            ).formatShortDate(_anchorDate!),
+                          : UnitFormatter(
+                              ref.watch(settingsProvider),
+                            ).formatDate(_anchorDate),
                     ),
                   ),
                 ),

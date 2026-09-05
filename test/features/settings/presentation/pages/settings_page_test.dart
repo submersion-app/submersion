@@ -959,6 +959,7 @@ void main() {
       String? channel,
       Map<String, Object> extraPrefs = const {},
       UpdateStatus? status,
+      AppSettings settings = const AppSettings(),
     }) async {
       SharedPreferences.setMockInitialValues({
         'auto_update_enabled': false,
@@ -971,7 +972,7 @@ void main() {
       return [
         sharedPreferencesProvider.overrideWithValue(aboutPrefs),
         logFileServiceProvider.overrideWithValue(logFileService),
-        settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+        settingsProvider.overrideWith((ref) => _MockSettingsNotifier(settings)),
         currentDiverIdProvider.overrideWith(
           (ref) => _MockCurrentDiverIdNotifier(),
         ),
@@ -1138,13 +1139,20 @@ void main() {
       expect(find.text('Error: offline'), findsOneWidget);
     });
 
-    testWidgets('a recorded last-check time is formatted, not Never', (
+    // #1512: this stamp was hand-rolled as M/D/YYYY on a 24-hour clock, so it
+    // ignored both the date and the time preference. It now goes through
+    // UnitFormatter like every other displayed date.
+    testWidgets('a recorded last-check time follows the diver preferences', (
       tester,
     ) async {
       final lastCheck = DateTime(2026, 7, 4, 9, 5);
       await tester.pumpWidget(
         buildAboutWidget(
           await aboutOverrides(
+            settings: const AppSettings(
+              dateFormat: DateFormatPreference.ddmmyyyy,
+              timeFormat: TimeFormat.twentyFourHour,
+            ),
             extraPrefs: {
               'auto_update_last_check': lastCheck.millisecondsSinceEpoch,
             },
@@ -1154,8 +1162,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 6));
       await tester.scrollUntilVisible(find.text('Last checked'), 100);
-      expect(find.text('7/4/2026 09:05'), findsOneWidget);
+      expect(find.text('04/07/2026 at 09:05'), findsOneWidget);
       expect(find.text('Never'), findsNothing);
+      // The old hand-rolled shape, which no preference could ever produce.
+      expect(find.text('7/4/2026 09:05'), findsNothing);
     });
 
     testWidgets('version row shows a beta badge on the beta channel', (

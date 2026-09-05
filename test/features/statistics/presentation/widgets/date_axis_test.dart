@@ -1,7 +1,31 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/statistics/presentation/widgets/date_axis.dart';
 
 void main() {
+  // The axis formats its labels with intl, which resolves against
+  // Intl.defaultLocale, a process global that app.dart sets from the app
+  // locale. This file is a pure unit test with no MaterialApp to pin it, so
+  // the "8/10 '24" assertions would ride on intl's implicit en_US fallback and
+  // could render non-Latin numerals on a host whose global says otherwise.
+  // Pin it, and restore it so the global stays contained.
+  //
+  // Setting the global explicitly means intl stops using its built-in fallback
+  // and demands real symbol data, so the locale must be initialized first.
+  late String? previousLocale;
+
+  // Symbol data does not depend on per-test state, so load it once.
+  setUpAll(() => initializeDateFormatting('en'));
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   test('bounds are the range endpoints as epoch milliseconds', () {
     final first = DateTime.utc(2024, 1, 1);
     final last = DateTime.utc(2024, 12, 31);
@@ -231,6 +255,27 @@ void main() {
 
       final labels = drawn(axis);
       expect(labels.length, labels.toSet().length, reason: '$labels');
+    });
+
+    // #1512: the day label first derived its order from `isDayFirst`, which is
+    // true for the ISO preference as well, so an ISO diver read a day-first
+    // "8/10" and the dotted preference lost its dots.
+    test('day granularity labels follow the diver date preference', () {
+      String firstDayLabel(DateFormatPreference format) {
+        final axis = DateAxis.forRange(
+          DateTime.utc(2024, 8, 10),
+          DateTime.utc(2024, 8, 24),
+          dateFormat: format,
+        );
+        expect(axis.granularity, DateAxisGranularity.day);
+        return drawn(axis).first;
+      }
+
+      expect(firstDayLabel(DateFormatPreference.mmddyyyy), "8/10 '24");
+      expect(firstDayLabel(DateFormatPreference.ddmmyyyy), "10/8 '24");
+      // ISO reads month before day, and with a dash.
+      expect(firstDayLabel(DateFormatPreference.yyyymmdd), "8-10 '24");
+      expect(firstDayLabel(DateFormatPreference.ddmmyyyyDots), "10.8 '24");
     });
 
     test('year granularity stays a plain four-digit year', () {

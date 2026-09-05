@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_maintenance_progress_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -20,8 +21,9 @@ Future<void> showAdoptReplacedLibraryDialog(
 ) async {
   final l10n = context.l10n;
   final date = marker.replacedAt > 0
-      ? DateFormat.yMMMd().add_jm().format(
+      ? UnitFormatter(ref.read(settingsProvider)).formatDateTime(
           DateTime.fromMillisecondsSinceEpoch(marker.replacedAt),
+          l10n: l10n,
         )
       : '?';
   final confirmed = await showDialog<bool>(

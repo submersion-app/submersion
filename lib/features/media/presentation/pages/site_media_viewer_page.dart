@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Which list of site-related media backs the viewer's pager.
@@ -408,15 +409,14 @@ class _TopOverlay extends StatelessWidget {
 }
 
 /// Bottom overlay showing capture time and caption for the current item.
-class _BottomMetadataOverlay extends StatelessWidget {
+class _BottomMetadataOverlay extends ConsumerWidget {
   final MediaItem item;
 
   const _BottomMetadataOverlay({required this.item});
 
   @override
-  Widget build(BuildContext context) {
-    final timeFormat = DateFormat.jm();
-    final dateFormat = DateFormat.yMMMd();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Positioned(
       bottom: 0,
@@ -452,7 +452,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                   const SizedBox(height: 8),
                 ],
                 Text(
-                  '${dateFormat.format(item.takenAt)} at ${timeFormat.format(item.takenAt)}',
+                  units.formatDateTime(item.takenAt, l10n: context.l10n),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 14,

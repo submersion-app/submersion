@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/services/sync/sync_device_footprint.dart';
 import 'package:submersion/core/utils/byte_format.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_device_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_maintenance_progress_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -182,7 +183,9 @@ class _DeviceTile extends ConsumerWidget {
                 : l10n.settings_syncDevices_tile_filesSizeSeen(
                     device.fileCount,
                     size,
-                    DateFormat.yMMMd().add_jm().format(when.toLocal()),
+                    UnitFormatter(
+                      ref.watch(settingsProvider),
+                    ).formatDateTime(when.toLocal(), l10n: context.l10n),
                   ),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,

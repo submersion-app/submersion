@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -63,6 +63,7 @@ class GaugeStrip extends ConsumerWidget {
     Set<String> hidden,
   ) {
     final l10n = context.l10n;
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final chips = <_Chip>[];
 
     // Gear, insurance and the flight window are hardened: an alert-tone chip
@@ -171,9 +172,7 @@ class GaugeStrip extends ConsumerWidget {
             context,
             icon: Icons.health_and_safety_outlined,
             label: l10n.dashboard_gauges_insuranceExpires(
-              DateFormat.yMMMd(
-                Localizations.localeOf(context).toString(),
-              ).format(policy.expiryDate!),
+              units.formatDate(policy.expiryDate),
             ),
             tone: _Tone.warn,
             onTap: () => context.push('/settings/diver-profile/insurance'),

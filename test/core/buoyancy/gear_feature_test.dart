@@ -246,6 +246,38 @@ void main() {
         ).priorKg,
         closeTo(0.06 * 5 * 0.5, 0.001),
       );
+      expect(
+        acc(
+          EquipmentType.gloves,
+          traits: const GearBuoyancyTraits(
+            primaryThicknessMm: 5,
+            gloveType: 'three_finger',
+          ),
+        ).priorKg,
+        closeTo(0.06 * 5 * 1.1, 0.001),
+      );
+      // A dry glove liner and a utility glove are not compressible neoprene,
+      // so they carry far less buoyancy than a wet glove of the same build.
+      expect(
+        acc(
+          EquipmentType.gloves,
+          traits: const GearBuoyancyTraits(
+            primaryThicknessMm: 5,
+            gloveType: 'dry_liner',
+          ),
+        ).priorKg,
+        closeTo(0.06 * 5 * 0.3, 0.001),
+      );
+      expect(
+        acc(
+          EquipmentType.gloves,
+          traits: const GearBuoyancyTraits(
+            primaryThicknessMm: 5,
+            gloveType: 'utility',
+          ),
+        ).priorKg,
+        closeTo(0.06 * 5 * 0.3, 0.001),
+      );
       // No thickness -> old flat defaults, weak.
       final flat = acc(
         EquipmentType.gloves,

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -1514,8 +1513,6 @@ class _BottomMetadataOverlay extends StatelessWidget {
         item.enrichment?.isWithinDiveWindow(profileLengthSeconds) ?? false;
     final enrichment = positioned ? item.enrichment : null;
     final formatter = UnitFormatter(settings);
-    final timeFormat = DateFormat.jm();
-    final dateFormat = DateFormat.yMMMd();
 
     return Positioned(
       bottom: 0,
@@ -1619,7 +1616,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      '${dateFormat.format(item.takenAt)} at ${timeFormat.format(item.takenAt)}',
+                      formatter.formatDateTime(item.takenAt, l10n: l10n),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 14,

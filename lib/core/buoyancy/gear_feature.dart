@@ -220,9 +220,15 @@ class GearFeature extends Equatable {
     _ => 1.0,
   };
 
+  // Relative to a five-finger wet glove of the same thickness. Coverage
+  // drives the wet variants; the dry, liner and utility styles are not
+  // closed-cell neoprene, so they displace far less for the same build.
   static double _gloveTypeFactor(String? gloveType) => switch (gloveType) {
+    'three_finger' => 1.1,
     'mitt' => 1.15,
     'dry' => 0.5,
+    'dry_liner' => 0.3,
+    'utility' => 0.3,
     _ => 1.0,
   };
 

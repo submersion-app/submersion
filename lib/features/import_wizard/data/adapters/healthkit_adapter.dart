@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -320,15 +319,12 @@ class HealthKitAdapter implements ImportSourceAdapter {
     return 0;
   }
 
-  static final _dateFormatter = DateFormat('MMM d, yyyy');
-  static final _timeFormatter = DateFormat('h:mm a');
-
   EntityItem _diveToEntityItem(ImportedDive dive) {
-    final dateStr = _dateFormatter.format(dive.startTime);
-    final timeStr = _timeFormatter.format(dive.startTime);
-    final title = '$dateStr \u2014 $timeStr';
-
     final units = UnitFormatter(_settings);
+
+    final dateStr = units.formatDate(dive.startTime);
+    final timeStr = units.formatTime(dive.startTime);
+    final title = '$dateStr \u2014 $timeStr';
     final durationMin = dive.duration.inMinutes;
     final tempStr = dive.minTemperature != null
         ? ' \u00b7 ${units.formatTemperature(dive.minTemperature!, decimals: 1)}'

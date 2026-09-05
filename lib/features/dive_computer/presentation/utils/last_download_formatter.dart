@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:intl/intl.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Localized relative "last download" label for a dive computer (#152).
@@ -8,7 +8,14 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// no [BuildContext] and therefore structurally could not localize -- it
 /// leaked hardcoded English (and a fixed M/D/Y date) into the Transfer,
 /// device list, and device detail screens on every locale.
-String formatLastDownload(BuildContext context, DateTime? lastDownload) {
+///
+/// [units] carries the diver's date preference, so downloads older than a week
+/// render in the shape chosen under Manage > Units rather than the locale's.
+String formatLastDownload(
+  BuildContext context,
+  DateTime? lastDownload, {
+  required UnitFormatter units,
+}) {
   final l10n = context.l10n;
   if (lastDownload == null) return l10n.transfer_computers_lastDownloadNever;
 
@@ -29,8 +36,7 @@ String formatLastDownload(BuildContext context, DateTime? lastDownload) {
     return l10n.transfer_computers_lastDownloadDaysAgo(diff.inDays);
   }
 
-  // Older downloads: a locale-appropriate numeric date instead of the old
+  // Older downloads: the diver's preferred date shape instead of the old
   // hardcoded month/day/year.
-  final locale = Localizations.localeOf(context).toString();
-  return DateFormat.yMd(locale).format(lastDownload);
+  return units.formatDate(lastDownload);
 }

@@ -13,6 +13,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 
   @override
+  String equipment_documents_removeError(String error) {
+    return 'לא ניתן להסיר את המסמך: $error';
+  }
+
+  @override
   String get settings_oauth_connect_copyFailed => 'לא ניתן להעתיק את הקישור.';
 
   @override
@@ -24423,6 +24428,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_product_url => 'קישור אינטרנט';
 
   @override
+  String get attrLabel_sleeve_length => 'שרוולים';
+
+  @override
+  String get attrLabel_upf_rating => 'דירוג UPF';
+
+  @override
+  String get attrLabel_snorkel_type => 'סוג';
+
+  @override
+  String get attrLabel_purge_valve => 'שסתום ניקוז';
+
+  @override
+  String get attrLabel_instrument_type => 'מכשיר';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'טווח המד';
+
+  @override
+  String get attrLabel_compass_type => 'סוג';
+
+  @override
+  String get attrLabel_balance_zone => 'אזור איזון';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'סבילות הטיה (°)';
+
+  @override
+  String get attrLabel_tool_type => 'סוג הכלי';
+
+  @override
   String get attrChoice_unit_type_eccr => 'CCR אלקטרוני (eCCR)';
 
   @override
@@ -24651,10 +24686,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'חמש אצבעות';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'שלוש אצבעות';
+
+  @override
   String get attrChoice_glove_type_mitt => 'כפפת אגרוף';
 
   @override
   String get attrChoice_glove_type_dry => 'יבש';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'בטנה לכפפה יבשה';
+
+  @override
+  String get attrChoice_glove_type_utility => 'עבודה';
 
   @override
   String get attrChoice_sole_type_hard => 'סוליה קשה';
@@ -24685,6 +24729,75 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'עם מברשות';
+
+  @override
+  String get attrChoice_sleeve_length_short => 'קצרים';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'ארוכים';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'ללא שרוולים';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'קלאסי';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'חצי יבש';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'יבש';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'מתקפל';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'מד לחץ (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'מד עומק';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'שעון תחתית';
+
+  @override
+  String get attrChoice_instrument_type_console => 'קונסולה';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'מנתח גזים';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'מדחום';
+
+  @override
+  String get attrChoice_compass_type_analog => 'אנלוגי';
+
+  @override
+  String get attrChoice_compass_type_digital => 'דיגיטלי';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'חצי הכדור הצפוני';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'חצי הכדור הדרומי';
+
+  @override
+  String get attrChoice_balance_zone_global => 'גלובלי';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'כלי יד';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'ערכת אטמים';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'ערכת חילוץ צלילה';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'מפתח מומנט';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'ערכת חלפים';
 
   @override
   String get equipment_edit_customFieldsTitle => 'שדות מותאמים אישית';
@@ -32416,11 +32529,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String equipment_documents_loadError(String error) {
     return 'לא ניתן לטעון את המסמכים: $error';
-  }
-
-  @override
-  String equipment_documents_removeError(String error) {
-    return 'לא ניתן להסיר את המסמך: $error';
   }
 
   @override

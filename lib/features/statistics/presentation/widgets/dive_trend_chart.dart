@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
@@ -46,10 +47,16 @@ class DiveTrendChart extends StatefulWidget {
     this.yAxisFormatter,
     this.chartId,
     this.onDiveSelected,
+    this.dateFormat = DateFormatPreference.mmmDYYYY,
   });
 
   /// Raw per-dive points, in any order. Never pre-aggregated by the caller.
   final List<TrendDataPoint> points;
+
+  /// The diver's date order, threaded in by the caller rather than read from
+  /// the ambient locale, so the axis and the tooltip match Manage - Units
+  /// (#1512).
+  final DateFormatPreference dateFormat;
 
   final TrendAggregation aggregation;
   final bool showRollingMean;
@@ -332,6 +339,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     final dateAxis = DateAxis.forRange(
       DateTime.fromMillisecondsSinceEpoch(visibleMin.toInt(), isUtc: true),
       DateTime.fromMillisecondsSinceEpoch(visibleMax.toInt(), isUtc: true),
+      dateFormat: widget.dateFormat,
     );
 
     // The fits can run outside the bucket range, so the axis has to see them.
@@ -608,7 +616,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
             for (var i = 0; i < touchedSpots.length; i++)
               if (i == 0)
                 LineTooltipItem(
-                  DateFormat.yMMMd().format(date),
+                  DateFormat(widget.dateFormat.pattern).format(date),
                   style,
                   children: [
                     for (final spot in touchedSpots)

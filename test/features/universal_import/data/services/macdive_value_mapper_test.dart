@@ -160,6 +160,22 @@ void main() {
       'Thermal underwear': EquipmentType.baselayer,
       'Thermals': EquipmentType.baselayer,
       'Wicking base layer': EquipmentType.baselayer,
+      // #1518 types. MacDive's field is free text, so these are the words
+      // real libraries actually contain.
+      'Rash Guard': EquipmentType.rashGuard,
+      'Rashguard': EquipmentType.rashGuard,
+      'Rash vest': EquipmentType.rashGuard,
+      'Rashie': EquipmentType.rashGuard,
+      'Lycra top': EquipmentType.rashGuard,
+      'Snorkel': EquipmentType.snorkel,
+      'Compass': EquipmentType.compass,
+      'SPG': EquipmentType.instrument,
+      'Depth Gauge': EquipmentType.instrument,
+      'Bottom Timer': EquipmentType.instrument,
+      'O2 Analyzer': EquipmentType.instrument,
+      'Save-a-dive kit': EquipmentType.tool,
+      'Torque wrench': EquipmentType.tool,
+      'O-ring kit': EquipmentType.tool,
     };
 
     cases.forEach((input, expected) {
@@ -172,6 +188,61 @@ void main() {
       expect(
         MacDiveValueMapper.equipmentType('  WETSUIT  '),
         EquipmentType.wetsuit,
+      );
+    });
+
+    test('a console computer stays a computer', () {
+      // The instrument family matches "console", so it has to be tried after
+      // the computer check or every console-mounted computer would import as
+      // a gauge.
+      expect(
+        MacDiveValueMapper.equipmentType('Console Computer'),
+        EquipmentType.computer,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Compass console'),
+        EquipmentType.compass,
+      );
+    });
+
+    test('an accessory word outranks "lycra" (#1518)', () {
+      // Same trap main hit twice with "thermal": a fabric word sitting above
+      // the accessory checks steals real product names. Lycra hoods and
+      // gloves exist, so the rule waits below them.
+      expect(
+        MacDiveValueMapper.equipmentType('Lycra hood'),
+        EquipmentType.hood,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Lycra gloves'),
+        EquipmentType.gloves,
+      );
+      // A garment nothing else claims still reaches it.
+      expect(
+        MacDiveValueMapper.equipmentType('Lycra top'),
+        EquipmentType.rashGuard,
+      );
+    });
+
+    test('"trash" does not read as a rash guard', () {
+      // "rash" is a substring of "trash", and a mesh trash bag is ordinary
+      // kit on a cleanup dive, so the rule spells the garment out.
+      expect(
+        MacDiveValueMapper.equipmentType('Trash bag'),
+        EquipmentType.other,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Trash collection hook'),
+        EquipmentType.other,
+      );
+    });
+
+    test('a rash guard beats the suit checks on its own words', () {
+      // "skin suit" carries the word "suit" but neither suit check matches
+      // it, so it must not fall through to Other.
+      expect(
+        MacDiveValueMapper.equipmentType('Skin suit'),
+        EquipmentType.rashGuard,
       );
     });
 

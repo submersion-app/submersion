@@ -613,10 +613,10 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-'
-        '${date.day.toString().padLeft(2, '0')}';
-  }
+  // Shown to the diver, so it follows Manage - Units rather than a fixed
+  // ISO stamp (#1512).
+  String _formatDate(DateTime date) =>
+      UnitFormatter(ref.watch(settingsProvider)).formatDate(date);
 
   Future<void> _confirmDeleteRegion(
     BuildContext context,

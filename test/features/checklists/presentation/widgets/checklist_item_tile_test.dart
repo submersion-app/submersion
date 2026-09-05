@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_item_tile.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 TripChecklistItem _item({
@@ -22,6 +24,14 @@ TripChecklistItem _item({
   updatedAt: DateTime(2026),
 );
 
+// The tile watches settingsProvider for the diver's date format. The real
+// notifier reaches for DiverSettingsRepository and a DatabaseService this
+// harness never starts, and its constructor load is unlistened, so a failure
+// would escape to the zone and fail whichever test is running at the time.
+List<dynamic> _settingsOverrides() => [
+  settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+];
+
 void main() {
   testWidgets('tapping the checkbox invokes onToggle with the new value', (
     tester,
@@ -29,6 +39,7 @@ void main() {
     bool? toggledTo;
     await tester.pumpWidget(
       testApp(
+        overrides: _settingsOverrides(),
         child: ChecklistItemTile(
           item: _item(),
           showOverdue: true,
@@ -48,6 +59,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       testApp(
+        overrides: _settingsOverrides(),
         child: ChecklistItemTile(
           item: _item(isDone: true),
           showOverdue: true,
@@ -63,6 +75,7 @@ void main() {
   testWidgets('shows notes as a subtitle when present', (tester) async {
     await tester.pumpWidget(
       testApp(
+        overrides: _settingsOverrides(),
         child: ChecklistItemTile(
           item: _item(notes: 'bring backup mask'),
           showOverdue: true,
@@ -77,6 +90,7 @@ void main() {
   testWidgets('omits the subtitle when notes are empty', (tester) async {
     await tester.pumpWidget(
       testApp(
+        overrides: _settingsOverrides(),
         child: ChecklistItemTile(
           item: _item(),
           showOverdue: true,
@@ -95,6 +109,7 @@ void main() {
     var edited = false;
     await tester.pumpWidget(
       testApp(
+        overrides: _settingsOverrides(),
         child: ChecklistItemTile(
           item: _item(),
           showOverdue: true,
@@ -119,6 +134,7 @@ void main() {
     var deleted = false;
     await tester.pumpWidget(
       testApp(
+        overrides: _settingsOverrides(),
         child: ChecklistItemTile(
           item: _item(),
           showOverdue: true,
@@ -142,6 +158,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       testApp(
+        overrides: _settingsOverrides(),
         child: ChecklistItemTile(
           item: _item(
             dueDate: DateTime.now().subtract(const Duration(days: 3)),
@@ -160,6 +177,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       testApp(
+        overrides: _settingsOverrides(),
         child: ChecklistItemTile(
           item: _item(dueDate: DateTime(2026, 8, 1)),
           showOverdue: false,

@@ -3253,11 +3253,12 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
       ),
     };
 
+    // #1512: this stamp was hand-rolled as M/D/YYYY with a 24-hour clock, so
+    // it ignored both the date and the time preference.
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final lastCheck = prefs.lastCheckTime;
     final lastCheckText = lastCheck != null
-        ? '${lastCheck.month}/${lastCheck.day}/${lastCheck.year} '
-              '${lastCheck.hour.toString().padLeft(2, '0')}:'
-              '${lastCheck.minute.toString().padLeft(2, '0')}'
+        ? units.formatDateTime(lastCheck, l10n: context.l10n)
         : context.l10n.settings_updates_never;
 
     return Card(

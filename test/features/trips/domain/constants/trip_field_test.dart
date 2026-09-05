@@ -1,15 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart' show DateFormat;
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 void main() {
+  // These assertions are formatted by intl, which resolves against
+  // Intl.defaultLocale: a process global that app.dart sets from the app
+  // locale. There is no MaterialApp here to pin it, so without this the
+  // spelled months and the digits would ride on intl's implicit en_US
+  // fallback. Pin it, and restore it so the global stays contained.
+  //
+  // Setting the global explicitly means intl stops using its built-in fallback
+  // and demands real symbol data, so the locale must be initialized first.
+  late String? previousLocale;
+
+  // Symbol data does not depend on per-test state, so load it once.
+  setUpAll(() => initializeDateFormatting('en'));
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   // A UnitFormatter backed by metric default settings.
   const units = UnitFormatter(AppSettings());
+
+  // A diver who picked DD/MM/YYYY in Manage - Units (#1512).
+  const dayFirstUnits = UnitFormatter(
+    AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
+  );
 
   // A representative TripWithStats entity for adapter tests.
   final testTrip = Trip(
@@ -210,7 +237,6 @@ void main() {
 
   group('TripFieldAdapter.formatValue', () {
     final adapter = TripFieldAdapter.instance;
-    final dateFormat = DateFormat.yMMMd();
 
     test('returns -- for null value', () {
       expect(
@@ -226,19 +252,30 @@ void main() {
       );
     });
 
-    test('formats startDate with DateFormat.yMMMd()', () {
+    // #1512: the trip list read 'Jun 1, 2024' whatever the diver picked,
+    // because the adapter formatted dates from a fixed pattern instead of
+    // the UnitFormatter it is already handed.
+    test('formats startDate with the diver date format', () {
       final date = DateTime(2024, 6, 1);
       expect(
         adapter.formatValue(TripField.startDate, date, units),
-        equals(dateFormat.format(date)),
+        equals(units.formatDate(date)),
+      );
+      expect(
+        adapter.formatValue(TripField.startDate, date, dayFirstUnits),
+        equals('01/06/2024'),
       );
     });
 
-    test('formats endDate with DateFormat.yMMMd()', () {
+    test('formats endDate with the diver date format', () {
       final date = DateTime(2024, 6, 8);
       expect(
         adapter.formatValue(TripField.endDate, date, units),
-        equals(dateFormat.format(date)),
+        equals(units.formatDate(date)),
+      );
+      expect(
+        adapter.formatValue(TripField.endDate, date, dayFirstUnits),
+        equals('08/06/2024'),
       );
     });
 

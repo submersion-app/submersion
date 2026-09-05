@@ -1,13 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart' show DateFormat;
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
+  // These assertions are formatted by intl, which resolves against
+  // Intl.defaultLocale: a process global that app.dart sets from the app
+  // locale. There is no MaterialApp here to pin it, so without this the
+  // spelled months and the digits would ride on intl's implicit en_US
+  // fallback. Pin it, and restore it so the global stays contained.
+  //
+  // Setting the global explicitly means intl stops using its built-in fallback
+  // and demands real symbol data, so the locale must be initialized first.
+  late String? previousLocale;
+
+  // Symbol data does not depend on per-test state, so load it once.
+  setUpAll(() => initializeDateFormatting('en'));
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   // A UnitFormatter backed by metric default settings.
   const units = UnitFormatter(AppSettings());
 
@@ -27,8 +49,10 @@ void main() {
     updatedAt: DateTime(2023, 6, 15),
   );
 
-  // DateFormat used by the adapter for formatting dates.
-  final dateFormat = DateFormat.yMMMd();
+  // A diver who picked DD/MM/YYYY in Manage - Units (#1512).
+  const dayFirstUnits = UnitFormatter(
+    AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
+  );
 
   group('CertificationFieldAdapter.allFields', () {
     test('has expected count matching CertificationField.values', () {
@@ -357,19 +381,30 @@ void main() {
       );
     });
 
-    test('formats issue date using DateFormat.yMMMd()', () {
+    // #1512: the certification list read 'Jun 15, 2023' whatever the diver
+    // picked, because the adapter formatted dates from a fixed pattern
+    // instead of the UnitFormatter it is already handed.
+    test('formats issue date using the diver date format', () {
       final date = DateTime(2023, 6, 15);
       expect(
         adapter.formatValue(CertificationField.issueDate, date, units),
-        equals(dateFormat.format(date)),
+        equals(units.formatDate(date)),
+      );
+      expect(
+        adapter.formatValue(CertificationField.issueDate, date, dayFirstUnits),
+        equals('15/06/2023'),
       );
     });
 
-    test('formats expiry date using DateFormat.yMMMd()', () {
+    test('formats expiry date using the diver date format', () {
       final date = DateTime(2026, 6, 15);
       expect(
         adapter.formatValue(CertificationField.expiryDate, date, units),
-        equals(dateFormat.format(date)),
+        equals(units.formatDate(date)),
+      );
+      expect(
+        adapter.formatValue(CertificationField.expiryDate, date, dayFirstUnits),
+        equals('15/06/2026'),
       );
     });
 

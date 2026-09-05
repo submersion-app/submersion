@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
@@ -11,9 +10,11 @@ import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_stor
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart'
     show StoragePlatformCapabilities, storagePlatformCapabilitiesProvider;
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -1488,7 +1489,9 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
     } else if (difference.inDays < 7) {
       return l10n.settings_cloudSync_time_daysAgo(difference.inDays);
     } else {
-      return DateFormat.yMMMd().format(dateTime);
+      // watch, not read: both callers render this into the widget tree, so a
+      // preference change while the page is open must repaint it.
+      return UnitFormatter(ref.watch(settingsProvider)).formatDate(dateTime);
     }
   }
 }

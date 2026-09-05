@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/services/garmin_connect/garmin_dive_mapper.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-
-final _dateFormatter = DateFormat('MMM d, yyyy');
-final _timeFormatter = DateFormat('h:mm a');
 
 /// Builds the same title/subtitle text shown for a Garmin dive both in the
 /// fetch step's inline selection list and in the shared Review step, so the
@@ -17,10 +13,10 @@ final _timeFormatter = DateFormat('h:mm a');
 ) {
   final dive = parsed.dive;
   final localStart = dive.startTime.toLocal();
-  final title =
-      '${_dateFormatter.format(localStart)} — ${_timeFormatter.format(localStart)}';
-
   final units = UnitFormatter(settings);
+  final title =
+      '${units.formatDate(localStart)} — ${units.formatTime(localStart)}';
+
   final durationMin = dive.duration.inMinutes;
   final tempStr = dive.minTemperature != null
       ? ' · ${units.formatTemperature(dive.minTemperature!, decimals: 1)}'

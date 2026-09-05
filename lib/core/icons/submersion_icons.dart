@@ -10,8 +10,8 @@ import 'package:flutter/widgets.dart';
 /// a reel, a kick scooter for a DPV. Issue #1189 reported the result as icons
 /// that "don't really fit the equipment".
 ///
-/// These ten are drawn in `tool/equipment_glyphs.py` and compiled into
-/// `assets/fonts/submersion-equipment.ttf` by
+/// The constants below are drawn in `tool/equipment_glyphs.py` and compiled
+/// into `assets/fonts/submersion-equipment.ttf` by
 /// `tool/build_equipment_icon_font.py`. Regenerate with:
 ///
 /// ```sh

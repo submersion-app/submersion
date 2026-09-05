@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The repair audit trail (Media section Phase 5).
@@ -46,9 +47,7 @@ class MediaRepairHistoryView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = ref.watch(repairHistoryProvider).value ?? const [];
-    final format = DateFormat.yMMMd(
-      Localizations.localeOf(context).toString(),
-    ).add_jm();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.media_repairHistory_title)),
@@ -72,7 +71,7 @@ class MediaRepairHistoryView extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        '${format.format(entry.occurredAt)} '
+                        '${units.formatDateTime(entry.occurredAt, l10n: context.l10n)} '
                         '${context.l10n.media_repairHistory_source(_sourceLabel(context, entry.source))}',
                         style: subtitleStyle,
                       ),

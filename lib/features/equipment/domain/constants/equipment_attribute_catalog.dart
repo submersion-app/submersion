@@ -139,6 +139,15 @@ abstract final class EquipmentAttributeCatalog {
     dimension: AttributeDimension.thicknessMm,
   );
 
+  /// How a wrist-or-console device is carried. Shared by the dive computer,
+  /// the instrument family and the compass: one key, one set of translations,
+  /// no chance of the three drifting apart per locale.
+  static const _mount = EquipmentAttributeDef(
+    key: 'mount',
+    kind: AttributeKind.choice,
+    choiceKeys: ['wrist', 'console', 'hud'],
+  );
+
   /// How warm the garment is, in the four steps drysuit makers actually
   /// print on a label. Undergarments are sold by warmth rating rather than by
   /// millimetres, so [EquipmentAttrKeys.thicknessMm] would be the wrong
@@ -195,6 +204,20 @@ abstract final class EquipmentAttributeCatalog {
     ],
     EquipmentType.undersuit: [_size, _insulationLevel, _fillMaterial],
     EquipmentType.baselayer: [_size, _insulationLevel, _fillMaterial],
+    // Warmth is deliberately absent: that is what `baselayer` is for, and a
+    // second way to say "this one is warm" is how two keys for one idea drift
+    // apart per locale. A rash guard is the sun-and-abrasion garment.
+    EquipmentType.rashGuard: [
+      _size,
+      EquipmentAttributeDef(
+        key: 'sleeve_length',
+        kind: AttributeKind.choice,
+        choiceKeys: ['short', 'long', 'sleeveless'],
+      ),
+      // The rating printed on the garment (UPF 50+ is the common ceiling).
+      // Dimensionless: a UPF number is a ratio, not a measurement.
+      EquipmentAttributeDef(key: 'upf_rating', kind: AttributeKind.number),
+    ],
     EquipmentType.tank: [
       EquipmentAttributeDef(
         key: 'volume_l',
@@ -306,16 +329,63 @@ abstract final class EquipmentAttributeCatalog {
       ),
     ],
     EquipmentType.computer: [
-      EquipmentAttributeDef(
-        key: 'mount',
-        kind: AttributeKind.choice,
-        choiceKeys: ['wrist', 'console', 'hud'],
-      ),
+      _mount,
       EquipmentAttributeDef(
         key: 'connectivity',
         kind: AttributeKind.choice,
         choiceKeys: ['ble', 'usb', 'infrared', 'none'],
       ),
+    ],
+    EquipmentType.instrument: [
+      EquipmentAttributeDef(
+        key: 'instrument_type',
+        kind: AttributeKind.choice,
+        choiceKeys: [
+          'spg',
+          'depth_gauge',
+          'bottom_timer',
+          'console',
+          'gas_analyzer',
+          'thermometer',
+        ],
+      ),
+      // Full-scale reading of the dial, not a tank's working pressure: a
+      // 300 bar gauge on a 232 bar cylinder is a different object from a
+      // 232 bar one, and the two keys must not be confused.
+      EquipmentAttributeDef(
+        key: 'gauge_max_pressure_bar',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.pressureBar,
+      ),
+      // Shared verbatim with the camera, rebreather and DPV entries.
+      EquipmentAttributeDef(
+        key: 'depth_rating_m',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.depthM,
+      ),
+      _mount,
+    ],
+    EquipmentType.compass: [
+      EquipmentAttributeDef(
+        key: 'compass_type',
+        kind: AttributeKind.choice,
+        choiceKeys: ['analog', 'digital'],
+      ),
+      // A card is balanced for a magnetic zone; take a northern-balanced
+      // compass south and it drags on the capsule and reads badly. Worth
+      // recording per unit for anyone whose gear travels.
+      EquipmentAttributeDef(
+        key: 'balance_zone',
+        kind: AttributeKind.choice,
+        choiceKeys: ['northern', 'southern', 'global'],
+      ),
+      // Degrees of off-level the card still swings freely at: the headline
+      // spec on every dive compass, and degrees convert nowhere.
+      EquipmentAttributeDef(
+        key: 'tilt_tolerance_deg',
+        kind: AttributeKind.number,
+      ),
+      _mount,
     ],
     EquipmentType.mask: [
       EquipmentAttributeDef(
@@ -324,6 +394,14 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['single', 'twin', 'frameless'],
       ),
       EquipmentAttributeDef(key: 'prescription', kind: AttributeKind.flag),
+    ],
+    EquipmentType.snorkel: [
+      EquipmentAttributeDef(
+        key: 'snorkel_type',
+        kind: AttributeKind.choice,
+        choiceKeys: ['classic', 'semi_dry', 'dry', 'foldable'],
+      ),
+      EquipmentAttributeDef(key: 'purge_valve', kind: AttributeKind.flag),
     ],
     EquipmentType.weights: [
       EquipmentAttributeDef(
@@ -428,6 +506,22 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['pointed', 'blunt', 'line_cutter'],
       ),
     ],
+    EquipmentType.tool: [
+      EquipmentAttributeDef(
+        key: 'tool_type',
+        kind: AttributeKind.choice,
+        choiceKeys: [
+          'hand_tool',
+          'o_ring_kit',
+          'save_a_dive_kit',
+          'torque_wrench',
+          'spares_kit',
+        ],
+      ),
+      // Free text because a tool's size is a spanner width, a hex key, or
+      // nothing at all -- there is no closed list to pick from.
+      _size,
+    ],
     EquipmentType.hood: [_size, _thickness],
     EquipmentType.gloves: [
       _size,
@@ -435,7 +529,14 @@ abstract final class EquipmentAttributeCatalog {
       EquipmentAttributeDef(
         key: EquipmentAttrKeys.gloveType,
         kind: AttributeKind.choice,
-        choiceKeys: ['five_finger', 'mitt', 'dry'],
+        choiceKeys: [
+          'five_finger',
+          'three_finger',
+          'mitt',
+          'dry',
+          'dry_liner',
+          'utility',
+        ],
       ),
     ],
     EquipmentType.boots: [

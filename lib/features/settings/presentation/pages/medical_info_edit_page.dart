@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -280,7 +281,9 @@ class _MedicalInfoEditPageState extends ConsumerState<MedicalInfoEditPage> {
           Expanded(
             child: Text(
               _medicalClearanceExpiry != null
-                  ? DateFormat.yMMMd().format(_medicalClearanceExpiry!)
+                  ? UnitFormatter(
+                      ref.watch(settingsProvider),
+                    ).formatDate(_medicalClearanceExpiry)
                   : context.l10n.divers_edit_medicalClearanceNotSet,
             ),
           ),

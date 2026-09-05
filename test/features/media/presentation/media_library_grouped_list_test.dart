@@ -10,7 +10,10 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../helpers/mock_providers.dart';
 
 MediaLibraryEntry entry(String id) => MediaLibraryEntry(
   item: MediaItem(
@@ -51,6 +54,11 @@ MediaLibraryGroup diveGroup({
 List<dynamic> _badgeOverrides() => [
   mediaStoreAttachedProvider.overrideWith((ref) async => false),
   mediaQueueFactsProvider.overrideWith((ref, id) => Stream.value(null)),
+  // The list watches settingsProvider for its date headers. The real notifier
+  // reaches for DiverSettingsRepository and a DatabaseService this harness
+  // never starts, and its constructor load is unlistened, so a failure would
+  // escape to the zone and fail whichever test is running at the time.
+  settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
 ];
 
 void main() {

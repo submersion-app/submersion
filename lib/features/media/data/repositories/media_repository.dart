@@ -1673,27 +1673,15 @@ class MediaRepository {
 
   /// Explicitly unlinks surviving media from deleted equipment, with the HLC
   /// stamp the silent FK SET NULL never produced. Equipment counterpart of
-  /// [unlinkMediaFromDeletedSites], and deliberately NOT routed through
-  /// [_unlinkColumns] for the same reason: that path also sets
-  /// retain_in_library, a one-way latch that would permanently exclude the
-  /// row from the orphan sweep.
-  Future<void> unlinkMediaFromDeletedEquipment(List<String> mediaIds) async {
-    if (mediaIds.isEmpty) return;
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.transaction(() async {
-      await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
-        MediaCompanion(equipmentId: const Value(null), updatedAt: Value(now)),
-      );
-      for (final id in mediaIds) {
-        await _syncRepository.markRecordPending(
-          entityType: 'media',
-          recordId: id,
-          localUpdatedAt: now,
-        );
-      }
-    });
-    SyncEventBus.notifyLocalChange();
-  }
+  /// [unlinkMediaFromDeletedSites].
+  ///
+  /// Routed through [_unlinkColumns], which already does exactly this work:
+  /// one transaction that clears the column, bumps updated_at and marks each
+  /// row sync-pending. The dive and site twins hand-roll the same block and
+  /// explain it as avoiding retain_in_library, but [_unlinkColumns] does not
+  /// touch that column, so there is nothing here to avoid.
+  Future<void> unlinkMediaFromDeletedEquipment(List<String> mediaIds) =>
+      _unlinkColumns(mediaIds, const MediaCompanion(equipmentId: Value(null)));
 
   /// Stage B of the repair apply (Media section Phase 3): commits every
   /// prepared write in one transaction with per-row HLC marking. Stage A

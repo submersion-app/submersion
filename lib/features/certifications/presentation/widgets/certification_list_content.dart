@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
@@ -713,7 +712,7 @@ class _CertificationListContentState
 }
 
 /// List item widget for displaying a certification
-class CertificationListTile extends StatelessWidget {
+class CertificationListTile extends ConsumerWidget {
   final Certification certification;
   final bool isSelected;
   final VoidCallback? onTap;
@@ -732,8 +731,9 @@ class CertificationListTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     final statusLabel = certification.isExpired
         ? ', Expired'
@@ -741,7 +741,7 @@ class CertificationListTile extends StatelessWidget {
         ? ', Expiring in ${certification.daysUntilExpiry} days'
         : '';
     final issueDateLabel = certification.issueDate != null
-        ? ', issued ${DateFormat.yMMMd().format(certification.issueDate!)}'
+        ? ', issued ${units.formatDate(certification.issueDate)}'
         : '';
     // Only non-null when a custom name owns the title, so the level is spoken
     // exactly once either way.
@@ -770,7 +770,7 @@ class CertificationListTile extends StatelessWidget {
             child: _buildLeadingIcon(context),
           ),
           title: Text(certificationTitle(certification)),
-          subtitle: _buildSubtitle(context),
+          subtitle: _buildSubtitle(context, units),
           trailing: _buildTrailing(context),
         ),
       ),
@@ -803,13 +803,13 @@ class CertificationListTile extends StatelessWidget {
     );
   }
 
-  Widget? _buildSubtitle(BuildContext context) {
+  Widget? _buildSubtitle(BuildContext context, UnitFormatter units) {
     final parts = <String>[];
     // Carries the level too when the title is a custom name, which is the
     // only place the level can show on this tile.
     parts.add(certificationAgencyAndLevel(certification));
     if (certification.issueDate != null) {
-      parts.add(DateFormat.yMMMd().format(certification.issueDate!));
+      parts.add(units.formatDate(certification.issueDate));
     }
     return Text(parts.join(' - '));
   }

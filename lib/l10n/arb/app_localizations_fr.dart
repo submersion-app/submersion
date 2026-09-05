@@ -13,6 +13,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'ouvrir le navigateur. Utilisez Copier le lien et collez l\'adresse dans votre navigateur.';
 
   @override
+  String equipment_documents_removeError(String error) {
+    return 'Impossible de retirer le document : $error';
+  }
+
+  @override
   String get settings_oauth_connect_copyFailed =>
       'Impossible de copier le lien.';
 
@@ -25135,6 +25140,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_product_url => 'Lien web';
 
   @override
+  String get attrLabel_sleeve_length => 'Manches';
+
+  @override
+  String get attrLabel_upf_rating => 'Indice UPF';
+
+  @override
+  String get attrLabel_snorkel_type => 'Type';
+
+  @override
+  String get attrLabel_purge_valve => 'Purge';
+
+  @override
+  String get attrLabel_instrument_type => 'Instrument';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'Plage du manomètre';
+
+  @override
+  String get attrLabel_compass_type => 'Type';
+
+  @override
+  String get attrLabel_balance_zone => 'Zone de balancement';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'Tolérance d\'inclinaison (°)';
+
+  @override
+  String get attrLabel_tool_type => 'Type d\'outil';
+
+  @override
   String get attrChoice_unit_type_eccr => 'CCR électronique (eCCR)';
 
   @override
@@ -25364,10 +25399,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'Cinq doigts';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'Trois doigts';
+
+  @override
   String get attrChoice_glove_type_mitt => 'Moufle';
 
   @override
   String get attrChoice_glove_type_dry => 'Étanche';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'Sous-gant étanche';
+
+  @override
+  String get attrChoice_glove_type_utility => 'Travail';
 
   @override
   String get attrChoice_sole_type_hard => 'Semelle rigide';
@@ -25398,6 +25442,76 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrChoice_motor_type_brushed => 'À balais';
+
+  @override
+  String get attrChoice_sleeve_length_short => 'Courtes';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'Longues';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'Sans manches';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'Classique';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'Semi-sec';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'Sec';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'Pliable';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'Manomètre (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'Profondimètre';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer =>
+      'Chronomètre de plongée';
+
+  @override
+  String get attrChoice_instrument_type_console => 'Console';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'Analyseur de gaz';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'Thermomètre';
+
+  @override
+  String get attrChoice_compass_type_analog => 'Analogique';
+
+  @override
+  String get attrChoice_compass_type_digital => 'Numérique';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'Hémisphère nord';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'Hémisphère sud';
+
+  @override
+  String get attrChoice_balance_zone_global => 'Global';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'Outil à main';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'Kit de joints toriques';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'Kit de dépannage';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'Clé dynamométrique';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'Kit de pièces détachées';
 
   @override
   String get equipment_edit_customFieldsTitle => 'Champs personnalisés';
@@ -33182,11 +33296,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String equipment_documents_loadError(String error) {
     return 'Impossible de charger les documents : $error';
-  }
-
-  @override
-  String equipment_documents_removeError(String error) {
-    return 'Impossible de retirer le document : $error';
   }
 
   @override
