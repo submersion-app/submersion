@@ -175,7 +175,8 @@ class PlanEngine {
       // the rest of the planner — a literal 0 must not switch to barometric
       // sea-level pressure and subtly change the deco math.
       altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
-      waterType: plan.waterType,
+      waterType: plan.waterType ?? WaterType.salt,
+      salinityPpt: plan.salinityPpt,
     );
     final policy = _policyFor(plan);
     final model = BuhlmannGf(

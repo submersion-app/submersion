@@ -18,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -136,6 +137,10 @@ class AppSettings {
   /// gas volume: logged SAC, gas statistics, the planner, and the gas
   /// calculators (issue #828).
   final GasModel gasModel;
+
+  /// Default water type for a new dive plan. Salt unless the diver picks
+  /// fresh or a custom salinity in Settings > Units.
+  final PlannerWaterType defaultPlannerWaterType;
 
   /// ISO 4217 code used as the default currency for new priced items
   /// (e.g. equipment purchase price).
@@ -506,6 +511,7 @@ class AppSettings {
     this.altitudeUnit = AltitudeUnit.meters,
     this.gasConsumptionDisplay = GasConsumptionDisplay.both,
     this.gasModel = GasModel.real,
+    this.defaultPlannerWaterType = PlannerWaterType.salt,
     this.defaultCurrency = 'USD',
     this.visibilityScalePreset = VisibilityScalePreset.tropical,
     this.visibilityScaleExcellentM,
@@ -674,6 +680,7 @@ class AppSettings {
     AltitudeUnit? altitudeUnit,
     GasConsumptionDisplay? gasConsumptionDisplay,
     GasModel? gasModel,
+    PlannerWaterType? defaultPlannerWaterType,
     String? defaultCurrency,
     VisibilityScalePreset? visibilityScalePreset,
     double? visibilityScaleExcellentM,
@@ -808,6 +815,8 @@ class AppSettings {
       gasConsumptionDisplay:
           gasConsumptionDisplay ?? this.gasConsumptionDisplay,
       gasModel: gasModel ?? this.gasModel,
+      defaultPlannerWaterType:
+          defaultPlannerWaterType ?? this.defaultPlannerWaterType,
       defaultCurrency: defaultCurrency ?? this.defaultCurrency,
       visibilityScalePreset:
           visibilityScalePreset ?? this.visibilityScalePreset,
@@ -1337,6 +1346,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setGasModel(GasModel model) async {
     state = state.copyWith(gasModel: model);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultPlannerWaterType(PlannerWaterType type) async {
+    state = state.copyWith(defaultPlannerWaterType: type);
     await _saveSettings();
   }
 

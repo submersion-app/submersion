@@ -33,6 +33,10 @@ class DivePlan extends Equatable {
   final double? altitude;
   final WaterType? waterType;
 
+  /// Custom salinity in ppt. When set, this wins over [waterType] for deco
+  /// density. Null with a null [waterType] is EN13319 standard water.
+  final double? salinityPpt;
+
   /// Planned start time; null = "now" at planning. Drives repetitive tissue
   /// init and overlap detection (v120).
   final DateTime? startDateTime;
@@ -104,6 +108,7 @@ class DivePlan extends Equatable {
     this.mode = PlanMode.oc,
     this.altitude,
     this.waterType,
+    this.salinityPpt,
     this.startDateTime,
     required this.gfLow,
     required this.gfHigh,
@@ -171,9 +176,11 @@ class DivePlan extends Equatable {
     double? altitude,
     bool clearAltitude = false,
     WaterType? waterType,
+    double? salinityPpt,
     DateTime? startDateTime,
     bool clearStartDateTime = false,
     bool clearWaterType = false,
+    bool clearSalinityPpt = false,
     int? gfLow,
     int? gfHigh,
     double? descentRate,
@@ -229,6 +236,7 @@ class DivePlan extends Equatable {
           ? null
           : (startDateTime ?? this.startDateTime),
       waterType: clearWaterType ? null : (waterType ?? this.waterType),
+      salinityPpt: clearSalinityPpt ? null : (salinityPpt ?? this.salinityPpt),
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
       descentRate: descentRate ?? this.descentRate,
@@ -291,6 +299,7 @@ class DivePlan extends Equatable {
     mode,
     altitude,
     waterType,
+    salinityPpt,
     startDateTime,
     gfLow,
     gfHigh,

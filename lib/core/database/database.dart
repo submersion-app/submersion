@@ -549,6 +549,9 @@ class DivePlans extends Table {
 
   /// WaterType enum name; null = unspecified (EN13319 density).
   TextColumn get waterType => text().nullable()();
+
+  /// Custom salinity in ppt. When set, deco uses this instead of [waterType].
+  RealColumn get salinityPpt => real().nullable()();
   IntColumn get gfLow => integer()();
   IntColumn get gfHigh => integer()();
   RealColumn get descentRate => real().withDefault(const Constant(18.0))();
@@ -1676,6 +1679,10 @@ class DiverSettings extends Table {
   /// unconditionally before the preference existed, so upgrading changes
   /// nobody's numbers; 'ideal' matches hand calculation (issue #828).
   TextColumn get gasModel => text().withDefault(const Constant('real'))();
+
+  /// v193: default water type for a new dive plan (salt, fresh, custom).
+  TextColumn get defaultPlannerWaterType =>
+      text().withDefault(const Constant('salt'))();
   TextColumn get defaultCurrency => text().withDefault(const Constant('USD'))();
 
   /// v144: per-diver calibration deciding which measured distances count as
@@ -3410,7 +3417,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 191;
+  static const int currentSchemaVersion = 193;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3896,6 +3903,10 @@ class AppDatabase extends _$AppDatabase {
     // recompression rungs (188-190) while this branch was open, and a rung
     // at or below the shipped version never runs its onUpgrade step.
     191,
+    // v192: dive_plans.salinity_ppt, custom planner water salinity for deco.
+    192,
+    // v193: diver_settings.default_planner_water_type (salt/fresh/custom).
+    193,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6467,6 +6478,33 @@ class AppDatabase extends _$AppDatabase {
         'REAL NOT NULL DEFAULT ${entry.value}',
       );
     }
+  }
+
+  /// Idempotent DDL for dive_plans.salinity_ppt (v192). Nullable: existing
+  /// plans keep EN13319 / water-type density until the diver picks Custom.
+  Future<void> _assertPlanSalinityPptColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_plans')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('salinity_ppt')) return;
+    await customStatement(
+      'ALTER TABLE dive_plans ADD COLUMN salinity_ppt REAL',
+    );
+  }
+
+  /// Idempotent DDL for diver_settings.default_planner_water_type (v193).
+  /// Existing rows get salt, matching the new-plan default.
+  Future<void> _assertDefaultPlannerWaterTypeColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('default_planner_water_type')) return;
+    await customStatement(
+      "ALTER TABLE diver_settings ADD COLUMN default_planner_water_type "
+      "TEXT NOT NULL DEFAULT 'salt'",
+    );
   }
 
   /// Owning-source FK on dive_profiles (issue #1149). PRAGMA-guarded so a
@@ -10300,6 +10338,16 @@ class AppDatabase extends _$AppDatabase {
           await _assertPlanAscentRateColumns();
         }
         if (from < 191) await reportProgress();
+        // v192: custom planner salinity (ppt) for deco density.
+        if (from < 192) {
+          await _assertPlanSalinityPptColumn();
+        }
+        if (from < 192) await reportProgress();
+        // v193: default planner water type on diver_settings.
+        if (from < 193) {
+          await _assertDefaultPlannerWaterTypeColumn();
+        }
+        if (from < 193) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -10474,6 +10522,12 @@ class AppDatabase extends _$AppDatabase {
         // columns. A database that arrives by restore or sync-adopt never
         // runs onUpgrade, and reading a plan without them throws.
         await _assertPlanAscentRateColumns();
+
+        // v192 backstop: re-assert dive_plans.salinity_ppt.
+        await _assertPlanSalinityPptColumn();
+
+        // v193 backstop: re-assert diver_settings.default_planner_water_type.
+        await _assertDefaultPlannerWaterTypeColumn();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).

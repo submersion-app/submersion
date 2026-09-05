@@ -85,7 +85,8 @@ class BailoutSolver {
 
     final environment = DiveEnvironment.forConditions(
       altitudeMeters: plan.altitude,
-      waterType: plan.waterType,
+      waterType: plan.waterType ?? WaterType.salt,
+      salinityPpt: plan.salinityPpt,
     );
     final policy = SchedulePolicy(
       lastStopDepth: plan.lastStopDepth,

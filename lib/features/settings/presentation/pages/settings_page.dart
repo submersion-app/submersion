@@ -25,7 +25,9 @@ import 'package:submersion/features/settings/presentation/widgets/visibility_sca
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/notification_service.dart';
@@ -539,6 +541,20 @@ class _UnitsSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildUnitTile(
                   context,
+                  title: context.l10n.settings_units_waterType,
+                  value: _plannerWaterTypeLabel(
+                    context,
+                    settings.defaultPlannerWaterType,
+                  ),
+                  onTap: () => _showPlannerWaterTypePicker(
+                    context,
+                    ref,
+                    settings.defaultPlannerWaterType,
+                  ),
+                ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
                   title: context.l10n.settings_units_defaultCurrency,
                   value: settings.defaultCurrency,
                   onTap: () => _showCurrencyPicker(
@@ -1014,6 +1030,63 @@ class _UnitsSectionContent extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  String _plannerWaterTypeLabel(BuildContext context, PlannerWaterType type) {
+    final l10n = context.l10n;
+    return switch (type) {
+      PlannerWaterType.salt => WaterType.salt.localizedName(l10n),
+      PlannerWaterType.fresh => WaterType.fresh.localizedName(l10n),
+      PlannerWaterType.custom => l10n.decoCalculator_waterType_custom,
+    };
+  }
+
+  void _showPlannerWaterTypePicker(
+    BuildContext context,
+    WidgetRef ref,
+    PlannerWaterType current,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final l10n = context.l10n;
+        Widget option(PlannerWaterType value, String title) {
+          return ListTile(
+            title: Text(title),
+            trailing: current == value
+                ? Icon(
+                    Icons.check,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
+                : null,
+            onTap: () {
+              ref
+                  .read(settingsProvider.notifier)
+                  .setDefaultPlannerWaterType(value);
+              Navigator.of(dialogContext).pop();
+            },
+          );
+        }
+
+        return AlertDialog(
+          title: Text(l10n.settings_units_dialog_waterType),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              option(PlannerWaterType.salt, WaterType.salt.localizedName(l10n)),
+              option(
+                PlannerWaterType.fresh,
+                WaterType.fresh.localizedName(l10n),
+              ),
+              option(
+                PlannerWaterType.custom,
+                l10n.decoCalculator_waterType_custom,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

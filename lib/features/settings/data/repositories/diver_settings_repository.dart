@@ -12,6 +12,7 @@ import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -87,6 +88,7 @@ class DiverSettingsRepository {
               altitudeUnit: Value(s.altitudeUnit.name),
               gasConsumptionDisplay: Value(s.gasConsumptionDisplay.name),
               gasModel: Value(s.gasModel.name),
+              defaultPlannerWaterType: Value(s.defaultPlannerWaterType.name),
               defaultCurrency: Value(s.defaultCurrency),
               visibilityScalePreset: Value(s.visibilityScalePreset.name),
               visibilityScaleExcellentM: Value(s.visibilityScaleExcellentM),
@@ -256,6 +258,7 @@ class DiverSettingsRepository {
           altitudeUnit: Value(settings.altitudeUnit.name),
           gasConsumptionDisplay: Value(settings.gasConsumptionDisplay.name),
           gasModel: Value(settings.gasModel.name),
+          defaultPlannerWaterType: Value(settings.defaultPlannerWaterType.name),
           defaultCurrency: Value(settings.defaultCurrency),
           visibilityScalePreset: Value(settings.visibilityScalePreset.name),
           visibilityScaleExcellentM: Value(settings.visibilityScaleExcellentM),
@@ -471,6 +474,9 @@ class DiverSettingsRepository {
         row.gasConsumptionDisplay,
       ),
       gasModel: GasModel.fromName(row.gasModel),
+      defaultPlannerWaterType:
+          PlannerWaterType.values.asNameMap()[row.defaultPlannerWaterType] ??
+          PlannerWaterType.salt,
       defaultCurrency: row.defaultCurrency,
       visibilityScalePreset: _parseVisibilityScalePreset(
         row.visibilityScalePreset,

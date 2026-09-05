@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -532,6 +533,13 @@ class DivePlanState extends Equatable {
   /// Altitude above sea level in meters (for altitude diving).
   final double? altitude;
 
+  /// Water type for decompression (density). Null = EN13319 standard water.
+  final WaterType? waterType;
+
+  /// Custom salinity in ppt. When set, this wins over [waterType] for deco
+  /// density.
+  final double? salinityPpt;
+
   /// Planned start time; null = "now". Drives repetitive tissue init (v120).
   final DateTime? startDateTime;
 
@@ -596,6 +604,8 @@ class DivePlanState extends Equatable {
     this.linkedDiveId,
     this.siteId,
     this.altitude,
+    this.waterType,
+    this.salinityPpt,
     this.startDateTime,
     this.mode = PlanMode.oc,
     this.setpointLow,
@@ -665,6 +675,8 @@ class DivePlanState extends Equatable {
     String? linkedDiveId,
     String? siteId,
     double? altitude,
+    WaterType? waterType,
+    double? salinityPpt,
     DateTime? startDateTime,
     bool clearStartDateTime = false,
     PlanMode? mode,
@@ -691,6 +703,8 @@ class DivePlanState extends Equatable {
     bool clearLinkedDiveId = false,
     bool clearSiteId = false,
     bool clearAltitude = false,
+    bool clearWaterType = false,
+    bool clearSalinityPpt = false,
     bool clearSetpoints = false,
   }) {
     return DivePlanState(
@@ -722,6 +736,8 @@ class DivePlanState extends Equatable {
           : (linkedDiveId ?? this.linkedDiveId),
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
       altitude: clearAltitude ? null : (altitude ?? this.altitude),
+      waterType: clearWaterType ? null : (waterType ?? this.waterType),
+      salinityPpt: clearSalinityPpt ? null : (salinityPpt ?? this.salinityPpt),
       startDateTime: clearStartDateTime
           ? null
           : (startDateTime ?? this.startDateTime),
@@ -775,6 +791,8 @@ class DivePlanState extends Equatable {
     linkedDiveId,
     siteId,
     altitude,
+    waterType,
+    salinityPpt,
     startDateTime,
     mode,
     setpointLow,

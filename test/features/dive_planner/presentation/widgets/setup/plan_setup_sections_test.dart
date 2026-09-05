@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -146,6 +147,62 @@ void main() {
     await tester.enterText(find.byType(TextField).first, '1000');
     await tester.pumpAndSettle();
     expect(find.textContaining('Group 2'), findsOneWidget);
+  });
+
+  testWidgets('environment section water type feeds the plan and deco', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness(const PlanEnvironmentSection()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Water type'), findsOneWidget);
+    expect(find.text('Salt Water'), findsOneWidget);
+    expect(find.text('Standard'), findsNothing);
+    expect(find.text('Brackish'), findsNothing);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEnvironmentSection)),
+    );
+    expect(container.read(divePlanNotifierProvider).waterType, WaterType.salt);
+
+    await tester.tap(find.byType(DropdownButtonFormField<PlannerWaterType>));
+    await tester.pumpAndSettle();
+    expect(find.text('Standard'), findsNothing);
+    expect(find.text('Brackish'), findsNothing);
+    expect(find.text('Custom'), findsOneWidget);
+    await tester.tap(find.text('Fresh Water').last);
+    await tester.pumpAndSettle();
+
+    expect(container.read(divePlanNotifierProvider).waterType, WaterType.fresh);
+  });
+
+  testWidgets('custom water type reveals a salinity field', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness(const PlanEnvironmentSection()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(DropdownButtonFormField<PlannerWaterType>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Custom').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Salinity'), findsOneWidget);
+    expect(find.text('ppt'), findsOneWidget);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEnvironmentSection)),
+    );
+    expect(container.read(divePlanNotifierProvider).waterType, isNull);
+    expect(container.read(divePlanNotifierProvider).salinityPpt, 35.0);
+
+    await tester.enterText(find.byType(TextField).last, '20');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).salinityPpt, 20.0);
   });
 
   testWidgets('no overflow at narrow widths', (tester) async {

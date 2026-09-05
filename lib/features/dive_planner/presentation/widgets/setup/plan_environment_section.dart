@@ -1,15 +1,90 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Environment settings for the Setup accordion: altitude with the altitude
-/// group indicator. Water type / salinity lands here in later phases.
+PlannerWaterType planWaterOptionFor({
+  WaterType? waterType,
+  double? salinityPpt,
+}) {
+  if (salinityPpt != null || waterType == WaterType.brackish) {
+    return PlannerWaterType.custom;
+  }
+  return switch (waterType) {
+    WaterType.fresh => PlannerWaterType.fresh,
+    WaterType.salt || WaterType.brackish || null => PlannerWaterType.salt,
+  };
+}
+
+/// Salinity in ppt for a custom water type. Seeded by the notifier when
+/// Custom is selected; empty input keeps the last parsed value.
+class _SalinityInput extends StatefulWidget {
+  final double? salinityPpt;
+  final ValueChanged<double?> onChanged;
+
+  const _SalinityInput({required this.salinityPpt, required this.onChanged});
+
+  @override
+  State<_SalinityInput> createState() => _SalinityInputState();
+}
+
+class _SalinityInputState extends State<_SalinityInput> {
+  late TextEditingController _controller;
+
+  String _seed(double? ppt) => ppt == null ? '' : formatDecimalForInput(ppt);
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: _seed(widget.salinityPpt));
+  }
+
+  @override
+  void didUpdateWidget(_SalinityInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.salinityPpt != widget.salinityPpt) {
+      final newText = _seed(widget.salinityPpt);
+      if (_controller.text != newText) {
+        _controller.text = newText;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      decoration: InputDecoration(
+        isDense: true,
+        labelText: context.l10n.divePlanner_label_salinity,
+        suffixText: 'ppt',
+      ),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      onChanged: (value) {
+        if (value.isEmpty) return;
+        final parsed = parseUserDecimal(value);
+        if (parsed == null) return;
+        widget.onChanged(parsed.clamp(0, 80).toDouble());
+      },
+    );
+  }
+}
+
+/// Environment settings for the Setup accordion: altitude, water type
+/// (deco density), and O2-as-narcotic.
 class PlanEnvironmentSection extends ConsumerWidget {
   const PlanEnvironmentSection({super.key});
 
@@ -18,6 +93,11 @@ class PlanEnvironmentSection extends ConsumerWidget {
     final planState = ref.watch(divePlanNotifierProvider);
     final o2Narcotic = ref.watch(settingsProvider.select((s) => s.o2Narcotic));
     final units = UnitFormatter(ref.watch(settingsProvider));
+    final waterOption = planWaterOptionFor(
+      waterType: planState.waterType,
+      salinityPpt: planState.salinityPpt,
+    );
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -28,6 +108,51 @@ class PlanEnvironmentSection extends ConsumerWidget {
           onChanged: (value) =>
               ref.read(divePlanNotifierProvider.notifier).updateAltitude(value),
         ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<PlannerWaterType>(
+          key: ValueKey(waterOption),
+          initialValue: waterOption,
+          isExpanded: true,
+          decoration: InputDecoration(
+            isDense: true,
+            labelText: l10n.decoCalculator_waterType,
+          ),
+          items: [
+            DropdownMenuItem(
+              value: PlannerWaterType.salt,
+              child: Text(WaterType.salt.localizedName(l10n)),
+            ),
+            DropdownMenuItem(
+              value: PlannerWaterType.fresh,
+              child: Text(WaterType.fresh.localizedName(l10n)),
+            ),
+            DropdownMenuItem(
+              value: PlannerWaterType.custom,
+              child: Text(l10n.decoCalculator_waterType_custom),
+            ),
+          ],
+          onChanged: (option) {
+            if (option == null) return;
+            final notifier = ref.read(divePlanNotifierProvider.notifier);
+            switch (option) {
+              case PlannerWaterType.salt:
+                notifier.updateWaterType(WaterType.salt);
+              case PlannerWaterType.fresh:
+                notifier.updateWaterType(WaterType.fresh);
+              case PlannerWaterType.custom:
+                notifier.selectCustomSalinity();
+            }
+          },
+        ),
+        if (waterOption == PlannerWaterType.custom) ...[
+          const SizedBox(height: 12),
+          _SalinityInput(
+            salinityPpt: planState.salinityPpt,
+            onChanged: (value) => ref
+                .read(divePlanNotifierProvider.notifier)
+                .updateSalinityPpt(value),
+          ),
+        ],
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(context.l10n.plannerCanvas_o2Narcotic),

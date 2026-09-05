@@ -212,5 +212,25 @@ void main() {
       // A real altitude thins the surface pressure and lengthens deco.
       expect(real.totalDecoSeconds, greaterThan(unset.totalDecoSeconds));
     });
+
+    test('salt water lengthens deco versus fresh water', () {
+      const engine = PlanEngine();
+      final fresh = engine.compute(
+        _plan().copyWith(waterType: WaterType.fresh),
+      );
+      final salt = engine.compute(_plan().copyWith(waterType: WaterType.salt));
+
+      // Salt is denser, so the same depth is a higher ambient pressure and
+      // the tissues load more. Unset water type is salt (planner default).
+      expect(salt.totalDecoSeconds, greaterThan(fresh.totalDecoSeconds));
+      expect(engine.compute(_plan()).totalDecoSeconds, salt.totalDecoSeconds);
+    });
+
+    test('custom salinity ppt drives deco density', () {
+      const engine = PlanEngine();
+      final zero = engine.compute(_plan().copyWith(salinityPpt: 0));
+      final dense = engine.compute(_plan().copyWith(salinityPpt: 40));
+      expect(dense.totalDecoSeconds, greaterThan(zero.totalDecoSeconds));
+    });
   });
 }

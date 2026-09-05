@@ -4,6 +4,7 @@ import 'package:http/testing.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/card_color.dart';
@@ -70,6 +71,10 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setGasModel(GasModel model) async =>
       state = state.copyWith(gasModel: model);
+
+  @override
+  Future<void> setDefaultPlannerWaterType(PlannerWaterType type) async =>
+      state = state.copyWith(defaultPlannerWaterType: type);
 
   @override
   Future<void> setDefaultCurrency(String currencyCode) async =>

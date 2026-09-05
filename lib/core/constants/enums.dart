@@ -105,6 +105,11 @@ enum WaterType {
   const WaterType(this.displayName);
 }
 
+/// Water type for the dive planner. Logged dives still use [WaterType],
+/// which includes brackish; the planner offers salt, fresh, or a custom
+/// salinity instead.
+enum PlannerWaterType { salt, fresh, custom }
+
 /// Marine life categories
 enum SpeciesCategory {
   fish('Fish'),

@@ -3537,6 +3537,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get decoCalculator_waterType => '水体类型';
 
   @override
+  String get decoCalculator_waterType_custom => 'Custom';
+
+  @override
   String get decoCalculator_waterType_standard => '标准';
 
   @override
@@ -7524,6 +7527,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divePlanner_label_sacRate => 'RMV:';
+
+  @override
+  String get divePlanner_label_salinity => 'Salinity';
 
   @override
   String get divePlanner_label_status => '状态';
@@ -16814,6 +16820,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_units_gasModel => '气体计算';
 
   @override
+  String get settings_units_waterType => 'Water type';
+
+  @override
   String get settings_units_gasModel_real => '真实气体';
 
   @override
@@ -16833,6 +16842,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_units_dialog_gasModel => '气体计算';
+
+  @override
+  String get settings_units_dialog_waterType => 'Default water type';
 
   @override
   String get settings_units_dialog_temperatureUnit => '温度单位';
