@@ -117,6 +117,32 @@ void main() {
       expect(checked, greaterThan(4), reason: 'sanity: the loop ran');
     });
 
+    test('decode refuses an absurd payload before decoding it', () {
+      // Bounds base64.decode's own allocation. It cannot prevent exhaustion
+      // from a hostile file, since the document is fully parsed into memory
+      // before any dump is decoded, but it fails fast and typed rather than
+      // allocating three quarters of a monstrous string first.
+      final absurd = 'A' * (kMaxRawDiveBlobBytes * 2 + 4);
+
+      expect(
+        () => UddfDumpCodec.decodeOne(absurd),
+        throwsA(isA<UddfDumpTooLargeException>()),
+      );
+    });
+
+    test('decode accepts a payload just under the encoded ceiling', () {
+      // The bound must not reject a legitimate dump. A real one is far
+      // smaller than the ceiling, so this only proves the check is not
+      // firing on ordinary input.
+      final raw = Uint8List.fromList(
+        List<int>.generate(64 * 1024, (i) => (i * 7) % 256),
+      );
+      final encoded = UddfDumpCodec.encodeOne(raw);
+
+      expect(encoded.length, lessThan(kMaxRawDiveBlobBytes * 2));
+      expect(UddfDumpCodec.decodeOne(encoded), equals(raw));
+    });
+
     test('decode rejects text that is not bzip2', () {
       expect(
         () => UddfDumpCodec.decodeOne('bm90IGJ6aXAy'),

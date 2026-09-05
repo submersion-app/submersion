@@ -63,7 +63,24 @@ class UddfDumpCodec {
   /// later as a wrong re-parse. Failing instead hands the dump to the
   /// caller's skip-and-count path, which reports the loss.
   static Uint8List decodeOne(String base64Text) {
-    final compressed = base64.decode(base64Text.trim());
+    final trimmed = base64Text.trim();
+
+    // Refuse an absurd payload before decoding it. bzip2 never much exceeds
+    // its input (worst case is a little over 100% on incompressible data) and
+    // base64 adds a third, so a legitimate dump of at most
+    // kMaxRawDiveBlobBytes cannot encode to more than roughly 11 MiB of text.
+    // Twice the ceiling is comfortably clear of that.
+    //
+    // This bounds base64.decode's own allocation, not the caller's: by the
+    // time a dump reaches here the whole document has already been read and
+    // parsed into memory, so an enormous <dcdump> has cost its size several
+    // times over regardless. Bounding the input to the import as a whole
+    // would have to happen where the file is read.
+    if (trimmed.length > kMaxRawDiveBlobBytes * 2) {
+      throw const UddfDumpTooLargeException();
+    }
+
+    final compressed = base64.decode(trimmed);
     final output = _BoundedOutputStream(kMaxRawDiveBlobBytes);
     final ok = BZip2Decoder().decodeStream(
       InputMemoryStream(compressed),
