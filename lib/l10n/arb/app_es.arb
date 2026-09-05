@@ -5744,6 +5744,8 @@
   "tankPresets_noPresets": "No hay presets de tanque disponibles",
   "tankPresets_setAsDefault": "Establecer como predeterminado",
   "tankPresets_title": "Presets de tanque",
+  "tank_al100_description": "Aluminio 100 cu ft",
+  "tank_al100_displayName": "AL100",
   "tank_al30Stage_description": "Tanque stage de aluminio de 30 cu ft",
   "tank_al30Stage_displayName": "AL30 Stage",
   "tank_al40Stage_description": "Tanque stage de aluminio de 40 cu ft",

@@ -5744,6 +5744,8 @@
   "tankPresets_noPresets": "لا توجد إعدادات أسطوانات",
   "tankPresets_setAsDefault": "تعيين كافتراضي",
   "tankPresets_title": "إعدادات الأسطوانات",
+  "tank_al100_description": "أسطوانة ألومنيوم 100 قدم مكعب",
+  "tank_al100_displayName": "AL100",
   "tank_al30Stage_description": "أسطوانة ألومنيوم مرحلية 30 قدم مكعب",
   "tank_al30Stage_displayName": "AL30 Stage",
   "tank_al40Stage_description": "أسطوانة ألومنيوم مرحلية 40 قدم مكعب",

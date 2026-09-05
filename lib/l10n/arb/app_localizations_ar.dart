@@ -18981,6 +18981,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_title_manageTags => 'إدارة الوسوم';
 
   @override
+  String get tank_al100_description => 'أسطوانة ألومنيوم 100 قدم مكعب';
+
+  @override
+  String get tank_al100_displayName => 'AL100';
+
+  @override
   String get tank_al30Stage_description =>
       'أسطوانة ألومنيوم مرحلية 30 قدم مكعب';
 

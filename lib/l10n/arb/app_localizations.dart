@@ -31856,6 +31856,18 @@ abstract class AppLocalizations {
   /// **'Manage Tags'**
   String get tags_title_manageTags;
 
+  /// No description provided for @tank_al100_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Aluminum 100 cu ft'**
+  String get tank_al100_description;
+
+  /// No description provided for @tank_al100_displayName.
+  ///
+  /// In en, this message translates to:
+  /// **'AL100'**
+  String get tank_al100_displayName;
+
   /// No description provided for @tank_al30Stage_description.
   ///
   /// In en, this message translates to:

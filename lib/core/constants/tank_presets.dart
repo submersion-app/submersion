@@ -66,6 +66,16 @@ class TankPresets {
     ratedCapacityCuft: 77.4,
   );
 
+  static const al100 = TankPreset(
+    name: 'al100',
+    displayName: 'AL100',
+    volumeLiters: 13.1,
+    workingPressureBar: 227.527, // 3300 psi
+    material: TankMaterial.aluminum,
+    description: 'Aluminum 100 cu ft',
+    ratedCapacityCuft: 100.0,
+  );
+
   // High pressure steel tanks
   static const hp80 = TankPreset(
     name: 'hp80',
@@ -158,7 +168,7 @@ class TankPresets {
   );
 
   /// All available presets grouped by category
-  static const List<TankPreset> aluminum = [al80, al63, al40];
+  static const List<TankPreset> aluminum = [al100, al80, al63, al40];
   static const List<TankPreset> hpSteel = [hp120, hp100, hp80];
   static const List<TankPreset> lpSteel = [lp85];
   static const List<TankPreset> metric = [steel15, steel12, steel10];
@@ -166,6 +176,7 @@ class TankPresets {
 
   /// All available presets
   static const List<TankPreset> all = [
+    al100,
     al80,
     al63,
     al40,

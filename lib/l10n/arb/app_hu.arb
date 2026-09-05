@@ -5660,6 +5660,8 @@
   "tankPresets_noPresets": "Nincsenek elerheto palacksablonok",
   "tankPresets_setAsDefault": "Beállítás alapértelmezettként",
   "tankPresets_title": "Palacksablonok",
+  "tank_al100_description": "Aluminium 100 cu ft",
+  "tank_al100_displayName": "AL100",
   "tank_al30Stage_description": "Aluminium 30 cu ft stage palack",
   "tank_al30Stage_displayName": "AL30 Stage",
   "tank_al40Stage_description": "Aluminium 40 cu ft stage palack",

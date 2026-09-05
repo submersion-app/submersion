@@ -5744,6 +5744,8 @@
   "tankPresets_noPresets": "אין תבניות מיכל זמינות",
   "tankPresets_setAsDefault": "הגדר כברירת מחדל",
   "tankPresets_title": "תבניות מיכל",
+  "tank_al100_description": "אלומיניום 100 cuft",
+  "tank_al100_displayName": "AL100",
   "tank_al30Stage_description": "בלון סטייג' אלומיניום 30 cuft",
   "tank_al30Stage_displayName": "AL30 Stage",
   "tank_al40Stage_description": "בלון סטייג' אלומיניום 40 cuft",

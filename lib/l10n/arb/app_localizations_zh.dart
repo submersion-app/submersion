@@ -18332,6 +18332,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_title_manageTags => '管理标签';
 
   @override
+  String get tank_al100_description => '铝制 100 立方英尺';
+
+  @override
+  String get tank_al100_displayName => 'AL100';
+
+  @override
   String get tank_al30Stage_description => '铝制 30 立方英尺阶段瓶';
 
   @override

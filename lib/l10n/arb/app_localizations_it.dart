@@ -19351,6 +19351,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tags_title_manageTags => 'Gestisci Tag';
 
   @override
+  String get tank_al100_description => 'Alluminio 100 cu ft';
+
+  @override
+  String get tank_al100_displayName => 'AL100';
+
+  @override
   String get tank_al30Stage_description =>
       'Bombola stage in alluminio da 30 cu ft';
 
