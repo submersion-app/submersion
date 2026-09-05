@@ -1,19 +1,43 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// Save string content to a file and open the system share sheet.
+/// Whether the running platform's share sheet can carry files.
+///
+/// share_plus has no file sharing on Linux: its backend there is a `mailto:`
+/// launcher whose `share` throws `UnimplementedError` as soon as
+/// [ShareParams.files] is non-empty. Every helper in this file shares files,
+/// so on Linux each export wrote its file into the documents directory and
+/// then appeared to do nothing at all -- the throw only ever reached the log.
+///
+/// Where the sheet cannot take files the share helpers fall back to the same
+/// save dialog the `save*ToFile` helpers use, which is the destination a
+/// desktop user expects anyway.
+bool get canShareFiles => _canShareFilesOverride ?? !Platform.isLinux;
+
+bool? _canShareFilesOverride;
+
+/// Pin [canShareFiles] for a test; null restores the platform default.
+///
+/// The gate reads the host platform, so without this the share-sheet tests
+/// take the save-dialog branch whenever the suite runs on Linux, and the
+/// save-dialog tests pass for the wrong reason everywhere else.
+@visibleForTesting
+set debugCanShareFiles(bool? value) => _canShareFilesOverride = value;
+
+/// Save string content and hand it to the system share sheet, or to the save
+/// dialog where [canShareFiles] is false.
 ///
 /// This is the "share" half of the export idiom. Callers that want the user to
-/// pick a destination on disk should use the matching `save*ToFile` helper
-/// instead -- those return `null` when the save dialog is cancelled, which this
-/// function has no way to express.
+/// pick a destination on every platform should use the matching `save*ToFile`
+/// helper instead -- those return `null` when the save dialog is cancelled,
+/// which this function has no way to express.
 ///
 /// [sharePositionOrigin] is the screen rect the iPad share popover points at,
 /// normally from `shareAnchorFrom` on the button's context. It is optional
@@ -26,44 +50,79 @@ Future<String> saveAndShareFile(
   String fileName,
   String mimeType, {
   Rect? sharePositionOrigin,
-}) async {
-  final directory = await getApplicationDocumentsDirectory();
-  final file = File('${directory.path}/$fileName');
-  await file.writeAsString(content);
+}) => _shareOrSave(
+  Uint8List.fromList(utf8.encode(content)),
+  fileName,
+  mimeType,
+  sharePositionOrigin: sharePositionOrigin,
+);
 
-  await SharePlus.instance.share(
-    ShareParams(
-      files: [XFile(file.path, mimeType: mimeType)],
-      subject: fileName,
-      sharePositionOrigin: sharePositionOrigin,
-    ),
-  );
-
-  return file.path;
-}
-
-/// Save raw bytes to a file and open the system share sheet.
+/// Save raw bytes and hand them to the system share sheet, or to the save
+/// dialog where [canShareFiles] is false.
 ///
-/// See [saveAndShareFile] for why this never opens a save dialog, and for what
-/// [sharePositionOrigin] is and when it is null.
+/// See [saveAndShareFile] for why this never reports a cancelled dialog, and
+/// for what [sharePositionOrigin] is and when it is null.
 Future<String> saveAndShareFileBytes(
   List<int> bytes,
   String fileName,
   String mimeType, {
   Rect? sharePositionOrigin,
+}) => _shareOrSave(
+  Uint8List.fromList(bytes),
+  fileName,
+  mimeType,
+  sharePositionOrigin: sharePositionOrigin,
+);
+
+Future<String> _shareOrSave(
+  Uint8List bytes,
+  String fileName,
+  String mimeType, {
+  Rect? sharePositionOrigin,
 }) async {
-  final directory = await getApplicationDocumentsDirectory();
-  final file = File('${directory.path}/$fileName');
-  await file.writeAsBytes(bytes);
+  if (!canShareFiles) return _saveViaDialog(bytes, fileName, mimeType);
+
+  // The sheet takes a file, not bytes, so the export has to exist on disk
+  // before it opens.
+  final path = await _writeToDocuments(bytes, fileName);
 
   await SharePlus.instance.share(
     ShareParams(
-      files: [XFile(file.path, mimeType: mimeType)],
+      files: [XFile(path, mimeType: mimeType)],
       subject: fileName,
       sharePositionOrigin: sharePositionOrigin,
     ),
   );
 
+  return path;
+}
+
+/// The share sheet's stand-in: let the user choose where the export lands.
+///
+/// [FilePicker.saveFile] writes the bytes itself, so nothing is written to the
+/// documents directory first -- doing both would leave a stray copy of every
+/// export behind. Cancelling picks no destination but does not throw the
+/// export away: the bytes are already built and callers are promised a path,
+/// so the file lands where the share path would have left it.
+Future<String> _saveViaDialog(
+  Uint8List bytes,
+  String fileName,
+  String mimeType,
+) async {
+  final saved = await FilePicker.saveFile(
+    fileName: fileName,
+    bytes: bytes,
+    mimeType: mimeType,
+  );
+
+  if (saved != null) return savedFileLocation(saved);
+  return _writeToDocuments(bytes, fileName);
+}
+
+Future<String> _writeToDocuments(Uint8List bytes, String fileName) async {
+  final directory = await getApplicationDocumentsDirectory();
+  final file = File('${directory.path}/$fileName');
+  await file.writeAsBytes(bytes);
   return file.path;
 }
 
