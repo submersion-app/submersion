@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/map_tile_config.dart';
@@ -6,10 +8,13 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
+import 'package:submersion/features/bathymetry/presentation/swiss_bathy_debug_info.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
+import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_info_sheet.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
@@ -60,6 +65,17 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
     SceneOverlay.features,
   };
   bool _chartMode = false;
+
+  // TEMPORARY - DEBUG ONLY, remove before upstream PR: backs the expandable
+  // diagnostic panel in [_sourceChip], investigating Bug 6/7/9 (two real
+  // Walensee sites reportedly rendering a pixel-identical mesh).
+  bool _debugExpanded = false;
+  Future<SwissBathyDebugInfo>? _debugFuture;
+
+  // TEMPORARY - DEBUG ONLY, remove before upstream PR: backs the "clear
+  // swissBATHY3D cache" debug action in [_debugPanel].
+  bool _clearingSwissBathyCache = false;
+  String? _swissBathyClearResultText;
 
   @override
   void dispose() {
@@ -198,7 +214,12 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                       top: 56,
                       left: 8,
                       right: 8,
-                      child: _sourceChip(sourceId, resolutionMeters),
+                      child: _sourceChip(
+                        sourceId,
+                        resolutionMeters,
+                        scene,
+                        grid,
+                      ),
                     ),
                     // The legend describes the depth ramp; a photographed
                     // surface has no ramp to explain. It sits LEFT because the
@@ -303,29 +324,215 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
     );
   }
 
-  Widget _sourceChip(String sourceId, double resolutionMeters) {
+  Widget _sourceChip(
+    String sourceId,
+    double resolutionMeters,
+    Scene3d scene,
+    BathymetryGrid grid,
+  ) {
+    // Debug-only: site.location is already resolved by this point
+    // (siteSeascapeProvider awaited it to reach SiteSeascapeReady), so re-watching it here is a cache hit.
+    final site = ref.watch(siteProvider(widget.siteId)).valueOrNull;
+    final center = site?.location;
+    // Debug-only: gated on kDebugMode so tapping the chip in release builds does nothing.
     return Align(
       alignment: Alignment.topLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(6),
+      child: GestureDetector(
+        onTap: !kDebugMode
+            ? null
+            : () => setState(() {
+                _debugExpanded = !_debugExpanded;
+                if (_debugExpanded && center != null) {
+                  _debugFuture = buildSwissBathyDebugInfo(
+                    siteId: widget.siteId,
+                    siteName: site?.name ?? widget.siteId,
+                    center: center,
+                  );
+                }
+              }),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 360),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.info_outline, size: 14),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      context.l10n.dive3d_seascape_seafloorSource(
+                        bathymetrySourceDisplayName(sourceId),
+                        resolutionMeters.round().toString(),
+                      ),
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ),
+                ],
+              ),
+              // TEMPORARY - DEBUG ONLY, remove before upstream PR.
+              if (kDebugMode && _debugExpanded) _debugPanel(scene, grid),
+            ],
+          ),
         ),
-        child: Row(
+      ),
+    );
+  }
+
+  // TEMPORARY - DEBUG ONLY, remove before upstream PR: clears every
+  // swissBATHY3D-related row from the local cache database (see
+  // clearSwissBathyDebugCache), then re-runs the fetch-layer diagnostic so
+  // the panel reflects the now-empty cache instead of a stale snapshot.
+  Future<void> _clearSwissBathyCache() async {
+    setState(() => _clearingSwissBathyCache = true);
+    String resultText;
+    try {
+      final result = await clearSwissBathyDebugCache();
+      resultText = formatSwissBathyCacheClearResult(result);
+    } catch (e) {
+      resultText = 'clear failed: $e';
+    }
+    if (!mounted) return;
+    setState(() {
+      _clearingSwissBathyCache = false;
+      _swissBathyClearResultText = resultText;
+    });
+    final site = ref.read(siteProvider(widget.siteId)).valueOrNull;
+    final center = site?.location;
+    if (center == null) return;
+    setState(() {
+      _debugFuture = buildSwissBathyDebugInfo(
+        siteId: widget.siteId,
+        siteName: site?.name ?? widget.siteId,
+        center: center,
+      );
+    });
+  }
+
+  // TEMPORARY - DEBUG ONLY, remove before upstream PR.
+  Widget _clearSwissBathyCacheRow() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 24,
+          child: TextButton(
+            key: const ValueKey('swissBathyDebugClearCacheButton'),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: _clearingSwissBathyCache ? null : _clearSwissBathyCache,
+            child: _clearingSwissBathyCache
+                ? const SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text(
+                    'clear swissBATHY3D cache (debug)',
+                    style: TextStyle(fontSize: 10),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // TEMPORARY - DEBUG ONLY, remove before upstream PR.
+  Widget _debugPanel(Scene3d scene, BathymetryGrid grid) {
+    // TEMPORARY - DEBUG ONLY, remove before upstream PR: the render-layer
+    // fingerprint needs no network/cache lookups (unlike the fetch-layer
+    // panel below), so it is available synchronously off the mesh that is
+    // already on screen — read at build time, not behind a FutureBuilder.
+    // The grid fingerprint is the same story: [grid] is the exact object
+    // SiteSeascapeGeometryService.buildWithLabels() was called with (see
+    // site_seascape_providers.dart), so this needs no re-fetch either —
+    // one layer upstream of the render fingerprint above it in the text.
+    final renderFingerprint = buildSwissBathyRenderFingerprint(
+      siteId: widget.siteId,
+      mesh: scene.layers.first.mesh,
+    );
+    final gridFingerprint = buildSwissBathyGridFingerprint(grid);
+    final renderText =
+        '${formatSwissBathyGridFingerprint(gridFingerprint)}\n'
+        '${formatSwissBathyRenderFingerprint(renderFingerprint)}';
+    final future = _debugFuture;
+    if (future == null) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.info_outline, size: 14),
-            const SizedBox(width: 4),
-            Text(
-              context.l10n.dive3d_seascape_seafloorSource(
-                bathymetrySourceDisplayName(sourceId),
-                resolutionMeters.round().toString(),
-              ),
-              style: Theme.of(context).textTheme.labelSmall,
+            SelectableText(
+              'debug: site coordinate not loaded yet\n$renderText',
+              style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
             ),
+            _clearSwissBathyCacheRow(),
           ],
         ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: FutureBuilder<SwissBathyDebugInfo>(
+        future: future,
+        builder: (context, snapshot) {
+          final info = snapshot.data;
+          final text = info == null
+              ? renderText
+              : '${formatSwissBathyDebugInfo(info)}\n$renderText';
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (info == null)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              SelectableText(
+                text,
+                style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
+              ),
+              _clearSwissBathyCacheRow(),
+              Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  key: const ValueKey('swissBathyDebugCopyButton'),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.copy, size: 14),
+                  onPressed: () => Clipboard.setData(ClipboardData(text: text)),
+                ),
+              ),
+              if (_swissBathyClearResultText != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: SelectableText(
+                    'clear result: $_swissBathyClearResultText',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

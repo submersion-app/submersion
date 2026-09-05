@@ -111,6 +111,38 @@ Widget page(
   ),
 );
 
+/// Mirrors how [SiteScapeView] actually swaps sites in production: the
+/// parent state's siteId changes and [SiteTerrainPane] is reconstructed at
+/// the SAME position in the tree with no explicit Key (see
+/// site_scape_view.dart) — never a fresh page push. Bug 7 alleged that this
+/// path leaves the pane showing the previously-selected site's bathymetry.
+class _SiteSwitchHost extends StatefulWidget {
+  const _SiteSwitchHost();
+
+  @override
+  State<_SiteSwitchHost> createState() => _SiteSwitchHostState();
+}
+
+class _SiteSwitchHostState extends State<_SiteSwitchHost> {
+  String _siteId = 'site-a';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          ElevatedButton(
+            key: const ValueKey('switchSiteButton'),
+            onPressed: () => setState(() => _siteId = 'site-b'),
+            child: const Text('switch'),
+          ),
+          Expanded(child: SiteTerrainPane(siteId: _siteId)),
+        ],
+      ),
+    );
+  }
+}
+
 void main() {
   testWidgets('ready state renders viewport and provenance caption', (
     tester,
@@ -407,4 +439,96 @@ void main() {
     );
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
+
+  // Bug 7: navigating from one dive site's 3D view to another's, within the
+  // same app session, was reported to keep showing the FIRST site's
+  // bathymetry. siteSeascapeProvider is a Riverpod family keyed by siteId
+  // and SiteTerrainPane re-watches it with the new widget.siteId on every
+  // build, so this should already resolve correctly -- this test proves it
+  // end to end (per-site provider override + real widget swap), not just at
+  // the geometry-utility level the last two sessions already covered.
+  testWidgets(
+    'switching the pane siteId in place fetches the new site, not the previous one',
+    (tester) async {
+      SiteSeascapeReady stateFor(String sourceId, double resolutionMeters) {
+        final grid = BathymetryGrid(
+          originLat: 12.15,
+          originLon: -68.30,
+          cellSizeLatDeg: 0.001,
+          cellSizeLonDeg: 0.001,
+          rows: 2,
+          cols: 2,
+          depthsMeters: const [20, 30, 25, 35],
+          sourceId: sourceId,
+          resolutionMeters: resolutionMeters,
+          fetchedAt: DateTime.utc(2026, 7, 28),
+        );
+        const center = GeoPoint(12.151, -68.299);
+        final scene = const SiteSeascapeGeometryService().build(
+          SiteSeascapeInput(
+            grid: grid,
+            center: center,
+            siteName: sourceId,
+            siteMaxDepth: 30,
+            divePaths: const [],
+            nearbySites: const [],
+          ),
+        );
+        final box = BathymetryTerrainBuilder.enuBounds(grid, center);
+        return SiteSeascapeReady(
+          scene: scene,
+          sourceId: sourceId,
+          resolutionMeters: resolutionMeters,
+          grid: grid,
+          axisInputs: (
+            minEast: box.minEast,
+            maxEast: box.maxEast,
+            minNorth: box.minNorth,
+            maxNorth: box.maxNorth,
+            maxDepth: 35,
+          ),
+        );
+      }
+
+      final stateA = stateFor('gmrt', 61);
+      final stateB = stateFor('swissbathy3d', 2);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _TestSettingsNotifier(const AppSettings()),
+            ),
+            siteSeascapeProvider.overrideWith(
+              (ref, id) async => id == 'site-a' ? stateA : stateB,
+            ),
+            siteFeaturesProvider(
+              'site-a',
+            ).overrideWith((ref) async => const []),
+            siteFeaturesProvider(
+              'site-b',
+            ).overrideWith((ref) async => const []),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: _SiteSwitchHost(),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.textContaining('GMRT'), findsOneWidget);
+      expect(find.textContaining('swissbathy3d'), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('switchSiteButton')));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.textContaining('swissbathy3d'), findsOneWidget);
+      expect(find.textContaining('GMRT'), findsNothing);
+    },
+  );
 }

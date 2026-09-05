@@ -41,6 +41,14 @@ double metersPerDegreeLongitude(double latitudeDeg) {
   return 111320.0 * math.max(cosLat, 0.01);
 }
 
+/// Meters per degree of latitude, treated as locally constant (the true
+/// value varies ~110.6-111.7 km from equator to pole, but every consumer
+/// here only needs a flat local-tangent-plane approximation over
+/// city-to-region-sized areas). The single shared constant so a terrain
+/// mesh's own degree-to-meter conversion and any source grid reprojected
+/// into that mesh (e.g. swissBATHY3D's LV95 tiles) can never drift apart.
+const double metersPerDegreeLatitude = 110540.0;
+
 /// Offset of [to] relative to [from] in local east-north meters
 /// (distance + bearing decomposition — the same math the spatial scene
 /// uses for exit fixes).

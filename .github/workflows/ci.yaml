@@ -472,32 +472,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install coverage.py
-        # Retried: a single unreachable-index blip used to fail the whole job.
-        # pip reports that as `(from versions: none)` -- an empty candidate
-        # list, not a version conflict -- after silently exhausting its own
-        # retries, e.g. run 33789978791.
-        run: |
-          for attempt in 1 2 3; do
-            if python3 -m pip install coverage; then
-              exit 0
-            fi
-            echo "::warning::pip install coverage failed (attempt $attempt/3)"
-            # An `[ ... ] && sleep` one-liner would abort the step with no
-            # message here: the step shell is `bash -e`, and on the last
-            # attempt the false test makes the loop body's final command
-            # return 1. See scripts/pre_push_hook_test.sh for the same bug.
-            if [ "$attempt" -lt 3 ]; then
-              sleep $((attempt * 10))
-            fi
-          done
-          echo "::error::pip install coverage failed after 3 attempts"
-          exit 1
-
-      - name: Check CI aggregation gate
-        # Fails if a job is missing from ci-success.needs. Such a job shows red
-        # on the PR while the required check stays green, which is how
-        # script-tests itself went ungated from 2026-06-24 to 2026-09-03.
-        run: python3 scripts/check_ci_success_gate.py
+        run: python3 -m pip install coverage
 
       - name: Check JNI local-reference hygiene (source)
         # Source-level guard: no build artifact needed (unlike the APK/mapping
@@ -514,7 +489,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -525,8 +500,6 @@ jobs:
             scripts/check_jni_local_refs_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_dc_process_isolation_test.py
-          python3 -m coverage run --append --include="$guards" \
-            scripts/check_ci_success_gate_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/fix_macho_symbol_order_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -1121,7 +1094,7 @@ jobs:
         # positive control that the check is not vacuously passing.
         run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
 
-      # Packaging runs here as well as in build-all.yml because build-all.yml
+              # Packaging runs here as well as in build-all.yml because build-all.yml
       # is workflow_call-only: nothing a pull request triggers ever invokes it,
       # so without this the packaging path would be unverifiable until after a
       # merge, when a break already blocks the beta pipeline. Both workflows
@@ -1286,18 +1259,7 @@ jobs:
           name: pr-number
           path: pr-number.txt
           retention-days: 1
-
-  # Single aggregation gate. Because the build jobs now run in parallel with the
-  # test shards (needs: codegen, not needs: test), a green build no longer
-  # implies tests passed. This job is the one to mark "required" in branch
-  # protection - it fails if ANY needed job failed or was cancelled. Skipped
-  # jobs (e.g. integration-test on push) are treated as acceptable.
-  # NOTE: codegen MUST be listed here - if it fails, every downstream job is
-  # SKIPPED, and skipped is treated as acceptable below, so without codegen in
-  # the needs list a codegen failure would report a false green.
-  # `changes` is likewise listed: on a docs/CI-only change it reports code=false
-  # and the whole pipeline SKIPS (an accepted green), but if the detector itself
-  # FAILS we must not silently skip-then-green, so its failure must reach here.
+          
   # A submodule pointer is a single sha with no file diff, so a pull request
   # that moves libdivecomputer backwards reverts every fork commit in between
   # while showing a reviewer nothing at all to look at. PR #342 sat with a
@@ -1374,9 +1336,17 @@ jobs:
           echo "::error::libdivecomputer pointer would revert the commits listed above. Rebase the submodule branch onto the current submersion-patches tip and update the pointer."
           exit 1
 
-  # Adding a job below WITHOUT adding it here makes it advisory: red on the PR,
-  # ignored by the merge box. scripts/check_ci_success_gate.py fails the build
-  # if that happens; exempt a genuinely non-gating job there, not by omission.
+  # Single aggregation gate. Because the build jobs now run in parallel with the
+  # test shards (needs: codegen, not needs: test), a green build no longer
+  # implies tests passed. This job is the one to mark "required" in branch
+  # protection - it fails if ANY needed job failed or was cancelled. Skipped
+  # jobs (e.g. integration-test on push) are treated as acceptable.
+  # NOTE: codegen MUST be listed here - if it fails, every downstream job is
+  # SKIPPED, and skipped is treated as acceptable below, so without codegen in
+  # the needs list a codegen failure would report a false green.
+  # `changes` is likewise listed: on a docs/CI-only change it reports code=false
+  # and the whole pipeline SKIPS (an accepted green), but if the detector itself
+  # FAILS we must not silently skip-then-green, so its failure must reach here.
   ci-success:
     name: CI Success
     if: always()

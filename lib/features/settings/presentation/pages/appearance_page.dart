@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
+import 'package:submersion/features/bathymetry/data/sources/swissbathy3d_source.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/display_zoom_settings_tile.dart';
@@ -36,11 +38,48 @@ String _sectionDisplayName(BuildContext context, String routeSegment) {
   };
 }
 
-class AppearancePage extends ConsumerWidget {
+class AppearancePage extends ConsumerStatefulWidget {
   const AppearancePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppearancePage> createState() => _AppearancePageState();
+}
+
+class _AppearancePageState extends ConsumerState<AppearancePage> {
+  bool _isRefreshingBathymetry = false;
+
+  /// Immediately revalidates every cached swissBATHY3D tile via the same
+  /// light STAC metadata check the periodic 30-day check performs, instead
+  /// of waiting for it to elapse -- this is THE settings page users actually
+  /// reach (see settingsSectionDedicatedRoutes in settings_page.dart), so
+  /// this is where the action needs to live to be reachable at all.
+  Future<void> _refreshBathymetryCache() async {
+    setState(() => _isRefreshingBathymetry = true);
+    final refresh = ref.read(swissBathyManualRefreshProvider);
+    SwissBathyRefreshSummary? summary;
+    try {
+      summary = await refresh();
+    } finally {
+      if (mounted) setState(() => _isRefreshingBathymetry = false);
+    }
+    if (!mounted) return;
+
+    final message = summary == null || summary.total == 0
+        ? context.l10n.settings_appearance_bathymetryRefresh_resultUpToDate
+        : summary.updated > 0
+        ? context.l10n.settings_appearance_bathymetryRefresh_resultUpdated(
+            summary.updated,
+          )
+        : summary.failed > 0
+        ? context.l10n.settings_appearance_bathymetryRefresh_resultFailed
+        : context.l10n.settings_appearance_bathymetryRefresh_resultUpToDate;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
 
     return Scaffold(
@@ -110,6 +149,26 @@ class AppearancePage extends ConsumerWidget {
                 );
               }).toList(),
             ),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const FeatureAccentIcon(
+              Icons.refresh,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
+            title: Text(context.l10n.settings_appearance_bathymetryRefresh),
+            subtitle: Text(
+              context.l10n.settings_appearance_bathymetryRefresh_subtitle,
+            ),
+            trailing: _isRefreshingBathymetry
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+            onTap: _isRefreshingBathymetry ? null : _refreshBathymetryCache,
           ),
           const Divider(),
           Consumer(

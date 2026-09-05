@@ -23377,6 +23377,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'Satellite';
 
   @override
+  String get settings_appearance_bathymetryRefresh => 'Reload Map Data';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_subtitle =>
+      'Check swissBATHY3D lake depth data for updates';
+
+  @override
+  String settings_appearance_bathymetryRefresh_resultUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tiles updated',
+      one: '1 tile updated',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultUpToDate =>
+      'All data is up to date';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultFailed =>
+      'Couldn\'t check all data; existing values were kept';
+
+  @override
   String get common_action_reparse => 'Re-parse';
 
   @override
@@ -24248,7 +24274,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_about_bathymetryCredit =>
-      'Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022';
+      'Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · swissBATHY3D (© swisstopo)';
 
   @override
   String get dive3d_metric_depth => 'Depth';

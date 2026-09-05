@@ -8,6 +8,7 @@ import 'package:submersion/features/bathymetry/application/bathymetry_providers.
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/data/terrain_imagery_service.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/bathymetry/presentation/swiss_bathy_debug_info.dart';
 import 'package:submersion/features/bathymetry/presentation/terrain_imagery_providers.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
@@ -190,6 +191,14 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
   final built = grid.rows * grid.cols > _isolateCellThreshold
       ? await compute(_buildScene, input)
       : const SiteSeascapeGeometryService().buildWithLabels(input);
+  // TEMPORARY - DEBUG ONLY, remove before upstream PR: records that
+  // buildWithLabels() actually ran for this site just now (investigating
+  // Bug 11), whether it took the compute()-isolate branch above or the
+  // synchronous one — both funnel through here, back on the main isolate.
+  // Gated on kDebugMode: the backing map is unbounded, throwaway debug
+  // state (one entry per ever-visited site id, never evicted) that has no
+  // reason to grow in a release build no debug panel ever reads from.
+  if (kDebugMode) recordSwissBathySceneBuilt(siteId);
   // Mirrors SiteSeascapeGeometryService's depth budget so the axes and the
   // terrain agree on the scene frame: scaled from the measured grid alone,
   // not the site's recorded max depth (which may sit outside this box).

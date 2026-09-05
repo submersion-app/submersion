@@ -6731,6 +6731,18 @@
   "diveLog_detail_reparseProfilePreserved": "Quelldetails aktualisiert. Dieser Tauchgang wurde aus mehreren Tauchgängen zusammengeführt, daher blieb sein Profil unverändert.",
   "settings_appearance_mapStyle": "Kartenstil",
   "settings_appearance_mapStyle_esriSatellite": "Satellit",
+  "settings_appearance_bathymetryRefresh": "Kartendaten aktualisieren",
+  "settings_appearance_bathymetryRefresh_subtitle": "Prüft swissBATHY3D-Tiefendaten auf Aktualisierungen",
+  "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{1 Kachel aktualisiert} other{{count} Kacheln aktualisiert}}",
+  "@settings_appearance_bathymetryRefresh_resultUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_appearance_bathymetryRefresh_resultUpToDate": "Alle Daten sind aktuell",
+  "settings_appearance_bathymetryRefresh_resultFailed": "Nicht alle Daten konnten geprüft werden; bestehende Werte wurden beibehalten",
   "settings_appearance_mapStyle_openStreetMap": "Straßenkarte",
   "settings_appearance_mapStyle_openTopoMap": "Topografisch",
   "universalImport_bulk_replaceSourceAll": "Alle ersetzen ({count})",
@@ -7036,7 +7048,7 @@
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "Entfernung ({unitSymbol})",
   "@dive3d_seascape_axis_distance": {},
-  "settings_about_bathymetryCredit": "Bathymetrie-Daten: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022",
+  "settings_about_bathymetryCredit": "Bathymetrie-Daten: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · swissBATHY3D (© swisstopo)",
   "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Tiefe",
   "@dive3d_metric_depth": {},

@@ -6731,6 +6731,18 @@
   "diveLog_detail_reparseProfilePreserved": "تم تحديث تفاصيل المصدر. دُمجت هذه الغطسة من غطسات أخرى، لذلك بقي مخططها دون تغيير.",
   "settings_appearance_mapStyle": "نمط الخريطة",
   "settings_appearance_mapStyle_esriSatellite": "قمر صناعي",
+  "settings_appearance_bathymetryRefresh": "إعادة تحميل بيانات الخريطة",
+  "settings_appearance_bathymetryRefresh_subtitle": "التحقق من تحديثات بيانات أعماق swissBATHY3D",
+  "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{تم تحديث بلاطة واحدة} other{تم تحديث {count} بلاطات}}",
+  "@settings_appearance_bathymetryRefresh_resultUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_appearance_bathymetryRefresh_resultUpToDate": "جميع البيانات محدثة",
+  "settings_appearance_bathymetryRefresh_resultFailed": "تعذر التحقق من جميع البيانات؛ تم الاحتفاظ بالقيم الحالية",
   "settings_appearance_mapStyle_openStreetMap": "خريطة الشوارع",
   "settings_appearance_mapStyle_openTopoMap": "طبوغرافية",
   "universalImport_bulk_replaceSourceAll": "استبدال الكل ({count})",
@@ -7036,7 +7048,7 @@
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "المسافة ({unitSymbol})",
   "@dive3d_seascape_axis_distance": {},
-  "settings_about_bathymetryCredit": "بيانات قياس الأعماق: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022",
+  "settings_about_bathymetryCredit": "بيانات قياس الأعماق: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · swissBATHY3D (© swisstopo)",
   "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "العمق",
   "@dive3d_metric_depth": {},

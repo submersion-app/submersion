@@ -82,6 +82,47 @@ class BathymetryCache extends Table {
   Set<Column> get primaryKey => {cacheKey};
 }
 
+/// Cached swissBATHY3D tiles, keyed by the LV95 1-km tile index (e.g.
+/// "2600_1200"). Never synced, never backed up: re-derivable from the
+/// public OGD/STAC source. This sits BELOW [BathymetryCache] in the cache
+/// stack — one physical swissBATHY3D tile can be reused by several
+/// [BathymetryCache] quantized cells, so caching at tile granularity is what
+/// actually guarantees "every tile is downloaded only once" (the task's OGD
+/// fair-use requirement), independent of the coarser 0.02 degree cache grid.
+/// status semantics: 'ok' = usable grid in gridJson; 'empty' = the STAC
+/// lookup for this tile definitively found no covering asset. Transient
+/// failures (network error, STAC error) write NO row.
+class SwissBathyTileCache extends Table {
+  TextColumn get tileKey => text()();
+  TextColumn get status => text()();
+  TextColumn get gridJson => text().nullable()();
+  IntColumn get fetchedAt => integer()();
+
+  /// The STAC item's `datetime` (or `updated`/`created` fallback) at the
+  /// time this tile was last downloaded — the version token the periodic
+  /// freshness check compares against. Null for 'empty' rows and rows
+  /// written before this field existed (v14).
+  TextColumn get sourceDatetime => text().nullable()();
+
+  /// When this row was last confirmed current: set to [fetchedAt] on
+  /// download, bumped without a re-download when a freshness check finds no
+  /// version change. Null means "never checked" and is treated as due for a
+  /// check immediately, which covers rows written before this field existed.
+  IntColumn get checkedAt => integer().nullable()();
+
+  /// The href of the STAC asset [sourceDatetime] was read from. A freshness
+  /// check matches the current STAC response back to this exact asset by
+  /// href before comparing datetimes, rather than assuming the first
+  /// bbox-overlapping candidate is the one that actually covered this tile
+  /// (it is not necessarily -- see [SwissBathy3dSource._firstOverlappingCandidate]).
+  /// Null for 'empty' rows and rows written before this field existed
+  /// (v15), which fall back to one full re-resolution on their next check.
+  TextColumn get sourceHref => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {tileKey};
+}
+
 /// Cached third-party reef data, keyed by quantized coordinate. Never synced
 /// and never backed up: any device can re-derive this from a site's
 /// coordinates, so a restored database re-fetches rather than carrying
@@ -217,6 +258,7 @@ class DecoClassificationCache extends Table {
     MediaTransferQueue,
     MediaCacheEntries,
     BathymetryCache,
+    SwissBathyTileCache,
     ReefDataCache,
     NoaaTideStations,
     GpsTrackGeometryCache,
@@ -229,7 +271,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -316,6 +358,61 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       if (from < 13) {
         await m.createTable(decoClassificationCache);
       }
+      // v14: swissBATHY3D tile cache (Bathymetrie-Daten Schweiz, part 1).
+      if (from < 14) {
+        await m.createTable(swissBathyTileCache);
+      }
+      // v15: periodic swissBATHY3D tile freshness check -- the version token
+      // and last-checked timestamp that let a stale-but-cached tile be
+      // revalidated with one light STAC item lookup instead of an unbounded
+      // re-download.
+      //
+      // Column-existence checked first, not just from<15: v14's createTable
+      // above already builds the table with the CURRENT (post-v15) column
+      // set for any upgrade path that starts below v14, so blindly adding
+      // these columns again would collide there. And if a ladder collision
+      // left v14's createTable unrun, the table does not exist yet either --
+      // the beforeOpen re-assert below creates it with the full current
+      // schema, so there is nothing to add here in that case.
+      if (from < 15) {
+        final cols = await customSelect(
+          "PRAGMA table_info('swiss_bathy_tile_cache')",
+        ).get();
+        final columnNames = cols.map((c) => c.read<String>('name')).toSet();
+        if (columnNames.isNotEmpty) {
+          if (!columnNames.contains('source_datetime')) {
+            await m.addColumn(
+              swissBathyTileCache,
+              swissBathyTileCache.sourceDatetime,
+            );
+          }
+          if (!columnNames.contains('checked_at')) {
+            await m.addColumn(
+              swissBathyTileCache,
+              swissBathyTileCache.checkedAt,
+            );
+          }
+        }
+      }
+      // v16: the href a freshness check's version token was read from, so a
+      // stale check can match back to the exact previously-covering asset
+      // instead of assuming the first bbox-overlapping candidate is it.
+      //
+      // Column-existence checked first for the same reason as v15 above:
+      // v14's createTable already builds the table with the current
+      // (post-v16) column set for upgrades starting below v14.
+      if (from < 16) {
+        final cols = await customSelect(
+          "PRAGMA table_info('swiss_bathy_tile_cache')",
+        ).get();
+        final columnNames = cols.map((c) => c.read<String>('name')).toSet();
+        if (columnNames.isNotEmpty && !columnNames.contains('source_href')) {
+          await m.addColumn(
+            swissBathyTileCache,
+            swissBathyTileCache.sourceHref,
+          );
+        }
+      }
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -395,6 +492,18 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           inputs_hash TEXT NOT NULL,
           computed_at INTEGER NOT NULL,
           PRIMARY KEY (dive_id)
+        )
+      ''');
+      await customStatement('''
+        CREATE TABLE IF NOT EXISTS swiss_bathy_tile_cache (
+          tile_key TEXT NOT NULL,
+          status TEXT NOT NULL,
+          grid_json TEXT NULL,
+          fetched_at INTEGER NOT NULL,
+          source_datetime TEXT NULL,
+          checked_at INTEGER NULL,
+          source_href TEXT NULL,
+          PRIMARY KEY (tile_key)
         )
       ''');
     },

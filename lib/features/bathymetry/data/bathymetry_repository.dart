@@ -4,12 +4,20 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
+import 'package:submersion/features/bathymetry/data/sources/swiss_lake_levels.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// Cache-first bathymetry access. Grids cache per quantized 0.02 degree
 /// coordinate cell (nearby sites, re-pinned sites, and site-less GPS dives
-/// share one fetch). Definitive negatives cache as 'empty'; transient
+/// share one fetch) -- EXCEPT inside a swissBATHY3D lake, where that cell
+/// (~2.2 km x 1.5 km at Swiss latitudes) is coarser than the 1 km tiles the
+/// source actually serves, so two real dive sites in the same cell but
+/// different tiles would wrongly share one grid. There, [quantumDegFor]
+/// returns 0 and the raw coordinate is used as-is: no false coalescing,
+/// while [SwissBathyTileCacheRepository] still dedupes the actual tile
+/// downloads (see swissbathy3d_source.dart), so this never multiplies
+/// network requests. Definitive negatives cache as 'empty'; transient
 /// failures write NO row so the next visit retries. Never throws: null
 /// simply means "no real terrain available right now".
 class BathymetryRepository {
@@ -26,17 +34,36 @@ class BathymetryRepository {
   }) : _db = db,
        _resolver = resolver;
 
+  /// The cache granularity that applies to [c]: 0 (no quantization, use the
+  /// raw coordinate) inside a swissBATHY3D lake, [quantumDeg] everywhere
+  /// else. Mirrors [SwissBathy3dSource.covers] -- the same "is this lake
+  /// coverage" check the resolver itself uses to pick that source -- so
+  /// this stays in lockstep even though it runs ahead of the resolver, at
+  /// every call site that builds a cache/provider key from a raw
+  /// coordinate.
+  static double quantumDegFor(GeoPoint c) =>
+      findSwissLake(c) != null ? 0 : quantumDeg;
+
   static ({double lat, double lon}) quantize(GeoPoint c) {
-    double q(double v) => (v / quantumDeg).floorToDouble() * quantumDeg;
+    final quantum = quantumDegFor(c);
+    if (quantum <= 0) return (lat: c.latitude, lon: c.longitude);
+    double q(double v) => (v / quantum).floorToDouble() * quantum;
     return (lat: q(c.latitude), lon: q(c.longitude));
   }
 
   static String keyFor(GeoPoint c) {
-    final q = quantize(c);
     // The span is part of the key: cached rows never expire, so a span
     // change must miss the old rows and refetch the larger area. Stale
     // rows are inert leftovers in this local-only cache.
     final span = BathymetryResolver.defaultSpanMeters.round();
+    if (quantumDegFor(c) <= 0) {
+      // Raw coordinate, not a quantized cell corner: needs enough decimals
+      // to actually distinguish nearby sites (2 decimals is ~1 km at these
+      // latitudes -- exactly the coalescing this branch exists to avoid).
+      return '${c.latitude.toStringAsFixed(6)},'
+          '${c.longitude.toStringAsFixed(6)}@$span';
+    }
+    final q = quantize(c);
     return '${q.lat.toStringAsFixed(2)},${q.lon.toStringAsFixed(2)}@$span';
   }
 
@@ -104,12 +131,14 @@ class BathymetryRepository {
     }
 
     // Fetch centered on the quantized CELL CENTER so every coordinate in
-    // the cell gets the same, fully covering grid.
+    // the cell gets the same, fully covering grid -- except where
+    // [quantumDegFor] opts out of quantization (swissBATHY3D lakes), where
+    // the raw coordinate itself IS the fetch center: no cell to center on.
+    final quantum = quantumDegFor(center);
     final q = quantize(center);
-    final fetchCenter = GeoPoint(
-      q.lat + quantumDeg / 2,
-      q.lon + quantumDeg / 2,
-    );
+    final fetchCenter = quantum > 0
+        ? GeoPoint(q.lat + quantum / 2, q.lon + quantum / 2)
+        : center;
     final res = await _resolver.resolve(fetchCenter);
     final resolved = res.grid;
     if (resolved != null) {

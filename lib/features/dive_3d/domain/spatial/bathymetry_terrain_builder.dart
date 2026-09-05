@@ -25,7 +25,7 @@ class BathymetryTerrainBuilder {
   static const double _waterOpacity = 0.22;
   static const double _landHeightCapFraction = 0.15;
 
-  static const double metersPerDegLat = 110540.0;
+  static const double metersPerDegLat = metersPerDegreeLatitude;
 
   /// How far above the waterline land is allowed to rise, so shorelines
   /// read without dominating the scene. Hoist it out of per-node loops.

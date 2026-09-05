@@ -15195,6 +15195,18 @@
   "settings_appearance_mapStyle_openStreetMap": "Street Map",
   "settings_appearance_mapStyle_openTopoMap": "Topographic",
   "settings_appearance_mapStyle_esriSatellite": "Satellite",
+  "settings_appearance_bathymetryRefresh": "Reload Map Data",
+  "settings_appearance_bathymetryRefresh_subtitle": "Check swissBATHY3D lake depth data for updates",
+  "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{1 tile updated} other{{count} tiles updated}}",
+  "@settings_appearance_bathymetryRefresh_resultUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_appearance_bathymetryRefresh_resultUpToDate": "All data is up to date",
+  "settings_appearance_bathymetryRefresh_resultFailed": "Couldn't check all data; existing values were kept",
   "common_action_reparse": "Re-parse",
   "@common_action_reparse": {
     "description": "Generic re-parse action label"
@@ -15995,7 +16007,7 @@
       }
     }
   },
-  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022",
+  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · swissBATHY3D (© swisstopo)",
   "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Depth",
   "@dive3d_metric_depth": {},

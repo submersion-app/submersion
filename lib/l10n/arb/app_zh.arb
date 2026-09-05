@@ -6731,6 +6731,18 @@
   "diveLog_detail_reparseProfilePreserved": "已刷新数据源详情。此潜水由多次潜水合并而成，因此其剖面保持不变。",
   "settings_appearance_mapStyle": "地图样式",
   "settings_appearance_mapStyle_esriSatellite": "卫星",
+  "settings_appearance_bathymetryRefresh": "重新加载地图数据",
+  "settings_appearance_bathymetryRefresh_subtitle": "检查 swissBATHY3D 湖泊深度数据是否有更新",
+  "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{已更新 1 个图块} other{已更新 {count} 个图块}}",
+  "@settings_appearance_bathymetryRefresh_resultUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_appearance_bathymetryRefresh_resultUpToDate": "所有数据均为最新",
+  "settings_appearance_bathymetryRefresh_resultFailed": "无法检查所有数据；已保留现有数值",
   "settings_appearance_mapStyle_openStreetMap": "街道地图",
   "settings_appearance_mapStyle_openTopoMap": "地形图",
   "universalImport_bulk_replaceSourceAll": "全部替换（{count}）",
@@ -7036,7 +7048,7 @@
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "距离（{unitSymbol}）",
   "@dive3d_seascape_axis_distance": {},
-  "settings_about_bathymetryCredit": "水深数据：GMRT（CC BY 4.0）· EMODnet Bathymetry（CC BY 4.0）· NOAA ETOPO 2022",
+  "settings_about_bathymetryCredit": "水深数据：GMRT（CC BY 4.0）· EMODnet Bathymetry（CC BY 4.0）· NOAA ETOPO 2022 · swissBATHY3D（© swisstopo）",
   "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "深度",
   "@dive3d_metric_depth": {},

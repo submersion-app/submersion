@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
+import 'package:submersion/features/bathymetry/data/sources/swissbathy3d_source.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -273,6 +278,89 @@ void main() {
       expect(tileFor('Colored navigation icons').value, isTrue);
       expect(tileFor('Colored section headers').value, isFalse);
       expect(tileFor('Colored list icons').value, isFalse);
+    });
+  });
+
+  // Bug 8: the manual "reload map data" action (commit ea3a6a35c) was added
+  // to the settings_page.dart _AppearanceSectionContent widget, which is
+  // NOT the page a normal tap on "Appearance" reaches -- that goes through
+  // settingsSectionDedicatedRoutes to push '/settings/appearance', which
+  // renders THIS widget. These tests pump AppearancePage directly, the same
+  // way _buildTestWidget() above does for every other test in this file, so
+  // they fail if the action ever goes missing from the page users actually
+  // see again.
+  group('AppearancePage swissBATHY3D manual reload', () {
+    Widget buildTestWidgetWith(List<Override> extraOverrides) {
+      return ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+          sharedPreferencesProvider.overrideWithValue(_prefs),
+          ...extraOverrides,
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: AppearancePage(),
+        ),
+      );
+    }
+
+    testWidgets('reload tile calls the refresh action and shows a spinner '
+        'while pending', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      var calls = 0;
+      final completer = Completer<SwissBathyRefreshSummary?>();
+
+      await tester.pumpWidget(
+        buildTestWidgetWith([
+          swissBathyManualRefreshProvider.overrideWithValue(() {
+            calls++;
+            return completer.future;
+          }),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reload Map Data'), findsOneWidget);
+      await tester.tap(find.text('Reload Map Data'));
+      await tester.pump();
+
+      expect(calls, 1);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      completer.complete(
+        const SwissBathyRefreshSummary(updated: 0, upToDate: 3, failed: 0),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('All data is up to date'), findsOneWidget);
+    });
+
+    testWidgets('shows how many tiles were updated on success', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        buildTestWidgetWith([
+          swissBathyManualRefreshProvider.overrideWithValue(
+            () async => const SwissBathyRefreshSummary(
+              updated: 2,
+              upToDate: 1,
+              failed: 0,
+            ),
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Reload Map Data'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 tiles updated'), findsOneWidget);
     });
   });
 }

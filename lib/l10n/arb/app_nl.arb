@@ -6731,6 +6731,18 @@
   "diveLog_detail_reparseProfilePreserved": "Brongegevens vernieuwd. Deze duik is samengevoegd uit andere duiken, dus het profiel is ongewijzigd gebleven.",
   "settings_appearance_mapStyle": "Kaartstijl",
   "settings_appearance_mapStyle_esriSatellite": "Satelliet",
+  "settings_appearance_bathymetryRefresh": "Kaartgegevens vernieuwen",
+  "settings_appearance_bathymetryRefresh_subtitle": "Controleert swissBATHY3D-dieptegegevens op updates",
+  "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{1 tegel bijgewerkt} other{{count} tegels bijgewerkt}}",
+  "@settings_appearance_bathymetryRefresh_resultUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_appearance_bathymetryRefresh_resultUpToDate": "Alle gegevens zijn actueel",
+  "settings_appearance_bathymetryRefresh_resultFailed": "Niet alle gegevens konden worden gecontroleerd; bestaande waarden zijn behouden",
   "settings_appearance_mapStyle_openStreetMap": "Stratenkaart",
   "settings_appearance_mapStyle_openTopoMap": "Topografisch",
   "universalImport_bulk_replaceSourceAll": "Alles vervangen ({count})",
@@ -7036,7 +7048,7 @@
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "Afstand ({unitSymbol})",
   "@dive3d_seascape_axis_distance": {},
-  "settings_about_bathymetryCredit": "Bathymetriegegevens: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022",
+  "settings_about_bathymetryCredit": "Bathymetriegegevens: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · swissBATHY3D (© swisstopo)",
   "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Diepte",
   "@dive3d_metric_depth": {},

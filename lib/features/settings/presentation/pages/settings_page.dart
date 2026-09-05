@@ -8,6 +8,8 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
+import 'package:submersion/features/bathymetry/data/sources/swissbathy3d_source.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 
@@ -1762,6 +1764,32 @@ class _AppearanceSectionContentState
   String? _activeSectionKey;
   bool _showColumnConfig = false;
   String? _columnConfigSection;
+  bool _isRefreshingBathymetry = false;
+
+  Future<void> _refreshBathymetryCache() async {
+    setState(() => _isRefreshingBathymetry = true);
+    final refresh = ref.read(swissBathyManualRefreshProvider);
+    SwissBathyRefreshSummary? summary;
+    try {
+      summary = await refresh();
+    } finally {
+      if (mounted) setState(() => _isRefreshingBathymetry = false);
+    }
+    if (!mounted) return;
+
+    final message = summary == null || summary.total == 0
+        ? context.l10n.settings_appearance_bathymetryRefresh_resultUpToDate
+        : summary.updated > 0
+        ? context.l10n.settings_appearance_bathymetryRefresh_resultUpdated(
+            summary.updated,
+          )
+        : summary.failed > 0
+        ? context.l10n.settings_appearance_bathymetryRefresh_resultFailed
+        : context.l10n.settings_appearance_bathymetryRefresh_resultUpToDate;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1903,6 +1931,26 @@ class _AppearanceSectionContentState
                       );
                     }).toList(),
                   ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.refresh),
+                  title: Text(
+                    context.l10n.settings_appearance_bathymetryRefresh,
+                  ),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_bathymetryRefresh_subtitle,
+                  ),
+                  trailing: _isRefreshingBathymetry
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : null,
+                  onTap: _isRefreshingBathymetry
+                      ? null
+                      : _refreshBathymetryCache,
                 ),
               ],
             ),

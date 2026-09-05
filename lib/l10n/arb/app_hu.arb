@@ -6731,6 +6731,18 @@
   "diveLog_detail_reparseProfilePreserved": "A forrás adatai frissítve. Ez a merülés több merülésből lett összevonva, ezért a profilja változatlan maradt.",
   "settings_appearance_mapStyle": "Térképstílus",
   "settings_appearance_mapStyle_esriSatellite": "Műhold",
+  "settings_appearance_bathymetryRefresh": "Térképadatok frissítése",
+  "settings_appearance_bathymetryRefresh_subtitle": "A swissBATHY3D mélységadatok frissítéseinek ellenőrzése",
+  "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{1 csempe frissítve} other{{count} csempe frissítve}}",
+  "@settings_appearance_bathymetryRefresh_resultUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_appearance_bathymetryRefresh_resultUpToDate": "Minden adat naprakész",
+  "settings_appearance_bathymetryRefresh_resultFailed": "Nem sikerült minden adatot ellenőrizni; a meglévő értékek megmaradtak",
   "settings_appearance_mapStyle_openStreetMap": "Utcatérkép",
   "settings_appearance_mapStyle_openTopoMap": "Topográfiai",
   "universalImport_bulk_replaceSourceAll": "Mind cseréje ({count})",
@@ -7036,7 +7048,7 @@
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "Távolság ({unitSymbol})",
   "@dive3d_seascape_axis_distance": {},
-  "settings_about_bathymetryCredit": "Batimetriai adatok: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022",
+  "settings_about_bathymetryCredit": "Batimetriai adatok: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · swissBATHY3D (© swisstopo)",
   "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Mélység",
   "@dive3d_metric_depth": {},
