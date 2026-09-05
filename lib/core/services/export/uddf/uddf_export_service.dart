@@ -5,9 +5,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// Handles simple UDDF export of dives with optional site data.
@@ -15,11 +18,27 @@ class UddfExportService {
   final _dateFormat = DateFormat('yyyy-MM-dd');
 
   /// Build the UDDF document for [dives] without delivering it anywhere.
-  String generateDivesUddfContent(
+  Future<String> generateDivesUddfContent(
     List<Dive> dives, {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
-  }) {
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
+  }) async {
+    // Encoding happens before the XML build so the builders stay pure
+    // synchronous functions, and bzip2 runs on a worker isolate rather than
+    // whichever isolate called the export.
+    final sources = options.includeRawData
+        ? (dataSources ?? const <DiveSourceExport>[])
+        : const <DiveSourceExport>[];
+    final withBytes = sources.where((s) => s.hasDump).toList(growable: false);
+    final encoded = await UddfDumpCodec.encodeAll(
+      withBytes.map((s) => s.rawData!).toList(growable: false),
+    );
+    final encodedById = <String, String?>{
+      for (var i = 0; i < withBytes.length; i++) withBytes[i].id: encoded[i],
+    };
+
     final builder = XmlBuilder();
 
     builder.processing('xml', 'version="1.0" encoding="UTF-8"');
@@ -545,6 +564,37 @@ class UddfExportService {
             }
           },
         );
+
+        // This path has no top level <applicationdata><submersion> block of
+        // its own: the only <applicationdata> it writes is the per dive
+        // inline one for custom fields, a different element in a different
+        // position. So the source records get their own wrapper here. UDDF
+        // permits <applicationdata> in both places and the inline ones are
+        // untouched.
+        if (sources.isNotEmpty) {
+          builder.element(
+            'applicationdata',
+            nest: () {
+              builder.element(
+                'submersion',
+                attributes: {'version': '1.0'},
+                nest: () {
+                  UddfExportBuilders.buildDataSources(builder, sources);
+                },
+              );
+            },
+          );
+        }
+
+        // Last section, per the UDDF specification. The empty declared set is
+        // not an oversight: this export emits no <divecomputer> element, so
+        // any computer ref would dangle under IDREF validation.
+        UddfExportBuilders.buildDiveComputerControl(
+          builder,
+          sources,
+          encodedById,
+          declaredComputerIds: const {},
+        );
       },
     );
 
@@ -560,11 +610,15 @@ class UddfExportService {
     List<Dive> dives, {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) async {
-    final xmlString = generateDivesUddfContent(
+    final xmlString = await generateDivesUddfContent(
       dives,
       sites: sites,
       diveTankPressures: diveTankPressures,
+      dataSources: dataSources,
+      options: options,
     );
     return saveAndShareFile(xmlString, _fileName(), 'application/xml');
   }
@@ -576,11 +630,15 @@ class UddfExportService {
     List<Dive> dives, {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) async {
-    final xmlString = generateDivesUddfContent(
+    final xmlString = await generateDivesUddfContent(
       dives,
       sites: sites,
       diveTankPressures: diveTankPressures,
+      dataSources: dataSources,
+      options: options,
     );
 
     final result = await FilePicker.saveFile(
