@@ -122,7 +122,11 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
 
 /// Fake AppSettingsRepository used by the nav customization tests.
 class _FakeRepo implements AppSettingsRepository {
+  /// Phone order (bottom-bar slots first, then the More menu).
   List<String>? stored;
+
+  /// Wide-screen rail order, stored under its own key.
+  List<String>? storedRail;
 
   /// No database, so nothing ever ticks.
   @override
@@ -133,6 +137,21 @@ class _FakeRepo implements AppSettingsRepository {
   @override
   Future<void> setNavPrimaryIds(List<String> ids) async {
     stored = List<String>.from(ids);
+  }
+
+  /// How many times the rail order was read, so a phone-width build can
+  /// assert it never subscribed to a surface it does not render.
+  int railReads = 0;
+
+  @override
+  Future<List<String>?> getNavRailIdsRaw() async {
+    railReads++;
+    return storedRail;
+  }
+
+  @override
+  Future<void> setNavRailIds(List<String> ids) async {
+    storedRail = List<String>.from(ids);
   }
 
   @override
@@ -475,8 +494,9 @@ void main() {
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 
-      // The wide-screen rail is NOT customized, so it keeps the default
-      // 16-entry order regardless of stored primary-ids customization.
+      // The rail reads its own storage key, which this repo leaves unset, so
+      // it keeps the default 16-entry order no matter how the phone bottom
+      // bar was customized. That independence is the point of the two keys.
       // NavigationRailDestination is a descriptor (not a Widget), so inspect
       // the NavigationRail.destinations list directly.
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
@@ -507,6 +527,122 @@ void main() {
         'GPS Log',
         'Settings',
       ]);
+    });
+
+    testWidgets('a phone build never reads the rail order', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = _FakeRepo();
+      await tester.pumpWidget(await buildHarness(repo: repo));
+      await tester.pumpAndSettle();
+
+      // Building the rail provider would kick off a settings read for an
+      // order this layout never renders.
+      expect(repo.railReads, 0);
+    });
+
+    testWidgets('a rail-width build does read the rail order', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = _FakeRepo();
+      await tester.pumpWidget(await buildHarness(repo: repo));
+      await tester.pumpAndSettle();
+
+      expect(repo.railReads, greaterThan(0));
+    });
+
+    testWidgets('wide-screen rail renders the stored rail order', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      // A partial stored value: normalization keeps these three at the top and
+      // appends the rest in canonical order.
+      final repo = _FakeRepo()
+        ..storedRail = ['settings', 'statistics', 'dives'];
+      await tester.pumpWidget(await buildHarness(repo: repo));
+      await tester.pumpAndSettle();
+
+      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+      expect(rail.destinations, hasLength(16));
+
+      String labelOf(NavigationRailDestination d) {
+        final label = d.label;
+        if (label is Text) return label.data ?? '';
+        return label.toString();
+      }
+
+      final labels = rail.destinations.map(labelOf).toList();
+      // Home stays pinned at the top; the stored order follows it.
+      expect(labels.take(4).toList(), [
+        'Home',
+        'Settings',
+        'Statistics',
+        'Dives',
+      ]);
+      // Nothing is lost: every destination still has a rail row.
+      expect(labels.toSet(), hasLength(16));
+    });
+
+    testWidgets('rail customization leaves the phone bottom bar alone', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = _FakeRepo()
+        ..storedRail = ['settings', 'statistics', 'dives'];
+      await tester.pumpWidget(await buildHarness(repo: repo));
+      await tester.pumpAndSettle();
+
+      // Phone order is unset, so the bottom bar keeps its defaults even though
+      // the rail was rearranged.
+      for (final label in const ['Home', 'Dives', 'Sites', 'Trips', 'More']) {
+        expect(
+          find.widgetWithText(NavigationDestination, label),
+          findsOneWidget,
+          reason: '$label should still occupy a default bottom-bar slot',
+        );
+      }
+      expect(
+        find.widgetWithText(NavigationDestination, 'Settings'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('tapping a reordered rail item navigates to its route', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      // 'transfer' is canonically near the end; pulling it to the top proves
+      // the tap handler indexes into the stored order, not the canonical one.
+      final repo = _FakeRepo()..storedRail = ['transfer'];
+      final harness = await buildHarnessWithRouter(repo: repo);
+      await tester.pumpWidget(harness.app);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Transfer'));
+      await tester.pumpAndSettle();
+
+      expect(
+        harness.router.routerDelegate.currentConfiguration.uri.path,
+        '/transfer',
+      );
     });
 
     testWidgets('tapping a customized primary item navigates to its route', (

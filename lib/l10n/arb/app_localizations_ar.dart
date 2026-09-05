@@ -15583,6 +15583,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
 
   @override
+  String get settings_navCustomization_descriptionDesktop =>
+      'اسحب العناصر لإعادة ترتيب الشريط الجانبي. تبقى الصفحة الرئيسية دائمًا في الأعلى.';
+
+  @override
+  String get settings_navCustomization_scopePhone => 'الهاتف';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => 'سطح المكتب';
+
+  @override
   String get settings_navCustomization_dividerLabel =>
       'Items below appear in the More menu';
 

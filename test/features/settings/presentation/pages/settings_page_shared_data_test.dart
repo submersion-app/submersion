@@ -119,6 +119,12 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
   Future<void> setNavPrimaryIds(List<String> ids) async {}
 
   @override
+  Future<List<String>?> getNavRailIdsRaw() async => null;
+
+  @override
+  Future<void> setNavRailIds(List<String> ids) async {}
+
+  @override
   Future<String?> getRawSetting(String key) async => null;
 
   @override

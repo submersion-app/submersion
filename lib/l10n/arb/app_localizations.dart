@@ -26340,6 +26340,24 @@ abstract class AppLocalizations {
   /// **'Drag items to reorder. The top three appear in your bottom navigation bar.'**
   String get settings_navCustomization_description;
 
+  /// Help text shown when arranging the wide-screen navigation rail.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag items to reorder the sidebar. Home always stays at the top.'**
+  String get settings_navCustomization_descriptionDesktop;
+
+  /// Segmented-button label for editing the phone navigation order.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get settings_navCustomization_scopePhone;
+
+  /// Segmented-button label for editing the desktop navigation rail order.
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop'**
+  String get settings_navCustomization_scopeDesktop;
+
   /// Non-interactive divider row between primary and overflow destinations.
   ///
   /// In en, this message translates to:

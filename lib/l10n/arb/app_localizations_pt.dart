@@ -15872,6 +15872,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
 
   @override
+  String get settings_navCustomization_descriptionDesktop =>
+      'Arraste os itens para reordenar a barra lateral. O Início fica sempre no topo.';
+
+  @override
+  String get settings_navCustomization_scopePhone => 'Telefone';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => 'Computador';
+
+  @override
   String get settings_navCustomization_dividerLabel =>
       'Items below appear in the More menu';
 
