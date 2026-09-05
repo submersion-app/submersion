@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -551,83 +552,30 @@ class _ExportSectionContent extends ConsumerWidget {
   }
 
   /// Show export options dialog (Share vs Save to File).
-  void _showExportOptions(
+  Future<void> _showExportOptions(
     BuildContext context,
     WidgetRef ref, {
     required String title,
     required Future<void> Function(UddfExportOptions options) shareAction,
     required Future<void> Function(UddfExportOptions options) saveAction,
     bool offerRawData = false,
-  }) {
-    var includeRawData = const UddfExportOptions().includeRawData;
-
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (bottomSheetContext) => StatefulBuilder(
-        builder: (builderContext, setSheetState) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Only UDDF has raw dive computer bytes to carry.
-                if (offerRawData) ...[
-                  CheckboxListTile(
-                    value: includeRawData,
-                    onChanged: (value) => setSheetState(
-                      () => includeRawData = value ?? includeRawData,
-                    ),
-                    title: Text(context.l10n.transfer_export_includeRawData),
-                    subtitle: Text(
-                      context.l10n.transfer_export_includeRawDataSubtitle,
-                    ),
-                    controlAffinity: ListTileControlAffinity.leading,
-                  ),
-                  const Divider(height: 1),
-                ],
-                ListTile(
-                  leading: const Icon(Icons.share),
-                  title: Text(context.l10n.transfer_export_optionShareTitle),
-                  subtitle: Text(
-                    context.l10n.transfer_export_optionShareSubtitle,
-                  ),
-                  onTap: () {
-                    final options = UddfExportOptions(
-                      includeRawData: includeRawData,
-                    );
-                    Navigator.of(bottomSheetContext).pop();
-                    _handleExport(context, ref, () => shareAction(options));
-                  },
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.save_alt),
-                  title: Text(context.l10n.transfer_export_optionSaveTitle),
-                  subtitle: Text(
-                    context.l10n.transfer_export_optionSaveSubtitle,
-                  ),
-                  onTap: () {
-                    final options = UddfExportOptions(
-                      includeRawData: includeRawData,
-                    );
-                    Navigator.of(bottomSheetContext).pop();
-                    _handleExport(context, ref, () => saveAction(options));
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+  }) async {
+    // The shared sheet, not a second copy of it. This page used to inline its
+    // own share/save sheet built from the same four l10n keys; keeping both
+    // meant the raw data toggle would have to be added and maintained twice.
+    final choice = await showExportDestinationSheetWithOptions(
+      context,
+      title: title,
+      showRawDataToggle: offerRawData,
     );
+    if (choice == null || !context.mounted) return;
+
+    final options = UddfExportOptions(includeRawData: choice.includeRawData);
+    final action = switch (choice.destination) {
+      ExportDestination.share => shareAction,
+      ExportDestination.saveToFile => saveAction,
+    };
+    _handleExport(context, ref, () => action(options));
   }
 }
 
