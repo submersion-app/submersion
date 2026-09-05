@@ -23028,6 +23028,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل';
 
   @override
+  String get settings_cloudImportPageSize_title => 'حجم صفحة الاستيراد السحابي';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'عدد أحدث الغوصات التي يتم جلبها في كل مرة من Suunto Cloud أو Garmin Connect. «تحميل المزيد» يجلب الدفعة التالية بنفس الحجم.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'غوصات لكل صفحة';
+
+  @override
   String get settings_siteMatch_strict => 'صارم';
 
   @override
@@ -35999,6 +36009,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'تحميل المزيد';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'تحميل الكل';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

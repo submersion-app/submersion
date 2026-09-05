@@ -38519,6 +38519,24 @@ abstract class AppLocalizations {
   /// **'Read end pressure when you reached the surface, not when the computer stopped recording'**
   String get settings_tankPressureAtSurfacing_subtitle;
 
+  /// No description provided for @settings_cloudImportPageSize_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud import page size'**
+  String get settings_cloudImportPageSize_title;
+
+  /// No description provided for @settings_cloudImportPageSize_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.'**
+  String get settings_cloudImportPageSize_subtitle;
+
+  /// No description provided for @settings_cloudImportPageSize_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives per page'**
+  String get settings_cloudImportPageSize_dialogTitle;
+
   /// No description provided for @settings_siteMatch_strict.
   ///
   /// In en, this message translates to:
@@ -59751,6 +59769,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Load More'**
   String get suuntoCloud_fetch_loadMore;
+
+  /// Button on the Suunto cloud fetch step that fetches every remaining page of dives instead of one page at a time.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch All'**
+  String get suuntoCloud_fetch_fetchAll;
 
   /// Result headline after fetching dives from the Suunto cloud.
   ///

@@ -3,14 +3,17 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/suunto_cloud/suunto_api_exception.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_client.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_session_store.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
+import 'package:submersion/features/import_wizard/domain/cloud_import_paging.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/cloud_import_page_size_provider.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/suunto_cloud_adapter_steps.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -90,6 +93,10 @@ class _FakeCloudClient extends SuuntoCloudClient {
   /// a retry re-requests the page that failed rather than skipping it.
   final List<int> requestedPageOffsets = [];
 
+  /// Every `pageSize` [fetchDivePage] has been asked for, so a test can
+  /// assert the fetch step honours the cloud-import page-size setting.
+  final List<int> requestedPageSizes = [];
+
   /// `offset` is used as a plain page index here. The fake owns both sides
   /// of the cursor, so counting pages reads more clearly than mimicking the
   /// server's item offsets.
@@ -100,6 +107,7 @@ class _FakeCloudClient extends SuuntoCloudClient {
     int pageSize = 100,
   }) async {
     requestedPageOffsets.add(offset);
+    requestedPageSizes.add(pageSize);
     final error = listError;
     if (error != null) throw error;
     return _pageAt(offset);
@@ -188,6 +196,7 @@ class _FailingSecondPageClient extends _FakeCloudClient {
     int pageSize = 100,
   }) async {
     requestedPageOffsets.add(offset);
+    requestedPageSizes.add(pageSize);
     if (offset > 0) throw error;
     return _pageAt(offset);
   }
@@ -220,6 +229,7 @@ class _RecoveringSecondPageClient extends _FakeCloudClient {
     int pageSize = 100,
   }) async {
     requestedPageOffsets.add(offset);
+    requestedPageSizes.add(pageSize);
     if (offset > 0 && !_hasFailed) {
       _hasFailed = true;
       throw const SuuntoApiException('page 2 blew up');
@@ -559,8 +569,34 @@ void main() {
       expect(client.fetchedKeys, ['w1', 'w2']);
       expect(fetched, hasLength(2));
       expect(find.text('Found 2 dives'), findsOneWidget);
+      expect(client.requestedPageSizes, [CloudImportPaging.defaultPageSize]);
       // The offset in the fixture must survive as the wall clock.
       expect(fetched!.first.dive.startTime, DateTime.utc(2026, 5, 1, 10));
+    });
+
+    testWidgets('asks the client for the configured page size', (tester) async {
+      final client = _FakeCloudClient(
+        workouts: [_workout('w1')],
+        smlByKey: {'w1': _diveJson()},
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            cloudImportPageSizeProvider.overrideWith(
+              (ref) => CloudImportPageSizeNotifier(initial: 7),
+            ),
+          ],
+          child: _host(
+            store: _FakeSessionStore(),
+            clientFactory: _FakeCloudClient.new,
+            child: SuuntoCloudFetchStep(client: client, onDivesFetched: (_) {}),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(client.requestedPageSizes, [7]);
     });
 
     testWidgets('skips a single unreadable dive rather than aborting', (
@@ -810,6 +846,68 @@ void main() {
         expect(find.text('Found 2 dives'), findsOneWidget);
       },
     );
+
+    testWidgets('Fetch All loads every remaining page in one tap', (
+      tester,
+    ) async {
+      final client = _MultiPageClient(
+        page1: [_workout('w1')],
+        page2: [_workout('w2')],
+        smlByKey: {'w1': _diveJson(), 'w2': _diveJson()},
+      );
+      List<SuuntoParsedDive>? fetched;
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeCloudClient.new,
+          child: SuuntoCloudFetchStep(
+            client: client,
+            onDivesFetched: (dives) => fetched = dives,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Fetch All'), findsOneWidget);
+
+      await tester.tap(find.text('Fetch All'));
+      await tester.pumpAndSettle();
+
+      expect(client.fetchedKeys, ['w1', 'w2']);
+      expect(fetched, hasLength(2));
+      expect(find.text('Found 2 dives'), findsOneWidget);
+      expect(find.text('Fetch All'), findsNothing);
+    });
+
+    testWidgets('Fetch All still runs after an earlier page failed', (
+      tester,
+    ) async {
+      final client = _RecoveringSecondPageClient(
+        page1: [_workout('w1')],
+        page2: [_workout('w2')],
+        smlByKey: {'w1': _diveJson(), 'w2': _diveJson()},
+      );
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeCloudClient.new,
+          child: SuuntoCloudFetchStep(client: client, onDivesFetched: (_) {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Load More'));
+      await tester.pumpAndSettle();
+      expect(find.text('page 2 blew up'), findsOneWidget);
+
+      await tester.tap(find.text('Fetch All'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Found 2 dives'), findsOneWidget);
+      expect(find.text('page 2 blew up'), findsNothing);
+    });
   });
 
   group('SuuntoCloudFetchStep failures', () {

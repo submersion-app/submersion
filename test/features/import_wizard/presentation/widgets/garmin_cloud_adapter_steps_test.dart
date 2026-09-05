@@ -3,8 +3,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/garmin_connect/garmin_api_exception.dart';
 import 'package:submersion/core/services/garmin_connect/garmin_auth_tokens.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/core/services/garmin_connect/garmin_connect_client.da
 import 'package:submersion/core/services/garmin_connect/garmin_dive_mapper.dart';
 import 'package:submersion/core/services/garmin_connect/garmin_session_store.dart';
 import 'package:submersion/features/import_wizard/data/adapters/garmin_cloud_adapter.dart';
+import 'package:submersion/features/import_wizard/domain/cloud_import_paging.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/cloud_import_page_size_provider.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/garmin_cloud_adapter_steps.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -121,6 +124,10 @@ class _FakeGarminClient extends GarminConnectClient {
   /// a retry re-requests the page that failed rather than skipping it.
   final List<int> requestedPageStarts = [];
 
+  /// Every `pageSize` [fetchDivePage] has been asked for, so a test can
+  /// assert the fetch step honours the cloud-import page-size setting.
+  final List<int> requestedPageSizes = [];
+
   /// `start` is used as a plain page index here. The fake owns both sides of
   /// the cursor, so counting pages reads more clearly than mimicking
   /// Garmin's item offsets.
@@ -130,6 +137,7 @@ class _FakeGarminClient extends GarminConnectClient {
     int pageSize = 100,
   }) async {
     requestedPageStarts.add(start);
+    requestedPageSizes.add(pageSize);
     final error = listError;
     if (error != null) throw error;
     return _pageAt(start);
@@ -208,6 +216,7 @@ class _FailingSecondPageClient extends _FakeGarminClient {
     int pageSize = 100,
   }) async {
     requestedPageStarts.add(start);
+    requestedPageSizes.add(pageSize);
     if (start > 0) throw error;
     return _pageAt(start);
   }
@@ -239,6 +248,7 @@ class _RecoveringSecondPageClient extends _FakeGarminClient {
     int pageSize = 100,
   }) async {
     requestedPageStarts.add(start);
+    requestedPageSizes.add(pageSize);
     if (start > 0 && !_hasFailed) {
       _hasFailed = true;
       throw const GarminApiException('page 2 blew up');
@@ -284,6 +294,7 @@ class _RecoveringClient extends _FakeGarminClient {
   }) async {
     attempts++;
     requestedPageStarts.add(start);
+    requestedPageSizes.add(pageSize);
     if (attempts == 1) throw const GarminApiException('temporary failure');
     return _pageAt(start);
   }
@@ -769,6 +780,32 @@ void main() {
       expect(client.fetchedActivityIds, [1, 2]);
       expect(fetched, hasLength(2));
       expect(find.text('Found 2 dives'), findsOneWidget);
+      expect(client.requestedPageSizes, [CloudImportPaging.defaultPageSize]);
+    });
+
+    testWidgets('asks the client for the configured page size', (tester) async {
+      final client = _FakeGarminClient(
+        dives: [_activity(1)],
+        fitBytesByActivityId: {1: fitBytes},
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            cloudImportPageSizeProvider.overrideWith(
+              (ref) => CloudImportPageSizeNotifier(initial: 7),
+            ),
+          ],
+          child: _host(
+            store: _FakeSessionStore(),
+            clientFactory: _FakeGarminClient.new,
+            child: GarminCloudFetchStep(client: client, onDivesFetched: (_) {}),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(client.requestedPageSizes, [7]);
     });
 
     testWidgets(

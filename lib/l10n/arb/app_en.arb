@@ -15117,6 +15117,9 @@
   "settings_siteMatch_subtitle": "How aggressively downloaded dives are matched to sites",
   "settings_tankPressureAtSurfacing_title": "Tank pressure at surfacing",
   "settings_tankPressureAtSurfacing_subtitle": "Read end pressure when you reached the surface, not when the computer stopped recording",
+  "settings_cloudImportPageSize_title": "Cloud import page size",
+  "settings_cloudImportPageSize_subtitle": "How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.",
+  "settings_cloudImportPageSize_dialogTitle": "Dives per page",
   "settings_siteMatch_strict": "Strict",
   "settings_siteMatch_balanced": "Balanced",
   "settings_siteMatch_relaxed": "Relaxed",
@@ -21996,6 +21999,10 @@
   "suuntoCloud_fetch_failedTitle": "Could not fetch dives",
   "suuntoCloud_fetch_retry": "Try Again",
   "suuntoCloud_fetch_loadMore": "Load More",
+  "suuntoCloud_fetch_fetchAll": "Fetch All",
+  "@suuntoCloud_fetch_fetchAll": {
+    "description": "Button on the Suunto cloud fetch step that fetches every remaining page of dives instead of one page at a time."
+  },
   "suuntoCloud_fetch_foundDives": "{count, plural, =0{No dives found} =1{Found 1 dive} other{Found {count} dives}}",
   "suuntoCloud_fetch_someFailed": "{count, plural, =1{1 dive could not be converted and was skipped.} other{{count} dives could not be converted and were skipped.}}",
   "@suuntoCloud_signIn_signedInAs": {

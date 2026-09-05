@@ -22865,6 +22865,16 @@ class AppLocalizationsHe extends AppLocalizations {
       'קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה';
 
   @override
+  String get settings_cloudImportPageSize_title => 'גודל עמוד בייבוא מהענן';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'צלילות לעמוד';
+
+  @override
   String get settings_siteMatch_strict => 'קפדני';
 
   @override
@@ -35642,6 +35652,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'טען עוד';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'טען הכול';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {
