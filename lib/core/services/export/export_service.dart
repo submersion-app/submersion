@@ -3,12 +3,15 @@ import 'dart:ui' show Rect;
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
+import 'package:submersion/core/services/export/excel/blender_invoice_excel_export_service.dart';
 import 'package:submersion/core/services/export/excel/excel_export_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/kml/kml_export_service.dart';
+import 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
+import 'package:submersion/core/services/export/pdf/blender_invoice_pdf_export_service.dart';
 import 'package:submersion/core/services/export/pdf/pdf_course_export_service.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart'
@@ -42,6 +45,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
+export 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 export 'package:submersion/core/services/export/models/export_service_record.dart';
 export 'package:submersion/core/services/export/models/uddf_export_options.dart';
 export 'package:submersion/core/services/export/models/uddf_import_result.dart';
@@ -58,8 +62,10 @@ class ExportService {
   final _csv = CsvExportService();
   final _pdf = PdfExportService();
   final _pdfCourse = PdfCourseExportService();
+  final _blenderInvoicePdf = BlenderInvoicePdfExportService();
   final _excel = ExcelExportService();
   final _maintenance = MaintenanceExcelExportService();
+  final _blenderInvoiceExcel = BlenderInvoiceExcelExportService();
   final _kml = KmlExportService();
   final _uddf = UddfExportService();
   final _uddfFull = UddfFullExportService();
@@ -175,6 +181,31 @@ class ExportService {
 
   Future<String?> savePdfBytesToFile(List<int> bytes, String fileName) =>
       _pdf.savePdfBytesToFile(bytes, fileName);
+
+  // ==================== Blender Invoice Export ====================
+
+  Future<List<int>> generateBlenderInvoicePdfBytes(
+    BlenderInvoiceExportData data,
+  ) => _blenderInvoicePdf.generateBytes(data);
+
+  Future<String> exportBlenderInvoiceToPdf(
+    BlenderInvoiceExportData data, {
+    Rect? sharePositionOrigin,
+  }) => _blenderInvoicePdf.exportToPdf(
+    data,
+    sharePositionOrigin: sharePositionOrigin,
+  );
+
+  List<int> generateBlenderInvoiceExcelBytes(BlenderInvoiceExportData data) =>
+      _blenderInvoiceExcel.generateBytes(data);
+
+  Future<String> exportBlenderInvoiceToExcel(
+    BlenderInvoiceExportData data, {
+    Rect? sharePositionOrigin,
+  }) => _blenderInvoiceExcel.exportToExcel(
+    data,
+    sharePositionOrigin: sharePositionOrigin,
+  );
 
   // ==================== PDF Course Export ====================
 

@@ -72,7 +72,9 @@ class BlenderProcedureCard extends ConsumerWidget {
                 color: colorScheme.onPrimaryContainer,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
+            _temperatureSummary(context, units, fillTemp, settledTemp),
+            const SizedBox(height: 12),
             for (final step in result.steps)
               _stepLine(context, step, units, decimals),
             // Only worth saying when the two temperatures differ. At equal
@@ -96,6 +98,33 @@ class BlenderProcedureCard extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  /// The fill and settled temperatures set on the settings page, read-only
+  /// here so a diver working the calculator does not have to open settings to
+  /// see what they configured. Moved under this card's title, next to the
+  /// procedure it conditions (issue #44 follow-up); both temperatures show
+  /// unconditionally now, since a fill station cares what the cylinder settles
+  /// to even when it happens to match the fill temperature today.
+  Widget _temperatureSummary(
+    BuildContext context,
+    UnitFormatter units,
+    double fillTemp,
+    double settledTemp,
+  ) {
+    final label =
+        '${context.l10n.gasCalculators_blender_fillTemp}: '
+        '${units.formatTemperature(fillTemp, decimals: 0)}'
+        '  ·  ${context.l10n.gasCalculators_blender_settledTemp}: '
+        '${units.formatTemperature(settledTemp, decimals: 0)}';
+    return Text(
+      label,
+      key: const Key('blender-temperature-summary'),
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: Theme.of(context).colorScheme.onPrimaryContainer,
+      ),
+      overflow: TextOverflow.ellipsis,
     );
   }
 

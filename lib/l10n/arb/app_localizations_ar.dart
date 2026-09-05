@@ -12069,6 +12069,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_helium => 'هيليوم';
 
   @override
+  String get gasCalculators_blender_topup => 'غاز التعبئة الإضافية';
+
+  @override
+  String get gasCalculators_blender_purity => 'النقاء';
+
+  @override
+  String gasCalculators_blender_moveGasUp(String gas) {
+    return 'نقل $gas للأعلى';
+  }
+
+  @override
+  String gasCalculators_blender_moveGasDown(String gas) {
+    return 'نقل $gas للأسفل';
+  }
+
+  @override
   String get gasCalculators_blender_procedure => 'خطوات التعبئة';
 
   @override
@@ -12236,6 +12252,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_templateAdd => 'إضافة قالب';
 
   @override
+  String get gasCalculators_blender_templateAdjust => 'ضبط القيم';
+
+  @override
   String get gasCalculators_blender_billing => 'التكلفة';
 
   @override
@@ -12253,6 +12272,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_currency => 'العملة';
 
   @override
+  String get gasCalculators_blender_currencyFollowsUnits =>
+      'يتبع الإعدادات > الوحدات > العملة الافتراضية';
+
+  @override
+  String get gasCalculators_blender_manageCylinderSizes =>
+      'إدارة أحجام الأسطوانات';
+
+  @override
   String get gasCalculators_blender_costTotal => 'الإجمالي';
 
   @override
@@ -12267,7 +12294,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_saveFill => 'حفظ هذه التعبئة';
 
   @override
+  String get gasCalculators_blender_flushFeeEnable =>
+      'فرض رسوم لتنظيف خرطوم التعبئة';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerInvoice =>
+      'مرة واحدة لكل فاتورة';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerFill =>
+      'مرة واحدة لكل تعبئة';
+
+  @override
+  String get gasCalculators_blender_flushFeeVolume => 'حجم التنظيف';
+
+  @override
+  String gasCalculators_blender_flushFeeLine(String gas) {
+    return 'تنظيف خرطوم $gas';
+  }
+
+  @override
   String get gasCalculators_blender_billed => 'الفاتورة';
+
+  @override
+  String gasCalculators_blender_billedDate(String date) {
+    return 'فاتورة بتاريخ $date';
+  }
+
+  @override
+  String get gasCalculators_blender_billedDateEdit => 'تغيير تاريخ الفاتورة';
+
+  @override
+  String get gasCalculators_blender_tariff => 'التعرفة الحالية';
 
   @override
   String get gasCalculators_blender_billedNone =>
@@ -12286,14 +12344,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'المبلغ';
 
   @override
-  String get gasCalculators_blender_clearBilled => 'إفراغ';
+  String get gasCalculators_blender_lineNeedsDescription =>
+      'أدخل وصفًا، أو أسطوانة ومزيجًا.';
 
   @override
-  String get gasCalculators_blender_clearBilledTitle => 'إفراغ الفاتورة؟';
+  String get gasCalculators_blender_export => 'تصدير';
 
   @override
-  String gasCalculators_blender_clearBilledBody(int count) {
-    return 'سيؤدي هذا إلى حذف جميع التعبئات المحفوظة وعددها $count.';
+  String get gasCalculators_blender_exportPdf => 'تصدير كملف PDF';
+
+  @override
+  String get gasCalculators_blender_exportImage => 'تصدير كصورة';
+
+  @override
+  String get gasCalculators_blender_exportExcel => 'تصدير كملف Excel';
+
+  @override
+  String gasCalculators_blender_exportError(String error) {
+    return 'فشل التصدير: $error';
+  }
+
+  @override
+  String get gasCalculators_blender_pay => 'دفع';
+
+  @override
+  String get gasCalculators_blender_payTitle =>
+      'وضع علامة على الفاتورة كمدفوعة؟';
+
+  @override
+  String gasCalculators_blender_payBody(int count) {
+    return 'سيؤدي هذا إلى أرشفة جميع التعبئات المحفوظة وعددها $count وبدء فاتورة جديدة.';
   }
 
   @override
@@ -12317,6 +12397,44 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedTotal => 'الإجمالي';
+
+  @override
+  String get gasCalculators_blender_invoiceArchive => 'أرشيف الفواتير';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveFilter => 'تصفية حسب التاريخ';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllYears => 'كل السنوات';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllMonths => 'كل الأشهر';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmpty =>
+      'لا توجد فواتير مدفوعة بعد.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmptyFiltered =>
+      'لا توجد فواتير ضمن هذا النطاق الزمني.';
+
+  @override
+  String gasCalculators_blender_invoiceArchiveFillCount(int count) {
+    return '$count تعبئات';
+  }
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveIncomplete => 'غير مكتمل';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveUntitled => 'بدون عنوان';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveNotFound =>
+      'الفاتورة غير موجودة.';
+
+  @override
+  String get gasCalculators_blender_defaults => 'الإعدادات الافتراضية والفوترة';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';
@@ -25446,6 +25564,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_section_security_subtitle =>
       'قفل التطبيق وتشفير قاعدة البيانات';
+
+  @override
+  String get settings_section_trimixMixer_title => 'خلاط ترايمكس';
+
+  @override
+  String get settings_section_trimixMixer_subtitle =>
+      'غازات التعبئة، الظروف وإعدادات الفوترة الافتراضية';
 
   @override
   String get settings_security_appLock => 'قفل التطبيق';

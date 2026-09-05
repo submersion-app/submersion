@@ -20804,6 +20804,30 @@ abstract class AppLocalizations {
   /// **'Helium'**
   String get gasCalculators_blender_helium;
 
+  /// No description provided for @gasCalculators_blender_topup.
+  ///
+  /// In en, this message translates to:
+  /// **'Topup'**
+  String get gasCalculators_blender_topup;
+
+  /// No description provided for @gasCalculators_blender_purity.
+  ///
+  /// In en, this message translates to:
+  /// **'Purity'**
+  String get gasCalculators_blender_purity;
+
+  /// Accessibility label for the move-up button on a fill-gas role row.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {gas} up'**
+  String gasCalculators_blender_moveGasUp(String gas);
+
+  /// Accessibility label for the move-down button on a fill-gas role row.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {gas} down'**
+  String gasCalculators_blender_moveGasDown(String gas);
+
   /// No description provided for @gasCalculators_blender_procedure.
   ///
   /// In en, this message translates to:
@@ -21066,6 +21090,12 @@ abstract class AppLocalizations {
   /// **'Add template'**
   String get gasCalculators_blender_templateAdd;
 
+  /// No description provided for @gasCalculators_blender_templateAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust values'**
+  String get gasCalculators_blender_templateAdjust;
+
   /// No description provided for @gasCalculators_blender_billing.
   ///
   /// In en, this message translates to:
@@ -21096,6 +21126,18 @@ abstract class AppLocalizations {
   /// **'Currency'**
   String get gasCalculators_blender_currency;
 
+  /// No description provided for @gasCalculators_blender_currencyFollowsUnits.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows Settings > Units > Default currency'**
+  String get gasCalculators_blender_currencyFollowsUnits;
+
+  /// No description provided for @gasCalculators_blender_manageCylinderSizes.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage cylinder sizes'**
+  String get gasCalculators_blender_manageCylinderSizes;
+
   /// No description provided for @gasCalculators_blender_costTotal.
   ///
   /// In en, this message translates to:
@@ -21120,11 +21162,59 @@ abstract class AppLocalizations {
   /// **'Save this fill'**
   String get gasCalculators_blender_saveFill;
 
+  /// No description provided for @gasCalculators_blender_flushFeeEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge a fee to purge the fill hose'**
+  String get gasCalculators_blender_flushFeeEnable;
+
+  /// No description provided for @gasCalculators_blender_flushFeeModePerInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Once per bill'**
+  String get gasCalculators_blender_flushFeeModePerInvoice;
+
+  /// No description provided for @gasCalculators_blender_flushFeeModePerFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Once per fill'**
+  String get gasCalculators_blender_flushFeeModePerFill;
+
+  /// No description provided for @gasCalculators_blender_flushFeeVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Purge volume'**
+  String get gasCalculators_blender_flushFeeVolume;
+
+  /// No description provided for @gasCalculators_blender_flushFeeLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{gas} hose purge'**
+  String gasCalculators_blender_flushFeeLine(String gas);
+
   /// No description provided for @gasCalculators_blender_billed.
   ///
   /// In en, this message translates to:
   /// **'Billed'**
   String get gasCalculators_blender_billed;
+
+  /// No description provided for @gasCalculators_blender_billedDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice dated {date}'**
+  String gasCalculators_blender_billedDate(String date);
+
+  /// No description provided for @gasCalculators_blender_billedDateEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Change invoice date'**
+  String get gasCalculators_blender_billedDateEdit;
+
+  /// No description provided for @gasCalculators_blender_tariff.
+  ///
+  /// In en, this message translates to:
+  /// **'Current tariff'**
+  String get gasCalculators_blender_tariff;
 
   /// No description provided for @gasCalculators_blender_billedNone.
   ///
@@ -21156,23 +21246,59 @@ abstract class AppLocalizations {
   /// **'Amount'**
   String get gasCalculators_blender_lineAmount;
 
-  /// No description provided for @gasCalculators_blender_clearBilled.
+  /// No description provided for @gasCalculators_blender_lineNeedsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Clear'**
-  String get gasCalculators_blender_clearBilled;
+  /// **'Enter a description, or a cylinder and mix.'**
+  String get gasCalculators_blender_lineNeedsDescription;
 
-  /// No description provided for @gasCalculators_blender_clearBilledTitle.
+  /// No description provided for @gasCalculators_blender_export.
   ///
   /// In en, this message translates to:
-  /// **'Clear the bill?'**
-  String get gasCalculators_blender_clearBilledTitle;
+  /// **'Export'**
+  String get gasCalculators_blender_export;
 
-  /// No description provided for @gasCalculators_blender_clearBilledBody.
+  /// No description provided for @gasCalculators_blender_exportPdf.
   ///
   /// In en, this message translates to:
-  /// **'This removes all {count} saved fills.'**
-  String gasCalculators_blender_clearBilledBody(int count);
+  /// **'Export as PDF'**
+  String get gasCalculators_blender_exportPdf;
+
+  /// No description provided for @gasCalculators_blender_exportImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Export as Image'**
+  String get gasCalculators_blender_exportImage;
+
+  /// No description provided for @gasCalculators_blender_exportExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Export as Excel'**
+  String get gasCalculators_blender_exportExcel;
+
+  /// No description provided for @gasCalculators_blender_exportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String gasCalculators_blender_exportError(String error);
+
+  /// No description provided for @gasCalculators_blender_pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get gasCalculators_blender_pay;
+
+  /// No description provided for @gasCalculators_blender_payTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark the bill as paid?'**
+  String get gasCalculators_blender_payTitle;
+
+  /// No description provided for @gasCalculators_blender_payBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This archives all {count} saved fills and starts a new bill.'**
+  String gasCalculators_blender_payBody(int count);
 
   /// No description provided for @gasCalculators_blender_editLine.
   ///
@@ -21203,6 +21329,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total'**
   String get gasCalculators_blender_billedTotal;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice archive'**
+  String get gasCalculators_blender_invoiceArchive;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by date'**
+  String get gasCalculators_blender_invoiceArchiveFilter;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveAllYears.
+  ///
+  /// In en, this message translates to:
+  /// **'All years'**
+  String get gasCalculators_blender_invoiceArchiveAllYears;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveAllMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'All months'**
+  String get gasCalculators_blender_invoiceArchiveAllMonths;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No paid invoices yet.'**
+  String get gasCalculators_blender_invoiceArchiveEmpty;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveEmptyFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'No invoices in this date range.'**
+  String get gasCalculators_blender_invoiceArchiveEmptyFiltered;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveFillCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} fills'**
+  String gasCalculators_blender_invoiceArchiveFillCount(int count);
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete'**
+  String get gasCalculators_blender_invoiceArchiveIncomplete;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get gasCalculators_blender_invoiceArchiveUntitled;
+
+  /// No description provided for @gasCalculators_blender_invoiceArchiveNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice not found.'**
+  String get gasCalculators_blender_invoiceArchiveNotFound;
+
+  /// No description provided for @gasCalculators_blender_defaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Default settings and billing'**
+  String get gasCalculators_blender_defaults;
 
   /// No description provided for @gasCalculators_tab_mod.
   ///
@@ -42812,6 +43004,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App lock & database encryption'**
   String get settings_section_security_subtitle;
+
+  /// No description provided for @settings_section_trimixMixer_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimix Mixer'**
+  String get settings_section_trimixMixer_title;
+
+  /// No description provided for @settings_section_trimixMixer_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill gases, conditions & billing defaults'**
+  String get settings_section_trimixMixer_subtitle;
 
   /// No description provided for @settings_security_appLock.
   ///

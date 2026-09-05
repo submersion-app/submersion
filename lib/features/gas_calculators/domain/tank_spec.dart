@@ -85,22 +85,3 @@ List<TankSpec> imperialTankChoices() => [
   TankSpec.fromPreset(TankPresets.al100),
   TankSpec.fromPreset(TankPresets.hp120),
 ];
-
-/// Cylinder choices a gas blender actually fills, named by the reporter of
-/// issue #1100: the small decant bottles oxygen and helium come in, a common
-/// aluminium single, and a steel twinset.
-///
-/// Deliberately separate from [metricTankChoices] and [imperialTankChoices],
-/// which describe what a diver breathes from. A blending bench sees 2 and 3
-/// litre bottles that never go in the water, and it sees a twinset as one
-/// 24 litre vessel rather than as a pair.
-List<TankSpec> blenderTankChoices() => [
-  const TankSpec(waterVolumeLiters: 2, workingPressureBar: 200, label: '2 L'),
-  const TankSpec(waterVolumeLiters: 3, workingPressureBar: 200, label: '3 L'),
-  TankSpec.fromPreset(TankPresets.al80),
-  const TankSpec(
-    waterVolumeLiters: 24,
-    workingPressureBar: 232,
-    label: 'Steel 12 L twinset',
-  ),
-];

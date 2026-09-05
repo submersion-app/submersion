@@ -12280,6 +12280,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_blender_helium => 'Helium';
 
   @override
+  String get gasCalculators_blender_topup => 'Topup';
+
+  @override
+  String get gasCalculators_blender_purity => 'Reinheit';
+
+  @override
+  String gasCalculators_blender_moveGasUp(String gas) {
+    return '$gas nach oben verschieben';
+  }
+
+  @override
+  String gasCalculators_blender_moveGasDown(String gas) {
+    return '$gas nach unten verschieben';
+  }
+
+  @override
   String get gasCalculators_blender_procedure => 'Füllreihenfolge';
 
   @override
@@ -12449,6 +12465,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_blender_templateAdd => 'Vorlage hinzufügen';
 
   @override
+  String get gasCalculators_blender_templateAdjust => 'Werte anpassen';
+
+  @override
   String get gasCalculators_blender_billing => 'Kosten';
 
   @override
@@ -12467,6 +12486,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_blender_currency => 'Währung';
 
   @override
+  String get gasCalculators_blender_currencyFollowsUnits =>
+      'Folgt Einstellungen > Einheiten > Standardwährung';
+
+  @override
+  String get gasCalculators_blender_manageCylinderSizes =>
+      'Flaschengrößen verwalten';
+
+  @override
   String get gasCalculators_blender_costTotal => 'Gesamt';
 
   @override
@@ -12481,7 +12508,37 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_blender_saveFill => 'Diese Füllung speichern';
 
   @override
+  String get gasCalculators_blender_flushFeeEnable =>
+      'Gebühr für das Spülen des Füllschlauchs berechnen';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerInvoice =>
+      'Einmal pro Abrechnung';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerFill => 'Einmal pro Füllung';
+
+  @override
+  String get gasCalculators_blender_flushFeeVolume => 'Spülvolumen';
+
+  @override
+  String gasCalculators_blender_flushFeeLine(String gas) {
+    return '$gas-Schlauchspülung';
+  }
+
+  @override
   String get gasCalculators_blender_billed => 'Abgerechnet';
+
+  @override
+  String gasCalculators_blender_billedDate(String date) {
+    return 'Rechnung vom $date';
+  }
+
+  @override
+  String get gasCalculators_blender_billedDateEdit => 'Rechnungsdatum ändern';
+
+  @override
+  String get gasCalculators_blender_tariff => 'Tarif';
 
   @override
   String get gasCalculators_blender_billedNone =>
@@ -12500,14 +12557,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'Betrag';
 
   @override
-  String get gasCalculators_blender_clearBilled => 'Leeren';
+  String get gasCalculators_blender_lineNeedsDescription =>
+      'Gib eine Beschreibung oder Flasche und Mischung ein.';
 
   @override
-  String get gasCalculators_blender_clearBilledTitle => 'Rechnung leeren?';
+  String get gasCalculators_blender_export => 'Exportieren';
 
   @override
-  String gasCalculators_blender_clearBilledBody(int count) {
-    return 'Damit werden alle $count gespeicherten Füllungen entfernt.';
+  String get gasCalculators_blender_exportPdf => 'Als PDF exportieren';
+
+  @override
+  String get gasCalculators_blender_exportImage => 'Als Bild exportieren';
+
+  @override
+  String get gasCalculators_blender_exportExcel => 'Als Excel exportieren';
+
+  @override
+  String gasCalculators_blender_exportError(String error) {
+    return 'Export fehlgeschlagen: $error';
+  }
+
+  @override
+  String get gasCalculators_blender_pay => 'Bezahlen';
+
+  @override
+  String get gasCalculators_blender_payTitle =>
+      'Rechnung als bezahlt markieren?';
+
+  @override
+  String gasCalculators_blender_payBody(int count) {
+    return 'Dies archiviert alle $count gespeicherten Füllungen und beginnt eine neue Rechnung.';
   }
 
   @override
@@ -12531,6 +12610,46 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedTotal => 'Gesamt';
+
+  @override
+  String get gasCalculators_blender_invoiceArchive => 'Rechnungsarchiv';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveFilter =>
+      'Nach Datum filtern';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllYears => 'Alle Jahre';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllMonths => 'Alle Monate';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmpty =>
+      'Noch keine bezahlten Rechnungen.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmptyFiltered =>
+      'Keine Rechnungen in diesem Zeitraum.';
+
+  @override
+  String gasCalculators_blender_invoiceArchiveFillCount(int count) {
+    return '$count Füllungen';
+  }
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveIncomplete => 'Unvollständig';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveUntitled => 'Ohne Titel';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveNotFound =>
+      'Rechnung nicht gefunden.';
+
+  @override
+  String get gasCalculators_blender_defaults =>
+      'Standardeinstellungen und Abrechnung';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';
@@ -25865,6 +25984,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_section_security_subtitle =>
       'App-Sperre & Datenbankverschlüsselung';
+
+  @override
+  String get settings_section_trimixMixer_title => 'Trimix-Mischer';
+
+  @override
+  String get settings_section_trimixMixer_subtitle =>
+      'Füllgase, Mischbedingungen & Standardeinstellungen für die Abrechnung';
 
   @override
   String get settings_security_appLock => 'App-Sperre';

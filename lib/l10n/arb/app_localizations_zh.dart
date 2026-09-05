@@ -11712,6 +11712,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_helium => '氦气';
 
   @override
+  String get gasCalculators_blender_topup => '补充气';
+
+  @override
+  String get gasCalculators_blender_purity => '纯度';
+
+  @override
+  String gasCalculators_blender_moveGasUp(String gas) {
+    return '将$gas上移';
+  }
+
+  @override
+  String gasCalculators_blender_moveGasDown(String gas) {
+    return '将$gas下移';
+  }
+
+  @override
   String get gasCalculators_blender_procedure => '充填步骤';
 
   @override
@@ -11873,6 +11889,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_templateAdd => '添加模板';
 
   @override
+  String get gasCalculators_blender_templateAdjust => '调整数值';
+
+  @override
   String get gasCalculators_blender_billing => '费用';
 
   @override
@@ -11890,6 +11909,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_currency => '货币';
 
   @override
+  String get gasCalculators_blender_currencyFollowsUnits => '遵循 设置 > 单位 > 默认货币';
+
+  @override
+  String get gasCalculators_blender_manageCylinderSizes => '管理气瓶尺寸';
+
+  @override
   String get gasCalculators_blender_costTotal => '合计';
 
   @override
@@ -11903,7 +11928,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_saveFill => '保存本次充填';
 
   @override
+  String get gasCalculators_blender_flushFeeEnable => '收取充气软管吹扫费';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerInvoice => '每张账单一次';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerFill => '每次充填一次';
+
+  @override
+  String get gasCalculators_blender_flushFeeVolume => '吹扫量';
+
+  @override
+  String gasCalculators_blender_flushFeeLine(String gas) {
+    return '$gas 管路吹扫';
+  }
+
+  @override
   String get gasCalculators_blender_billed => '已计费';
+
+  @override
+  String gasCalculators_blender_billedDate(String date) {
+    return '开票日期：$date';
+  }
+
+  @override
+  String get gasCalculators_blender_billedDateEdit => '更改开票日期';
+
+  @override
+  String get gasCalculators_blender_tariff => '当前价目';
 
   @override
   String get gasCalculators_blender_billedNone => '尚无计费内容。完成一次充填后保存到这里。';
@@ -11921,14 +11974,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => '金额';
 
   @override
-  String get gasCalculators_blender_clearBilled => '清空';
+  String get gasCalculators_blender_lineNeedsDescription => '请输入说明，或气瓶与混合气。';
 
   @override
-  String get gasCalculators_blender_clearBilledTitle => '清空账单？';
+  String get gasCalculators_blender_export => '导出';
 
   @override
-  String gasCalculators_blender_clearBilledBody(int count) {
-    return '这将删除全部 $count 条已保存的充填记录。';
+  String get gasCalculators_blender_exportPdf => '导出为 PDF';
+
+  @override
+  String get gasCalculators_blender_exportImage => '导出为图片';
+
+  @override
+  String get gasCalculators_blender_exportExcel => '导出为 Excel';
+
+  @override
+  String gasCalculators_blender_exportError(String error) {
+    return '导出失败：$error';
+  }
+
+  @override
+  String get gasCalculators_blender_pay => '付款';
+
+  @override
+  String get gasCalculators_blender_payTitle => '将账单标记为已付款？';
+
+  @override
+  String gasCalculators_blender_payBody(int count) {
+    return '这将归档全部 $count 条已保存的充填记录并开始一张新账单。';
   }
 
   @override
@@ -11951,6 +12024,41 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedTotal => '合计';
+
+  @override
+  String get gasCalculators_blender_invoiceArchive => '账单存档';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveFilter => '按日期筛选';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllYears => '所有年份';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllMonths => '所有月份';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmpty => '尚无已付款账单。';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmptyFiltered => '此时间段内没有账单。';
+
+  @override
+  String gasCalculators_blender_invoiceArchiveFillCount(int count) {
+    return '$count 次充装';
+  }
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveIncomplete => '不完整';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveUntitled => '无标题';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveNotFound => '未找到该账单。';
+
+  @override
+  String get gasCalculators_blender_defaults => '默认设置与计费';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';
@@ -24586,6 +24694,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_section_security_subtitle => '应用锁定与数据库加密';
+
+  @override
+  String get settings_section_trimixMixer_title => '三混气配气器';
+
+  @override
+  String get settings_section_trimixMixer_subtitle => '充填气体、配气条件与计费默认设置';
 
   @override
   String get settings_security_appLock => '应用锁定';
