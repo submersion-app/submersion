@@ -105,8 +105,28 @@ returns null when the best `LowPS` is coarser than
 `NoaaDemSource.usefulCellSizeMeters` (50 m), so the mosaic's ETOPO fallback
 never masquerades as high-resolution data.
 
-`BathymetryResolver` probes every source concurrently, sorts by declared
-cell size ascending, then fetches in that order and accepts the first grid
+`BathymetryResolver` probes every source concurrently, then orders them by
+**materially better resolution only**: a source preempts the declared list
+order when its declared cell size is more than `preemptionFactor` (2.0)
+finer. Within that factor, the declared order stands, so a regional survey
+still outranks a global grid of nominally similar resolution.
+
+This band matters. GMRT declares ~60 m against EMODnet's 115 m, a factor of
+1.9, so a flat resolution sort would demote EMODnet across all of Europe on
+a nominal number. Measured on 2026-09-05, GMRT's European grids are not
+block-upsampled GEBCO (identical-neighbour fractions of 4.2% at the Medes
+Islands and 0.1% at Zakynthos, against the ~87% a nearest-neighbour upsample
+would show), but the Medes grid's 0.70 m median neighbour step is smooth
+enough that its true information content is unproven. NOAA CUDEM at 3.4 m
+clears the factor by 18x and rightly preempts everything.
+
+Bonaire is fixed by the floors rather than by the ordering: EMODnet stays
+ahead of GMRT on declared resolution, then fails the known-cell floor at
+48%, and the resolver falls through to GMRT. That is the intended division
+of labour. Ordering promotes materially better data; the floors reject data
+that is nominally fine but actually absent.
+
+The resolver fetches in the resulting order and accepts the first grid
 passing **both** floors:
 
 - `minWetFraction` 0.10 (unchanged)
@@ -115,6 +135,13 @@ passing **both** floors:
 The known-cell floor is what rejects EMODnet's 48%-nodata Bonaire tile. A
 source failing either floor falls through to the next; the definitive-versus
 -transient distinction and its caching rules are unchanged.
+
+Changing selection changes which grid a coordinate resolves to, but the
+cache key is `<lat>,<lon>@<span>` and cached rows never expire, so every
+already-visited site would keep serving its old EMODnet grid forever. The
+key therefore gains a selection-generation token, `@8000v2`, bumped whenever
+selection logic changes. Old rows go inert exactly as they did at the 4 km
+to 8 km change.
 
 Declared resolution is a claim, not a measurement. GMRT in particular
 returns a fine nominal grid even where the underlying data is upsampled
