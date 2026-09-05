@@ -14,6 +14,7 @@ import 'package:submersion/shared/widgets/main_scaffold.dart';
 import 'package:submersion/shared/widgets/nav/favorites/nav_favorites_section.dart';
 import 'package:submersion/shared/widgets/nav/favorites/nav_rail_label.dart';
 import 'package:submersion/shared/widgets/nav/favorites/nav_rail_tile.dart';
+import 'package:submersion/shared/widgets/nav/favorites/nav_star_button.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 
 const _prefsKey = 'nav_favorite_ids';
@@ -24,6 +25,7 @@ final List<String> _allMovableIds = movableNavIds;
 Future<Widget> _buildTestApp({
   String initialLocation = '/dashboard',
   List<String>? favorites,
+  TargetPlatform? platform,
 }) async {
   SharedPreferences.setMockInitialValues({_prefsKey: ?favorites});
   final prefs = await SharedPreferences.getInstance();
@@ -59,6 +61,7 @@ Future<Widget> _buildTestApp({
     ],
     child: MaterialApp.router(
       routerConfig: router,
+      theme: platform == null ? null : ThemeData(platform: platform),
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -104,6 +107,22 @@ Finder _starFor(String label, IconData icon) => find.descendant(
 );
 
 Finder _favoriteTile(String id) => find.byKey(ValueKey('navFavorite:$id'));
+
+/// Whether the outline star in the rail label for [label] is drawn dimmed.
+bool _starDimmed(WidgetTester tester, String label) => tester
+    .widget<NavStarButton>(
+      find.descendant(
+        of: find.widgetWithText(NavRailLabel, label),
+        matching: find.byType(NavStarButton),
+      ),
+    )
+    .dim;
+
+/// The desktop drag handle inside the favorite tile for [id].
+Finder _dragHandleFor(String id) => find.descendant(
+  of: _favoriteTile(id),
+  matching: find.byIcon(Icons.drag_handle),
+);
 
 /// The filled star inside the favorite tile for [id].
 Finder _unstarFor(String id) =>
@@ -364,6 +383,114 @@ void main() {
         lessThan(tester.getTopLeft(_favoriteTile('dives')).dy),
       );
     });
+
+    testWidgets('hovering a rail label brightens its star', (tester) async {
+      _useViewport(tester, const Size(1400, 900));
+      await tester.pumpWidget(await _buildTestApp());
+      await tester.pumpAndSettle();
+
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: const Offset(1300, 800));
+      addTearDown(mouse.removePointer);
+      await tester.pumpAndSettle();
+      expect(_starDimmed(tester, 'Dives'), isTrue);
+
+      await mouse.moveTo(
+        tester.getCenter(find.widgetWithText(NavRailLabel, 'Dives')),
+      );
+      await tester.pumpAndSettle();
+      expect(_starDimmed(tester, 'Dives'), isFalse);
+      // Only the hovered row lights up.
+      expect(_starDimmed(tester, 'Sites'), isTrue);
+
+      await mouse.moveTo(const Offset(1300, 800));
+      await tester.pumpAndSettle();
+      expect(_starDimmed(tester, 'Dives'), isTrue);
+    });
+  });
+
+  group('sidebar Favorites section (desktop extended rail)', () {
+    testWidgets('shows a drag handle on each favorite instead of long-press', (
+      tester,
+    ) async {
+      _useViewport(tester, const Size(1400, 900));
+      await tester.pumpWidget(
+        await _buildTestApp(
+          favorites: ['dives', 'sites'],
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_dragHandleFor('dives'), findsOneWidget);
+      expect(_dragHandleFor('sites'), findsOneWidget);
+      expect(find.byType(ReorderableDragStartListener), findsNWidgets(2));
+      expect(find.byType(ReorderableDelayedDragStartListener), findsNothing);
+      // The handle sits after the un-star button in the same row.
+      expect(
+        tester.getCenter(_dragHandleFor('dives')).dx,
+        greaterThan(tester.getCenter(_unstarFor('dives')).dx),
+      );
+      expect(
+        tester
+            .widget<Tooltip>(
+              find.ancestor(
+                of: _dragHandleFor('dives'),
+                matching: find.byType(Tooltip),
+              ),
+            )
+            .message,
+        'Drag to reorder',
+      );
+    });
+
+    testWidgets('dragging the handle reorders favorites and persists', (
+      tester,
+    ) async {
+      _useViewport(tester, const Size(1400, 900));
+      await tester.pumpWidget(
+        await _buildTestApp(
+          favorites: ['dives', 'sites', 'trips'],
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final from = tester.getCenter(_dragHandleFor('dives'));
+      final end = Offset(from.dx, tester.getCenter(_favoriteTile('trips')).dy);
+
+      // The handle lifts immediately: no long-press needed on desktop.
+      final gesture = await tester.startGesture(from);
+      await tester.pump();
+      await _dragInSteps(tester, gesture, from: from, to: end);
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(await _stored(), ['sites', 'trips', 'dives']);
+      expect(
+        tester.getTopLeft(_favoriteTile('trips')).dy,
+        lessThan(tester.getTopLeft(_favoriteTile('dives')).dy),
+      );
+    });
+
+    testWidgets('the collapsed desktop rail falls back to long-press drag', (
+      tester,
+    ) async {
+      _useViewport(tester, const Size(1000, 900));
+      await tester.pumpWidget(
+        await _buildTestApp(
+          favorites: ['dives', 'sites'],
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.drag_handle), findsNothing);
+      expect(
+        find.byType(ReorderableDelayedDragStartListener),
+        findsNWidgets(2),
+      );
+    });
   });
 
   group('sidebar Favorites section (collapsed rail)', () {
@@ -417,6 +544,27 @@ void main() {
       expect(_favoriteTile('sites'), findsOneWidget);
       expect(find.byIcon(Icons.location_on_outlined), findsOneWidget);
       expect(await _stored(), ['sites']);
+    });
+
+    testWidgets('right-clicking the selected collapsed rail icon stars it', (
+      tester,
+    ) async {
+      _useViewport(tester, const Size(1000, 900));
+      await tester.pumpWidget(await _buildTestApp(initialLocation: '/dives'));
+      await tester.pumpAndSettle();
+
+      // The current destination renders its filled icon; the star affordance
+      // has to work on that variant too.
+      expect(find.byIcon(Icons.scuba_diving), findsOneWidget);
+      await tester.tap(
+        find.byIcon(Icons.scuba_diving),
+        buttons: kSecondaryButton,
+      );
+      await tester.pumpAndSettle();
+
+      expect(_favoriteTile('dives'), findsOneWidget);
+      expect(_favoriteSelected(tester, 'dives'), isTrue);
+      expect(await _stored(), ['dives']);
     });
 
     testWidgets('right-clicking a collapsed favorite un-stars it', (
