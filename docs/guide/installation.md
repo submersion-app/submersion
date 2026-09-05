@@ -24,10 +24,10 @@ To build from source, you'll need:
 
 ## Install on Linux
 
-Linux releases ship as native packages as well as a tarball. The packages
-resolve their own dependencies, register a desktop entry and icon, and install
-udev rules so dive computers connected by USB are reachable without any group
-membership or `usermod` step.
+Submersion ships for Linux as native packages as well as a tarball. The
+packages resolve their own dependencies, register a desktop entry and icon,
+and install udev rules so dive computers connected by USB are reachable
+without any group membership or `usermod` step.
 
 > **Distro requirement:** Submersion needs glibc 2.38 or newer, which means
 > Ubuntu 24.04+, Debian 13+, Fedora 39+, Linux Mint 22+, Arch, or openSUSE
@@ -36,12 +36,19 @@ membership or `usermod` step.
 > tarball fails the same way, because three bundled libraries require
 > GLIBC_2.38. Upgrading the distribution is the only path.
 
+> **Where the packages are today:** the `.deb` and `.rpm` ship with every beta
+> build at
+> [submersion-app/beta-builds](https://github.com/submersion-app/beta-builds/releases).
+> They reach the stable
+> [Releases page](https://github.com/submersion-app/submersion/releases) with
+> the next stable release; that page currently carries the tarball only.
+
 <!-- tabs:start -->
 
 #### **Debian / Ubuntu / Mint**
 
 Download `Submersion-<version>-Linux-amd64.deb` from the
-[Releases page](https://github.com/submersion-app/submersion/releases):
+[beta releases](https://github.com/submersion-app/beta-builds/releases):
 
 ```bash
 sudo apt install ./Submersion-*-Linux-amd64.deb
