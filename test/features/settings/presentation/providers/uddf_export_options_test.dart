@@ -18,28 +18,17 @@ void main() {
 
   tearDown(() async => tearDownTestDatabase());
 
-  test('fetches sources when raw data is included', () async {
-    final result = await resolveDataSources(repository, const [
-      'dive-1',
-    ], const UddfExportOptions());
-
-    // No such dive, so the query returns nothing; what matters is that the
-    // default options take the fetching branch at all.
-    expect(result, isEmpty);
-    expect(const UddfExportOptions().includeRawData, isTrue);
-  });
-
-  test('returns nothing when raw data is excluded', () async {
-    // A share with the box unchecked must not pay for a query it will not
-    // use, which is the entire point of the toggle on the dives only paths.
+  /// One dive with one data source row, so a fetch has something to return.
+  Future<void> seedSource() async {
+    final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.dives)
         .insert(
           DivesCompanion(
             id: const Value('dive-1'),
-            diveDateTime: Value(DateTime.now().millisecondsSinceEpoch),
-            createdAt: Value(DateTime.now().millisecondsSinceEpoch),
-            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+            diveDateTime: Value(now),
+            createdAt: Value(now),
+            updatedAt: Value(now),
           ),
         );
     await db
@@ -53,6 +42,26 @@ void main() {
             createdAt: Value(DateTime(2019, 6, 2)),
           ),
         );
+  }
+
+  test('fetches sources when raw data is included', () async {
+    // The row has to exist, or this would pass just as well against a
+    // resolveDataSources that never queried at all.
+    await seedSource();
+
+    final result = await resolveDataSources(repository, const [
+      'dive-1',
+    ], const UddfExportOptions());
+
+    expect(result, hasLength(1));
+    expect(result.single.diveId, 'dive-1');
+    expect(const UddfExportOptions().includeRawData, isTrue);
+  });
+
+  test('returns nothing when raw data is excluded', () async {
+    // A share with the box unchecked must not pay for a query it will not
+    // use, which is the entire point of the toggle on the dives only paths.
+    await seedSource();
 
     // The row exists, so an unconditional fetch would return it.
     expect(

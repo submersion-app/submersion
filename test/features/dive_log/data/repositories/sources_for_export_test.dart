@@ -148,6 +148,41 @@ void main() {
     expect(await repository.getSourcesForExport(const []), isEmpty);
   });
 
+  test('returns each dive once even if an id repeats across chunks', () async {
+    // A single IN clause already ignores a repeated id, so a duplicate only
+    // bites once the list is chunked: the same id in two chunks fetches its
+    // rows twice, and the ordinals then count the duplicates, exporting the
+    // dive's sources more than once. The repeat therefore has to land in a
+    // LATER chunk than the original for this to test anything.
+    const spanning = kSeriesIdChunkSize + 5;
+    for (var i = 0; i < spanning; i++) {
+      final id = 'dive-${i.toString().padLeft(5, '0')}';
+      await insertDive(id);
+      await insertSource('src-$id', id, isPrimary: true);
+    }
+
+    final ids = [
+      for (var i = 0; i < spanning; i++) 'dive-${i.toString().padLeft(5, '0')}',
+      // Chunk 0 holds the first 900 ids, so this copy falls into chunk 1.
+      'dive-00000',
+    ];
+    expect(
+      ids.length ~/ kSeriesIdChunkSize,
+      greaterThanOrEqualTo(1),
+      reason: 'sanity: the repeat must not share a chunk with the original',
+    );
+
+    final sources = await repository.getSourcesForExport(ids);
+
+    expect(sources, hasLength(spanning));
+    expect(
+      sources.where((s) => s.diveId == 'dive-00000'),
+      hasLength(1),
+      reason: 'the repeated id must not fetch its rows a second time',
+    );
+    expect(sources.every((s) => s.ordinal == 0), isTrue);
+  });
+
   test('handles an id list longer than one bound-variable chunk', () async {
     // A full logbook export passes every dive in the library, and this binds
     // one SQL variable per id, so the query has to chunk like its siblings.

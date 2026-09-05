@@ -6247,8 +6247,16 @@ class DiveRepository {
       // Only the order BETWEEN dives follows chunk order rather than dive id,
       // which nothing depends on: the ordinals below are per dive, and
       // consumers group by diveId.
+      //
+      // Deduplicated first. A single `IN` clause ignores a repeated id, but
+      // once the list is chunked the same id in two chunks fetches its rows
+      // twice, and the ordinals below would then count the duplicates,
+      // exporting a dive's sources more than once. LinkedHashSet keeps the
+      // caller's order.
+      final uniqueIds = diveIds.toSet().toList(growable: false);
+
       final rows = <DiveDataSourcesData>[];
-      for (final chunk in seriesIdChunks(diveIds)) {
+      for (final chunk in seriesIdChunks(uniqueIds)) {
         final query = _db.select(_db.diveDataSources)
           ..where((t) => t.diveId.isIn(chunk))
           ..orderBy([
