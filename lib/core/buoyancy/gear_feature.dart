@@ -136,6 +136,30 @@ class GearFeature extends Equatable {
       case EquipmentType.boots:
         if (mm == null) return null;
         return (0.12 * mm).clamp(0.0, 2.0);
+      // The drysuit layers (#1537). Undergarments are rated by warmth rather
+      // than by millimetres, so the ladder reads insulationLevel instead of
+      // thickness. The undersuit range is the delta a drysuit diver actually
+      // feels between a summer and a winter garment; note the drysuit's own
+      // 10 kg default already assumes a mid-weight undersuit inside it, so
+      // these terms are deliberately modest rather than a second full suit.
+      case EquipmentType.undersuit:
+        return switch (t.insulationLevel) {
+          'light' => 0.7,
+          'mid' => 1.5,
+          'heavy' => 2.5,
+          'extreme' => 3.5,
+          _ => null,
+        };
+      // A base layer traps far less air than the lofted garment over it: it
+      // shifts lead by a notch, not by a kilogram.
+      case EquipmentType.baselayer:
+        return switch (t.insulationLevel) {
+          'light' => 0.1,
+          'mid' => 0.2,
+          'heavy' => 0.4,
+          'extreme' => 0.5,
+          _ => null,
+        };
       case EquipmentType.bcd:
         // Unknown/future style keys map to null (no signal) so they fall
         // through to the type default rather than claiming attribute-level
@@ -196,9 +220,15 @@ class GearFeature extends Equatable {
     _ => 1.0,
   };
 
+  // Relative to a five-finger wet glove of the same thickness. Coverage
+  // drives the wet variants; the dry, liner and utility styles are not
+  // closed-cell neoprene, so they displace far less for the same build.
   static double _gloveTypeFactor(String? gloveType) => switch (gloveType) {
+    'three_finger' => 1.1,
     'mitt' => 1.15,
     'dry' => 0.5,
+    'dry_liner' => 0.3,
+    'utility' => 0.3,
     _ => 1.0,
   };
 
@@ -214,6 +244,10 @@ class GearFeature extends Equatable {
   static double _typeDefault(EquipmentType type) => switch (type) {
     EquipmentType.wetsuit => 4.0,
     EquipmentType.drysuit => 10.0,
+    // An unrated undergarment is assumed mid-weight, which is what the
+    // drysuit default above already assumes is inside it.
+    EquipmentType.undersuit => 1.5,
+    EquipmentType.baselayer => 0.2,
     EquipmentType.bcd => -0.5,
     EquipmentType.hood => 0.3,
     EquipmentType.gloves => 0.2,
@@ -227,6 +261,8 @@ class GearFeature extends Equatable {
   static double _typeDryMass(EquipmentType type) => switch (type) {
     EquipmentType.wetsuit => 2.0,
     EquipmentType.drysuit => 3.0,
+    EquipmentType.undersuit => 1.5,
+    EquipmentType.baselayer => 0.4,
     EquipmentType.bcd => 3.5,
     // A wrist computer's dry mass is negligible against the rig, and gear
     // twins (v175) put one on every downloaded dive: the 0.5 kg fallthrough

@@ -66,6 +66,62 @@ void main() {
     expect(created.single.siteId, isNull);
   });
 
+  test('links to equipment when equipmentId is given', () async {
+    // The insurance paperwork path (issue #1517): an invoice belongs to the
+    // gear, not to a dive or a site.
+    final created = await service.importDocuments(
+      picked: [
+        (path: '/tmp/invoice.pdf', filename: 'invoice.pdf', identifier: null),
+      ],
+      equipmentId: 'equip-1',
+    );
+
+    expect(created.single.equipmentId, 'equip-1');
+    expect(created.single.diveId, isNull);
+    expect(created.single.siteId, isNull);
+    expect(created.single.mediaType, MediaType.document);
+  });
+
+  group('parent invariant', () {
+    // A runtime throw, not an assert: asserts are stripped in release, and a
+    // row with no parent is unreferenced the moment it is written, so the
+    // orphan sweep would collect the diver's document.
+    final picked = [(path: '/tmp/a.pdf', filename: 'a.pdf', identifier: null)];
+
+    test('refuses a document with no parent at all', () async {
+      await expectLater(
+        service.importDocuments(picked: picked),
+        throwsArgumentError,
+      );
+      verifyNever(mockRepository.createMedia(any));
+    });
+
+    test('refuses a document with two parents', () async {
+      await expectLater(
+        service.importDocuments(
+          picked: picked,
+          diveId: 'dive-1',
+          equipmentId: 'equip-1',
+        ),
+        throwsArgumentError,
+      );
+      verifyNever(mockRepository.createMedia(any));
+    });
+
+    test('refuses all three at once', () async {
+      await expectLater(
+        service.importDocuments(
+          picked: picked,
+          diveId: 'dive-1',
+          siteId: 'site-1',
+          equipmentId: 'equip-1',
+        ),
+        throwsArgumentError,
+      );
+      verifyNever(mockRepository.createMedia(any));
+    });
+  });
+
   test('fires onMediaCreated per row for media-store enqueue', () async {
     await service.importDocuments(
       picked: [

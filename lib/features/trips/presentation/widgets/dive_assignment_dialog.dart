@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -22,16 +24,17 @@ Future<List<String>?> showDiveAssignmentDialog({
 /// assignment status (unassigned vs on-other-trips).
 ///
 /// Returns the selected dive IDs on confirm, or null on cancel.
-class DiveAssignmentDialog extends StatefulWidget {
+class DiveAssignmentDialog extends ConsumerStatefulWidget {
   final List<DiveCandidate> candidates;
 
   const DiveAssignmentDialog({super.key, required this.candidates});
 
   @override
-  State<DiveAssignmentDialog> createState() => _DiveAssignmentDialogState();
+  ConsumerState<DiveAssignmentDialog> createState() =>
+      _DiveAssignmentDialogState();
 }
 
-class _DiveAssignmentDialogState extends State<DiveAssignmentDialog> {
+class _DiveAssignmentDialogState extends ConsumerState<DiveAssignmentDialog> {
   late final Set<String> _selectedIds;
   late final List<DiveCandidate> _unassigned;
   late final List<DiveCandidate> _otherTrip;
@@ -236,16 +239,18 @@ class _DiveAssignmentDialogState extends State<DiveAssignmentDialog> {
     TextTheme textTheme, {
     required bool showTripName,
   }) {
-    final dateFormat = DateFormat.yMMMd();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return candidates.map((candidate) {
       final dive = candidate.dive;
       final isSelected = _selectedIds.contains(dive.id);
       final siteName =
           dive.site?.name ?? context.l10n.trips_diveScan_unknownSite;
-      final dateStr = dateFormat.format(dive.dateTime);
+      final dateStr = units.formatDate(dive.dateTime);
+      // Metres were hardcoded here, so an imperial diver read the wrong
+      // unit; the formatter is already in scope for the date.
       final depthStr = dive.maxDepth != null
-          ? '${dive.maxDepth!.toStringAsFixed(1)}m'
+          ? units.formatDepth(dive.maxDepth)
           : '';
 
       return InkWell(

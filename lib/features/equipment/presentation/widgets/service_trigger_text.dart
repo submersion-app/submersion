@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Formats the "Due {date}" / "Overdue since {date}" / "N of M dives left" /
@@ -9,6 +10,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// summaries), so both read the exact same wording.
 String formatServiceTriggerText(
   BuildContext context, {
+  required UnitFormatter units,
   required DateTime now,
   DateTime? dueDate,
   int? divesSinceAnchor,
@@ -19,9 +21,7 @@ String formatServiceTriggerText(
   final l10n = context.l10n;
   final parts = <String>[];
   if (dueDate != null) {
-    final formatted = MaterialLocalizations.of(
-      context,
-    ).formatShortDate(dueDate);
+    final formatted = units.formatDate(dueDate);
     parts.add(
       // Strict isAfter: at the exact due instant (now == dueDate) the engine
       // treats the date trigger as due-soon, not overdue, so render "Due

@@ -53,6 +53,13 @@ class Divers extends Table {
   TextColumn get insuranceProvider => text().nullable()();
   TextColumn get insurancePolicyNumber => text().nullable()();
   IntColumn get insuranceExpiryDate => integer().nullable()(); // Unix timestamp
+
+  /// The insurer's 24-hour dive emergency assistance line, and its general or
+  /// office line (issue #1522). Without these the emergency card can only lead
+  /// with the regional diver hotline, which is the wrong first call for a
+  /// diver insured by anyone else.
+  TextColumn get insuranceEmergencyPhone => text().nullable()();
+  TextColumn get insurancePhone => text().nullable()();
   // General
   TextColumn get notes => text().withDefault(const Constant(''))();
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
@@ -1362,6 +1369,17 @@ class Media extends Table {
   // taken_at. Lives on the media row, not on media_enrichment, so it syncs
   // with the row and survives every enrichment recompute.
   IntColumn get manualElapsedSeconds => integer().nullable()();
+  // v189: equipment attachment (issue #1517). Invoices, receipts and warranty
+  // paperwork linked to a piece of gear, so an insurance claim after lost
+  // luggage, theft or fire has the proof attached to the item it covers.
+  // Same SET NULL semantics as [siteId]: the repository's deletion partition
+  // decides whether a leftover row dies or survives, and it stamps the HLC a
+  // silent FK never would.
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   // coverage:ignore-end
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
@@ -3381,7 +3399,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 187;
+  static const int currentSchemaVersion = 189;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3841,6 +3859,19 @@ class AppDatabase extends _$AppDatabase {
     // already treats as "nothing known" for a resolved legacy row.
     // Renumbered from 182 for the same reason as 186 above.
     187,
+    // v188: divers.insurance_emergency_phone and divers.insurance_phone, the
+    // insurer's 24h assistance line and office line (issue #1522). Column-only
+    // rung, no backfill: nothing in an existing database can tell us an
+    // insurer's hotline, so every pre-existing row correctly reads back as
+    // "not recorded" and the card keeps leading with the regional hotline.
+    188,
+    // v189: media.equipment_id plus idx_media_equipment_id (issue #1517).
+    // The link that files an invoice, receipt or warranty document against a
+    // piece of gear. Column-and-index rung, no backfill, so the beforeOpen
+    // backstop is safe to re-run. Renumbered from 188: main took that step
+    // for the insurance phone columns while this branch was open, and a rung
+    // at or below the shipped version never runs its onUpgrade step.
+    189,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6052,6 +6083,49 @@ class AppDatabase extends _$AppDatabase {
     if (names.contains('overdue_services')) return;
     await customStatement(
       'ALTER TABLE pre_dive_session_items ADD COLUMN overdue_services TEXT',
+    );
+  }
+
+  /// v188: the two insurer phone numbers the emergency card leads with.
+  /// Column-only and independently guarded, so an interrupted upgrade that
+  /// added one of the two still gets the other.
+  Future<void> _assertInsurancePhoneColumns() async {
+    final cols = await customSelect("PRAGMA table_info('divers')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('insurance_emergency_phone')) {
+      await customStatement(
+        'ALTER TABLE divers ADD COLUMN insurance_emergency_phone TEXT',
+      );
+    }
+    if (!names.contains('insurance_phone')) {
+      await customStatement(
+        'ALTER TABLE divers ADD COLUMN insurance_phone TEXT',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v189 media.equipment_id column plus its lookup
+  /// index (issue #1517): the link that makes an invoice or receipt an
+  /// attachment of a piece of gear. Self-guards on the media table existing,
+  /// so a partial migration-test fixture passes through untouched. Same
+  /// dual-call contract (onUpgrade + beforeOpen backstop) as the other
+  /// column-assert helpers.
+  ///
+  /// No REFERENCES clause: SQLite cannot add a foreign key with ALTER TABLE,
+  /// so a migrated database enforces the equipment link at the repository
+  /// layer only -- exactly what media.site_id has always done for the rows
+  /// that predate it.
+  Future<void> _assertMediaEquipmentIdColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('equipment_id')) {
+      await customStatement('ALTER TABLE media ADD COLUMN equipment_id TEXT');
+    }
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_media_equipment_id '
+      'ON media(equipment_id)',
     );
   }
 
@@ -10034,6 +10108,19 @@ class AppDatabase extends _$AppDatabase {
           await _assertSessionItemOverdueServicesColumn();
         }
         if (from < 187) await reportProgress();
+        // v188: divers.insurance_emergency_phone + divers.insurance_phone
+        // (issue #1522). Column-only rung, no backfill.
+        if (from < 188) {
+          await _assertInsurancePhoneColumns();
+        }
+        if (from < 188) await reportProgress();
+        // v189: media.equipment_id (issue #1517). Column-and-index rung, no
+        // backfill: every pre-existing media row correctly reads back as
+        // unattached to any gear.
+        if (from < 189) {
+          await _assertMediaEquipmentIdColumn();
+        }
+        if (from < 189) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -10395,6 +10482,18 @@ class AppDatabase extends _$AppDatabase {
         // on every open: the helper is column-only with no backfill, so it
         // cannot resurrect or overwrite diver data.
         await _assertSessionItemOverdueServicesColumn();
+
+        // v188 backstop: re-assert the divers insurance phone columns. Every
+        // diver read selects the whole row, so a database that arrives by
+        // restore or sync-adopt without the rung would throw on the first read
+        // rather than merely lack the numbers.
+        await _assertInsurancePhoneColumns();
+
+        // v189 backstop: re-assert media.equipment_id and its index (same
+        // parallel-branch version-collision self-heal). Safe to re-run on
+        // every open: column-and-index only, no backfill, so it cannot
+        // resurrect or overwrite diver data.
+        await _assertMediaEquipmentIdColumn();
 
         // v145 backstop: re-assert the gps_tracks provenance and trim columns.
         await _assertGpsTrackColumns();

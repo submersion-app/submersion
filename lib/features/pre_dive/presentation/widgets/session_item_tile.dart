@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -8,6 +9,7 @@ import 'package:submersion/features/equipment/presentation/widgets/service_trigg
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/services/checklist_session_engine.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One checklist row in the session runner: large tap target, state icon,
@@ -139,7 +141,7 @@ class SessionItemTile extends ConsumerWidget {
         for (final entry in overdueEntries)
           Text(
             '${entry.kindName}: '
-            '${formatServiceTriggerText(context, now: overdueAsOf, dueDate: entry.dueDate, divesSinceAnchor: entry.divesSinceAnchor, divesRemaining: entry.divesRemaining, hoursSinceAnchor: entry.hoursSinceAnchor, hoursRemaining: entry.hoursRemaining)}',
+            '${formatServiceTriggerText(context, units: UnitFormatter(ref.watch(settingsProvider)), now: overdueAsOf, dueDate: entry.dueDate, divesSinceAnchor: entry.divesSinceAnchor, divesRemaining: entry.divesRemaining, hoursSinceAnchor: entry.hoursSinceAnchor, hoursRemaining: entry.hoursRemaining)}',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.error,
             ),
@@ -150,7 +152,9 @@ class SessionItemTile extends ConsumerWidget {
       // text-bearing there eats into the item title (issue #935).
       if (item.completedAt != null)
         Text(
-          TimeOfDay.fromDateTime(item.completedAt!).format(context),
+          UnitFormatter(
+            ref.watch(settingsProvider),
+          ).formatTime(item.completedAt),
           style: theme.textTheme.bodySmall,
         ),
     ];

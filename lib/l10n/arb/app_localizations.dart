@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Could not open your browser. Use Copy link and paste the address into your browser.'**
   String get settings_oauth_connect_browserFailed;
 
+  /// No description provided for @equipment_documents_removeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not remove the document: {error}'**
+  String equipment_documents_removeError(String error);
+
   /// No description provided for @settings_oauth_connect_copyFailed.
   ///
   /// In en, this message translates to:
@@ -4462,6 +4468,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get common_action_close;
+
+  /// No description provided for @common_action_copyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get common_action_copyLink;
+
+  /// No description provided for @common_link_couldNotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link'**
+  String get common_link_couldNotOpen;
 
   /// Continue button used in confirmation dialogs
   ///
@@ -15107,6 +15125,40 @@ abstract class AppLocalizations {
   /// **'Location lookup is unavailable. Check your connection and try again.'**
   String get diveSites_backfill_offline;
 
+  /// No description provided for @diveSites_list_menu_refreshPlaceNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh place names'**
+  String get diveSites_list_menu_refreshPlaceNames;
+
+  /// No description provided for @diveSites_refresh_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh place names?'**
+  String get diveSites_refresh_confirm_title;
+
+  /// No description provided for @diveSites_refresh_confirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced wherever they differ from the place name language ({language}), including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.'**
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  );
+
+  /// No description provided for @diveSites_refresh_progress_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshing place names'**
+  String get diveSites_refresh_progress_title;
+
+  /// No description provided for @diveSites_refresh_nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No site has coordinates to look up.'**
+  String get diveSites_refresh_nothing;
+
   /// No description provided for @diveSites_list_search_backTooltip.
   ///
   /// In en, this message translates to:
@@ -16202,6 +16254,30 @@ abstract class AppLocalizations {
   /// **'Expiry Date'**
   String get divers_edit_expiryDateTitle;
 
+  /// No description provided for @divers_edit_insuranceEmergencyPhoneHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown first on your emergency card.'**
+  String get divers_edit_insuranceEmergencyPhoneHelper;
+
+  /// No description provided for @divers_edit_insuranceEmergencyPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., +1 919 684 9111'**
+  String get divers_edit_insuranceEmergencyPhoneHint;
+
+  /// No description provided for @divers_edit_insuranceEmergencyPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'24h Emergency Assistance Number'**
+  String get divers_edit_insuranceEmergencyPhoneLabel;
+
+  /// No description provided for @divers_edit_insurancePhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance Office Number'**
+  String get divers_edit_insurancePhoneLabel;
+
   /// No description provided for @divers_edit_insuranceProviderHint.
   ///
   /// In en, this message translates to:
@@ -17023,6 +17099,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drysuit'**
   String get enum_equipmentType_drysuit;
+
+  /// No description provided for @enum_equipmentType_baselayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Layer'**
+  String get enum_equipmentType_baselayer;
+
+  /// No description provided for @enum_equipmentType_undersuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Undersuit'**
+  String get enum_equipmentType_undersuit;
 
   /// No description provided for @enum_equipmentType_fins.
   ///
@@ -19052,6 +19140,12 @@ abstract class AppLocalizations {
   /// **'e.g., 5, 5/4, 7/5/3'**
   String get equipment_edit_thicknessDesignationHint;
 
+  /// No description provided for @equipment_edit_webLinkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., shop.example.com/product'**
+  String get equipment_edit_webLinkHint;
+
   /// No description provided for @equipment_edit_thicknessHint.
   ///
   /// In en, this message translates to:
@@ -19757,8 +19851,8 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_service_totalCostLabel.
   ///
   /// In en, this message translates to:
-  /// **'Total Service Cost'**
-  String get equipment_service_totalCostLabel;
+  /// **'Total Service Cost ({currency})'**
+  String equipment_service_totalCostLabel(String currency);
 
   /// No description provided for @equipment_setDetail_addEquipmentButton.
   ///
@@ -20159,8 +20253,8 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_summary_totalValue.
   ///
   /// In en, this message translates to:
-  /// **'Total Value'**
-  String get equipment_summary_totalValue;
+  /// **'Total Value ({currency})'**
+  String equipment_summary_totalValue(String currency);
 
   /// No description provided for @equipment_tab_equipment.
   ///
@@ -41057,6 +41151,18 @@ abstract class AppLocalizations {
   /// **'Type'**
   String get attrLabel_glove_type;
 
+  /// No description provided for @attrLabel_insulation_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Insulation level'**
+  String get attrLabel_insulation_level;
+
+  /// No description provided for @attrLabel_fill_material.
+  ///
+  /// In en, this message translates to:
+  /// **'Material'**
+  String get attrLabel_fill_material;
+
   /// No description provided for @attrLabel_sole_type.
   ///
   /// In en, this message translates to:
@@ -41152,6 +41258,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Top speed'**
   String get attrLabel_speed_mps;
+
+  /// No description provided for @attrLabel_sku.
+  ///
+  /// In en, this message translates to:
+  /// **'SKU'**
+  String get attrLabel_sku;
+
+  /// No description provided for @attrLabel_retailer.
+  ///
+  /// In en, this message translates to:
+  /// **'Retailer'**
+  String get attrLabel_retailer;
+
+  /// No description provided for @attrLabel_product_url.
+  ///
+  /// In en, this message translates to:
+  /// **'Web link'**
+  String get attrLabel_product_url;
+
+  /// No description provided for @attrLabel_sleeve_length.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleeves'**
+  String get attrLabel_sleeve_length;
+
+  /// No description provided for @attrLabel_upf_rating.
+  ///
+  /// In en, this message translates to:
+  /// **'UPF rating'**
+  String get attrLabel_upf_rating;
+
+  /// No description provided for @attrLabel_snorkel_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get attrLabel_snorkel_type;
+
+  /// No description provided for @attrLabel_purge_valve.
+  ///
+  /// In en, this message translates to:
+  /// **'Purge valve'**
+  String get attrLabel_purge_valve;
+
+  /// No description provided for @attrLabel_instrument_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument'**
+  String get attrLabel_instrument_type;
+
+  /// No description provided for @attrLabel_gauge_max_pressure_bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Gauge range'**
+  String get attrLabel_gauge_max_pressure_bar;
+
+  /// No description provided for @attrLabel_compass_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get attrLabel_compass_type;
+
+  /// No description provided for @attrLabel_balance_zone.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance zone'**
+  String get attrLabel_balance_zone;
+
+  /// No description provided for @attrLabel_tilt_tolerance_deg.
+  ///
+  /// In en, this message translates to:
+  /// **'Tilt tolerance (°)'**
+  String get attrLabel_tilt_tolerance_deg;
+
+  /// No description provided for @attrLabel_tool_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool type'**
+  String get attrLabel_tool_type;
 
   /// No description provided for @attrChoice_unit_type_eccr.
   ///
@@ -41284,6 +41468,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Neoprene'**
   String get attrChoice_seal_type_neoprene;
+
+  /// No description provided for @attrChoice_insulation_level_light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get attrChoice_insulation_level_light;
+
+  /// No description provided for @attrChoice_insulation_level_mid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mid-weight'**
+  String get attrChoice_insulation_level_mid;
+
+  /// No description provided for @attrChoice_insulation_level_heavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy'**
+  String get attrChoice_insulation_level_heavy;
+
+  /// No description provided for @attrChoice_insulation_level_extreme.
+  ///
+  /// In en, this message translates to:
+  /// **'Extreme'**
+  String get attrChoice_insulation_level_extreme;
+
+  /// No description provided for @attrChoice_fill_material_thinsulate.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinsulate'**
+  String get attrChoice_fill_material_thinsulate;
+
+  /// No description provided for @attrChoice_fill_material_primaloft.
+  ///
+  /// In en, this message translates to:
+  /// **'PrimaLoft'**
+  String get attrChoice_fill_material_primaloft;
+
+  /// No description provided for @attrChoice_fill_material_hollowfibre.
+  ///
+  /// In en, this message translates to:
+  /// **'Hollowfibre'**
+  String get attrChoice_fill_material_hollowfibre;
+
+  /// No description provided for @attrChoice_fill_material_fleece.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleece'**
+  String get attrChoice_fill_material_fleece;
+
+  /// No description provided for @attrChoice_fill_material_merino.
+  ///
+  /// In en, this message translates to:
+  /// **'Merino wool'**
+  String get attrChoice_fill_material_merino;
+
+  /// No description provided for @attrChoice_fill_material_polypropylene.
+  ///
+  /// In en, this message translates to:
+  /// **'Polypropylene'**
+  String get attrChoice_fill_material_polypropylene;
 
   /// No description provided for @attrChoice_tank_material_aluminum.
   ///
@@ -41549,6 +41793,12 @@ abstract class AppLocalizations {
   /// **'Five-finger'**
   String get attrChoice_glove_type_five_finger;
 
+  /// No description provided for @attrChoice_glove_type_three_finger.
+  ///
+  /// In en, this message translates to:
+  /// **'Three-finger'**
+  String get attrChoice_glove_type_three_finger;
+
   /// No description provided for @attrChoice_glove_type_mitt.
   ///
   /// In en, this message translates to:
@@ -41560,6 +41810,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dry'**
   String get attrChoice_glove_type_dry;
+
+  /// No description provided for @attrChoice_glove_type_dry_liner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry glove liner'**
+  String get attrChoice_glove_type_dry_liner;
+
+  /// No description provided for @attrChoice_glove_type_utility.
+  ///
+  /// In en, this message translates to:
+  /// **'Utility'**
+  String get attrChoice_glove_type_utility;
 
   /// No description provided for @attrChoice_sole_type_hard.
   ///
@@ -41621,6 +41883,144 @@ abstract class AppLocalizations {
   /// **'Brushed'**
   String get attrChoice_motor_type_brushed;
 
+  /// No description provided for @attrChoice_sleeve_length_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Short'**
+  String get attrChoice_sleeve_length_short;
+
+  /// No description provided for @attrChoice_sleeve_length_long.
+  ///
+  /// In en, this message translates to:
+  /// **'Long'**
+  String get attrChoice_sleeve_length_long;
+
+  /// No description provided for @attrChoice_sleeve_length_sleeveless.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleeveless'**
+  String get attrChoice_sleeve_length_sleeveless;
+
+  /// No description provided for @attrChoice_snorkel_type_classic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get attrChoice_snorkel_type_classic;
+
+  /// No description provided for @attrChoice_snorkel_type_semi_dry.
+  ///
+  /// In en, this message translates to:
+  /// **'Semi-dry'**
+  String get attrChoice_snorkel_type_semi_dry;
+
+  /// No description provided for @attrChoice_snorkel_type_dry.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry'**
+  String get attrChoice_snorkel_type_dry;
+
+  /// No description provided for @attrChoice_snorkel_type_foldable.
+  ///
+  /// In en, this message translates to:
+  /// **'Foldable'**
+  String get attrChoice_snorkel_type_foldable;
+
+  /// No description provided for @attrChoice_instrument_type_spg.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure gauge (SPG)'**
+  String get attrChoice_instrument_type_spg;
+
+  /// No description provided for @attrChoice_instrument_type_depth_gauge.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth gauge'**
+  String get attrChoice_instrument_type_depth_gauge;
+
+  /// No description provided for @attrChoice_instrument_type_bottom_timer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom timer'**
+  String get attrChoice_instrument_type_bottom_timer;
+
+  /// No description provided for @attrChoice_instrument_type_console.
+  ///
+  /// In en, this message translates to:
+  /// **'Console'**
+  String get attrChoice_instrument_type_console;
+
+  /// No description provided for @attrChoice_instrument_type_gas_analyzer.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas analyzer'**
+  String get attrChoice_instrument_type_gas_analyzer;
+
+  /// No description provided for @attrChoice_instrument_type_thermometer.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermometer'**
+  String get attrChoice_instrument_type_thermometer;
+
+  /// No description provided for @attrChoice_compass_type_analog.
+  ///
+  /// In en, this message translates to:
+  /// **'Analog'**
+  String get attrChoice_compass_type_analog;
+
+  /// No description provided for @attrChoice_compass_type_digital.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital'**
+  String get attrChoice_compass_type_digital;
+
+  /// No description provided for @attrChoice_balance_zone_northern.
+  ///
+  /// In en, this message translates to:
+  /// **'Northern hemisphere'**
+  String get attrChoice_balance_zone_northern;
+
+  /// No description provided for @attrChoice_balance_zone_southern.
+  ///
+  /// In en, this message translates to:
+  /// **'Southern hemisphere'**
+  String get attrChoice_balance_zone_southern;
+
+  /// No description provided for @attrChoice_balance_zone_global.
+  ///
+  /// In en, this message translates to:
+  /// **'Global'**
+  String get attrChoice_balance_zone_global;
+
+  /// No description provided for @attrChoice_tool_type_hand_tool.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand tool'**
+  String get attrChoice_tool_type_hand_tool;
+
+  /// No description provided for @attrChoice_tool_type_o_ring_kit.
+  ///
+  /// In en, this message translates to:
+  /// **'O-ring kit'**
+  String get attrChoice_tool_type_o_ring_kit;
+
+  /// No description provided for @attrChoice_tool_type_save_a_dive_kit.
+  ///
+  /// In en, this message translates to:
+  /// **'Save-a-dive kit'**
+  String get attrChoice_tool_type_save_a_dive_kit;
+
+  /// No description provided for @attrChoice_tool_type_torque_wrench.
+  ///
+  /// In en, this message translates to:
+  /// **'Torque wrench'**
+  String get attrChoice_tool_type_torque_wrench;
+
+  /// No description provided for @attrChoice_tool_type_spares_kit.
+  ///
+  /// In en, this message translates to:
+  /// **'Spares kit'**
+  String get attrChoice_tool_type_spares_kit;
+
   /// No description provided for @equipment_edit_customFieldsTitle.
   ///
   /// In en, this message translates to:
@@ -41650,6 +42050,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use 5, 5/4 or 7/5/3'**
   String get equipment_edit_invalidThickness;
+
+  /// No description provided for @equipment_edit_invalidWebLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a web address, e.g. shop.example.com'**
+  String get equipment_edit_invalidWebLink;
 
   /// No description provided for @statistics_progression_divesBySuitThickness_title.
   ///
@@ -41836,6 +42242,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.'**
   String get emergencyCard_callDan_subtitle;
+
+  /// No description provided for @emergencyCard_callInsurer_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive insurance emergency line. Call first: your insurer authorizes the evacuation and coordinates the chamber referral.'**
+  String get emergencyCard_callInsurer_subtitle;
+
+  /// No description provided for @emergencyCard_hotlineSecondary_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Regional diver emergency hotline. Call this if your insurer\'s line does not answer.'**
+  String get emergencyCard_hotlineSecondary_subtitle;
+
+  /// No description provided for @emergencyCard_insuranceEmergencyLine.
+  ///
+  /// In en, this message translates to:
+  /// **'24h emergency line'**
+  String get emergencyCard_insuranceEmergencyLine;
+
+  /// No description provided for @emergencyCard_insuranceOfficeLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Office line'**
+  String get emergencyCard_insuranceOfficeLine;
+
+  /// No description provided for @emergencyCard_insuranceNoPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'No insurer emergency number saved. Add it in Diver Profile settings so this card can lead with it.'**
+  String get emergencyCard_insuranceNoPhone;
 
   /// No description provided for @emergencyCard_ems.
   ///
@@ -54633,6 +55069,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove'**
   String get common_action_remove;
+
+  /// No description provided for @equipment_documents_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get equipment_documents_title;
+
+  /// No description provided for @equipment_documents_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices, receipts and warranty paperwork'**
+  String get equipment_documents_subtitle;
+
+  /// No description provided for @equipment_documents_attachButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach'**
+  String get equipment_documents_attachButton;
+
+  /// No description provided for @equipment_documents_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents attached yet'**
+  String get equipment_documents_empty;
+
+  /// No description provided for @equipment_documents_removeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove document?'**
+  String get equipment_documents_removeTitle;
+
+  /// No description provided for @equipment_documents_removeContent.
+  ///
+  /// In en, this message translates to:
+  /// **'It stops being attached to this item. Your original file is never touched.'**
+  String get equipment_documents_removeContent;
+
+  /// No description provided for @equipment_documents_removed.
+  ///
+  /// In en, this message translates to:
+  /// **'Document removed'**
+  String get equipment_documents_removed;
+
+  /// No description provided for @equipment_documents_loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load documents: {error}'**
+  String equipment_documents_loadError(String error);
 
   /// No description provided for @common_action_unpin.
   ///

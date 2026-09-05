@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
@@ -120,6 +120,7 @@ class _BuddyDetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(buddyStatsProvider(buddy.id));
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -143,7 +144,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Statistics
-          _buildStatsSection(context, statsAsync),
+          _buildStatsSection(context, statsAsync, units),
           const SizedBox(height: 24),
 
           // Notes
@@ -512,6 +513,7 @@ class _BuddyDetailContent extends ConsumerWidget {
   Widget _buildStatsSection(
     BuildContext context,
     AsyncValue<BuddyStats> statsAsync,
+    UnitFormatter units,
   ) {
     return Card(
       child: Padding(
@@ -538,13 +540,13 @@ class _BuddyDetailContent extends ConsumerWidget {
                     _StatRow(
                       icon: Icons.first_page,
                       label: context.l10n.buddies_stat_firstDive,
-                      value: DateFormat.yMMMd().format(stats.firstDive!),
+                      value: units.formatDate(stats.firstDive),
                     ),
                   if (stats.lastDive != null)
                     _StatRow(
                       icon: Icons.last_page,
                       label: context.l10n.buddies_stat_lastDive,
-                      value: DateFormat.yMMMd().format(stats.lastDive!),
+                      value: units.formatDate(stats.lastDive),
                     ),
                   if (stats.favoriteSite != null)
                     _StatRow(
@@ -592,7 +594,7 @@ class _BuddyDetailContent extends ConsumerWidget {
     final theme = Theme.of(context);
     // Includes the year: shared dives routinely span several years, so a bare
     // "Mar 28" is ambiguous (#982). Matches the stats card above.
-    final dateFormat = DateFormat.yMMMd();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Card(
       child: Padding(
@@ -696,7 +698,7 @@ class _BuddyDetailContent extends ConsumerWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      dateFormat.format(dive.dateTime),
+                                      units.formatDate(dive.dateTime),
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: theme

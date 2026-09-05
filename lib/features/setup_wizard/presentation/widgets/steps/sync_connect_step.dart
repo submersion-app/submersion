@@ -46,9 +46,18 @@ class _SyncConnectStepState extends ConsumerState<SyncConnectStep> {
     }
     try {
       final instance = cloudProviderInstanceFor(connected);
+      // First contact, so the local library being empty is the normal case,
+      // and it is what licenses the initializer to shed an inherited device
+      // identity when the account's only library turns out to be filed under
+      // our own id (a reinstall that outlived its predecessor's anchors).
+      final localLibraryIsEmpty =
+          (await ref.read(diverRepositoryProvider).getDiverCount()) == 0;
       final library = await ref
           .read(syncInitializerProvider)
-          .peerLibraryState(instance);
+          .firstContactLibraryState(
+            instance,
+            localLibraryIsEmpty: localLibraryIsEmpty,
+          );
       if (library != PeerLibraryState.pullable) {
         // "Nothing here" and "a publish died partway" both leave no manifest
         // to pull, but only the first one means Start Fresh is the right

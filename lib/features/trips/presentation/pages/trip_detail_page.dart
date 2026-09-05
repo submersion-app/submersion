@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -260,7 +259,6 @@ class _TripDetailContent extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.MMMd();
 
     return divesAsync.when(
       data: (dives) {
@@ -313,7 +311,7 @@ class _TripDetailContent extends ConsumerWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            dateFormat.format(dive.dateTime),
+                            units.formatMonthDay(dive.dateTime),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -364,7 +362,7 @@ class _TripDetailContent extends ConsumerWidget {
 
   Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref, Trip trip) {
     final colorScheme = Theme.of(context).colorScheme;
-    final dateFormat = DateFormat.MMMd();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -399,7 +397,7 @@ class _TripDetailContent extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+                  '${units.formatMonthDay(trip.startDate)} - ${units.formatMonthDay(trip.endDate)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

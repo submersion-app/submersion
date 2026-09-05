@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Sectioned presentation shared by the by-dive and timeline modes: group
 /// headers over non-scrolling thumbnail grids inside one scrolling list,
 /// with the same near-end load-more contract as the flat grid.
-class MediaLibraryGroupedList extends StatelessWidget {
+class MediaLibraryGroupedList extends ConsumerWidget {
   const MediaLibraryGroupedList({
     super.key,
     required this.groups,
@@ -35,7 +37,11 @@ class MediaLibraryGroupedList extends StatelessWidget {
 
   static const double _loadMoreThreshold = 400;
 
-  String _diveHeaderLabel(BuildContext context, DiveGroupHeader header) {
+  String _diveHeaderLabel(
+    BuildContext context,
+    UnitFormatter units,
+    DiveGroupHeader header,
+  ) {
     if (header.diveId == null) {
       return context.l10n.media_library_unlinkedHeader;
     }
@@ -47,8 +53,7 @@ class MediaLibraryGroupedList extends StatelessWidget {
     if (parts.isEmpty) {
       final date = header.diveDateTime;
       if (date != null) {
-        final locale = Localizations.localeOf(context).toString();
-        return DateFormat.yMMMd(locale).format(date);
+        return units.formatDate(date);
       }
       // A linked dive with no number, site or date still needs a visible
       // label: the header is this view's only route to that dive, and an
@@ -59,8 +64,8 @@ class MediaLibraryGroupedList extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final locale = Localizations.localeOf(context).toString();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     final rows = <Widget>[];
     DateTime? lastMonth;
@@ -73,7 +78,7 @@ class MediaLibraryGroupedList extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 16, 12, 4),
               child: Text(
-                DateFormat.yMMMM(locale).format(header.monthStart),
+                units.formatMonthYear(header.monthStart),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
@@ -83,13 +88,13 @@ class MediaLibraryGroupedList extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
             child: Text(
-              DateFormat.MMMEd(locale).format(header.dayStart),
+              units.formatWeekdayMonthDay(header.dayStart),
               style: Theme.of(context).textTheme.labelLarge,
             ),
           ),
         );
       } else if (header is DiveGroupHeader) {
-        final label = _diveHeaderLabel(context, header);
+        final label = _diveHeaderLabel(context, units, header);
         final diveId = header.diveId;
         // Inert while a selection is in progress, matching the tiles below it:
         // a tap landing a few pixels high must not navigate away from a

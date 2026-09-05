@@ -13,6 +13,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de browser niet openen. Gebruik Link kopiëren en plak het adres in je browser.';
 
   @override
+  String equipment_documents_removeError(String error) {
+    return 'Kan het document niet verwijderen: $error';
+  }
+
+  @override
   String get settings_oauth_connect_copyFailed => 'Kan de link niet kopiëren.';
 
   @override
@@ -2613,6 +2618,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get common_action_close => 'Sluiten';
+
+  @override
+  String get common_action_copyLink => 'Link kopiëren';
+
+  @override
+  String get common_link_couldNotOpen => 'Kan de link niet openen';
 
   @override
   String get common_action_continue => 'Doorgaan';
@@ -8972,6 +8983,40 @@ class AppLocalizationsNl extends AppLocalizations {
       'Locatie opzoeken is niet beschikbaar. Controleer je verbinding en probeer het opnieuw.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'Plaatsnamen bijwerken';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Plaatsnamen bijwerken?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duikstekken met coördinaten worden opnieuw opgezocht.',
+      one: '1 duikstek met coördinaten wordt opnieuw opgezocht.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minuten',
+      one: '1 minuut',
+    );
+    return '$_temp0 Land, regio, plaats en water worden vervangen waar ze afwijken van de taal van plaatsnamen ($language), ook waarden die je zelf hebt ingevuld. Dit duurt ongeveer $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'Plaatsnamen bijwerken';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Geen enkele duikstek heeft coördinaten om op te zoeken.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Terug';
 
   @override
@@ -9606,6 +9651,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'Vervaldatum';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Wordt als eerste op je noodkaart getoond.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'bijv. +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      '24-uurs noodhulpnummer';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'Kantoornummer verzekering';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'bijv. DAN, DiveAssure';
 
   @override
@@ -10030,6 +10089,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_equipmentType_drysuit => 'Droogpak';
+
+  @override
+  String get enum_equipmentType_baselayer => 'Basislaag';
+
+  @override
+  String get enum_equipmentType_undersuit => 'Onderpak';
 
   @override
   String get enum_equipmentType_fins => 'Vinnen';
@@ -11177,6 +11242,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_edit_thicknessDesignationHint => 'bijv. 5, 5/4, 7/5/3';
 
   @override
+  String get equipment_edit_webLinkHint => 'bijv. shop.example.com/product';
+
+  @override
   String get equipment_edit_thicknessHint => 'bijv. 5mm, 7mm';
 
   @override
@@ -11589,7 +11657,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'Servicerecord verwijderd';
 
   @override
-  String get equipment_service_totalCostLabel => 'Totale servicekosten';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'Totale servicekosten ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Uitrusting toevoegen';
@@ -11823,7 +11893,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_summary_totalItems => 'Totaal onderdelen';
 
   @override
-  String get equipment_summary_totalValue => 'Totale waarde';
+  String equipment_summary_totalValue(String currency) {
+    return 'Totale waarde ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'Uitrusting';
@@ -24726,6 +24798,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_glove_type => 'Type';
 
   @override
+  String get attrLabel_insulation_level => 'Isolatieniveau';
+
+  @override
+  String get attrLabel_fill_material => 'Materiaal';
+
+  @override
   String get attrLabel_sole_type => 'Zool';
 
   @override
@@ -24772,6 +24850,45 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'Topsnelheid';
+
+  @override
+  String get attrLabel_sku => 'SKU';
+
+  @override
+  String get attrLabel_retailer => 'Verkoper';
+
+  @override
+  String get attrLabel_product_url => 'Weblink';
+
+  @override
+  String get attrLabel_sleeve_length => 'Mouwen';
+
+  @override
+  String get attrLabel_upf_rating => 'UPF-waarde';
+
+  @override
+  String get attrLabel_snorkel_type => 'Type';
+
+  @override
+  String get attrLabel_purge_valve => 'Uitblaasventiel';
+
+  @override
+  String get attrLabel_instrument_type => 'Instrument';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'Meetbereik';
+
+  @override
+  String get attrLabel_compass_type => 'Type';
+
+  @override
+  String get attrLabel_balance_zone => 'Balanszone';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'Kanteltolerantie (°)';
+
+  @override
+  String get attrLabel_tool_type => 'Soort gereedschap';
 
   @override
   String get attrChoice_unit_type_eccr => 'Elektronische CCR (eCCR)';
@@ -24839,6 +24956,36 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'Neopreen';
+
+  @override
+  String get attrChoice_insulation_level_light => 'Licht';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'Middel';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'Zwaar';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'Extreem';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'Holle vezel';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'Fleece';
+
+  @override
+  String get attrChoice_fill_material_merino => 'Merinowol';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'Polypropeen';
 
   @override
   String get attrChoice_tank_material_aluminum => 'Aluminium';
@@ -24973,10 +25120,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'Vijfvinger';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'Drievinger';
+
+  @override
   String get attrChoice_glove_type_mitt => 'Want';
 
   @override
   String get attrChoice_glove_type_dry => 'Droog';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'Droge-handschoenvoering';
+
+  @override
+  String get attrChoice_glove_type_utility => 'Werk';
 
   @override
   String get attrChoice_sole_type_hard => 'Harde zool';
@@ -25009,6 +25165,75 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrChoice_motor_type_brushed => 'Met borstels';
 
   @override
+  String get attrChoice_sleeve_length_short => 'Kort';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'Lang';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'Mouwloos';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'Klassiek';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'Semi-droog';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'Droog';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'Opvouwbaar';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'Manometer (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'Dieptemeter';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'Bottomtimer';
+
+  @override
+  String get attrChoice_instrument_type_console => 'Console';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'Gasanalyser';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'Thermometer';
+
+  @override
+  String get attrChoice_compass_type_analog => 'Analoog';
+
+  @override
+  String get attrChoice_compass_type_digital => 'Digitaal';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'Noordelijk halfrond';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'Zuidelijk halfrond';
+
+  @override
+  String get attrChoice_balance_zone_global => 'Globaal';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'Handgereedschap';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'O-ringset';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'Save-a-dive-set';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'Momentsleutel';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'Reserveonderdelenset';
+
+  @override
   String get equipment_edit_customFieldsTitle => 'Aangepaste velden';
 
   @override
@@ -25022,6 +25247,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Gebruik 5, 5/4 of 7/5/3';
+
+  @override
+  String get equipment_edit_invalidWebLink =>
+      'Voer een webadres in, bijv. shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title =>
@@ -25146,6 +25375,24 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Noodlijn voor duikers. Bel eerst: zij coördineren evacuatie en doorverwijzing naar een kamer.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'Noodlijn van je duikverzekering. Bel eerst: je verzekeraar autoriseert de evacuatie en coördineert de doorverwijzing naar een kamer.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Regionale noodlijn voor duikers. Bel deze als de lijn van je verzekeraar niet opneemt.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24-uurs noodlijn';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Kantoornummer';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'Geen noodnummer van de verzekeraar opgeslagen. Voeg het toe in de duikerprofielinstellingen zodat deze kaart ermee begint.';
 
   @override
   String emergencyCard_ems(String number) {
@@ -32699,6 +32946,34 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get common_action_remove => 'Verwijderen';
+
+  @override
+  String get equipment_documents_title => 'Documenten';
+
+  @override
+  String get equipment_documents_subtitle =>
+      'Facturen, bonnen en garantiepapieren';
+
+  @override
+  String get equipment_documents_attachButton => 'Bijvoegen';
+
+  @override
+  String get equipment_documents_empty => 'Nog geen documenten bijgevoegd';
+
+  @override
+  String get equipment_documents_removeTitle => 'Document verwijderen?';
+
+  @override
+  String get equipment_documents_removeContent =>
+      'Het is dan niet langer aan dit item gekoppeld. Je originele bestand blijft ongemoeid.';
+
+  @override
+  String get equipment_documents_removed => 'Document verwijderd';
+
+  @override
+  String equipment_documents_loadError(String error) {
+    return 'Kan documenten niet laden: $error';
+  }
 
   @override
   String get common_action_unpin => 'Losmaken';

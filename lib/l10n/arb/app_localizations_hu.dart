@@ -13,6 +13,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült megnyitni a böngészőt. Használd a Link másolása gombot, és illeszd be a címet a böngésződbe.';
 
   @override
+  String equipment_documents_removeError(String error) {
+    return 'A dokumentum nem távolítható el: $error';
+  }
+
+  @override
   String get settings_oauth_connect_copyFailed =>
       'Nem sikerült másolni a linket.';
 
@@ -2621,6 +2626,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get common_action_close => 'Bezaras';
+
+  @override
+  String get common_action_copyLink => 'Hivatkozás másolása';
+
+  @override
+  String get common_link_couldNotOpen => 'A hivatkozás nem nyitható meg';
 
   @override
   String get common_action_continue => 'Folytatás';
@@ -9016,6 +9027,41 @@ class AppLocalizationsHu extends AppLocalizations {
       'A helylekérdezés nem érhető el. Ellenőrizze a kapcsolatot, és próbálja újra.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'Helynevek frissítése';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Frissíti a helyneveket?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count koordinátákkal rendelkező merülőhely lekérdezése történik újra.',
+      one: '1 koordinátákkal rendelkező merülőhely lekérdezése történik újra.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes percet',
+      one: '1 percet',
+    );
+    return '$_temp0 Az ország, a régió, a település és a víz neve mindenütt lecserélődik, ahol eltér a helynevek nyelvétől ($language), a kézzel beírt értékek is. Ez körülbelül $_temp1 vesz igénybe.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'Helynevek frissítése';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Egyetlen merülőhelynek sincs lekérdezhető koordinátája.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Vissza';
 
   @override
@@ -9657,6 +9703,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'Lejarat datuma';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Elsőként jelenik meg a vészhelyzeti kártyán.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'pl. +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      '24 órás segélyhívó szám';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'Biztosító irodai telefonszáma';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'pl. DAN, DiveAssure';
 
   @override
@@ -10080,6 +10140,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentType_drysuit => 'Szaraz ruha';
+
+  @override
+  String get enum_equipmentType_baselayer => 'Alapréteg';
+
+  @override
+  String get enum_equipmentType_undersuit => 'Alsóöltözet';
 
   @override
   String get enum_equipmentType_fins => 'Uszonyok';
@@ -11228,6 +11294,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_thicknessDesignationHint => 'pl. 5, 5/4, 7/5/3';
 
   @override
+  String get equipment_edit_webLinkHint => 'pl. shop.example.com/product';
+
+  @override
   String get equipment_edit_thicknessHint => 'pl. 5mm, 7mm';
 
   @override
@@ -11638,7 +11707,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'Szervizrekord torolve';
 
   @override
-  String get equipment_service_totalCostLabel => 'Osszes szerviz koltseg';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'Osszes szerviz koltseg ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Felszereles hozzaadasa';
@@ -11876,7 +11947,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_summary_totalItems => 'Osszes elem';
 
   @override
-  String get equipment_summary_totalValue => 'Osszes ertek';
+  String equipment_summary_totalValue(String currency) {
+    return 'Osszes ertek ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'Felszerelés';
@@ -24812,6 +24885,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_glove_type => 'Típus';
 
   @override
+  String get attrLabel_insulation_level => 'Szigetelési szint';
+
+  @override
+  String get attrLabel_fill_material => 'Anyag';
+
+  @override
   String get attrLabel_sole_type => 'Talp';
 
   @override
@@ -24858,6 +24937,45 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'Végsebesség';
+
+  @override
+  String get attrLabel_sku => 'Cikkszám';
+
+  @override
+  String get attrLabel_retailer => 'Forgalmazó';
+
+  @override
+  String get attrLabel_product_url => 'Webhivatkozás';
+
+  @override
+  String get attrLabel_sleeve_length => 'Ujjak';
+
+  @override
+  String get attrLabel_upf_rating => 'UPF-érték';
+
+  @override
+  String get attrLabel_snorkel_type => 'Típus';
+
+  @override
+  String get attrLabel_purge_valve => 'Ürítőszelep';
+
+  @override
+  String get attrLabel_instrument_type => 'Műszer';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'Nyomásmérő tartománya';
+
+  @override
+  String get attrLabel_compass_type => 'Típus';
+
+  @override
+  String get attrLabel_balance_zone => 'Kiegyensúlyozási zóna';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'Dőléstűrés (°)';
+
+  @override
+  String get attrLabel_tool_type => 'Szerszám típusa';
 
   @override
   String get attrChoice_unit_type_eccr => 'Elektronikus CCR (eCCR)';
@@ -24924,6 +25042,36 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'Neoprén';
+
+  @override
+  String get attrChoice_insulation_level_light => 'Könnyű';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'Közepes';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'Vastag';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'Extrém';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'Üreges szál';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'Polár';
+
+  @override
+  String get attrChoice_fill_material_merino => 'Merinógyapjú';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'Polipropilén';
 
   @override
   String get attrChoice_tank_material_aluminum => 'Alumínium';
@@ -25058,10 +25206,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'Ötujjas';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'Háromujjas';
+
+  @override
   String get attrChoice_glove_type_mitt => 'Egyujjas';
 
   @override
   String get attrChoice_glove_type_dry => 'Száraz';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'Szárazkesztyű-bélés';
+
+  @override
+  String get attrChoice_glove_type_utility => 'Munka';
 
   @override
   String get attrChoice_sole_type_hard => 'Kemény talp';
@@ -25094,6 +25251,76 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrChoice_motor_type_brushed => 'Szénkefés';
 
   @override
+  String get attrChoice_sleeve_length_short => 'Rövid';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'Hosszú';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'Ujjatlan';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'Klasszikus';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'Félszáraz';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'Száraz';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'Összehajtható';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'Nyomásmérő (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'Mélységmérő';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'Merülésidőmérő';
+
+  @override
+  String get attrChoice_instrument_type_console => 'Konzol';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'Gázanalizátor';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'Hőmérő';
+
+  @override
+  String get attrChoice_compass_type_analog => 'Analóg';
+
+  @override
+  String get attrChoice_compass_type_digital => 'Digitális';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'Északi félteke';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'Déli félteke';
+
+  @override
+  String get attrChoice_balance_zone_global => 'Globális';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'Kéziszerszám';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'O-gyűrű készlet';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit =>
+      'Vészhelyzeti szerszámkészlet';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'Nyomatékkulcs';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'Alkatrészkészlet';
+
+  @override
   String get equipment_edit_customFieldsTitle => 'Egyéni mezők';
 
   @override
@@ -25107,6 +25334,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Formátum: 5, 5/4 vagy 7/5/3';
+
+  @override
+  String get equipment_edit_invalidWebLink =>
+      'Adjon meg egy webcímet, pl. shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title =>
@@ -25233,6 +25464,24 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Búvár segélyvonal. Először ezt hívd: ők koordinálják az evakuálást és a kamrába irányítást.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'A búvárbiztosításod segélyvonala. Először ezt hívd: a biztosító engedélyezi az evakuálást és koordinálja a kamrába irányítást.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Regionális búvár segélyvonal. Akkor hívd, ha a biztosító vonala nem válaszol.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24 órás segélyvonal';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Irodai vonal';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'Nincs mentve a biztosító segélyhívó száma. Add meg a búvárprofil beállításaiban, hogy ez a kártya azzal kezdjen.';
 
   @override
   String emergencyCard_ems(String number) {
@@ -32789,6 +33038,34 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get common_action_remove => 'Eltávolítás';
+
+  @override
+  String get equipment_documents_title => 'Dokumentumok';
+
+  @override
+  String get equipment_documents_subtitle =>
+      'Számlák, nyugták és garancialevelek';
+
+  @override
+  String get equipment_documents_attachButton => 'Csatolás';
+
+  @override
+  String get equipment_documents_empty => 'Még nincs csatolt dokumentum';
+
+  @override
+  String get equipment_documents_removeTitle => 'Eltávolítja a dokumentumot?';
+
+  @override
+  String get equipment_documents_removeContent =>
+      'Többé nem lesz ehhez a felszereléshez csatolva. Az eredeti fájl érintetlen marad.';
+
+  @override
+  String get equipment_documents_removed => 'A dokumentum eltávolítva';
+
+  @override
+  String equipment_documents_loadError(String error) {
+    return 'A dokumentumok nem tölthetők be: $error';
+  }
 
   @override
   String get common_action_unpin => 'Rögzítés feloldása';

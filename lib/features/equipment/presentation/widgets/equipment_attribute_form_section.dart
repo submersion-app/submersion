@@ -10,15 +10,21 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_attri
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
-/// Renders one input per catalog definition for [type]. Values are keyed by
-/// attrKey in [values]; edits emit whole EquipmentAttribute objects through
-/// [onChanged]; emptied inputs call [onCleared] (unset = no row).
+/// Renders one input per catalog definition for [type] in [group]. Values are
+/// keyed by attrKey in [values]; edits emit whole EquipmentAttribute objects
+/// through [onChanged]; emptied inputs call [onCleared] (unset = no row).
+///
+/// The edit page mounts one instance per group, so the physical specs and the
+/// purchase record land in their own blocks of the form.
 class EquipmentAttributeFormSection extends StatelessWidget {
   final EquipmentType type;
   final Map<String, EquipmentAttribute> values;
   final UnitFormatter units;
   final void Function(EquipmentAttribute) onChanged;
   final void Function(String key) onCleared;
+
+  /// Which catalog group to render. Defaults to the physical specification.
+  final AttributeGroup group;
 
   const EquipmentAttributeFormSection({
     super.key,
@@ -27,6 +33,7 @@ class EquipmentAttributeFormSection extends StatelessWidget {
     required this.units,
     required this.onChanged,
     required this.onCleared,
+    this.group = AttributeGroup.spec,
   });
 
   EquipmentAttribute _base(String key) =>
@@ -34,7 +41,9 @@ class EquipmentAttributeFormSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defs = EquipmentAttributeCatalog.attributesFor(type);
+    final defs = EquipmentAttributeCatalog.attributesFor(
+      type,
+    ).where((d) => d.group == group).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -57,6 +66,34 @@ class EquipmentAttributeFormSection extends StatelessWidget {
           key: fieldKey,
           initialValue: current?.valueText ?? '',
           decoration: InputDecoration(labelText: label),
+          onChanged: (text) {
+            final trimmed = text.trim();
+            if (trimmed.isEmpty) {
+              onCleared(def.key);
+            } else {
+              onChanged(_base(def.key).copyWith(valueText: trimmed));
+            }
+          },
+        );
+
+      case AttributeKind.url:
+        return TextFormField(
+          key: fieldKey,
+          initialValue: current?.valueText ?? '',
+          decoration: InputDecoration(
+            labelText: label,
+            hintText: context.l10n.equipment_edit_webLinkHint,
+          ),
+          keyboardType: TextInputType.url,
+          autocorrect: false,
+          // Stored as typed; the scheme is only assumed at launch time so a
+          // diver who pasted a full URL sees exactly what they pasted.
+          validator: (text) =>
+              (text == null ||
+                  text.trim().isEmpty ||
+                  parseWebLink(text) != null)
+              ? null
+              : context.l10n.equipment_edit_invalidWebLink,
           onChanged: (text) {
             final trimmed = text.trim();
             if (trimmed.isEmpty) {

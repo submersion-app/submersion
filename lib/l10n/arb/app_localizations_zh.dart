@@ -13,6 +13,11 @@ class AppLocalizationsZh extends AppLocalizations {
       '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
 
   @override
+  String equipment_documents_removeError(String error) {
+    return '无法移除文档：$error';
+  }
+
+  @override
   String get settings_oauth_connect_copyFailed => '无法复制链接。';
 
   @override
@@ -2483,6 +2488,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get common_action_close => '关闭';
+
+  @override
+  String get common_action_copyLink => '复制链接';
+
+  @override
+  String get common_link_couldNotOpen => '无法打开链接';
 
   @override
   String get common_action_continue => '继续';
@@ -8602,6 +8613,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_backfill_offline => '地点查找不可用。请检查网络连接后重试。';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => '刷新地名';
+
+  @override
+  String get diveSites_refresh_confirm_title => '刷新地名？';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将重新查询 $count 个有坐标的潜点。',
+      one: '将重新查询 1 个有坐标的潜点。',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes 分钟',
+      one: '1 分钟',
+    );
+    return '$_temp0国家、地区、城镇和水域凡与地名语言（$language）不一致的都会被替换，包括你自己填写的内容。大约需要 $_temp1。';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => '正在刷新地名';
+
+  @override
+  String get diveSites_refresh_nothing => '没有潜点带有可查询的坐标。';
+
+  @override
   String get diveSites_list_search_backTooltip => '返回';
 
   @override
@@ -9218,6 +9262,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_expiryDateTitle => '到期日';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper => '在紧急卡片上优先显示。';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => '例如 +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel => '24 小时紧急救援电话';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => '保险公司办公电话';
+
+  @override
   String get divers_edit_insuranceProviderHint => '例如 DAN、DiveAssure';
 
   @override
@@ -9637,6 +9693,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_drysuit => '干衣';
+
+  @override
+  String get enum_equipmentType_baselayer => '基础层';
+
+  @override
+  String get enum_equipmentType_undersuit => '内胆保暖服';
 
   @override
   String get enum_equipmentType_fins => '脚蹼';
@@ -10748,6 +10810,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_thicknessDesignationHint => '例如：5, 5/4, 7/5/3';
 
   @override
+  String get equipment_edit_webLinkHint => '例如 shop.example.com/product';
+
+  @override
   String get equipment_edit_thicknessHint => '例如：5mm, 7mm';
 
   @override
@@ -11127,7 +11192,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_service_snackbar_deleted => '维护记录已删除';
 
   @override
-  String get equipment_service_totalCostLabel => '维护总费用';
+  String equipment_service_totalCostLabel(String currency) {
+    return '维护总费用 ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => '添加装备';
@@ -11348,7 +11415,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_summary_totalItems => '总件数';
 
   @override
-  String get equipment_summary_totalValue => '总价值';
+  String equipment_summary_totalValue(String currency) {
+    return '总价值 ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => '装备';
@@ -23625,6 +23694,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_glove_type => '类型';
 
   @override
+  String get attrLabel_insulation_level => '保暖等级';
+
+  @override
+  String get attrLabel_fill_material => '材质';
+
+  @override
   String get attrLabel_sole_type => '鞋底';
 
   @override
@@ -23671,6 +23746,45 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => '最高速度';
+
+  @override
+  String get attrLabel_sku => '商品编号 (SKU)';
+
+  @override
+  String get attrLabel_retailer => '零售商';
+
+  @override
+  String get attrLabel_product_url => '网页链接';
+
+  @override
+  String get attrLabel_sleeve_length => '袖长';
+
+  @override
+  String get attrLabel_upf_rating => 'UPF 防晒指数';
+
+  @override
+  String get attrLabel_snorkel_type => '类型';
+
+  @override
+  String get attrLabel_purge_valve => '排水阀';
+
+  @override
+  String get attrLabel_instrument_type => '仪表类型';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => '量程';
+
+  @override
+  String get attrLabel_compass_type => '类型';
+
+  @override
+  String get attrLabel_balance_zone => '平衡区域';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => '倾斜容差（°）';
+
+  @override
+  String get attrLabel_tool_type => '工具类型';
 
   @override
   String get attrChoice_unit_type_eccr => '电子式 CCR (eCCR)';
@@ -23737,6 +23851,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => '氯丁橡胶';
+
+  @override
+  String get attrChoice_insulation_level_light => '轻薄';
+
+  @override
+  String get attrChoice_insulation_level_mid => '中等';
+
+  @override
+  String get attrChoice_insulation_level_heavy => '厚实';
+
+  @override
+  String get attrChoice_insulation_level_extreme => '极厚';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => '中空纤维';
+
+  @override
+  String get attrChoice_fill_material_fleece => '抓绒';
+
+  @override
+  String get attrChoice_fill_material_merino => '美利奴羊毛';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => '聚丙烯';
 
   @override
   String get attrChoice_tank_material_aluminum => '铝';
@@ -23871,10 +24015,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => '五指';
 
   @override
+  String get attrChoice_glove_type_three_finger => '三指';
+
+  @override
   String get attrChoice_glove_type_mitt => '连指';
 
   @override
   String get attrChoice_glove_type_dry => '干式';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => '干式手套内胆';
+
+  @override
+  String get attrChoice_glove_type_utility => '工作';
 
   @override
   String get attrChoice_sole_type_hard => '硬底';
@@ -23907,6 +24060,75 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrChoice_motor_type_brushed => '有刷';
 
   @override
+  String get attrChoice_sleeve_length_short => '短袖';
+
+  @override
+  String get attrChoice_sleeve_length_long => '长袖';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => '无袖';
+
+  @override
+  String get attrChoice_snorkel_type_classic => '经典式';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => '半干式';
+
+  @override
+  String get attrChoice_snorkel_type_dry => '全干式';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => '可折叠';
+
+  @override
+  String get attrChoice_instrument_type_spg => '压力表（SPG）';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => '深度表';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => '潜水计时器';
+
+  @override
+  String get attrChoice_instrument_type_console => '组合表';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => '气体分析仪';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => '温度计';
+
+  @override
+  String get attrChoice_compass_type_analog => '指针式';
+
+  @override
+  String get attrChoice_compass_type_digital => '电子式';
+
+  @override
+  String get attrChoice_balance_zone_northern => '北半球';
+
+  @override
+  String get attrChoice_balance_zone_southern => '南半球';
+
+  @override
+  String get attrChoice_balance_zone_global => '全球通用';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => '手工具';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'O 形圈套件';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => '应急工具包';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => '扭力扳手';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => '备件包';
+
+  @override
   String get equipment_edit_customFieldsTitle => '自定义字段';
 
   @override
@@ -23920,6 +24142,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';
+
+  @override
+  String get equipment_edit_invalidWebLink => '请输入网址，例如 shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title => '按潜水服厚度统计';
@@ -24039,6 +24264,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get emergencyCard_callDan_subtitle => '潜水员紧急热线。请先拨打:他们负责协调撤离和减压舱转诊。';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      '你的潜水保险紧急专线。请先拨打:保险公司负责批准撤离并协调减压舱转诊。';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      '区域潜水员紧急热线。若保险公司专线无人接听,请拨打此号码。';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24 小时紧急专线';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => '办公电话';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      '尚未保存保险公司紧急电话。请在潜水员资料设置中添加,以便此卡优先显示该号码。';
 
   @override
   String emergencyCard_ems(String number) {
@@ -31065,6 +31308,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get common_action_remove => '移除';
+
+  @override
+  String get equipment_documents_title => '文档';
+
+  @override
+  String get equipment_documents_subtitle => '发票、收据和保修文件';
+
+  @override
+  String get equipment_documents_attachButton => '附加';
+
+  @override
+  String get equipment_documents_empty => '尚未附加任何文档';
+
+  @override
+  String get equipment_documents_removeTitle => '移除文档？';
+
+  @override
+  String get equipment_documents_removeContent => '它将不再附加到此装备。您的原始文件不会被改动。';
+
+  @override
+  String get equipment_documents_removed => '文档已移除';
+
+  @override
+  String equipment_documents_loadError(String error) {
+    return '无法加载文档：$error';
+  }
 
   @override
   String get common_action_unpin => '取消固定';

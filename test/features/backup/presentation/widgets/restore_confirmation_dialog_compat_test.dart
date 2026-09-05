@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 BackupRecord _preMigration({
   required int fromVersion,
@@ -26,10 +30,16 @@ BackupRecord _preMigration({
 }
 
 Widget _wrap(Widget child) {
-  return MaterialApp(
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(body: child),
+  return ProviderScope(
+    // The dialog watches settingsProvider for the diver's date format. The real
+    // notifier reaches for DiverSettingsRepository and a DatabaseService this
+    // harness never starts, so stand in with the shared mock.
+    overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: child),
+    ),
   );
 }
 
@@ -115,21 +125,17 @@ void main() {
     ) async {
       RestoreMode? result;
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: Builder(
-              builder: (ctx) => TextButton(
-                onPressed: () async {
-                  result = await RestoreConfirmationDialog.show(
-                    ctx,
-                    record,
-                    currentSchemaVersion: currentSchemaVersion,
-                  );
-                },
-                child: const Text('open'),
-              ),
+        _wrap(
+          Builder(
+            builder: (ctx) => TextButton(
+              onPressed: () async {
+                result = await RestoreConfirmationDialog.show(
+                  ctx,
+                  record,
+                  currentSchemaVersion: currentSchemaVersion,
+                );
+              },
+              child: const Text('open'),
             ),
           ),
         ),

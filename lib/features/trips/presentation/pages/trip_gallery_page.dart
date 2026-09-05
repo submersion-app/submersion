@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
@@ -11,6 +11,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -283,7 +284,7 @@ class _GalleryContent extends StatelessWidget {
 }
 
 /// ExpansionTile section for photos from a single dive.
-class _DivePhotoSection extends StatelessWidget {
+class _DivePhotoSection extends ConsumerWidget {
   final String tripId;
   final Dive dive;
   final List<MediaItem> media;
@@ -295,8 +296,8 @@ class _DivePhotoSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final dateFormat = DateFormat.MMMd();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final siteName =
         dive.site?.name ?? context.l10n.trips_detail_dives_unknownSite;
     final diveNumber = dive.diveNumber ?? '-';
@@ -314,7 +315,7 @@ class _DivePhotoSection extends StatelessWidget {
         ),
         subtitle: Text(
           context.l10n.trips_gallery_diveSection_subtitle(
-            dateFormat.format(dive.dateTime),
+            units.formatMonthDay(dive.dateTime),
             photoCount,
             photoLabel,
           ),

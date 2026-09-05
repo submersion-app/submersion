@@ -1,40 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:intl/intl.dart';
 import 'package:submersion/features/planner/domain/services/plan_name_generator.dart';
 
 void main() {
-  final date = DateTime(2026, 7, 25);
+  const dateLabel = 'Jul 25';
 
   group('generateDefaultPlanName', () {
-    // The generator dates the name with DateFormat.MMMd(), which resolves
-    // against Intl.defaultLocale - a process global that app.dart sets from
-    // the app locale. Pin it so the "Jul 25" assertions state their real
-    // dependency instead of riding on intl's implicit en_US fallback, and
-    // restore it so the global stays contained.
-    //
-    // Setting the global explicitly means intl stops using its built-in
-    // fallback and demands real symbol data, so the locale must be initialized
-    // first. Widget tests get that for free from GlobalMaterialLocalizations;
-    // this is a pure unit test, so it has to ask.
-    late String? previousLocale;
-
-    // Symbol data does not depend on per-test state, so load it once.
-    setUpAll(() => initializeDateFormatting('en'));
-
-    setUp(() {
-      previousLocale = Intl.defaultLocale;
-      Intl.defaultLocale = 'en';
-    });
-
-    tearDown(() => Intl.defaultLocale = previousLocale);
+    // The caller formats the date, in the diver's own order, and hands the
+    // generator a finished label (#1512). Nothing here depends on
+    // Intl.defaultLocale any more.
 
     test('combines site, depth, and date', () {
       expect(
         generateDefaultPlanName(
           siteName: 'Blue Hole',
           depthLabel: '40m',
-          date: date,
+          dateLabel: dateLabel,
           fallbackLabel: 'Dive Plan',
         ),
         'Blue Hole 40m - Jul 25',
@@ -46,7 +26,7 @@ void main() {
         generateDefaultPlanName(
           siteName: 'Blue Hole',
           depthLabel: null,
-          date: date,
+          dateLabel: dateLabel,
           fallbackLabel: 'Dive Plan',
         ),
         'Blue Hole - Jul 25',
@@ -58,7 +38,7 @@ void main() {
         generateDefaultPlanName(
           siteName: null,
           depthLabel: '40m',
-          date: date,
+          dateLabel: dateLabel,
           fallbackLabel: 'Dive Plan',
         ),
         '40m - Jul 25',
@@ -70,7 +50,7 @@ void main() {
         generateDefaultPlanName(
           siteName: null,
           depthLabel: null,
-          date: date,
+          dateLabel: dateLabel,
           fallbackLabel: 'Dive Plan',
         ),
         'Dive Plan - Jul 25',
@@ -82,7 +62,7 @@ void main() {
         generateDefaultPlanName(
           siteName: '   ',
           depthLabel: null,
-          date: date,
+          dateLabel: dateLabel,
           fallbackLabel: 'Dive Plan',
         ),
         'Dive Plan - Jul 25',
@@ -94,7 +74,7 @@ void main() {
         generateDefaultPlanName(
           siteName: '  Blue Hole  ',
           depthLabel: '40m',
-          date: date,
+          dateLabel: dateLabel,
           fallbackLabel: 'Dive Plan',
         ),
         'Blue Hole 40m - Jul 25',

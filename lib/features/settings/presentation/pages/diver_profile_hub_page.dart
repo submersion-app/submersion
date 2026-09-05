@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_photo_picker.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -70,7 +69,7 @@ class DiverProfileHubPage extends ConsumerWidget {
             children: [
               _buildActiveDiverCard(context, ref, diver),
               const SizedBox(height: 16),
-              _buildSectionTilesCard(context, diver),
+              _buildSectionTilesCard(context, ref, diver),
               const SizedBox(height: 16),
               _buildManagementTilesCard(context, diver),
               const SizedBox(height: 32),
@@ -208,7 +207,11 @@ class DiverProfileHubPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionTilesCard(BuildContext context, Diver diver) {
+  Widget _buildSectionTilesCard(
+    BuildContext context,
+    WidgetRef ref,
+    Diver diver,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Card(
@@ -251,7 +254,7 @@ class DiverProfileHubPage extends ConsumerWidget {
               context,
               icon: Icons.health_and_safety,
               title: context.l10n.settings_profileHub_insurance,
-              subtitle: _insuranceSubtitle(context, diver),
+              subtitle: _insuranceSubtitle(context, ref, diver),
               route: '/settings/diver-profile/insurance',
             ),
             const Divider(height: 1),
@@ -369,22 +372,25 @@ class DiverProfileHubPage extends ConsumerWidget {
     return context.l10n.settings_profileHub_medicalInfo_notSet;
   }
 
-  String _insuranceSubtitle(BuildContext context, Diver diver) {
+  String _insuranceSubtitle(BuildContext context, WidgetRef ref, Diver diver) {
     final insurance = diver.insurance;
-    if (insurance.provider == null || insurance.provider!.isEmpty) {
+    final provider = insurance.providerLabel;
+    if (provider == null) {
       return context.l10n.settings_profileHub_insurance_notSet;
     }
 
     if (insurance.isExpired) {
-      return '${insurance.provider} - ${context.l10n.settings_profileHub_insurance_expired}';
+      return '$provider - ${context.l10n.settings_profileHub_insurance_expired}';
     }
 
     if (insurance.expiryDate != null) {
-      final formatted = DateFormat.yMMMd().format(insurance.expiryDate!);
-      return '${insurance.provider} - $formatted';
+      final formatted = UnitFormatter(
+        ref.watch(settingsProvider),
+      ).formatDate(insurance.expiryDate);
+      return '$provider - $formatted';
     }
 
-    return insurance.provider!;
+    return provider;
   }
 
   String _notesSubtitle(BuildContext context, Diver diver) {

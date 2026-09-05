@@ -10,8 +10,8 @@ import 'package:flutter/widgets.dart';
 /// a reel, a kick scooter for a DPV. Issue #1189 reported the result as icons
 /// that "don't really fit the equipment".
 ///
-/// These ten are drawn in `tool/equipment_glyphs.py` and compiled into
-/// `assets/fonts/submersion-equipment.ttf` by
+/// The constants below are drawn in `tool/equipment_glyphs.py` and compiled
+/// into `assets/fonts/submersion-equipment.ttf` by
 /// `tool/build_equipment_icon_font.py`. Regenerate with:
 ///
 /// ```sh
@@ -63,4 +63,10 @@ abstract final class SubmersionIcons {
 
   /// Diver propulsion vehicle: torpedo hull with a shrouded prop.
   static const IconData dpv = IconData(0xe909, fontFamily: fontFamily);
+
+  /// Drysuit undersuit: the suit silhouette again, quilted.
+  static const IconData undersuit = IconData(0xe90a, fontFamily: fontFamily);
+
+  /// Base layer: a long-sleeved thermal top, stopping at the hips.
+  static const IconData baselayer = IconData(0xe90b, fontFamily: fontFamily);
 }

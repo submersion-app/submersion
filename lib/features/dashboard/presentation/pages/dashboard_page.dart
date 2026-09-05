@@ -151,7 +151,7 @@ bool _hasSafetyAlert(DashboardGauges g) {
   // it must not force the strip open either.
   final expiredPolicy =
       insurance != null &&
-      !(insurance.provider?.isEmpty ?? true) &&
+      insurance.providerLabel != null &&
       insurance.isExpired;
   // Overflow counts as overdue gear in its own right. With the shipped caps
   // it can only be positive alongside a shown overdue gauge, so this clause

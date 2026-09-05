@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -43,7 +45,11 @@ class TripServiceAlertBanner extends ConsumerWidget {
       button: true,
       label: context.l10n.trips_serviceAlert_count(itemCount),
       child: InkWell(
-        onTap: () => _showAlertSheet(context, alerts),
+        onTap: () => _showAlertSheet(
+          context,
+          UnitFormatter(ref.read(settingsProvider)),
+          alerts,
+        ),
         child: Container(
           width: double.infinity,
           color: background,
@@ -69,7 +75,11 @@ class TripServiceAlertBanner extends ConsumerWidget {
     );
   }
 
-  void _showAlertSheet(BuildContext context, List<DueClock> alerts) {
+  void _showAlertSheet(
+    BuildContext context,
+    UnitFormatter units,
+    List<DueClock> alerts,
+  ) {
     showModalBottomSheet<void>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -91,7 +101,9 @@ class TripServiceAlertBanner extends ConsumerWidget {
                           : Theme.of(sheetContext).colorScheme.tertiary,
                     ),
                     title: Text(alert.item.name),
-                    subtitle: Text(_alertSubtitle(sheetContext, alert.status)),
+                    subtitle: Text(
+                      _alertSubtitle(sheetContext, units, alert.status),
+                    ),
                     onTap: () {
                       Navigator.pop(sheetContext);
                       context.push('/equipment/${alert.item.id}');
@@ -105,7 +117,11 @@ class TripServiceAlertBanner extends ConsumerWidget {
     );
   }
 
-  String _alertSubtitle(BuildContext context, ServiceClockStatus status) {
+  String _alertSubtitle(
+    BuildContext context,
+    UnitFormatter units,
+    ServiceClockStatus status,
+  ) {
     // Key off severity, not now-vs-dueDate: a clock overdue on dives/hours can
     // still have a future (or null) date trigger, and must read as "overdue".
     // Non-overdue alerts only reach the banner with a concrete future dueDate
@@ -116,7 +132,7 @@ class TripServiceAlertBanner extends ConsumerWidget {
     }
     return context.l10n.trips_serviceAlert_dueBefore(
       status.kind.name,
-      MaterialLocalizations.of(context).formatShortDate(dueDate),
+      units.formatDate(dueDate),
     );
   }
 }

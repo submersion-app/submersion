@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget to display a saved instructor signature
-class SignatureDisplayWidget extends StatelessWidget {
+class SignatureDisplayWidget extends ConsumerWidget {
   final Signature signature;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
@@ -20,9 +22,9 @@ class SignatureDisplayWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final dateFormat = DateFormat.yMMMd().add_jm();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Card(
       child: Semantics(
@@ -99,7 +101,10 @@ class SignatureDisplayWidget extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       context.l10n.signatures_signedDate(
-                        dateFormat.format(signature.signedAt),
+                        units.formatDateTime(
+                          signature.signedAt,
+                          l10n: context.l10n,
+                        ),
                       ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
@@ -176,15 +181,15 @@ class SignatureDisplayWidget extends StatelessWidget {
 }
 
 /// Full-view dialog for signature
-class SignatureFullViewDialog extends StatelessWidget {
+class SignatureFullViewDialog extends ConsumerWidget {
   final Signature signature;
 
   const SignatureFullViewDialog({super.key, required this.signature});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final dateFormat = DateFormat.yMMMd().add_jm();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Dialog(
       child: Container(
@@ -257,7 +262,10 @@ class SignatureFullViewDialog extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     context.l10n.signatures_signedDate(
-                      dateFormat.format(signature.signedAt),
+                      units.formatDateTime(
+                        signature.signedAt,
+                        l10n: context.l10n,
+                      ),
                     ),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,

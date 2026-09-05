@@ -5,12 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/formatters/no_fly_format.dart';
 import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
 import 'package:submersion/features/safety/presentation/widgets/flight_window_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -102,13 +104,13 @@ class _NoFlyPageState extends ConsumerState<NoFlyPage> {
 }
 
 /// The no-fly countdown card (also usable on other surfaces).
-class NoFlyStatusCard extends StatelessWidget {
+class NoFlyStatusCard extends ConsumerWidget {
   final NoFlyStatus? status;
 
   const NoFlyStatusCard({required this.status, super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final now = DateTime.now().toUtc();
@@ -126,7 +128,11 @@ class NoFlyStatusCard extends StatelessWidget {
 
     final remaining = status!.remaining(now);
     final untilLocal = status!.until.toLocal();
-    final untilText = DateFormat.E().add_jm().format(untilLocal);
+    // The weekday has no ordering to respect, so it stays locale-derived; the
+    // clock half goes through the diver's 12h/24h preference.
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    final untilText =
+        '${DateFormat.E().format(untilLocal)} ${units.formatTime(untilLocal)}';
 
     return Card(
       child: Padding(

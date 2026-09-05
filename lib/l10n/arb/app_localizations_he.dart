@@ -13,6 +13,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 
   @override
+  String equipment_documents_removeError(String error) {
+    return 'לא ניתן להסיר את המסמך: $error';
+  }
+
+  @override
   String get settings_oauth_connect_copyFailed => 'לא ניתן להעתיק את הקישור.';
 
   @override
@@ -2559,6 +2564,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get common_action_close => 'סגירה';
+
+  @override
+  String get common_action_copyLink => 'העתקת קישור';
+
+  @override
+  String get common_link_couldNotOpen => 'לא ניתן לפתוח את הקישור';
 
   @override
   String get common_action_continue => 'המשך';
@@ -8819,6 +8830,39 @@ class AppLocalizationsHe extends AppLocalizations {
       'חיפוש המיקום אינו זמין. בדקו את החיבור ונסו שוב.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'עדכון שמות המקומות';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'לעדכן את שמות המקומות?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים עם קואורדינטות ייבדקו מחדש.',
+      one: 'אתר אחד עם קואורדינטות ייבדק מחדש.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes דקות',
+      one: 'דקה אחת',
+    );
+    return '$_temp0 המדינה, האזור, היישוב וגוף המים יוחלפו בכל מקום שבו הם שונים משפת שמות המקומות ($language), כולל ערכים שהזנת בעצמך. הפעולה נמשכת כ$_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title => 'מעדכן את שמות המקומות';
+
+  @override
+  String get diveSites_refresh_nothing => 'לאף אתר אין קואורדינטות לבדיקה.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'חזרה';
 
   @override
@@ -9446,6 +9490,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'תאריך תפוגה';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'מוצג ראשון בכרטיס החירום שלך.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint =>
+      'לדוגמה, +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      'מספר סיוע חירום 24 שעות';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'מספר משרד חברת הביטוח';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'לדוגמה, DAN, DiveAssure';
 
   @override
@@ -9868,6 +9927,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_drysuit => 'חליפה יבשה';
+
+  @override
+  String get enum_equipmentType_baselayer => 'שכבת בסיס';
+
+  @override
+  String get enum_equipmentType_undersuit => 'חליפה תחתונה';
 
   @override
   String get enum_equipmentType_fins => 'סנפירים';
@@ -11004,6 +11069,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_thicknessDesignationHint => 'למשל, 5, 5/4, 7/5/3';
 
   @override
+  String get equipment_edit_webLinkHint => 'למשל shop.example.com/product';
+
+  @override
   String get equipment_edit_thicknessHint => 'למשל, 5 מ\"מ, 7 מ\"מ';
 
   @override
@@ -11397,7 +11465,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'רשומת טיפול נמחקה';
 
   @override
-  String get equipment_service_totalCostLabel => 'סה\"כ עלות טיפול';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'סה\"כ עלות טיפול ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'הוסף ציוד';
@@ -11622,7 +11692,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_summary_totalItems => 'סה\"כ פריטים';
 
   @override
-  String get equipment_summary_totalValue => 'ערך כולל';
+  String equipment_summary_totalValue(String currency) {
+    return 'ערך כולל ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'ציוד';
@@ -24293,6 +24365,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_glove_type => 'סוג';
 
   @override
+  String get attrLabel_insulation_level => 'רמת בידוד';
+
+  @override
+  String get attrLabel_fill_material => 'חומר';
+
+  @override
   String get attrLabel_sole_type => 'סוליה';
 
   @override
@@ -24339,6 +24417,45 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'מהירות מרבית';
+
+  @override
+  String get attrLabel_sku => 'מק״ט';
+
+  @override
+  String get attrLabel_retailer => 'קמעונאי';
+
+  @override
+  String get attrLabel_product_url => 'קישור אינטרנט';
+
+  @override
+  String get attrLabel_sleeve_length => 'שרוולים';
+
+  @override
+  String get attrLabel_upf_rating => 'דירוג UPF';
+
+  @override
+  String get attrLabel_snorkel_type => 'סוג';
+
+  @override
+  String get attrLabel_purge_valve => 'שסתום ניקוז';
+
+  @override
+  String get attrLabel_instrument_type => 'מכשיר';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'טווח המד';
+
+  @override
+  String get attrLabel_compass_type => 'סוג';
+
+  @override
+  String get attrLabel_balance_zone => 'אזור איזון';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'סבילות הטיה (°)';
+
+  @override
+  String get attrLabel_tool_type => 'סוג הכלי';
 
   @override
   String get attrChoice_unit_type_eccr => 'CCR אלקטרוני (eCCR)';
@@ -24405,6 +24522,36 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'ניאופרן';
+
+  @override
+  String get attrChoice_insulation_level_light => 'קל';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'בינוני';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'כבד';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'קיצוני';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'סיב חלול';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'פליס';
+
+  @override
+  String get attrChoice_fill_material_merino => 'צמר מרינו';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'פוליפרופילן';
 
   @override
   String get attrChoice_tank_material_aluminum => 'אלומיניום';
@@ -24539,10 +24686,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'חמש אצבעות';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'שלוש אצבעות';
+
+  @override
   String get attrChoice_glove_type_mitt => 'כפפת אגרוף';
 
   @override
   String get attrChoice_glove_type_dry => 'יבש';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'בטנה לכפפה יבשה';
+
+  @override
+  String get attrChoice_glove_type_utility => 'עבודה';
 
   @override
   String get attrChoice_sole_type_hard => 'סוליה קשה';
@@ -24575,6 +24731,75 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrChoice_motor_type_brushed => 'עם מברשות';
 
   @override
+  String get attrChoice_sleeve_length_short => 'קצרים';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'ארוכים';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'ללא שרוולים';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'קלאסי';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'חצי יבש';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'יבש';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'מתקפל';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'מד לחץ (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'מד עומק';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'שעון תחתית';
+
+  @override
+  String get attrChoice_instrument_type_console => 'קונסולה';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'מנתח גזים';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'מדחום';
+
+  @override
+  String get attrChoice_compass_type_analog => 'אנלוגי';
+
+  @override
+  String get attrChoice_compass_type_digital => 'דיגיטלי';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'חצי הכדור הצפוני';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'חצי הכדור הדרומי';
+
+  @override
+  String get attrChoice_balance_zone_global => 'גלובלי';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'כלי יד';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'ערכת אטמים';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'ערכת חילוץ צלילה';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'מפתח מומנט';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'ערכת חלפים';
+
+  @override
   String get equipment_edit_customFieldsTitle => 'שדות מותאמים אישית';
 
   @override
@@ -24588,6 +24813,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'השתמשו ב-5, 5/4 או 7/5/3';
+
+  @override
+  String get equipment_edit_invalidWebLink =>
+      'הזן כתובת אינטרנט, למשל shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title =>
@@ -24711,6 +24940,24 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'קו חירום לצוללים. התקשר אליו קודם: הם מתאמים פינוי והפניה לתא לחץ.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'קו החירום של ביטוח הצלילה שלך. התקשר אליו קודם: המבטח מאשר את הפינוי ומתאם את ההפניה לתא לחץ.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'קו חירום אזורי לצוללים. התקשר אליו אם קו המבטח אינו עונה.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => 'קו חירום 24 שעות';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'קו המשרד';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'לא נשמר מספר חירום של המבטח. הוסף אותו בהגדרות פרופיל הצולל כדי שהכרטיס יתחיל בו.';
 
   @override
   String emergencyCard_ems(String number) {
@@ -32256,6 +32503,33 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get common_action_remove => 'הסר';
+
+  @override
+  String get equipment_documents_title => 'מסמכים';
+
+  @override
+  String get equipment_documents_subtitle => 'חשבוניות, קבלות ומסמכי אחריות';
+
+  @override
+  String get equipment_documents_attachButton => 'צירוף';
+
+  @override
+  String get equipment_documents_empty => 'עדיין לא צורפו מסמכים';
+
+  @override
+  String get equipment_documents_removeTitle => 'להסיר את המסמך?';
+
+  @override
+  String get equipment_documents_removeContent =>
+      'המסמך יפסיק להיות מצורף לפריט זה. הקובץ המקורי שלך לא ייגע.';
+
+  @override
+  String get equipment_documents_removed => 'המסמך הוסר';
+
+  @override
+  String equipment_documents_loadError(String error) {
+    return 'לא ניתן לטעון את המסמכים: $error';
+  }
 
   @override
   String get common_action_unpin => 'בטל הצמדה';

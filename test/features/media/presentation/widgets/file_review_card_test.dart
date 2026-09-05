@@ -13,7 +13,9 @@ import 'package:submersion/features/media/domain/value_objects/taken_at_source.d
 import 'package:submersion/features/media/domain/value_objects/unmatched_diagnostic.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 ExtractedFile _ef(String path, {MediaSourceMetadata? metadata}) =>
@@ -74,7 +76,12 @@ Future<void> _pumpCard(
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
-      overrides: [filesTabNotifierProvider.overrideWith((ref) => seeded)],
+      // The card watches settingsProvider for the diver's date and time format;
+      // stand in so the real notifier never reaches for the database.
+      overrides: [
+        filesTabNotifierProvider.overrideWith((ref) => seeded),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
       child: FileReviewCard(
         file: file,
         targetDiveId: targetDiveId,
@@ -163,7 +170,9 @@ void main() {
         targetDiveId: 'd1',
       );
 
-      expect(find.textContaining('2025-12-27 11:47'), findsOneWidget);
+      // The line honours the diver's date and time preferences; the
+      // harness leaves them at their defaults.
+      expect(find.textContaining('Dec 27, 2025 11:47 AM'), findsOneWidget);
       expect(find.textContaining('from EXIF'), findsOneWidget);
     });
 
@@ -226,8 +235,8 @@ void main() {
 
       // The corrected time leads; the value actually read from the file
       // follows, so the diver can see what was changed on their behalf.
-      expect(find.textContaining('2025-12-27 11:47'), findsOneWidget);
-      expect(find.textContaining('was 2025-12-27 16:47'), findsOneWidget);
+      expect(find.textContaining('Dec 27, 2025 11:47 AM'), findsOneWidget);
+      expect(find.textContaining('was Dec 27, 2025 4:47 PM'), findsOneWidget);
     });
   });
 

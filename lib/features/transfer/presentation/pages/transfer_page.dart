@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/transfer_list_content.dart';
@@ -610,6 +612,7 @@ class _ComputersSectionContent extends ConsumerWidget {
     final computersAsync = ref.watch(allDiveComputersProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -687,6 +690,7 @@ class _ComputersSectionContent extends ConsumerWidget {
                       computer,
                       theme,
                       colorScheme,
+                      units,
                     ),
                   ),
                 ],
@@ -728,6 +732,7 @@ class _ComputersSectionContent extends ConsumerWidget {
     DiveComputer computer,
     ThemeData theme,
     ColorScheme colorScheme,
+    UnitFormatter units,
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -809,7 +814,11 @@ class _ComputersSectionContent extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          formatLastDownload(context, computer.lastDownload),
+                          formatLastDownload(
+                            context,
+                            computer.lastDownload,
+                            units: units,
+                          ),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontSize: 11,

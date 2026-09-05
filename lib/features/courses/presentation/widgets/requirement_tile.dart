@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/add_requirement_sheet.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// One requirement row: a checkbox for checklist items, a progress count
 /// plus expandable credited-dive list for dive requirements. Unsatisfied
@@ -101,9 +102,9 @@ class _DiveRequirementTile extends ConsumerWidget {
   final CourseRequirementProgress progress;
   final List<RequirementDiveSummary> suggestions;
 
-  String _diveLabel(RequirementDiveSummary dive) {
+  String _diveLabel(RequirementDiveSummary dive, UnitFormatter units) {
     final number = dive.diveNumber != null ? '#${dive.diveNumber}' : '';
-    final date = DateFormat.MMMd().format(dive.dateTime);
+    final date = units.formatMonthDay(dive.dateTime);
     final site = dive.siteName;
     return [number, date, ?site].where((part) => part.isNotEmpty).join(' · ');
   }
@@ -113,6 +114,7 @@ class _DiveRequirementTile extends ConsumerWidget {
     final requirement = progress.requirement;
     final theme = Theme.of(context);
     final satisfied = progress.isSatisfied;
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return ExpansionTile(
       leading: satisfied
@@ -136,7 +138,7 @@ class _DiveRequirementTile extends ConsumerWidget {
           ListTile(
             dense: true,
             leading: const Icon(Icons.link, size: 18),
-            title: Text(_diveLabel(dive)),
+            title: Text(_diveLabel(dive, units)),
             trailing: IconButton(
               tooltip: context.l10n.courses_action_unlinkDive,
               icon: const Icon(Icons.link_off, size: 18),
@@ -167,7 +169,7 @@ class _DiveRequirementTile extends ConsumerWidget {
                   children: [
                     for (final dive in suggestions)
                       ActionChip(
-                        label: Text(_diveLabel(dive)),
+                        label: Text(_diveLabel(dive, units)),
                         onPressed: () async {
                           await ref
                               .read(courseRequirementRepositoryProvider)

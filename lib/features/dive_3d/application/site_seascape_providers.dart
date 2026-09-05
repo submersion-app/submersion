@@ -191,11 +191,9 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
       ? await compute(_buildScene, input)
       : const SiteSeascapeGeometryService().buildWithLabels(input);
   // Mirrors SiteSeascapeGeometryService's depth budget so the axes and the
-  // terrain agree on the scene frame.
-  final maxDepth = math.max(
-    math.max(grid.maxDepthMeters, site.maxDepth ?? 0),
-    1.0,
-  );
+  // terrain agree on the scene frame: scaled from the measured grid alone,
+  // not the site's recorded max depth (which may sit outside this box).
+  final maxDepth = math.max(grid.maxDepthMeters, 1.0);
   return SiteSeascapeReady(
     scene: built.scene,
     sourceId: grid.sourceId,

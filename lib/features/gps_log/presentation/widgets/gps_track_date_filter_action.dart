@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -31,6 +32,7 @@ class GpsTrackDateFilterAction extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final range = ref.watch(trackDateFilterProvider);
+    final units = UnitFormatter(ref.watch(settingsProvider));
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -40,8 +42,8 @@ class GpsTrackDateFilterAction extends ConsumerWidget {
           label: Text(
             range == null
                 ? l10n.gpsTrack_filter_all
-                : '${DateFormat.yMd().format(range.start)} - '
-                      '${DateFormat.yMd().format(range.end)}',
+                : '${units.formatDate(range.start)} - '
+                      '${units.formatDate(range.end)}',
           ),
           onPressed: () => _pickRange(context, ref),
         ),

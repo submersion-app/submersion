@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
@@ -180,7 +180,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat.yMMMd();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     final body = _isLoading
         ? const Center(child: CircularProgressIndicator())
@@ -252,11 +252,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   Semantics(
                     button: true,
                     label:
-                        '${context.l10n.trips_edit_label_startDate}: ${dateFormat.format(_startDate)}. Tap to change',
+                        '${context.l10n.trips_edit_label_startDate}: ${units.formatDate(_startDate)}. Tap to change',
                     child: ListTile(
                       leading: const Icon(Icons.calendar_today),
                       title: Text(context.l10n.trips_edit_label_startDate),
-                      subtitle: Text(dateFormat.format(_startDate)),
+                      subtitle: Text(units.formatDate(_startDate)),
                       onTap: () => _selectDate(context, true),
                       contentPadding: EdgeInsets.zero,
                       trailing: const Icon(Icons.edit),
@@ -267,11 +267,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   Semantics(
                     button: true,
                     label:
-                        '${context.l10n.trips_edit_label_endDate}: ${dateFormat.format(_endDate)}. Tap to change',
+                        '${context.l10n.trips_edit_label_endDate}: ${units.formatDate(_endDate)}. Tap to change',
                     child: ListTile(
                       leading: const Icon(Icons.event),
                       title: Text(context.l10n.trips_edit_label_endDate),
-                      subtitle: Text(dateFormat.format(_endDate)),
+                      subtitle: Text(units.formatDate(_endDate)),
                       onTap: () => _selectDate(context, false),
                       contentPadding: EdgeInsets.zero,
                       trailing: const Icon(Icons.edit),
@@ -300,8 +300,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                       subtitle: Text(
                         _returnFlightAt == null
                             ? context.l10n.trips_edit_returnFlightNotSet
-                            : '${dateFormat.format(_returnFlightAt!)}, '
-                                  '${TimeOfDay.fromDateTime(_returnFlightAt!).format(context)}',
+                            // TimeOfDay.format reads MediaQuery's
+                            // alwaysUse24HourFormat, which is the platform
+                            // setting, not the diver's TimeFormat (#1512).
+                            : '${units.formatDate(_returnFlightAt)}, '
+                                  '${units.formatTime(_returnFlightAt)}',
                       ),
                       trailing: _returnFlightAt == null
                           ? const Icon(Icons.edit)

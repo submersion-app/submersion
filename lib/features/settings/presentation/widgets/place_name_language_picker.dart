@@ -13,13 +13,18 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// must resolve to the same code on every one of the diver's devices, which
 /// a device-dependent choice cannot promise.
 
-/// Opens the place name language picker.
-void showPlaceNameLanguagePicker(
+/// Opens the place name language picker and saves the pick.
+///
+/// Returns the chosen code, or null when the diver dismissed the picker, so
+/// the caller can follow a change up -- existing sites keep the names they
+/// were geocoded with, and only the caller knows whether it can offer to
+/// bring them into line.
+Future<String?> showPlaceNameLanguagePicker(
   BuildContext context,
   WidgetRef ref,
   AppSettings settings,
-) {
-  showDialog<void>(
+) async {
+  final chosen = await showDialog<String>(
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(
@@ -27,13 +32,13 @@ void showPlaceNameLanguagePicker(
       ),
       content: PlaceNameLanguageList(
         selected: settings.placeNameLanguage,
-        onSelected: (code) {
-          Navigator.of(dialogContext).pop();
-          ref.read(settingsProvider.notifier).setPlaceNameLanguage(code);
-        },
+        onSelected: (code) => Navigator.of(dialogContext).pop(code),
       ),
     ),
   );
+  if (chosen == null) return null;
+  await ref.read(settingsProvider.notifier).setPlaceNameLanguage(chosen);
+  return chosen;
 }
 
 /// The supported languages, each by its native name.

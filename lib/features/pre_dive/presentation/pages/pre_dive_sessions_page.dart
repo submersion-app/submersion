@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/models/pre_dive_session_filter.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
@@ -189,7 +190,7 @@ class _ActiveFilterBar extends ConsumerWidget {
       PreDiveSessionStatus.aborted => l10n.preDive_sessions_statusAborted,
     };
 
-    final materialL10n = MaterialLocalizations.of(context);
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
@@ -233,9 +234,9 @@ class _ActiveFilterBar extends ConsumerWidget {
                 if (filter.dateRange != null)
                   Chip(
                     label: Text(
-                      '${materialL10n.formatMediumDate(filter.dateRange!.start)}'
+                      '${units.formatDate(filter.dateRange!.start)}'
                       ' - '
-                      '${materialL10n.formatMediumDate(filter.dateRange!.end)}',
+                      '${units.formatDate(filter.dateRange!.end)}',
                     ),
                     visualDensity: VisualDensity.compact,
                     deleteIcon: const Icon(Icons.close, size: 16),
@@ -400,9 +401,9 @@ class _SessionTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final flagged =
         ref.watch(preDiveSessionStatsProvider).value?[session.id]?.flagged ?? 0;
-    final startedDate = MaterialLocalizations.of(
-      context,
-    ).formatMediumDate(session.startedAt);
+    final startedDate = UnitFormatter(
+      ref.watch(settingsProvider),
+    ).formatDate(session.startedAt);
 
     final hasLinkedDive = session.diveId != null;
 

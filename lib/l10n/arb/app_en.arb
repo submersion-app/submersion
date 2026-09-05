@@ -1,5 +1,7 @@
 {
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
+  "equipment_documents_removeError": "Could not remove the document: {error}",
+  "@equipment_documents_removeError": { "placeholders": { "error": { "type": "String" } } },
   "settings_oauth_connect_copyFailed": "Could not copy the link.",
   "settings_oauth_connect_copyLink": "Copy link",
   "settings_oauth_connect_linkCopied": "Link copied. Paste it into your browser to authorize.",
@@ -1622,6 +1624,8 @@
   "common_action_cancel": "Cancel",
   "common_action_clearRating": "Clear rating",
   "common_action_close": "Close",
+  "common_action_copyLink": "Copy link",
+  "common_link_couldNotOpen": "Could not open the link",
   "common_action_continue": "Continue",
   "common_action_delete": "Delete",
   "common_action_edit": "Edit",
@@ -5118,6 +5122,24 @@
     }
   },
   "diveSites_backfill_offline": "Location lookup is unavailable. Check your connection and try again.",
+  "diveSites_list_menu_refreshPlaceNames": "Refresh place names",
+  "diveSites_refresh_confirm_title": "Refresh place names?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced wherever they differ from the place name language ({language}), including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "Refreshing place names",
+  "diveSites_refresh_nothing": "No site has coordinates to look up.",
   "diveSites_list_search_backTooltip": "Back",
   "diveSites_list_search_clearTooltip": "Clear Search",
   "diveSites_list_search_emptyHint": "Search by site name, country, or region",
@@ -5680,6 +5702,10 @@
   "divers_edit_errorSaving": "Error saving diver: {error}",
   "divers_edit_expiryDateNotSet": "Not set",
   "divers_edit_expiryDateTitle": "Expiry Date",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Shown first on your emergency card.",
+  "divers_edit_insuranceEmergencyPhoneHint": "e.g., +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "24h Emergency Assistance Number",
+  "divers_edit_insurancePhoneLabel": "Insurance Office Number",
   "divers_edit_insuranceProviderHint": "e.g., DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Insurance Provider",
   "divers_edit_insuranceSection": "Dive Insurance",
@@ -5904,6 +5930,8 @@
   "enum_equipmentType_dpv": "DPV",
   "enum_equipmentType_computer": "Dive Computer",
   "enum_equipmentType_drysuit": "Drysuit",
+  "enum_equipmentType_baselayer": "Base Layer",
+  "enum_equipmentType_undersuit": "Undersuit",
   "enum_equipmentType_fins": "Fins",
   "enum_equipmentType_gloves": "Gloves",
   "enum_equipmentType_hood": "Hood",
@@ -6381,6 +6409,7 @@
   "equipment_edit_snackbar_updated": "Equipment updated",
   "equipment_edit_statusLabel": "Status",
   "equipment_edit_thicknessDesignationHint": "e.g., 5, 5/4, 7/5/3",
+  "equipment_edit_webLinkHint": "e.g., shop.example.com/product",
   "equipment_edit_thicknessHint": "e.g., 5mm, 7mm",
   "equipment_edit_thicknessLabel": "Thickness",
   "equipment_edit_typeLabel": "Type *",
@@ -6500,6 +6529,13 @@
       }
     }
   },
+  "@equipment_service_totalCostLabel": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceKinds_defaultCategoryLabel": "Default category",
   "equipment_serviceKinds_defaultCategoryNone": "No default",
   "equipment_serviceKinds_defaultCostLabel": "Default price",
@@ -6515,7 +6551,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Use default currency",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Currency for this item",
   "equipment_service_snackbar_deleted": "Service record deleted",
-  "equipment_service_totalCostLabel": "Total Service Cost",
+  "equipment_service_totalCostLabel": "Total Service Cost ({currency})",
   "equipment_setDetail_addEquipmentButton": "Add Equipment",
   "equipment_setDetail_deleteDialog_cancel": "Cancel",
   "equipment_setDetail_deleteDialog_confirm": "Delete",
@@ -6582,7 +6618,7 @@
   "equipment_summary_serviceDueTitle": "Service Due",
   "equipment_summary_title": "Equipment",
   "equipment_summary_totalItems": "Total Items",
-  "equipment_summary_totalValue": "Total Value",
+  "equipment_summary_totalValue": "Total Value ({currency})",
   "equipment_tab_equipment": "Equipment",
   "equipment_tab_sets": "Sets",
   "@equipment_detail_daysOverdue": {
@@ -6866,6 +6902,13 @@
       },
       "type": {
         "type": "Object"
+      }
+    }
+  },
+  "@equipment_summary_totalValue": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
       }
     }
   },
@@ -16126,6 +16169,8 @@
   "attrLabel_blade_material": "Blade material",
   "attrLabel_tip_type": "Tip",
   "attrLabel_glove_type": "Type",
+  "attrLabel_insulation_level": "Insulation level",
+  "attrLabel_fill_material": "Material",
   "attrLabel_sole_type": "Sole",
   "attrLabel_buoyancy_kg": "Buoyancy",
   "attrLabel_dry_weight_kg": "Dry weight",
@@ -16142,6 +16187,19 @@
   "attrLabel_battery_capacity_wh": "Battery capacity (Wh)",
   "attrLabel_motor_type": "Motor",
   "attrLabel_speed_mps": "Top speed",
+  "attrLabel_sku": "SKU",
+  "attrLabel_retailer": "Retailer",
+  "attrLabel_product_url": "Web link",
+  "attrLabel_sleeve_length": "Sleeves",
+  "attrLabel_upf_rating": "UPF rating",
+  "attrLabel_snorkel_type": "Type",
+  "attrLabel_purge_valve": "Purge valve",
+  "attrLabel_instrument_type": "Instrument",
+  "attrLabel_gauge_max_pressure_bar": "Gauge range",
+  "attrLabel_compass_type": "Type",
+  "attrLabel_balance_zone": "Balance zone",
+  "attrLabel_tilt_tolerance_deg": "Tilt tolerance (°)",
+  "attrLabel_tool_type": "Tool type",
   "attrChoice_unit_type_eccr": "Electronic CCR (eCCR)",
   "attrChoice_unit_type_mccr": "Manual CCR (mCCR)",
   "attrChoice_unit_type_hccr": "Hybrid CCR (hCCR)",
@@ -16164,6 +16222,16 @@
   "attrChoice_seal_type_latex": "Latex",
   "attrChoice_seal_type_silicone": "Silicone",
   "attrChoice_seal_type_neoprene": "Neoprene",
+  "attrChoice_insulation_level_light": "Light",
+  "attrChoice_insulation_level_mid": "Mid-weight",
+  "attrChoice_insulation_level_heavy": "Heavy",
+  "attrChoice_insulation_level_extreme": "Extreme",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "Hollowfibre",
+  "attrChoice_fill_material_fleece": "Fleece",
+  "attrChoice_fill_material_merino": "Merino wool",
+  "attrChoice_fill_material_polypropylene": "Polypropylene",
   "attrChoice_tank_material_aluminum": "Aluminum",
   "attrChoice_tank_material_steel": "Steel",
   "attrChoice_tank_material_carbon_composite": "Carbon composite",
@@ -16208,8 +16276,11 @@
   "attrChoice_tip_type_blunt": "Blunt",
   "attrChoice_tip_type_line_cutter": "Line cutter",
   "attrChoice_glove_type_five_finger": "Five-finger",
+  "attrChoice_glove_type_three_finger": "Three-finger",
   "attrChoice_glove_type_mitt": "Mitt",
   "attrChoice_glove_type_dry": "Dry",
+  "attrChoice_glove_type_dry_liner": "Dry glove liner",
+  "attrChoice_glove_type_utility": "Utility",
   "attrChoice_sole_type_hard": "Hard sole",
   "attrChoice_sole_type_soft": "Soft sole",
   "attrChoice_dpv_style_tow_behind": "Tow-behind",
@@ -16220,11 +16291,35 @@
   "attrChoice_battery_type_lead_acid": "Lead-acid",
   "attrChoice_motor_type_brushless": "Brushless",
   "attrChoice_motor_type_brushed": "Brushed",
+  "attrChoice_sleeve_length_short": "Short",
+  "attrChoice_sleeve_length_long": "Long",
+  "attrChoice_sleeve_length_sleeveless": "Sleeveless",
+  "attrChoice_snorkel_type_classic": "Classic",
+  "attrChoice_snorkel_type_semi_dry": "Semi-dry",
+  "attrChoice_snorkel_type_dry": "Dry",
+  "attrChoice_snorkel_type_foldable": "Foldable",
+  "attrChoice_instrument_type_spg": "Pressure gauge (SPG)",
+  "attrChoice_instrument_type_depth_gauge": "Depth gauge",
+  "attrChoice_instrument_type_bottom_timer": "Bottom timer",
+  "attrChoice_instrument_type_console": "Console",
+  "attrChoice_instrument_type_gas_analyzer": "Gas analyzer",
+  "attrChoice_instrument_type_thermometer": "Thermometer",
+  "attrChoice_compass_type_analog": "Analog",
+  "attrChoice_compass_type_digital": "Digital",
+  "attrChoice_balance_zone_northern": "Northern hemisphere",
+  "attrChoice_balance_zone_southern": "Southern hemisphere",
+  "attrChoice_balance_zone_global": "Global",
+  "attrChoice_tool_type_hand_tool": "Hand tool",
+  "attrChoice_tool_type_o_ring_kit": "O-ring kit",
+  "attrChoice_tool_type_save_a_dive_kit": "Save-a-dive kit",
+  "attrChoice_tool_type_torque_wrench": "Torque wrench",
+  "attrChoice_tool_type_spares_kit": "Spares kit",
   "equipment_edit_customFieldsTitle": "Custom fields",
   "equipment_edit_addCustomField": "Add custom field",
   "attr_flagYes": "Yes",
   "attr_flagNo": "No",
   "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
+  "equipment_edit_invalidWebLink": "Enter a web address, e.g. shop.example.com",
   "statistics_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
   "statistics_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
   "statistics_progression_divesBySuitThickness_empty": "No dives with a suit thickness recorded",
@@ -16326,6 +16421,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.",
+  "emergencyCard_callInsurer_subtitle": "Your dive insurance emergency line. Call first: your insurer authorizes the evacuation and coordinates the chamber referral.",
+  "emergencyCard_hotlineSecondary_subtitle": "Regional diver emergency hotline. Call this if your insurer's line does not answer.",
+  "emergencyCard_insuranceEmergencyLine": "24h emergency line",
+  "emergencyCard_insuranceOfficeLine": "Office line",
+  "emergencyCard_insuranceNoPhone": "No insurer emergency number saved. Add it in Diver Profile settings so this card can lead with it.",
   "emergencyCard_ems": "Local emergency services: {number}",
   "@emergencyCard_ems": {
     "placeholders": {
@@ -19533,6 +19633,15 @@
   "common_action_add": "Add",
   "common_action_pin": "Pin",
   "common_action_remove": "Remove",
+  "equipment_documents_title": "Documents",
+  "equipment_documents_subtitle": "Invoices, receipts and warranty paperwork",
+  "equipment_documents_attachButton": "Attach",
+  "equipment_documents_empty": "No documents attached yet",
+  "equipment_documents_removeTitle": "Remove document?",
+  "equipment_documents_removeContent": "It stops being attached to this item. Your original file is never touched.",
+  "equipment_documents_removed": "Document removed",
+  "equipment_documents_loadError": "Could not load documents: {error}",
+  "@equipment_documents_loadError": { "placeholders": { "error": { "type": "String" } } },
   "common_action_unpin": "Unpin",
   "diveLog_filterChip_dateRange": "{start} - {end}",
   "diveLog_filterChip_equipmentCount": "{count} Equipment",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
 import 'package:submersion/features/statistics/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/statistics/presentation/widgets/dive_trend_chart.dart';
@@ -75,6 +76,7 @@ class TrendChartSection extends ConsumerWidget {
               DiveTrendChart(
                 chartId: chartId,
                 points: points,
+                dateFormat: ref.watch(dateFormatProvider),
                 onDiveSelected: onDiveSelected,
                 aggregation: settings.aggregation,
                 showRollingMean: settings.showRollingMean,

@@ -13,6 +13,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Browser konnte nicht geöffnet werden. Verwenden Sie „Link kopieren“ und fügen Sie die Adresse in Ihren Browser ein.';
 
   @override
+  String equipment_documents_removeError(String error) {
+    return 'Dokument konnte nicht entfernt werden: $error';
+  }
+
+  @override
   String get settings_oauth_connect_copyFailed =>
       'Der Link konnte nicht kopiert werden.';
 
@@ -2639,6 +2644,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get common_action_close => 'Schließen';
+
+  @override
+  String get common_action_copyLink => 'Link kopieren';
+
+  @override
+  String get common_link_couldNotOpen => 'Link konnte nicht geöffnet werden';
 
   @override
   String get common_action_continue => 'Fortfahren';
@@ -9038,6 +9049,41 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Ortssuche ist nicht verfügbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.';
 
   @override
+  String get diveSites_list_menu_refreshPlaceNames => 'Ortsnamen aktualisieren';
+
+  @override
+  String get diveSites_refresh_confirm_title => 'Ortsnamen aktualisieren?';
+
+  @override
+  String diveSites_refresh_confirm_body(
+    int count,
+    String language,
+    int minutes,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze mit Koordinaten werden erneut abgefragt.',
+      one: '1 Tauchplatz mit Koordinaten wird erneut abgefragt.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes Minuten',
+      one: '1 Minute',
+    );
+    return '$_temp0 Land, Region, Ort und Gewässer werden überall dort ersetzt, wo sie von der Sprache der Ortsnamen ($language) abweichen, auch selbst eingegebene Werte. Das dauert etwa $_temp1.';
+  }
+
+  @override
+  String get diveSites_refresh_progress_title =>
+      'Ortsnamen werden aktualisiert';
+
+  @override
+  String get diveSites_refresh_nothing =>
+      'Kein Tauchplatz hat Koordinaten für eine Abfrage.';
+
+  @override
   String get diveSites_list_search_backTooltip => 'Zurück';
 
   @override
@@ -9682,6 +9728,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divers_edit_expiryDateTitle => 'Ablaufdatum';
 
   @override
+  String get divers_edit_insuranceEmergencyPhoneHelper =>
+      'Wird auf deiner Notfallkarte zuerst angezeigt.';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneHint => 'z.B. +1 919 684 9111';
+
+  @override
+  String get divers_edit_insuranceEmergencyPhoneLabel =>
+      '24-h-Notrufnummer der Versicherung';
+
+  @override
+  String get divers_edit_insurancePhoneLabel => 'Bürotelefon der Versicherung';
+
+  @override
   String get divers_edit_insuranceProviderHint => 'z.B. DAN, DiveAssure';
 
   @override
@@ -10107,6 +10167,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_drysuit => 'Trockentauchanzug';
+
+  @override
+  String get enum_equipmentType_baselayer => 'Basisschicht';
+
+  @override
+  String get enum_equipmentType_undersuit => 'Unterzieher';
 
   @override
   String get enum_equipmentType_fins => 'Flossen';
@@ -11256,6 +11322,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_edit_thicknessDesignationHint => 'z.B. 5, 5/4, 7/5/3';
 
   @override
+  String get equipment_edit_webLinkHint => 'z.B. shop.example.com/product';
+
+  @override
   String get equipment_edit_thicknessHint => 'z.B. 5mm, 7mm';
 
   @override
@@ -11666,7 +11735,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'Wartungseintrag gelöscht';
 
   @override
-  String get equipment_service_totalCostLabel => 'Gesamte Wartungskosten';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'Gesamte Wartungskosten ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Ausrüstung hinzufügen';
@@ -11899,7 +11970,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_summary_totalItems => 'Gegenstände gesamt';
 
   @override
-  String get equipment_summary_totalValue => 'Gesamtwert';
+  String equipment_summary_totalValue(String currency) {
+    return 'Gesamtwert ($currency)';
+  }
 
   @override
   String get equipment_tab_equipment => 'Ausrüstung';
@@ -24867,6 +24940,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_glove_type => 'Typ';
 
   @override
+  String get attrLabel_insulation_level => 'Isolationsstufe';
+
+  @override
+  String get attrLabel_fill_material => 'Material';
+
+  @override
   String get attrLabel_sole_type => 'Sohle';
 
   @override
@@ -24913,6 +24992,45 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'Höchstgeschwindigkeit';
+
+  @override
+  String get attrLabel_sku => 'SKU';
+
+  @override
+  String get attrLabel_retailer => 'Händler';
+
+  @override
+  String get attrLabel_product_url => 'Weblink';
+
+  @override
+  String get attrLabel_sleeve_length => 'Ärmel';
+
+  @override
+  String get attrLabel_upf_rating => 'UPF-Wert';
+
+  @override
+  String get attrLabel_snorkel_type => 'Typ';
+
+  @override
+  String get attrLabel_purge_valve => 'Ausblasventil';
+
+  @override
+  String get attrLabel_instrument_type => 'Instrument';
+
+  @override
+  String get attrLabel_gauge_max_pressure_bar => 'Anzeigebereich';
+
+  @override
+  String get attrLabel_compass_type => 'Typ';
+
+  @override
+  String get attrLabel_balance_zone => 'Balancezone';
+
+  @override
+  String get attrLabel_tilt_tolerance_deg => 'Neigungstoleranz (°)';
+
+  @override
+  String get attrLabel_tool_type => 'Werkzeugart';
 
   @override
   String get attrChoice_unit_type_eccr => 'Elektronischer CCR (eCCR)';
@@ -24981,6 +25099,36 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_seal_type_neoprene => 'Neopren';
+
+  @override
+  String get attrChoice_insulation_level_light => 'Leicht';
+
+  @override
+  String get attrChoice_insulation_level_mid => 'Mittel';
+
+  @override
+  String get attrChoice_insulation_level_heavy => 'Schwer';
+
+  @override
+  String get attrChoice_insulation_level_extreme => 'Extrem';
+
+  @override
+  String get attrChoice_fill_material_thinsulate => 'Thinsulate';
+
+  @override
+  String get attrChoice_fill_material_primaloft => 'PrimaLoft';
+
+  @override
+  String get attrChoice_fill_material_hollowfibre => 'Hohlfaser';
+
+  @override
+  String get attrChoice_fill_material_fleece => 'Fleece';
+
+  @override
+  String get attrChoice_fill_material_merino => 'Merinowolle';
+
+  @override
+  String get attrChoice_fill_material_polypropylene => 'Polypropylen';
 
   @override
   String get attrChoice_tank_material_aluminum => 'Aluminium';
@@ -25115,10 +25263,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrChoice_glove_type_five_finger => 'Fünffinger';
 
   @override
+  String get attrChoice_glove_type_three_finger => 'Dreifinger';
+
+  @override
   String get attrChoice_glove_type_mitt => 'Fäustling';
 
   @override
   String get attrChoice_glove_type_dry => 'Trocken';
+
+  @override
+  String get attrChoice_glove_type_dry_liner => 'Trockenhandschuh-Futter';
+
+  @override
+  String get attrChoice_glove_type_utility => 'Arbeit';
 
   @override
   String get attrChoice_sole_type_hard => 'Feste Sohle';
@@ -25151,6 +25308,75 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrChoice_motor_type_brushed => 'Mit Bürsten';
 
   @override
+  String get attrChoice_sleeve_length_short => 'Kurz';
+
+  @override
+  String get attrChoice_sleeve_length_long => 'Lang';
+
+  @override
+  String get attrChoice_sleeve_length_sleeveless => 'Ärmellos';
+
+  @override
+  String get attrChoice_snorkel_type_classic => 'Klassisch';
+
+  @override
+  String get attrChoice_snorkel_type_semi_dry => 'Halbtrocken';
+
+  @override
+  String get attrChoice_snorkel_type_dry => 'Trocken';
+
+  @override
+  String get attrChoice_snorkel_type_foldable => 'Faltbar';
+
+  @override
+  String get attrChoice_instrument_type_spg => 'Finimeter (SPG)';
+
+  @override
+  String get attrChoice_instrument_type_depth_gauge => 'Tiefenmesser';
+
+  @override
+  String get attrChoice_instrument_type_bottom_timer => 'Tauchzeitmesser';
+
+  @override
+  String get attrChoice_instrument_type_console => 'Konsole';
+
+  @override
+  String get attrChoice_instrument_type_gas_analyzer => 'Gasanalysator';
+
+  @override
+  String get attrChoice_instrument_type_thermometer => 'Thermometer';
+
+  @override
+  String get attrChoice_compass_type_analog => 'Analog';
+
+  @override
+  String get attrChoice_compass_type_digital => 'Digital';
+
+  @override
+  String get attrChoice_balance_zone_northern => 'Nordhalbkugel';
+
+  @override
+  String get attrChoice_balance_zone_southern => 'Südhalbkugel';
+
+  @override
+  String get attrChoice_balance_zone_global => 'Global';
+
+  @override
+  String get attrChoice_tool_type_hand_tool => 'Handwerkzeug';
+
+  @override
+  String get attrChoice_tool_type_o_ring_kit => 'O-Ring-Set';
+
+  @override
+  String get attrChoice_tool_type_save_a_dive_kit => 'Notfall-Werkzeugset';
+
+  @override
+  String get attrChoice_tool_type_torque_wrench => 'Drehmomentschlüssel';
+
+  @override
+  String get attrChoice_tool_type_spares_kit => 'Ersatzteilset';
+
+  @override
   String get equipment_edit_customFieldsTitle => 'Benutzerdefinierte Felder';
 
   @override
@@ -25165,6 +25391,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Format: 5, 5/4 oder 7/5/3';
+
+  @override
+  String get equipment_edit_invalidWebLink =>
+      'Webadresse eingeben, z.B. shop.example.com';
 
   @override
   String get statistics_progression_divesBySuitThickness_title =>
@@ -25290,6 +25520,24 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get emergencyCard_callDan_subtitle =>
       'Taucher-Notfallhotline. Zuerst anrufen: sie koordiniert Evakuierung und Kammerzuweisung.';
+
+  @override
+  String get emergencyCard_callInsurer_subtitle =>
+      'Notfallnummer deiner Tauchversicherung. Zuerst anrufen: dein Versicherer genehmigt die Evakuierung und koordiniert die Kammerzuweisung.';
+
+  @override
+  String get emergencyCard_hotlineSecondary_subtitle =>
+      'Regionale Taucher-Notfallhotline. Anrufen, wenn die Nummer deines Versicherers nicht erreichbar ist.';
+
+  @override
+  String get emergencyCard_insuranceEmergencyLine => '24-h-Notrufnummer';
+
+  @override
+  String get emergencyCard_insuranceOfficeLine => 'Bürotelefon';
+
+  @override
+  String get emergencyCard_insuranceNoPhone =>
+      'Keine Notrufnummer des Versicherers gespeichert. Trage sie im Taucherprofil ein, damit diese Karte damit beginnt.';
 
   @override
   String emergencyCard_ems(String number) {
@@ -32863,6 +33111,34 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get common_action_remove => 'Entfernen';
+
+  @override
+  String get equipment_documents_title => 'Dokumente';
+
+  @override
+  String get equipment_documents_subtitle =>
+      'Rechnungen, Belege und Garantieunterlagen';
+
+  @override
+  String get equipment_documents_attachButton => 'Anhängen';
+
+  @override
+  String get equipment_documents_empty => 'Noch keine Dokumente angehängt';
+
+  @override
+  String get equipment_documents_removeTitle => 'Dokument entfernen?';
+
+  @override
+  String get equipment_documents_removeContent =>
+      'Es ist dann nicht mehr an diesen Artikel angehängt. Ihre Originaldatei bleibt unberührt.';
+
+  @override
+  String get equipment_documents_removed => 'Dokument entfernt';
+
+  @override
+  String equipment_documents_loadError(String error) {
+    return 'Dokumente konnten nicht geladen werden: $error';
+  }
 
   @override
   String get common_action_unpin => 'Lösen';

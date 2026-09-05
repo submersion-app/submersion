@@ -31,6 +31,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/compact_site
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
@@ -517,7 +518,21 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                         } else if (value == 'import') {
                           context.push('/sites/import');
                         } else if (value == 'fill_location_details') {
-                          unawaited(showSiteLocationBackfillFlow(context, ref));
+                          unawaited(
+                            showSiteLocationBackfillFlow(
+                              context,
+                              ref,
+                              mode: SiteLocationLookupMode.fillMissing,
+                            ),
+                          );
+                        } else if (value == 'refresh_place_names') {
+                          unawaited(
+                            showSiteLocationBackfillFlow(
+                              context,
+                              ref,
+                              mode: SiteLocationLookupMode.refreshAll,
+                            ),
+                          );
                         } else if (value.startsWith('view_')) {
                           final mode = ListViewMode.fromName(
                             value.replaceFirst('view_', ''),
@@ -567,6 +582,18 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                                 context
                                     .l10n
                                     .diveSites_list_menu_fillLocationDetails,
+                              ),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'refresh_place_names',
+                            child: ListTile(
+                              leading: const Icon(Icons.translate),
+                              title: Text(
+                                context
+                                    .l10n
+                                    .diveSites_list_menu_refreshPlaceNames,
                               ),
                               contentPadding: EdgeInsets.zero,
                             ),
@@ -787,7 +814,21 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               } else if (value == 'import') {
                 context.push('/sites/import');
               } else if (value == 'fill_location_details') {
-                unawaited(showSiteLocationBackfillFlow(context, ref));
+                unawaited(
+                  showSiteLocationBackfillFlow(
+                    context,
+                    ref,
+                    mode: SiteLocationLookupMode.fillMissing,
+                  ),
+                );
+              } else if (value == 'refresh_place_names') {
+                unawaited(
+                  showSiteLocationBackfillFlow(
+                    context,
+                    ref,
+                    mode: SiteLocationLookupMode.refreshAll,
+                  ),
+                );
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -822,6 +863,16 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                     leading: const Icon(Icons.travel_explore),
                     title: Text(
                       context.l10n.diveSites_list_menu_fillLocationDetails,
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'refresh_place_names',
+                  child: ListTile(
+                    leading: const Icon(Icons.translate),
+                    title: Text(
+                      context.l10n.diveSites_list_menu_refreshPlaceNames,
                     ),
                     contentPadding: EdgeInsets.zero,
                   ),
