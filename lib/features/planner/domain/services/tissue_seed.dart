@@ -33,7 +33,7 @@ TissueState? seededTissueState({
   // deepest ceiling and -- being a running maximum -- survive the surface
   // interval untouched, leaving every repetitive plan less conservative than
   // an identical fresh one.
-  algorithm.restoreState(List.from(compartments));
+  algorithm.restoreState(compartments);
 
   final intervalSeconds = surfaceInterval?.inSeconds ?? 0;
   if (intervalSeconds > 0) {
