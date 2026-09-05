@@ -4,7 +4,7 @@
 
 **Goal:** Store `dive_data_sources.raw_data` zlib-compressed on disk, saving 2.5x to 4.8x on real dive computer downloads, with no change to any caller and no change to the sync wire format.
 
-**Architecture:** A pure codec wraps each blob in a self-describing 8-byte header (`"SRD1"` plus a little-endian uint32 original length) ahead of a zlib stream. A Drift `TypeConverter` on the column applies it, so every read and write is covered and the sync layer keeps seeing uncompressed bytes. A v188 migration rung recompresses existing rows and signals the one VACUUM that `DatabaseService` already owns.
+**Architecture:** A pure codec wraps each blob in a self-describing 8-byte header (`"SRD1"` plus a little-endian uint32 original length) ahead of a zlib stream. A Drift `TypeConverter` on the column applies it, so every read and write is covered and the sync layer keeps seeing uncompressed bytes. A v190 migration rung recompresses existing rows and signals the one VACUUM that `DatabaseService` already owns.
 
 **Tech Stack:** Dart, Flutter, Drift 2.34.3, `dart:io` `ZLibCodec`, `sqlite3` via `NativeDatabase`.
 
@@ -18,7 +18,7 @@
 - **`lib/core/database/database.dart` and everything it imports must stay Flutter-free.** `test/core/database/database_import_graph_test.dart` walks the graph and fails on any `package:flutter/` or `package:flutter_` import. `dart:io` and `package:drift/drift.dart` are allowed; the existing profile-series codec already pulls in `dart:io`.
 - **Immutability:** never mutate a caller's `Uint8List`. Both codec directions return a new list or the input unchanged.
 - **`dart format .` must be run** over the whole project before the final commit.
-- **Schema rung is v188**, claimed against `origin/main` at schema version 187. Re-verify at the start of Task 3 that no newly merged or open pull request has taken 188.
+- **Schema rung is v190**, claimed against `origin/main` at schema version 189. Planned as v188; main took 188 (insurer phone numbers, #1522) and 189 (media equipment link, #1517) while this branch was open, so the branch merged main and the rung moved up. Re-verify at the start of Task 3 that no newly merged or open pull request has taken 190.
 - **The sync wire format does not change.** `minimumCompatibleSchemaVersion` is not touched. Peers keep exchanging uncompressed, base64-encoded bytes.
 - **`raw_fingerprint` is not touched** in any task.
 - Run tests one file or one directory at a time. Never overlap two local `flutter test` runs, and never pipe a test run into `grep`: the pipe reports the exit status of `grep`, not of the test run.
@@ -270,7 +270,7 @@ final ZLibCodec _zlib = ZLibCodec(level: 6);
 
 /// True when [stored] carries the compressed header.
 ///
-/// A cheap prefix test for callers that want to skip work, such as the v188
+/// A cheap prefix test for callers that want to skip work, such as the v190
 /// migration deciding whether a row is already packed. It is NOT proof the
 /// body is intact; only [decodeRawDiveData] establishes that.
 bool isCompressedRawDiveData(Uint8List stored) {
@@ -476,7 +476,7 @@ void main() {
   });
 
   test('a legacy uncompressed row still reads back correctly', () async {
-    // The state every existing database is in before the v188 rung, and the
+    // The state every existing database is in before the v190 rung, and the
     // state a row inbound from a peer that has not updated arrives in.
     final raw = teric();
     await seedDive('d2');
@@ -708,7 +708,7 @@ git commit -m "feat(db): compress raw dive data at rest via a column converter (
 
 ---
 
-### Task 3: The v188 rung
+### Task 3: The v190 rung
 
 New downloads compress from Task 2 onward. This rung is what reaches the bytes
 already on disk, which is where the savings actually are: the divers with the
@@ -716,8 +716,8 @@ most raw data are the ones who have been downloading longest.
 
 **Files:**
 - Modify: `lib/core/database/database.dart` (version constant, `migrationVersions`, the rung body, the new flag)
-- Test: `test/core/database/migration_v188_raw_data_compression_test.dart` (create)
-- Test: `test/core/database/migration_v187_session_item_overdue_services_test.dart:54` (hand over the tripwire)
+- Test: `test/core/database/migration_v190_raw_data_compression_test.dart` (create)
+- Test: `test/core/database/migration_v189_media_equipment_test.dart` (hand over the tripwire)
 
 **Interfaces:**
 - Consumes: `encodeRawDiveData`, `isCompressedRawDiveData` from Task 1.
@@ -730,12 +730,14 @@ most raw data are the ones who have been downloading longest.
 git fetch origin main && git show origin/main:lib/core/database/database.dart | grep -n "currentSchemaVersion = "
 ```
 
-Expected: `187`. If another branch has taken 188 since, use the next free
-number and substitute it everywhere below, including the test filename.
+Expected: `189` (it read 187 when this plan was written; main advanced twice
+before Task 3 began, which is exactly what this step exists to catch). If
+another branch has taken 190 since, use the next free number and substitute it
+everywhere below, including the test filename.
 
 - [ ] **Step 2: Write the failing migration test**
 
-Create `test/core/database/migration_v188_raw_data_compression_test.dart`:
+Create `test/core/database/migration_v190_raw_data_compression_test.dart`:
 
 ```dart
 import 'dart:io';
@@ -747,7 +749,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/raw_dive_data_codec.dart';
 
-/// v188 (issue #227): recompress `dive_data_sources.raw_data` in place.
+/// v190 (issue #227): recompress `dive_data_sources.raw_data` in place.
 ///
 /// No DDL. The column's SQL type does not change; only the stored bytes move,
 /// and the self-describing header means a row the rung skips keeps reading
@@ -762,11 +764,11 @@ void main() {
     ).readAsBytesSync(),
   );
 
-  // Stamped at 187 so ONLY the v188 step runs, isolating what is asserted.
+  // Stamped at 189 so ONLY the v190 step runs, isolating what is asserted.
   NativeDatabase setupDb(void Function(dynamic rawDb) seed) {
     return NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 187');
+        rawDb.execute('PRAGMA user_version = 189');
         rawDb.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
         rawDb.execute('''
           CREATE TABLE dive_data_sources (
@@ -804,10 +806,10 @@ void main() {
     return row.readNullable<Uint8List>('raw_data');
   }
 
-  test('v188 is the current schema version and is in the ladder', () {
+  test('v190 is the current schema version and is in the ladder', () {
     // The latest-version tripwire lives in the newest migration's test.
-    expect(AppDatabase.currentSchemaVersion, 188);
-    expect(AppDatabase.migrationVersions, contains(188));
+    expect(AppDatabase.currentSchemaVersion, 190);
+    expect(AppDatabase.migrationVersions, contains(190));
   });
 
   test('compresses existing rows without changing what they mean', () async {
@@ -890,10 +892,10 @@ void main() {
 - [ ] **Step 3: Run it to verify it fails**
 
 ```bash
-flutter test test/core/database/migration_v188_raw_data_compression_test.dart
+flutter test test/core/database/migration_v190_raw_data_compression_test.dart
 ```
 
-Expected: FAIL on the first test with `Expected: <188> Actual: <187>`, and on
+Expected: FAIL on the first test with `Expected: <190> Actual: <189>`, and on
 the rest with "The method 'recompressedRawBlobs' isn't defined".
 
 - [ ] **Step 4: Bump the version and register the rung**
@@ -901,18 +903,18 @@ the rest with "The method 'recompressedRawBlobs' isn't defined".
 In `lib/core/database/database.dart`, change line 3377:
 
 ```dart
-  static const int currentSchemaVersion = 188;
+  static const int currentSchemaVersion = 190;
 ```
 
 Append to the end of the `migrationVersions` list, after `187`:
 
 ```dart
-    // v188: recompress dive_data_sources.raw_data in place (issue #227).
+    // v190: recompress dive_data_sources.raw_data in place (issue #227).
     // No DDL; the column's SQL type is unchanged and only the stored bytes
     // move. Guarded per row: the self-describing header means a row this
     // rung skips keeps reading correctly forever, so a blob left
     // uncompressed costs space and nothing else.
-    188,
+    190,
 ```
 
 - [ ] **Step 5: Write the rung body and the reclaim flag**
@@ -920,7 +922,7 @@ Append to the end of the `migrationVersions` list, after `187`:
 Add next to `_backfillMergeSourceSlots` in `lib/core/database/database.dart`:
 
 ```dart
-  /// v188: rewrite `dive_data_sources.raw_data` in its compressed at-rest
+  /// v190: rewrite `dive_data_sources.raw_data` in its compressed at-rest
   /// form (issue #227).
   ///
   /// PRAGMA-guarded like every other data rung, so a partial schema no-ops
@@ -970,7 +972,7 @@ Add next to `_backfillMergeSourceSlots` in `lib/core/database/database.dart`:
           // Flutter-free, so do not introduce one.
           _rawBlobsLeftUncompressed++;
           developer.log(
-            'v188 left raw_data on dive_data_sources row $id uncompressed; '
+            'v190 left raw_data on dive_data_sources row $id uncompressed; '
             'the bytes are intact and still readable',
             name: 'AppDatabase',
             error: e,
@@ -985,14 +987,14 @@ Add next to `_backfillMergeSourceSlots` in `lib/core/database/database.dart`:
   bool _recompressedRawBlobs = false;
   int _rawBlobsLeftUncompressed = 0;
 
-  /// How many rows the v188 rung could not pack on this connection.
+  /// How many rows the v190 rung could not pack on this connection.
   ///
   /// Counted rather than only logged: a swallowed exception with nothing but
   /// a log line is invisible to any test, and the one thing worth proving
   /// about this rung is that a row it cannot pack changes nothing else.
   int get rawBlobsLeftUncompressed => _rawBlobsLeftUncompressed;
 
-  /// True once this connection's v188 rung has actually shrunk at least one
+  /// True once this connection's v190 rung has actually shrunk at least one
   /// `raw_data` blob.
   ///
   /// The rewritten pages go to the freelist, and only a VACUUM returns them
@@ -1008,7 +1010,7 @@ Add next to `_backfillMergeSourceSlots` in `lib/core/database/database.dart`:
   bool get hasUnreclaimedPages =>
       droppedLegacySampleTables || recompressedRawBlobs;
 
-  /// Test hook: run the v188 recompression on demand so tests can assert it
+  /// Test hook: run the v190 recompression on demand so tests can assert it
   /// is idempotent. Not used in production; the migration calls the private
   /// method.
   Future<void> recompressRawDiveDataForTest() => _recompressRawDiveData();
@@ -1028,13 +1030,13 @@ Then add the rung to `onUpgrade`, immediately after the `from < 187` pair
 around line 10029:
 
 ```dart
-        // v188: recompress dive_data_sources.raw_data in place (issue #227).
+        // v190: recompress dive_data_sources.raw_data in place (issue #227).
         // No DDL. Guarded per row, so a blob that will not pack is left as it
         // is rather than failing the ladder.
-        if (from < 188) {
+        if (from < 190) {
           await _recompressRawDiveData();
         }
-        if (from < 188) await reportProgress();
+        if (from < 190) await reportProgress();
 ```
 
 Do NOT add a `beforeOpen` backstop for this rung. The backstops exist to
@@ -1054,7 +1056,7 @@ to:
 
 ```dart
     // v187 is now a past migration; the latest-version tripwire lives in the
-    // newest migration's test (migration_v188_raw_data_compression_test.dart),
+    // newest migration's test (migration_v190_raw_data_compression_test.dart),
     // so assert membership rather than equality.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(187));
     expect(AppDatabase.migrationVersions, contains(187));
@@ -1063,7 +1065,7 @@ to:
 - [ ] **Step 7: Run both migration tests**
 
 ```bash
-flutter test test/core/database/migration_v188_raw_data_compression_test.dart test/core/database/migration_v187_session_item_overdue_services_test.dart
+flutter test test/core/database/migration_v190_raw_data_compression_test.dart test/core/database/migration_v187_session_item_overdue_services_test.dart
 ```
 
 Expected: PASS, both files.
@@ -1081,8 +1083,8 @@ counts, so this is where a mis-registered rung shows up.
 
 ```bash
 dart format .
-git add lib/core/database/database.dart test/core/database/migration_v188_raw_data_compression_test.dart test/core/database/migration_v187_session_item_overdue_services_test.dart
-git commit -m "feat(db): v188 recompresses existing raw dive data (#227)"
+git add lib/core/database/database.dart test/core/database/migration_v190_raw_data_compression_test.dart test/core/database/migration_v187_session_item_overdue_services_test.dart
+git commit -m "feat(db): v190 recompresses existing raw dive data (#227)"
 ```
 
 ---
@@ -1123,7 +1125,7 @@ At line 378, change:
 to:
 
 ```dart
-      // v188 (issue #227) recompresses raw_data in place, which frees pages
+      // v190 (issue #227) recompresses raw_data in place, which frees pages
       // the same way the v183 drop did. A file upgrading from 184 or later
       // has willVacuum false, so the recompression reaches the one VACUUM
       // through this branch, unannounced as a progress step. The totals were
@@ -1153,7 +1155,7 @@ The comment above it names the v183 backstop specifically. Extend its last
 paragraph rather than replacing it:
 
 ```dart
-    // The v188 recompression reaches this the same way if it ever runs on an
+    // The v190 recompression reaches this the same way if it ever runs on an
     // open with no pending ladder. It cannot today, but the gate is one
     // signal so a future rung that frees pages does not have to remember to
     // add itself in two places.
@@ -1240,7 +1242,7 @@ Do not pipe this into `grep`: the pipe masks the exit status.
 ```bash
 dart format .
 git add lib/core/services/database_service.dart
-git commit -m "feat(db): reclaim the pages v188 frees (#227)"
+git commit -m "feat(db): reclaim the pages v190 frees (#227)"
 ```
 
 - [ ] **Step 9: Stop for push authorization**
@@ -1262,7 +1264,7 @@ measured ratios from Step 5, and the full-suite result, then wait.
 | Callers unchanged, legacy rows readable | Task 2, Steps 1 and 6 |
 | The sync wire stays uncompressed | Task 2, Step 8 |
 | `raw_fingerprint` untouched | No task modifies it |
-| v188 rung, no DDL, idempotent | Task 3, Steps 4, 5 and the idempotence test |
+| v190 rung, no DDL, idempotent | Task 3, Steps 4, 5 and the idempotence test |
 | Rung guarded per row, ladder cannot fail | Task 3, Step 5 and the oversized-blob test |
 | Reclaim signal drives the existing VACUUM | Task 4, Steps 2 and 3 |
 | No `minimumCompatibleSchemaVersion` change | No task modifies it |

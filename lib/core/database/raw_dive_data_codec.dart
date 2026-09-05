@@ -51,7 +51,7 @@ final ZLibCodec _zlib = ZLibCodec(level: 6);
 
 /// True when [stored] carries the compressed header.
 ///
-/// A cheap prefix test for callers that want to skip work, such as the v188
+/// A cheap prefix test for callers that want to skip work, such as the v190
 /// migration deciding whether a row is already packed. It is NOT proof the
 /// body is intact; only [decodeRawDiveData] establishes that.
 bool isCompressedRawDiveData(Uint8List stored) {

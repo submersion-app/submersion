@@ -76,7 +76,7 @@ void main() {
   });
 
   test('a legacy uncompressed row still reads back correctly', () async {
-    // The state every existing database is in before the v188 rung, and the
+    // The state every existing database is in before the v190 rung, and the
     // state a row inbound from a peer that has not updated arrives in.
     final raw = teric();
     await seedDive('d2');
