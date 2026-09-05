@@ -6528,6 +6528,44 @@ class DiveRepository {
     }
   }
 
+  /// Insert several `dive_data_sources` rows as one unit.
+  ///
+  /// Deliberately NOT a loop over [saveComputerReading]. That one adopts a
+  /// dive's unattributed profile rows for the row it just inserted, and only
+  /// when that row is the dive's sole source; the guard exists because with a
+  /// second source present the rows could belong to either. Inserting one at a
+  /// time would let the first row adopt everything before the second row
+  /// exists, so a restored two-computer dive would attribute the whole profile
+  /// to whichever source happened to go in first.
+  ///
+  /// Inserting the whole batch first and evaluating the rule once afterwards
+  /// is what keeps that guard meaning what it says.
+  Future<void> saveComputerReadings(
+    List<DiveDataSourcesCompanion> readings,
+  ) async {
+    if (readings.isEmpty) return;
+    try {
+      await _db.transaction(() async {
+        for (final reading in readings) {
+          await _db.into(_db.diveDataSources).insert(reading);
+        }
+      });
+      // Every row now exists, so the sole-source test below sees the batch's
+      // real outcome rather than a half-written dive.
+      for (final reading in readings) {
+        await _adoptUnattributedProfiles(reading);
+      }
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to save computer readings',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Claim a dive's unattributed profile rows for a just-inserted source.
   ///
   /// The file-import pipeline writes samples before it writes the source row
