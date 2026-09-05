@@ -139,6 +139,26 @@ void main() {
       expect(TankPresets.matchBySpecs(14.0, 220.0), isNull);
     });
 
+    test('resolves the AL40 tie to the plain cylinder, not the stage', () {
+      // An AL40 and an AL40 Stage share volume, working pressure and cuft
+      // rating, so specs alone cannot separate them. The documented tie-break
+      // is the order of TankPresets.all. Pinned here because callers that use
+      // the result for anything beyond the cuft rating (buoyancy, notably)
+      // would otherwise change behaviour if the list were reordered.
+      final match = TankPresets.matchBySpecs(5.7, 206.843);
+      expect(match, isNotNull);
+      expect(match!.name, 'al40');
+      expect(
+        TankPresets.al40.volumeLiters,
+        TankPresets.al40Stage.volumeLiters,
+        reason: 'the tie this pins only exists while the specs are identical',
+      );
+      expect(
+        TankPresets.al40.workingPressureBar,
+        TankPresets.al40Stage.workingPressureBar,
+      );
+    });
+
     test('returns null for metric tanks (no ratedCapacityCuft)', () {
       // Steel 12L is 12.0L @ 200 bar but has no ratedCapacityCuft
       expect(TankPresets.matchBySpecs(12.0, 200.0), isNull);

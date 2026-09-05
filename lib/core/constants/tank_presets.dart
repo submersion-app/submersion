@@ -191,6 +191,18 @@ class TankPresets {
 
   /// Match a preset by volume and working pressure within tolerance.
   /// Returns the matching preset (with ratedCapacityCuft) or null.
+  ///
+  /// Specs alone cannot always identify one preset: an AL40 and an AL40 Stage
+  /// are both 5.7 L at 206.843 bar with a 40 cuft rating, differing only in
+  /// how they are rigged. Ties resolve to the first entry in [all], so the
+  /// plain cylinder wins over its stage variant. Callers that know which one
+  /// they hold should pass the slug instead of relying on this.
+  ///
+  /// That tie-break is only safe while indistinguishable presets agree on
+  /// everything a caller reads from the result. Two invariants hold it:
+  /// `tank_presets_test.dart` pins the AL40 tie, and `tank_catalog_test.dart`
+  /// asserts that any two presets this method cannot tell apart share the same
+  /// `kTankCatalog` row, so buoyancy never depends on list order.
   static TankPreset? matchBySpecs(
     double volumeLiters,
     double workingPressureBar,
