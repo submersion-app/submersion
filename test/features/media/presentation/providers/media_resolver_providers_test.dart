@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_files_diagnostics_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -32,16 +30,6 @@ class _StubDiagnosticsService implements LocalFilesDiagnosticsService {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName} should not be called');
-}
-
-/// Stalls resolution inside the fetch gate. The bookmark read is the first
-/// await [LocalFileResolver] makes for an item with no local path, and it sits
-/// inside the gate, so a resolution parked here is one holding a slot with
-/// both budget timers armed, the state a media tile is in whenever its
-/// source is slow.
-class _StalledBookmarkStorage extends LocalBookmarkStorage {
-  @override
-  Future<Uint8List?> read(String bookmarkRef) => Completer<Uint8List?>().future;
 }
 
 void main() {
@@ -121,22 +109,31 @@ void main() {
   );
 
   /// The one that bit us. A tile whose resolution has not landed by the time
-  /// the tree comes down is normal, since the fetch cannot be cancelled, but the
-  /// gate's budget timers were surviving the container that owned them, and
-  /// the test binding fails teardown on any timer left pending. On a fast
+  /// the tree comes down is normal, since the fetch cannot be cancelled, but
+  /// the gate's budget timers were surviving the container that owned them,
+  /// and the test binding fails teardown on any timer left pending. On a fast
   /// machine the resolution finished first and nothing showed; under CI load
   /// it did not, and an unrelated media widget test failed with two pending
   /// timers it had no way to see.
+  ///
+  /// Deliberately uses a localPath item and never pumps before disposing.
+  /// Both details keep the test honest across platforms:
+  ///
+  ///   * localPath takes the desktop branch of `_resolveInner`, which every
+  ///     platform runs. Keying off a bookmarkRef instead would stall only on
+  ///     iOS and macOS, since `_usesSecurityScopedBookmarks` defaults to those
+  ///     two, and would pass vacuously on the Linux shards that actually run
+  ///     this suite.
+  ///   * `run` arms the caller budget synchronously and `_resolveInner`
+  ///     suspends at its first await, so disposing in the same turn catches
+  ///     the timers armed. Pumping first lets the resolution settle and
+  ///     disarm them, which is the same vacuous pass by a different route.
   testWidgets('a resolution still in flight at teardown leaves no timer', (
     tester,
   ) async {
-    final container = ProviderContainer(
-      overrides: [
-        localBookmarkStorageProvider.overrideWith(
-          (ref) => _StalledBookmarkStorage(),
-        ),
-      ],
-    );
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
     unawaited(
       container
           .read(localFileResolverProvider)
@@ -145,14 +142,13 @@ void main() {
               id: 'm1',
               mediaType: MediaType.photo,
               sourceType: MediaSourceType.localFile,
-              bookmarkRef: 'ref-1',
+              localPath: '/nonexistent/m1.jpg',
               takenAt: DateTime(2026),
               createdAt: DateTime(2026),
               updatedAt: DateTime(2026),
             ),
           ),
     );
-    await tester.pump();
 
     // What unmounting a ProviderScope does, and what the binding does for
     // every widget test before it checks for stray timers.
