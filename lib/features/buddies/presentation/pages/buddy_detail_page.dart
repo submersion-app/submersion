@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
@@ -391,11 +393,23 @@ class _BuddyDetailContent extends ConsumerWidget {
       // request. Either way no success snackbar follows: the share sheet and
       // the save panel each provide their own feedback.
       final exportService = ref.read(exportServiceProvider);
+      final dataSources = await ref.read(uddfSourceFetchProvider)(
+        dives.map((d) => d.id).toList(growable: false),
+        const UddfExportOptions(),
+      );
       switch (destination) {
         case ExportDestination.share:
-          await exportService.exportDivesToUddf(dives, sites: sites);
+          await exportService.exportDivesToUddf(
+            dives,
+            sites: sites,
+            dataSources: dataSources,
+          );
         case ExportDestination.saveToFile:
-          await exportService.saveDivesToUddfFile(dives, sites: sites);
+          await exportService.saveDivesToUddfFile(
+            dives,
+            sites: sites,
+            dataSources: dataSources,
+          );
       }
     } catch (e) {
       scaffoldMessenger.hideCurrentSnackBar();

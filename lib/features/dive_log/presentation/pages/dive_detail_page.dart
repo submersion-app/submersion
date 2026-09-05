@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:latlong2/latlong.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
@@ -5850,12 +5851,24 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   context,
                   ref,
                   title: context.l10n.diveLog_export_uddf,
-                  shareFn: () => ref
+                  shareFn: () async => ref
                       .read(exportServiceProvider)
-                      .exportDivesToUddf([dive], sites: sites),
-                  saveFn: () => ref
+                      .exportDivesToUddf(
+                        [dive],
+                        sites: sites,
+                        dataSources: await ref.read(uddfSourceFetchProvider)([
+                          dive.id,
+                        ], const UddfExportOptions()),
+                      ),
+                  saveFn: () async => ref
                       .read(exportServiceProvider)
-                      .saveDivesToUddfFile([dive], sites: sites),
+                      .saveDivesToUddfFile(
+                        [dive],
+                        sites: sites,
+                        dataSources: await ref.read(uddfSourceFetchProvider)([
+                          dive.id,
+                        ], const UddfExportOptions()),
+                      ),
                 );
               },
             ),

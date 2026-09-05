@@ -9,6 +9,7 @@ import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
@@ -389,7 +390,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
     );
   }
 
-  Future<void> exportDivesToUddf() async {
+  Future<void> exportDivesToUddf([UddfExportOptions? options]) async {
+    final exportOptions = options ?? const UddfExportOptions();
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: _l10n.settings_export_progress_uddf,
@@ -520,6 +522,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveGasSwitches: diveGasSwitches,
         diveProfileEvents: diveProfileEvents,
         diveTankPressures: diveTankPressures,
+        dataSources: await _ref.read(uddfSourceFetchProvider)(
+          dives.map((d) => d.id).toList(growable: false),
+          exportOptions,
+        ),
+        options: exportOptions,
       );
       state = state.copyWith(
         status: ExportStatus.success,
@@ -999,7 +1006,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
   /// Save comprehensive UDDF to a user-selected location.
   /// Collects all data (same as share) so the export round-trips correctly.
-  Future<void> saveUddfToFile() async {
+  Future<void> saveUddfToFile([UddfExportOptions? options]) async {
+    final exportOptions = options ?? const UddfExportOptions();
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: _l10n.settings_export_progress_preparingUddf,
@@ -1125,6 +1133,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveGasSwitches: diveGasSwitches,
         diveProfileEvents: diveProfileEvents,
         diveTankPressures: diveTankPressures,
+        dataSources: await _ref.read(uddfSourceFetchProvider)(
+          dives.map((d) => d.id).toList(growable: false),
+          exportOptions,
+        ),
+        options: exportOptions,
       );
 
       if (path == null) {

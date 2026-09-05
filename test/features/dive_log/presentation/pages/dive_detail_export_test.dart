@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
@@ -95,6 +97,8 @@ class _RecordingExportService implements ExportService {
     List<Dive> dives, {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) async {
     uddfSites = sites;
     return _share('uddf');
@@ -105,6 +109,8 @@ class _RecordingExportService implements ExportService {
     List<Dive> dives, {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) async {
     uddfSites = sites;
     return _save('uddf');
@@ -165,6 +171,11 @@ void main() {
             dive.id,
           ).overrideWith((ref) async => <DiveDataSource>[]),
           exportServiceProvider.overrideWithValue(exportService),
+          // These tests have no database. The real fetch would reach the
+          // repository, so the export would never be issued.
+          uddfSourceFetchProvider.overrideWithValue(
+            (diveIds, options) async => const [],
+          ),
           // The PDF route enriches the export with buddies, certifications
           // and the diver; those reads reach a database widget tests have
           // not got, and never settle.

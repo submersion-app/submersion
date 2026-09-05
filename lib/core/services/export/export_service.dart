@@ -7,6 +7,7 @@ import 'package:submersion/core/services/export/excel/excel_export_service.dart'
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/kml/kml_export_service.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
+import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/pdf/pdf_course_export_service.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
@@ -25,6 +26,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -41,6 +43,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 export 'package:submersion/core/services/export/models/export_service_record.dart';
+export 'package:submersion/core/services/export/models/uddf_export_options.dart';
 export 'package:submersion/core/services/export/models/uddf_import_result.dart';
 
 /// Facade for all export/import operations.
@@ -315,20 +318,28 @@ class ExportService {
     List<Dive> dives, {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) => _uddf.exportDivesToUddf(
     dives,
     sites: sites,
     diveTankPressures: diveTankPressures,
+    dataSources: dataSources,
+    options: options,
   );
 
   Future<String?> saveDivesToUddfFile(
     List<Dive> dives, {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) => _uddf.saveDivesToUddfFile(
     dives,
     sites: sites,
     diveTankPressures: diveTankPressures,
+    dataSources: dataSources,
+    options: options,
   );
 
   Future<String> exportAllDataToUddf({
@@ -355,6 +366,8 @@ class ExportService {
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) => _uddfFull.exportAllDataToUddf(
     dives: dives,
     sites: sites,
@@ -379,6 +392,8 @@ class ExportService {
     courses: courses,
     diveGasSwitches: diveGasSwitches,
     diveTankPressures: diveTankPressures,
+    dataSources: dataSources,
+    options: options,
   );
 
   Future<String?> saveAllDataToUddfFile({
@@ -405,6 +420,8 @@ class ExportService {
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) => _uddfFull.saveAllDataToUddfFile(
     dives: dives,
     sites: sites,
@@ -429,6 +446,8 @@ class ExportService {
     courses: courses,
     diveGasSwitches: diveGasSwitches,
     diveTankPressures: diveTankPressures,
+    dataSources: dataSources,
+    options: options,
   );
 
   // ==================== UDDF Import ====================

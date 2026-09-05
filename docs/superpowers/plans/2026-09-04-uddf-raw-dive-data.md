@@ -2912,7 +2912,7 @@ void main() {
     expect(restored[0].importedAt, stamp);
 
     // Re-parse needs the descriptor triple or it counts the source failed.
-    final reparseable = await ReparseService(db).getSourcesForDiveReparse(
+    final reparseable = await ReparseService(db: db).getSourcesForDiveReparse(
       restored[0].diveId,
     );
     expect(reparseable, hasLength(1));
@@ -2931,7 +2931,7 @@ void main() {
 }
 ```
 
-Check `ReparseService`'s constructor before writing that line; if it takes a named `db` or no argument, adjust. Check `dives.diveDateTime`'s storage type too: if it is a `DateTimeColumn` rather than an epoch int, drop the conversion.
+Both verified against the code at plan time: `ReparseService` takes a named `db` (`reparse_service.dart:34`), and `dives.diveDateTime` is an `IntColumn` holding epoch milliseconds (`database.dart:683`), so the conversion above is correct.
 
 - [ ] **Step 2: Run it and fix whatever it finds**
 
