@@ -14331,6 +14331,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_home => 'Home';
 
   @override
+  String get nav_favorites => 'Favorieten';
+
+  @override
+  String get nav_favorites_emptyHint =>
+      'Markeer een item met een ster om het hier toe te voegen';
+
+  @override
+  String get nav_tooltip_addToFavorites => 'Toevoegen aan favorieten';
+
+  @override
+  String get nav_tooltip_removeFromFavorites => 'Verwijderen uit favorieten';
+
+  @override
+  String get nav_tooltip_dragToReorder => 'Sleep om te herschikken';
+
+  @override
   String get nav_media => 'Media';
 
   @override

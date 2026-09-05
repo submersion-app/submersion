@@ -14446,6 +14446,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get nav_home => 'Inicio';
 
   @override
+  String get nav_favorites => 'Favoritos';
+
+  @override
+  String get nav_favorites_emptyHint =>
+      'Marque um item com uma estrela para adicioná-lo aqui';
+
+  @override
+  String get nav_tooltip_addToFavorites => 'Adicionar aos favoritos';
+
+  @override
+  String get nav_tooltip_removeFromFavorites => 'Remover dos favoritos';
+
+  @override
+  String get nav_tooltip_dragToReorder => 'Arraste para reordenar';
+
+  @override
   String get nav_media => 'Mídia';
 
   @override

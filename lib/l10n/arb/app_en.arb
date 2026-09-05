@@ -8741,6 +8741,11 @@
     "description": "Viewer action: navigate to the dive owning this media"
   },
   "nav_home": "Home",
+  "nav_favorites": "Favorites",
+  "nav_favorites_emptyHint": "Star an item to add it here",
+  "nav_tooltip_addToFavorites": "Add to favorites",
+  "nav_tooltip_removeFromFavorites": "Remove from favorites",
+  "nav_tooltip_dragToReorder": "Drag to reorder",
   "nav_media": "Media",
   "nav_more": "More",
   "nav_planning": "Planning",
@@ -8801,6 +8806,21 @@
   },
   "@nav_statistics": {
     "description": "Navigation label for statistics section"
+  },
+  "@nav_favorites": {
+    "description": "Header of the Favorites section in the wide-screen navigation rail"
+  },
+  "@nav_favorites_emptyHint": {
+    "description": "Muted hint shown in the Favorites section while no destination is starred"
+  },
+  "@nav_tooltip_addToFavorites": {
+    "description": "Tooltip for the star button that adds a navigation destination to Favorites"
+  },
+  "@nav_tooltip_removeFromFavorites": {
+    "description": "Tooltip for the filled star button that removes a navigation destination from Favorites"
+  },
+  "@nav_tooltip_dragToReorder": {
+    "description": "Tooltip for the drag handle used to reorder favorites in the navigation rail"
   },
   "@nav_tooltip_closeMenu": {
     "description": "Tooltip for the close button on the more menu"

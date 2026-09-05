@@ -62,6 +62,10 @@ class SettingsKeys {
   static const String themeMode = 'theme_mode';
   static const String displayZoom = 'display_zoom';
 
+  /// Device-local: ordered ids of the sidebar destinations the user starred,
+  /// shown in the Favorites section under Home on the wide-screen rail.
+  static const String navFavoriteIds = 'nav_favorite_ids';
+
   /// Device-local: whether media grids draw a provenance badge on every
   /// thumbnail. Health badges are not covered by it.
   static const String mediaProvenanceBadges = 'media_provenance_badges';

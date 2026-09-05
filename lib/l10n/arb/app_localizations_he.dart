@@ -14083,6 +14083,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_home => 'בית';
 
   @override
+  String get nav_favorites => 'מועדפים';
+
+  @override
+  String get nav_favorites_emptyHint => 'סמנו פריט בכוכב כדי להוסיף אותו לכאן';
+
+  @override
+  String get nav_tooltip_addToFavorites => 'הוספה למועדפים';
+
+  @override
+  String get nav_tooltip_removeFromFavorites => 'הסרה מהמועדפים';
+
+  @override
+  String get nav_tooltip_dragToReorder => 'גררו לשינוי הסדר';
+
+  @override
   String get nav_media => 'מדיה';
 
   @override

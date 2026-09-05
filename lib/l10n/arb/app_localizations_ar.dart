@@ -14176,6 +14176,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_home => 'الرئيسية';
 
   @override
+  String get nav_favorites => 'المفضلة';
+
+  @override
+  String get nav_favorites_emptyHint => 'ضع نجمة على عنصر لإضافته هنا';
+
+  @override
+  String get nav_tooltip_addToFavorites => 'إضافة إلى المفضلة';
+
+  @override
+  String get nav_tooltip_removeFromFavorites => 'إزالة من المفضلة';
+
+  @override
+  String get nav_tooltip_dragToReorder => 'اسحب لإعادة الترتيب';
+
+  @override
   String get nav_media => 'الوسائط';
 
   @override

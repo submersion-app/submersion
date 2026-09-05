@@ -24012,6 +24012,36 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get nav_home;
 
+  /// Header of the Favorites section in the wide-screen navigation rail
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get nav_favorites;
+
+  /// Muted hint shown in the Favorites section while no destination is starred
+  ///
+  /// In en, this message translates to:
+  /// **'Star an item to add it here'**
+  String get nav_favorites_emptyHint;
+
+  /// Tooltip for the star button that adds a navigation destination to Favorites
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get nav_tooltip_addToFavorites;
+
+  /// Tooltip for the filled star button that removes a navigation destination from Favorites
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from favorites'**
+  String get nav_tooltip_removeFromFavorites;
+
+  /// Tooltip for the drag handle used to reorder favorites in the navigation rail
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder'**
+  String get nav_tooltip_dragToReorder;
+
   /// Navigation label for the media section
   ///
   /// In en, this message translates to:

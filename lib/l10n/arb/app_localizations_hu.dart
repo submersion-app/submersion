@@ -14394,6 +14394,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_home => 'Fooldal';
 
   @override
+  String get nav_favorites => 'Kedvencek';
+
+  @override
+  String get nav_favorites_emptyHint =>
+      'Csillagozz meg egy elemet, hogy itt megjelenjen';
+
+  @override
+  String get nav_tooltip_addToFavorites => 'Hozzáadás a kedvencekhez';
+
+  @override
+  String get nav_tooltip_removeFromFavorites => 'Eltávolítás a kedvencek közül';
+
+  @override
+  String get nav_tooltip_dragToReorder => 'Húzd az átrendezéshez';
+
+  @override
   String get nav_media => 'Média';
 
   @override

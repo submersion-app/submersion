@@ -14428,6 +14428,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_home => 'Startseite';
 
   @override
+  String get nav_favorites => 'Favoriten';
+
+  @override
+  String get nav_favorites_emptyHint =>
+      'Markiere einen Eintrag mit einem Stern, um ihn hier hinzuzufügen';
+
+  @override
+  String get nav_tooltip_addToFavorites => 'Zu Favoriten hinzufügen';
+
+  @override
+  String get nav_tooltip_removeFromFavorites => 'Aus Favoriten entfernen';
+
+  @override
+  String get nav_tooltip_dragToReorder => 'Ziehen zum Umsortieren';
+
+  @override
   String get nav_media => 'Medien';
 
   @override

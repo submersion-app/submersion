@@ -14,6 +14,8 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
+import 'package:submersion/shared/widgets/nav/favorites/nav_rail_icon.dart';
+import 'package:submersion/shared/widgets/nav/favorites/nav_rail_label.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 Future<Widget> _buildTestApp({
@@ -197,9 +199,10 @@ void main() {
       await tester.pumpWidget(await _buildTestApp());
       await tester.pumpAndSettle();
 
-      // Tap the second rail destination (Dives).
+      // Tap the first rail destination (Dives). Home is not a rail
+      // destination: it renders in the rail's leading slot above Favorites.
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      rail.onDestinationSelected!(1);
+      rail.onDestinationSelected!(0);
       await tester.pumpAndSettle();
 
       // "Dives" appears both in rail label and route content.
@@ -217,9 +220,10 @@ void main() {
       await tester.pumpWidget(await _buildTestApp());
       await tester.pumpAndSettle();
 
-      // GPS Log is rail index 14 (after Transfer, before Settings).
+      // GPS Log is rail index 13 (after Transfer, before Settings; Home is
+      // hosted in the leading slot, so rail indices start at Dives).
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      rail.onDestinationSelected!(14);
+      rail.onDestinationSelected!(13);
       await tester.pumpAndSettle();
 
       expect(find.text('GPS Log Page'), findsOneWidget);
@@ -227,7 +231,7 @@ void main() {
       final selected = tester
           .widget<NavigationRail>(find.byType(NavigationRail))
           .selectedIndex;
-      expect(selected, 14);
+      expect(selected, 13);
     });
 
     testWidgets('recording strip appears while a GPS session is active', (
@@ -462,7 +466,7 @@ void main() {
       expect(find.widgetWithText(NavigationDestination, 'Trips'), findsNothing);
     });
 
-    testWidgets('wide-screen rail still shows all 16 default destinations', (
+    testWidgets('wide-screen rail still shows all 15 default destinations', (
       tester,
     ) async {
       // Wide viewport (desktop-extended so rail labels are rendered as Text).
@@ -476,21 +480,23 @@ void main() {
       await tester.pumpAndSettle();
 
       // The wide-screen rail is NOT customized, so it keeps the default
-      // 16-entry order regardless of stored primary-ids customization.
+      // order regardless of stored primary-ids customization. Home is not in
+      // this list: it renders in the rail's leading slot above Favorites.
       // NavigationRailDestination is a descriptor (not a Widget), so inspect
       // the NavigationRail.destinations list directly.
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect(rail.destinations, hasLength(16));
+      expect(rail.destinations, hasLength(15));
+      expect(find.byKey(const ValueKey('navRailHome')), findsOneWidget);
 
       String labelOf(NavigationRailDestination d) {
         final label = d.label;
+        if (label is NavRailLabel) return label.text;
         if (label is Text) return label.data ?? '';
         return label.toString();
       }
 
       final labels = rail.destinations.map(labelOf).toList();
       expect(labels, [
-        'Home',
         'Dives',
         'Sites',
         'Trips',
@@ -755,10 +761,11 @@ void main() {
       // NavigationRailDestination is a descriptor, so read the icons from the
       // rail's destination list rather than the widget tree.
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      final sitesIcon = rail.destinations[2].icon as Icon;
+      final sitesIcon = rail.destinations[1].icon as NavRailIcon;
       expect(sitesIcon.color, FeatureAccentColors.light.of('sites'));
 
-      final selectedSitesIcon = rail.destinations[2].selectedIcon as Icon;
+      final selectedSitesIcon =
+          rail.destinations[1].selectedIcon as NavRailIcon;
       expect(selectedSitesIcon.color, FeatureAccentColors.light.of('sites'));
     });
 
@@ -778,7 +785,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect((rail.destinations[2].icon as Icon).color, isNull);
+      expect((rail.destinations[1].icon as NavRailIcon).color, isNull);
     });
 
     testWidgets('overflow sheet icons are tinted when the toggle is on', (

@@ -13752,6 +13752,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_home => '首页';
 
   @override
+  String get nav_favorites => '收藏';
+
+  @override
+  String get nav_favorites_emptyHint => '为条目加星标即可添加到此处';
+
+  @override
+  String get nav_tooltip_addToFavorites => '添加到收藏';
+
+  @override
+  String get nav_tooltip_removeFromFavorites => '从收藏中移除';
+
+  @override
+  String get nav_tooltip_dragToReorder => '拖动以重新排序';
+
+  @override
   String get nav_media => '媒体';
 
   @override

@@ -11,6 +11,11 @@ import 'package:submersion/features/gps_log/presentation/widgets/gps_recording_s
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
+import 'package:submersion/shared/widgets/nav/favorites/nav_favorites_provider.dart';
+import 'package:submersion/shared/widgets/nav/favorites/nav_rail_icon.dart';
+import 'package:submersion/shared/widgets/nav/favorites/nav_rail_label.dart';
+import 'package:submersion/shared/widgets/nav/favorites/nav_rail_leading.dart';
+import 'package:submersion/shared/widgets/nav/favorites/nav_rail_tile.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
 
@@ -32,10 +37,26 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// When true, the user has manually collapsed the rail (overrides auto-extend)
   bool _isCollapsed = false;
 
+  /// The Home destination, rendered above the rail's destination list (see
+  /// [NavRailLeading]) so the Favorites block can sit directly under it.
+  NavDestination get _home =>
+      kNavDestinations.firstWhere((d) => d.id == 'dashboard');
+
   /// Wide-screen rail destinations: every routable destination in canonical
-  /// order. The `more` sentinel is a phone-only overflow control.
-  List<NavDestination> get _railDestinations =>
-      kNavDestinations.where((d) => d.id != 'more').toList(growable: false);
+  /// order except Home (hosted in the rail's leading slot) and the starred
+  /// ones, which move under the Favorites header instead of being shown
+  /// twice. The `more` sentinel is a phone-only overflow control.
+  List<NavDestination> get _railDestinations {
+    final favoriteIds = ref.read(navFavoritesNotifierProvider);
+    return kNavDestinations
+        .where(
+          (d) =>
+              d.id != 'more' &&
+              d.id != 'dashboard' &&
+              !favoriteIds.contains(d.id),
+        )
+        .toList(growable: false);
+  }
 
   /// Builds a per-destination accent color lookup for the navigation surfaces.
   ///
@@ -57,22 +78,18 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     return (id) => accents?.of(id);
   }
 
-  int _calculateSelectedIndex(
-    BuildContext context, {
-    required bool isWideScreen,
-  }) {
-    final location = GoRouterState.of(context).uri.path;
-
-    if (isWideScreen) {
-      // Wide-screen rail: ordered by kNavDestinations.
-      final rail = _railDestinations;
-      for (var i = 0; i < rail.length; i++) {
-        if (location.startsWith(rail[i].route)) return i;
-      }
-      return 0;
+  /// Index into [rail] for the current route, or null when the route belongs
+  /// to Home or a favorite (both hosted outside the destination list) or to
+  /// no rail destination at all.
+  int? _railSelectedIndex(String location, List<NavDestination> rail) {
+    for (var i = 0; i < rail.length; i++) {
+      if (location.startsWith(rail[i].route)) return i;
     }
+    return null;
+  }
 
-    // Mobile: iterate the dynamic primary list (length 5: [dashboard, 3 middle, more]).
+  int _mobileSelectedIndex(String location) {
+    // Iterate the dynamic primary list (length 5: [dashboard, 3 middle, more]).
     final primary = ref.watch(navPrimaryDestinationsProvider);
     for (var i = 0; i < primary.length - 1; i++) {
       final route = primary[i].route;
@@ -81,11 +98,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     return primary.length - 1; // fall through to More (index 4)
   }
 
-  Future<void> _onDestinationSelected(
-    int index, {
-    required bool isWideScreen,
-  }) async {
-    // Guard: if a download is in progress, confirm before navigating away
+  /// Navigates to [route], first confirming when a dive computer download is
+  /// in progress. Every navigation surface (rail, Home tile, favorites,
+  /// bottom bar) funnels through here so the guard cannot be bypassed.
+  Future<void> _navigateTo(String route) async {
     final isDownloading = ref.read(downloadNotifierProvider).isDownloading;
     if (isDownloading) {
       final shouldLeave = await showDownloadExitConfirmation(context);
@@ -93,20 +109,22 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       await ref.read(downloadNotifierProvider.notifier).cancelDownload();
       if (!mounted) return;
     }
+    context.go(route);
+  }
 
-    if (isWideScreen) {
-      final rail = _railDestinations;
-      if (index >= 0 && index < rail.length) {
-        context.go(rail[index].route);
-      }
-    } else {
-      final primary = ref.read(navPrimaryDestinationsProvider);
-      if (index == primary.length - 1) {
-        _showMoreMenu(context);
-        return;
-      }
-      context.go(primary[index].route);
+  Future<void> _onRailDestinationSelected(int index) async {
+    final rail = _railDestinations;
+    if (index < 0 || index >= rail.length) return;
+    await _navigateTo(rail[index].route);
+  }
+
+  Future<void> _onMobileDestinationSelected(int index) async {
+    final primary = ref.read(navPrimaryDestinationsProvider);
+    if (index == primary.length - 1) {
+      _showMoreMenu(context);
+      return;
     }
+    await _navigateTo(primary[index].route);
   }
 
   void _showMoreMenu(BuildContext context) {
@@ -213,79 +231,15 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   Widget _buildScaffold(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWideScreen = screenWidth >= 800;
-    final isDesktopExtended = screenWidth >= 1200;
-    final navAccent = _navAccentLookup(context);
-    final selectedIndex = _calculateSelectedIndex(
-      context,
-      isWideScreen: isWideScreen,
-    );
+    final location = GoRouterState.of(context).uri.path;
 
     if (isWideScreen) {
-      // Desktop/Tablet layout with NavigationRail
-      // Only allow collapse toggle when screen is wide enough for extended mode
-      final showExtended = isDesktopExtended && !_isCollapsed;
-
       return Scaffold(
         body: GlobalDropTarget(
           child: SafeArea(
             child: Row(
               children: [
-                // Wrap in a scrollable container so the rail doesn't overflow
-                // on short screens (e.g. phone landscape with 13 destinations).
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: IntrinsicHeight(
-                          child: NavigationRail(
-                            extended: showExtended,
-                            minExtendedWidth: 190,
-                            leading: isDesktopExtended
-                                ? IconButton(
-                                    icon: Icon(
-                                      _isCollapsed
-                                          ? Icons.keyboard_double_arrow_right
-                                          : Icons.keyboard_double_arrow_left,
-                                    ),
-                                    tooltip: _isCollapsed
-                                        ? context.l10n.nav_tooltip_expandMenu
-                                        : context.l10n.nav_tooltip_collapseMenu,
-                                    onPressed: () {
-                                      setState(() {
-                                        _isCollapsed = !_isCollapsed;
-                                      });
-                                    },
-                                  )
-                                : null,
-                            selectedIndex: selectedIndex,
-                            onDestinationSelected: (index) =>
-                                _onDestinationSelected(
-                                  index,
-                                  isWideScreen: true,
-                                ),
-                            destinations: [
-                              for (final destination in _railDestinations)
-                                NavigationRailDestination(
-                                  icon: Icon(
-                                    destination.icon,
-                                    color: navAccent(destination.id),
-                                  ),
-                                  selectedIcon: Icon(
-                                    destination.selectedIcon,
-                                    color: navAccent(destination.id),
-                                  ),
-                                  label: Text(destination.label(context.l10n)),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                _buildRail(context, location),
                 const VerticalDivider(thickness: 1, width: 1),
                 Expanded(
                   child: Column(
@@ -314,7 +268,90 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildMobileNavBar(context, selectedIndex),
+      bottomNavigationBar: _buildMobileNavBar(
+        context,
+        _mobileSelectedIndex(location),
+      ),
+    );
+  }
+
+  /// Desktop/Tablet navigation rail. Home and the Favorites block render in
+  /// the rail's leading slot; the remaining destinations are rail entries.
+  Widget _buildRail(BuildContext context, String location) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktopExtended = screenWidth >= 1200;
+    // Only allow collapse toggle when screen is wide enough for extended mode
+    final showExtended = isDesktopExtended && !_isCollapsed;
+    final navAccent = _navAccentLookup(context);
+    // Watched so the rail rebuilds as destinations move in and out of
+    // Favorites; _railDestinations reads the same provider.
+    ref.watch(navFavoritesNotifierProvider);
+    final rail = _railDestinations;
+    final favorites = ref.read(navFavoritesNotifierProvider.notifier);
+    final l10n = context.l10n;
+
+    // Wrap in a scrollable container so the rail doesn't overflow
+    // on short screens (e.g. phone landscape with 13 destinations).
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: NavigationRail(
+                extended: showExtended,
+                minExtendedWidth: kNavRailExtendedWidth,
+                leading: NavRailLeading(
+                  extended: showExtended,
+                  home: _home,
+                  currentLocation: location,
+                  onNavigate: (destination) => _navigateTo(destination.route),
+                  accentOf: navAccent,
+                  railHasDestinations: rail.isNotEmpty,
+                  collapseToggle: isDesktopExtended
+                      ? IconButton(
+                          icon: Icon(
+                            _isCollapsed
+                                ? Icons.keyboard_double_arrow_right
+                                : Icons.keyboard_double_arrow_left,
+                          ),
+                          tooltip: _isCollapsed
+                              ? l10n.nav_tooltip_expandMenu
+                              : l10n.nav_tooltip_collapseMenu,
+                          onPressed: () {
+                            setState(() {
+                              _isCollapsed = !_isCollapsed;
+                            });
+                          },
+                        )
+                      : null,
+                ),
+                selectedIndex: _railSelectedIndex(location, rail),
+                onDestinationSelected: _onRailDestinationSelected,
+                destinations: [
+                  for (final destination in rail)
+                    NavigationRailDestination(
+                      icon: NavRailIcon(
+                        icon: destination.icon,
+                        color: navAccent(destination.id),
+                        onAddToFavorites: () => favorites.add(destination.id),
+                      ),
+                      selectedIcon: NavRailIcon(
+                        icon: destination.selectedIcon,
+                        color: navAccent(destination.id),
+                        onAddToFavorites: () => favorites.add(destination.id),
+                      ),
+                      label: NavRailLabel(
+                        text: destination.label(l10n),
+                        onAddToFavorites: () => favorites.add(destination.id),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -323,8 +360,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final navAccent = _navAccentLookup(context);
     return NavigationBar(
       selectedIndex: selectedIndex,
-      onDestinationSelected: (index) =>
-          _onDestinationSelected(index, isWideScreen: false),
+      onDestinationSelected: _onMobileDestinationSelected,
       destinations: [
         for (final destination in primary)
           NavigationDestination(
