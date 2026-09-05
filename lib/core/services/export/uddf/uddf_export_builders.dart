@@ -296,8 +296,10 @@ class UddfExportBuilders {
                   // Link to dive computer
                   if (dive.diveComputerModel != null &&
                       dive.diveComputerModel!.isNotEmpty) {
-                    final computerId =
-                        'dc_${dive.diveComputerModel!.replaceAll(' ', '_')}_${dive.diveComputerSerial ?? 'unknown'}';
+                    final computerId = computerRefId(
+                      dive.diveComputerModel!,
+                      dive.diveComputerSerial,
+                    );
                     builder.element('link', attributes: {'ref': computerId});
                   }
                 },
@@ -875,6 +877,7 @@ class UddfExportBuilders {
     List<EquipmentSet>? equipmentSets,
     List<Trip>? trips,
     List<Course>? courses,
+    List<DiveSourceExport>? dataSources,
   }) {
     final hasData =
         (equipment?.isNotEmpty ?? false) ||
@@ -890,7 +893,11 @@ class UddfExportBuilders {
         (diveComputers?.isNotEmpty ?? false) ||
         (equipmentSets?.isNotEmpty ?? false) ||
         (trips?.isNotEmpty ?? false) ||
-        (courses?.isNotEmpty ?? false);
+        (courses?.isNotEmpty ?? false) ||
+        // Without this a logbook whose only extra payload is its data source
+        // records would write no <applicationdata> at all, and the dumps in
+        // <divecomputercontrol> would lose their descriptors.
+        (dataSources?.isNotEmpty ?? false);
 
     if (!hasData) return;
 
@@ -1584,11 +1591,26 @@ class UddfExportBuilders {
                 );
               }
             }
+
+            // Per-source provenance for the dumps in <divecomputercontrol>.
+            buildDataSources(builder, dataSources ?? const []);
           },
         );
       },
     );
   }
+
+  /// The id a `<divecomputer>` is declared under in the UDDF standard
+  /// sections, and therefore the only id a `<link ref>` may point at.
+  ///
+  /// Built from model and serial rather than the `dive_computers` row id: the
+  /// standard `<divecomputer>` elements are minted from the dives' display
+  /// snapshots, and the row's UUID appears only inside
+  /// `<applicationdata><submersion><divecomputers>`, which is not a valid
+  /// IDREF target. Callers must still check the id is actually declared
+  /// before linking to it; see [buildDiveComputerControl].
+  static String computerRefId(String model, String? serial) =>
+      'dc_${model.replaceAll(' ', '_')}_${serial ?? 'unknown'}';
 
   /// Hex encode, matching SQLite's `hex()` and the convention
   /// `dive_repository_impl.dart` documents for raw fingerprints.
@@ -1716,15 +1738,22 @@ class UddfExportBuilders {
   /// failed to compress; its dump and nothing else is omitted, because this
   /// is a backup path and a file missing one dump beats no file at all.
   ///
-  /// [declaresComputers] must be false when the document emits no
-  /// `<divecomputer>` element, which is the case for the dives only export.
-  /// Every ref written here has to point at an id the standard itself
-  /// declares, or it dangles under IDREF validation.
+  /// [declaredComputerIds] is the set of ids the document actually declared
+  /// as `<divecomputer id=...>`. A computer link is written only for a source
+  /// whose [computerRefId] is in that set, because every ref written here has
+  /// to point at an id the standard itself declares or it dangles under IDREF
+  /// validation.
+  ///
+  /// Two cases make this a set rather than a boolean. The dives only export
+  /// declares no computers at all, so it passes an empty set. And in the full
+  /// export the declarations are minted from the dives' own model and serial
+  /// snapshots, so a multi-source dive's second computer is never declared
+  /// even though that source row names it.
   static void buildDiveComputerControl(
     XmlBuilder builder,
     List<DiveSourceExport> sources,
     Map<String, String?> encodedById, {
-    required bool declaresComputers,
+    required Set<String> declaredComputerIds,
   }) {
     final withPayload = sources
         .where((s) => encodedById[s.id] != null)
@@ -1742,11 +1771,12 @@ class UddfExportBuilders {
                 'link',
                 attributes: {'ref': 'dive_${source.diveId}'},
               );
-              if (declaresComputers && source.computerId != null) {
-                builder.element(
-                  'link',
-                  attributes: {'ref': source.computerId!},
-                );
+              final model = source.computerModel;
+              if (model != null && model.isNotEmpty) {
+                final ref = computerRefId(model, source.computerSerial);
+                if (declaredComputerIds.contains(ref)) {
+                  builder.element('link', attributes: {'ref': ref});
+                }
               }
               // The specification means "when the dump was captured", so this
               // is the source row's importedAt, not the dive's own datetime.
