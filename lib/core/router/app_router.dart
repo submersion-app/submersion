@@ -146,6 +146,9 @@ import 'package:submersion/features/gps_log/presentation/pages/gps_track_map_pag
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
+import 'package:submersion/features/gas_calculators/presentation/pages/blender_settings_page.dart';
+import 'package:submersion/features/gas_calculators/presentation/pages/blender_invoice_archive_detail_page.dart';
+import 'package:submersion/features/gas_calculators/presentation/pages/blender_invoice_archive_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculator_detail_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculators_page.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
@@ -293,6 +296,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       builder: (context, state) =>
                           GasCalculatorDetailPage(toolId: id),
                     ),
+                ],
+              ),
+              // The blender's paid-invoice archive is a SIBLING of the
+              // generated calculator routes above, not a child of the
+              // 'blender' entry: that entry is built inside the loop and has
+              // no routes: list of its own to extend. Declared after the loop
+              // for the same reason 'dive-planner/:planId' is declared after
+              // its subtree - static routes still win matching regardless of
+              // declaration order here, but this keeps the generated block
+              // readable as one unit.
+              GoRoute(
+                path: 'gas-calculators/blender/invoices',
+                name: 'blenderInvoiceArchive',
+                builder: (context, state) => const BlenderInvoiceArchivePage(),
+                routes: [
+                  GoRoute(
+                    path: ':invoiceId',
+                    name: 'blenderInvoiceArchiveDetail',
+                    builder: (context, state) =>
+                        BlenderInvoiceArchiveDetailPage(
+                          invoiceId: state.pathParameters['invoiceId']!,
+                        ),
+                  ),
                 ],
               ),
               GoRoute(
@@ -1194,6 +1220,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'debug-logs',
                 name: 'debugLogs',
                 builder: (context, state) => const DebugLogViewerPage(),
+              ),
+              GoRoute(
+                path: 'trimix-mixer',
+                name: 'trimixMixerSettings',
+                builder: (context, state) => const BlenderSettingsPage(),
               ),
               GoRoute(
                 path: 'media-sources',

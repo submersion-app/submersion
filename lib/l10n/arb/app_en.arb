@@ -7012,6 +7012,28 @@
   "gasCalculators_blender_he": "He",
   "gasCalculators_blender_air": "Air",
   "gasCalculators_blender_helium": "Helium",
+  "gasCalculators_blender_topup": "Topup",
+  "gasCalculators_blender_purity": "Purity",
+  "gasCalculators_blender_moveGasUp": "Move {gas} up",
+  "@gasCalculators_blender_moveGasUp": {
+    "description": "Accessibility label for the move-up button on a fill-gas role row.",
+    "placeholders": {
+      "gas": {
+        "type": "String",
+        "example": "Helium"
+      }
+    }
+  },
+  "gasCalculators_blender_moveGasDown": "Move {gas} down",
+  "@gasCalculators_blender_moveGasDown": {
+    "description": "Accessibility label for the move-down button on a fill-gas role row.",
+    "placeholders": {
+      "gas": {
+        "type": "String",
+        "example": "Helium"
+      }
+    }
+  },
   "gasCalculators_blender_procedure": "Fill procedure",
   "gasCalculators_blender_amounts": "Gas to add",
   "gasCalculators_blender_stepStart": "Start with {pressure} {gas}",
@@ -7085,30 +7107,85 @@
   "gasCalculators_blender_templateNone": "No templates yet. Save a target mix to reuse it here.",
   "gasCalculators_blender_templateDelete": "Delete {mix}",
   "gasCalculators_blender_templateAdd": "Add template",
+  "gasCalculators_blender_templateAdjust": "Adjust values",
   "gasCalculators_blender_billing": "Cost",
   "gasCalculators_blender_cylinderVolume": "Cylinder water capacity",
   "gasCalculators_blender_cylinderPresets": "Presets",
   "gasCalculators_blender_unitPrice": "Price per 100 {unit}",
   "gasCalculators_blender_currency": "Currency",
+  "gasCalculators_blender_currencyFollowsUnits": "Follows Settings > Units > Default currency",
+  "gasCalculators_blender_manageCylinderSizes": "Manage cylinder sizes",
   "gasCalculators_blender_costTotal": "Total",
   "gasCalculators_blender_costBasis": "Billed on the pressure delivered (cylinder water capacity × bar added), the way a fill station meters it.",
   "gasCalculators_blender_costMissingPrice": "Enter a price for every gas to see the total.",
   "gasCalculators_blender_saveFill": "Save this fill",
+  "gasCalculators_blender_flushFeeEnable": "Charge a fee to purge the fill hose",
+  "gasCalculators_blender_flushFeeModePerInvoice": "Once per bill",
+  "gasCalculators_blender_flushFeeModePerFill": "Once per fill",
+  "gasCalculators_blender_flushFeeVolume": "Purge volume",
+  "gasCalculators_blender_flushFeeLine": "{gas} hose purge",
+  "@gasCalculators_blender_flushFeeLine": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_blender_billed": "Billed",
+  "gasCalculators_blender_billedDate": "Invoice dated {date}",
+  "gasCalculators_blender_billedDateEdit": "Change invoice date",
+  "gasCalculators_blender_tariff": "Current tariff",
   "gasCalculators_blender_billedNone": "Nothing billed yet. Finish a fill and save it here.",
   "gasCalculators_blender_billedTo": "Billed to",
   "gasCalculators_blender_addManualLine": "Add a line",
   "gasCalculators_blender_lineDescription": "Description",
   "gasCalculators_blender_lineAmount": "Amount",
-  "gasCalculators_blender_clearBilled": "Clear",
-  "gasCalculators_blender_clearBilledTitle": "Clear the bill?",
-  "gasCalculators_blender_clearBilledBody": "This removes all {count} saved fills.",
+  "gasCalculators_blender_lineNeedsDescription": "Enter a description, or a cylinder and mix.",
+  "gasCalculators_blender_export": "Export",
+  "gasCalculators_blender_exportPdf": "Export as PDF",
+  "gasCalculators_blender_exportImage": "Export as Image",
+  "gasCalculators_blender_exportExcel": "Export as Excel",
+  "gasCalculators_blender_exportError": "Export failed: {error}",
+  "gasCalculators_blender_pay": "Pay",
+  "gasCalculators_blender_payTitle": "Mark the bill as paid?",
+  "gasCalculators_blender_payBody": "This archives all {count} saved fills and starts a new bill.",
   "gasCalculators_blender_editLine": "Edit {label}",
   "gasCalculators_blender_deleteLine": "Delete {label}",
   "gasCalculators_blender_fillAdded": "{mix} added to the bill",
   "gasCalculators_blender_billedIncomplete": "One or more lines have no price, so this total is incomplete.",
   "gasCalculators_blender_billedTotal": "Total",
-  "@gasCalculators_blender_clearBilledBody": {
+  "gasCalculators_blender_invoiceArchive": "Invoice archive",
+  "gasCalculators_blender_invoiceArchiveFilter": "Filter by date",
+  "gasCalculators_blender_invoiceArchiveAllYears": "All years",
+  "gasCalculators_blender_invoiceArchiveAllMonths": "All months",
+  "gasCalculators_blender_invoiceArchiveEmpty": "No paid invoices yet.",
+  "gasCalculators_blender_invoiceArchiveEmptyFiltered": "No invoices in this date range.",
+  "gasCalculators_blender_invoiceArchiveFillCount": "{count} fills",
+  "gasCalculators_blender_invoiceArchiveIncomplete": "Incomplete",
+  "gasCalculators_blender_invoiceArchiveUntitled": "Untitled",
+  "gasCalculators_blender_invoiceArchiveNotFound": "Invoice not found.",
+  "@gasCalculators_blender_invoiceArchiveFillCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@gasCalculators_blender_billedDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@gasCalculators_blender_exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@gasCalculators_blender_payBody": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -7181,6 +7258,7 @@
       }
     }
   },
+  "gasCalculators_blender_defaults": "Default settings and billing",
   "gasCalculators_tab_mod": "MOD",
   "gasCalculators_tab_rockBottom": "Rock Bottom",
   "gasCalculators_tankSize": "Tank Size",
@@ -16586,6 +16664,8 @@
   "settings_section_safety_subtitle": "Review rules & flying after diving",
   "settings_section_security_title": "App Security",
   "settings_section_security_subtitle": "App lock & database encryption",
+  "settings_section_trimixMixer_title": "Trimix Mixer",
+  "settings_section_trimixMixer_subtitle": "Fill gases, conditions & billing defaults",
   "settings_security_appLock": "App Lock",
   "settings_security_appLock_subtitle": "Require your password or biometrics to open the app",
   "settings_security_biometrics": "Unlock with biometrics",

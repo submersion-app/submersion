@@ -12199,6 +12199,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_blender_helium => 'Helium';
 
   @override
+  String get gasCalculators_blender_topup => 'Aanvulgas';
+
+  @override
+  String get gasCalculators_blender_purity => 'Zuiverheid';
+
+  @override
+  String gasCalculators_blender_moveGasUp(String gas) {
+    return '$gas omhoog verplaatsen';
+  }
+
+  @override
+  String gasCalculators_blender_moveGasDown(String gas) {
+    return '$gas omlaag verplaatsen';
+  }
+
+  @override
   String get gasCalculators_blender_procedure => 'Vulprocedure';
 
   @override
@@ -12367,6 +12383,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_blender_templateAdd => 'Sjabloon toevoegen';
 
   @override
+  String get gasCalculators_blender_templateAdjust => 'Waarden aanpassen';
+
+  @override
   String get gasCalculators_blender_billing => 'Kosten';
 
   @override
@@ -12384,6 +12403,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_blender_currency => 'Valuta';
 
   @override
+  String get gasCalculators_blender_currencyFollowsUnits =>
+      'Volgt Instellingen > Eenheden > Standaardvaluta';
+
+  @override
+  String get gasCalculators_blender_manageCylinderSizes => 'Flesmaten beheren';
+
+  @override
   String get gasCalculators_blender_costTotal => 'Totaal';
 
   @override
@@ -12398,7 +12424,38 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_blender_saveFill => 'Deze vulling opslaan';
 
   @override
+  String get gasCalculators_blender_flushFeeEnable =>
+      'Een vergoeding rekenen voor het doorspoelen van de vulslang';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerInvoice =>
+      'Eenmaal per factuur';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerFill =>
+      'Eenmaal per vulling';
+
+  @override
+  String get gasCalculators_blender_flushFeeVolume => 'Spoelvolume';
+
+  @override
+  String gasCalculators_blender_flushFeeLine(String gas) {
+    return '$gas slang spoelen';
+  }
+
+  @override
   String get gasCalculators_blender_billed => 'Gefactureerd';
+
+  @override
+  String gasCalculators_blender_billedDate(String date) {
+    return 'Factuur van $date';
+  }
+
+  @override
+  String get gasCalculators_blender_billedDateEdit => 'Factuurdatum wijzigen';
+
+  @override
+  String get gasCalculators_blender_tariff => 'Huidig tarief';
 
   @override
   String get gasCalculators_blender_billedNone =>
@@ -12417,14 +12474,35 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'Bedrag';
 
   @override
-  String get gasCalculators_blender_clearBilled => 'Wissen';
+  String get gasCalculators_blender_lineNeedsDescription =>
+      'Voer een omschrijving in, of een fles en mengsel.';
 
   @override
-  String get gasCalculators_blender_clearBilledTitle => 'Factuur wissen?';
+  String get gasCalculators_blender_export => 'Exporteren';
 
   @override
-  String gasCalculators_blender_clearBilledBody(int count) {
-    return 'Dit verwijdert alle $count opgeslagen vullingen.';
+  String get gasCalculators_blender_exportPdf => 'Exporteren als PDF';
+
+  @override
+  String get gasCalculators_blender_exportImage => 'Exporteren als afbeelding';
+
+  @override
+  String get gasCalculators_blender_exportExcel => 'Exporteren als Excel';
+
+  @override
+  String gasCalculators_blender_exportError(String error) {
+    return 'Exporteren mislukt: $error';
+  }
+
+  @override
+  String get gasCalculators_blender_pay => 'Betalen';
+
+  @override
+  String get gasCalculators_blender_payTitle => 'Factuur als betaald markeren?';
+
+  @override
+  String gasCalculators_blender_payBody(int count) {
+    return 'Dit archiveert alle $count opgeslagen vullingen en start een nieuwe factuur.';
   }
 
   @override
@@ -12448,6 +12526,45 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedTotal => 'Totaal';
+
+  @override
+  String get gasCalculators_blender_invoiceArchive => 'Factuurarchief';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveFilter => 'Filteren op datum';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllYears => 'Alle jaren';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllMonths => 'Alle maanden';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmpty =>
+      'Nog geen betaalde facturen.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmptyFiltered =>
+      'Geen facturen in deze periode.';
+
+  @override
+  String gasCalculators_blender_invoiceArchiveFillCount(int count) {
+    return '$count vullingen';
+  }
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveIncomplete => 'Onvolledig';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveUntitled => 'Zonder titel';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveNotFound =>
+      'Factuur niet gevonden.';
+
+  @override
+  String get gasCalculators_blender_defaults =>
+      'Standaardinstellingen en facturering';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';
@@ -25718,6 +25835,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_section_security_subtitle =>
       'App-vergrendeling & databaseversleuteling';
+
+  @override
+  String get settings_section_trimixMixer_title => 'Trimix-menger';
+
+  @override
+  String get settings_section_trimixMixer_subtitle =>
+      'Vulgassen, mengcondities & standaard facturatie-instellingen';
 
   @override
   String get settings_security_appLock => 'App-vergrendeling';

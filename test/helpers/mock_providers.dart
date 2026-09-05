@@ -29,6 +29,8 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.da
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
@@ -577,6 +579,7 @@ Future<List<Override>> getBaseOverrides({
   http.Client? weatherHttpClient,
   PreDiveSession? linkedPreDiveSession,
   Map<int, TripDayWeather>? tripDayWeather,
+  List<TankPresetEntity>? tankPresets,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -615,5 +618,9 @@ Future<List<Override>> getBaseOverrides({
       (ref, tripId) async => tripDayWeather ?? const {},
     ),
     tripDayWeatherBackfillProvider.overrideWith((ref, tripId) async {}),
+    // The trimix mixer's cylinder dropdown reads the diver's global tank
+    // presets (issue #1335 follow-up); without this it reaches the real
+    // repository and a database widget tests do not have.
+    tankPresetsProvider.overrideWith((ref) async => tankPresets ?? const []),
   ];
 }

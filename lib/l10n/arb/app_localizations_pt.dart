@@ -12298,6 +12298,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_blender_helium => 'Hélio';
 
   @override
+  String get gasCalculators_blender_topup => 'Complemento';
+
+  @override
+  String get gasCalculators_blender_purity => 'Pureza';
+
+  @override
+  String gasCalculators_blender_moveGasUp(String gas) {
+    return 'Mover $gas para cima';
+  }
+
+  @override
+  String gasCalculators_blender_moveGasDown(String gas) {
+    return 'Mover $gas para baixo';
+  }
+
+  @override
   String get gasCalculators_blender_procedure => 'Procedimento de enchimento';
 
   @override
@@ -12465,6 +12481,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_blender_templateAdd => 'Adicionar modelo';
 
   @override
+  String get gasCalculators_blender_templateAdjust => 'Ajustar valores';
+
+  @override
   String get gasCalculators_blender_billing => 'Custo';
 
   @override
@@ -12483,6 +12502,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_blender_currency => 'Moeda';
 
   @override
+  String get gasCalculators_blender_currencyFollowsUnits =>
+      'Segue Configuracoes > Unidades > Moeda padrão';
+
+  @override
+  String get gasCalculators_blender_manageCylinderSizes =>
+      'Gerenciar tamanhos de cilindro';
+
+  @override
   String get gasCalculators_blender_costTotal => 'Total';
 
   @override
@@ -12497,7 +12524,38 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_blender_saveFill => 'Guardar este enchimento';
 
   @override
+  String get gasCalculators_blender_flushFeeEnable =>
+      'Cobrar uma taxa para purgar a mangueira de enchimento';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerInvoice =>
+      'Uma vez por fatura';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerFill =>
+      'Uma vez por enchimento';
+
+  @override
+  String get gasCalculators_blender_flushFeeVolume => 'Volume de purga';
+
+  @override
+  String gasCalculators_blender_flushFeeLine(String gas) {
+    return 'Purga da mangueira de $gas';
+  }
+
+  @override
   String get gasCalculators_blender_billed => 'Faturado';
+
+  @override
+  String gasCalculators_blender_billedDate(String date) {
+    return 'Fatura de $date';
+  }
+
+  @override
+  String get gasCalculators_blender_billedDateEdit => 'Alterar data da fatura';
+
+  @override
+  String get gasCalculators_blender_tariff => 'Tarifa atual';
 
   @override
   String get gasCalculators_blender_billedNone =>
@@ -12516,14 +12574,35 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'Valor';
 
   @override
-  String get gasCalculators_blender_clearBilled => 'Limpar';
+  String get gasCalculators_blender_lineNeedsDescription =>
+      'Introduza uma descrição, ou um cilindro e uma mistura.';
 
   @override
-  String get gasCalculators_blender_clearBilledTitle => 'Limpar a fatura?';
+  String get gasCalculators_blender_export => 'Exportar';
 
   @override
-  String gasCalculators_blender_clearBilledBody(int count) {
-    return 'Isto remove os $count enchimentos guardados.';
+  String get gasCalculators_blender_exportPdf => 'Exportar como PDF';
+
+  @override
+  String get gasCalculators_blender_exportImage => 'Exportar como imagem';
+
+  @override
+  String get gasCalculators_blender_exportExcel => 'Exportar como Excel';
+
+  @override
+  String gasCalculators_blender_exportError(String error) {
+    return 'Falha na exportação: $error';
+  }
+
+  @override
+  String get gasCalculators_blender_pay => 'Pagar';
+
+  @override
+  String get gasCalculators_blender_payTitle => 'Marcar a fatura como paga?';
+
+  @override
+  String gasCalculators_blender_payBody(int count) {
+    return 'Isto arquiva todos os $count enchimentos guardados e inicia uma nova fatura.';
   }
 
   @override
@@ -12547,6 +12626,45 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedTotal => 'Total';
+
+  @override
+  String get gasCalculators_blender_invoiceArchive => 'Arquivo de faturas';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveFilter => 'Filtrar por data';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllYears => 'Todos os anos';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllMonths => 'Todos os meses';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmpty =>
+      'Ainda não há faturas pagas.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmptyFiltered =>
+      'Nenhuma fatura neste período.';
+
+  @override
+  String gasCalculators_blender_invoiceArchiveFillCount(int count) {
+    return '$count enchimentos';
+  }
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveIncomplete => 'Incompleto';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveUntitled => 'Sem título';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveNotFound =>
+      'Fatura não encontrada.';
+
+  @override
+  String get gasCalculators_blender_defaults =>
+      'Definições por defeito e faturação';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';
@@ -25912,6 +26030,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_section_security_subtitle =>
       'Bloqueio do app e criptografia do banco de dados';
+
+  @override
+  String get settings_section_trimixMixer_title => 'Misturador de trimix';
+
+  @override
+  String get settings_section_trimixMixer_subtitle =>
+      'Gases de enchimento, condições e definições padrão de faturação';
 
   @override
   String get settings_security_appLock => 'Bloqueio do app';

@@ -12255,6 +12255,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_blender_helium => 'Hélium';
 
   @override
+  String get gasCalculators_blender_topup => 'Feltöltő gáz';
+
+  @override
+  String get gasCalculators_blender_purity => 'Tisztaság';
+
+  @override
+  String gasCalculators_blender_moveGasUp(String gas) {
+    return '$gas mozgatása felfelé';
+  }
+
+  @override
+  String gasCalculators_blender_moveGasDown(String gas) {
+    return '$gas mozgatása lefelé';
+  }
+
+  @override
   String get gasCalculators_blender_procedure => 'Töltési sorrend';
 
   @override
@@ -12422,6 +12438,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_blender_templateAdd => 'Sablon hozzáadása';
 
   @override
+  String get gasCalculators_blender_templateAdjust => 'Értékek módosítása';
+
+  @override
   String get gasCalculators_blender_billing => 'Költség';
 
   @override
@@ -12439,6 +12458,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_blender_currency => 'Pénznem';
 
   @override
+  String get gasCalculators_blender_currencyFollowsUnits =>
+      'Követi: Beallitasok > Mertekegysegek > Alapértelmezett pénznem';
+
+  @override
+  String get gasCalculators_blender_manageCylinderSizes =>
+      'Palackméretek kezelése';
+
+  @override
   String get gasCalculators_blender_costTotal => 'Összesen';
 
   @override
@@ -12453,7 +12480,39 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_blender_saveFill => 'Töltés mentése';
 
   @override
+  String get gasCalculators_blender_flushFeeEnable =>
+      'Díj felszámítása a töltőtömlő átöblítéséért';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerInvoice =>
+      'Egyszer számlánként';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerFill =>
+      'Egyszer töltésenként';
+
+  @override
+  String get gasCalculators_blender_flushFeeVolume => 'Öblítési térfogat';
+
+  @override
+  String gasCalculators_blender_flushFeeLine(String gas) {
+    return '$gas tömlőöblítés';
+  }
+
+  @override
   String get gasCalculators_blender_billed => 'Számlázva';
+
+  @override
+  String gasCalculators_blender_billedDate(String date) {
+    return 'Számla kelte: $date';
+  }
+
+  @override
+  String get gasCalculators_blender_billedDateEdit =>
+      'Számla dátumának módosítása';
+
+  @override
+  String get gasCalculators_blender_tariff => 'Aktuális díjszabás';
 
   @override
   String get gasCalculators_blender_billedNone =>
@@ -12472,14 +12531,36 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'Összeg';
 
   @override
-  String get gasCalculators_blender_clearBilled => 'Ürítés';
+  String get gasCalculators_blender_lineNeedsDescription =>
+      'Adjon meg egy leírást, vagy egy palackot és keveréket.';
 
   @override
-  String get gasCalculators_blender_clearBilledTitle => 'Üríted a számlát?';
+  String get gasCalculators_blender_export => 'Exportálás';
 
   @override
-  String gasCalculators_blender_clearBilledBody(int count) {
-    return 'Ezzel mind a(z) $count mentett töltés törlődik.';
+  String get gasCalculators_blender_exportPdf => 'Exportálás PDF-be';
+
+  @override
+  String get gasCalculators_blender_exportImage => 'Exportálás képként';
+
+  @override
+  String get gasCalculators_blender_exportExcel => 'Exportálás Excelbe';
+
+  @override
+  String gasCalculators_blender_exportError(String error) {
+    return 'Az exportálás sikertelen: $error';
+  }
+
+  @override
+  String get gasCalculators_blender_pay => 'Fizetés';
+
+  @override
+  String get gasCalculators_blender_payTitle =>
+      'Megjelölöd a számlát fizetettként?';
+
+  @override
+  String gasCalculators_blender_payBody(int count) {
+    return 'Ez archiválja mind a(z) $count mentett töltést, és új számlát kezd.';
   }
 
   @override
@@ -12503,6 +12584,46 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedTotal => 'Összesen';
+
+  @override
+  String get gasCalculators_blender_invoiceArchive => 'Számla-archívum';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveFilter =>
+      'Szűrés dátum szerint';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllYears => 'Minden év';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllMonths => 'Minden hónap';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmpty =>
+      'Még nincs kifizetett számla.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmptyFiltered =>
+      'Nincs számla ebben az időszakban.';
+
+  @override
+  String gasCalculators_blender_invoiceArchiveFillCount(int count) {
+    return '$count töltés';
+  }
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveIncomplete => 'Hiányos';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveUntitled => 'Névtelen';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveNotFound =>
+      'A számla nem található.';
+
+  @override
+  String get gasCalculators_blender_defaults =>
+      'Alapértelmezett beállítások és számlázás';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';
@@ -25806,6 +25927,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_section_security_subtitle =>
       'Alkalmazászár és adatbázis-titkosítás';
+
+  @override
+  String get settings_section_trimixMixer_title => 'Trimix keverő';
+
+  @override
+  String get settings_section_trimixMixer_subtitle =>
+      'Töltőgázok, keverési körülmények és alapértelmezett számlázási beállítások';
 
   @override
   String get settings_security_appLock => 'Alkalmazászár';

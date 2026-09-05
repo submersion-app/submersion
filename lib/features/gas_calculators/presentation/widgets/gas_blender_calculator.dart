@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_about_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_billing_card.dart';
-import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_conditions_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_cylinder_card.dart';
-import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_fill_gases_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_archive_section.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_procedure_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Real-gas partial-pressure blender: given what's in the cylinder and the
 /// target fill, it lists the gases to add and the pressures to top up to.
@@ -60,8 +62,6 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
   late final TextEditingController _targetP;
   late final TextEditingController _targetO2;
   late final TextEditingController _targetHe;
-  late final List<TextEditingController> _gasO2;
-  late final List<TextEditingController> _gasHe;
 
   @override
   void initState() {
@@ -80,9 +80,6 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
 
     final startMix = ref.read(blenderStartMixProvider);
     final targetMix = ref.read(blenderTargetMixProvider);
-    final g1 = ref.read(blenderFillGas1Provider);
-    final g2 = ref.read(blenderFillGas2Provider);
-    final g3 = ref.read(blenderFillGas3Provider);
 
     _startP = TextEditingController(
       text: p(ref.read(blenderStartPressureProvider)),
@@ -94,16 +91,6 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
     );
     _targetO2 = TextEditingController(text: n(targetMix.o2));
     _targetHe = TextEditingController(text: n(targetMix.he));
-    _gasO2 = [
-      TextEditingController(text: n(g1.o2)),
-      TextEditingController(text: n(g2.o2)),
-      TextEditingController(text: n(g3.o2)),
-    ];
-    _gasHe = [
-      TextEditingController(text: n(g1.he)),
-      TextEditingController(text: n(g2.he)),
-      TextEditingController(text: n(g3.he)),
-    ];
   }
 
   @override
@@ -115,8 +102,6 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
       _targetP,
       _targetO2,
       _targetHe,
-      ..._gasO2,
-      ..._gasHe,
     ]) {
       c.dispose();
     }
@@ -136,6 +121,28 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Fill gases, mixing conditions and billing defaults live
+              // under Settings -> Trimix Mixer now (issue #1335 follow-up);
+              // only the fields a diver retypes every fill stay on this
+              // always-visible screen.
+              // The temperature summary that used to sit here now lives under
+              // the "Fill procedure" title on BlenderProcedureCard (issue #44
+              // follow-up); the settings gear stays put.
+              Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  key: const Key('blender-settings'),
+                  icon: const Icon(Icons.settings_outlined),
+                  tooltip: context.l10n.settings_section_trimixMixer_title,
+                  // Through the router, not Navigator.push: this widget sits
+                  // inside the app's ShellRoute, so an imperative route lands
+                  // on the shell's own navigator, under a bottom bar that can
+                  // still change the location out from under it. The archive
+                  // icon below and the Settings entry both reach their pages
+                  // this way (PR #1359 review).
+                  onPressed: () => context.push(kTrimixMixerSettingsRoute),
+                ),
+              ),
               BlenderCylinderCard(
                 startPressure: _startP,
                 startO2: _startO2,
@@ -145,13 +152,6 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
                 targetHe: _targetHe,
               ),
               const SizedBox(height: 16),
-              BlenderFillGasesCard(
-                o2Controllers: _gasO2,
-                heControllers: _gasHe,
-              ),
-              const SizedBox(height: 16),
-              const BlenderConditionsCard(),
-              const SizedBox(height: 16),
               const BlenderProcedureCard(),
               const SizedBox(height: 16),
               const BlenderAboutCard(),
@@ -160,6 +160,8 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
               const BlenderBillingCard(),
               const SizedBox(height: 16),
               const BlenderInvoiceCard(),
+              const SizedBox(height: 16),
+              const BlenderInvoiceArchiveSection(),
             ],
           ),
         ),

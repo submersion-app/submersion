@@ -55,11 +55,16 @@ class FakeAppSettingsRepository implements AppSettingsRepository {
   @override
   Future<void> setNavPrimaryIds(List<String> ids) async =>
       throw UnimplementedError('not used by these tests');
-  @override
-  Future<BlenderPreferences?> getBlenderPreferences() async =>
-      throw UnimplementedError('not used by these tests');
+
+  /// Last value stored through [setBlenderPreferences], if any.
+  BlenderPreferences? blenderPreferences;
 
   @override
-  Future<void> setBlenderPreferences(BlenderPreferences prefs) async =>
-      throw UnimplementedError('not used by these tests');
+  Future<BlenderPreferences?> getBlenderPreferences() async =>
+      blenderPreferences;
+
+  @override
+  Future<void> setBlenderPreferences(BlenderPreferences prefs) async {
+    blenderPreferences = prefs;
+  }
 }

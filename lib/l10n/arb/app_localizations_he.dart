@@ -11993,6 +11993,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_helium => 'הליום';
 
   @override
+  String get gasCalculators_blender_topup => 'גז השלמה';
+
+  @override
+  String get gasCalculators_blender_purity => 'טוהר';
+
+  @override
+  String gasCalculators_blender_moveGasUp(String gas) {
+    return 'הזז את $gas למעלה';
+  }
+
+  @override
+  String gasCalculators_blender_moveGasDown(String gas) {
+    return 'הזז את $gas למטה';
+  }
+
+  @override
   String get gasCalculators_blender_procedure => 'סדר המילוי';
 
   @override
@@ -12159,6 +12175,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_templateAdd => 'הוסף תבנית';
 
   @override
+  String get gasCalculators_blender_templateAdjust => 'התאם ערכים';
+
+  @override
   String get gasCalculators_blender_billing => 'עלות';
 
   @override
@@ -12176,6 +12195,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_currency => 'מטבע';
 
   @override
+  String get gasCalculators_blender_currencyFollowsUnits =>
+      'בהתאם להגדרות > יחידות > מטבע ברירת מחדל';
+
+  @override
+  String get gasCalculators_blender_manageCylinderSizes => 'ניהול גדלי בלונים';
+
+  @override
   String get gasCalculators_blender_costTotal => 'סה\"כ';
 
   @override
@@ -12190,7 +12216,37 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_saveFill => 'שמור את המילוי הזה';
 
   @override
+  String get gasCalculators_blender_flushFeeEnable =>
+      'גבה עמלה על שטיפת צינור המילוי';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerInvoice =>
+      'פעם אחת לחשבונית';
+
+  @override
+  String get gasCalculators_blender_flushFeeModePerFill => 'פעם אחת לכל מילוי';
+
+  @override
+  String get gasCalculators_blender_flushFeeVolume => 'נפח שטיפה';
+
+  @override
+  String gasCalculators_blender_flushFeeLine(String gas) {
+    return 'שטיפת צינור $gas';
+  }
+
+  @override
   String get gasCalculators_blender_billed => 'חיוב';
+
+  @override
+  String gasCalculators_blender_billedDate(String date) {
+    return 'חשבונית מתאריך $date';
+  }
+
+  @override
+  String get gasCalculators_blender_billedDateEdit => 'שינוי תאריך החשבונית';
+
+  @override
+  String get gasCalculators_blender_tariff => 'תעריף נוכחי';
 
   @override
   String get gasCalculators_blender_billedNone =>
@@ -12209,14 +12265,35 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'סכום';
 
   @override
-  String get gasCalculators_blender_clearBilled => 'נקה';
+  String get gasCalculators_blender_lineNeedsDescription =>
+      'יש להזין תיאור, או מכל ותערובת.';
 
   @override
-  String get gasCalculators_blender_clearBilledTitle => 'לנקות את החיוב?';
+  String get gasCalculators_blender_export => 'ייצוא';
 
   @override
-  String gasCalculators_blender_clearBilledBody(int count) {
-    return 'פעולה זו תמחק את כל $count המילויים השמורים.';
+  String get gasCalculators_blender_exportPdf => 'ייצוא כ-PDF';
+
+  @override
+  String get gasCalculators_blender_exportImage => 'ייצוא כתמונה';
+
+  @override
+  String get gasCalculators_blender_exportExcel => 'ייצוא כ-Excel';
+
+  @override
+  String gasCalculators_blender_exportError(String error) {
+    return 'הייצוא נכשל: $error';
+  }
+
+  @override
+  String get gasCalculators_blender_pay => 'תשלום';
+
+  @override
+  String get gasCalculators_blender_payTitle => 'לסמן את החשבונית כשולמה?';
+
+  @override
+  String gasCalculators_blender_payBody(int count) {
+    return 'פעולה זו תעביר לארכיון את כל $count המילויים השמורים ותתחיל חשבונית חדשה.';
   }
 
   @override
@@ -12240,6 +12317,44 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedTotal => 'סה\"כ';
+
+  @override
+  String get gasCalculators_blender_invoiceArchive => 'ארכיון חשבוניות';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveFilter => 'סינון לפי תאריך';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllYears => 'כל השנים';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveAllMonths => 'כל החודשים';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmpty =>
+      'אין עדיין חשבוניות ששולמו.';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveEmptyFiltered =>
+      'אין חשבוניות בטווח התאריכים הזה.';
+
+  @override
+  String gasCalculators_blender_invoiceArchiveFillCount(int count) {
+    return '$count מילויים';
+  }
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveIncomplete => 'לא שלם';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveUntitled => 'ללא כותרת';
+
+  @override
+  String get gasCalculators_blender_invoiceArchiveNotFound =>
+      'החשבונית לא נמצאה.';
+
+  @override
+  String get gasCalculators_blender_defaults => 'הגדרות ברירת מחדל וחיוב';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';
@@ -25275,6 +25390,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_section_security_subtitle =>
       'נעילת אפליקציה והצפנת מסד הנתונים';
+
+  @override
+  String get settings_section_trimixMixer_title => 'מערבל טרימיקס';
+
+  @override
+  String get settings_section_trimixMixer_subtitle =>
+      'גזי מילוי, תנאים וברירות מחדל לחיוב';
 
   @override
   String get settings_security_appLock => 'נעילת אפליקציה';
