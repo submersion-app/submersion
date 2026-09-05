@@ -17,8 +17,8 @@ const Map<String, ({double emptyBuoyancyKg, double dryMassKg})> kTankCatalog = {
   'steel10': (emptyBuoyancyKg: -1.2, dryMassKg: 12.5),
   'steel12': (emptyBuoyancyKg: -1.4, dryMassKg: 14.5),
   'steel15': (emptyBuoyancyKg: -1.8, dryMassKg: 17.5),
-  'al30Stage': (emptyBuoyancyKg: 0.5, dryMassKg: 5.5),
-  'al40Stage': (emptyBuoyancyKg: 0.9, dryMassKg: 6.8),
+  'al30stage': (emptyBuoyancyKg: 0.5, dryMassKg: 5.5),
+  'al40stage': (emptyBuoyancyKg: 0.9, dryMassKg: 6.8),
 };
 
 /// Deterministic buoyancy terms for weight prediction: never learned,
