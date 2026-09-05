@@ -149,6 +149,31 @@ void main() {
     expect(isCompressedRawDiveData((await storedBytes(db, 's6'))!), isTrue);
   });
 
+  test('names recompression as the reason the pages need reclaiming', () async {
+    // The VACUUM warning interpolates this. The message it replaced still
+    // said "the dropped sample pages" after the gate widened to cover this
+    // rung, so a failed reclaim would have blamed a step that never ran.
+    final raw = teric();
+    final db = AppDatabase(setupDb((rawDb) => insertSource(rawDb, 's7', raw)));
+    addTearDown(db.close);
+
+    await db.customSelect('SELECT 1').get();
+
+    expect(db.unreclaimedPagesReason, 'raw dive data was recompressed');
+  });
+
+  test('says so plainly when nothing earned a reclaim', () async {
+    final db = AppDatabase(setupDb((rawDb) => insertSource(rawDb, 's8', null)));
+    addTearDown(db.close);
+
+    await db.customSelect('SELECT 1').get();
+
+    expect(
+      db.unreclaimedPagesReason,
+      'no reclaiming step reported on this connection',
+    );
+  });
+
   test('packs every row of a corpus larger than one page', () async {
     // The rung pages through the table with a keyset cursor. A single-row
     // fixture would never exercise the cursor, and an off-by-one there would

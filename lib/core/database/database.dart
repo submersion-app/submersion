@@ -6369,6 +6369,24 @@ class AppDatabase extends _$AppDatabase {
   bool get hasUnreclaimedPages =>
       droppedLegacySampleTables || recompressedRawBlobs;
 
+  /// What earned this connection's pending reclaim, for a log line that has
+  /// to name a cause.
+  ///
+  /// Both causes can be true of one upgrade, and neither has to be: a file
+  /// old enough to plan a VACUUM gets one even when its v183 rung skipped the
+  /// drop, and a message naming a step that did not run is worse than one
+  /// saying so. Kept beside [hasUnreclaimedPages] so a future reclaiming rung
+  /// that adds itself to the gate is looking straight at the string it also
+  /// has to extend.
+  String get unreclaimedPagesReason {
+    final causes = [
+      if (droppedLegacySampleTables) 'the legacy sample tables were dropped',
+      if (recompressedRawBlobs) 'raw dive data was recompressed',
+    ];
+    if (causes.isEmpty) return 'no reclaiming step reported on this connection';
+    return causes.join(' and ');
+  }
+
   /// Test hook: run the v190 recompression on demand so tests can assert it
   /// is idempotent. Not used in production; the migration calls the private
   /// method.

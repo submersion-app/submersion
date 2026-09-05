@@ -384,7 +384,9 @@ class DatabaseService {
       final unplannedReclaim = !willVacuum && migrator.hasUnreclaimedPages;
       if (vacuumPending() && (willVacuum || unplannedReclaim)) {
         // v183 dropped the row-per-sample tables, which on an older file are
-        // most of its pages. VACUUM here: outside any migration transaction,
+        // most of its pages, and v190 rewrites every raw_data blob smaller;
+        // both leave the freed pages on the freelist. VACUUM here: outside
+        // any migration transaction,
         // on the one exclusive main-isolate connection, and before the
         // background executor opens the file. Non-fatal: a busy lock or an
         // out-of-space temp store leaves a correct database that is merely
@@ -407,7 +409,8 @@ class DatabaseService {
         } catch (e, stackTrace) {
           _log.warning(
             'Post-migration VACUUM skipped; the database is correct but has '
-            'not reclaimed the dropped sample pages',
+            'not returned its free pages to the filesystem '
+            '(${migrator.unreclaimedPagesReason})',
             error: e,
             stackTrace: stackTrace,
           );
@@ -485,8 +488,9 @@ class DatabaseService {
         await database.customStatement('VACUUM');
       } catch (e, stackTrace) {
         _log.warning(
-          'VACUUM after the backstop dropped the legacy sample tables was '
-          'skipped; the database is correct but has not reclaimed their pages',
+          'VACUUM after an upgrade freed pages was skipped; the database is '
+          'correct but has not returned them to the filesystem '
+          '(${database.unreclaimedPagesReason})',
           error: e,
           stackTrace: stackTrace,
         );
