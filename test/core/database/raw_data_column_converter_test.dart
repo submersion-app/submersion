@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
@@ -62,7 +61,7 @@ void main() {
     final onDisk = await db
         .customSelect(
           'SELECT raw_data FROM dive_data_sources WHERE id = ?',
-          variables: [Variable('s1')],
+          variables: [const Variable('s1')],
         )
         .getSingle();
     final storedBytes = onDisk.read<Uint8List>('raw_data');

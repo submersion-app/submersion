@@ -27,14 +27,20 @@ zlib level 6 over the raw fixtures already committed to this repository:
 | fixture | raw | zlib-6 | with 8-byte header | ratio |
 |---|---:|---:|---:|---:|
 | `packages/libdivecomputer_plugin/test/native/fixtures/dive1_raw.bin` | 400 B | 321 B | 329 B | 1.22x |
-| `packages/libdivecomputer_plugin/test/native/fixtures/petrel3_ccr_o2_cells.bin` | 22,400 B | 8,903 B | 8,911 B | 2.51x |
+| `packages/libdivecomputer_plugin/test/native/fixtures/petrel3_ccr_o2_cells.bin` | 22,400 B | 8,903 B | 9,184 B | 2.44x |
 | `packages/libdivecomputer_plugin/android/src/androidTest/assets/shearwater_teric_dive.bin` | 22,144 B | 4,655 B | 4,663 B | 4.75x |
 
 Level 9 was measured too and gains under 1.2% over level 6 on all three, so
 level 6 is used.
 
+The "zlib-6" column is Python's zlib, used for the survey. The "with header"
+column is what the shipped Dart encoder actually produces, measured after
+implementation. They agree on two fixtures and differ by 3% on the Petrel 3
+one: the two zlib builds make slightly different choices at the same level.
+The shipped numbers are the ones in the rightmost columns.
+
 The 400-byte fixture is a synthetic minimal dive. Ordinary recreational dives
-from a Shearwater or Petrel are the 22 KB cases, at 2.5x to 4.8x. The old
+from a Shearwater or Petrel are the 22 KB cases, at 2.4x to 4.7x. The old
 "negligible" verdict came from calibrating on the small case.
 
 At 5,000 downloaded dives the design doc's own estimate of about 150 MB of raw
@@ -205,9 +211,12 @@ those paths is correct.
 
 ## Migration
 
-A new rung, **v188**, claimed against `origin/main` at schema version 187. No
-open pull request had taken 188 when this was written; the claim is re-verified
-at implementation time, per the schema ladder convention.
+A new rung, **v190**. This was written against `origin/main` at schema version
+187 and planned as v188, but by implementation time main had taken 188 (insurer
+phone numbers, #1522) and 189 (media equipment link, #1517), so the branch
+merged main and the rung moved up. The number is re-verified against
+`origin/main` immediately before it is claimed, per the schema ladder
+convention; that check is what caught this.
 
 The rung has no DDL. The column's SQL type is unchanged; only the stored bytes
 move. It walks `dive_data_sources` rows where `raw_data IS NOT NULL` in
@@ -316,7 +325,7 @@ rows wholesale as provenance, deliberately, because each carried row is the
 sole surviving copy of one download's raw bytes. A self-describing blob
 survives that copy with nothing to remember.
 
-**Compressed bytes on the wire, with the sync floor raised to 188.** This is
+**Compressed bytes on the wire, with the sync floor raised to the new rung.** This is
 the precedent the profile-series program set, and it is one line. It was
 rejected because the failure it protects against is mild and self-healing (an
 older peer's re-parse of a synced dive fails until that peer updates; no data
@@ -344,11 +353,11 @@ longest.
 | File | Change |
 |---|---|
 | `lib/core/database/raw_dive_data_codec.dart` | New. Format constants, encode, decode, converter. |
-| `lib/core/database/database.dart` | `.map(...)` on `rawData`; the v188 rung; the `recompressedRawBlobs` flag. |
-| `lib/core/database/database.g.dart` | Regenerated. |
+| `lib/core/database/database.dart` | `.map(...)` on `rawData`; the v190 rung; the `recompressedRawBlobs` and `hasUnreclaimedPages` flags. |
+| `lib/core/database/database.g.dart` | Regenerated. Not committed: `.gitignore` excludes `*.g.dart`. |
 | `lib/core/services/database_service.dart` | The VACUUM gate learns the new reclaim signal. |
 | `test/core/database/raw_dive_data_codec_test.dart` | New. Codec unit tests. |
-| `test/core/database/migration_v188_raw_data_compression_test.dart` | New. Migration fixtures. |
+| `test/core/database/migration_v190_raw_data_compression_test.dart` | New. Migration fixtures. |
 | `test/features/dive_computer/data/services/reparse_service_test.dart` | Round-trip assertion. |
 | `test/core/services/sync/sync_serializer_round_trip_test.dart` | The wire-contract assertion. |
 
