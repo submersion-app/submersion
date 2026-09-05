@@ -181,6 +181,12 @@ class MediaFetchGate {
       if (!caller.isCompleted) complete();
     }
 
+    // Deliberately not .ignore()d, unlike the whenComplete in run(). That one
+    // has to be: whenComplete forwards the source's error, so an unlistened
+    // failure there would be an unhandled async error. This chain cannot carry
+    // the source's error at all, because the onError below consumes it, so the
+    // only way it completes with one is a callback throwing. Ignoring it would
+    // silence exactly that bug.
     future.then(
       (value) => settle(() => caller.complete(value)),
       // Registered rather than left to propagate: without a handler here a
