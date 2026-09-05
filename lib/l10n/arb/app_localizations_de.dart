@@ -15845,6 +15845,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
 
   @override
+  String get settings_navCustomization_descriptionDesktop =>
+      'Elemente ziehen, um die Seitenleiste neu zu ordnen. Startseite bleibt immer oben.';
+
+  @override
+  String get settings_navCustomization_scopePhone => 'Telefon';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => 'Desktop';
+
+  @override
   String get settings_navCustomization_dividerLabel =>
       'Items below appear in the More menu';
 

@@ -15745,6 +15745,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
 
   @override
+  String get settings_navCustomization_descriptionDesktop =>
+      'Sleep items om de zijbalk opnieuw te ordenen. Home blijft altijd bovenaan.';
+
+  @override
+  String get settings_navCustomization_scopePhone => 'Telefoon';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => 'Desktop';
+
+  @override
   String get settings_navCustomization_dividerLabel =>
       'Items below appear in the More menu';
 

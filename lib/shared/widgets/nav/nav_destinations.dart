@@ -176,47 +176,47 @@ final List<String> movableNavIds = List.unmodifiable(
   kNavDestinations.where((d) => !d.isPinned).map((d) => d.id),
 );
 
-/// Default primary middle-slot ids (slots 2, 3, 4). Matches pre-customization behavior.
-const List<String> kDefaultPrimaryIds = ['dives', 'sites', 'trips'];
+/// Number of customizable slots between Home and More in the phone bottom bar.
+const int kPhonePrimarySlotCount = 3;
 
-/// Normalizes a stored list of primary ids into a valid 3-element list.
+/// Default order for both nav surfaces: every movable id in canonical order.
+///
+/// On phone the first [kPhonePrimarySlotCount] entries are the bottom-bar
+/// slots and the tail is the More sheet; on wide screens the whole list is the
+/// rail, below the pinned Home destination.
+final List<String> kDefaultNavOrder = movableNavIds;
+
+/// Default primary middle-slot ids (slots 2, 3, 4).
+final List<String> kDefaultPrimaryIds = List.unmodifiable(
+  kDefaultNavOrder.take(kPhonePrimarySlotCount),
+);
+
+/// Normalizes a stored nav order into a complete, ordered list of movable ids.
 ///
 /// Guarantees on the returned list:
-/// - Length is exactly 3.
-/// - Every id is in [movableIds] (unknown / pinned ids are dropped).
-/// - No duplicates (first occurrence wins).
-/// - Padding uses [defaults] in order, skipping already-present ids.
+/// - It contains every id in [movableIds] exactly once, so no destination can
+///   be stranded by a partial or corrupt stored value.
+/// - Ids present in [stored] come first, in stored order.
+/// - Unknown and pinned ids are dropped; a duplicate keeps its first position.
+/// - Everything else is appended in [movableIds] (canonical) order.
 ///
-/// [defaults] must contain at least 3 ids from [movableIds]; otherwise this
-/// throws [ArgumentError]. Callers should pass [kDefaultPrimaryIds].
-List<String> normalizeNavPrimaryIds({
+/// Values written before the order was widened held only the three phone
+/// bottom-bar slots. Those normalize to the front, so an upgrading user keeps
+/// the exact bottom bar they had and the rest of the order falls back to
+/// canonical. The widened value stays readable by an older build too, since
+/// that build takes its own first three ids.
+List<String> normalizeNavOrder({
   required List<String> stored,
   required List<String> movableIds,
-  required List<String> defaults,
 }) {
-  if (defaults.length < 3) {
-    throw ArgumentError.value(
-      defaults,
-      'defaults',
-      'must contain at least 3 ids',
-    );
-  }
-  for (final id in defaults.take(3)) {
-    if (!movableIds.contains(id)) {
-      throw ArgumentError('default id "$id" not in movableIds');
-    }
-  }
-
   final result = <String>[];
   for (final id in stored) {
-    if (result.length == 3) break;
     if (!movableIds.contains(id)) continue;
     if (result.contains(id)) continue;
     result.add(id);
   }
 
-  for (final id in defaults) {
-    if (result.length == 3) break;
+  for (final id in movableIds) {
     if (!result.contains(id)) result.add(id);
   }
 

@@ -7,7 +7,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/display_zoom_settings_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
+import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 const _sectionRoutes = [

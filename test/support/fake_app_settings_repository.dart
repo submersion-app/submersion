@@ -48,13 +48,37 @@ class FakeAppSettingsRepository implements AppSettingsRepository {
   Future<void> setShareByDefault(bool value) async =>
       throw UnimplementedError('not used by these tests');
 
-  @override
-  Future<List<String>?> getNavPrimaryIdsRaw() async =>
-      throw UnimplementedError('not used by these tests');
+  /// Stored phone nav order, or null when the key has never been written.
+  List<String>? navPrimaryIds;
+
+  /// Stored wide-screen rail nav order, or null when never written.
+  List<String>? navRailIds;
+
+  /// When set, both nav-order reads throw it, standing in for a database that
+  /// is down while a nav provider builds.
+  Object? throwOnNavRead;
 
   @override
-  Future<void> setNavPrimaryIds(List<String> ids) async =>
-      throw UnimplementedError('not used by these tests');
+  Future<List<String>?> getNavPrimaryIdsRaw() async {
+    if (throwOnNavRead != null) throw throwOnNavRead!;
+    return navPrimaryIds;
+  }
+
+  @override
+  Future<void> setNavPrimaryIds(List<String> ids) async {
+    navPrimaryIds = List<String>.from(ids);
+  }
+
+  @override
+  Future<List<String>?> getNavRailIdsRaw() async {
+    if (throwOnNavRead != null) throw throwOnNavRead!;
+    return navRailIds;
+  }
+
+  @override
+  Future<void> setNavRailIds(List<String> ids) async {
+    navRailIds = List<String>.from(ids);
+  }
 
   /// Last value stored through [setBlenderPreferences], if any.
   BlenderPreferences? blenderPreferences;

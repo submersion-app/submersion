@@ -12,7 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
-import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
+import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 
 /// Fraction of the screen height the phone overflow ("More") sheet may fill.
 ///
@@ -31,11 +31,6 @@ class MainScaffold extends ConsumerStatefulWidget {
 class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// When true, the user has manually collapsed the rail (overrides auto-extend)
   bool _isCollapsed = false;
-
-  /// Wide-screen rail destinations: every routable destination in canonical
-  /// order. The `more` sentinel is a phone-only overflow control.
-  List<NavDestination> get _railDestinations =>
-      kNavDestinations.where((d) => d.id != 'more').toList(growable: false);
 
   /// Builds a per-destination accent color lookup for the navigation surfaces.
   ///
@@ -60,14 +55,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   int _calculateSelectedIndex(
     BuildContext context, {
     required bool isWideScreen,
+    required List<NavDestination> railDestinations,
   }) {
     final location = GoRouterState.of(context).uri.path;
 
     if (isWideScreen) {
-      // Wide-screen rail: ordered by kNavDestinations.
-      final rail = _railDestinations;
-      for (var i = 0; i < rail.length; i++) {
-        if (location.startsWith(rail[i].route)) return i;
+      // Wide-screen rail: pinned Home, then the user's saved rail order.
+      for (var i = 0; i < railDestinations.length; i++) {
+        if (location.startsWith(railDestinations[i].route)) return i;
       }
       return 0;
     }
@@ -95,7 +90,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     }
 
     if (isWideScreen) {
-      final rail = _railDestinations;
+      final rail = ref.read(navRailDestinationsProvider);
       if (index >= 0 && index < rail.length) {
         context.go(rail[index].route);
       }
@@ -215,9 +210,11 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final isWideScreen = screenWidth >= 800;
     final isDesktopExtended = screenWidth >= 1200;
     final navAccent = _navAccentLookup(context);
+    final railDestinations = ref.watch(navRailDestinationsProvider);
     final selectedIndex = _calculateSelectedIndex(
       context,
       isWideScreen: isWideScreen,
+      railDestinations: railDestinations,
     );
 
     if (isWideScreen) {
@@ -267,7 +264,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                                   isWideScreen: true,
                                 ),
                             destinations: [
-                              for (final destination in _railDestinations)
+                              for (final destination in railDestinations)
                                 NavigationRailDestination(
                                   icon: Icon(
                                     destination.icon,

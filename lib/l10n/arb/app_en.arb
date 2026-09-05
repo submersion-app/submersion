@@ -9590,6 +9590,18 @@
   "@settings_navCustomization_description": {
     "description": "Help text at the top of the navigation customization page."
   },
+  "settings_navCustomization_descriptionDesktop": "Drag items to reorder the sidebar. Home always stays at the top.",
+  "@settings_navCustomization_descriptionDesktop": {
+    "description": "Help text shown when arranging the wide-screen navigation rail."
+  },
+  "settings_navCustomization_scopePhone": "Phone",
+  "@settings_navCustomization_scopePhone": {
+    "description": "Segmented-button label for editing the phone navigation order."
+  },
+  "settings_navCustomization_scopeDesktop": "Desktop",
+  "@settings_navCustomization_scopeDesktop": {
+    "description": "Segmented-button label for editing the desktop navigation rail order."
+  },
   "settings_navCustomization_dividerLabel": "Items below appear in the More menu",
   "@settings_navCustomization_dividerLabel": {
     "description": "Non-interactive divider row between primary and overflow destinations."
