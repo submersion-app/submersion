@@ -184,6 +184,22 @@ datetime would be friendlier to a reader that ignores our links, at the cost of
 saying something the spec does not mean; the explicit dive `<link>` serves that
 reader better anyway.
 
+**This does not affect dive times.** The dive's own datetime lives at
+`<dive><informationbeforedive><datetime>` and is read by a scoped lookup:
+`diveElement.findElements('informationbeforedive')`, then
+`getElementText(beforeElement, 'datetime')`
+(`uddf_full_import_service.dart:1262`). The dump's datetime lives in a
+different section entirely and is never in that element's scope. Neither UDDF
+importer contains a single `findAllElements` call, so no document-wide scan can
+stray across sections.
+
+The format already reuses the `<datetime>` element name in an unrelated place,
+equipment purchase dates (`uddf_full_import_service.dart:2474`), and it causes
+no trouble for exactly this reason. A regression test pins it: a document
+carrying both a dive datetime and a dump datetime that differ imports the dive
+at its own time. That test is what fails if anyone later "simplifies" a lookup
+to `findAllElements('datetime')`.
+
 ## Export
 
 ### Options
@@ -427,6 +443,8 @@ corrupted backup.
   descriptor, and re-parse reports the failure rather than crashing.
 - A `<submersion>` block containing nothing but a `<dcdumpindex>` imports
   cleanly, which is what a dives-only export produces.
+- A document whose dive datetime and dump datetime differ imports the dive at
+  its own time. This pins the section scoping described under `<datetime>`.
 - A dive whose export carried two dumps restores one and reports one dropped.
 - An oversized dump is refused without taking the import down.
 
