@@ -123,7 +123,10 @@ class _NavOrderEditorState extends ConsumerState<NavOrderEditor> {
     _local ??= List<String>.from(order);
 
     final dividerIndex = _dividerIndex;
-    final listIsDefault = listEquals(order, kDefaultNavOrder);
+    // Judged against the mirror, not the provider, so the button tracks the
+    // list the user is looking at during an optimistic drag rather than the
+    // last value that finished persisting.
+    final listIsDefault = listEquals(_local, kDefaultNavOrder);
 
     return Column(
       children: [
