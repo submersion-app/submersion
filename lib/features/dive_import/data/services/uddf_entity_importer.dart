@@ -2230,8 +2230,16 @@ class UddfEntityImporter {
       // writing both would leave the dive with one more source than it was
       // exported with. A dive with no entries keeps today's behaviour
       // exactly, which is every foreign UDDF file and every older export.
+      // Submersion's own export writes <dive id="dive_<uuid>">, and the
+      // parser keeps that attribute verbatim as sourceUuid, so the ref is
+      // already prefixed. A file whose dive ids are bare needs the prefix
+      // added. Try both rather than assume either shape.
+      final sourceUuid = diveData['sourceUuid'] as String?;
       final sourceEntries =
-          dataSourcesByDiveRef['dive_${diveData['sourceUuid']}'] ??
+          (sourceUuid == null
+              ? null
+              : dataSourcesByDiveRef[sourceUuid] ??
+                    dataSourcesByDiveRef['dive_$sourceUuid']) ??
           const <Map<String, dynamic>>[];
 
       if (sourceEntries.isEmpty) {

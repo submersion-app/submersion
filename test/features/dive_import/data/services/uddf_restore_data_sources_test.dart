@@ -62,6 +62,9 @@ Future<String> createTestDiver() async {
 final raw = Uint8List.fromList(List<int>.generate(320, (i) => (i * 7) % 256));
 
 /// A UDDF document with one dive and the given `<source>` entries.
+///
+/// The dive id carries the `dive_` prefix the real exporter writes, so this
+/// fixture exercises the same ref shape a round trip produces.
 String buildUddf({String sources = '', String control = ''}) {
   final appData = sources.isEmpty
       ? ''
@@ -79,7 +82,7 @@ $sources
   </gasdefinitions>
   <profiledata>
     <repetitiongroup id="repgrp1">
-      <dive id="DIVE-1">
+      <dive id="dive_DIVE-1">
         <informationbeforedive>
           <datetime>2019-06-02T10:00:00</datetime>
           <divenumber>1</divenumber>
