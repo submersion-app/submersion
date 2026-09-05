@@ -3399,7 +3399,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 189;
+  static const int currentSchemaVersion = 190;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3872,6 +3872,13 @@ class AppDatabase extends _$AppDatabase {
     // for the insurance phone columns while this branch was open, and a rung
     // at or below the shipped version never runs its onUpgrade step.
     189,
+    // v190: recompress dive_data_sources.raw_data in place (issue #227).
+    // No DDL; the column's SQL type is unchanged and only the stored bytes
+    // move. Guarded per row: the self-describing header means a row this
+    // rung skips keeps reading correctly forever, so a blob left
+    // uncompressed costs space and nothing else. Numbered 190 because main
+    // took 188 and 189 while this branch was open.
+    190,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6272,6 +6279,100 @@ class AppDatabase extends _$AppDatabase {
       ')',
     );
   }
+
+  /// v190: rewrite `dive_data_sources.raw_data` in its compressed at-rest
+  /// form (issue #227).
+  ///
+  /// PRAGMA-guarded like every other data rung, so a partial schema no-ops
+  /// rather than throwing. Rows already carrying the magic are skipped, which
+  /// is what makes a second run free and an interrupted run cost only the
+  /// work it already did.
+  ///
+  /// Every row is guarded on its own. An unguarded pack step in the v182
+  /// profile-series rung could leave a database that would not open, which is
+  /// the worst outcome available to a migration and the one this rung is
+  /// closest to repeating. A row that will not pack is left exactly as it is
+  /// and logged; nothing about it justifies refusing to open the diver's log.
+  ///
+  /// Paged with a keyset cursor rather than read whole: a large library holds
+  /// thousands of blobs, and loading every one into memory to save space
+  /// would be a strange way to go about it.
+  Future<void> _recompressRawDiveData() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('dive_data_sources')",
+    ).get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('id') || !names.contains('raw_data')) return;
+
+    const pageSize = 200;
+    String? cursor;
+    while (true) {
+      final page = await customSelect(
+        'SELECT id, raw_data FROM dive_data_sources '
+        'WHERE raw_data IS NOT NULL${cursor == null ? '' : ' AND id > ?'} '
+        'ORDER BY id LIMIT $pageSize',
+        variables: [if (cursor != null) Variable(cursor)],
+      ).get();
+      if (page.isEmpty) break;
+      cursor = page.last.read<String>('id');
+
+      for (final row in page) {
+        final id = row.read<String>('id');
+        final stored = row.read<Uint8List>('raw_data');
+        if (isCompressedRawDiveData(stored)) continue;
+        try {
+          final packed = encodeRawDiveData(stored);
+          if (packed.length >= stored.length) continue;
+          await customStatement(
+            'UPDATE dive_data_sources SET raw_data = ? WHERE id = ?',
+            [packed, id],
+          );
+          _recompressedRawBlobs = true;
+        } catch (e, stackTrace) {
+          _rawBlobsLeftUncompressed++;
+          developer.log(
+            'v190 left raw_data on dive_data_sources row $id uncompressed; '
+            'the bytes are intact and still readable',
+            name: 'AppDatabase',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
+      }
+      if (page.length < pageSize) break;
+    }
+  }
+
+  bool _recompressedRawBlobs = false;
+  int _rawBlobsLeftUncompressed = 0;
+
+  /// How many rows the v190 rung could not pack on this connection.
+  ///
+  /// Counted rather than only logged: a swallowed exception with nothing but
+  /// a log line is invisible to any test, and the one thing worth proving
+  /// about this rung is that a row it cannot pack changes nothing else.
+  int get rawBlobsLeftUncompressed => _rawBlobsLeftUncompressed;
+
+  /// True once this connection's v190 rung has actually shrunk at least one
+  /// `raw_data` blob.
+  ///
+  /// The rewritten pages go to the freelist, and only a VACUUM returns them
+  /// to the filesystem. Keyed off the event rather than the stored version
+  /// for the same reason as [droppedLegacySampleTables]: a file with no raw
+  /// data crosses this rung without earning a reclaim, and rewriting it would
+  /// cost a diver a full-file VACUUM for nothing.
+  bool get recompressedRawBlobs => _recompressedRawBlobs;
+
+  /// True when this connection did something whose freed pages are still held
+  /// by the file. The single signal [DatabaseService] reads to decide whether
+  /// its one VACUUM is worth taking.
+  bool get hasUnreclaimedPages =>
+      droppedLegacySampleTables || recompressedRawBlobs;
+
+  /// Test hook: run the v190 recompression on demand so tests can assert it
+  /// is idempotent. Not used in production; the migration calls the private
+  /// method.
+  Future<void> recompressRawDiveDataForTest() => _recompressRawDiveData();
 
   /// Site-level entry/exit method columns on dive_sites (issue #1104).
   /// PRAGMA-guarded so a healthy database no-ops and a partial schema does
@@ -10121,6 +10222,15 @@ class AppDatabase extends _$AppDatabase {
           await _assertMediaEquipmentIdColumn();
         }
         if (from < 189) await reportProgress();
+        // v190: recompress dive_data_sources.raw_data in place (issue #227).
+        // No DDL. Guarded per row, so a blob that will not pack is left as it
+        // is rather than failing the ladder. No beforeOpen backstop: the
+        // backstops re-assert schema a partial upgrade may have missed, and
+        // this rung changes none.
+        if (from < 190) {
+          await _recompressRawDiveData();
+        }
+        if (from < 190) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

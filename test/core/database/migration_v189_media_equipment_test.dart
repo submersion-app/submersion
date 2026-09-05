@@ -53,11 +53,10 @@ void main() {
     expect(row.data['equipment_id'], isNull);
   });
 
-  test('v189 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact-version tripwire; the rung below has
-    // been relaxed to greaterThanOrEqualTo. Move both together when the next
-    // rung lands.
-    expect(AppDatabase.currentSchemaVersion, 189);
+  test('migration list includes v189 and schema is at least 189', () {
+    // Relaxed from an exact match when v190 landed: the exact assertion is
+    // the newest rung's job, and it moves with it.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(189));
     expect(AppDatabase.migrationVersions, contains(189));
   });
 
