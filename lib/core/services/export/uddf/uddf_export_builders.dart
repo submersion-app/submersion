@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' hide Visibility;
@@ -10,6 +12,7 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -1583,6 +1586,179 @@ class UddfExportBuilders {
             }
           },
         );
+      },
+    );
+  }
+
+  /// Hex encode, matching SQLite's `hex()` and the convention
+  /// `dive_repository_impl.dart` documents for raw fingerprints.
+  static String _hex(Uint8List bytes) => bytes
+      .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
+      .join();
+
+  /// The Submersion per-source provenance record.
+  ///
+  /// One `<source>` entry per `dive_data_sources` row, carrying every column
+  /// except the blob itself. This exists because UDDF has nowhere to put the
+  /// libdivecomputer descriptor triple, without which a restored dump can
+  /// never be re-parsed, and nowhere to put the per-source metric snapshot,
+  /// since a UDDF `<dive>` carries only the consolidated values.
+  ///
+  /// Entries are written for rows with no bytes as well. Omitting them would
+  /// restore a dive that had one plain source beside one carrying bytes with
+  /// fewer sources than it had.
+  static void buildDataSources(
+    XmlBuilder builder,
+    List<DiveSourceExport> sources,
+  ) {
+    if (sources.isEmpty) return;
+
+    builder.element(
+      'datasources',
+      nest: () {
+        for (final source in sources) {
+          builder.element(
+            'source',
+            attributes: {
+              'diveref': 'dive_${source.diveId}',
+              'ordinal': '${source.ordinal}',
+              'hasdump': '${source.hasDump}',
+            },
+            nest: () {
+              if (source.descriptorVendor != null ||
+                  source.descriptorProduct != null ||
+                  source.descriptorModel != null) {
+                builder.element(
+                  'descriptor',
+                  attributes: {
+                    if (source.descriptorVendor != null)
+                      'vendor': source.descriptorVendor!,
+                    if (source.descriptorProduct != null)
+                      'product': source.descriptorProduct!,
+                    if (source.descriptorModel != null)
+                      'model': '${source.descriptorModel}',
+                  },
+                );
+              }
+              _dsText(
+                builder,
+                'libdivecomputerversion',
+                source.libdivecomputerVersion,
+              );
+              _dsText(builder, 'sourceuuid', source.sourceUuid);
+              if (source.rawFingerprint != null &&
+                  source.rawFingerprint!.isNotEmpty) {
+                builder.element(
+                  'fingerprint',
+                  nest: _hex(source.rawFingerprint!),
+                );
+              }
+              builder.element('primary', nest: '${source.isPrimary}');
+              _dsNumber(builder, 'mergesourceslot', source.mergeSourceSlot);
+              _dsNumber(builder, 'timeoffsetseconds', source.timeOffsetSeconds);
+              _dsText(builder, 'computermodel', source.computerModel);
+              _dsText(builder, 'computerserial', source.computerSerial);
+              _dsText(builder, 'sourceformat', source.sourceFormat);
+              _dsText(builder, 'sourcefilename', source.sourceFileName);
+              _dsText(builder, 'sourcefileformat', source.sourceFileFormat);
+              _dsDate(builder, 'importedat', source.importedAt);
+              _dsDate(builder, 'createdat', source.createdAt);
+              _dsDate(builder, 'lastparsedat', source.lastParsedAt);
+              _dsNumber(builder, 'maxdepth', source.maxDepth);
+              _dsNumber(builder, 'avgdepth', source.avgDepth);
+              _dsNumber(builder, 'duration', source.duration);
+              _dsNumber(builder, 'watertemp', source.waterTemp);
+              _dsNumber(builder, 'entrylatitude', source.entryLatitude);
+              _dsNumber(builder, 'entrylongitude', source.entryLongitude);
+              _dsNumber(builder, 'exitlatitude', source.exitLatitude);
+              _dsNumber(builder, 'exitlongitude', source.exitLongitude);
+              _dsDate(builder, 'entrytime', source.entryTime);
+              _dsDate(builder, 'exittime', source.exitTime);
+              _dsNumber(builder, 'maxascentrate', source.maxAscentRate);
+              _dsNumber(builder, 'maxdescentrate', source.maxDescentRate);
+              _dsNumber(builder, 'surfaceinterval', source.surfaceInterval);
+              _dsNumber(builder, 'cns', source.cns);
+              _dsNumber(builder, 'otu', source.otu);
+              _dsText(builder, 'decoalgorithm', source.decoAlgorithm);
+              _dsNumber(builder, 'gradientfactorlow', source.gradientFactorLow);
+              _dsNumber(
+                builder,
+                'gradientfactorhigh',
+                source.gradientFactorHigh,
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
+  static void _dsText(XmlBuilder builder, String name, String? value) {
+    if (value == null || value.isEmpty) return;
+    builder.element(name, nest: value);
+  }
+
+  static void _dsNumber(XmlBuilder builder, String name, num? value) {
+    if (value == null) return;
+    builder.element(name, nest: '$value');
+  }
+
+  static void _dsDate(XmlBuilder builder, String name, DateTime? value) {
+    if (value == null) return;
+    builder.element(name, nest: value.toIso8601String());
+  }
+
+  /// The UDDF standard `<divecomputercontrol>` section, which the
+  /// specification places last in the document.
+  ///
+  /// One `<divecomputerdump>` per source that has an encoded payload in
+  /// [encodedById], keyed by [DiveSourceExport.id]. A source mapped to null
+  /// failed to compress; its dump and nothing else is omitted, because this
+  /// is a backup path and a file missing one dump beats no file at all.
+  ///
+  /// [declaresComputers] must be false when the document emits no
+  /// `<divecomputer>` element, which is the case for the dives only export.
+  /// Every ref written here has to point at an id the standard itself
+  /// declares, or it dangles under IDREF validation.
+  static void buildDiveComputerControl(
+    XmlBuilder builder,
+    List<DiveSourceExport> sources,
+    Map<String, String?> encodedById, {
+    required bool declaresComputers,
+  }) {
+    final withPayload = sources
+        .where((s) => encodedById[s.id] != null)
+        .toList(growable: false);
+    if (withPayload.isEmpty) return;
+
+    builder.element(
+      'divecomputercontrol',
+      nest: () {
+        for (final source in withPayload) {
+          builder.element(
+            'divecomputerdump',
+            nest: () {
+              builder.element(
+                'link',
+                attributes: {'ref': 'dive_${source.diveId}'},
+              );
+              if (declaresComputers && source.computerId != null) {
+                builder.element(
+                  'link',
+                  attributes: {'ref': source.computerId!},
+                );
+              }
+              // The specification means "when the dump was captured", so this
+              // is the source row's importedAt, not the dive's own datetime.
+              // The dive link is what ties the dump back to its dive.
+              builder.element(
+                'datetime',
+                nest: source.importedAt.toIso8601String(),
+              );
+              builder.element('dcdump', nest: encodedById[source.id]!);
+            },
+          );
+        }
       },
     );
   }
