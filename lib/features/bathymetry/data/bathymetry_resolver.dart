@@ -38,7 +38,7 @@ class BathymetryResolver {
   Future<BathymetryResolution> resolve(GeoPoint center) async {
     var globalSourceSaidDry = false;
     for (final source in sources) {
-      if (!source.covers(center)) continue;
+      if (await source.probe(center) == null) continue;
       try {
         final grid = await source.fetch(center, spanMeters: defaultSpanMeters);
         if (grid.wetFraction >= minWetFraction) {

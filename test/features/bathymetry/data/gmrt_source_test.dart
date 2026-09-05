@@ -95,4 +95,15 @@ void main() {
       },
     );
   });
+
+  group('probe', () {
+    test('covers everywhere at its declared 60 m', () async {
+      final cap = await GmrtSource(
+        client: MockClient((_) async => http.Response('', 500)),
+      ).probe(const GeoPoint(-33.9, 151.2));
+      expect(cap, isNotNull);
+      expect(cap!.cellSizeMeters, 60);
+      expect(cap.detail, 'GMRT GridServer');
+    });
+  });
 }

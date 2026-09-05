@@ -32,7 +32,8 @@ class ScriptedSource implements BathymetrySource {
   @override
   bool get global => true;
   @override
-  bool covers(GeoPoint center) => true;
+  Future<SourceCapability?> probe(GeoPoint center) async =>
+      const SourceCapability(cellSizeMeters: 100, detail: 'fake');
   @override
   Future<BathymetryGrid> fetch(GeoPoint c, {required double spanMeters}) async {
     calls++;

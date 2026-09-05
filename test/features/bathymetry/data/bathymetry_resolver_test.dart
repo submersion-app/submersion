@@ -25,13 +25,22 @@ class FakeSource implements BathymetrySource {
   final bool global;
   final bool coversIt;
   final BathymetryGrid? result; // null => throw transient
+  final double cellSizeMeters;
   int fetchCount = 0;
   double? lastSpanMeters;
 
-  FakeSource(this.id, {this.global = true, this.coversIt = true, this.result});
+  FakeSource(
+    this.id, {
+    this.global = true,
+    this.coversIt = true,
+    this.result,
+    this.cellSizeMeters = 100,
+  });
 
   @override
-  bool covers(GeoPoint center) => coversIt;
+  Future<SourceCapability?> probe(GeoPoint center) async => coversIt
+      ? SourceCapability(cellSizeMeters: cellSizeMeters, detail: id)
+      : null;
 
   @override
   Future<BathymetryGrid> fetch(GeoPoint c, {required double spanMeters}) async {
@@ -49,7 +58,8 @@ class _ErrorSource implements BathymetrySource {
   @override
   bool get global => true;
   @override
-  bool covers(GeoPoint center) => true;
+  Future<SourceCapability?> probe(GeoPoint center) async =>
+      const SourceCapability(cellSizeMeters: 100, detail: 'boom');
   @override
   Future<BathymetryGrid> fetch(GeoPoint c, {required double spanMeters}) async {
     throw ArgumentError('unexpected parser blow-up');
