@@ -379,6 +379,54 @@ void main() {
       });
     });
 
+    /// A caller parked behind the concurrency cap is suspended inside
+    /// _acquire, which only its completer can resume. Dropping that completer
+    /// would leave the inner _withSlot future permanently incomplete: nothing
+    /// observes it today, but it is the kind of orphan that hangs whoever
+    /// holds one next.
+    test('a caller parked behind the cap unwinds instead of hanging', () async {
+      final gate = MediaFetchGate(maxConcurrent: 1);
+      var parkedFetchRan = false;
+
+      // Occupies the only slot and never settles, so the second call parks.
+      final running = gate.run('a', () => Completer<MediaSourceData?>().future);
+      final parked = gate.run('b', () {
+        parkedFetchRan = true;
+        return Completer<MediaSourceData?>().future;
+      });
+      await Future<void>.delayed(Duration.zero);
+      expect(gate.waitingCount, 1, reason: 'the second call must be parked');
+
+      gate.dispose();
+
+      // Drain well past the microtask that resumes the parked waiter. Without
+      // this the assertion below passes vacuously: the fetch starts a turn
+      // later than a single await settles.
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      // Both answer rather than hanging, and the parked fetch never started.
+      expect(
+        await running,
+        isA<UnavailableData>().having(
+          (d) => d.kind,
+          'kind',
+          UnavailableKind.stillFetching,
+        ),
+      );
+      expect(
+        await parked,
+        isA<UnavailableData>().having(
+          (d) => d.kind,
+          'kind',
+          UnavailableKind.stillFetching,
+        ),
+      );
+      expect(parkedFetchRan, isFalse);
+      expect(gate.waitingCount, 0);
+    });
+
     test('is idempotent', () {
       final gate = MediaFetchGate(maxConcurrent: 1);
       gate.dispose();

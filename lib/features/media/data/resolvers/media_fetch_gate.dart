@@ -216,7 +216,19 @@ class MediaFetchGate {
       entry.key.cancel();
       if (!entry.value.isCompleted) entry.value.complete(_givenUp);
     }
+    // Completed, not dropped. A waiter parked inside _acquire owns the only
+    // path back into its _withSlot body, so abandoning its completer leaves
+    // that future permanently incomplete. Nothing hangs on it today (the
+    // caller was already answered above, and the orphan is unreachable enough
+    // to collect), but a future that can never complete is a trap for the next
+    // caller who holds one. They resume into the _disposed guard in _withSlot,
+    // which returns without starting a fetch or arming a timer, so releasing
+    // them here does not put work back on a gate being torn down.
+    final parked = List<Completer<void>>.of(_waiting);
     _waiting.clear();
+    for (final waiter in parked) {
+      if (!waiter.isCompleted) waiter.complete();
+    }
     _inFlight.clear();
     _running = 0;
     _detached = 0;
@@ -226,6 +238,10 @@ class MediaFetchGate {
     Future<MediaSourceData?> Function() fetch,
   ) async {
     await _acquire();
+    // Torn down while this call was parked, or between the slot and here.
+    // Answer the way the total budget would have rather than starting a fetch
+    // the gate can no longer bound.
+    if (_disposed) return _givenUp;
     var holdsSlot = true;
     var detached = false;
 
