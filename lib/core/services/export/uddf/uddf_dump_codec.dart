@@ -4,14 +4,11 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 
-/// Largest raw dive blob this app will encode into, or accept out of, a UDDF
-/// `<dcdump>` element.
-///
-/// Issue #227 defines the same ceiling in
-/// `lib/core/database/raw_dive_data_codec.dart` for the at-rest codec.
-/// Whichever of the two changes lands second deletes its duplicate and
-/// imports the other's, so there is exactly one definition of this number.
-const int kMaxRawDiveBlobBytes = 8 * 1024 * 1024;
+// The size ceiling for a raw dive blob is defined once, by the at-rest codec
+// issue #227 added. This file is the second of the two to land, so it imports
+// that definition rather than keeping its own copy.
+import 'package:submersion/core/database/raw_dive_data_codec.dart'
+    show kMaxRawDiveBlobBytes;
 
 /// A dump exceeded [kMaxRawDiveBlobBytes], encoding or decoding.
 ///

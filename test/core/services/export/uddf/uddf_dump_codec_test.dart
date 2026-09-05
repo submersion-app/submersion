@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/raw_dive_data_codec.dart'
+    show kMaxRawDiveBlobBytes;
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 
 void main() {
