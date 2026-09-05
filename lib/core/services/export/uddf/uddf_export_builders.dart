@@ -878,6 +878,7 @@ class UddfExportBuilders {
     List<Trip>? trips,
     List<Course>? courses,
     List<DiveSourceExport>? dataSources,
+    Map<String, String?> dataSourceDumps = const {},
   }) {
     final hasData =
         (equipment?.isNotEmpty ?? false) ||
@@ -1593,7 +1594,7 @@ class UddfExportBuilders {
             }
 
             // Per-source provenance for the dumps in <divecomputercontrol>.
-            buildDataSources(builder, dataSources ?? const []);
+            buildDataSources(builder, dataSources ?? const [], dataSourceDumps);
           },
         );
       },
@@ -1629,9 +1630,17 @@ class UddfExportBuilders {
   /// Entries are written for rows with no bytes as well. Omitting them would
   /// restore a dive that had one plain source beside one carrying bytes with
   /// fewer sources than it had.
+  ///
+  /// [encodedById] is the same map [buildDiveComputerControl] writes from, and
+  /// `hasdump` is derived from it rather than from the row's own bytes. The
+  /// two must agree: the importer pairs the nth dump with the nth entry
+  /// claiming one, so a row that claims a dump it did not get would shift
+  /// every later dump onto the wrong row, descriptor triple included. A row
+  /// can hold bytes and still get no dump when its encode failed.
   static void buildDataSources(
     XmlBuilder builder,
     List<DiveSourceExport> sources,
+    Map<String, String?> encodedById,
   ) {
     if (sources.isEmpty) return;
 
@@ -1644,7 +1653,7 @@ class UddfExportBuilders {
             attributes: {
               'diveref': 'dive_${source.diveId}',
               'ordinal': '${source.ordinal}',
-              'hasdump': '${source.hasDump}',
+              'hasdump': '${encodedById[source.id] != null}',
             },
             nest: () {
               if (source.descriptorVendor != null ||

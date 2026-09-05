@@ -456,6 +456,7 @@ class UddfFullExportService {
           trips: trips,
           courses: courses,
           dataSources: sources,
+          dataSourceDumps: encodedById,
         );
 
         // The UDDF specification places <divecomputercontrol> last, so this

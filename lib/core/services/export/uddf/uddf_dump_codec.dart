@@ -53,17 +53,25 @@ class UddfDumpCodec {
     return base64.encode(BZip2Encoder().encodeBytes(raw));
   }
 
-  /// base64 then bzip2, bounded at [kMaxRawDiveBlobBytes].
+  /// base64 then bzip2, bounded at [kMaxRawDiveBlobBytes] and CRC checked.
   ///
   /// Decoding runs into a bounded [OutputStream] rather than
   /// `BZip2Decoder.decodeBytes`, so a bomb is abandoned partway instead of
   /// being fully allocated and only then measured.
+  ///
+  /// `verify: true` is not optional here. The decoder compares bzip2's block
+  /// and stream CRCs only when it is set, and these bytes are the sole
+  /// recoverable copy of a download: a damaged `<dcdump>` whose framing still
+  /// parses would otherwise restore silently wrong bytes that surface much
+  /// later as a wrong re-parse. Failing instead hands the dump to the
+  /// caller's skip-and-count path, which reports the loss.
   static Uint8List decodeOne(String base64Text) {
     final compressed = base64.decode(base64Text.trim());
     final output = _BoundedOutputStream(kMaxRawDiveBlobBytes);
     final ok = BZip2Decoder().decodeStream(
       InputMemoryStream(compressed),
       output,
+      verify: true,
     );
     if (!ok) {
       throw const FormatException('Malformed bzip2 payload in <dcdump>');

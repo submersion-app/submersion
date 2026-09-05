@@ -579,7 +579,11 @@ class UddfExportService {
                 'submersion',
                 attributes: {'version': '1.0'},
                 nest: () {
-                  UddfExportBuilders.buildDataSources(builder, sources);
+                  UddfExportBuilders.buildDataSources(
+                    builder,
+                    sources,
+                    encodedById,
+                  );
                 },
               );
             },

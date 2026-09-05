@@ -1321,6 +1321,25 @@ class UddfEntityImporter {
     diveData['diveComputerSerial'] as String?,
   );
 
+  /// The `<source>` entries belonging to one parsed dive.
+  ///
+  /// Submersion's own export writes `<dive id="dive_<uuid>">`, and the parser
+  /// keeps that attribute verbatim as `sourceUuid`, so the ref is already
+  /// prefixed. A file whose dive ids are bare needs the prefix added. Both
+  /// shapes are tried rather than assuming either, and this lives in one
+  /// place so the restore and the computer registration cannot resolve a dive
+  /// differently.
+  static List<Map<String, dynamic>> _entriesForDive(
+    Map<String, dynamic> diveData,
+    Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef,
+  ) {
+    final sourceUuid = diveData['sourceUuid'] as String?;
+    if (sourceUuid == null) return const [];
+    return dataSourcesByDiveRef[sourceUuid] ??
+        dataSourcesByDiveRef['dive_$sourceUuid'] ??
+        const [];
+  }
+
   /// The registration key for a model and serial pair.
   ///
   /// Shared so a restored `<source>` entry resolves its computer exactly the
@@ -1399,8 +1418,13 @@ class UddfEntityImporter {
     // second computer would go unregistered and its restored source row would
     // lose the registry link. Registering from the entries too is what keeps
     // the restore lossless.
-    for (final entries in dataSourcesByDiveRef.values) {
-      for (final entry in entries) {
+    //
+    // Only the SELECTED dives' entries, matching the loop above. Ranging over
+    // every ref in the file would register devices belonging to dives the
+    // user chose not to import, leaving the registry listing computers that
+    // own nothing.
+    for (final i in selected) {
+      for (final entry in _entriesForDive(items[i], dataSourcesByDiveRef)) {
         await register(
           model: entry['computerModel'] as String?,
           serial: entry['computerSerial'] as String?,
@@ -2230,17 +2254,7 @@ class UddfEntityImporter {
       // writing both would leave the dive with one more source than it was
       // exported with. A dive with no entries keeps today's behaviour
       // exactly, which is every foreign UDDF file and every older export.
-      // Submersion's own export writes <dive id="dive_<uuid>">, and the
-      // parser keeps that attribute verbatim as sourceUuid, so the ref is
-      // already prefixed. A file whose dive ids are bare needs the prefix
-      // added. Try both rather than assume either shape.
-      final sourceUuid = diveData['sourceUuid'] as String?;
-      final sourceEntries =
-          (sourceUuid == null
-              ? null
-              : dataSourcesByDiveRef[sourceUuid] ??
-                    dataSourcesByDiveRef['dive_$sourceUuid']) ??
-          const <Map<String, dynamic>>[];
+      final sourceEntries = _entriesForDive(diveData, dataSourcesByDiveRef);
 
       if (sourceEntries.isEmpty) {
         await repos.diveRepository.saveComputerReading(

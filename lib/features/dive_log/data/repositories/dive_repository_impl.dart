@@ -6238,15 +6238,27 @@ class DiveRepository {
   ) async {
     if (diveIds.isEmpty) return const [];
     try {
-      final query = _db.select(_db.diveDataSources)
-        ..where((t) => t.diveId.isIn(diveIds))
-        ..orderBy([
-          (t) => OrderingTerm.asc(t.diveId),
-          (t) => OrderingTerm.desc(t.isPrimary),
-          (t) => OrderingTerm.asc(t.createdAt),
-          (t) => OrderingTerm.asc(t.id),
-        ]);
-      final rows = await query.get();
+      // Chunked because this binds one SQL variable per id and the full
+      // logbook export always passes every dive in the library, which is the
+      // case seriesIdChunks exists for.
+      //
+      // Chunking splits the dive ids, so every row of a given dive lands in
+      // exactly one chunk and its rows stay contiguous and correctly ordered.
+      // Only the order BETWEEN dives follows chunk order rather than dive id,
+      // which nothing depends on: the ordinals below are per dive, and
+      // consumers group by diveId.
+      final rows = <DiveDataSourcesData>[];
+      for (final chunk in seriesIdChunks(diveIds)) {
+        final query = _db.select(_db.diveDataSources)
+          ..where((t) => t.diveId.isIn(chunk))
+          ..orderBy([
+            (t) => OrderingTerm.asc(t.diveId),
+            (t) => OrderingTerm.desc(t.isPrimary),
+            (t) => OrderingTerm.asc(t.createdAt),
+            (t) => OrderingTerm.asc(t.id),
+          ]);
+        rows.addAll(await query.get());
+      }
 
       final ordinalByDive = <String, int>{};
       return rows

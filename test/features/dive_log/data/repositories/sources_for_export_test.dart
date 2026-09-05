@@ -3,6 +3,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -145,5 +146,33 @@ void main() {
 
   test('returns an empty list for an empty id list without querying', () async {
     expect(await repository.getSourcesForExport(const []), isEmpty);
+  });
+
+  test('handles an id list longer than one bound-variable chunk', () async {
+    // A full logbook export passes every dive in the library, and this binds
+    // one SQL variable per id, so the query has to chunk like its siblings.
+    const count = kSeriesIdChunkSize + 25;
+    for (var i = 0; i < count; i++) {
+      final id = 'dive-${i.toString().padLeft(5, '0')}';
+      await insertDive(id);
+      await insertSource('src-$id', id, isPrimary: true);
+    }
+
+    final ids = [
+      for (var i = 0; i < count; i++) 'dive-${i.toString().padLeft(5, '0')}',
+    ];
+    final sources = await repository.getSourcesForExport(ids);
+
+    expect(sources, hasLength(count));
+    expect(
+      sources.map((s) => s.diveId).toSet(),
+      hasLength(count),
+      reason: 'every dive must appear exactly once across the chunks',
+    );
+    expect(
+      sources.every((s) => s.ordinal == 0),
+      isTrue,
+      reason: 'each dive has one source, so every ordinal restarts at zero',
+    );
   });
 }

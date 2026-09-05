@@ -79,6 +79,42 @@ void main() {
       );
     });
 
+    test('decode never silently returns corrupted bytes', () {
+      // These bytes are the only recoverable copy of a download, so a damaged
+      // payload has to fail rather than restore something subtly wrong. bzip2
+      // carries block and stream CRCs, but the decoder only compares them
+      // when asked to verify.
+      final raw = Uint8List.fromList(
+        List<int>.generate(2048, (i) => (i * 13) % 256),
+      );
+      final compressed = BZip2Encoder().encodeBytes(raw);
+
+      var checked = 0;
+      // Walk past the 4-byte header so the corruption lands in the payload.
+      for (var i = 8; i < compressed.length; i += 37) {
+        final damaged = Uint8List.fromList(compressed);
+        damaged[i] ^= 0xFF;
+
+        checked++;
+        try {
+          final decoded = UddfDumpCodec.decodeOne(base64.encode(damaged));
+          expect(
+            decoded,
+            equals(raw),
+            reason:
+                'byte $i decoded without error, so it must match the '
+                'original exactly; anything else is silent corruption',
+          );
+        } on FormatException {
+          // The wanted outcome: refused rather than silently wrong.
+        } on UddfDumpTooLargeException {
+          // Also fine: garbage that inflates past the ceiling.
+        }
+      }
+
+      expect(checked, greaterThan(4), reason: 'sanity: the loop ran');
+    });
+
     test('decode rejects text that is not bzip2', () {
       expect(
         () => UddfDumpCodec.decodeOne('bm90IGJ6aXAy'),

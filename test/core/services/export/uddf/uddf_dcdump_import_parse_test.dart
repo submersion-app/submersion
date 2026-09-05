@@ -163,6 +163,40 @@ void main() {
     expect(entries.map((e) => e['computerModel']), ['Perdix AI', 'Teric']);
   });
 
+  test('a skipped dump does not shift bytes onto an earlier source', () async {
+    // The export marks hasdump from what it actually wrote, so a source whose
+    // encode failed says false. If it said true, this dump would pair with
+    // ordinal 0 and source A would end up holding source B's bytes together
+    // with A's own descriptor triple.
+    final xml = document(
+      applicationData: sourcesBlock('''
+        <source diveref="dive_d1" ordinal="0" hasdump="false">
+          <descriptor vendor="Shearwater" product="Perdix" model="5"/>
+          <primary>true</primary>
+          <computermodel>Perdix AI</computermodel>
+          <importedat>2019-06-02T18:41:07.000</importedat>
+          <createdat>2019-06-02T18:41:07.000</createdat>
+        </source>
+        <source diveref="dive_d1" ordinal="1" hasdump="true">
+          <descriptor vendor="Shearwater" product="Teric" model="9"/>
+          <primary>false</primary>
+          <computermodel>Teric</computermodel>
+          <importedat>2019-06-02T18:41:07.000</importedat>
+          <createdat>2019-06-02T18:41:07.000</createdat>
+        </source>'''),
+      control: controlBlock(payload),
+    );
+
+    final result = await UddfFullImportService().importAllDataFromUddf(xml);
+    final entries = result.dataSourcesByDiveRef['dive_d1']!;
+
+    expect(entries, hasLength(2));
+    expect(entries[0]['rawData'], isNull, reason: 'A claimed no dump');
+    expect(entries[1]['rawData'], equals(raw));
+    expect(entries[1]['descriptorProduct'], 'Teric');
+    expect(result.unpairedDumps, 0);
+  });
+
   test('the dump datetime does not become the dive time', () async {
     final xml = document(
       control:

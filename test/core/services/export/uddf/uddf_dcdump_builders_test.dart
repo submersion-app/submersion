@@ -60,8 +60,11 @@ void main() {
       );
 
       final xml = render(
-        (b) =>
-            UddfExportBuilders.buildDataSources(b, [withBytes, withoutBytes]),
+        (b) => UddfExportBuilders.buildDataSources(
+          b,
+          [withBytes, withoutBytes],
+          const {'src-a': 'QlpoOUFB'},
+        ),
       );
       final doc = XmlDocument.parse(xml);
       final entries = doc.findAllElements('source').toList();
@@ -91,9 +94,41 @@ void main() {
       );
     });
 
+    test('marks a source whose dump failed to encode as having none', () {
+      // hasdump must describe what was actually written, not what the row
+      // held. The importer pairs the nth dump with the nth hasdump entry, so
+      // a source that claims a dump it did not get shifts every later dump
+      // onto the wrong row, descriptor triple and all.
+      final failed = source(
+        id: 'src-a',
+        diveId: 'dive-1',
+        ordinal: 0,
+        rawData: Uint8List.fromList([1, 2, 3]),
+      );
+      final encoded = source(
+        id: 'src-b',
+        diveId: 'dive-1',
+        ordinal: 1,
+        isPrimary: false,
+        rawData: Uint8List.fromList([4, 5, 6]),
+      );
+
+      final xml = render(
+        (b) => UddfExportBuilders.buildDataSources(
+          b,
+          [failed, encoded],
+          const {'src-a': null, 'src-b': 'QlpoOUFB'},
+        ),
+      );
+      final entries = XmlDocument.parse(xml).findAllElements('source').toList();
+
+      expect(entries[0].getAttribute('hasdump'), 'false');
+      expect(entries[1].getAttribute('hasdump'), 'true');
+    });
+
     test('writes nothing at all for an empty source list', () {
       final xml = render(
-        (b) => UddfExportBuilders.buildDataSources(b, const []),
+        (b) => UddfExportBuilders.buildDataSources(b, const [], const {}),
       );
       expect(XmlDocument.parse(xml).findAllElements('datasources'), isEmpty);
     });
