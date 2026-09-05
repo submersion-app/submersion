@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -336,12 +337,13 @@ class _ExportSectionContent extends ConsumerWidget {
                     context,
                     ref,
                     title: context.l10n.transfer_export_uddfTitle,
-                    shareAction: () => ref
+                    offerRawData: true,
+                    shareAction: (options) => ref
                         .read(exportNotifierProvider.notifier)
-                        .exportDivesToUddf(),
-                    saveAction: () => ref
+                        .exportDivesToUddf(options),
+                    saveAction: (options) => ref
                         .read(exportNotifierProvider.notifier)
-                        .saveUddfToFile(),
+                        .saveUddfToFile(options),
                   ),
                 ),
                 const Divider(height: 1),
@@ -373,10 +375,10 @@ class _ExportSectionContent extends ConsumerWidget {
                     context,
                     ref,
                     title: context.l10n.transfer_export_excelTitle,
-                    shareAction: () => ref
+                    shareAction: (_) => ref
                         .read(exportNotifierProvider.notifier)
                         .exportToExcel(),
-                    saveAction: () => ref
+                    saveAction: (_) => ref
                         .read(exportNotifierProvider.notifier)
                         .saveExcelToFile(),
                   ),
@@ -393,10 +395,10 @@ class _ExportSectionContent extends ConsumerWidget {
                     context,
                     ref,
                     title: context.l10n.transfer_export_maintenanceTitle,
-                    shareAction: () => ref
+                    shareAction: (_) => ref
                         .read(exportNotifierProvider.notifier)
                         .exportMaintenanceLog(),
-                    saveAction: () => ref
+                    saveAction: (_) => ref
                         .read(exportNotifierProvider.notifier)
                         .saveMaintenanceLogToFile(),
                   ),
@@ -411,9 +413,9 @@ class _ExportSectionContent extends ConsumerWidget {
                     context,
                     ref,
                     title: context.l10n.transfer_export_kmlTitle,
-                    shareAction: () =>
+                    shareAction: (_) =>
                         ref.read(exportNotifierProvider.notifier).exportToKml(),
-                    saveAction: () => ref
+                    saveAction: (_) => ref
                         .read(exportNotifierProvider.notifier)
                         .saveKmlToFile(),
                   ),
@@ -449,9 +451,9 @@ class _ExportSectionContent extends ConsumerWidget {
       context,
       ref,
       title: context.l10n.transfer_export_pdfTitle,
-      shareAction: () =>
+      shareAction: (_) =>
           ref.read(exportNotifierProvider.notifier).exportDivesToPdf(options),
-      saveAction: () =>
+      saveAction: (_) =>
           ref.read(exportNotifierProvider.notifier).savePdfToFile(options),
     );
   }
@@ -468,24 +470,24 @@ class _ExportSectionContent extends ConsumerWidget {
           context,
           ref,
           title: context.l10n.transfer_csvExport_optionDivesTitle,
-          shareAction: () => notifier.exportDivesToCsv(),
-          saveAction: () => notifier.saveDivesCsvToFile(),
+          shareAction: (_) => notifier.exportDivesToCsv(),
+          saveAction: (_) => notifier.saveDivesCsvToFile(),
         );
       case CsvExportType.sites:
         _showExportOptions(
           context,
           ref,
           title: context.l10n.transfer_csvExport_optionSitesTitle,
-          shareAction: () => notifier.exportSitesToCsv(),
-          saveAction: () => notifier.saveSitesCsvToFile(),
+          shareAction: (_) => notifier.exportSitesToCsv(),
+          saveAction: (_) => notifier.saveSitesCsvToFile(),
         );
       case CsvExportType.equipment:
         _showExportOptions(
           context,
           ref,
           title: context.l10n.transfer_csvExport_optionEquipmentTitle,
-          shareAction: () => notifier.exportEquipmentToCsv(),
-          saveAction: () => notifier.saveEquipmentCsvToFile(),
+          shareAction: (_) => notifier.exportEquipmentToCsv(),
+          saveAction: (_) => notifier.saveEquipmentCsvToFile(),
         );
     }
   }
@@ -553,47 +555,75 @@ class _ExportSectionContent extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref, {
     required String title,
-    required Future<void> Function() shareAction,
-    required Future<void> Function() saveAction,
+    required Future<void> Function(UddfExportOptions options) shareAction,
+    required Future<void> Function(UddfExportOptions options) saveAction,
+    bool offerRawData = false,
   }) {
+    var includeRawData = const UddfExportOptions().includeRawData;
+
     showModalBottomSheet<void>(
       context: context,
-      builder: (bottomSheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium,
+      builder: (bottomSheetContext) => StatefulBuilder(
+        builder: (builderContext, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: const Icon(Icons.share),
-                title: Text(context.l10n.transfer_export_optionShareTitle),
-                subtitle: Text(
-                  context.l10n.transfer_export_optionShareSubtitle,
+                const SizedBox(height: 16),
+                // Only UDDF has raw dive computer bytes to carry.
+                if (offerRawData) ...[
+                  CheckboxListTile(
+                    value: includeRawData,
+                    onChanged: (value) => setSheetState(
+                      () => includeRawData = value ?? includeRawData,
+                    ),
+                    title: Text(context.l10n.transfer_export_includeRawData),
+                    subtitle: Text(
+                      context.l10n.transfer_export_includeRawDataSubtitle,
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  const Divider(height: 1),
+                ],
+                ListTile(
+                  leading: const Icon(Icons.share),
+                  title: Text(context.l10n.transfer_export_optionShareTitle),
+                  subtitle: Text(
+                    context.l10n.transfer_export_optionShareSubtitle,
+                  ),
+                  onTap: () {
+                    final options = UddfExportOptions(
+                      includeRawData: includeRawData,
+                    );
+                    Navigator.of(bottomSheetContext).pop();
+                    _handleExport(context, ref, () => shareAction(options));
+                  },
                 ),
-                onTap: () {
-                  Navigator.of(bottomSheetContext).pop();
-                  _handleExport(context, ref, shareAction);
-                },
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.save_alt),
-                title: Text(context.l10n.transfer_export_optionSaveTitle),
-                subtitle: Text(context.l10n.transfer_export_optionSaveSubtitle),
-                onTap: () {
-                  Navigator.of(bottomSheetContext).pop();
-                  _handleExport(context, ref, saveAction);
-                },
-              ),
-            ],
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.save_alt),
+                  title: Text(context.l10n.transfer_export_optionSaveTitle),
+                  subtitle: Text(
+                    context.l10n.transfer_export_optionSaveSubtitle,
+                  ),
+                  onTap: () {
+                    final options = UddfExportOptions(
+                      includeRawData: includeRawData,
+                    );
+                    Navigator.of(bottomSheetContext).pop();
+                    _handleExport(context, ref, () => saveAction(options));
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

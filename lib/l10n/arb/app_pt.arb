@@ -5893,6 +5893,8 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "Exportacao Multi-Formato",
   "transfer_export_optionSaveSubtitle": "Escolha onde salvar no seu dispositivo",
+  "transfer_export_includeRawData": "Incluir dados brutos do computador de mergulho",
+  "transfer_export_includeRawDataSubtitle": "Mantém os bytes originais do seu computador de mergulho para que o ficheiro possa ser reprocessado mais tarde. Aumenta o tamanho do ficheiro.",
   "transfer_export_optionSaveTitle": "Salvar em Arquivo",
   "transfer_export_optionShareSubtitle": "Enviar por e-mail, mensagens ou outros aplicativos",
   "transfer_export_optionShareTitle": "Compartilhar",

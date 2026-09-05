@@ -19789,6 +19789,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Escolha onde salvar no seu dispositivo';
 
   @override
+  String get transfer_export_includeRawData =>
+      'Incluir dados brutos do computador de mergulho';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      'Mantém os bytes originais do seu computador de mergulho para que o ficheiro possa ser reprocessado mais tarde. Aumenta o tamanho do ficheiro.';
+
+  @override
   String get transfer_export_optionSaveTitle => 'Salvar em Arquivo';
 
   @override

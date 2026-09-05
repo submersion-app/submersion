@@ -5893,6 +5893,8 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "Multi-Format-Export",
   "transfer_export_optionSaveSubtitle": "Speicherort auf Ihrem Gerät wählen",
+  "transfer_export_includeRawData": "Rohdaten des Tauchcomputers einschließen",
+  "transfer_export_includeRawDataSubtitle": "Behält die Originaldaten deines Tauchcomputers, damit die Datei später neu ausgewertet werden kann. Vergrößert die Datei.",
   "transfer_export_optionSaveTitle": "In Datei speichern",
   "transfer_export_optionShareSubtitle": "Per E-Mail, Nachrichten oder andere Apps senden",
   "transfer_export_optionShareTitle": "Teilen",

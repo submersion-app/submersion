@@ -19736,6 +19736,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Speicherort auf Ihrem Gerät wählen';
 
   @override
+  String get transfer_export_includeRawData =>
+      'Rohdaten des Tauchcomputers einschließen';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      'Behält die Originaldaten deines Tauchcomputers, damit die Datei später neu ausgewertet werden kann. Vergrößert die Datei.';
+
+  @override
   String get transfer_export_optionSaveTitle => 'In Datei speichern';
 
   @override

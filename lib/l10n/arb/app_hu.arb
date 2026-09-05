@@ -5809,6 +5809,8 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "Tobb formatum exportalas",
   "transfer_export_optionSaveSubtitle": "Valassza ki a mentesi helyet az eszkozön",
+  "transfer_export_includeRawData": "Nyers merülőkomputer-adatok belefoglalása",
+  "transfer_export_includeRawDataSubtitle": "Megőrzi a merülőkomputer eredeti adatait, így a fájl később újra feldolgozható. Növeli a fájl méretét.",
   "transfer_export_optionSaveTitle": "Mentes fajlba",
   "transfer_export_optionShareSubtitle": "Küldes e-mailben, üzenetben vagy mas alkalmazassal",
   "transfer_export_optionShareTitle": "Megosztas",

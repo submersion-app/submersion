@@ -19716,6 +19716,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Valassza ki a mentesi helyet az eszkozön';
 
   @override
+  String get transfer_export_includeRawData =>
+      'Nyers merülőkomputer-adatok belefoglalása';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      'Megőrzi a merülőkomputer eredeti adatait, így a fájl később újra feldolgozható. Növeli a fájl méretét.';
+
+  @override
   String get transfer_export_optionSaveTitle => 'Mentes fajlba';
 
   @override

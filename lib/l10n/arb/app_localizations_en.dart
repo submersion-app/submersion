@@ -19434,6 +19434,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose where to save on your device';
 
   @override
+  String get transfer_export_includeRawData => 'Include raw dive computer data';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      'Keeps the original bytes from your dive computer so the file can be re-parsed later. Makes the file larger.';
+
+  @override
   String get transfer_export_optionSaveTitle => 'Save to File';
 
   @override

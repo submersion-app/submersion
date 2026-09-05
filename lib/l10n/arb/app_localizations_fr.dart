@@ -19861,6 +19861,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Choisissez ou enregistrer sur votre appareil';
 
   @override
+  String get transfer_export_includeRawData =>
+      'Inclure les données brutes de l\'ordinateur de plongée';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      'Conserve les octets d\'origine de votre ordinateur de plongée afin que le fichier puisse être réanalysé plus tard. Augmente la taille du fichier.';
+
+  @override
   String get transfer_export_optionSaveTitle => 'Enregistrer dans un fichier';
 
   @override

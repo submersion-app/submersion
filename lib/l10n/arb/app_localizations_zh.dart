@@ -18744,6 +18744,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_export_optionSaveSubtitle => '选择保存到设备上的位置';
 
   @override
+  String get transfer_export_includeRawData => '包含潜水电脑原始数据';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      '保留潜水电脑的原始字节，以便日后重新解析该文件。会使文件变大。';
+
+  @override
   String get transfer_export_optionSaveTitle => '保存到文件';
 
   @override

@@ -19268,6 +19268,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_export_optionSaveSubtitle => 'בחר היכן לשמור במכשיר שלך';
 
   @override
+  String get transfer_export_includeRawData =>
+      'כלול נתונים גולמיים ממחשב הצלילה';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      'שומר את הנתונים המקוריים ממחשב הצלילה כדי שניתן יהיה לנתח את הקובץ מחדש בהמשך. מגדיל את הקובץ.';
+
+  @override
   String get transfer_export_optionSaveTitle => 'שמור לקובץ';
 
   @override

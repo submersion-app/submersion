@@ -19612,6 +19612,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kies waar je wilt opslaan op je apparaat';
 
   @override
+  String get transfer_export_includeRawData =>
+      'Ruwe duikcomputergegevens opnemen';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      'Bewaart de originele bytes van je duikcomputer zodat het bestand later opnieuw kan worden verwerkt. Maakt het bestand groter.';
+
+  @override
   String get transfer_export_optionSaveTitle => 'Opslaan als bestand';
 
   @override

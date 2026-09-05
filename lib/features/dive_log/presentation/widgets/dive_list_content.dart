@@ -569,11 +569,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       if (pdfOptions == null || !mounted) return;
     }
 
-    final destination = await showExportDestinationSheet(
+    // Only UDDF carries raw dive computer bytes, so only it offers the
+    // toggle; every other format has nothing to include or leave out.
+    final choice = await showExportDestinationSheetWithOptions(
       context,
       title: formatLabel,
+      showRawDataToggle: format == _BulkExportFormat.uddf,
     );
-    if (destination == null || !mounted) return;
+    if (choice == null || !mounted) return;
+    final destination = choice.destination;
+    final uddfOptions = UddfExportOptions(
+      includeRawData: choice.includeRawData,
+    );
 
     // Saving opens the native save panel, which must not be raised while a
     // modal route is up - so that path drops the progress dialog first.
@@ -692,17 +699,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               ? await exportService.exportDivesToUddf(
                   selectedDives,
                   sites: sites,
+                  options: uddfOptions,
                   dataSources: await ref.read(uddfSourceFetchProvider)(
                     selectedDives.map((d) => d.id).toList(growable: false),
-                    const UddfExportOptions(),
+                    uddfOptions,
                   ),
                 )
               : await exportService.saveDivesToUddfFile(
                   selectedDives,
                   sites: sites,
+                  options: uddfOptions,
                   dataSources: await ref.read(uddfSourceFetchProvider)(
                     selectedDives.map((d) => d.id).toList(growable: false),
-                    const UddfExportOptions(),
+                    uddfOptions,
                   ),
                 ),
       };

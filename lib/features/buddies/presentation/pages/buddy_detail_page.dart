@@ -336,11 +336,14 @@ class _BuddyDetailContent extends ConsumerWidget {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
 
-    final destination = await showExportDestinationSheet(
+    final choice = await showExportDestinationSheetWithOptions(
       context,
       title: l10n.buddies_action_shareDives,
+      showRawDataToggle: true,
     );
-    if (destination == null) return;
+    if (choice == null) return;
+    final destination = choice.destination;
+    final options = UddfExportOptions(includeRawData: choice.includeRawData);
 
     // Show preparing message
     scaffoldMessenger.showSnackBar(
@@ -395,7 +398,7 @@ class _BuddyDetailContent extends ConsumerWidget {
       final exportService = ref.read(exportServiceProvider);
       final dataSources = await ref.read(uddfSourceFetchProvider)(
         dives.map((d) => d.id).toList(growable: false),
-        const UddfExportOptions(),
+        options,
       );
       switch (destination) {
         case ExportDestination.share:
@@ -403,12 +406,14 @@ class _BuddyDetailContent extends ConsumerWidget {
             dives,
             sites: sites,
             dataSources: dataSources,
+            options: options,
           );
         case ExportDestination.saveToFile:
           await exportService.saveDivesToUddfFile(
             dives,
             sites: sites,
             dataSources: dataSources,
+            options: options,
           );
       }
     } catch (e) {

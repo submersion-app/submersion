@@ -19794,6 +19794,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Elige donde guardar en tu dispositivo';
 
   @override
+  String get transfer_export_includeRawData =>
+      'Incluir datos sin procesar del ordenador de buceo';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      'Conserva los bytes originales de tu ordenador de buceo para poder reanalizar el archivo más adelante. Aumenta el tamaño del archivo.';
+
+  @override
   String get transfer_export_optionSaveTitle => 'Guardar en archivo';
 
   @override

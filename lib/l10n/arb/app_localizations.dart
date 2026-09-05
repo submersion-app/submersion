@@ -32562,6 +32562,18 @@ abstract class AppLocalizations {
   /// **'Choose where to save on your device'**
   String get transfer_export_optionSaveSubtitle;
 
+  /// No description provided for @transfer_export_includeRawData.
+  ///
+  /// In en, this message translates to:
+  /// **'Include raw dive computer data'**
+  String get transfer_export_includeRawData;
+
+  /// No description provided for @transfer_export_includeRawDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps the original bytes from your dive computer so the file can be re-parsed later. Makes the file larger.'**
+  String get transfer_export_includeRawDataSubtitle;
+
   /// No description provided for @transfer_export_optionSaveTitle.
   ///
   /// In en, this message translates to:

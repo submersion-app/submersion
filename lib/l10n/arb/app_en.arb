@@ -11929,6 +11929,8 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "Multi-Format Export",
   "transfer_export_optionSaveSubtitle": "Choose where to save on your device",
+  "transfer_export_includeRawData": "Include raw dive computer data",
+  "transfer_export_includeRawDataSubtitle": "Keeps the original bytes from your dive computer so the file can be re-parsed later. Makes the file larger.",
   "transfer_export_optionSaveTitle": "Save to File",
   "transfer_export_optionShareSubtitle": "Send via email, messages, or other apps",
   "transfer_export_optionShareTitle": "Share",

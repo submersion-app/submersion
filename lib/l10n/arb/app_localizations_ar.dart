@@ -19409,6 +19409,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_export_optionSaveSubtitle => 'اختر مكان الحفظ على جهازك';
 
   @override
+  String get transfer_export_includeRawData =>
+      'تضمين البيانات الخام لكمبيوتر الغوص';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      'يحتفظ بالبيانات الأصلية من كمبيوتر الغوص حتى يمكن تحليل الملف مرة أخرى لاحقًا. يزيد من حجم الملف.';
+
+  @override
   String get transfer_export_optionSaveTitle => 'حفظ كملف';
 
   @override

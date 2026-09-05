@@ -5832,9 +5832,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   context,
                   ref,
                   title: context.l10n.diveLog_export_csv,
-                  shareFn: () =>
+                  shareFn: (_) =>
                       ref.read(exportServiceProvider).exportDivesToCsv([dive]),
-                  saveFn: () => ref
+                  saveFn: (_) => ref
                       .read(exportServiceProvider)
                       .saveDivesCsvToFile([dive]),
                 );
@@ -5851,23 +5851,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   context,
                   ref,
                   title: context.l10n.diveLog_export_uddf,
-                  shareFn: () async => ref
+                  offerRawData: true,
+                  shareFn: (options) async => ref
                       .read(exportServiceProvider)
                       .exportDivesToUddf(
                         [dive],
                         sites: sites,
+                        options: options,
                         dataSources: await ref.read(uddfSourceFetchProvider)([
                           dive.id,
-                        ], const UddfExportOptions()),
+                        ], options),
                       ),
-                  saveFn: () async => ref
+                  saveFn: (options) async => ref
                       .read(exportServiceProvider)
                       .saveDivesToUddfFile(
                         [dive],
                         sites: sites,
+                        options: options,
                         dataSources: await ref.read(uddfSourceFetchProvider)([
                           dive.id,
-                        ], const UddfExportOptions()),
+                        ], options),
                       ),
                 );
               },
@@ -5918,11 +5921,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     BuildContext context,
     WidgetRef ref, {
     required String title,
-    required Future<String> Function() shareFn,
-    required Future<String?> Function() saveFn,
+    required Future<String> Function(UddfExportOptions options) shareFn,
+    required Future<String?> Function(UddfExportOptions options) saveFn,
+    bool offerRawData = false,
   }) async {
-    final destination = await showExportDestinationSheet(context, title: title);
-    if (destination == null || !context.mounted) return;
+    final choice = await showExportDestinationSheetWithOptions(
+      context,
+      title: title,
+      showRawDataToggle: offerRawData,
+    );
+    if (choice == null || !context.mounted) return;
+    final destination = choice.destination;
+    final options = UddfExportOptions(includeRawData: choice.includeRawData);
 
     final showProgress = destination == ExportDestination.share;
     if (showProgress) {
@@ -5943,8 +5953,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     try {
       final path = switch (destination) {
-        ExportDestination.share => await shareFn(),
-        ExportDestination.saveToFile => await saveFn(),
+        ExportDestination.share => await shareFn(options),
+        ExportDestination.saveToFile => await saveFn(options),
       };
       if (!context.mounted) return;
       if (showProgress) Navigator.of(context, rootNavigator: true).pop();

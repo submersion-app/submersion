@@ -19781,6 +19781,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scegli dove salvare sul tuo dispositivo';
 
   @override
+  String get transfer_export_includeRawData =>
+      'Includi i dati grezzi del computer subacqueo';
+
+  @override
+  String get transfer_export_includeRawDataSubtitle =>
+      'Conserva i byte originali del tuo computer subacqueo così il file può essere rianalizzato in seguito. Aumenta la dimensione del file.';
+
+  @override
   String get transfer_export_optionSaveTitle => 'Salva su file';
 
   @override
