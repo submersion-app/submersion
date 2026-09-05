@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
@@ -179,6 +181,10 @@ class UddfEntityImportResult {
   /// is how callers recover which dive id corresponds to which input index.
   final Map<int, String> diveIdByIndex;
 
+  /// How many `dive_data_sources` rows were restored from a Submersion
+  /// export's `<source>` entries, rather than synthesised from the dive.
+  final int restoredDataSources;
+
   const UddfEntityImportResult({
     this.trips = 0,
     this.equipment = 0,
@@ -193,6 +199,7 @@ class UddfEntityImportResult {
     this.courses = 0,
     this.diveIds = const [],
     this.diveIdByIndex = const {},
+    this.restoredDataSources = 0,
   });
 
   int get total =>
@@ -435,6 +442,7 @@ class UddfEntityImporter {
       sourceFileName: data.sourceFileName,
       retainSourceDiveNumbers: retainSourceDiveNumbers,
       now: now,
+      dataSourcesByDiveRef: data.dataSourcesByDiveRef,
       onProgress: onProgress,
       cancelToken: cancelToken,
     );
@@ -453,6 +461,7 @@ class UddfEntityImporter {
       courses: coursesCount,
       diveIds: divesResult.diveIds,
       diveIdByIndex: divesResult.diveIdByIndex,
+      restoredDataSources: divesResult.restoredDataSources,
     );
   }
 
@@ -1307,15 +1316,23 @@ class UddfEntityImporter {
   ///
   /// Null when the source names no model, which is the signal to leave the
   /// dive unattributed rather than register a placeholder device.
-  String? _importedComputerKey(Map<String, dynamic> diveData) {
-    final model = normalizeComputerIdentityPart(
-      diveData['diveComputerModel'] as String?,
-    );
-    if (model.isEmpty) return null;
-    final serial = normalizeComputerIdentityPart(
-      diveData['diveComputerSerial'] as String?,
-    );
-    return serial.isNotEmpty ? 'serial:$serial' : 'model:$model';
+  String? _importedComputerKey(Map<String, dynamic> diveData) => computerKeyFor(
+    diveData['diveComputerModel'] as String?,
+    diveData['diveComputerSerial'] as String?,
+  );
+
+  /// The registration key for a model and serial pair.
+  ///
+  /// Shared so a restored `<source>` entry resolves its computer exactly the
+  /// way a dive does. Serial wins when present, which is why this cannot be
+  /// approximated as "model plus serial" at a second call site.
+  static String? computerKeyFor(String? model, String? serial) {
+    final normalizedModel = normalizeComputerIdentityPart(model);
+    if (normalizedModel.isEmpty) return null;
+    final normalizedSerial = normalizeComputerIdentityPart(serial);
+    return normalizedSerial.isNotEmpty
+        ? 'serial:$normalizedSerial'
+        : 'model:$normalizedModel';
   }
 
   /// Register every distinct computer the selected dives name, returning the
@@ -1333,22 +1350,27 @@ class UddfEntityImporter {
     List<Map<String, dynamic>> items,
     List<int> selected,
     String diverId,
-    DiveComputerRepository? repository,
-  ) async {
+    DiveComputerRepository? repository, {
+    Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef = const {},
+  }) async {
     if (repository == null) return const {};
 
     final idByKey = <String, String>{};
-    for (final i in selected) {
-      final diveData = items[i];
-      final key = _importedComputerKey(diveData);
-      if (key == null || idByKey.containsKey(key)) continue;
 
+    Future<void> register({
+      required String? model,
+      String? manufacturer,
+      String? serial,
+      String? firmware,
+    }) async {
+      final key = computerKeyFor(model, serial);
+      if (key == null || idByKey.containsKey(key)) return;
       try {
         final computer = await repository.findOrRegisterImportedComputer(
-          model: diveData['diveComputerModel'] as String,
-          manufacturer: diveData['diveComputerManufacturer'] as String?,
-          serialNumber: diveData['diveComputerSerial'] as String?,
-          firmwareVersion: diveData['diveComputerFirmware'] as String?,
+          model: model!,
+          manufacturer: manufacturer,
+          serialNumber: serial,
+          firmwareVersion: firmware,
           diverId: diverId,
         );
         if (computer != null) idByKey[key] = computer.id;
@@ -1361,7 +1383,133 @@ class UddfEntityImporter {
         );
       }
     }
+
+    for (final i in selected) {
+      final diveData = items[i];
+      await register(
+        model: diveData['diveComputerModel'] as String?,
+        manufacturer: diveData['diveComputerManufacturer'] as String?,
+        serial: diveData['diveComputerSerial'] as String?,
+        firmware: diveData['diveComputerFirmware'] as String?,
+      );
+    }
+
+    // A restored multi-source dive names computers its own snapshot cannot:
+    // the dive carries only its primary computer's model and serial, so a
+    // second computer would go unregistered and its restored source row would
+    // lose the registry link. Registering from the entries too is what keeps
+    // the restore lossless.
+    for (final entries in dataSourcesByDiveRef.values) {
+      for (final entry in entries) {
+        await register(
+          model: entry['computerModel'] as String?,
+          serial: entry['computerSerial'] as String?,
+        );
+      }
+    }
+
     return idByKey;
+  }
+
+  /// One companion per restored `<source>` entry.
+  ///
+  /// Exactly one row must end up primary. A hand-edited or malformed file
+  /// could claim zero or several, and a dive with no primary source would
+  /// break primary-source resolution for that dive permanently. The first
+  /// entry claiming it wins; if none claims it, the first entry is promoted.
+  ///
+  /// Computers resolve through model and serial, NOT through the dump's
+  /// `<link ref="computer_...">`: [computerIdByKey] is keyed by
+  /// [computerKeyFor], and the exported computer id belongs to an id space
+  /// this importer never uses.
+  List<DiveDataSourcesCompanion> _restoredSourceCompanions({
+    required List<Map<String, dynamic>> entries,
+    required String diveId,
+    required Map<String, String> computerIdByKey,
+    required String? fallbackComputerId,
+    required String? sourceFileName,
+    required DateTime now,
+  }) {
+    var primaryIndex = entries.indexWhere((e) => e['isPrimary'] == true);
+    if (primaryIndex < 0) primaryIndex = 0;
+
+    return [
+      for (var i = 0; i < entries.length; i++)
+        _companionForEntry(
+          entries[i],
+          diveId: diveId,
+          isPrimary: i == primaryIndex,
+          computerId:
+              computerIdByKey[computerKeyFor(
+                entries[i]['computerModel'] as String?,
+                entries[i]['computerSerial'] as String?,
+              )] ??
+              (i == primaryIndex ? fallbackComputerId : null),
+          sourceFileName: sourceFileName,
+          now: now,
+        ),
+    ];
+  }
+
+  DiveDataSourcesCompanion _companionForEntry(
+    Map<String, dynamic> entry, {
+    required String diveId,
+    required bool isPrimary,
+    required String? computerId,
+    required String? sourceFileName,
+    required DateTime now,
+  }) {
+    Value<T?> maybe<T>(String key) {
+      final value = entry[key];
+      return value == null ? const Value.absent() : Value(value as T);
+    }
+
+    return DiveDataSourcesCompanion(
+      id: Value(_uuid.v4()),
+      diveId: Value(diveId),
+      isPrimary: Value(isPrimary),
+      computerId: Value(computerId),
+      computerModel: maybe<String>('computerModel'),
+      computerSerial: maybe<String>('computerSerial'),
+      sourceFormat: maybe<String>('sourceFormat'),
+      sourceFileName: Value(
+        entry['sourceFileName'] as String? ?? sourceFileName,
+      ),
+      sourceFileFormat: Value(entry['sourceFileFormat'] as String? ?? 'uddf'),
+      sourceUuid: maybe<String>('sourceUuid'),
+      rawData: maybe<Uint8List>('rawData'),
+      rawFingerprint: maybe<Uint8List>('rawFingerprint'),
+      descriptorVendor: maybe<String>('descriptorVendor'),
+      descriptorProduct: maybe<String>('descriptorProduct'),
+      descriptorModel: maybe<int>('descriptorModel'),
+      libdivecomputerVersion: maybe<String>('libdivecomputerVersion'),
+      mergeSourceSlot: maybe<int>('mergeSourceSlot'),
+      timeOffsetSeconds: maybe<int>('timeOffsetSeconds'),
+      maxDepth: maybe<double>('maxDepth'),
+      avgDepth: maybe<double>('avgDepth'),
+      duration: maybe<int>('duration'),
+      waterTemp: maybe<double>('waterTemp'),
+      entryLatitude: maybe<double>('entryLatitude'),
+      entryLongitude: maybe<double>('entryLongitude'),
+      exitLatitude: maybe<double>('exitLatitude'),
+      exitLongitude: maybe<double>('exitLongitude'),
+      entryTime: maybe<DateTime>('entryTime'),
+      exitTime: maybe<DateTime>('exitTime'),
+      maxAscentRate: maybe<double>('maxAscentRate'),
+      maxDescentRate: maybe<double>('maxDescentRate'),
+      surfaceInterval: maybe<int>('surfaceInterval'),
+      cns: maybe<double>('cns'),
+      otu: maybe<double>('otu'),
+      decoAlgorithm: maybe<String>('decoAlgorithm'),
+      gradientFactorLow: maybe<int>('gradientFactorLow'),
+      gradientFactorHigh: maybe<int>('gradientFactorHigh'),
+      lastParsedAt: maybe<DateTime>('lastParsedAt'),
+      // The entry's own stamps, not the import clock. importedAt is shown as
+      // "Imported" in the data sources panel, so taking `now` would relabel a
+      // 2019 dive with the day of the restore.
+      importedAt: Value(entry['importedAt'] as DateTime? ?? now),
+      createdAt: Value(entry['createdAt'] as DateTime? ?? now),
+    );
   }
 
   Future<_DiveImportResult> _importDives(
@@ -1379,12 +1527,14 @@ class UddfEntityImporter {
     String? sourceFileName,
     bool retainSourceDiveNumbers = false,
     required DateTime now,
+    Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef = const {},
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) async {
     if (selected.isEmpty) return const _DiveImportResult(0, 0);
     onProgress?.call(ImportPhase.dives, 0, selected.length);
     var count = 0;
+    var restoredDataSources = 0;
     final importedDiveIds = <String>[];
     final diveIdByIndex = <int, String>{};
     final inlineBuddyIds = <String>{};
@@ -1426,6 +1576,7 @@ class UddfEntityImporter {
       sortedSelected,
       diverId,
       repos.diveComputerRepository,
+      dataSourcesByDiveRef: dataSourcesByDiveRef,
     );
 
     for (final i in sortedSelected) {
@@ -2074,33 +2225,57 @@ class UddfEntityImporter {
         repos.tagRepository,
       );
 
-      // Create a DiveDataSource record to track provenance.
-      await repos.diveRepository.saveComputerReading(
-        DiveDataSourcesCompanion(
-          id: Value(_uuid.v4()),
-          diveId: Value(diveId),
-          isPrimary: const Value(true),
-          computerId: Value(computerId),
-          computerModel: Value(diveData['diveComputerModel'] as String?),
-          computerSerial: Value(diveData['diveComputerSerial'] as String?),
-          sourceFileName: Value(sourceFileName),
-          sourceFileFormat: const Value('uddf'),
-          sourceUuid: Value(diveData['sourceUuid'] as String?),
-          maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
-          avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
-          duration: Value(dive.bottomTime?.inSeconds),
-          waterTemp: Value(asDoubleOrNull(diveData['waterTemp'])),
-          entryTime: Value(dive.entryTime),
-          exitTime: Value(dive.exitTime),
-          cns: Value(asDoubleOrNull(diveData['cnsEnd'])),
-          otu: Value(asDoubleOrNull(diveData['otu'])),
-          decoAlgorithm: Value(diveData['decoAlgorithm'] as String?),
-          gradientFactorLow: Value(diveData['gradientFactorLow'] as int?),
-          gradientFactorHigh: Value(diveData['gradientFactorHigh'] as int?),
-          importedAt: Value(now),
-          createdAt: Value(now),
-        ),
-      );
+      // Provenance. A dive that arrived with <source> entries has its source
+      // rows defined by them, so the synthesised row below is NOT written:
+      // writing both would leave the dive with one more source than it was
+      // exported with. A dive with no entries keeps today's behaviour
+      // exactly, which is every foreign UDDF file and every older export.
+      final sourceEntries =
+          dataSourcesByDiveRef['dive_${diveData['sourceUuid']}'] ??
+          const <Map<String, dynamic>>[];
+
+      if (sourceEntries.isEmpty) {
+        await repos.diveRepository.saveComputerReading(
+          DiveDataSourcesCompanion(
+            id: Value(_uuid.v4()),
+            diveId: Value(diveId),
+            isPrimary: const Value(true),
+            computerId: Value(computerId),
+            computerModel: Value(diveData['diveComputerModel'] as String?),
+            computerSerial: Value(diveData['diveComputerSerial'] as String?),
+            sourceFileName: Value(sourceFileName),
+            sourceFileFormat: const Value('uddf'),
+            sourceUuid: Value(diveData['sourceUuid'] as String?),
+            maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
+            avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
+            duration: Value(dive.bottomTime?.inSeconds),
+            waterTemp: Value(asDoubleOrNull(diveData['waterTemp'])),
+            entryTime: Value(dive.entryTime),
+            exitTime: Value(dive.exitTime),
+            cns: Value(asDoubleOrNull(diveData['cnsEnd'])),
+            otu: Value(asDoubleOrNull(diveData['otu'])),
+            decoAlgorithm: Value(diveData['decoAlgorithm'] as String?),
+            gradientFactorLow: Value(diveData['gradientFactorLow'] as int?),
+            gradientFactorHigh: Value(diveData['gradientFactorHigh'] as int?),
+            importedAt: Value(now),
+            createdAt: Value(now),
+          ),
+        );
+      } else {
+        // One insert for the whole batch, so the profile-adoption rule sees
+        // the dive's real source count rather than a half-written dive.
+        await repos.diveRepository.saveComputerReadings(
+          _restoredSourceCompanions(
+            entries: sourceEntries,
+            diveId: diveId,
+            computerIdByKey: computerIdByKey,
+            fallbackComputerId: computerId,
+            sourceFileName: sourceFileName,
+            now: now,
+          ),
+        );
+        restoredDataSources += sourceEntries.length;
+      }
 
       count++;
       onProgress?.call(ImportPhase.dives, count, selected.length);
@@ -2111,6 +2286,7 @@ class UddfEntityImporter {
       inlineBuddyIds.length,
       importedDiveIds,
       diveIdByIndex,
+      restoredDataSources,
     );
   }
 
@@ -2419,10 +2595,14 @@ class _DiveImportResult {
   final List<String> diveIds;
   final Map<int, String> diveIdByIndex;
 
+  /// How many `dive_data_sources` rows were restored from `<source>` entries.
+  final int restoredDataSources;
+
   const _DiveImportResult(
     this.count,
     this.inlineBuddies, [
     this.diveIds = const [],
     this.diveIdByIndex = const {},
+    this.restoredDataSources = 0,
   ]);
 }
