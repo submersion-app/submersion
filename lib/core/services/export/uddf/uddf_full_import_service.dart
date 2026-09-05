@@ -514,6 +514,21 @@ class UddfFullImportService {
       list.sort((a, b) => (a['ordinal'] as int).compareTo(b['ordinal'] as int));
     }
 
+    // The dump-carrying entries of each dive, in order, computed once. The
+    // pairing below indexes into these, and building them per dump would
+    // allocate a list for every <divecomputerdump> in the file.
+    //
+    // Entries appended below (a dump with no record beside it) are absent
+    // from these lists on purpose: a later dump for the same dive has already
+    // advanced past the claimant count, so it appends too, exactly as it
+    // would have when this was rebuilt each time.
+    final claimantsByRef = <String, List<Map<String, dynamic>>>{
+      for (final entry in entries.entries)
+        entry.key: entry.value
+            .where((e) => e['hasDump'] == true)
+            .toList(growable: false),
+    };
+
     var unpaired = 0;
     final nextOrdinal = <String, int>{};
 
@@ -551,9 +566,8 @@ class UddfFullImportService {
           (v) => v + 1,
           ifAbsent: () => 0,
         );
-        final claimants = (entries[diveRef] ?? const <Map<String, dynamic>>[])
-            .where((e) => e['hasDump'] == true)
-            .toList(growable: false);
+        final claimants =
+            claimantsByRef[diveRef] ?? const <Map<String, dynamic>>[];
 
         if (ordinal < claimants.length) {
           claimants[ordinal]['rawData'] = bytes;
