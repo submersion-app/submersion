@@ -139,8 +139,16 @@ class _FakeRepo implements AppSettingsRepository {
     stored = List<String>.from(ids);
   }
 
+  /// How many times the rail order was read, so a phone-width build can
+  /// assert it never subscribed to a surface it does not render.
+  int railReads = 0;
+
   @override
-  Future<List<String>?> getNavRailIdsRaw() async => storedRail;
+  Future<List<String>?> getNavRailIdsRaw() async {
+    railReads++;
+    return storedRail;
+  }
+
   @override
   Future<void> setNavRailIds(List<String> ids) async {
     storedRail = List<String>.from(ids);
@@ -519,6 +527,34 @@ void main() {
         'GPS Log',
         'Settings',
       ]);
+    });
+
+    testWidgets('a phone build never reads the rail order', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = _FakeRepo();
+      await tester.pumpWidget(await buildHarness(repo: repo));
+      await tester.pumpAndSettle();
+
+      // Building the rail provider would kick off a settings read for an
+      // order this layout never renders.
+      expect(repo.railReads, 0);
+    });
+
+    testWidgets('a rail-width build does read the rail order', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = _FakeRepo();
+      await tester.pumpWidget(await buildHarness(repo: repo));
+      await tester.pumpAndSettle();
+
+      expect(repo.railReads, greaterThan(0));
     });
 
     testWidgets('wide-screen rail renders the stored rail order', (

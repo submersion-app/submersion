@@ -52,6 +52,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     return (id) => accents?.of(id);
   }
 
+  /// [railDestinations] is only read when [isWideScreen] is true, so phone
+  /// builds may pass an empty list rather than subscribing to the rail order.
   int _calculateSelectedIndex(
     BuildContext context, {
     required bool isWideScreen,
@@ -210,7 +212,13 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final isWideScreen = screenWidth >= 800;
     final isDesktopExtended = screenWidth >= 1200;
     final navAccent = _navAccentLookup(context);
-    final railDestinations = ref.watch(navRailDestinationsProvider);
+    // Watched only on wide screens: building this provider kicks off a
+    // settings read for the rail order, and a phone never renders a rail.
+    // Riverpod rebuilds subscriptions each build, so a resize into rail
+    // width picks it up on that build.
+    final railDestinations = isWideScreen
+        ? ref.watch(navRailDestinationsProvider)
+        : const <NavDestination>[];
     final selectedIndex = _calculateSelectedIndex(
       context,
       isWideScreen: isWideScreen,

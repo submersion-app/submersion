@@ -47,7 +47,8 @@ class AppSettingsRepository {
   Future<void> setNavPrimaryIds(List<String> ids) =>
       _setIdList(_navPrimaryIdsKey, ids);
 
-  /// Returns the raw stored wide-screen rail order, or `null` if unset.
+  /// Returns the raw stored wide-screen rail order, or `null` if unset / on
+  /// read error. Normalize via `normalizeNavOrder` before using the result.
   ///
   /// Stored under its own key so a phone and a desktop syncing to the same
   /// account each keep their own layout instead of overwriting each other.
