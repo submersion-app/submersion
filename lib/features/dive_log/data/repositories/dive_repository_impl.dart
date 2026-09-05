@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.d
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_times.dart'
     as domain;
@@ -6205,6 +6206,103 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get computer readings for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Every `dive_data_sources` row for [diveIds], for UDDF export.
+  ///
+  /// Deliberately NOT built on [getDataSources]: that one runs rows through
+  /// `_canonicalDataSourceRows`, which collapses rows sharing a merge slot
+  /// into one display source. Each collapsed row is the sole surviving copy
+  /// of its half's `rawData`, so exporting through it would silently drop
+  /// half of a combined dive's bytes.
+  ///
+  /// Rows with no `rawData` are included too. The provenance record has to
+  /// cover them, or a dive with one plain source beside one carrying bytes
+  /// would restore with fewer sources than it had.
+  ///
+  /// This MUST stay a Drift typed select. Issue #227 puts a `TypeConverter`
+  /// on `raw_data`; typed selects run converters and `customSelect` does not,
+  /// so a raw SQL version would return `SRD1` framed zlib and the export
+  /// would write compressed bytes into `<dcdump>` with nothing to catch it.
+  /// `sources_for_export_test.dart` pins this with a byte-identity check.
+  ///
+  /// The ordering is part of the contract: it defines the ordinals that pair
+  /// a `<source>` entry with its `<divecomputerdump>`.
+  Future<List<DiveSourceExport>> getSourcesForExport(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const [];
+    try {
+      final query = _db.select(_db.diveDataSources)
+        ..where((t) => t.diveId.isIn(diveIds))
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.diveId),
+          (t) => OrderingTerm.desc(t.isPrimary),
+          (t) => OrderingTerm.asc(t.createdAt),
+          (t) => OrderingTerm.asc(t.id),
+        ]);
+      final rows = await query.get();
+
+      final ordinalByDive = <String, int>{};
+      return rows
+          .map((row) {
+            final ordinal = ordinalByDive.update(
+              row.diveId,
+              (value) => value + 1,
+              ifAbsent: () => 0,
+            );
+            return DiveSourceExport(
+              id: row.id,
+              diveId: row.diveId,
+              ordinal: ordinal,
+              isPrimary: row.isPrimary,
+              importedAt: row.importedAt,
+              createdAt: row.createdAt,
+              rawData: row.rawData,
+              rawFingerprint: row.rawFingerprint,
+              computerId: row.computerId,
+              computerModel: row.computerModel,
+              computerSerial: row.computerSerial,
+              sourceFormat: row.sourceFormat,
+              sourceFileName: row.sourceFileName,
+              sourceFileFormat: row.sourceFileFormat,
+              sourceUuid: row.sourceUuid,
+              descriptorVendor: row.descriptorVendor,
+              descriptorProduct: row.descriptorProduct,
+              descriptorModel: row.descriptorModel,
+              libdivecomputerVersion: row.libdivecomputerVersion,
+              mergeSourceSlot: row.mergeSourceSlot,
+              timeOffsetSeconds: row.timeOffsetSeconds,
+              maxDepth: row.maxDepth,
+              avgDepth: row.avgDepth,
+              duration: row.duration,
+              waterTemp: row.waterTemp,
+              entryLatitude: row.entryLatitude,
+              entryLongitude: row.entryLongitude,
+              exitLatitude: row.exitLatitude,
+              exitLongitude: row.exitLongitude,
+              entryTime: row.entryTime,
+              exitTime: row.exitTime,
+              maxAscentRate: row.maxAscentRate,
+              maxDescentRate: row.maxDescentRate,
+              surfaceInterval: row.surfaceInterval,
+              cns: row.cns,
+              otu: row.otu,
+              decoAlgorithm: row.decoAlgorithm,
+              gradientFactorLow: row.gradientFactorLow,
+              gradientFactorHigh: row.gradientFactorHigh,
+              lastParsedAt: row.lastParsedAt,
+            );
+          })
+          .toList(growable: false);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load data sources for export',
         error: e,
         stackTrace: stackTrace,
       );
