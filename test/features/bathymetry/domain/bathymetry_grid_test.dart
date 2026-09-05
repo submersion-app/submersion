@@ -36,14 +36,15 @@ void main() {
     expect(grid([10, -50, null, 42, 7, 3]).maxDepthMeters, 42);
   });
 
-  test('downsampleTo caps both dimensions with strided cells', () {
+  test('downsampleTo caps both dimensions with block means', () {
     final depths = List<double?>.generate(6 * 6, (i) => i.toDouble());
     final g = grid(depths, rows: 6, cols: 6);
     final d = g.downsampleTo(3);
     expect(d.rows, 3);
     expect(d.cols, 3);
-    expect(d.depthAt(0, 0), 0); // stride 2 keeps cells 0,2,4
-    expect(d.depthAt(1, 1), 14); // row 2, col 2 of original
+    // Stride 2, so each output cell is the mean of a 2x2 block.
+    expect(d.depthAt(0, 0), closeTo(3.5, 1e-9)); // cells 0, 1, 6, 7
+    expect(d.depthAt(1, 1), closeTo(17.5, 1e-9)); // cells 14, 15, 20, 21
     expect(d.cellSizeLatDeg, closeTo(0.008, 1e-12));
   });
 
@@ -75,5 +76,61 @@ void main() {
     expect(back.sourceId, 'test');
     expect(back.resolutionMeters, 450);
     expect(back.fetchedAt, DateTime.utc(2026, 7, 28));
+  });
+
+  group('knownFraction', () {
+    test('is the fraction of non-null cells', () {
+      final g = grid([10.0, null, 30.0, null], rows: 1, cols: 4);
+      expect(g.knownFraction, 0.5);
+    });
+
+    test('is zero for an entirely empty grid', () {
+      final g = grid([null, null], rows: 1, cols: 2);
+      expect(g.knownFraction, 0.0);
+    });
+  });
+
+  group('downsampleTo averaging', () {
+    test('averages each block instead of picking its first sample', () {
+      // 4x4 halved to 2x2: each output cell is the mean of a 2x2 block.
+      final g = grid(const [
+        1.0, 3.0, 10.0, 20.0, //
+        5.0, 7.0, 30.0, 40.0, //
+        100.0, 100.0, 0.0, 0.0, //
+        100.0, 100.0, 0.0, 0.0, //
+      ], rows: 4, cols: 4);
+      final d = g.downsampleTo(2);
+      expect(d.rows, 2);
+      expect(d.cols, 2);
+      expect(d.depthAt(0, 0), closeTo(4.0, 1e-9));
+      expect(d.depthAt(0, 1), closeTo(25.0, 1e-9));
+      expect(d.depthAt(1, 0), closeTo(100.0, 1e-9));
+      expect(d.depthAt(1, 1), closeTo(0.0, 1e-9));
+    });
+
+    test('averages only the known cells in a block', () {
+      final g = grid(const [10.0, null, null, 20.0], rows: 2, cols: 2);
+      expect(g.downsampleTo(1).depthAt(0, 0), closeTo(15.0, 1e-9));
+    });
+
+    test('an all-nodata block stays nodata', () {
+      final g = grid(const [
+        null, null, 8.0, 8.0, //
+        null, null, 8.0, 8.0, //
+      ], rows: 2, cols: 4);
+      final d = g.downsampleTo(2);
+      expect(d.depthAt(0, 0), isNull);
+      expect(d.depthAt(0, 1), closeTo(8.0, 1e-9));
+    });
+
+    test('returns the same instance when already within the cap', () {
+      final g = grid(const [1.0, 2.0, 3.0, 4.0], rows: 2, cols: 2);
+      expect(identical(g.downsampleTo(4), g), isTrue);
+    });
+
+    test('scales the resolution claim by the coarser stride', () {
+      final g = grid(List<double?>.filled(16, 5.0), rows: 4, cols: 4);
+      expect(g.downsampleTo(2).resolutionMeters, closeTo(900.0, 1e-9));
+    });
   });
 }
