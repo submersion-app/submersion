@@ -197,6 +197,37 @@ void main() {
     expect(result.unpairedDumps, 0);
   });
 
+  test('reads boolean flags case-insensitively, and 1 as true', () async {
+    // Our own export writes lowercase, so this is about hand-edited files and
+    // other applications. A hasdump of TRUE read as false would drop the entry
+    // from the dump claimants and let the dump pair with the wrong source.
+    final xml = document(
+      applicationData: sourcesBlock('''
+        <source diveref="dive_d1" ordinal="0" hasdump="TRUE">
+          <primary>True</primary>
+          <importedat>2019-06-02T18:41:07.000</importedat>
+          <createdat>2019-06-02T18:41:07.000</createdat>
+        </source>
+        <source diveref="dive_d1" ordinal="1" hasdump="0">
+          <primary>1</primary>
+          <importedat>2019-06-02T18:41:07.000</importedat>
+          <createdat>2019-06-02T18:41:07.000</createdat>
+        </source>'''),
+      control: controlBlock(payload),
+    );
+
+    final result = await UddfFullImportService().importAllDataFromUddf(xml);
+    final entries = result.dataSourcesByDiveRef['dive_d1']!;
+
+    expect(entries, hasLength(2));
+    expect(entries[0]['isPrimary'], isTrue, reason: '"True" is true');
+    expect(entries[1]['isPrimary'], isTrue, reason: '"1" is true');
+    // "TRUE" made entry 0 the sole claimant, so the dump belongs to it.
+    expect(entries[0]['rawData'], equals(raw));
+    expect(entries[1]['rawData'], isNull, reason: '"0" claims no dump');
+    expect(result.unpairedDumps, 0);
+  });
+
   test('the dump datetime does not become the dive time', () async {
     final xml = document(
       control:

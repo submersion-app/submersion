@@ -618,9 +618,9 @@ class UddfFullImportService {
 
     return <String, dynamic>{
       'ordinal': int.tryParse(source.getAttribute('ordinal') ?? '') ?? 0,
-      'hasDump': source.getAttribute('hasdump') == 'true',
+      'hasDump': _parseUddfBool(source.getAttribute('hasdump')),
       'rawData': null,
-      'isPrimary': text('primary') == 'true',
+      'isPrimary': _parseUddfBool(text('primary')),
       'descriptorVendor': descriptor?.getAttribute('vendor'),
       'descriptorProduct': descriptor?.getAttribute('product'),
       'descriptorModel': modelAttr == null ? null : int.tryParse(modelAttr),
@@ -656,6 +656,21 @@ class UddfFullImportService {
       'gradientFactorLow': integer('gradientfactorlow'),
       'gradientFactorHigh': integer('gradientfactorhigh'),
     };
+  }
+
+  /// A UDDF boolean, read leniently.
+  ///
+  /// Case-insensitive, matching how every other boolean flag in this file is
+  /// read, and accepting the `1` and `0` that `xs:boolean` also permits. Our
+  /// own exports only ever write lowercase `true`/`false`, so this matters for
+  /// hand-edited files and other applications' output.
+  ///
+  /// Getting it wrong is not cosmetic: a `hasdump` of `TRUE` would read as
+  /// false, drop that entry from the dump claimants, and let a dump pair with
+  /// the wrong source or be restored as a bare one.
+  static bool _parseUddfBool(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    return normalized == 'true' || normalized == '1';
   }
 
   /// Decode the hex a `<fingerprint>` carries, matching SQLite's `hex()`.
