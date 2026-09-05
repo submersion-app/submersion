@@ -529,19 +529,22 @@ class UddfFullImportService {
             .toList(growable: false),
     };
 
+    // Every dive id this document declares, so a dump's links can be matched
+    // against real dives rather than guessed at by shape.
+    final declaredDiveRefs = <String>{
+      ...entries.keys,
+      for (final profileData in uddfElement.findElements('profiledata'))
+        for (final group in profileData.findElements('repetitiongroup'))
+          for (final dive in group.findElements('dive'))
+            ?dive.getAttribute('id'),
+    };
+
     var unpaired = 0;
     final nextOrdinal = <String, int>{};
 
     for (final control in uddfElement.findElements('divecomputercontrol')) {
       for (final dump in control.findElements('divecomputerdump')) {
-        String? diveRef;
-        for (final link in dump.findElements('link')) {
-          final ref = link.getAttribute('ref');
-          if (ref != null && ref.startsWith('dive_')) {
-            diveRef = ref;
-            break;
-          }
-        }
+        final diveRef = _resolveDumpDiveRef(dump, declaredDiveRefs);
         if (diveRef == null) {
           // Nothing to attribute it to, and no dive's counter to advance.
           unpaired++;
@@ -671,6 +674,43 @@ class UddfFullImportService {
       'gradientFactorLow': integer('gradientfactorlow'),
       'gradientFactorHigh': integer('gradientfactorhigh'),
     };
+  }
+
+  /// Which dive a `<divecomputerdump>` belongs to, or null if it names none.
+  ///
+  /// A dump may carry several `<link>` elements: Submersion's own writes the
+  /// dive and, when the document declares it, the computer. So the ref cannot
+  /// simply be the first one, or a dump whose dive link is missing would be
+  /// filed under a computer id that no dive will ever resolve to.
+  ///
+  /// Nor can it require the `dive_` prefix. That is Submersion's own id shape;
+  /// UDDF dive ids are arbitrary, and the restore side already accepts both
+  /// shapes. Requiring the prefix silently dropped another application's
+  /// dumps, whose bytes are not ours to discard.
+  ///
+  /// So a link is matched against the dives the document actually declares, in
+  /// either shape, and only then falls back to the prefix for a file that
+  /// declares no dives to match. A dump naming nothing recognisable is
+  /// reported as unpaired rather than filed under a guess.
+  static String? _resolveDumpDiveRef(
+    XmlElement dump,
+    Set<String> declaredDiveRefs,
+  ) {
+    final refs = dump
+        .findElements('link')
+        .map((link) => link.getAttribute('ref'))
+        .whereType<String>()
+        .where((ref) => ref.isNotEmpty)
+        .toList(growable: false);
+
+    for (final ref in refs) {
+      if (declaredDiveRefs.contains(ref)) return ref;
+      if (declaredDiveRefs.contains('dive_$ref')) return 'dive_$ref';
+    }
+    for (final ref in refs) {
+      if (ref.startsWith('dive_')) return ref;
+    }
+    return null;
   }
 
   /// A UDDF boolean, read leniently.

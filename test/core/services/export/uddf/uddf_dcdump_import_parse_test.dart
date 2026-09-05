@@ -287,6 +287,62 @@ void main() {
     },
   );
 
+  test('pairs a dump whose link uses a bare dive id', () async {
+    // Another application's file. UDDF dive ids are arbitrary, so requiring
+    // Submersion's own `dive_` prefix would drop these bytes, which the
+    // design says are not ours to discard.
+    final xml =
+        '''
+<uddf version="3.2.0" xmlns="http://www.streit.cc/uddf/3.2/">
+  <profiledata>
+    <repetitiongroup>
+      <dive id="D42">
+        <informationbeforedive>
+          <datetime>2019-06-02T10:00:00</datetime>
+        </informationbeforedive>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+  <divecomputercontrol>
+    <divecomputerdump>
+      <link ref="D42"/>
+      <datetime>2019-06-02T18:41:07</datetime>
+      <dcdump>$payload</dcdump>
+    </divecomputerdump>
+  </divecomputercontrol>
+</uddf>
+''';
+
+    final result = await UddfFullImportService().importAllDataFromUddf(xml);
+
+    // Keyed by the dive's own id, which is what the restore looks up first.
+    expect(result.dataSourcesByDiveRef['D42'], hasLength(1));
+    expect(result.dataSourcesByDiveRef['D42']!.single['rawData'], equals(raw));
+    expect(result.unpairedDumps, 0);
+  });
+
+  test('does not file a dump under a link that names no dive', () async {
+    // A dump may carry a computer link as well as a dive one, so taking the
+    // first link would file this under a computer id no dive resolves to.
+    // Reporting it unpaired is the honest outcome.
+    final xml = document(
+      control:
+          '''
+  <divecomputercontrol>
+    <divecomputerdump>
+      <link ref="dc_Perdix_AI_SN123"/>
+      <datetime>2019-06-02T18:41:07</datetime>
+      <dcdump>$payload</dcdump>
+    </divecomputerdump>
+  </divecomputercontrol>''',
+    );
+
+    final result = await UddfFullImportService().importAllDataFromUddf(xml);
+
+    expect(result.dataSourcesByDiveRef, isEmpty);
+    expect(result.unpairedDumps, 1);
+  });
+
   test('the dump datetime does not become the dive time', () async {
     final xml = document(
       control:
