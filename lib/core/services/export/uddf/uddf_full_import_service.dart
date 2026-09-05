@@ -1,8 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -451,7 +454,11 @@ class UddfFullImportService {
 
     _applyTripDateRanges(trips, dives);
 
+    final sources = _parseDataSources(uddfElement);
+
     return UddfImportResult(
+      dataSourcesByDiveRef: sources.byDiveRef,
+      unpairedDumps: sources.unpaired,
       dives: dives,
       sites: sites,
       equipment: equipment,
@@ -471,6 +478,182 @@ class UddfFullImportService {
       equipmentSets: equipmentSets,
       courses: courses,
     );
+  }
+
+  /// Parse `<applicationdata><submersion><datasources>` and
+  /// `<divecomputercontrol>`, joining them on (diveref, ordinal).
+  ///
+  /// Two passes rather than one: the standard section carries the bytes and
+  /// the Submersion section carries everything the standard cannot express,
+  /// most importantly the libdivecomputer descriptor triple. Without that
+  /// triple a restored blob can never be re-parsed, because
+  /// `ReparseService.reparseAllForComputer` skips any source missing it.
+  ///
+  /// A dump with no matching entry still yields its bytes, as a lone primary
+  /// source with a null descriptor: bytes from someone else's file are not
+  /// ours to discard, and re-parse already reports a source it cannot parse.
+  ({Map<String, List<Map<String, dynamic>>> byDiveRef, int unpaired})
+  _parseDataSources(XmlElement uddfElement) {
+    final entries = <String, List<Map<String, dynamic>>>{};
+
+    for (final appData in uddfElement.findElements('applicationdata')) {
+      for (final submersion in appData.findElements('submersion')) {
+        for (final block in submersion.findElements('datasources')) {
+          for (final source in block.findElements('source')) {
+            final diveRef = source.getAttribute('diveref');
+            if (diveRef == null || diveRef.isEmpty) continue;
+            entries
+                .putIfAbsent(diveRef, () => <Map<String, dynamic>>[])
+                .add(_parseSourceEntry(source));
+          }
+        }
+      }
+    }
+
+    for (final list in entries.values) {
+      list.sort((a, b) => (a['ordinal'] as int).compareTo(b['ordinal'] as int));
+    }
+
+    var unpaired = 0;
+    final nextOrdinal = <String, int>{};
+
+    for (final control in uddfElement.findElements('divecomputercontrol')) {
+      for (final dump in control.findElements('divecomputerdump')) {
+        String? diveRef;
+        for (final link in dump.findElements('link')) {
+          final ref = link.getAttribute('ref');
+          if (ref != null && ref.startsWith('dive_')) {
+            diveRef = ref;
+            break;
+          }
+        }
+        final text = dump.findElements('dcdump').firstOrNull?.innerText;
+        if (diveRef == null || text == null || text.trim().isEmpty) {
+          unpaired++;
+          continue;
+        }
+
+        final Uint8List bytes;
+        try {
+          bytes = UddfDumpCodec.decodeOne(text);
+        } catch (e) {
+          // Untrusted input: a decompression bomb, a truncated stream, or
+          // something that is not bzip2 at all. Count it and keep importing.
+          _logger.warning('Skipping unreadable <dcdump> for $diveRef: $e');
+          unpaired++;
+          continue;
+        }
+
+        // Dumps are written in the same order as the entries that have them,
+        // so the nth dump for a dive belongs to its nth dump-carrying entry.
+        final ordinal = nextOrdinal.update(
+          diveRef,
+          (v) => v + 1,
+          ifAbsent: () => 0,
+        );
+        final claimants = (entries[diveRef] ?? const <Map<String, dynamic>>[])
+            .where((e) => e['hasDump'] == true)
+            .toList(growable: false);
+
+        if (ordinal < claimants.length) {
+          claimants[ordinal]['rawData'] = bytes;
+        } else {
+          // A spec-shaped dump from another application, with no Submersion
+          // record beside it. Keep the bytes as a bare primary source.
+          final list = entries.putIfAbsent(
+            diveRef,
+            () => <Map<String, dynamic>>[],
+          );
+          list.add({
+            'ordinal': list.length,
+            'hasDump': true,
+            'rawData': bytes,
+            'isPrimary': list.isEmpty,
+          });
+        }
+      }
+    }
+
+    return (byDiveRef: entries, unpaired: unpaired);
+  }
+
+  /// One `<source>` element as a map keyed by `dive_data_sources` field name.
+  Map<String, dynamic> _parseSourceEntry(XmlElement source) {
+    String? text(String name) {
+      final value = UddfImportParsers.getElementText(source, name);
+      return (value == null || value.isEmpty) ? null : value;
+    }
+
+    int? integer(String name) {
+      final value = text(name);
+      return value == null ? null : int.tryParse(value);
+    }
+
+    double? decimal(String name) {
+      final value = text(name);
+      return value == null ? null : double.tryParse(value);
+    }
+
+    DateTime? date(String name) {
+      final value = text(name);
+      return value == null ? null : DateTime.tryParse(value);
+    }
+
+    final descriptor = source.findElements('descriptor').firstOrNull;
+    final modelAttr = descriptor?.getAttribute('model');
+
+    return <String, dynamic>{
+      'ordinal': int.tryParse(source.getAttribute('ordinal') ?? '') ?? 0,
+      'hasDump': source.getAttribute('hasdump') == 'true',
+      'rawData': null,
+      'isPrimary': text('primary') == 'true',
+      'descriptorVendor': descriptor?.getAttribute('vendor'),
+      'descriptorProduct': descriptor?.getAttribute('product'),
+      'descriptorModel': modelAttr == null ? null : int.tryParse(modelAttr),
+      'libdivecomputerVersion': text('libdivecomputerversion'),
+      'sourceUuid': text('sourceuuid'),
+      'rawFingerprint': _decodeHex(text('fingerprint')),
+      'mergeSourceSlot': integer('mergesourceslot'),
+      'timeOffsetSeconds': integer('timeoffsetseconds'),
+      'computerModel': text('computermodel'),
+      'computerSerial': text('computerserial'),
+      'sourceFormat': text('sourceformat'),
+      'sourceFileName': text('sourcefilename'),
+      'sourceFileFormat': text('sourcefileformat'),
+      'importedAt': date('importedat'),
+      'createdAt': date('createdat'),
+      'lastParsedAt': date('lastparsedat'),
+      'maxDepth': decimal('maxdepth'),
+      'avgDepth': decimal('avgdepth'),
+      'duration': integer('duration'),
+      'waterTemp': decimal('watertemp'),
+      'entryLatitude': decimal('entrylatitude'),
+      'entryLongitude': decimal('entrylongitude'),
+      'exitLatitude': decimal('exitlatitude'),
+      'exitLongitude': decimal('exitlongitude'),
+      'entryTime': date('entrytime'),
+      'exitTime': date('exittime'),
+      'maxAscentRate': decimal('maxascentrate'),
+      'maxDescentRate': decimal('maxdescentrate'),
+      'surfaceInterval': integer('surfaceinterval'),
+      'cns': decimal('cns'),
+      'otu': decimal('otu'),
+      'decoAlgorithm': text('decoalgorithm'),
+      'gradientFactorLow': integer('gradientfactorlow'),
+      'gradientFactorHigh': integer('gradientfactorhigh'),
+    };
+  }
+
+  /// Decode the hex a `<fingerprint>` carries, matching SQLite's `hex()`.
+  static Uint8List? _decodeHex(String? hex) {
+    if (hex == null || hex.isEmpty || hex.length.isOdd) return null;
+    final bytes = Uint8List(hex.length ~/ 2);
+    for (var i = 0; i < bytes.length; i++) {
+      final byte = int.tryParse(hex.substring(i * 2, i * 2 + 2), radix: 16);
+      if (byte == null) return null;
+      bytes[i] = byte;
+    }
+    return bytes;
   }
 
   /// Fills in a trip's date range from the dives that belong to it.
