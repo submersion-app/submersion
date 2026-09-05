@@ -542,8 +542,29 @@ class UddfFullImportService {
             break;
           }
         }
+        if (diveRef == null) {
+          // Nothing to attribute it to, and no dive's counter to advance.
+          unpaired++;
+          continue;
+        }
+
+        // Dumps are written in the same order as the entries that have them,
+        // so the nth dump for a dive belongs to its nth dump-carrying entry.
+        //
+        // Advanced for EVERY dump carrying a resolvable dive ref, before the
+        // payload is even looked at. A dump that is empty or fails to decode
+        // still occupies its slot: skipping the increment would hand its
+        // claimant to the NEXT readable dump, restoring one source's bytes
+        // under another's descriptor triple. Decode failures are not
+        // hypothetical, since the codec verifies bzip2's CRCs.
+        final ordinal = nextOrdinal.update(
+          diveRef,
+          (v) => v + 1,
+          ifAbsent: () => 0,
+        );
+
         final text = dump.findElements('dcdump').firstOrNull?.innerText;
-        if (diveRef == null || text == null || text.trim().isEmpty) {
+        if (text == null || text.trim().isEmpty) {
           unpaired++;
           continue;
         }
@@ -552,20 +573,14 @@ class UddfFullImportService {
         try {
           bytes = UddfDumpCodec.decodeOne(text);
         } catch (e) {
-          // Untrusted input: a decompression bomb, a truncated stream, or
-          // something that is not bzip2 at all. Count it and keep importing.
+          // Untrusted input: a decompression bomb, a truncated stream, a CRC
+          // mismatch, or something that is not bzip2 at all. Count it and
+          // keep importing; its claimant simply restores without bytes.
           _logger.warning('Skipping unreadable <dcdump> for $diveRef: $e');
           unpaired++;
           continue;
         }
 
-        // Dumps are written in the same order as the entries that have them,
-        // so the nth dump for a dive belongs to its nth dump-carrying entry.
-        final ordinal = nextOrdinal.update(
-          diveRef,
-          (v) => v + 1,
-          ifAbsent: () => 0,
-        );
         final claimants =
             claimantsByRef[diveRef] ?? const <Map<String, dynamic>>[];
 
