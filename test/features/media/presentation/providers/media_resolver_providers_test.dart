@@ -32,6 +32,26 @@ class _StubDiagnosticsService implements LocalFilesDiagnosticsService {
       throw UnimplementedError('${invocation.memberName} should not be called');
 }
 
+/// Registers teardown disposal and hands back a dispose that runs at most once.
+///
+/// Both regression tests below have to dispose inside the body, because the
+/// disposal IS the event under test. They still want the teardown safety net,
+/// since a throw before that line would leak the container into whatever runs
+/// next. Disposing twice is harmless in Riverpod today, which is why these
+/// tests pass, but a regression test for a teardown bug should not be resting
+/// on that.
+void Function() _disposeOnce(ProviderContainer container) {
+  var disposed = false;
+  void dispose() {
+    if (disposed) return;
+    disposed = true;
+    container.dispose();
+  }
+
+  addTearDown(dispose);
+  return dispose;
+}
+
 void main() {
   test(
     'androidUriUsageProvider delegates to service.androidUriUsage',
@@ -79,9 +99,10 @@ void main() {
     'disposing the container stops the local file resolver fetching',
     () async {
       final container = ProviderContainer();
+      final disposeContainer = _disposeOnce(container);
       final resolver = container.read(localFileResolverProvider);
 
-      container.dispose();
+      disposeContainer();
 
       final data = await resolver.resolve(
         MediaItem(
@@ -132,7 +153,7 @@ void main() {
     tester,
   ) async {
     final container = ProviderContainer();
-    addTearDown(container.dispose);
+    final disposeContainer = _disposeOnce(container);
 
     unawaited(
       container
@@ -152,6 +173,6 @@ void main() {
 
     // What unmounting a ProviderScope does, and what the binding does for
     // every widget test before it checks for stray timers.
-    container.dispose();
+    disposeContainer();
   });
 }
