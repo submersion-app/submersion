@@ -145,10 +145,16 @@ void main() {
   ///     iOS and macOS, since `_usesSecurityScopedBookmarks` defaults to those
   ///     two, and would pass vacuously on the Linux shards that actually run
   ///     this suite.
-  ///   * `run` arms the caller budget synchronously and `_resolveInner`
-  ///     suspends at its first await, so disposing in the same turn catches
-  ///     the timers armed. Pumping first lets the resolution settle and
-  ///     disarm them, which is the same vacuous pass by a different route.
+  ///   * `run` arms the caller budget synchronously, before `_withSlot` has
+  ///     reached its first await, so disposing in the same turn is guaranteed
+  ///     to catch that one live. It is the only one: the slot budget is armed
+  ///     a microtask later, once `_acquire` resumes, which a same-turn dispose
+  ///     beats. That is enough, since one stray timer fails teardown, and
+  ///     without the disposal guard the slot timer is then armed on an
+  ///     already-disposed gate, which is the second timer the original CI
+  ///     failure reported. Pumping first would let the resolution settle and
+  ///     disarm the caller budget, which is the same vacuous pass by a
+  ///     different route.
   testWidgets('a resolution still in flight at teardown leaves no timer', (
     tester,
   ) async {
