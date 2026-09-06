@@ -77,7 +77,12 @@ class ArcgisFloat32TiffParser {
       throw const FormatException('TIFF has a zero dimension');
     }
 
-    final offsets = _longs(d, tags[_tagTileOffsets], 'TileOffsets', bytes.length);
+    final offsets = _longs(
+      d,
+      tags[_tagTileOffsets],
+      'TileOffsets',
+      bytes.length,
+    );
     final tilesAcross = (width + tileW - 1) ~/ tileW;
     final tilesDown = (height + tileH - 1) ~/ tileH;
     if (offsets.length != tilesAcross * tilesDown) {
@@ -102,8 +107,9 @@ class ArcgisFloat32TiffParser {
           // bottom edges; that padding is not part of the image.
           if (imageCol >= width) continue;
           final v = d.getFloat32(base + (r * tileW + c) * 4, Endian.little);
-          image[imageRow * width + imageCol] =
-              _isNoData(v) ? null : -v; // elevation -> depth
+          image[imageRow * width + imageCol] = _isNoData(v)
+              ? null
+              : -v; // elevation -> depth
         }
       }
     }

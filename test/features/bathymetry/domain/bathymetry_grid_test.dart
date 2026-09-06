@@ -93,12 +93,16 @@ void main() {
   group('downsampleTo averaging', () {
     test('averages each block instead of picking its first sample', () {
       // 4x4 halved to 2x2: each output cell is the mean of a 2x2 block.
-      final g = grid(const [
-        1.0, 3.0, 10.0, 20.0, //
-        5.0, 7.0, 30.0, 40.0, //
-        100.0, 100.0, 0.0, 0.0, //
-        100.0, 100.0, 0.0, 0.0, //
-      ], rows: 4, cols: 4);
+      final g = grid(
+        const [
+          1.0, 3.0, 10.0, 20.0, //
+          5.0, 7.0, 30.0, 40.0, //
+          100.0, 100.0, 0.0, 0.0, //
+          100.0, 100.0, 0.0, 0.0, //
+        ],
+        rows: 4,
+        cols: 4,
+      );
       final d = g.downsampleTo(2);
       expect(d.rows, 2);
       expect(d.cols, 2);
@@ -114,10 +118,14 @@ void main() {
     });
 
     test('an all-nodata block stays nodata', () {
-      final g = grid(const [
-        null, null, 8.0, 8.0, //
-        null, null, 8.0, 8.0, //
-      ], rows: 2, cols: 4);
+      final g = grid(
+        const [
+          null, null, 8.0, 8.0, //
+          null, null, 8.0, 8.0, //
+        ],
+        rows: 2,
+        cols: 4,
+      );
       final d = g.downsampleTo(2);
       expect(d.depthAt(0, 0), isNull);
       expect(d.depthAt(0, 1), closeTo(8.0, 1e-9));

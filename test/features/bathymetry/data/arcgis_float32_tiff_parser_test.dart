@@ -51,7 +51,7 @@ Uint8List buildTiff({
     e += 12;
   }
 
-  final offsetsAt = headerLen + ifdLen;
+  const offsetsAt = headerLen + ifdLen;
   final countsAt = offsetsAt + tileCount * 4;
   entry(256, 3, 1, width); // ImageWidth
   entry(257, 3, 1, height); // ImageLength

@@ -22,10 +22,7 @@ class SourceCapability {
   /// Provenance detail for the caption, e.g. the dataset or DEM name.
   final String detail;
 
-  const SourceCapability({
-    required this.cellSizeMeters,
-    required this.detail,
-  });
+  const SourceCapability({required this.cellSizeMeters, required this.detail});
 }
 
 /// One bathymetry provider in the resolver tier.

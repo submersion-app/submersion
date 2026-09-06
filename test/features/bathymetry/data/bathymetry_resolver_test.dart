@@ -174,19 +174,22 @@ void main() {
     expect(res.definitive, isTrue);
   });
 
-  test('a mostly-empty grid fails the known-cell floor and falls through', () async {
-    // 4 known of 10 cells is 40%, below the 60% floor, even though every
-    // known cell is wet. This is EMODnet's Bonaire tile in miniature.
-    final holey = <double?>[
-      50.0, null, 50.0, null, 50.0, null, 50.0, null, null, null, //
-    ];
-    final a = FakeSource('emodnet-like', result: gridOf(holey, 'a'));
-    final b = FakeSource('gmrt-like', result: gridWith(wet, 'b'));
-    final res = await BathymetryResolver(sources: [a, b]).resolve(p);
-    expect(res.grid!.sourceId, 'b');
-    expect(a.fetchCount, 1);
-    expect(b.fetchCount, 1);
-  });
+  test(
+    'a mostly-empty grid fails the known-cell floor and falls through',
+    () async {
+      // 4 known of 10 cells is 40%, below the 60% floor, even though every
+      // known cell is wet. This is EMODnet's Bonaire tile in miniature.
+      final holey = <double?>[
+        50.0, null, 50.0, null, 50.0, null, 50.0, null, null, null, //
+      ];
+      final a = FakeSource('emodnet-like', result: gridOf(holey, 'a'));
+      final b = FakeSource('gmrt-like', result: gridWith(wet, 'b'));
+      final res = await BathymetryResolver(sources: [a, b]).resolve(p);
+      expect(res.grid!.sourceId, 'b');
+      expect(a.fetchCount, 1);
+      expect(b.fetchCount, 1);
+    },
+  );
 
   test('a grid at exactly the known-cell floor is accepted', () async {
     final atFloor = <double?>[
@@ -197,15 +200,18 @@ void main() {
     expect(res.grid!.sourceId, 'a');
   });
 
-  test('a mostly-empty grid from a global source is not a definitive empty', () async {
-    // Falling through on coverage must not be mistaken for "no water here":
-    // an empty answer would cache and pin the cell forever.
-    final holey = <double?>[50.0, null, null, null, null];
-    final a = FakeSource('a', result: gridOf(holey, 'a'));
-    final res = await BathymetryResolver(sources: [a]).resolve(p);
-    expect(res.grid, isNull);
-    expect(res.definitive, isFalse);
-  });
+  test(
+    'a mostly-empty grid from a global source is not a definitive empty',
+    () async {
+      // Falling through on coverage must not be mistaken for "no water here":
+      // an empty answer would cache and pin the cell forever.
+      final holey = <double?>[50.0, null, null, null, null];
+      final a = FakeSource('a', result: gridOf(holey, 'a'));
+      final res = await BathymetryResolver(sources: [a]).resolve(p);
+      expect(res.grid, isNull);
+      expect(res.definitive, isFalse);
+    },
+  );
 
   test('a materially finer source preempts the declared order', () async {
     // 10 m against 100 m is a factor of 10, well past preemptionFactor.
@@ -220,26 +226,29 @@ void main() {
     expect(coarse.fetchCount, 0);
   });
 
-  test('a marginally finer source does not preempt the declared order', () async {
-    // 60 m against 115 m is a factor of 1.9, inside preemptionFactor, so
-    // the declared regional-first order stands. This is EMODnet vs GMRT
-    // in Europe, where GMRT's fine nominal grid may be upsampled GEBCO.
-    final regional = FakeSource(
-      'emodnet',
-      result: gridWith(wet, 'emodnet'),
-      cellSizeMeters: 115,
-    );
-    final globalSource = FakeSource(
-      'gmrt',
-      result: gridWith(wet, 'gmrt'),
-      cellSizeMeters: 60,
-    );
-    final res = await BathymetryResolver(
-      sources: [regional, globalSource],
-    ).resolve(p);
-    expect(res.grid!.sourceId, 'emodnet');
-    expect(globalSource.fetchCount, 0);
-  });
+  test(
+    'a marginally finer source does not preempt the declared order',
+    () async {
+      // 60 m against 115 m is a factor of 1.9, inside preemptionFactor, so
+      // the declared regional-first order stands. This is EMODnet vs GMRT
+      // in Europe, where GMRT's fine nominal grid may be upsampled GEBCO.
+      final regional = FakeSource(
+        'emodnet',
+        result: gridWith(wet, 'emodnet'),
+        cellSizeMeters: 115,
+      );
+      final globalSource = FakeSource(
+        'gmrt',
+        result: gridWith(wet, 'gmrt'),
+        cellSizeMeters: 60,
+      );
+      final res = await BathymetryResolver(
+        sources: [regional, globalSource],
+      ).resolve(p);
+      expect(res.grid!.sourceId, 'emodnet');
+      expect(globalSource.fetchCount, 0);
+    },
+  );
 
   test('a probe that throws is treated as not covering', () async {
     final res = await BathymetryResolver(

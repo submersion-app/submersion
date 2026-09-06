@@ -151,19 +151,22 @@ void main() {
       expect(await source.probe(keys), isNull);
     });
 
-    test('declines on an ArcGIS error envelope returned with HTTP 200', () async {
-      final source = NoaaDemSource(
-        client: MockClient(
-          (req) async => http.Response(
-            jsonEncode({
-              'error': {'code': 400, 'message': 'Invalid geometry'},
-            }),
-            200,
+    test(
+      'declines on an ArcGIS error envelope returned with HTTP 200',
+      () async {
+        final source = NoaaDemSource(
+          client: MockClient(
+            (req) async => http.Response(
+              jsonEncode({
+                'error': {'code': 400, 'message': 'Invalid geometry'},
+              }),
+              200,
+            ),
           ),
-        ),
-      );
-      expect(await source.probe(keys), isNull);
-    });
+        );
+        expect(await source.probe(keys), isNull);
+      },
+    );
 
     test('declines on a catalogue item with no usable cell size', () async {
       final source = NoaaDemSource(
@@ -192,14 +195,17 @@ void main() {
       expect(await source.probe(keys), isNull);
     });
 
-    test('declines rather than throwing when the service is unreachable', () async {
-      // A probe must never throw: one unreachable source cannot be allowed
-      // to block the others.
-      final source = NoaaDemSource(
-        client: MockClient((req) async => throw const SocketishError()),
-      );
-      expect(await source.probe(keys), isNull);
-    });
+    test(
+      'declines rather than throwing when the service is unreachable',
+      () async {
+        // A probe must never throw: one unreachable source cannot be allowed
+        // to block the others.
+        final source = NoaaDemSource(
+          client: MockClient((req) async => throw const SocketishError()),
+        );
+        expect(await source.probe(keys), isNull);
+      },
+    );
   });
 
   group('fetch', () {
@@ -227,13 +233,19 @@ void main() {
       expect(g.sourceId, NoaaDemSource.sourceId);
     });
 
-    test('claims a resolution derived from the span and request size', () async {
-      final source = NoaaDemSource(
-        client: MockClient((_) async => http.Response.bytes(tinyTiff(), 200)),
-      );
-      final g = await source.fetch(keys, spanMeters: 2000);
-      expect(g.resolutionMeters, closeTo(2000 / NoaaDemSource.requestDim, 1e-9));
-    });
+    test(
+      'claims a resolution derived from the span and request size',
+      () async {
+        final source = NoaaDemSource(
+          client: MockClient((_) async => http.Response.bytes(tinyTiff(), 200)),
+        );
+        final g = await source.fetch(keys, spanMeters: 2000);
+        expect(
+          g.resolutionMeters,
+          closeTo(2000 / NoaaDemSource.requestDim, 1e-9),
+        );
+      },
+    );
 
     test('throws BathymetryFetchException on a non-200', () async {
       final source = NoaaDemSource(
