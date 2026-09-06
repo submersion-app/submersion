@@ -32,10 +32,11 @@ class GithubUpdateService extends UpdateService {
     http.Client? httpClient,
   }) : httpClient = httpClient ?? http.Client();
 
-  /// Betas are pruned to the newest 30, so one page covers the whole repo.
+  /// The API maximum, not the 30 the prune step aims to keep: a prune that
+  /// fails or is delayed would otherwise push the newest beta off page one.
   Uri get _endpoint => Uri.parse(
     includePrereleases
-        ? 'https://api.github.com/repos/$owner/$repo/releases?per_page=30'
+        ? 'https://api.github.com/repos/$owner/$repo/releases?per_page=100'
         : 'https://api.github.com/repos/$owner/$repo/releases/latest',
   );
 

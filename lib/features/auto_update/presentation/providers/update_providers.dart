@@ -104,8 +104,10 @@ final updateServiceProvider = FutureProvider<UpdateService?>((ref) async {
     repo: githubRepoFor(channel),
     currentVersion: currentVersion,
     platformSuffix: _platformSuffix,
-    // beta-builds holds nothing but pre-releases (#1591), which /releases/latest
-    // refuses to return, so the beta channel enumerates the release list.
+    // Every versioned release in beta-builds is a pre-release (#1591), which
+    // /releases/latest refuses to return; the one non-pre-release there is the
+    // appcast pointer, which carries no installers. So the beta channel
+    // enumerates the release list instead.
     includePrereleases: channel == ReleaseChannel.beta,
   );
 });

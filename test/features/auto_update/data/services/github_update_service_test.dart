@@ -478,7 +478,7 @@ void main() {
       expect((status as UpdateAvailable).version, '1.7.7.8070');
     });
 
-    test('never offers the assetless appcast pointer release', () async {
+    test('never offers the installer-less appcast pointer release', () async {
       final client = MockClient((request) async {
         return http.Response(jsonEncode([appcastPointer()]), 200);
       });

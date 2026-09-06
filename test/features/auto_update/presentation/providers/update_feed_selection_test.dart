@@ -56,8 +56,8 @@ void main() {
         (service as GithubUpdateService).repo,
         githubRepoFor(ReleaseChannel.beta),
       );
-      // beta-builds publishes only pre-releases (#1591), which
-      // /releases/latest refuses to return. Without this the Linux and
+      // Every versioned release in beta-builds is a pre-release (#1591),
+      // which /releases/latest refuses to return. Without this the Linux and
       // Android beta pollers go permanently quiet.
       expect(service.includePrereleases, isTrue);
     }
