@@ -72,6 +72,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/the_dive_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/trip_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/computer_source_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/weighting_copy_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
@@ -4310,6 +4311,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             });
           },
         ),
+        if (_weights.isEmpty)
+          FormAppendRow(
+            label: context.l10n.diveLog_edit_copyWeightingFromDive,
+            onTap: _showWeightingCopySheet,
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
           child: Column(
@@ -4386,6 +4392,48 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
       ],
     );
+  }
+
+  /// Opens the "copy weighting from a dive" picker and, on selection, replaces
+  /// the (empty) weight list with editable copies of that dive's entries
+  /// (issue #1609).
+  Future<void> _showWeightingCopySheet() async {
+    final sourceDiveId = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (sheetContext, scrollController) =>
+            WeightingCopySheet(scrollController: scrollController),
+      ),
+    );
+    if (sourceDiveId == null || !mounted) return;
+
+    final source = await ref
+        .read(diveRepositoryProvider)
+        .getDiveById(sourceDiveId);
+    if (source == null || !mounted) return;
+    if (source.weights.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.diveLog_weightingCopy_empty)),
+      );
+      return;
+    }
+
+    setState(() {
+      _markDirty();
+      _weights = source.weights
+          .map((w) => w.copyWith(id: _uuid.v4(), diveId: widget.diveId ?? ''))
+          .toList();
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.diveLog_weightingCopy_applied)),
+      );
+    }
   }
 
   Widget _buildWeightEntryRow(

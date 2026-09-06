@@ -5086,6 +5086,32 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Suly bevetel hozzaadasa';
 
   @override
+  String get diveLog_edit_copyWeightingFromDive =>
+      'Súlyzat átvétele egy merülésből';
+
+  @override
+  String get diveLog_weightingCopy_title => 'Súlyzat átvétele innen';
+
+  @override
+  String get diveLog_weightingCopy_empty =>
+      'Egyik merülésedhez sincs még rögzítve súlyzat.';
+
+  @override
+  String get diveLog_weightingCopy_applied =>
+      'Súlyzat átmásolva. Szükség szerint módosítsd a bejegyzéseket.';
+
+  @override
+  String diveLog_weightingCopy_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count súly · $total',
+      one: '1 súly · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_edit_addedGps(Object name) {
     return 'GPS hozzaadva: $name';
   }

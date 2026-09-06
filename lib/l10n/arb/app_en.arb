@@ -1,7 +1,13 @@
 {
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
   "equipment_documents_removeError": "Could not remove the document: {error}",
-  "@equipment_documents_removeError": { "placeholders": { "error": { "type": "String" } } },
+  "@equipment_documents_removeError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "settings_oauth_connect_copyFailed": "Could not copy the link.",
   "settings_oauth_connect_copyLink": "Copy link",
   "settings_oauth_connect_linkCopied": "Link copied. Paste it into your browser to authorize.",
@@ -2887,6 +2893,21 @@
   "diveLog_edit_addCustomField": "Add Field",
   "diveLog_edit_addTank": "Add Tank",
   "diveLog_edit_addWeightEntry": "Add Weight Entry",
+  "diveLog_edit_copyWeightingFromDive": "Copy weighting from a dive",
+  "diveLog_weightingCopy_title": "Copy weighting from",
+  "diveLog_weightingCopy_empty": "None of your dives have a weighting recorded yet.",
+  "diveLog_weightingCopy_applied": "Weighting copied. Adjust the entries as needed.",
+  "diveLog_weightingCopy_summary": "{count, plural, =1{1 weight · {total}} other{{count} weights · {total}}}",
+  "@diveLog_weightingCopy_summary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
   "diveLog_edit_addedGps": "Added GPS to {name}",
   "diveLog_edit_appBarEdit": "Edit Dive",
   "diveLog_edit_appBarNew": "Log Dive",
@@ -4087,10 +4108,22 @@
   "diveLog_sources_menu_separate": "Separate combined dives",
   "diveLog_sources_separateDialog_title": "Separate combined dives?",
   "diveLog_sources_separateDialog_body": "This dive was combined from {count} dives. Each one's profile, events, tanks and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.",
-  "@diveLog_sources_separateDialog_body": {"placeholders": {"count": {"type": "int"}}},
+  "@diveLog_sources_separateDialog_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_sources_separateDialog_confirm": "Separate",
   "diveLog_sources_separateDone": "{count, plural, =1{1 dive restored} other{{count} dives restored}}",
-  "@diveLog_sources_separateDone": {"placeholders": {"count": {"type": "int"}}},
+  "@diveLog_sources_separateDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_sources_separateFailed": "Could not separate this dive",
   "@diveLog_sources_minutes": {
     "placeholders": {
@@ -19790,7 +19823,13 @@
   "equipment_documents_removeContent": "It stops being attached to this item. Your original file is never touched.",
   "equipment_documents_removed": "Document removed",
   "equipment_documents_loadError": "Could not load documents: {error}",
-  "@equipment_documents_loadError": { "placeholders": { "error": { "type": "String" } } },
+  "@equipment_documents_loadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "common_action_unpin": "Unpin",
   "diveLog_filterChip_dateRange": "{start} - {end}",
   "diveLog_filterChip_equipmentCount": "{count} Equipment",
@@ -22277,9 +22316,39 @@
   "startup_versionMismatch_restore_body": "A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.",
   "startup_versionMismatch_restore_warning": "Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.",
   "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
-  "@backup_history_preDowngradeSubtitle": { "placeholders": { "size": { "type": "String" } } },
+  "@backup_history_preDowngradeSubtitle": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} - {size}",
-  "@backup_history_manualSubtitle": {"placeholders": {"diveCount": {"type": "int"}, "siteCount": {"type": "int"}, "size": {"type": "String"}}},
+  "@backup_history_manualSubtitle": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} - {size} (auto)",
-  "@backup_history_manualSubtitleAuto": {"placeholders": {"diveCount": {"type": "int"}, "siteCount": {"type": "int"}, "size": {"type": "String"}}}
+  "@backup_history_manualSubtitleAuto": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  }
 }

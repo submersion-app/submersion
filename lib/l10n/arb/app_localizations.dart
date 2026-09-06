@@ -8465,6 +8465,36 @@ abstract class AppLocalizations {
   /// **'Add Weight Entry'**
   String get diveLog_edit_addWeightEntry;
 
+  /// No description provided for @diveLog_edit_copyWeightingFromDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy weighting from a dive'**
+  String get diveLog_edit_copyWeightingFromDive;
+
+  /// No description provided for @diveLog_weightingCopy_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy weighting from'**
+  String get diveLog_weightingCopy_title;
+
+  /// No description provided for @diveLog_weightingCopy_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'None of your dives have a weighting recorded yet.'**
+  String get diveLog_weightingCopy_empty;
+
+  /// No description provided for @diveLog_weightingCopy_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'Weighting copied. Adjust the entries as needed.'**
+  String get diveLog_weightingCopy_applied;
+
+  /// No description provided for @diveLog_weightingCopy_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 weight · {total}} other{{count} weights · {total}}}'**
+  String diveLog_weightingCopy_summary(int count, Object total);
+
   /// No description provided for @diveLog_edit_addedGps.
   ///
   /// In en, this message translates to:

@@ -4218,6 +4218,48 @@ class DiveRepository {
     }
   }
 
+  /// Load the weight entries for several dives at once, keyed by dive id.
+  ///
+  /// [getAllDives] skips weights for list views (issue #1609); this fills the
+  /// gap for the "copy weighting from a dive" picker without hydrating every
+  /// dive in full. Dives with no weight rows are simply absent from the map.
+  Future<Map<String, List<domain.DiveWeight>>> getWeightsForDives(
+    Iterable<String> diveIds,
+  ) async {
+    final ids = diveIds.toSet();
+    if (ids.isEmpty) return const {};
+    try {
+      final rows =
+          await (_db.select(_db.diveWeights)
+                ..where((w) => w.diveId.isIn(ids))
+                ..orderBy([(w) => OrderingTerm(expression: w.id)]))
+              .get();
+      final result = <String, List<domain.DiveWeight>>{};
+      for (final row in rows) {
+        (result[row.diveId] ??= <domain.DiveWeight>[]).add(
+          domain.DiveWeight(
+            id: row.id,
+            diveId: row.diveId,
+            weightType: WeightType.values.firstWhere(
+              (w) => w.name == row.weightType,
+              orElse: () => WeightType.belt,
+            ),
+            amountKg: row.amountKg,
+            notes: row.notes,
+          ),
+        );
+      }
+      return result;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load weights for dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const {};
+    }
+  }
+
   /// Load weights for a dive
   Future<List<domain.DiveWeight>> _loadWeightsForDive(String diveId) async {
     try {

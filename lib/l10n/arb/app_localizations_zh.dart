@@ -4850,6 +4850,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => '添加配重条目';
 
   @override
+  String get diveLog_edit_copyWeightingFromDive => '从某次潜水复制配重';
+
+  @override
+  String get diveLog_weightingCopy_title => '复制配重来源';
+
+  @override
+  String get diveLog_weightingCopy_empty => '你的潜水记录还没有任何配重信息。';
+
+  @override
+  String get diveLog_weightingCopy_applied => '配重已复制，可按需调整各项。';
+
+  @override
+  String diveLog_weightingCopy_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项配重 · $total',
+      one: '1 项配重 · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_edit_addedGps(Object name) {
     return '已为 $name 添加 GPS';
   }

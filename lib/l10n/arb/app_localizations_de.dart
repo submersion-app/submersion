@@ -5108,6 +5108,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Gewichtseintrag hinzufügen';
 
   @override
+  String get diveLog_edit_copyWeightingFromDive =>
+      'Bleimenge von einem Tauchgang übernehmen';
+
+  @override
+  String get diveLog_weightingCopy_title => 'Bleimenge übernehmen von';
+
+  @override
+  String get diveLog_weightingCopy_empty =>
+      'Für keinen deiner Tauchgänge ist bisher eine Bleimenge erfasst.';
+
+  @override
+  String get diveLog_weightingCopy_applied =>
+      'Bleimenge übernommen. Passe die Einträge bei Bedarf an.';
+
+  @override
+  String diveLog_weightingCopy_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gewichte · $total',
+      one: '1 Gewicht · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_edit_addedGps(Object name) {
     return 'GPS zu $name hinzugefügt';
   }

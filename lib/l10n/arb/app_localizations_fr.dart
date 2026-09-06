@@ -5122,6 +5122,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Ajouter un lest';
 
   @override
+  String get diveLog_edit_copyWeightingFromDive =>
+      'Copier le lestage d\'une plongée';
+
+  @override
+  String get diveLog_weightingCopy_title => 'Copier le lestage de';
+
+  @override
+  String get diveLog_weightingCopy_empty =>
+      'Aucune de vos plongées n\'a encore de lestage enregistré.';
+
+  @override
+  String get diveLog_weightingCopy_applied =>
+      'Lestage copié. Ajustez les entrées si besoin.';
+
+  @override
+  String diveLog_weightingCopy_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plombs · $total',
+      one: '1 plomb · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_edit_addedGps(Object name) {
     return 'GPS ajoute a $name';
   }

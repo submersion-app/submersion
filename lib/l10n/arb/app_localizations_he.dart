@@ -4976,6 +4976,31 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'הוספת רשומת משקל';
 
   @override
+  String get diveLog_edit_copyWeightingFromDive => 'העתקת משקולות מצלילה';
+
+  @override
+  String get diveLog_weightingCopy_title => 'העתקת משקולות מ';
+
+  @override
+  String get diveLog_weightingCopy_empty =>
+      'לאף אחת מהצלילות שלך עדיין אין משקל רשום.';
+
+  @override
+  String get diveLog_weightingCopy_applied =>
+      'המשקולות הועתקו. התאם את הרשומות לפי הצורך.';
+
+  @override
+  String diveLog_weightingCopy_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count משקולות · $total',
+      one: 'משקולת אחת · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_edit_addedGps(Object name) {
     return 'GPS נוסף ל-$name';
   }

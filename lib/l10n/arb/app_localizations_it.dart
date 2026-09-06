@@ -5104,6 +5104,32 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Aggiungi voce zavorra';
 
   @override
+  String get diveLog_edit_copyWeightingFromDive =>
+      'Copia la zavorra da un\'immersione';
+
+  @override
+  String get diveLog_weightingCopy_title => 'Copia la zavorra da';
+
+  @override
+  String get diveLog_weightingCopy_empty =>
+      'Nessuna delle tue immersioni ha ancora una zavorra registrata.';
+
+  @override
+  String get diveLog_weightingCopy_applied =>
+      'Zavorra copiata. Regola le voci se necessario.';
+
+  @override
+  String diveLog_weightingCopy_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pesi · $total',
+      one: '1 peso · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_edit_addedGps(Object name) {
     return 'GPS aggiunto a $name';
   }

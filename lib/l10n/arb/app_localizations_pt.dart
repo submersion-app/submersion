@@ -5106,6 +5106,32 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Adicionar Entrada de Lastro';
 
   @override
+  String get diveLog_edit_copyWeightingFromDive =>
+      'Copiar o lastro de um mergulho';
+
+  @override
+  String get diveLog_weightingCopy_title => 'Copiar o lastro de';
+
+  @override
+  String get diveLog_weightingCopy_empty =>
+      'Nenhum dos seus mergulhos tem lastro registado ainda.';
+
+  @override
+  String get diveLog_weightingCopy_applied =>
+      'Lastro copiado. Ajuste as entradas conforme necessário.';
+
+  @override
+  String diveLog_weightingCopy_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pesos · $total',
+      one: '1 peso · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_edit_addedGps(Object name) {
     return 'GPS adicionado a $name';
   }

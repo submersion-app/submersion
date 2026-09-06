@@ -5013,6 +5013,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Add Weight Entry';
 
   @override
+  String get diveLog_edit_copyWeightingFromDive => 'Copy weighting from a dive';
+
+  @override
+  String get diveLog_weightingCopy_title => 'Copy weighting from';
+
+  @override
+  String get diveLog_weightingCopy_empty =>
+      'None of your dives have a weighting recorded yet.';
+
+  @override
+  String get diveLog_weightingCopy_applied =>
+      'Weighting copied. Adjust the entries as needed.';
+
+  @override
+  String diveLog_weightingCopy_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weights · $total',
+      one: '1 weight · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_edit_addedGps(Object name) {
     return 'Added GPS to $name';
   }

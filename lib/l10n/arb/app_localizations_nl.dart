@@ -5068,6 +5068,32 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Gewicht toevoegen';
 
   @override
+  String get diveLog_edit_copyWeightingFromDive =>
+      'Loodhoeveelheid van een duik overnemen';
+
+  @override
+  String get diveLog_weightingCopy_title => 'Loodhoeveelheid overnemen van';
+
+  @override
+  String get diveLog_weightingCopy_empty =>
+      'Nog geen van je duiken heeft een loodhoeveelheid vastgelegd.';
+
+  @override
+  String get diveLog_weightingCopy_applied =>
+      'Loodhoeveelheid gekopieerd. Pas de items zo nodig aan.';
+
+  @override
+  String diveLog_weightingCopy_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gewichten · $total',
+      one: '1 gewicht · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_edit_addedGps(Object name) {
     return 'GPS toegevoegd aan $name';
   }

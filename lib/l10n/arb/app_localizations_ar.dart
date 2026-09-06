@@ -5005,6 +5005,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'إضافة إدخال أثقال';
 
   @override
+  String get diveLog_edit_copyWeightingFromDive => 'نسخ الأوزان من غطسة';
+
+  @override
+  String get diveLog_weightingCopy_title => 'نسخ الأوزان من';
+
+  @override
+  String get diveLog_weightingCopy_empty =>
+      'لا توجد أوزان مسجّلة في أيٍّ من غطساتك بعد.';
+
+  @override
+  String get diveLog_weightingCopy_applied =>
+      'تم نسخ الأوزان. عدّل المدخلات حسب الحاجة.';
+
+  @override
+  String diveLog_weightingCopy_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أوزان · $total',
+      one: 'وزن واحد · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String diveLog_edit_addedGps(Object name) {
     return 'تمت إضافة GPS إلى $name';
   }
