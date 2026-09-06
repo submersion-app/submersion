@@ -10716,5 +10716,7 @@
   "startup_versionMismatch_restore_title": "استعادة النسخة الاحتياطية السابقة للترقية",
   "startup_versionMismatch_restore_body": "توجد على هذا الجهاز نسخة احتياطية من سجل الغوص أُخذت قبل الترقية، وهذا الإصدار يستطيع فتحها.",
   "startup_versionMismatch_restore_warning": "كل ما سجّلته بعد الترقية موجود في الملف الأحدث فقط. يُحتفظ بذلك الملف كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيده.",
-  "backup_history_preDowngradeSubtitle": "قاعدة بيانات أحدث، محفوظة عند الرجوع - {size}"
+  "backup_history_preDowngradeSubtitle": "قاعدة بيانات أحدث، محفوظة عند الرجوع - {size}",
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصات}}, {siteCount, plural, =1{موقع غوص واحد} other{{siteCount} مواقع غوص}} - {size}",
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصات}}, {siteCount, plural, =1{موقع غوص واحد} other{{siteCount} مواقع غوص}} - {size} (تلقائي)"
 }

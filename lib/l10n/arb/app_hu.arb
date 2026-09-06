@@ -10716,5 +10716,7 @@
   "startup_versionMismatch_restore_title": "A frissítés előtti biztonsági mentés visszaállítása",
   "startup_versionMismatch_restore_body": "A frissítés előtt készült biztonsági másolat a merülőnaplódról ezen az eszközön van, és ez a verzió meg tudja nyitni.",
   "startup_versionMismatch_restore_warning": "Minden, amit a frissítés után rögzítettél, csak az újabb fájlban létezik. Azt a fájlt rögzített biztonsági mentésként megőrizzük, így az újabb verzió ismételt telepítésével visszakapod.",
-  "backup_history_preDowngradeSubtitle": "Újabb adatbázis, visszalépéskor megőrizve - {size}"
+  "backup_history_preDowngradeSubtitle": "Újabb adatbázis, visszalépéskor megőrizve - {size}",
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{1 merülés} other{{diveCount} merülés}}, {siteCount, plural, =1{1 merülőhely} other{{siteCount} merülőhely}} - {size}",
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 merülés} other{{diveCount} merülés}}, {siteCount, plural, =1{1 merülőhely} other{{siteCount} merülőhely}} - {size} (automatikus)"
 }

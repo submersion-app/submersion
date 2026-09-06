@@ -10716,5 +10716,7 @@
   "startup_versionMismatch_restore_title": "Restaurar a cópia anterior à atualização",
   "startup_versionMismatch_restore_body": "Existe neste dispositivo uma cópia de segurança do teu registo de mergulhos feita antes da atualização, e esta versão consegue abri-la.",
   "startup_versionMismatch_restore_warning": "Tudo o que registaste depois da atualização existe apenas no ficheiro mais recente. Esse ficheiro fica guardado como cópia fixada, por isso instalar de novo a versão mais recente recupera-o.",
-  "backup_history_preDowngradeSubtitle": "Base de dados mais recente, guardada ao recuar - {size}"
+  "backup_history_preDowngradeSubtitle": "Base de dados mais recente, guardada ao recuar - {size}",
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{1 mergulho} other{{diveCount} mergulhos}}, {siteCount, plural, =1{1 local} other{{siteCount} locais}} - {size}",
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 mergulho} other{{diveCount} mergulhos}}, {siteCount, plural, =1{1 local} other{{siteCount} locais}} - {size} (automático)"
 }

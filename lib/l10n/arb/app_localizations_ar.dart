@@ -36402,4 +36402,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String backup_history_preDowngradeSubtitle(String size) {
     return 'قاعدة بيانات أحدث، محفوظة عند الرجوع - $size';
   }
+
+  @override
+  String backup_history_manualSubtitle(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصات',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount مواقع غوص',
+      one: 'موقع غوص واحد',
+    );
+    return '$_temp0, $_temp1 - $size';
+  }
+
+  @override
+  String backup_history_manualSubtitleAuto(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount غوصات',
+      one: 'غوصة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount مواقع غوص',
+      one: 'موقع غوص واحد',
+    );
+    return '$_temp0, $_temp1 - $size (تلقائي)';
+  }
 }

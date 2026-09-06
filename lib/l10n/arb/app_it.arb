@@ -10716,5 +10716,7 @@
   "startup_versionMismatch_restore_title": "Ripristina la copia precedente all'aggiornamento",
   "startup_versionMismatch_restore_body": "Su questo dispositivo c'è una copia di sicurezza del tuo diario di immersione fatta prima dell'aggiornamento, e questa versione può aprirla.",
   "startup_versionMismatch_restore_warning": "Tutto ciò che hai registrato dopo l'aggiornamento esiste solo nel file più recente. Quel file viene conservato come backup bloccato: reinstallando la versione più recente lo recuperi.",
-  "backup_history_preDowngradeSubtitle": "Database più recente, conservato tornando indietro - {size}"
+  "backup_history_preDowngradeSubtitle": "Database più recente, conservato tornando indietro - {size}",
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{1 immersione} other{{diveCount} immersioni}}, {siteCount, plural, =1{1 sito} other{{siteCount} siti}} - {size}",
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 immersione} other{{diveCount} immersioni}}, {siteCount, plural, =1{1 sito} other{{siteCount} siti}} - {size} (auto)"
 }

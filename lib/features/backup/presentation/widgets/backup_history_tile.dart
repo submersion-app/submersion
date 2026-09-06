@@ -67,10 +67,21 @@ class BackupHistoryTile extends ConsumerWidget {
           context.l10n.backup_history_preDowngradeSubtitle(
             record.formattedSize,
           ),
+        // Two messages rather than one plus an appended "(auto)": where the
+        // marker belongs in the sentence is the translator's call, not this
+        // widget's.
         BackupType.manual =>
-          '${record.diveCount ?? 0} dives, '
-              '${record.siteCount ?? 0} sites - ${record.formattedSize}'
-              '${record.isAutomatic ? ' (auto)' : ''}',
+          record.isAutomatic
+              ? context.l10n.backup_history_manualSubtitleAuto(
+                  record.diveCount ?? 0,
+                  record.siteCount ?? 0,
+                  record.formattedSize,
+                )
+              : context.l10n.backup_history_manualSubtitle(
+                  record.diveCount ?? 0,
+                  record.siteCount ?? 0,
+                  record.formattedSize,
+                ),
       }),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

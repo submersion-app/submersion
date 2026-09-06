@@ -10716,5 +10716,7 @@
   "startup_versionMismatch_restore_title": "Restaurer la sauvegarde d'avant la mise à jour",
   "startup_versionMismatch_restore_body": "Une copie de sécurité de votre carnet de plongée, prise avant la mise à jour, se trouve sur cet appareil et cette version peut l'ouvrir.",
   "startup_versionMismatch_restore_warning": "Tout ce que vous avez enregistré après la mise à jour n'existe que dans le fichier le plus récent. Ce fichier est conservé comme sauvegarde épinglée : réinstallez la version plus récente pour le retrouver.",
-  "backup_history_preDowngradeSubtitle": "Base plus récente, conservée lors du retour en arrière - {size}"
+  "backup_history_preDowngradeSubtitle": "Base plus récente, conservée lors du retour en arrière - {size}",
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{1 plongée} other{{diveCount} plongées}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} - {size}",
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 plongée} other{{diveCount} plongées}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} - {size} (auto)"
 }

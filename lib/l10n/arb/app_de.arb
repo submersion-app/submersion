@@ -10716,5 +10716,7 @@
   "startup_versionMismatch_restore_title": "Sicherung von vor dem Upgrade wiederherstellen",
   "startup_versionMismatch_restore_body": "Eine Sicherheitskopie deines Tauchlogbuchs von vor dem Upgrade liegt auf diesem Gerät, und diese Version kann sie öffnen.",
   "startup_versionMismatch_restore_warning": "Alles, was du nach dem Upgrade eingetragen hast, liegt nur in der neueren Datei. Diese Datei wird als angeheftete Sicherung behalten; installiere die neuere Version erneut, um sie zurückzuholen.",
-  "backup_history_preDowngradeSubtitle": "Neuere Datenbank, beim Zurückwechseln behalten - {size}"
+  "backup_history_preDowngradeSubtitle": "Neuere Datenbank, beim Zurückwechseln behalten - {size}",
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size}",
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size} (automatisch)"
 }

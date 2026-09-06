@@ -36622,4 +36622,46 @@ class AppLocalizationsHu extends AppLocalizations {
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Újabb adatbázis, visszalépéskor megőrizve - $size';
   }
+
+  @override
+  String backup_history_manualSubtitle(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount merülés',
+      one: '1 merülés',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount merülőhely',
+      one: '1 merülőhely',
+    );
+    return '$_temp0, $_temp1 - $size';
+  }
+
+  @override
+  String backup_history_manualSubtitleAuto(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount merülés',
+      one: '1 merülés',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount merülőhely',
+      one: '1 merülőhely',
+    );
+    return '$_temp0, $_temp1 - $size (automatikus)';
+  }
 }

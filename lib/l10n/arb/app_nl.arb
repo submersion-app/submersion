@@ -10716,5 +10716,7 @@
   "startup_versionMismatch_restore_title": "Back-up van voor de upgrade terugzetten",
   "startup_versionMismatch_restore_body": "Er staat een veiligheidskopie van je duiklogboek van voor de upgrade op dit apparaat, en deze versie kan die openen.",
   "startup_versionMismatch_restore_warning": "Alles wat je na de upgrade hebt gelogd, bestaat alleen in het nieuwere bestand. Dat bestand wordt bewaard als vastgezette back-up, dus je krijgt het terug door de nieuwere versie opnieuw te installeren.",
-  "backup_history_preDowngradeSubtitle": "Nieuwere database, bewaard bij het teruggaan - {size}"
+  "backup_history_preDowngradeSubtitle": "Nieuwere database, bewaard bij het teruggaan - {size}",
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size}",
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size} (automatisch)"
 }

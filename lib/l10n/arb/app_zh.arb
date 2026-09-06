@@ -10716,5 +10716,7 @@
   "startup_versionMismatch_restore_title": "恢复升级前的备份",
   "startup_versionMismatch_restore_body": "本设备上存有升级前的潜水日志安全副本，当前版本可以打开它。",
   "startup_versionMismatch_restore_warning": "升级之后记录的内容只存在于较新的文件中。该文件会作为已固定的备份保留，重新安装较新版本即可取回。",
-  "backup_history_preDowngradeSubtitle": "较新的数据库，回退时保留 - {size}"
+  "backup_history_preDowngradeSubtitle": "较新的数据库，回退时保留 - {size}",
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{{diveCount} 次潜水} other{{diveCount} 次潜水}}, {siteCount, plural, =1{{siteCount} 个潜点} other{{siteCount} 个潜点}} - {size}",
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{{diveCount} 次潜水} other{{diveCount} 次潜水}}, {siteCount, plural, =1{{siteCount} 个潜点} other{{siteCount} 个潜点}} - {size}（自动）"
 }

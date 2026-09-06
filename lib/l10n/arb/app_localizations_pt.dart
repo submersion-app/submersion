@@ -36786,4 +36786,46 @@ class AppLocalizationsPt extends AppLocalizations {
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Base de dados mais recente, guardada ao recuar - $size';
   }
+
+  @override
+  String backup_history_manualSubtitle(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount locais',
+      one: '1 local',
+    );
+    return '$_temp0, $_temp1 - $size';
+  }
+
+  @override
+  String backup_history_manualSubtitleAuto(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount mergulhos',
+      one: '1 mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount locais',
+      one: '1 local',
+    );
+    return '$_temp0, $_temp1 - $size (automático)';
+  }
 }

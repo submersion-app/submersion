@@ -10716,5 +10716,7 @@
   "startup_versionMismatch_restore_title": "שחזור הגיבוי שלפני העדכון",
   "startup_versionMismatch_restore_body": "במכשיר הזה שמור עותק בטיחות של יומן הצלילה שנלקח לפני העדכון, והגרסה הזו יכולה לפתוח אותו.",
   "startup_versionMismatch_restore_warning": "כל מה שתיעדת אחרי העדכון קיים רק בקובץ החדש יותר. הקובץ הזה נשמר כגיבוי מוצמד, כך שהתקנה מחדש של הגרסה החדשה תחזיר אותו.",
-  "backup_history_preDowngradeSubtitle": "מסד נתונים חדש יותר, נשמר בעת החזרה - {size}"
+  "backup_history_preDowngradeSubtitle": "מסד נתונים חדש יותר, נשמר בעת החזרה - {size}",
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{צלילה אחת} other{{diveCount} צלילות}}, {siteCount, plural, =1{אתר אחד} other{{siteCount} אתרים}} - {size}",
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{צלילה אחת} other{{diveCount} צלילות}}, {siteCount, plural, =1{אתר אחד} other{{siteCount} אתרים}} - {size} (אוטומטי)"
 }

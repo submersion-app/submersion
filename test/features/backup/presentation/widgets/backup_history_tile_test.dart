@@ -103,6 +103,26 @@ void main() {
       expect(find.textContaining(' (auto)'), findsNothing);
     });
 
+    testWidgets('a single dive and site are not pluralised', (tester) async {
+      // The subtitle went through the localisation layer to stop shipping
+      // hard-coded English on a translated screen; a count of one is what
+      // proves the plural forms are actually being selected rather than a
+      // fixed string being interpolated.
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(diveCount: 1, siteCount: 1),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onDelete: () {},
+          ),
+        ),
+      );
+      expect(find.textContaining('1 dive, 1 site'), findsOneWidget);
+      expect(find.textContaining('1 dives'), findsNothing);
+    });
+
     testWidgets('manual record null counts render as 0 dives, 0 sites', (
       tester,
     ) async {

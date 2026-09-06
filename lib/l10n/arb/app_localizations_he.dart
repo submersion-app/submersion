@@ -36044,4 +36044,46 @@ class AppLocalizationsHe extends AppLocalizations {
   String backup_history_preDowngradeSubtitle(String size) {
     return 'מסד נתונים חדש יותר, נשמר בעת החזרה - $size';
   }
+
+  @override
+  String backup_history_manualSubtitle(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    return '$_temp0, $_temp1 - $size';
+  }
+
+  @override
+  String backup_history_manualSubtitleAuto(
+    int diveCount,
+    int siteCount,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      diveCount,
+      locale: localeName,
+      other: '$diveCount צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      siteCount,
+      locale: localeName,
+      other: '$siteCount אתרים',
+      one: 'אתר אחד',
+    );
+    return '$_temp0, $_temp1 - $size (אוטומטי)';
+  }
 }
