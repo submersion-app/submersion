@@ -10623,6 +10623,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_tideState_slackLow => 'Low Tide (Slack)';
 
   @override
+  String get enum_timeFormat_twelveHour => '12-hour';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24-hour';
+
+  @override
+  String get enum_matchConfidence_exact => 'Exact';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'Interpolated';
+
+  @override
+  String get enum_matchConfidence_estimated => 'Estimated';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'No Profile';
+
+  @override
+  String get enum_matchConfidence_manual => 'Manual';
+
+  @override
+  String get enum_logCategory_app => 'App';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'Serial';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'Database';
+
+  @override
   String get enum_visibility_excellent => 'Excellent (>30m / >100ft)';
 
   @override

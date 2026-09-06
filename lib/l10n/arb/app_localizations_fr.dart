@@ -10833,6 +10833,42 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_tideState_slackLow => 'Étale de basse mer';
 
   @override
+  String get enum_timeFormat_twelveHour => '12 heures';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24 heures';
+
+  @override
+  String get enum_matchConfidence_exact => 'Exact';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'Interpolé';
+
+  @override
+  String get enum_matchConfidence_estimated => 'Estimé';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'Aucun profil';
+
+  @override
+  String get enum_matchConfidence_manual => 'Manuel';
+
+  @override
+  String get enum_logCategory_app => 'Application';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'Série';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'Base de données';
+
+  @override
   String get enum_visibility_excellent => 'Excellente (>30m / >100ft)';
 
   @override

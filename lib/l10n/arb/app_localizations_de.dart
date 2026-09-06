@@ -10792,6 +10792,42 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_tideState_slackLow => 'Niedrigwasser (Stillwasser)';
 
   @override
+  String get enum_timeFormat_twelveHour => '12-Stunden';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24-Stunden';
+
+  @override
+  String get enum_matchConfidence_exact => 'Exakt';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'Interpoliert';
+
+  @override
+  String get enum_matchConfidence_estimated => 'Geschätzt';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'Kein Profil';
+
+  @override
+  String get enum_matchConfidence_manual => 'Manuell';
+
+  @override
+  String get enum_logCategory_app => 'App';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'Seriell';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'Datenbank';
+
+  @override
   String get enum_visibility_excellent => 'Ausgezeichnet (>30m / >100ft)';
 
   @override

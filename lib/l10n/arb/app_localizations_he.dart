@@ -10547,6 +10547,42 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_tideState_slackLow => 'שפל (רגיעה)';
 
   @override
+  String get enum_timeFormat_twelveHour => '12 שעות';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24 שעות';
+
+  @override
+  String get enum_matchConfidence_exact => 'מדויק';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'משוער';
+
+  @override
+  String get enum_matchConfidence_estimated => 'מוערך';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'אין פרופיל';
+
+  @override
+  String get enum_matchConfidence_manual => 'ידני';
+
+  @override
+  String get enum_logCategory_app => 'אפליקציה';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'טורי';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'מסד נתונים';
+
+  @override
   String get enum_visibility_excellent => 'מצוינת (>30m / >100ft)';
 
   @override

@@ -18282,6 +18282,78 @@ abstract class AppLocalizations {
   /// **'Low Tide (Slack)'**
   String get enum_tideState_slackLow;
 
+  /// No description provided for @enum_timeFormat_twelveHour.
+  ///
+  /// In en, this message translates to:
+  /// **'12-hour'**
+  String get enum_timeFormat_twelveHour;
+
+  /// No description provided for @enum_timeFormat_twentyFourHour.
+  ///
+  /// In en, this message translates to:
+  /// **'24-hour'**
+  String get enum_timeFormat_twentyFourHour;
+
+  /// No description provided for @enum_matchConfidence_exact.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact'**
+  String get enum_matchConfidence_exact;
+
+  /// No description provided for @enum_matchConfidence_interpolated.
+  ///
+  /// In en, this message translates to:
+  /// **'Interpolated'**
+  String get enum_matchConfidence_interpolated;
+
+  /// No description provided for @enum_matchConfidence_estimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated'**
+  String get enum_matchConfidence_estimated;
+
+  /// No description provided for @enum_matchConfidence_noProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'No Profile'**
+  String get enum_matchConfidence_noProfile;
+
+  /// No description provided for @enum_matchConfidence_manual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get enum_matchConfidence_manual;
+
+  /// No description provided for @enum_logCategory_app.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get enum_logCategory_app;
+
+  /// No description provided for @enum_logCategory_bluetooth.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth'**
+  String get enum_logCategory_bluetooth;
+
+  /// No description provided for @enum_logCategory_serial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial'**
+  String get enum_logCategory_serial;
+
+  /// No description provided for @enum_logCategory_libdc.
+  ///
+  /// In en, this message translates to:
+  /// **'libdc'**
+  String get enum_logCategory_libdc;
+
+  /// No description provided for @enum_logCategory_database.
+  ///
+  /// In en, this message translates to:
+  /// **'Database'**
+  String get enum_logCategory_database;
+
   /// No description provided for @enum_visibility_excellent.
   ///
   /// In en, this message translates to:

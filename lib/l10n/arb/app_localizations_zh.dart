@@ -10305,6 +10305,42 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_tideState_slackLow => '低潮平潮';
 
   @override
+  String get enum_timeFormat_twelveHour => '12 小时制';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24 小时制';
+
+  @override
+  String get enum_matchConfidence_exact => '精确';
+
+  @override
+  String get enum_matchConfidence_interpolated => '插值';
+
+  @override
+  String get enum_matchConfidence_estimated => '估计';
+
+  @override
+  String get enum_matchConfidence_noProfile => '无剖面';
+
+  @override
+  String get enum_matchConfidence_manual => '手动';
+
+  @override
+  String get enum_logCategory_app => '应用';
+
+  @override
+  String get enum_logCategory_bluetooth => '蓝牙';
+
+  @override
+  String get enum_logCategory_serial => '串口';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => '数据库';
+
+  @override
   String get enum_visibility_excellent => '极好 (>30m / >100ft)';
 
   @override

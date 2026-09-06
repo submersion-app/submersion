@@ -10604,6 +10604,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_tideState_slackLow => 'الجزر الأدنى (ركود)';
 
   @override
+  String get enum_timeFormat_twelveHour => '12 ساعة';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24 ساعة';
+
+  @override
+  String get enum_matchConfidence_exact => 'دقيق';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'مُستكمَل';
+
+  @override
+  String get enum_matchConfidence_estimated => 'مُقدَّر';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'لا يوجد ملف تعريف';
+
+  @override
+  String get enum_matchConfidence_manual => 'يدوي';
+
+  @override
+  String get enum_logCategory_app => 'التطبيق';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'تسلسلي';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'قاعدة البيانات';
+
+  @override
   String get enum_visibility_excellent => 'ممتازة (>30m / >100ft)';
 
   @override

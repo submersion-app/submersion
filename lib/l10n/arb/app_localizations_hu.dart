@@ -10764,6 +10764,42 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_tideState_slackLow => 'Apály (állóvíz)';
 
   @override
+  String get enum_timeFormat_twelveHour => '12 órás';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24 órás';
+
+  @override
+  String get enum_matchConfidence_exact => 'Pontos';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'Interpolált';
+
+  @override
+  String get enum_matchConfidence_estimated => 'Becsült';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'Nincs profil';
+
+  @override
+  String get enum_matchConfidence_manual => 'Kézi';
+
+  @override
+  String get enum_logCategory_app => 'Alkalmazás';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'Soros';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'Adatbázis';
+
+  @override
   String get enum_visibility_excellent => 'Kituno (>30m / >100ft)';
 
   @override

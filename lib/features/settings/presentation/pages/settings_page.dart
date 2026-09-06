@@ -59,6 +59,7 @@ import 'package:submersion/features/settings/presentation/providers/debug_mode_p
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/settings/presentation/format_enum_display.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// The URL for the GitHub issues page, used by [launchReportIssue].
@@ -606,7 +607,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                 _buildUnitTile(
                   context,
                   title: context.l10n.settings_units_timeFormat,
-                  value: settings.timeFormat.displayName,
+                  value: settings.timeFormat.localizedName(context.l10n),
                   onTap: () =>
                       _showTimeFormatPicker(context, ref, settings.timeFormat),
                 ),
@@ -1077,7 +1078,7 @@ class _UnitsSectionContent extends ConsumerWidget {
           children: TimeFormat.values.map((format) {
             final isSelected = format == currentFormat;
             return ListTile(
-              title: Text(format.displayName),
+              title: Text(format.localizedName(context.l10n)),
               subtitle: Text(format.example),
               trailing: isSelected
                   ? Icon(

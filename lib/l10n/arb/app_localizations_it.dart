@@ -10794,6 +10794,42 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_tideState_slackLow => 'Bassa marea (stanca)';
 
   @override
+  String get enum_timeFormat_twelveHour => '12 ore';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24 ore';
+
+  @override
+  String get enum_matchConfidence_exact => 'Esatto';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'Interpolato';
+
+  @override
+  String get enum_matchConfidence_estimated => 'Stimato';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'Nessun profilo';
+
+  @override
+  String get enum_matchConfidence_manual => 'Manuale';
+
+  @override
+  String get enum_logCategory_app => 'App';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'Seriale';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'Database';
+
+  @override
   String get enum_visibility_excellent => 'Eccellente (>30m / >100ft)';
 
   @override
