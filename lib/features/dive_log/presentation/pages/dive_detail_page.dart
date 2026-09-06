@@ -131,6 +131,7 @@ import 'package:submersion/features/tides/presentation/providers/tide_providers.
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -4443,7 +4444,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     for (final weight in dive.weights) {
       displayWeights.add(
         _WeightDisplay(
-          type: weight.weightType.displayName,
+          type: weight.weightType.localizedName(context.l10n),
           amount: weight.amountKg,
         ),
       );
@@ -4454,7 +4455,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       displayWeights.add(
         _WeightDisplay(
           type:
-              dive.weightType?.displayName ??
+              dive.weightType?.localizedName(context.l10n) ??
               context.l10n.diveLog_detail_section_weight,
           amount: dive.weightAmount!,
         ),

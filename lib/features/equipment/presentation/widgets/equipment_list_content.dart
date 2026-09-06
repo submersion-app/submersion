@@ -723,13 +723,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               ),
             if (filter.status != null)
               _buildActiveFilterChip(
-                filter.status!.displayName,
+                filter.status!.localizedName(context.l10n),
                 () => ref.read(equipmentFilterProvider.notifier).state = filter
                     .copyWith(clearStatus: true),
               ),
             if (filter.type != null)
               _buildActiveFilterChip(
-                filter.type!.displayName,
+                filter.type!.localizedName(context.l10n),
                 () => ref.read(equipmentFilterProvider.notifier).state = filter
                     .copyWith(clearType: true),
                 icon: equipmentTypeIcon(filter.type!),
@@ -829,7 +829,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     String filterText;
     if (blameCategory) {
       filterText = context.l10n.equipment_list_emptyState_filterText_type(
-        filter.type!.displayName,
+        filter.type!.localizedName(context.l10n),
       );
     } else if (filter.serviceDueOnly) {
       filterText = context.l10n.equipment_list_emptyState_filterText_serviceDue;
@@ -837,7 +837,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       filterText = context.l10n.equipment_list_emptyState_filterText_equipment;
     } else {
       filterText = context.l10n.equipment_list_emptyState_filterText_status(
-        filter.status!.displayName.toLowerCase(),
+        filter.status!.localizedName(context.l10n).toLowerCase(),
       );
     }
 

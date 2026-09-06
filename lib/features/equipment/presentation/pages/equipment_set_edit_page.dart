@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set_geof
 import 'package:submersion/features/equipment/presentation/widgets/geofence_editor_sheet.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:uuid/uuid.dart';
 
 class EquipmentSetEditPage extends ConsumerStatefulWidget {
@@ -311,7 +312,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                             child: Text(
-                              entry.key.displayName,
+                              entry.key.localizedName(context.l10n),
                               style: Theme.of(context).textTheme.labelLarge
                                   ?.copyWith(
                                     color: Theme.of(

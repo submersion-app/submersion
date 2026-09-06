@@ -11,6 +11,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
 class TankPresetEditPage extends ConsumerStatefulWidget {
   final String? presetId;
@@ -234,7 +235,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                     items: TankMaterial.values.map((material) {
                       return DropdownMenuItem(
                         value: material,
-                        child: Text(material.displayName),
+                        child: Text(material.localizedName(context.l10n)),
                       );
                     }).toList(),
                     onChanged: (value) {
