@@ -1,3 +1,5 @@
+import 'package:submersion/core/database/database_provenance.dart';
+
 /// Thrown when a caller that is not allowed to upgrade the schema opens a
 /// database whose stored version is behind the app's.
 ///
@@ -38,9 +40,19 @@ class DatabaseVersionMismatchException implements Exception {
   final int storedSchemaVersion;
   final int supportedSchemaVersion;
 
+  /// What the file says about the build that wrote it (issue #1593), or null
+  /// when it says nothing: every database written before schema v194 predates
+  /// the provenance table, which is exactly the population stranded by #1568.
+  ///
+  /// This is the difference between "you must be behind, go and get the
+  /// latest stable build" (a guess, and the wrong one when the file came off
+  /// the beta train) and naming the build that actually wrote the file.
+  final DatabaseProvenanceRecord? provenance;
+
   const DatabaseVersionMismatchException({
     required this.storedSchemaVersion,
     required this.supportedSchemaVersion,
+    this.provenance,
   });
 
   @override

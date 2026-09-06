@@ -35161,6 +35161,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String startup_versionMismatch_writtenBy(Object version, Object date) {
+    return 'Ton carnet de plongée a été mis à jour pour la dernière fois par Submersion $version le $date.';
+  }
+
+  @override
+  String startup_versionMismatch_writtenByUndated(Object version) {
+    return 'Ton carnet de plongée a été mis à jour pour la dernière fois par Submersion $version.';
+  }
+
+  @override
   String get startup_versionMismatch_instructions =>
       'Veuillez mettre à jour Submersion vers la dernière version. Vos données sont intactes et n’ont pas été modifiées. Si une sauvegarde a été effectuée avant la mise à niveau, elle se trouve dans votre dossier Backups et peut être restaurée après la mise à jour.';
 

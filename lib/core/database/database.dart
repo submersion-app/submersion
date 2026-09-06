@@ -3298,6 +3298,29 @@ const String kLegacyDataSourceIdPrefix = 'legacy-src-';
 /// [kLegacyDataSourceIdPrefix].
 String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
 
+/// Which build wrote this database file (issue #1593).
+///
+/// **The shape of this table is frozen.** Unlike every other table here, it
+/// is read by builds OLDER than the one that wrote it: the version-mismatch
+/// guard runs on a file a newer build upgraded, and it has to be able to name
+/// that build. A build that shipped the day this table landed only knows how
+/// to `SELECT key, value FROM database_provenance`, so new facts arrive as new
+/// KEYS and never as new columns. See
+/// `lib/core/database/database_provenance.dart` for the key vocabulary and the
+/// defensive parser, and `DatabaseService.readProvenance` for the raw read
+/// that happens next to the guard, before drift exists.
+///
+/// Local-only: no `hlc`, never synced, never merged. It describes THIS file,
+/// and a peer's answer to "which build touched you last" is not an answer
+/// about this one.
+class DatabaseProvenance extends Table {
+  TextColumn get key => text()();
+  TextColumn get value => text()();
+
+  @override
+  Set<Column> get primaryKey => {key};
+}
+
 @DriftDatabase(
   tables: [
     Divers,
@@ -3401,6 +3424,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     ServiceSchedules,
     CylinderConfigs,
     CylinderConfigItems,
+    DatabaseProvenance,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -3410,7 +3434,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 191;
+  static const int currentSchemaVersion = 194;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3896,6 +3920,12 @@ class AppDatabase extends _$AppDatabase {
     // recompression rungs (188-190) while this branch was open, and a rung
     // at or below the shipped version never runs its onUpgrade step.
     191,
+    // v194: database_provenance, the frozen key/value table recording which
+    // build wrote this file and which build last upgraded it (issue #1593).
+    // Numbered 194 because PR #1586 (planner water type) holds 192 and 193.
+    // Table-only rung, no backfill: a database that predates it has no
+    // provenance to recover, which is exactly the population #1568 describes.
+    194,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -10300,6 +10330,14 @@ class AppDatabase extends _$AppDatabase {
           await _assertPlanAscentRateColumns();
         }
         if (from < 191) await reportProgress();
+        // v194: database_provenance (issue #1593). Table-only rung. The
+        // table is created BEFORE the recorder ever writes, and the recorder
+        // is best-effort, so a database that stops here is fully functional
+        // with an empty provenance table.
+        if (from < 194) {
+          await createMigrator().createTable(databaseProvenance);
+        }
+        if (from < 194) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -10388,6 +10426,14 @@ class AppDatabase extends _$AppDatabase {
         // v152 backstop: site features table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await createMigrator().createTable(siteFeatures);
+
+        // v194 backstop: database_provenance (issue #1593). More load-bearing
+        // than the other table backstops: an older build reads this table
+        // from a file a newer build wrote, so a database that reached this
+        // rung through a parallel-branch collision and never got the table
+        // would be permanently unable to explain itself. createTable is
+        // idempotent.
+        await createMigrator().createTable(databaseProvenance);
 
         // v122 backstop: re-assert service ledger schema + built-in kinds.
         // The legacy backfill is NOT here (onUpgrade only) -- re-running it

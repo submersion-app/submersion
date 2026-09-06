@@ -10282,6 +10282,8 @@
   "common_action_retry": "Opnieuw proberen",
   "startup_versionMismatch_title": "Update vereist",
   "startup_versionMismatch_body": "Je duikgegevens zijn opgeslagen door een nieuwere versie van Submersion (schema v{databaseVersion}). Deze versie ondersteunt schema’s alleen tot v{appVersion}.",
+  "startup_versionMismatch_writtenBy": "Je duiklogboek is voor het laatst bijgewerkt door Submersion {version} op {date}.",
+  "startup_versionMismatch_writtenByUndated": "Je duiklogboek is voor het laatst bijgewerkt door Submersion {version}.",
   "startup_versionMismatch_instructions": "Werk Submersion bij naar de nieuwste versie. Je gegevens zijn veilig en zijn niet gewijzigd. Als er vóór de upgrade een back-up is gemaakt, staat die in je map Backups en kan die na het bijwerken worden teruggezet.",
   "startup_versionMismatch_storeInstructions": "Deze app is geïnstalleerd vanuit een appstore en is ouder dan de versie die uw gegevens heeft gemaakt. Uw gegevens zijn veilig en niet gewijzigd. Werk Submersion bij zodra de nieuwe versie in de store verschijnt en open de app daarna opnieuw.",
   "startup_versionMismatch_download": "Nieuwste versie downloaden",

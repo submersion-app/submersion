@@ -33020,6 +33020,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String startup_versionMismatch_writtenBy(Object version, Object date) {
+    return '你的潜水日志上次由 Submersion $version 于 $date 升级。';
+  }
+
+  @override
+  String startup_versionMismatch_writtenByUndated(Object version) {
+    return '你的潜水日志上次由 Submersion $version 升级。';
+  }
+
+  @override
   String get startup_versionMismatch_instructions =>
       '请将 Submersion 更新到最新版本。您的数据是安全的，未被修改。如果升级前已创建备份，它位于您的 Backups 文件夹中，更新后可以恢复。';
 

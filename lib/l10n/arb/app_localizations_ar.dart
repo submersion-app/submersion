@@ -34709,6 +34709,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String startup_versionMismatch_writtenBy(Object version, Object date) {
+    return 'جرى آخر تحديث لسجل الغوص الخاص بك بواسطة Submersion $version في $date.';
+  }
+
+  @override
+  String startup_versionMismatch_writtenByUndated(Object version) {
+    return 'جرى آخر تحديث لسجل الغوص الخاص بك بواسطة Submersion $version.';
+  }
+
+  @override
   String get startup_versionMismatch_instructions =>
       'يرجى تحديث Submersion إلى أحدث إصدار. بياناتك آمنة ولم تُعدَّل. إذا أُخذت نسخة احتياطية قبل الترقية، فهي موجودة في مجلد Backups ويمكن استعادتها بعد التحديث.';
 

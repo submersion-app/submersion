@@ -10282,6 +10282,8 @@
   "common_action_retry": "إعادة المحاولة",
   "startup_versionMismatch_title": "التحديث مطلوب",
   "startup_versionMismatch_body": "حُفظت بيانات غوصك بإصدار أحدث من Submersion (المخطط v{databaseVersion}). هذا الإصدار يدعم حتى المخطط v{appVersion} فقط.",
+  "startup_versionMismatch_writtenBy": "جرى آخر تحديث لسجل الغوص الخاص بك بواسطة Submersion {version} في {date}.",
+  "startup_versionMismatch_writtenByUndated": "جرى آخر تحديث لسجل الغوص الخاص بك بواسطة Submersion {version}.",
   "startup_versionMismatch_instructions": "يرجى تحديث Submersion إلى أحدث إصدار. بياناتك آمنة ولم تُعدَّل. إذا أُخذت نسخة احتياطية قبل الترقية، فهي موجودة في مجلد Backups ويمكن استعادتها بعد التحديث.",
   "startup_versionMismatch_storeInstructions": "تم تثبيت هذا التطبيق من متجر تطبيقات وهو أقدم من الإصدار الذي أنشأ بياناتك. بياناتك آمنة ولم يتم تعديلها. حدّث Submersion عندما يظهر الإصدار الجديد في المتجر، ثم أعد فتحه.",
   "startup_versionMismatch_download": "تنزيل أحدث إصدار",

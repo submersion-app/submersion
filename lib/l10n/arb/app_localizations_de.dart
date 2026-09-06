@@ -34986,6 +34986,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String startup_versionMismatch_writtenBy(Object version, Object date) {
+    return 'Dein Tauchbuch wurde zuletzt von Submersion $version am $date aktualisiert.';
+  }
+
+  @override
+  String startup_versionMismatch_writtenByUndated(Object version) {
+    return 'Dein Tauchbuch wurde zuletzt von Submersion $version aktualisiert.';
+  }
+
+  @override
   String get startup_versionMismatch_instructions =>
       'Bitte aktualisieren Sie Submersion auf die neueste Version. Ihre Daten sind sicher und wurden nicht verändert. Falls vor dem Upgrade eine Sicherung erstellt wurde, liegt sie in Ihrem Ordner Backups und kann nach dem Update wiederhergestellt werden.';
 

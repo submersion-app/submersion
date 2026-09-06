@@ -34913,6 +34913,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String startup_versionMismatch_writtenBy(Object version, Object date) {
+    return 'A merülésnaplódat legutóbb a Submersion $version frissítette ekkor: $date.';
+  }
+
+  @override
+  String startup_versionMismatch_writtenByUndated(Object version) {
+    return 'A merülésnaplódat legutóbb a Submersion $version frissítette.';
+  }
+
+  @override
   String get startup_versionMismatch_instructions =>
       'Kérjük, frissítse a Submersiont a legújabb verzióra. Az adatai biztonságban vannak, és nem módosultak. Ha a frissítés előtt készült biztonsági mentés, az a Backups mappában található, és a frissítés után visszaállítható.';
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/database/database_provenance.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -17,6 +18,7 @@ class VersionMismatchView extends StatelessWidget {
     required this.subtitleColor,
     required this.onDownloadLatest,
     required this.onClose,
+    this.provenance,
     this.channelOverride,
   });
 
@@ -35,6 +37,12 @@ class VersionMismatchView extends StatelessWidget {
   final VoidCallback onDownloadLatest;
   final VoidCallback onClose;
 
+  /// What the database says about the build that wrote it, when it says
+  /// anything (issue #1593). Null for every database written before schema
+  /// v194, which is the whole fleet stranded by #1568, so the screen has to
+  /// read correctly without it.
+  final DatabaseProvenanceRecord? provenance;
+
   /// Test seam: UpdateChannelConfig.current reads a compile-time constant,
   /// which a test binary cannot vary.
   final UpdateChannel? channelOverride;
@@ -46,6 +54,8 @@ class VersionMismatchView extends StatelessWidget {
     // a different instruction and no download affordances (issue #1089).
     final channel = channelOverride ?? UpdateChannelConfig.current;
     final isStore = UpdateChannelConfig.isStoreChannel(channel);
+
+    final writtenBy = _writtenByLine(context);
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -72,6 +82,14 @@ class VersionMismatchView extends StatelessWidget {
             style: TextStyle(fontSize: 14, color: subtitleColor),
             textAlign: TextAlign.center,
           ),
+          if (writtenBy != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              writtenBy,
+              style: TextStyle(fontSize: 14, color: subtitleColor),
+              textAlign: TextAlign.center,
+            ),
+          ],
           const SizedBox(height: 16),
           Text(
             isStore
@@ -107,5 +125,36 @@ class VersionMismatchView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// "Your data was last upgraded by Submersion 1.7.7.8064 (beta) on 5 Sep
+  /// 2026", or null when the file cannot name a build.
+  ///
+  /// Prefers the UPGRADE entry over the last-open entry: the build that put
+  /// the file on a rung this app cannot read is the one worth naming, and it
+  /// is not necessarily the one that touched the file most recently.
+  ///
+  /// The train is rendered verbatim in parentheses rather than translated.
+  /// It is an identifier written into the database by a build that may be
+  /// newer than this one, so a train name that did not exist when these
+  /// strings were translated must still render.
+  String? _writtenByLine(BuildContext context) {
+    final record = provenance;
+    if (record == null) return null;
+    final entry = record.lastUpgrade ?? record.lastOpen;
+    final version = entry?.appVersion;
+    if (entry == null || version == null) return null;
+
+    final train = entry.releaseTrain;
+    final label = train == null ? version : '$version ($train)';
+
+    final writtenAt = entry.writtenAt;
+    if (writtenAt == null) {
+      return context.l10n.startup_versionMismatch_writtenByUndated(label);
+    }
+    final date = MaterialLocalizations.of(
+      context,
+    ).formatMediumDate(writtenAt.toLocal());
+    return context.l10n.startup_versionMismatch_writtenBy(label, date);
   }
 }

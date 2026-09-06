@@ -10,6 +10,8 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/database/background_database_connection.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_connection_setup.dart';
+import 'package:submersion/core/database/database_provenance.dart';
+import 'package:submersion/core/database/database_provenance_recorder.dart';
 import 'package:submersion/core/database/database_snapshot.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/database/sqlcipher_setup.dart'
@@ -257,10 +259,17 @@ class DatabaseService {
     final stored = getStoredSchemaVersion(dbPath, keyHex: keyHex);
 
     // Guard: reject databases created by a newer version of the app.
+    //
+    // The provenance read happens only here, on the failure path. It costs a
+    // second open of the file, which is exactly the wrong price to pay on
+    // every launch and exactly the right one on the launch that is about to
+    // strand the diver: it is what lets the mismatch screen name the build
+    // that wrote the file instead of guessing (issues #1568, #1593).
     if (stored != null && stored > AppDatabase.currentSchemaVersion) {
       throw DatabaseVersionMismatchException(
         storedSchemaVersion: stored,
         supportedSchemaVersion: AppDatabase.currentSchemaVersion,
+        provenance: readProvenance(dbPath, keyHex: keyHex),
       );
     }
 
@@ -314,9 +323,29 @@ class DatabaseService {
       lastOpenMode = DatabaseOpenMode.background;
     }
 
-    return retryWhileDatabaseBusy(
+    final opened = await retryWhileDatabaseBusy(
       () => _openOnBackgroundExecutor(file, keyHex, onMigrationProgress),
     );
+
+    // Stamp which build just touched this file (issue #1593). Best-effort and
+    // last: a provenance failure must never cost a diver the open that
+    // already succeeded.
+    //
+    // A fresh file records an upgrade FROM zero. "Which build put this file
+    // on the rung it is on" has the same answer whether the rung was reached
+    // by creation or by the ladder, and that is the question the mismatch
+    // screen asks.
+    if (DatabaseProvenanceRecorder.shouldRecordOnOpen) {
+      await DatabaseProvenanceRecorder.record(
+        opened,
+        schemaVersion: AppDatabase.currentSchemaVersion,
+        upgradedFrom: migrationPending
+            ? stored
+            : (stored == null || stored == 0 ? 0 : null),
+      );
+    }
+
+    return opened;
   }
 
   /// Runs the pending upgrade ladder to completion on a synchronous
@@ -662,6 +691,51 @@ class DatabaseService {
       rethrow;
     } finally {
       db.close();
+    }
+  }
+
+  /// Reads the `database_provenance` rows from [dbPath] without opening it
+  /// through drift: which build wrote the file, which build last upgraded it,
+  /// and when (issue #1593).
+  ///
+  /// This is the one read in the project that runs against a file a NEWER
+  /// build may have written, so every failure mode degrades to null rather
+  /// than throwing: the table may be absent (any database written before
+  /// v194, which is precisely the population stranded by #1568), it may hold
+  /// keys this build has never heard of, or the file may be encrypted with a
+  /// key this caller does not have.
+  ///
+  /// Opens READ-ONLY, deliberately unlike [getStoredSchemaVersion]. The
+  /// caller is the version-mismatch guard, whose entire promise is that
+  /// nothing writes to a database this build does not understand. The
+  /// read-only open is safe here only because [getStoredSchemaVersion] ran
+  /// first and already rolled back any hot journal; calling this in isolation
+  /// on a crashed file returns null rather than recovering it.
+  static DatabaseProvenanceRecord? readProvenance(
+    String dbPath, {
+    String? keyHex,
+  }) {
+    final file = File(dbPath);
+    if (!file.existsSync()) return null;
+
+    sqlite3.Database? db;
+    try {
+      db = openRaw(dbPath, mode: sqlite3.OpenMode.readOnly, keyHex: keyHex);
+      final result = db.select(
+        'SELECT key, value FROM ${DatabaseProvenanceKeys.tableName}',
+      );
+      final rows = <String, String>{};
+      for (final row in result) {
+        final key = row['key'];
+        final value = row['value'];
+        if (key is String && value is String) rows[key] = value;
+      }
+      final record = DatabaseProvenanceRecord.parse(rows);
+      return record.isEmpty ? null : record;
+    } on Object {
+      return null;
+    } finally {
+      db?.close();
     }
   }
 

@@ -57739,6 +57739,18 @@ abstract class AppLocalizations {
     Object appVersion,
   );
 
+  /// Names the build that last upgraded the database on the version-mismatch screen. The version placeholder already carries any release train in parentheses (issue #1593).
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log was last upgraded by Submersion {version} on {date}.'**
+  String startup_versionMismatch_writtenBy(Object version, Object date);
+
+  /// As startup_versionMismatch_writtenBy, for a database that recorded a build but no readable timestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log was last upgraded by Submersion {version}.'**
+  String startup_versionMismatch_writtenByUndated(Object version);
+
   /// No description provided for @startup_versionMismatch_instructions.
   ///
   /// In en, this message translates to:

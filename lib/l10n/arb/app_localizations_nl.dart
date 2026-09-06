@@ -34822,6 +34822,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String startup_versionMismatch_writtenBy(Object version, Object date) {
+    return 'Je duiklogboek is voor het laatst bijgewerkt door Submersion $version op $date.';
+  }
+
+  @override
+  String startup_versionMismatch_writtenByUndated(Object version) {
+    return 'Je duiklogboek is voor het laatst bijgewerkt door Submersion $version.';
+  }
+
+  @override
   String get startup_versionMismatch_instructions =>
       'Werk Submersion bij naar de nieuwste versie. Je gegevens zijn veilig en zijn niet gewijzigd. Als er vóór de upgrade een back-up is gemaakt, staat die in je map Backups en kan die na het bijwerken worden teruggezet.';
 

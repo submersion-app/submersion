@@ -35104,6 +35104,16 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String startup_versionMismatch_writtenBy(Object version, Object date) {
+    return 'Tu cuaderno de buceo se actualizó por última vez con Submersion $version el $date.';
+  }
+
+  @override
+  String startup_versionMismatch_writtenByUndated(Object version) {
+    return 'Tu cuaderno de buceo se actualizó por última vez con Submersion $version.';
+  }
+
+  @override
   String get startup_versionMismatch_instructions =>
       'Actualiza Submersion a la última versión. Tus datos están a salvo y no se han modificado. Si se hizo una copia de seguridad antes de la actualización, está en tu carpeta Backups y se puede restaurar después de actualizar.';
 

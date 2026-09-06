@@ -20,6 +20,7 @@ import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.da
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
+import 'package:submersion/core/database/database_provenance.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
 import 'package:submersion/core/presentation/pages/lock_escape_dialogs.dart';
@@ -177,6 +178,11 @@ class _StartupWrapperState extends State<StartupWrapper>
   bool _isVersionMismatch = false;
   int _dbVersion = 0;
   int _appVersion = 0;
+
+  /// What the refused database says about the build that wrote it, when it
+  /// says anything (issue #1593). Null for anything written before schema
+  /// v194.
+  DatabaseProvenanceRecord? _dbProvenance;
   BackupFailedException? _backupError;
   sqlite3.SqliteException? _readonlyError;
 
@@ -343,6 +349,7 @@ class _StartupWrapperState extends State<StartupWrapper>
           _isVersionMismatch = true;
           _dbVersion = e.storedSchemaVersion;
           _appVersion = e.supportedSchemaVersion;
+          _dbProvenance = e.provenance;
         });
       }
     } on DatabaseLockedException {
@@ -1291,6 +1298,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       return VersionMismatchView(
         databaseVersion: _dbVersion,
         appVersion: _appVersion,
+        provenance: _dbProvenance,
         textColor: textColor,
         subtitleColor: subtitleColor,
         onDownloadLatest: _openLatestRelease,

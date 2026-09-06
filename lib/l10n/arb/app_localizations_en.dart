@@ -34541,6 +34541,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String startup_versionMismatch_writtenBy(Object version, Object date) {
+    return 'Your dive log was last upgraded by Submersion $version on $date.';
+  }
+
+  @override
+  String startup_versionMismatch_writtenByUndated(Object version) {
+    return 'Your dive log was last upgraded by Submersion $version.';
+  }
+
+  @override
   String get startup_versionMismatch_instructions =>
       'Please update Submersion to the latest version. Your data is safe and has not been modified. If a backup was taken before the upgrade, it is in your Backups folder and can be restored after updating.';
 

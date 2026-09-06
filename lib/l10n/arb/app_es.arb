@@ -10282,6 +10282,8 @@
   "common_action_retry": "Reintentar",
   "startup_versionMismatch_title": "Actualización requerida",
   "startup_versionMismatch_body": "Tus datos de buceo se guardaron con una versión más reciente de Submersion (esquema v{databaseVersion}). Esta versión solo admite esquemas hasta v{appVersion}.",
+  "startup_versionMismatch_writtenBy": "Tu cuaderno de buceo se actualizó por última vez con Submersion {version} el {date}.",
+  "startup_versionMismatch_writtenByUndated": "Tu cuaderno de buceo se actualizó por última vez con Submersion {version}.",
   "startup_versionMismatch_instructions": "Actualiza Submersion a la última versión. Tus datos están a salvo y no se han modificado. Si se hizo una copia de seguridad antes de la actualización, está en tu carpeta Backups y se puede restaurar después de actualizar.",
   "startup_versionMismatch_storeInstructions": "Esta app se instaló desde una tienda de aplicaciones y es más antigua que la versión que creó tus datos. Tus datos están a salvo y no se han modificado. Actualiza Submersion cuando la nueva versión aparezca en la tienda y vuelve a abrirla.",
   "startup_versionMismatch_download": "Descargar la última versión",

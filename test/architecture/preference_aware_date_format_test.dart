@@ -46,6 +46,14 @@ void main() {
     // the resolved system locale is the only source of formatting there.
     'lib/core/presentation/widgets/startup_failure_view.dart':
         'renders before settings are readable',
+    // Same situation, one screen over: the version-mismatch screen renders
+    // BECAUSE the database was refused, and the diver's DateFormatPreference
+    // is a column in that database (diver_settings.date_format). The date it
+    // shows is the one the provenance table recorded for the build that wrote
+    // the file (issue #1593), so the resolved UI locale is the only ordering
+    // available.
+    'lib/core/presentation/widgets/version_mismatch_view.dart':
+        'renders because the database was refused',
     // The printed card face imitates a physical certification card, so it
     // keeps that card's compact month/year whatever the diver picked. There is
     // no day to reorder; the spoken Semantics label carries the full date in
