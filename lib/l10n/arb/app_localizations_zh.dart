@@ -23423,7 +23423,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_about_bathymetryCredit =>
-      '水深数据：GMRT（CC BY 4.0）· EMODnet Bathymetry（CC BY 4.0）· NOAA ETOPO 2022';
+      '水深数据：GMRT（CC BY 4.0）· EMODnet Bathymetry（CC BY 4.0）· NOAA ETOPO 2022 · NOAA NCEI DEM';
 
   @override
   String get dive3d_metric_depth => '深度';

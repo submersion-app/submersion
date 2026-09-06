@@ -16041,7 +16041,7 @@
       }
     }
   },
-  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022",
+  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM",
   "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Depth",
   "@dive3d_metric_depth": {},

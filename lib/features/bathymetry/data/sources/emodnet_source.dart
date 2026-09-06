@@ -58,9 +58,25 @@ class EmodnetSource implements BathymetrySource {
       p.longitude >= b.minLon &&
       p.longitude <= b.maxLon;
 
+  static const double declaredCellSizeMeters = _resolutionMeters;
+
   @override
-  bool covers(GeoPoint center) =>
-      _inBox(center, _carib) || _inBox(center, _europe);
+  Future<SourceCapability?> probe(GeoPoint center) async {
+    if (_inBox(center, _carib)) {
+      // Not const: a record field access is not a constant expression.
+      return SourceCapability(
+        cellSizeMeters: _resolutionMeters,
+        detail: _carib.dataset,
+      );
+    }
+    if (_inBox(center, _europe)) {
+      return SourceCapability(
+        cellSizeMeters: _resolutionMeters,
+        detail: _europe.dataset,
+      );
+    }
+    return null;
+  }
 
   @override
   Future<BathymetryGrid> fetch(

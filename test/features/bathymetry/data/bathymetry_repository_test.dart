@@ -32,7 +32,8 @@ class ScriptedSource implements BathymetrySource {
   @override
   bool get global => true;
   @override
-  bool covers(GeoPoint center) => true;
+  Future<SourceCapability?> probe(GeoPoint center) async =>
+      const SourceCapability(cellSizeMeters: 100, detail: 'fake');
   @override
   Future<BathymetryGrid> fetch(GeoPoint c, {required double spanMeters}) async {
     calls++;
@@ -74,13 +75,14 @@ void main() {
     final q = BathymetryRepository.quantize(bonaire);
     expect(q.lat, closeTo(12.16, 1e-9));
     expect(q.lon, closeTo(-68.30, 1e-9)); // -68.29 floors DOWN to -68.30
-    // The key carries the request span so a span change refetches instead
-    // of serving a smaller cached area forever.
-    expect(BathymetryRepository.keyFor(bonaire), '12.16,-68.30@8000');
+    // The key carries the request span and the selection generation, so a
+    // change to either refetches instead of serving the old cached answer
+    // forever.
+    expect(BathymetryRepository.keyFor(bonaire), '12.16,-68.30@8000v2');
     // Nearby coordinates share the key.
     expect(
       BathymetryRepository.keyFor(const GeoPoint(12.171, -68.281)),
-      '12.16,-68.30@8000',
+      '12.16,-68.30@8000v2',
     );
   });
 
@@ -202,5 +204,21 @@ void main() {
     final grid = await repo(source).getGrid(bonaire);
     expect(grid!.rows, lessThanOrEqualTo(120));
     expect(grid.cols, lessThanOrEqualTo(120));
+  });
+
+  test('the cache key carries the selection generation', () {
+    final key = BathymetryRepository.keyFor(const GeoPoint(12.16, -68.29));
+    expect(key, endsWith('@8000v2'));
+  });
+
+  test('a row written under the previous generation is not reused', () {
+    // An install upgrading from the pre-selection-change build must MISS
+    // its old rows, or every already-visited site keeps serving the grid
+    // the old resolver chose. Cached rows never expire.
+    const p = GeoPoint(12.16, -68.29);
+    final q = BathymetryRepository.quantize(p);
+    final legacyKey =
+        '${q.lat.toStringAsFixed(2)},${q.lon.toStringAsFixed(2)}@8000';
+    expect(BathymetryRepository.keyFor(p), isNot(legacyKey));
   });
 }

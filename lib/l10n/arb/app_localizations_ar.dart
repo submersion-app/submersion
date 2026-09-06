@@ -24264,7 +24264,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_about_bathymetryCredit =>
-      'بيانات قياس الأعماق: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022';
+      'بيانات قياس الأعماق: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM';
 
   @override
   String get dive3d_metric_depth => 'العمق';

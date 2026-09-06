@@ -7044,7 +7044,7 @@
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "Távolság ({unitSymbol})",
   "@dive3d_seascape_axis_distance": {},
-  "settings_about_bathymetryCredit": "Batimetriai adatok: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022",
+  "settings_about_bathymetryCredit": "Batimetriai adatok: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM",
   "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Mélység",
   "@dive3d_metric_depth": {},

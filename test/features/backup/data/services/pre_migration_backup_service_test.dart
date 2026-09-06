@@ -250,67 +250,95 @@ void main() {
 
   group('retention prune', () {
     test(
-      'keeps newest 3 unpinned pre-migration backups, deletes older',
+      'keeps the lowest fromSchemaVersion copy in place of the third-newest',
       () async {
+        // Recoverability runs oldest-first: the copy that matters is the one
+        // whose schema is low enough for an older build to open, which is the
+        // lowest fromSchemaVersion, not the third-newest by timestamp.
         final f = await _makeFixture();
         addTearDown(f.dispose);
-        for (var i = 0; i < 4; i++) {
-          final ts = DateTime.utc(2026, 1, 1 + i);
-          final name = '${_ts(ts)}-v$i-v${i + 1}.db';
-          final file = File(p.join(f.backupsDir, name));
-          await file.writeAsBytes([i]);
-          await f.prefs.addRecord(
-            BackupRecord(
-              id: 'r$i',
-              filename: name,
-              timestamp: ts,
-              sizeBytes: 1,
-              location: BackupLocation.local,
-              localPath: file.path,
-              type: BackupType.preMigration,
-              fromSchemaVersion: i,
-              toSchemaVersion: i + 1,
-            ),
-          );
-        }
-
-        final service = PreMigrationBackupService(
-          livePathProvider: () async => f.livePath,
-          backupsDirProvider: () async => f.backupsDir,
-          preferences: f.prefs,
-          clock: () => DateTime.utc(2026, 4, 12, 8, 12, 1),
-          idGenerator: () => 'new',
+        await _seedPreMigration(f, id: 'floor', day: 1, fromSchemaVersion: 175);
+        await _seedPreMigration(f, id: 'mid', day: 2, fromSchemaVersion: 180);
+        await _seedPreMigration(f, id: 'third', day: 3, fromSchemaVersion: 185);
+        await _seedPreMigration(
+          f,
+          id: 'second',
+          day: 4,
+          fromSchemaVersion: 188,
         );
 
-        await service.backupIfMigrationPending(
-          stored: 63,
-          target: 64,
-          appVersion: '1.6.0.1241',
-        );
+        await _runMigration(f, stored: 190, target: 191);
 
-        final remaining = f.prefs
-            .getHistory()
-            .where((r) => r.type == BackupType.preMigration)
-            .toList();
+        final remaining = _preMigrationIds(f);
+        expect(
+          remaining,
+          hasLength(3),
+          reason: 'the retained count must not change',
+        );
+        expect(remaining, containsAll(<String>['new', 'second', 'floor']));
+        expect(remaining, isNot(contains('third')));
+        expect(remaining, isNot(contains('mid')));
+        expect(await _preMigrationFile(f, 'floor').exists(), isTrue);
+        expect(await _preMigrationFile(f, 'mid').exists(), isFalse);
+        expect(await _preMigrationFile(f, 'third').exists(), isFalse);
+      },
+    );
+
+    test(
+      'prefers the newer copy when two share the lowest fromSchemaVersion',
+      () async {
+        // Both open in the same older build, so the tie goes to the one
+        // holding more of the diver's data.
+        final f = await _makeFixture();
+        addTearDown(f.dispose);
+        await _seedPreMigration(
+          f,
+          id: 'older-175',
+          day: 1,
+          fromSchemaVersion: 175,
+        );
+        await _seedPreMigration(
+          f,
+          id: 'newer-175',
+          day: 2,
+          fromSchemaVersion: 175,
+        );
+        await _seedPreMigration(f, id: 'v180', day: 3, fromSchemaVersion: 180);
+        await _seedPreMigration(f, id: 'v185', day: 4, fromSchemaVersion: 185);
+
+        await _runMigration(f, stored: 190, target: 191);
+
+        final remaining = _preMigrationIds(f);
         expect(remaining, hasLength(3));
-        expect(
-          remaining.map((r) => r.id),
-          containsAll(<String>['new', 'r3', 'r2']),
+        expect(remaining, containsAll(<String>['new', 'v185', 'newer-175']));
+        expect(remaining, isNot(contains('older-175')));
+      },
+    );
+
+    test(
+      'a record with no fromSchemaVersion never takes the floor slot',
+      () async {
+        // Legacy records predate the schema pair. Reading a missing version as
+        // the lowest would keep a copy whose openability is unknown and delete
+        // the one that is known to work.
+        final f = await _makeFixture();
+        addTearDown(f.dispose);
+        await _seedPreMigration(
+          f,
+          id: 'legacy',
+          day: 1,
+          fromSchemaVersion: null,
         );
-        expect(remaining.map((r) => r.id), isNot(contains('r0')));
-        expect(remaining.map((r) => r.id), isNot(contains('r1')));
-        expect(
-          await File(
-            p.join(f.backupsDir, '${_ts(DateTime.utc(2026, 1, 1))}-v0-v1.db'),
-          ).exists(),
-          isFalse,
-        );
-        expect(
-          await File(
-            p.join(f.backupsDir, '${_ts(DateTime.utc(2026, 1, 2))}-v1-v2.db'),
-          ).exists(),
-          isFalse,
-        );
+        await _seedPreMigration(f, id: 'floor', day: 2, fromSchemaVersion: 175);
+        await _seedPreMigration(f, id: 'v180', day: 3, fromSchemaVersion: 180);
+        await _seedPreMigration(f, id: 'v185', day: 4, fromSchemaVersion: 185);
+
+        await _runMigration(f, stored: 190, target: 191);
+
+        final remaining = _preMigrationIds(f);
+        expect(remaining, hasLength(3));
+        expect(remaining, containsAll(<String>['new', 'v185', 'floor']));
+        expect(remaining, isNot(contains('legacy')));
       },
     );
 
@@ -698,3 +726,59 @@ String _ts(DateTime utc) {
       '${two(utc.hour)}${two(utc.minute)}${two(utc.second)}'
       '${three(utc.millisecond)}';
 }
+
+/// Registers an unpinned pre-migration record backed by a real file, named
+/// after [id] so prune assertions can look for it on disk. [day] places the
+/// record in January 2026, so a higher day is a newer copy.
+Future<void> _seedPreMigration(
+  _Fixture f, {
+  required String id,
+  required int day,
+  required int? fromSchemaVersion,
+}) async {
+  final file = _preMigrationFile(f, id);
+  await file.writeAsBytes([day]);
+  await f.prefs.addRecord(
+    BackupRecord(
+      id: id,
+      filename: p.basename(file.path),
+      timestamp: DateTime.utc(2026, 1, day),
+      sizeBytes: 1,
+      location: BackupLocation.local,
+      localPath: file.path,
+      type: BackupType.preMigration,
+      fromSchemaVersion: fromSchemaVersion,
+      toSchemaVersion: fromSchemaVersion == null ? null : fromSchemaVersion + 1,
+    ),
+  );
+}
+
+File _preMigrationFile(_Fixture f, String id) =>
+    File(p.join(f.backupsDir, '$id.db'));
+
+/// Runs one pre-migration backup, registered as 'new' and newer than anything
+/// [_seedPreMigration] writes, so the prune it triggers can be observed.
+Future<void> _runMigration(
+  _Fixture f, {
+  required int stored,
+  required int target,
+}) async {
+  final service = PreMigrationBackupService(
+    livePathProvider: () async => f.livePath,
+    backupsDirProvider: () async => f.backupsDir,
+    preferences: f.prefs,
+    clock: () => DateTime.utc(2026, 4, 12, 8, 12, 1),
+    idGenerator: () => 'new',
+  );
+  await service.backupIfMigrationPending(
+    stored: stored,
+    target: target,
+    appVersion: '1.6.0.1241',
+  );
+}
+
+List<String> _preMigrationIds(_Fixture f) => f.prefs
+    .getHistory()
+    .where((r) => r.type == BackupType.preMigration)
+    .map((r) => r.id)
+    .toList();
