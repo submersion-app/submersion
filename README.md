@@ -169,6 +169,12 @@ before any database upgrade.
   build on that page is a pre-release: once one has upgraded your database, the
   stable build will not open your dive log again. The one entry badged "Latest"
   there is not a build at all, only the update feed.
+- **Already on the beta channel on Linux or Android?** Update once by hand from
+  [beta-builds](https://github.com/submersion-app/beta-builds/releases). Builds
+  from before betas became pre-releases look for an update in a place that no
+  longer answers, so they report no update available and stay quiet. One manual
+  update restores automatic beta update checks. Desktop macOS and Windows are
+  unaffected.
 - **Android:** [join the open test](https://play.google.com/apps/testing/app.submersion),
   then Play delivers beta updates automatically
 - **iOS / Mac App Store:** [join via TestFlight](https://testflight.apple.com/join/aMD393sB)
