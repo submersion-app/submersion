@@ -41,10 +41,16 @@ class DatabaseProvenanceRecorder {
   /// Record that this build opened a database now sitting at [schemaVersion].
   ///
   /// [upgradedFrom] is the rung the file was on before this open, and is
-  /// non-null only when this open actually ran the upgrade ladder. That case
-  /// additionally stamps the `upgrade_*` entry, which is the one the
+  /// non-null whenever THIS open is what put the file on [schemaVersion].
+  /// That is two cases, not one: the upgrade ladder ran (the rung it started
+  /// from), or the file was created by this open (zero, since it was on no
+  /// rung at all beforehand). `DatabaseService._openDatabase` passes both.
+  ///
+  /// Either way it stamps the `upgrade_*` entry, which is the one the
   /// version-mismatch screen needs: it names the build that put the file on a
-  /// rung the running app cannot open.
+  /// rung the running app cannot open, and creation and upgrade have the same
+  /// answer to that question. Null means this open found the file already on
+  /// [schemaVersion] and left the existing `upgrade_*` entry alone.
   ///
   /// [now] and [installIdOverride] exist so a test can assert on exact
   /// values; production passes neither.

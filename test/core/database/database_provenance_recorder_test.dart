@@ -66,7 +66,7 @@ void main() {
     expect(record.lastOpen!.releaseTrain, 'stable');
   });
 
-  test('stamps the upgrade entry only when the ladder ran', () async {
+  test('stamps the upgrade entry when the ladder ran', () async {
     await DatabaseProvenanceRecorder.record(
       db,
       schemaVersion: 194,
@@ -109,6 +109,25 @@ void main() {
       expect(record.lastUpgrade!.fromSchemaVersion, 191);
     },
   );
+
+  test('stamps the upgrade entry when this open created the file', () async {
+    // Creation and upgrade have the same answer to "which build put this file
+    // on the rung it is on", so a fresh file records an upgrade FROM zero
+    // rather than no upgrade at all. DatabaseService._openDatabase passes
+    // this case.
+    await DatabaseProvenanceRecorder.record(
+      db,
+      schemaVersion: 194,
+      upgradedFrom: 0,
+      now: DateTime.utc(2026, 9, 5, 10),
+      installIdOverride: 'device-a',
+    );
+
+    final record = await _read(db);
+    expect(record.lastUpgrade!.appVersion, '1.7.7.8064');
+    expect(record.lastUpgrade!.schemaVersion, 194);
+    expect(record.lastUpgrade!.fromSchemaVersion, 0);
+  });
 
   test('rotates the outgoing entry when the build changed', () async {
     await DatabaseProvenanceRecorder.record(
