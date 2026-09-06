@@ -57727,7 +57727,7 @@ abstract class AppLocalizations {
   /// No description provided for @startup_versionMismatch_title.
   ///
   /// In en, this message translates to:
-  /// **'Update Required'**
+  /// **'Your Data Is Newer Than This App'**
   String get startup_versionMismatch_title;
 
   /// Explains a database written by a newer app build. Object, not int, so schema numbers are never group-separated.
@@ -57739,10 +57739,16 @@ abstract class AppLocalizations {
     Object appVersion,
   );
 
+  /// No description provided for @startup_versionMismatch_causes.
+  ///
+  /// In en, this message translates to:
+  /// **'This usually means a beta build upgraded your data, a backup was restored from a newer build, or the file is shared with a device on a different update channel. A newer stable release may not exist yet.'**
+  String get startup_versionMismatch_causes;
+
   /// No description provided for @startup_versionMismatch_instructions.
   ///
   /// In en, this message translates to:
-  /// **'Please update Submersion to the latest version. Your data is safe and has not been modified. If a backup was taken before the upgrade, it is in your Backups folder and can be restored after updating.'**
+  /// **'Your data is safe and has not been modified. Reopen it with the build that wrote it, or with any later build. If a backup was taken before the upgrade, it is in your Backups folder and can be restored once you are running a build that opens it.'**
   String get startup_versionMismatch_instructions;
 
   /// No description provided for @startup_versionMismatch_storeInstructions.
@@ -57754,13 +57760,25 @@ abstract class AppLocalizations {
   /// No description provided for @startup_versionMismatch_download.
   ///
   /// In en, this message translates to:
-  /// **'Download Latest Version'**
+  /// **'Check for a Newer Stable Release'**
   String get startup_versionMismatch_download;
+
+  /// No description provided for @startup_versionMismatch_betaAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Get the Beta Build'**
+  String get startup_versionMismatch_betaAction;
+
+  /// No description provided for @startup_versionMismatch_betaNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Beta builds are pre-release. Choose this only if a beta build wrote your data.'**
+  String get startup_versionMismatch_betaNote;
 
   /// No description provided for @startup_versionMismatch_manualLink.
   ///
   /// In en, this message translates to:
-  /// **'If that does not open a browser, visit:'**
+  /// **'If those buttons do not open a browser, visit:'**
   String get startup_versionMismatch_manualLink;
 
   /// No description provided for @universalImport_compare_downloaded.

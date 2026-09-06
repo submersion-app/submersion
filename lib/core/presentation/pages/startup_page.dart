@@ -1066,6 +1066,21 @@ class _StartupWrapperState extends State<StartupWrapper>
     }
   }
 
+  static final Uri _betaReleasesUri = Uri.parse(
+    VersionMismatchView.betaReleasesUrl,
+  );
+
+  /// The other half of the version-mismatch screen's answer (#1588). When a
+  /// beta build wrote the file, the stable page above is the build that just
+  /// refused it; this is where the build that can open it actually lives.
+  Future<void> _openBetaReleases() async {
+    try {
+      await launchUrl(_betaReleasesUri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      // Same reasoning as _openLatestRelease: the address stays on screen.
+    }
+  }
+
   void _quitApp() {
     if (widget.closeAppOverride != null) {
       widget.closeAppOverride!();
@@ -1294,6 +1309,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         textColor: textColor,
         subtitleColor: subtitleColor,
         onDownloadLatest: _openLatestRelease,
+        onOpenBetaBuilds: _openBetaReleases,
         onClose: _closeApp,
       );
     }
