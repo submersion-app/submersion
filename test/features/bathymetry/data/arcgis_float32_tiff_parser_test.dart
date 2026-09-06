@@ -415,5 +415,33 @@ void main() {
         ),
       );
     });
+
+    test('rejects a TIFF with no TileOffsets tag', () {
+      // Rewrite the TileOffsets tag id to an unused one so the tag is
+      // absent. Entries start at byte 10 and run 12 bytes each; TileOffsets
+      // is the eighth, at 10 + 7 * 12.
+      final bytes = variant();
+      const tileOffsetsEntry = 10 + 7 * 12;
+      ByteData.sublistView(
+        bytes,
+      ).setUint16(tileOffsetsEntry, 700, Endian.little);
+      expectRejected(bytes);
+    });
+
+    test('rejects a tile offset array pointing past the body', () {
+      // Four tiles, so TileOffsets is a real array rather than an inline
+      // value, and the array pointer is then out of range.
+      final bytes = buildTiff(
+        width: 4,
+        height: 4,
+        tileSize: 2,
+        tilePixels: List<double>.filled(16, -5.0),
+      );
+      const tileOffsetsValue = 10 + 7 * 12 + 8;
+      ByteData.sublistView(
+        bytes,
+      ).setUint32(tileOffsetsValue, 0x0FFFFFF0, Endian.little);
+      expectRejected(bytes);
+    });
   });
 }
