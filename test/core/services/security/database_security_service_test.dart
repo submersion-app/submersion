@@ -59,7 +59,10 @@ void main() {
         dbPath: dbPath,
         kdf: testKdf,
       );
-      expect(recovery.split('-'), hasLength(8));
+      // 8 words from the EFF short wordlist, hyphen-joined. The canonical
+      // list has one hyphenated entry ("yo-yo"), so a naive split can yield
+      // 9+ parts — assert the floor, not an exact count (flaky shard-6).
+      expect(recovery.split('-').length, greaterThanOrEqualTo(8));
       expect(svc.appLockEnabled, false);
       expect(svc.isUnlocked, true);
       expect(File('${tmp.path}/submersion.keys').existsSync(), true);
