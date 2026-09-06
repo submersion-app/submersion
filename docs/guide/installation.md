@@ -43,6 +43,14 @@ without any group membership or `usermod` step.
 > [Releases page](https://github.com/submersion-app/submersion/releases) with
 > the next stable release; that page currently carries the tarball only.
 
+> **These are beta builds.** A beta may upgrade your dive log's database ahead
+> of the stable release, and once it has, the stable build can no longer open
+> that dive log. There is no downgrade. If you install a `.deb` or `.rpm` from
+> beta-builds, stay on beta builds, or restore the automatic pre-upgrade backup
+> before going back. To stay on stable instead, use the
+> [tarball](https://github.com/submersion-app/submersion/releases) until the
+> packages reach the stable Releases page.
+
 <!-- tabs:start -->
 
 #### **Debian / Ubuntu / Mint**

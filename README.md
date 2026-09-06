@@ -165,7 +165,9 @@ before any database upgrade.
 
 - **Desktop:** Settings > About > Update channel > Beta (updates then arrive
   through the normal auto-updater), or download directly from
-  [beta-builds](https://github.com/submersion-app/beta-builds/releases)
+  [beta-builds](https://github.com/submersion-app/beta-builds/releases). Every
+  build on that page is a pre-release: once one has upgraded your database, the
+  stable build will not open your dive log again.
 - **Android:** [join the open test](https://play.google.com/apps/testing/app.submersion),
   then Play delivers beta updates automatically
 - **iOS / Mac App Store:** [join via TestFlight](https://testflight.apple.com/join/aMD393sB)
@@ -347,6 +349,14 @@ The built app will be at `build\windows\x64\runner\Release\`.
 > They reach the stable
 > [Releases page](https://github.com/submersion-app/submersion/releases) with
 > the next stable release; that page currently carries the tarball only.
+
+> **These are beta builds.** A beta may upgrade your dive log's database ahead
+> of the stable release, and once it has, the stable build can no longer open
+> that dive log. There is no downgrade. If you install a `.deb` or `.rpm` from
+> beta-builds, stay on beta builds, or restore the automatic pre-upgrade backup
+> before going back. To stay on stable instead, use the
+> [tarball](https://github.com/submersion-app/submersion/releases) until the
+> packages reach the stable Releases page.
 
 **Debian, Ubuntu, Mint, and derivatives**
 

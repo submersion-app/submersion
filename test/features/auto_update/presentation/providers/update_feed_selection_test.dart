@@ -56,6 +56,17 @@ void main() {
         (service as GithubUpdateService).repo,
         githubRepoFor(ReleaseChannel.beta),
       );
+      // beta-builds publishes only pre-releases (#1591), which
+      // /releases/latest refuses to return. Without this the Linux and
+      // Android beta pollers go permanently quiet.
+      expect(service.includePrereleases, isTrue);
+    }
+  });
+
+  test('the stable channel never accepts a pre-release', () async {
+    final service = await serviceFor(null);
+    if (service is GithubUpdateService) {
+      expect(service.includePrereleases, isFalse);
     }
   });
   test('stable channel uses the main repo appcast', () {

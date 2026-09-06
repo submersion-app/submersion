@@ -302,6 +302,24 @@ void main() {
       expect(status, isA<UpToDate>());
     });
 
+    test('the stable channel asks GitHub for the latest release', () async {
+      late Uri requested;
+      final client = MockClient((request) async {
+        requested = request.url;
+        return http.Response(jsonEncode(makeRelease(tagName: 'v1.0.0')), 200);
+      });
+
+      await GithubUpdateService(
+        owner: owner,
+        repo: repo,
+        currentVersion: currentVersion,
+        platformSuffix: 'Linux.tar.gz',
+        httpClient: client,
+      ).checkForUpdate();
+
+      expect(requested.path, '/repos/$owner/$repo/releases/latest');
+    });
+
     test('returns UpdateError on malformed JSON response', () async {
       final client = MockClient((request) async {
         return http.Response('<html>Error</html>', 200);
@@ -370,6 +388,140 @@ void main() {
     test('isNewer compares 3-segment remote against 4-segment current', () {
       expect(GithubUpdateService.isNewer('1.2.21', '1.2.21.1'), false);
       expect(GithubUpdateService.isNewer('1.2.22', '1.2.21.99'), true);
+    });
+  });
+
+  // beta-builds publishes every versioned release with --prerelease so the
+  // releases page stops labelling a beta "Latest" (#1591). That takes the
+  // whole repo out of reach of /releases/latest, which excludes pre-releases,
+  // so the beta channel enumerates releases instead. The repo also carries one
+  // permanent non-pre-release "appcast" release whose only job is to keep the
+  // Sparkle feed URL resolving; it holds no installers and must never be
+  // offered as an update.
+  group('GithubUpdateService on the beta channel', () {
+    Map<String, dynamic> betaRelease(String tagName) => {
+      ...makeRelease(tagName: tagName),
+      'prerelease': true,
+      'draft': false,
+    };
+
+    Map<String, dynamic> appcastPointer() => {
+      'tag_name': 'appcast',
+      'body': 'Beta update feed. Not a download.',
+      'prerelease': false,
+      'draft': false,
+      'assets': [
+        {
+          'name': 'appcast-beta.xml',
+          'browser_download_url':
+              'https://github.com/$owner/$repo/releases/download/appcast/appcast-beta.xml',
+        },
+      ],
+    };
+
+    GithubUpdateService serviceFor(
+      http.Client client, {
+      String version = currentVersion,
+    }) => GithubUpdateService(
+      owner: owner,
+      repo: repo,
+      currentVersion: version,
+      platformSuffix: 'Linux.tar.gz',
+      includePrereleases: true,
+      httpClient: client,
+    );
+
+    test('enumerates releases rather than asking for the latest', () async {
+      late Uri requested;
+      final client = MockClient((request) async {
+        requested = request.url;
+        return http.Response(jsonEncode([betaRelease('v1.1.0')]), 200);
+      });
+
+      await serviceFor(client).checkForUpdate();
+
+      expect(requested.path, '/repos/$owner/$repo/releases');
+    });
+
+    test('offers a newer pre-release', () async {
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode([appcastPointer(), betaRelease('v1.1.0')]),
+          200,
+        );
+      });
+
+      final status = await serviceFor(client).checkForUpdate();
+      expect(status, isA<UpdateAvailable>());
+      expect((status as UpdateAvailable).version, '1.1.0');
+      expect(status.downloadUrl, endsWith('Linux.tar.gz'));
+    });
+
+    // Every beta in the live repo shares one created_at, so the list order
+    // GitHub returns cannot be trusted to put the newest build first.
+    test('picks the highest version, not the first entry', () async {
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode([
+            betaRelease('v1.7.7.8064'),
+            betaRelease('v1.7.7.8070'),
+            betaRelease('v1.7.7.8066'),
+          ]),
+          200,
+        );
+      });
+
+      final status = await serviceFor(
+        client,
+        version: '1.7.7.8064',
+      ).checkForUpdate();
+      expect((status as UpdateAvailable).version, '1.7.7.8070');
+    });
+
+    test('never offers the assetless appcast pointer release', () async {
+      final client = MockClient((request) async {
+        return http.Response(jsonEncode([appcastPointer()]), 200);
+      });
+
+      expect(await serviceFor(client).checkForUpdate(), isA<UpToDate>());
+    });
+
+    test('ignores drafts', () async {
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode([
+            {...betaRelease('v9.9.9.999'), 'draft': true},
+            betaRelease('v1.1.0'),
+          ]),
+          200,
+        );
+      });
+
+      final status = await serviceFor(client).checkForUpdate();
+      expect((status as UpdateAvailable).version, '1.1.0');
+    });
+
+    test('stays quiet when the newest beta is the running build', () async {
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode([appcastPointer(), betaRelease('v1.7.7.8070')]),
+          200,
+        );
+      });
+
+      final status = await serviceFor(
+        client,
+        version: '1.7.7.8070',
+      ).checkForUpdate();
+      expect(status, isA<UpToDate>());
+    });
+
+    test('an empty release list is not an error', () async {
+      final client = MockClient((request) async {
+        return http.Response('[]', 200);
+      });
+
+      expect(await serviceFor(client).checkForUpdate(), isA<UpToDate>());
     });
   });
 }

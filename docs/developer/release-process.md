@@ -15,8 +15,9 @@ User-facing channel documentation is on the wiki:
 merge PR to main
   -> CI/CD (ci.yaml)                       tests, analyze, all-platform smoke
   -> Beta (beta.yml, on CI success)        signed builds via build-all.yml
-       -> beta-builds release              dmg/exe/tar.gz/apk/aab/ipa/pkg
+       -> beta-builds pre-release          dmg/exe/tar.gz/apk/aab/ipa/pkg
           + appcast-beta.xml               Sparkle beta feed
+       -> beta-builds "appcast" release    the feed, at a URL that never moves
        -> TestFlight                       iOS + macOS, "Public Beta" group
        -> Play testing track               PLAY_BETA_TRACK (see below)
 
@@ -52,6 +53,36 @@ There is nothing to remember per merge.
 | Nothing shippable | Only docs/CI/image files changed since the last beta | Nothing to do; by design |
 | Build number > 65535 | Windows `VersionInfoVersion` parts are 16-bit | Requires a new numbering scheme; decades away at current commit rate |
 | Already published | HEAD is the same commit as the newest beta | Nothing to do; a rerun, not a failure |
+
+## Why beta-builds has an "appcast" release
+
+Every versioned beta is published with `--prerelease`, so the releases page
+never badges an installer "Latest" and a visitor who lands there cannot mistake
+a beta for the stable build (#1591). That has one consequence worth knowing
+before touching `beta.yml`.
+
+GitHub's notion of the latest release excludes pre-releases, in the API and in
+the `releases/latest/download/<asset>` redirect alike. With nothing but
+pre-releases in the repo, both resolve to 404. Two shipped consumers depend on
+them, and both are compiled into binaries already installed on people's
+machines:
+
+- Sparkle and WinSparkle fetch
+  `beta-builds/releases/latest/download/appcast-beta.xml`.
+- Linux and Android poll `api.github.com/repos/submersion-app/beta-builds/releases/latest`.
+
+The Sparkle URL is kept alive by one permanent non-pre-release release, tagged
+`appcast`, that carries the appcast and nothing else. It is the only release
+that can wear the Latest badge, and there is nothing on it to install by
+mistake. `beta.yml` refreshes its asset on every run, and the prune step skips
+it by matching version tags only. Do not delete it: every beta desktop install
+in the field would stop updating.
+
+The API pollers are handled in the app instead: `GithubUpdateService` takes
+`includePrereleases` and, on the beta channel, enumerates `/releases` and picks
+the highest version rather than asking for the latest. Beta installs predating
+that change see the `appcast` release, which parses as version 0, and simply
+report no update available until they are updated once by hand.
 
 ## Promoting a beta to stable
 

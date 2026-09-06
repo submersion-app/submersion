@@ -104,6 +104,9 @@ final updateServiceProvider = FutureProvider<UpdateService?>((ref) async {
     repo: githubRepoFor(channel),
     currentVersion: currentVersion,
     platformSuffix: _platformSuffix,
+    // beta-builds holds nothing but pre-releases (#1591), which /releases/latest
+    // refuses to return, so the beta channel enumerates the release list.
+    includePrereleases: channel == ReleaseChannel.beta,
   );
 });
 

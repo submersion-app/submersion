@@ -205,11 +205,26 @@ jobs:
       # Play all describe the same build the same way. generate_changelog.sh is
       # scoped to the last stable tag, which on a mid-release beta meant a body
       # covering hundreds of commits already shipped in earlier betas.
+      # The warning goes on release-notes.md only, after the HTML is generated:
+      # release-notes.html feeds the appcast, and the people reading that
+      # already opted into the beta channel behind a confirmation dialog. The
+      # release page is the unguarded door (#1591).
       - name: Prepare release notes
         run: |
           set -euo pipefail
           cp artifacts/beta-notes.md release-notes.md
           ./scripts/generate_release_notes_html.sh < release-notes.md > release-notes.html
+          cat > body-warning.md <<'WARNING'
+          > [!WARNING]
+          > **This is a beta build, not the stable release.** It may upgrade your
+          > dive log database ahead of stable. Once it has, the stable build can no
+          > longer open your dive log and there is no way back short of restoring a
+          > backup. Install this only if you mean to run the beta channel.
+          >
+          > Stable downloads: https://github.com/submersion-app/submersion/releases
+
+          WARNING
+          cat body-warning.md release-notes.md > release-body.md
 
       - name: Generate checksums and metadata
         env:
@@ -277,9 +292,48 @@ jobs:
           set -euo pipefail
           gh release create "$TAG_NAME" --repo submersion-app/beta-builds \
             --title "Beta $TAG_NAME" \
-            --notes-file release-notes.md \
+            --prerelease \
+            --notes-file release-body.md \
             artifacts/Submersion* checksums-sha256.txt metadata.json appcast-beta.xml
           echo "Published beta $TAG_NAME from $SOURCE_SHA"
+
+      # --prerelease takes the whole repo out of reach of GitHub's "latest
+      # release", which excludes pre-releases and 404s when nothing else is
+      # left. Every shipped macOS and Windows beta has
+      # beta-builds/releases/latest/download/appcast-beta.xml baked into its
+      # binary, so that URL has to keep resolving for installs we can no longer
+      # change. This one permanent non-pre-release release keeps it alive: it
+      # holds the appcast and nothing else, so the Latest badge lands on a
+      # release with nothing to install by mistake. (Linux and Android poll the
+      # API instead; GithubUpdateService enumerates releases on the beta
+      # channel rather than asking for the latest one.)
+      - name: Refresh the appcast pointer release
+        env:
+          GH_TOKEN: ${{ secrets.BETA_BUILDS_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO=submersion-app/beta-builds
+          cat > pointer-notes.md <<'NOTES'
+          This release exists only to serve the beta update feed
+          (`appcast-beta.xml`) from a URL that does not move. There is nothing
+          here to install.
+
+          Beta builds are published as pre-releases. Pick the newest one from the
+          [releases list](https://github.com/submersion-app/beta-builds/releases),
+          and read the warning on it before installing anything.
+
+          Stable downloads live at
+          [submersion-app/submersion/releases](https://github.com/submersion-app/submersion/releases).
+          NOTES
+          if gh release view appcast --repo "$REPO" >/dev/null 2>&1; then
+            gh release edit appcast --repo "$REPO" --latest \
+              --notes-file pointer-notes.md
+          else
+            gh release create appcast --repo "$REPO" --latest \
+              --title "Beta update feed (not a download)" \
+              --notes-file pointer-notes.md
+          fi
+          gh release upload appcast appcast-beta.xml --repo "$REPO" --clobber
 
       - name: Prune old betas
         env:
@@ -287,7 +341,9 @@ jobs:
         run: |
           set -euo pipefail
           gh release list --repo submersion-app/beta-builds \
-            --json tagName --limit 100 -q '.[30:][].tagName' | while read -r tag; do
+            --json tagName --limit 100 \
+            -q '[.[] | select(.tagName | test("^v[0-9]"))] | .[30:][].tagName' \
+            | while read -r tag; do
             echo "Pruning $tag"
             gh release delete "$tag" --repo submersion-app/beta-builds --yes --cleanup-tag
           done
