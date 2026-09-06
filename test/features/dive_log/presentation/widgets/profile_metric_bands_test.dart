@@ -2,7 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 
-/// Every metric the chart plots as a banded curve.
+/// Every metric in the spec.
+///
+/// Most are band-mapped; MOD and mean depth are plotted in depth units and
+/// are here for their colour and dash pattern alone, which is why the
+/// fixedMax test below treats them alongside the runtime-scaled metrics.
 const _all = <String, ProfileMetricBand>{
   'ndl': ProfileMetricBands.ndl,
   'tts': ProfileMetricBands.tts,
@@ -33,6 +37,22 @@ void main() {
           reason: '$name shares its colour with $previous',
         );
         byColour[band.color.toARGB32()] = name;
+      });
+    });
+
+    test('no two metrics share both a colour and a dash pattern', () {
+      // Dash patterns are not unique on their own (NDL and CNS both use
+      // [6, 3]); the pair must be, or two traces would be identical.
+      final seen = <String, String>{};
+      _all.forEach((name, band) {
+        final key = '${band.color.toARGB32()}/${band.dashArray}';
+        final clash = seen[key];
+        expect(
+          clash,
+          isNull,
+          reason: '$name would render identically to $clash',
+        );
+        seen[key] = name;
       });
     });
 

@@ -27,8 +27,15 @@ class ProfileMetricBand {
 
   final Color color;
 
-  /// Dash pattern, distinct per metric so overlapping traces stay tellable
-  /// apart when several are switched on at once.
+  /// Dash pattern, so traces that overlap stay tellable apart when several
+  /// are switched on at once.
+  ///
+  /// Not unique on its own: NDL and CNS both use [6, 3]. Colour is what
+  /// separates every metric from every other, and the dash is a second cue on
+  /// top of it, which matters most where colour is unreliable (an overlay's
+  /// traces are tinted from the metric colour, and print or a colour-vision
+  /// deficiency flattens hues). Two metrics may share a pattern; they may not
+  /// share a colour.
   final List<int> dashArray;
 
   const ProfileMetricBand({
