@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:http/http.dart' as http;
 
@@ -17,7 +18,8 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// a point with its own cell size, so the source knows BEFORE fetching
 /// whether it has anything worth having: measured 3.4 m in the Florida
 /// Keys, 10.3 m at La Jolla, and only ETOPO's 464 m at Bonaire, where it
-/// declines and lets the ETOPO tier serve that data directly.
+/// declines and lets the ETOPO tier serve that data directly. Those
+/// figures are the cell's coarser axis, so they never overstate the DEM.
 class NoaaDemSource implements BathymetrySource {
   static const String sourceId = 'noaa_dem';
 
@@ -29,6 +31,9 @@ class NoaaDemSource implements BathymetrySource {
   /// Cells per side requested from exportImage. The server resamples to
   /// whatever is asked, so this is a render-budget choice, not a data one.
   static const int requestDim = 256;
+
+  /// Meters per degree of latitude, effectively constant with latitude.
+  static const double _metersPerDegLat = 110540.0;
 
   static const Duration _timeout = Duration(seconds: 15);
 
@@ -91,9 +96,27 @@ class NoaaDemSource implements BathymetrySource {
       }
       if (bestDeg == null) return null;
 
-      // LowPS is in degrees; convert on the longitude axis, which is the
-      // shorter of the two at every latitude away from the equator.
-      final meters = bestDeg * metersPerDegreeLongitude(center.latitude);
+      // LowPS is in DEGREES, and a geographic cell is square in degrees,
+      // so its two sides differ in meters: the north-south side is a
+      // near-constant 110540 m per degree, while the east-west side shrinks
+      // with cos(latitude). Report the COARSER of the two, because a cell
+      // is only as good as its worst axis.
+      //
+      // Converting on longitude alone flatters a DEM as latitude rises. A
+      // 3 arc-second cell is 92.1 m north-south everywhere, but reads
+      // 46.4 m at 60 N and would slip under the threshold, so a 92 m grid
+      // would be accepted as high resolution and, sitting first in the
+      // declared order and within the resolver's preemption factor of
+      // GMRT's 60 m, would be fetched instead of it. NOAA's mosaic really
+      // does hold 3 arc-second Coastal Relief Model tiles, and Alaskan
+      // coastal water is where they are the best available.
+      //
+      // max() rather than simply the latitude axis: at the equator a
+      // degree of longitude is 111320 m against latitude's 110540, so the
+      // coarser side is not always the same one.
+      final meters =
+          bestDeg *
+          math.max(_metersPerDegLat, metersPerDegreeLongitude(center.latitude));
       if (meters > usefulCellSizeMeters) return null;
       return SourceCapability(
         cellSizeMeters: meters,

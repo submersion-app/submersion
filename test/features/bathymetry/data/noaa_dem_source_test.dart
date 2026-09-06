@@ -91,8 +91,10 @@ void main() {
       );
       final cap = await source.probe(keys);
       expect(cap, isNotNull);
-      // 3.086e-05 degrees of longitude at 25 N is about 3.1 m.
-      expect(cap!.cellSizeMeters, closeTo(3.1, 0.4));
+      // A geographic cell is square in DEGREES, so its two sides differ in
+      // meters. The capability reports the COARSER side: at 25 N that is
+      // the latitude axis, 3.086e-05 * 110540 = 3.41 m.
+      expect(cap!.cellSizeMeters, closeTo(3.41, 0.05));
       expect(cap.detail, 'ncei19_n25x25_w080x50_2016v1');
     });
 
@@ -204,6 +206,64 @@ void main() {
           client: MockClient((req) async => throw const SocketishError()),
         );
         expect(await source.probe(keys), isNull);
+      },
+    );
+
+    test(
+      'reports the coarser axis, so latitude cannot flatter a DEM',
+      () async {
+        // A 3 arc-second cell is 92.1 m north-south everywhere. Converting on
+        // the longitude axis alone shrinks it with cos(latitude): at 60 N it
+        // reads 46.4 m and slips under the 50 m threshold, so a 92 m DEM
+        // would be accepted as high resolution. NOAA's mosaic really does
+        // hold 3 arc-second Coastal Relief Model tiles, and Alaskan coastal
+        // water is exactly where they are the best available.
+        final source = NoaaDemSource(
+          client: MockClient(
+            (req) async => http.Response(
+              identifyBody([(name: 'crm_vol8', lowPs: 8.33e-04)]),
+              200,
+            ),
+          ),
+        );
+        expect(await source.probe(const GeoPoint(60.0, -149.0)), isNull);
+        // The same tile is already rejected at the equator today, which is
+        // the inconsistency this removes.
+        expect(await source.probe(const GeoPoint(0.0, -90.0)), isNull);
+      },
+    );
+
+    test('a genuinely fine DEM is still accepted at high latitude', () async {
+      // The guard must not reject real high-resolution Alaskan coverage:
+      // a 1 arc-second cell is 30.7 m north-south, inside the threshold.
+      final source = NoaaDemSource(
+        client: MockClient(
+          (req) async => http.Response(
+            identifyBody([(name: 'alaska_1s', lowPs: 2.78e-04)]),
+            200,
+          ),
+        ),
+      );
+      final cap = await source.probe(const GeoPoint(60.0, -149.0));
+      expect(cap, isNotNull);
+      expect(cap!.cellSizeMeters, closeTo(30.7, 0.2));
+    });
+
+    test(
+      'uses the longitude axis near the equator, where it is the longer',
+      () async {
+        // A degree of longitude at the equator is 111320 m against latitude's
+        // 110540, so the coarser axis is not always the latitude one.
+        final source = NoaaDemSource(
+          client: MockClient(
+            (req) async => http.Response(
+              identifyBody([(name: 'equatorial', lowPs: 1.0e-04)]),
+              200,
+            ),
+          ),
+        );
+        final cap = await source.probe(const GeoPoint(0.0, -90.0));
+        expect(cap!.cellSizeMeters, closeTo(11.132, 0.005));
       },
     );
   });
