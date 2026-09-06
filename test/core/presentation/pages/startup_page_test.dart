@@ -97,13 +97,22 @@ class _NoOpBackupService extends PreMigrationBackupService {
 
 /// Records that the newer database was preserved, without copying anything.
 class _RecordingPreDowngradeService extends PreDowngradeBackupService {
-  _RecordingPreDowngradeService({required super.preferences, this.error})
-    : super(
-        livePathProvider: () async => '/tmp/test.db',
-        backupsDirProvider: () async => '/tmp/test-backups',
-      );
+  _RecordingPreDowngradeService({
+    required super.preferences,
+    this.error,
+    this.journal,
+  }) : super(
+         livePathProvider: () async => '/tmp/test.db',
+         backupsDirProvider: () async => '/tmp/test-backups',
+       );
 
   final Object? error;
+
+  /// Shared with the restore override, so a test can assert the ORDER of the
+  /// two rather than only that both happened. Preserving after the swap would
+  /// copy the file the swap already replaced.
+  final List<String>? journal;
+
   int calls = 0;
   int? preservedSchemaVersion;
 
@@ -114,6 +123,7 @@ class _RecordingPreDowngradeService extends PreDowngradeBackupService {
   }) async {
     calls++;
     preservedSchemaVersion = storedSchemaVersion;
+    journal?.add('preserve');
     if (error != null) throw error!;
     return BackupRecord(
       id: 'preserved',
@@ -2285,6 +2295,7 @@ void main() {
               ({required livePath, required preferences}) {
                 preserver = _RecordingPreDowngradeService(
                   preferences: preferences,
+                  journal: order,
                 );
                 return preserver;
               },
@@ -2323,7 +2334,13 @@ void main() {
         191,
         reason: 'the copy must record the schema the newer file holds',
       );
-      expect(order, ['restore'], reason: 'preserve ran before the swap');
+      expect(
+        order,
+        ['preserve', 'restore'],
+        reason:
+            'the newer database must be copied aside BEFORE the swap; '
+            'preserving afterwards would copy the file the swap replaced',
+      );
       expect(restoredFrom, copyPath);
       expect(initializerCalls, 2, reason: 'startup must resume after restore');
       expect(find.text('Update Required'), findsNothing);
