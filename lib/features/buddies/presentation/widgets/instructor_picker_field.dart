@@ -9,6 +9,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 /// Dropdown for picking a certification/course instructor from the buddy
 /// list. Buddies holding an instructor-level certification (Instructor,
@@ -116,7 +117,7 @@ class _InstructorPickerFieldState extends ConsumerState<InstructorPickerField> {
 String _instructorCertLabel(Certification cert, AppLocalizations l10n) {
   final number = cert.cardNumber;
   return [
-    cert.agency.displayName,
+    cert.agency.localizedName(l10n),
     cert.level!.localizedName(l10n),
     if (number != null && number.isNotEmpty) '#$number',
   ].join(' ');

@@ -15,6 +15,7 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/courses/presentation/widgets/course_requirements_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 class CourseDetailPage extends ConsumerWidget {
   final String courseId;
@@ -80,7 +81,7 @@ class CourseDetailPage extends ConsumerWidget {
                   _buildDetailRow(
                     context,
                     context.l10n.courses_label_agency,
-                    course.agency.displayName,
+                    course.agency.localizedName(context.l10n),
                     Icons.business,
                   ),
                   _buildDetailRow(
@@ -487,7 +488,9 @@ class CourseDetailPage extends ConsumerWidget {
                         ),
                         child: Center(
                           child: Text(
-                            _abbreviateAgency(cert.agency.displayName),
+                            _abbreviateAgency(
+                              cert.agency.localizedName(context.l10n),
+                            ),
                             style: TextStyle(
                               color: colorScheme.onPrimaryContainer,
                               fontWeight: FontWeight.bold,
@@ -497,7 +500,7 @@ class CourseDetailPage extends ConsumerWidget {
                         ),
                       ),
                       title: Text(cert.name),
-                      subtitle: Text(cert.agency.displayName),
+                      subtitle: Text(cert.agency.localizedName(context.l10n)),
                       trailing: Icon(
                         Icons.chevron_right,
                         color: colorScheme.onSurfaceVariant,

@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 /// A widget for selecting a training course for a dive.
 class CoursePicker extends ConsumerWidget {
@@ -43,7 +44,7 @@ class CoursePicker extends ConsumerWidget {
       ),
       subtitle: selectedCourse != null
           ? Text(
-              '${selectedCourse!.agency.displayName} - ${selectedCourse!.isCompleted ? context.l10n.courses_status_completed : context.l10n.courses_status_inProgress}',
+              '${selectedCourse!.agency.localizedName(context.l10n)} - ${selectedCourse!.isCompleted ? context.l10n.courses_status_completed : context.l10n.courses_status_inProgress}',
             )
           : Text(context.l10n.courses_picker_tapToLink),
       trailing: Row(
@@ -189,7 +190,7 @@ class CoursePickerSheet extends ConsumerWidget {
                   final startDateStr = formatter.formatDate(course.startDate);
 
                   final courseLabel =
-                      '${course.agency.displayName} ${course.name}, ${context.l10n.courses_card_started(startDateStr)}${isSelected ? ', ${context.l10n.courses_picker_selected}' : ''}${course.isInProgress ? ', ${context.l10n.courses_picker_active}' : ''}';
+                      '${course.agency.localizedName(context.l10n)} ${course.name}, ${context.l10n.courses_card_started(startDateStr)}${isSelected ? ', ${context.l10n.courses_picker_selected}' : ''}${course.isInProgress ? ', ${context.l10n.courses_picker_active}' : ''}';
 
                   return Semantics(
                     label: courseLabel,
@@ -213,7 +214,7 @@ class CoursePickerSheet extends ConsumerWidget {
                       ),
                       title: Text(course.name),
                       subtitle: Text(
-                        '${course.agency.displayName} - ${context.l10n.courses_card_started(startDateStr)}',
+                        '${course.agency.localizedName(context.l10n)} - ${context.l10n.courses_card_started(startDateStr)}',
                       ),
                       trailing: isSelected
                           ? Icon(Icons.check_circle, color: colorScheme.primary)

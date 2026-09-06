@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/sort_options_display.dart';
-import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
@@ -24,6 +23,8 @@ import 'package:submersion/features/certifications/domain/constants/certificatio
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 /// Content widget for the certification list, used in master-detail layout.
 class CertificationListContent extends ConsumerStatefulWidget {
@@ -745,7 +746,7 @@ class CertificationListTile extends ConsumerWidget {
         : '';
     // Only non-null when a custom name owns the title, so the level is spoken
     // exactly once either way.
-    final level = certificationSubtitle(certification);
+    final level = certificationSubtitleL10n(certification, context.l10n);
     final levelLabel = level != null ? ', $level' : '';
 
     return Semantics(
@@ -753,8 +754,8 @@ class CertificationListTile extends ConsumerWidget {
       // it would leave "Open Water" with no issuing agency. The title is
       // derived rather than raw so the agency is not said twice.
       label:
-          '${certification.agency.displayName} '
-          '${certificationTitle(certification)}'
+          '${certification.agency.localizedName(context.l10n)} '
+          '${certificationTitleL10n(certification, context.l10n)}'
           '$levelLabel$issueDateLabel$statusLabel',
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -769,7 +770,7 @@ class CertificationListTile extends ConsumerWidget {
             onChanged: onCheckChanged,
             child: _buildLeadingIcon(context),
           ),
-          title: Text(certificationTitle(certification)),
+          title: Text(certificationTitleL10n(certification, context.l10n)),
           subtitle: _buildSubtitle(context, units),
           trailing: _buildTrailing(context),
         ),
@@ -787,12 +788,14 @@ class CertificationListTile extends ConsumerWidget {
       ),
       child: Center(
         child: Text(
-          certification.agency.displayName.substring(
-            0,
-            certification.agency.displayName.length > 4
-                ? 4
-                : certification.agency.displayName.length,
-          ),
+          certification.agency
+              .localizedName(context.l10n)
+              .substring(
+                0,
+                certification.agency.localizedName(context.l10n).length > 4
+                    ? 4
+                    : certification.agency.localizedName(context.l10n).length,
+              ),
           style: TextStyle(
             color: Theme.of(context).colorScheme.onPrimaryContainer,
             fontWeight: FontWeight.bold,
@@ -807,7 +810,7 @@ class CertificationListTile extends ConsumerWidget {
     final parts = <String>[];
     // Carries the level too when the title is a custom name, which is the
     // only place the level can show on this tile.
-    parts.add(certificationAgencyAndLevel(certification));
+    parts.add(certificationAgencyAndLevelL10n(certification, context.l10n));
     if (certification.issueDate != null) {
       parts.add(units.formatDate(certification.issueDate));
     }

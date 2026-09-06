@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 /// Summary widget shown when no certification is selected.
 class CertificationSummaryWidget extends ConsumerWidget {
@@ -68,7 +70,7 @@ class CertificationSummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, List certs) {
+  Widget _buildOverview(BuildContext context, List<Certification> certs) {
     int expiredCount = 0;
     int expiringSoonCount = 0;
     int validCount = 0;
@@ -186,7 +188,10 @@ class CertificationSummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildCertListPreview(BuildContext context, List certs) {
+  Widget _buildCertListPreview(
+    BuildContext context,
+    List<Certification> certs,
+  ) {
     final previewCerts = certs.take(3).toList();
 
     return Column(
@@ -212,7 +217,9 @@ class CertificationSummaryWidget extends ConsumerWidget {
                   ),
                   child: Center(
                     child: Text(
-                      _abbreviateAgency(cert.agency.displayName),
+                      _abbreviateAgency(
+                        cert.agency.localizedName(context.l10n),
+                      ),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
                         fontWeight: FontWeight.bold,
@@ -221,8 +228,10 @@ class CertificationSummaryWidget extends ConsumerWidget {
                     ),
                   ),
                 ),
-                title: Text(certificationTitle(cert)),
-                subtitle: Text(certificationAgencyAndLevel(cert)),
+                title: Text(certificationTitleL10n(cert, context.l10n)),
+                subtitle: Text(
+                  certificationAgencyAndLevelL10n(cert, context.l10n),
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   final state = GoRouterState.of(context);

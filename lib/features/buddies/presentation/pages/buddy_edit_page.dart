@@ -8,7 +8,6 @@ import 'package:submersion/shared/utils/contact_import_support.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
@@ -18,6 +17,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_form_controller.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 
 class BuddyEditPage extends ConsumerStatefulWidget {
   final String? buddyId;
@@ -454,8 +454,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.card_membership),
-                  title: Text(certificationTitle(cert)),
-                  subtitle: Text(certificationAgencyAndLevel(cert)),
+                  title: Text(certificationTitleL10n(cert, context.l10n)),
+                  subtitle: Text(
+                    certificationAgencyAndLevelL10n(cert, context.l10n),
+                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

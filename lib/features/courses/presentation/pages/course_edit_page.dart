@@ -14,6 +14,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/certifications/presentation/widgets/certification_picker.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 class CourseEditPage extends ConsumerStatefulWidget {
   final String? courseId;
@@ -149,7 +150,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
             items: CertificationAgency.values.map((agency) {
               return DropdownMenuItem(
                 value: agency,
-                child: Text(agency.displayName),
+                child: Text(agency.localizedName(context.l10n)),
               );
             }).toList(),
             onChanged: (value) {

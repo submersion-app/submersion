@@ -7,7 +7,8 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
-import 'package:submersion/features/certifications/domain/certification_title.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 /// Service for rendering certification cards to PNG images for sharing.
 ///
@@ -75,7 +76,7 @@ class CertificationCardRenderer {
       // Draw agency name at top
       _drawText(
         canvas: canvas,
-        text: certification.agency.displayName,
+        text: certification.agency.localizedName(l10n),
         x: 32,
         y: 32,
         fontSize: 24,
@@ -87,7 +88,7 @@ class CertificationCardRenderer {
       // Draw certification name (large, centered vertically)
       _drawText(
         canvas: canvas,
-        text: certificationTitle(certification),
+        text: certificationTitleL10n(certification, l10n),
         x: 32,
         y: height * 0.35,
         fontSize: 32,
@@ -98,7 +99,7 @@ class CertificationCardRenderer {
 
       // Only when the title above is a custom name -- otherwise it already
       // contains the certification.
-      final subtitle = certificationSubtitle(certification);
+      final subtitle = certificationSubtitleL10n(certification, l10n);
       if (subtitle != null) {
         _drawText(
           canvas: canvas,
@@ -335,7 +336,7 @@ class CertificationCardRenderer {
       // Draw agency name at top
       _drawCenteredText(
         canvas: canvas,
-        text: certification.agency.displayName,
+        text: certification.agency.localizedName(l10n),
         y: 60,
         width: width,
         fontSize: 48,
@@ -389,7 +390,7 @@ class CertificationCardRenderer {
       // Draw certification name
       _drawCenteredText(
         canvas: canvas,
-        text: certificationTitle(certification),
+        text: certificationTitleL10n(certification, l10n),
         y: 390,
         width: width,
         fontSize: 40,
@@ -399,7 +400,7 @@ class CertificationCardRenderer {
 
       // Only when the title above is a custom name -- otherwise it already
       // contains the certification.
-      final subtitle = certificationSubtitle(certification);
+      final subtitle = certificationSubtitleL10n(certification, l10n);
       if (subtitle != null) {
         _drawCenteredText(
           canvas: canvas,

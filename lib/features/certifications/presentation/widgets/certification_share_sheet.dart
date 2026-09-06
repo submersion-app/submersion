@@ -6,11 +6,12 @@ import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
-import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/services/certification_card_renderer.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 
 /// Bottom sheet for sharing a certification as an image.
 ///
@@ -62,7 +63,7 @@ class _CertificationShareSheetState
 
             // Subtitle with certification name
             Text(
-              certificationTitle(widget.certification),
+              certificationTitleL10n(widget.certification, context.l10n),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

@@ -5,9 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 /// A widget for selecting a certification to link to a course.
 class CertificationPicker extends ConsumerWidget {
@@ -40,11 +41,19 @@ class CertificationPicker extends ConsumerWidget {
       title: Text(
         (selectedCertification == null
                 ? null
-                : certificationTitle(selectedCertification!)) ??
+                : certificationTitleL10n(
+                    selectedCertification!,
+                    context.l10n,
+                  )) ??
             context.l10n.certifications_picker_noSelection,
       ),
       subtitle: selectedCertification != null
-          ? Text(certificationAgencyAndLevel(selectedCertification!))
+          ? Text(
+              certificationAgencyAndLevelL10n(
+                selectedCertification!,
+                context.l10n,
+              ),
+            )
           : Text(context.l10n.certifications_picker_hint),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -191,14 +200,14 @@ class CertificationPickerSheet extends ConsumerWidget {
 
                   // Only non-null when a custom name owns the title, so the
                   // level is spoken exactly once either way.
-                  final level = certificationSubtitle(cert);
+                  final level = certificationSubtitleL10n(cert, context.l10n);
                   final levelLabel = level != null ? ', $level' : '';
                   // Keep the agency: this label replaces the tile's own
                   // semantics, including the subtitle that shows the agency
                   // visually. The title is derived so it is not said twice.
                   final certName =
-                      '${cert.agency.displayName} '
-                      '${certificationTitle(cert)}$levelLabel';
+                      '${cert.agency.localizedName(context.l10n)} '
+                      '${certificationTitleL10n(cert, context.l10n)}$levelLabel';
                   final certLabel = cert.issueDate != null
                       ? '$certName, issued ${units.formatDate(cert.issueDate)}${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}'
                       : '$certName${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}';
@@ -226,11 +235,14 @@ class CertificationPickerSheet extends ConsumerWidget {
                               : Colors.green,
                         ),
                       ),
-                      title: Text(certificationTitle(cert)),
+                      title: Text(certificationTitleL10n(cert, context.l10n)),
                       subtitle: Text(
                         cert.issueDate != null
-                            ? '${certificationAgencyAndLevel(cert)} - ${units.formatDate(cert.issueDate)}'
-                            : certificationAgencyAndLevel(cert),
+                            ? '${certificationAgencyAndLevelL10n(cert, context.l10n)} - ${units.formatDate(cert.issueDate)}'
+                            : certificationAgencyAndLevelL10n(
+                                cert,
+                                context.l10n,
+                              ),
                       ),
                       trailing: isSelected
                           ? Icon(Icons.check_circle, color: colorScheme.primary)
