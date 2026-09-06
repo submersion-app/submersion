@@ -104,10 +104,12 @@ class NavOrderNotifier extends StateNotifier<List<String>> {
 
   static final _log = LoggerService.forClass(NavOrderNotifier);
 
-  /// Reads the raw stored order, or `null` when the key has never been written.
+  /// Reads the raw stored order, or `null` when the key has never been
+  /// written, its value is not a JSON list, or the read failed. Every null
+  /// means the same thing here: fall back to the canonical order.
   final Future<List<String>?> Function() read;
 
-  /// Persists a normalized order.
+  /// Persists a normalized order. Throws so a failed save reaches the caller.
   final Future<void> Function(List<String>) write;
 
   final List<String> movableIds;
