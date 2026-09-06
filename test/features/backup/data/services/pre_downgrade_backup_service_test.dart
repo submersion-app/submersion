@@ -48,6 +48,7 @@ PreDowngradeBackupService buildService(
   Fixture f, {
   String? backupsDir,
   String? fallbackDir,
+  Future<int> Function(String path)? sizeReader,
 }) {
   return PreDowngradeBackupService(
     livePathProvider: () async => f.livePath,
@@ -58,6 +59,7 @@ PreDowngradeBackupService buildService(
     preferences: f.prefs,
     clock: () => DateTime.utc(2026, 9, 5, 8, 12, 1),
     idGenerator: () => 'kept-1',
+    sizeReader: sizeReader,
   );
 }
 
@@ -148,6 +150,27 @@ void main() {
       expect(File(record.localPath!).existsSync(), isTrue);
     },
   );
+
+  test('a stat failure after the copy does not abort the restore', () async {
+    final f = await makeFixture();
+    addTearDown(f.dispose);
+
+    // The bytes are already aside by this point, which is the whole
+    // guarantee this service owes its caller. Throwing here would strand the
+    // diver on the mismatch screen next to a copy they cannot see -- and it
+    // is the caller's abort-on-throw contract that makes that a real cost.
+    final record = await buildService(
+      f,
+      sizeReader: (_) async => throw const FileSystemException('stat failed'),
+    ).preserve(storedSchemaVersion: 191, appVersion: '1.8.0.7300');
+
+    expect(record.sizeBytes, 0, reason: 'size unknown, not fatal');
+    expect(File(record.localPath!).existsSync(), isTrue);
+    // Still registered, so the diver can find it in the backup list.
+    final history = f.prefs.getHistory();
+    expect(history.single.type, BackupType.preDowngrade);
+    expect(history.single.pinned, isTrue);
+  });
 
   test('throws when there is no database to preserve', () async {
     final f = await makeFixture(createLive: false);

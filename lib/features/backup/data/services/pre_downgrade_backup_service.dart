@@ -41,6 +41,10 @@ class PreDowngradeBackupService {
   final String? Function()? _databaseKeyHexProvider;
   final DateTime Function() _clock;
   final String Function() _idGenerator;
+
+  /// Reads the size of the copy on disk. Injectable so a test can drive the
+  /// stat failure below, which no real filesystem offers on demand.
+  final Future<int> Function(String path) _sizeReader;
   final _log = LoggerService.forClass(PreDowngradeBackupService);
 
   PreDowngradeBackupService({
@@ -51,13 +55,15 @@ class PreDowngradeBackupService {
     String? Function()? databaseKeyHexProvider,
     DateTime Function()? clock,
     String Function()? idGenerator,
+    Future<int> Function(String path)? sizeReader,
   }) : _livePathProvider = livePathProvider,
        _backupsDirProvider = backupsDirProvider,
        _fallbackBackupsDirProvider = fallbackBackupsDirProvider,
        _preferences = preferences,
        _databaseKeyHexProvider = databaseKeyHexProvider,
        _clock = clock ?? DateTime.now,
-       _idGenerator = idGenerator ?? (() => const Uuid().v4());
+       _idGenerator = idGenerator ?? (() => const Uuid().v4()),
+       _sizeReader = sizeReader ?? ((path) => File(path).length());
 
   /// Copies the live database aside and registers it, returning the record.
   ///
@@ -150,11 +156,26 @@ class PreDowngradeBackupService {
     required int storedSchemaVersion,
     required String appVersion,
   }) async {
-    final int sizeBytes;
+    // Everything past this point is bookkeeping about a copy that already
+    // exists. Nothing here may throw: the bytes are safe, and the caller is
+    // holding a restore open waiting on this. See the sibling reasoning on
+    // the registration failure below.
+    //
+    // Deliberately unlike PreMigrationBackupService, which throws on the same
+    // stat. There the throw blocks an UPGRADE, and refusing to migrate
+    // without a confirmed safety copy is the conservative direction. Here it
+    // would block a RESTORE and strand the diver on the mismatch screen next
+    // to a copy that is already on disk.
+    var sizeBytes = 0;
     try {
-      sizeBytes = await File(finalPath).length();
+      sizeBytes = await _sizeReader(finalPath);
     } catch (e, stack) {
-      throw BackupFailedException.fromError(e, stack);
+      _log.warning(
+        'Could not read the size of the preserved newer database at '
+        '$finalPath; recording it as unknown',
+        error: e,
+        stackTrace: stack,
+      );
     }
 
     final record = BackupRecord(
