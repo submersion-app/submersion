@@ -31,6 +31,23 @@ BackupRecord _manual({
   );
 }
 
+BackupRecord _preDowngrade() {
+  return BackupRecord(
+    id: 'kept',
+    filename: 'newer.db',
+    timestamp: DateTime(2026, 9, 5, 8, 12),
+    sizeBytes: 4096,
+    location: BackupLocation.local,
+    localPath: '/tmp/newer.db',
+    type: BackupType.preDowngrade,
+    appVersion: '1.8.0.7300',
+    // No toSchemaVersion: nothing was migrated, this is where the file
+    // stopped.
+    fromSchemaVersion: 191,
+    pinned: true,
+  );
+}
+
 BackupRecord _preMigration({
   int? fromVersion = 63,
   int? toVersion = 64,
@@ -138,6 +155,30 @@ void main() {
         ),
       );
       expect(find.textContaining('0 dives, 0 sites'), findsOneWidget);
+    });
+
+    testWidgets('preDowngrade record names itself as the kept newer database', (
+      tester,
+    ) async {
+      // Copied from a database this build had already left behind, so it
+      // carries no dive or site counts and must not claim "0 dives".
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _preDowngrade(),
+            leadingIcon: Icons.computer,
+            onPinToggle: () {},
+            onRestore: () {},
+            onDelete: () {},
+          ),
+        ),
+      );
+
+      expect(find.textContaining('Newer database'), findsOneWidget);
+      expect(find.textContaining('dives'), findsNothing);
+      // The schema badge belongs to a pre-migration pair; this record has no
+      // toSchemaVersion, so there is no upgrade to name.
+      expect(find.byType(PreMigrationBadge), findsNothing);
     });
 
     testWidgets(

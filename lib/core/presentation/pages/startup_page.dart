@@ -46,6 +46,7 @@ import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/data/services/backup_schema_probe.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
 import 'package:submersion/features/backup/data/services/downgrade_restore_candidates.dart';
 import 'package:submersion/features/backup/data/services/pre_downgrade_backup_service.dart';
@@ -1041,38 +1042,20 @@ class _StartupWrapperState extends State<StartupWrapper>
     }
   }
 
-  /// Reads `PRAGMA user_version` from a candidate backup, or null when the
-  /// file cannot be opened at all.
+  /// Reads the schema version a candidate backup actually holds.
   ///
-  /// Tries the live key first: a pre-migration copy of a protected database
-  /// is SQLCipher ciphertext, and the security gate has already run by the
-  /// time a mismatch is raised, so the key is available. The keyless retry
-  /// covers the install that turned protection ON after that copy was taken,
-  /// where the copy on disk is still plaintext.
-  ///
-  /// [DatabaseService.getStoredSchemaVersion] opens read-WRITE, which is what
-  /// lets SQLite roll back a hot journal, but also means a copy sitting in a
-  /// read-only location cannot be probed. Every candidate here was written by
-  /// this app into its own resolved backups directory, so that is not the
-  /// normal case; when it does happen the failure lands on the safe side, and
-  /// no restore is offered rather than one that cannot run.
+  /// The real work lives in [probeBackupSchemaVersion], which owns the
+  /// keyed-then-unkeyed fallback and is tested directly; this only supplies
+  /// the live key and the test seam.
   int? _probeCandidateSchema(String path) {
     final probeOverride = widget.downgradeCandidateProbeOverride;
     if (probeOverride != null) return probeOverride(path);
 
-    final keyHex = DatabaseService.instance.databaseKeyHex;
-    try {
-      return DatabaseService.getStoredSchemaVersion(path, keyHex: keyHex);
-    } catch (e) {
-      debugPrint('Candidate backup did not open with the live key: $e');
-    }
-    if (keyHex == null) return null;
-    try {
-      return DatabaseService.getStoredSchemaVersion(path);
-    } catch (e) {
-      debugPrint('Candidate backup did not open unkeyed either: $e');
-      return null;
-    }
+    return probeBackupSchemaVersion(
+      path,
+      keyHex: DatabaseService.instance.databaseKeyHex,
+      onDiagnostic: debugPrint,
+    );
   }
 
   /// Copies the newer-schema database into the backups folder and registers

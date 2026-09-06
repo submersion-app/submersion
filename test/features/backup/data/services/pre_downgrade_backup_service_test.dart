@@ -188,6 +188,56 @@ void main() {
     expect(f.prefs.getHistory(), isEmpty);
   });
 
+  test('throws when the live path cannot even be resolved', () async {
+    final f = await makeFixture();
+    addTearDown(f.dispose);
+
+    await expectLater(
+      PreDowngradeBackupService(
+        livePathProvider: () async => throw StateError('no location service'),
+        backupsDirProvider: () async => f.backupsDir,
+        preferences: f.prefs,
+      ).preserve(storedSchemaVersion: 191, appVersion: '1.8.0'),
+      throwsA(isA<BackupFailedException>()),
+    );
+    expect(f.prefs.getHistory(), isEmpty);
+  });
+
+  test('throws when the fallback location fails too', () async {
+    final f = await makeFixture();
+    addTearDown(f.dispose);
+
+    // Both paths are under a FILE, so neither directory can be created.
+    // Nothing was copied aside, so the caller must abandon the restore.
+    await expectLater(
+      buildService(
+        f,
+        backupsDir: p.join(f.livePath, 'nope'),
+        fallbackDir: p.join(f.livePath, 'also-nope'),
+      ).preserve(storedSchemaVersion: 191, appVersion: '1.8.0'),
+      throwsA(isA<BackupFailedException>()),
+    );
+    expect(f.prefs.getHistory(), isEmpty);
+  });
+
+  test('the default id generator produces a UUID-shaped id', () async {
+    final f = await makeFixture();
+    addTearDown(f.dispose);
+
+    final record = await PreDowngradeBackupService(
+      livePathProvider: () async => f.livePath,
+      backupsDirProvider: () async => f.backupsDir,
+      preferences: f.prefs,
+    ).preserve(storedSchemaVersion: 191, appVersion: '1.8.0');
+
+    expect(
+      record.id,
+      matches(
+        r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+      ),
+    );
+  });
+
   test('throws when the copy cannot be written anywhere', () async {
     final f = await makeFixture();
     addTearDown(f.dispose);
