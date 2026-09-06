@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 
 /// Altitude + water type inputs feeding the calculator's DiveEnvironment
 /// (the same altitude/salinity seam the planner engine uses).
@@ -62,7 +63,10 @@ class EnvironmentInputs extends ConsumerWidget {
                 child: Text(context.l10n.decoCalculator_waterType_standard),
               ),
               for (final type in WaterType.values)
-                DropdownMenuItem(value: type, child: Text(type.displayName)),
+                DropdownMenuItem(
+                  value: type,
+                  child: Text(type.localizedName(context.l10n)),
+                ),
             ],
             onChanged: (type) =>
                 ref.read(calcWaterTypeProvider.notifier).state = type,
