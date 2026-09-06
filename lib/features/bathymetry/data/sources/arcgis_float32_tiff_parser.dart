@@ -29,6 +29,13 @@ class ArcgisFloat32TiffParser {
   static const int _tagTileWidth = 322;
   static const int _tagTileLength = 323;
   static const int _tagTileOffsets = 324;
+  static const int _tagTileByteCounts = 325;
+  static const int _tagSampleFormat = 339;
+
+  /// SampleFormat 3 is IEEE floating point. 1 (unsigned) and 2 (signed)
+  /// integer rasters carry the same 32 bits per sample, so BitsPerSample
+  /// alone cannot tell them apart from float.
+  static const int _sampleFormatIeeeFloat = 3;
 
   static BathymetryGrid parse(
     Uint8List bytes, {
@@ -65,6 +72,18 @@ class ArcgisFloat32TiffParser {
     if (need(_tagBitsPerSample, 'BitsPerSample') != 32) {
       throw const FormatException('Only 32-bit samples are supported');
     }
+    // BitsPerSample is not enough on its own: a 32-bit INTEGER raster has
+    // the same sample width, and reading its bits as float32 does not
+    // fail. It yields denormals near zero for small values and huge
+    // magnitudes for large ones, all non-null, so every downstream quality
+    // floor passes and the garbage renders as terrain. Require the tag
+    // rather than defaulting: TIFF's own default when it is absent is
+    // unsigned integer, so an untagged raster is not float either.
+    if (need(_tagSampleFormat, 'SampleFormat') != _sampleFormatIeeeFloat) {
+      throw const FormatException(
+        'Only IEEE float samples are supported (SampleFormat 3)',
+      );
+    }
     if (need(_tagSamplesPerPixel, 'SamplesPerPixel') != 1) {
       throw const FormatException('Only single-band rasters are supported');
     }
@@ -83,10 +102,31 @@ class ArcgisFloat32TiffParser {
       'TileOffsets',
       bytes.length,
     );
+    final counts = _longs(
+      d,
+      tags[_tagTileByteCounts],
+      'TileByteCounts',
+      bytes.length,
+    );
     final tilesAcross = (width + tileW - 1) ~/ tileW;
     final tilesDown = (height + tileH - 1) ~/ tileH;
     if (offsets.length != tilesAcross * tilesDown) {
       throw const FormatException('TileOffsets count does not match the grid');
+    }
+    if (counts.length != offsets.length) {
+      throw const FormatException('TileByteCounts does not match TileOffsets');
+    }
+    // Every tile of an uncompressed float32 raster is exactly this big. A
+    // disagreement means the data is not the plain block this parser
+    // assumes, whatever the Compression tag claims.
+    final expectedTileBytes = tileW * tileH * 4;
+    for (final c in counts) {
+      if (c != expectedTileBytes) {
+        throw FormatException(
+          'Tile byte count $c is not the $expectedTileBytes bytes an '
+          'uncompressed ${tileW}x$tileH float32 tile occupies',
+        );
+      }
     }
 
     // Image order first, northernmost row at index 0.

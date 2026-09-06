@@ -13,15 +13,17 @@ Uint8List buildTiff({
   required List<double> tilePixels, // tileSize * tileSize per tile, row-major
   int compression = 1,
   int bitsPerSample = 32,
+  int? sampleFormat = 3, // 3 = IEEE float; null omits the tag entirely
+  int? tileByteCountOverride,
 }) {
   final tilesAcross = (width + tileSize - 1) ~/ tileSize;
   final tilesDown = (height + tileSize - 1) ~/ tileSize;
   final tileCount = tilesAcross * tilesDown;
   final tileBytes = tileSize * tileSize * 4;
 
-  const entries = 10;
+  final entries = sampleFormat == null ? 9 : 10;
   const headerLen = 8;
-  const ifdLen = 2 + entries * 12 + 4;
+  final ifdLen = 2 + entries * 12 + 4;
   // Tile offset and byte-count arrays live after the IFD when there is more
   // than one tile; a single LONG fits inline in the entry's value field.
   final arraysLen = tileCount > 1 ? tileCount * 4 * 2 : 0;
@@ -51,7 +53,7 @@ Uint8List buildTiff({
     e += 12;
   }
 
-  const offsetsAt = headerLen + ifdLen;
+  final offsetsAt = headerLen + ifdLen;
   final countsAt = offsetsAt + tileCount * 4;
   entry(256, 3, 1, width); // ImageWidth
   entry(257, 3, 1, height); // ImageLength
@@ -61,8 +63,15 @@ Uint8List buildTiff({
   entry(322, 3, 1, tileSize); // TileWidth
   entry(323, 3, 1, tileSize); // TileLength
   entry(324, 4, tileCount, tileCount == 1 ? pixelStart : offsetsAt);
-  entry(325, 4, tileCount, tileCount == 1 ? tileBytes : countsAt);
-  entry(339, 3, 1, 3); // SampleFormat = IEEE float
+  entry(
+    325,
+    4,
+    tileCount,
+    tileCount == 1 ? (tileByteCountOverride ?? tileBytes) : countsAt,
+  );
+  if (sampleFormat != null) {
+    entry(339, 3, 1, sampleFormat); // 1 = uint, 2 = int, 3 = IEEE float
+  }
   ifd.setUint32(ifdLen - 4, 0, Endian.little); // next IFD = none
   out.add(ifd.buffer.asUint8List());
 
@@ -70,7 +79,11 @@ Uint8List buildTiff({
     final arrays = ByteData(arraysLen);
     for (var i = 0; i < tileCount; i++) {
       arrays.setUint32(i * 4, pixelStart + i * tileBytes, Endian.little);
-      arrays.setUint32(tileCount * 4 + i * 4, tileBytes, Endian.little);
+      arrays.setUint32(
+        tileCount * 4 + i * 4,
+        tileByteCountOverride ?? tileBytes,
+        Endian.little,
+      );
     }
     out.add(arrays.buffer.asUint8List());
   }
@@ -323,5 +336,84 @@ void main() {
       ),
       throwsFormatException,
     );
+  });
+
+  group('format strictness (the throw-on-anything-unexpected contract)', () {
+    Uint8List variant({int? sampleFormat = 3, int? tileByteCountOverride}) =>
+        buildTiff(
+          width: 2,
+          height: 2,
+          tileSize: 4,
+          tilePixels: List<double>.filled(16, -5.0),
+          sampleFormat: sampleFormat,
+          tileByteCountOverride: tileByteCountOverride,
+        );
+
+    void expectRejected(Uint8List bytes) {
+      expect(
+        () => ArcgisFloat32TiffParser.parse(
+          bytes,
+          westLon: 0,
+          eastLon: 1,
+          southLat: 0,
+          northLat: 1,
+          sourceId: 'noaa_dem',
+          resolutionMeters: 8,
+          fetchedAt: DateTime.utc(2026, 9, 5),
+        ),
+        throwsFormatException,
+      );
+    }
+
+    test('rejects unsigned integer samples', () {
+      // 32-bit ints read as float32 do not crash: they yield denormals near
+      // zero for small values and huge magnitudes for large ones, all
+      // non-null, so every downstream quality floor passes and the garbage
+      // renders as terrain. Failing fast falls through to the next source.
+      expectRejected(variant(sampleFormat: 1));
+    });
+
+    test('rejects signed integer samples', () {
+      expectRejected(variant(sampleFormat: 2));
+    });
+
+    test('rejects a TIFF with no SampleFormat tag', () {
+      // The TIFF default when the tag is absent is unsigned integer, not
+      // float, so an untagged raster must not be assumed to be float.
+      expectRejected(variant(sampleFormat: null));
+    });
+
+    test('accepts IEEE float samples', () {
+      final g = ArcgisFloat32TiffParser.parse(
+        variant(),
+        westLon: 0,
+        eastLon: 1,
+        southLat: 0,
+        northLat: 1,
+        sourceId: 'noaa_dem',
+        resolutionMeters: 8,
+        fetchedAt: DateTime.utc(2026, 9, 5),
+      );
+      expect(g.depthAt(0, 0), closeTo(5.0, 1e-6));
+    });
+
+    test('rejects a tile byte count that disagrees with the tile size', () {
+      // A short count means the tile is not the plain uncompressed block
+      // this parser assumes, whatever the Compression tag claims.
+      // A 4x4 float32 tile is 64 bytes; claim half that.
+      expectRejected(variant(tileByteCountOverride: 32));
+    });
+
+    test('rejects a multi-tile image whose byte counts disagree', () {
+      expectRejected(
+        buildTiff(
+          width: 4,
+          height: 4,
+          tileSize: 2,
+          tilePixels: List<double>.filled(16, -5.0),
+          tileByteCountOverride: 8,
+        ),
+      );
+    });
   });
 }
