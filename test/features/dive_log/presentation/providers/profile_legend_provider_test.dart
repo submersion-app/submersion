@@ -530,4 +530,69 @@ void main() {
       expect(container.read(profileLegendProvider).showO2CellMv, isFalse);
     });
   });
+
+  group('computed events toggle (issue #1523)', () {
+    ProviderContainer makeContainer() {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(const AppSettings()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      // Keep the autoDispose provider alive between reads, like a mounted chart.
+      final sub = container.listen(profileLegendProvider, (_, _) {});
+      addTearDown(sub.close);
+      return container;
+    }
+
+    test('defaults to visible', () {
+      final c = makeContainer();
+      expect(c.read(profileLegendProvider).showComputedEvents, isTrue);
+    });
+
+    test('seeds hidden when the dive carries imported events', () {
+      final c = makeContainer();
+      c
+          .read(profileLegendProvider.notifier)
+          .seedComputedEventsVisibility(diveHasImportedEvents: true);
+      expect(c.read(profileLegendProvider).showComputedEvents, isFalse);
+    });
+
+    test('seeds visible when the dive has no imported events', () {
+      final c = makeContainer();
+      c
+          .read(profileLegendProvider.notifier)
+          .seedComputedEventsVisibility(diveHasImportedEvents: false);
+      expect(c.read(profileLegendProvider).showComputedEvents, isTrue);
+    });
+
+    test('a user toggle wins over a later seed', () {
+      final c = makeContainer();
+      final notifier = c.read(profileLegendProvider.notifier);
+      notifier.toggleComputedEvents();
+      expect(c.read(profileLegendProvider).showComputedEvents, isFalse);
+      notifier.seedComputedEventsVisibility(diveHasImportedEvents: false);
+      expect(c.read(profileLegendProvider).showComputedEvents, isFalse);
+    });
+
+    test('toggle flips the value', () {
+      final c = makeContainer();
+      final notifier = c.read(profileLegendProvider.notifier);
+      notifier.toggleComputedEvents();
+      expect(c.read(profileLegendProvider).showComputedEvents, isFalse);
+      notifier.toggleComputedEvents();
+      expect(c.read(profileLegendProvider).showComputedEvents, isTrue);
+    });
+
+    test('copyWith and equality track showComputedEvents', () {
+      const on = ProfileLegendState();
+      final off = on.copyWith(showComputedEvents: false);
+      expect(on.showComputedEvents, isTrue);
+      expect(off.showComputedEvents, isFalse);
+      expect(on, isNot(equals(off)));
+      expect(on.copyWith(showSac: true).showComputedEvents, isTrue);
+    });
+  });
 }

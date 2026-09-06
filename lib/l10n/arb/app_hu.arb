@@ -2106,6 +2106,7 @@
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Melyseg",
   "diveLog_legend_label_events": "Esemenyek",
+  "diveLog_legend_label_computedEvents": "Számított események",
   "diveLog_legend_label_gasDensity": "Gaz suruseg",
   "diveLog_legend_label_gasSwitches": "Gazcserelesek",
   "diveLog_legend_label_gfPercent": "GF%",

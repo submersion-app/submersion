@@ -9899,6 +9899,12 @@ abstract class AppLocalizations {
   /// **'Events'**
   String get diveLog_legend_label_events;
 
+  /// No description provided for @diveLog_legend_label_computedEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Computed events'**
+  String get diveLog_legend_label_computedEvents;
+
   /// No description provided for @diveLog_legend_label_gasDensity.
   ///
   /// In en, this message translates to:

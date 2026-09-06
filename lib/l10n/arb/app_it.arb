@@ -2106,6 +2106,7 @@
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Profondita",
   "diveLog_legend_label_events": "Eventi",
+  "diveLog_legend_label_computedEvents": "Eventi calcolati",
   "diveLog_legend_label_gasDensity": "Densita del gas",
   "diveLog_legend_label_gasSwitches": "Cambi gas",
   "diveLog_legend_label_gfPercent": "GF%",

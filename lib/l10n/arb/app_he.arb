@@ -2106,6 +2106,7 @@
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "עומק",
   "diveLog_legend_label_events": "אירועים",
+  "diveLog_legend_label_computedEvents": "אירועים מחושבים",
   "diveLog_legend_label_gasDensity": "צפיפות גז",
   "diveLog_legend_label_gasSwitches": "החלפות גז",
   "diveLog_legend_label_gfPercent": "GF%",

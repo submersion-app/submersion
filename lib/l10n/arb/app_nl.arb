@@ -2190,6 +2190,7 @@
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Diepte",
   "diveLog_legend_label_events": "Gebeurtenissen",
+  "diveLog_legend_label_computedEvents": "Berekende gebeurtenissen",
   "diveLog_legend_label_gasDensity": "Gasdichtheid",
   "diveLog_legend_label_gasSwitches": "Gaswisselingen",
   "diveLog_legend_label_gfPercent": "GF%",

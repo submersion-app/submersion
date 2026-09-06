@@ -35,6 +35,13 @@ class ProfileLegendState {
   /// from [showAscentRateColors], which tints the depth line by velocity band.
   final bool showAscentRateLine;
   final bool showEvents;
+
+  /// Whether the app's own auto-detected events (`EventSource.computed`) are
+  /// drawn. Independent of [showEvents], which governs the computer's own and
+  /// user events. Seeded off for a dive that carries imported events so a
+  /// computer download shows just the computer's events by default
+  /// (issue #1523).
+  final bool showComputedEvents;
   final bool showMaxDepthMarker;
   final bool showPressureMarkers;
   final bool showGasSwitchMarkers;
@@ -101,6 +108,7 @@ class ProfileLegendState {
     this.showAscentRateColors = false,
     this.showAscentRateLine = false,
     this.showEvents = true,
+    this.showComputedEvents = true,
     this.showMaxDepthMarker = true,
     this.showPressureMarkers = true,
     this.showGasSwitchMarkers = true,
@@ -186,6 +194,7 @@ class ProfileLegendState {
     bool? showAscentRateColors,
     bool? showAscentRateLine,
     bool? showEvents,
+    bool? showComputedEvents,
     bool? showMaxDepthMarker,
     bool? showPressureMarkers,
     bool? showGasSwitchMarkers,
@@ -228,6 +237,7 @@ class ProfileLegendState {
       showAscentRateColors: showAscentRateColors ?? this.showAscentRateColors,
       showAscentRateLine: showAscentRateLine ?? this.showAscentRateLine,
       showEvents: showEvents ?? this.showEvents,
+      showComputedEvents: showComputedEvents ?? this.showComputedEvents,
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureMarkers: showPressureMarkers ?? this.showPressureMarkers,
       showGasSwitchMarkers: showGasSwitchMarkers ?? this.showGasSwitchMarkers,
@@ -275,6 +285,7 @@ class ProfileLegendState {
           showAscentRateColors == other.showAscentRateColors &&
           showAscentRateLine == other.showAscentRateLine &&
           showEvents == other.showEvents &&
+          showComputedEvents == other.showComputedEvents &&
           showMaxDepthMarker == other.showMaxDepthMarker &&
           showPressureMarkers == other.showPressureMarkers &&
           showGasSwitchMarkers == other.showGasSwitchMarkers &&
@@ -316,6 +327,7 @@ class ProfileLegendState {
     showAscentRateColors,
     showAscentRateLine,
     showEvents,
+    showComputedEvents,
     showMaxDepthMarker,
     showPressureMarkers,
     showGasSwitchMarkers,
@@ -507,6 +519,26 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(showEvents: !state.showEvents);
   }
 
+  /// Records that the user has explicitly set the computed-events toggle, so
+  /// [seedComputedEventsVisibility] stops overriding their choice.
+  bool _computedEventsUserSet = false;
+
+  void toggleComputedEvents() {
+    _computedEventsUserSet = true;
+    state = state.copyWith(showComputedEvents: !state.showComputedEvents);
+  }
+
+  /// Seed the computed-events toggle from the dive: off when the dive carries
+  /// the computer's own (imported) events, on otherwise (issue #1523). A no-op
+  /// once the user has touched the toggle this session.
+  void seedComputedEventsVisibility({required bool diveHasImportedEvents}) {
+    if (_computedEventsUserSet) return;
+    final visible = !diveHasImportedEvents;
+    if (state.showComputedEvents != visible) {
+      state = state.copyWith(showComputedEvents: visible);
+    }
+  }
+
   void toggleMaxDepthMarker() {
     state = state.copyWith(showMaxDepthMarker: !state.showMaxDepthMarker);
   }
@@ -653,6 +685,7 @@ class ProfileLegend extends _$ProfileLegend {
 
   /// Reset all toggles to their default values
   void reset() {
+    _computedEventsUserSet = false;
     state = const ProfileLegendState();
   }
 }

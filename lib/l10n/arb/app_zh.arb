@@ -2321,6 +2321,7 @@
   "diveLog_legend_label_cns": "中枢神经系统%",
   "diveLog_legend_label_depth": "深度",
   "diveLog_legend_label_events": "事件",
+  "diveLog_legend_label_computedEvents": "计算的事件",
   "diveLog_legend_label_gasDensity": "气体密度",
   "diveLog_legend_label_gasSwitches": "气体切换",
   "diveLog_legend_label_gfPercent": "GF%",

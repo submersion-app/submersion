@@ -5949,6 +5949,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_events => 'Esemenyek';
 
   @override
+  String get diveLog_legend_label_computedEvents => 'Számított események';
+
+  @override
   String get diveLog_legend_label_gasDensity => 'Gaz suruseg';
 
   @override
