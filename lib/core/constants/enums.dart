@@ -248,8 +248,8 @@ enum CertificationLevel {
   // are first-class values in the specialties group, not ladder rungs.
   // Youth cursus (Plongée Jeunes)
   ffessmPlongeurBronze('Plongeur de Bronze'),
-  ffessmPlongeurArgent("Plongeur d'Argent"),
-  ffessmPlongeurOr("Plongeur d'Or"),
+  ffessmPlongeurArgent('Plongeur d\'Argent'),
+  ffessmPlongeurOr('Plongeur d\'Or'),
   // Niveaux (N4 and N5 also belong to the cadre cursus)
   ffessmN1('Plongeur Niveau 1'),
   ffessmN2('Plongeur Niveau 2'),
@@ -279,14 +279,14 @@ enum CertificationLevel {
   ffessmMoniteurTrimix('Moniteur Trimix'),
   ffessmRecycleurScr('Plongeur recycleur circuit semi-fermé (SCR)'),
   ffessmRecycleurCcr('Plongeur recycleur circuit fermé (CCR)'),
-  ffessmMoniteurRecycleurCcr('Moniteur recycleur circuit fermé'),
+  ffessmMoniteurRecycleurCcr('Moniteur recycleur circuit fermé (CCR)'),
   // Safety
   ffessmRifap('RIFA Plongée (RIFAP)'),
   ffessmAnteor('ANTEOR'),
   // Technical qualifications
   ffessmVetementEtanche('Qualification Vêtement étanche'),
   ffessmSidemount('Sidemount de loisir'),
-  ffessmTiv("Technicien d'Inspection Visuelle (TIV)"),
+  ffessmTiv('Technicien d\'Inspection Visuelle (TIV)'),
   ffessmFormateurTiv('Formateur de TIV'),
   // Scuba-diving activity commissions (biology, cave, underwater imaging).
   // Non-scuba disciplines (apnea, finswimming, hockey, spearfishing...) stay
