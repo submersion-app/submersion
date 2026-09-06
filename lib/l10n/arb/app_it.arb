@@ -10288,7 +10288,7 @@
   "startup_versionMismatch_download": "Cerca una versione stabile più recente",
   "startup_versionMismatch_betaAction": "Scarica la build beta",
   "startup_versionMismatch_betaNote": "Le build beta sono anteprime. Scegli questa opzione solo se una build beta ha scritto i tuoi dati.",
-  "startup_versionMismatch_manualLink": "Se non si apre un browser, visita:",
+  "startup_versionMismatch_manualLink": "Se questi pulsanti non aprono un browser, visita:",
   "universalImport_compare_downloaded": "Scaricata",
   "universalImport_compare_errorLoading": "Errore nel caricamento dei dati dell’immersione",
   "universalImport_compare_diveNotFound": "Immersione esistente non trovata",

@@ -10288,7 +10288,7 @@
   "startup_versionMismatch_download": "Újabb stabil verzió keresése",
   "startup_versionMismatch_betaAction": "Béta verzió letöltése",
   "startup_versionMismatch_betaNote": "A béta verziók előzetes kiadások. Csak akkor válassza ezt, ha egy béta verzió írta az adatait.",
-  "startup_versionMismatch_manualLink": "Ha ezek nem nyitnak meg böngészőt, keresse fel:",
+  "startup_versionMismatch_manualLink": "Ha ezek a gombok nem nyitnak meg böngészőt, keresse fel:",
   "universalImport_compare_downloaded": "Letöltött",
   "universalImport_compare_errorLoading": "Hiba a merülési adatok betöltésekor",
   "universalImport_compare_diveNotFound": "A meglévő merülés nem található",

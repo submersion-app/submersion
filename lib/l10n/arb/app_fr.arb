@@ -10288,7 +10288,7 @@
   "startup_versionMismatch_download": "Rechercher une version stable plus récente",
   "startup_versionMismatch_betaAction": "Obtenir la version bêta",
   "startup_versionMismatch_betaNote": "Les versions bêta sont des préversions. Ne choisissez cette option que si une version bêta a écrit vos données.",
-  "startup_versionMismatch_manualLink": "Si cela n’ouvre pas de navigateur, rendez-vous sur :",
+  "startup_versionMismatch_manualLink": "Si ces boutons n’ouvrent pas de navigateur, rendez-vous sur :",
   "universalImport_compare_downloaded": "Téléchargée",
   "universalImport_compare_errorLoading": "Erreur lors du chargement des données de plongée",
   "universalImport_compare_diveNotFound": "Plongée existante introuvable",

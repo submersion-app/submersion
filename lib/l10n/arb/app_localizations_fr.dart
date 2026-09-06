@@ -35186,7 +35186,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Si cela n’ouvre pas de navigateur, rendez-vous sur :';
+      'Si ces boutons n’ouvrent pas de navigateur, rendez-vous sur :';
 
   @override
   String get universalImport_compare_downloaded => 'Téléchargée';

@@ -35130,7 +35130,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Si eso no abre un navegador, visita:';
+      'Si esos botones no abren un navegador, visita:';
 
   @override
   String get universalImport_compare_downloaded => 'Descargada';

@@ -10288,7 +10288,7 @@
   "startup_versionMismatch_download": "Nach neuerer stabiler Version suchen",
   "startup_versionMismatch_betaAction": "Beta-Build herunterladen",
   "startup_versionMismatch_betaNote": "Beta-Builds sind Vorabversionen. Wählen Sie dies nur, wenn ein Beta-Build Ihre Daten geschrieben hat.",
-  "startup_versionMismatch_manualLink": "Falls sich dadurch kein Browser öffnet, besuchen Sie:",
+  "startup_versionMismatch_manualLink": "Falls diese Schaltflächen keinen Browser öffnen, besuchen Sie:",
   "universalImport_compare_downloaded": "Heruntergeladen",
   "universalImport_compare_errorLoading": "Fehler beim Laden der Tauchgangsdaten",
   "universalImport_compare_diveNotFound": "Vorhandener Tauchgang nicht gefunden",

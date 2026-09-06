@@ -10288,7 +10288,7 @@
   "startup_versionMismatch_download": "Buscar una versión estable más reciente",
   "startup_versionMismatch_betaAction": "Obtener la compilación beta",
   "startup_versionMismatch_betaNote": "Las compilaciones beta son preliminares. Elige esta opción solo si una compilación beta escribió tus datos.",
-  "startup_versionMismatch_manualLink": "Si eso no abre un navegador, visita:",
+  "startup_versionMismatch_manualLink": "Si esos botones no abren un navegador, visita:",
   "universalImport_compare_downloaded": "Descargada",
   "universalImport_compare_errorLoading": "Error al cargar los datos de la inmersión",
   "universalImport_compare_diveNotFound": "No se encontró la inmersión existente",

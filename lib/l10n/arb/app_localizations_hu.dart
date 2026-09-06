@@ -34937,7 +34937,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Ha ezek nem nyitnak meg böngészőt, keresse fel:';
+      'Ha ezek a gombok nem nyitnak meg böngészőt, keresse fel:';
 
   @override
   String get universalImport_compare_downloaded => 'Letöltött';

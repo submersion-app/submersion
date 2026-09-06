@@ -35011,7 +35011,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Falls sich dadurch kein Browser öffnet, besuchen Sie:';
+      'Falls diese Schaltflächen keinen Browser öffnen, besuchen Sie:';
 
   @override
   String get universalImport_compare_downloaded => 'Heruntergeladen';
