@@ -29,11 +29,12 @@ const _columns = {
 };
 
 void main() {
-  test('v191 is the current schema version and is in the ladder', () {
+  test('v191 is in the ladder', () {
     // Renumbered from v188 (itself renumbered from v185 and v184): main
     // landed the insurance-phone, media-equipment-link and raw-data
-    // recompression rungs at 188-190 while this branch was open.
-    expect(AppDatabase.currentSchemaVersion, 191);
+    // recompression rungs at 188-190 while this branch was open. No longer
+    // pinned as the current version: v192 (weight presets) sits above it.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(191));
     expect(AppDatabase.migrationVersions, contains(191));
   });
 

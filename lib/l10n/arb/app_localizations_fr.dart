@@ -5622,6 +5622,47 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_useSet => 'Utiliser un set';
 
   @override
+  String get diveLog_edit_weightPreset_use => 'Utiliser un preset';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Enregistrer comme preset';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle =>
+      'Appliquer un preset de lestage';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Vous n\'avez pas encore enregistré de preset de lestage.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plombs · $total',
+      one: '1 plomb · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Preset de lestage appliqué. Ajustez les entrées si besoin.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Enregistrer le lestage comme preset';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Nom du preset';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Preset de lestage « $name » enregistré';
+  }
+
+  @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Total : $total';
   }
@@ -17241,6 +17282,34 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_manage_tankPresets_subtitle =>
       'Gerer les configurations de blocs personnalisees';
+
+  @override
+  String get settings_manage_weightPresets => 'Presets de lestage';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Ensembles de plombs réutilisables pour une plongée';
+
+  @override
+  String get weightPresets_page_title => 'Presets de lestage';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Enregistrez un lestage depuis l\'éditeur de plongée pour le réutiliser ici.';
+
+  @override
+  String get weightPresets_action_rename => 'Renommer';
+
+  @override
+  String get weightPresets_rename_title => 'Renommer le preset';
+
+  @override
+  String get weightPresets_delete_title => 'Supprimer ce preset ?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '« $name » sera supprimé. Les plongées qui l\'ont utilisé gardent leurs propres plombs.';
+  }
 
   @override
   String get settings_manage_serviceTypes => 'Types de révision';

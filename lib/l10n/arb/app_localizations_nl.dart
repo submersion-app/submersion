@@ -5563,6 +5563,47 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_useSet => 'Set gebruiken';
 
   @override
+  String get diveLog_edit_weightPreset_use => 'Voorinstelling gebruiken';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Opslaan als voorinstelling';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle =>
+      'Loodvoorinstelling toepassen';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Je hebt nog geen loodvoorinstellingen opgeslagen.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gewichten · $total',
+      one: '1 gewicht · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Loodvoorinstelling toegepast. Pas de items zo nodig aan.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Loodhoeveelheid opslaan als voorinstelling';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Naam voorinstelling';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Loodvoorinstelling ‘$name’ opgeslagen';
+  }
+
+  @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Totaal: $total';
   }
@@ -17040,6 +17081,34 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_manage_tankPresets_subtitle =>
       'Aangepaste flesconfiguraties beheren';
+
+  @override
+  String get settings_manage_weightPresets => 'Loodvoorinstellingen';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Herbruikbare loodsets voor een duik';
+
+  @override
+  String get weightPresets_page_title => 'Loodvoorinstellingen';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Sla een loodhoeveelheid op vanuit de duikeditor, dan verschijnt die hier om te hergebruiken.';
+
+  @override
+  String get weightPresets_action_rename => 'Naam wijzigen';
+
+  @override
+  String get weightPresets_rename_title => 'Voorinstelling hernoemen';
+
+  @override
+  String get weightPresets_delete_title => 'Deze voorinstelling verwijderen?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '‘$name’ wordt verwijderd. Duiken die deze gebruikten, behouden hun eigen gewichten.';
+  }
 
   @override
   String get settings_manage_serviceTypes => 'Servicetypes';

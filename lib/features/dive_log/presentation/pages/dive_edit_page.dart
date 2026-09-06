@@ -72,6 +72,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/the_dive_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/trip_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/computer_source_sheet.dart';
+import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
+import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
+import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
+import 'package:submersion/features/weight_presets/presentation/widgets/weight_preset_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
@@ -4279,6 +4283,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               : context.l10n.diveLog_edit_weightTotal(
                   units.formatWeight(totalWeight),
                 ),
+          actions: [
+            FormOverlineAction(
+              label: context.l10n.diveLog_edit_weightPreset_use,
+              icon: Icons.fitness_center,
+              onPressed: _applyWeightPreset,
+            ),
+            if (_weights.any((w) => w.amountKg > 0))
+              FormOverlineAction(
+                label: context.l10n.diveLog_edit_weightPreset_save,
+                icon: Icons.bookmark_add_outlined,
+                onPressed: _saveWeightsAsPreset,
+              ),
+          ],
         ),
         if (_weights.isNotEmpty)
           Padding(
@@ -4386,6 +4403,64 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
       ],
     );
+  }
+
+  /// Apply a saved weight preset (issue #1609): opens the picker and replaces
+  /// the current weight rows with editable copies of the preset's entries.
+  Future<void> _applyWeightPreset() async {
+    final preset = await showModalBottomSheet<WeightPreset>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (sheetContext, scrollController) =>
+            WeightPresetPickerSheet(scrollController: scrollController),
+      ),
+    );
+    if (preset == null || !mounted) return;
+    setState(() {
+      _markDirty();
+      _weights = preset.toDiveWeights(
+        diveId: widget.diveId ?? '',
+        newId: _uuid.v4,
+      );
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.diveLog_edit_weightPreset_applied)),
+    );
+  }
+
+  /// Save the current weighting as a named, reusable preset (issue #1609).
+  Future<void> _saveWeightsAsPreset() async {
+    final diverId = ref.read(currentDiverIdProvider);
+    if (diverId == null) return;
+    final name = await NamePromptDialog.show(
+      context,
+      title: context.l10n.diveLog_edit_weightPreset_saveTitle,
+      label: context.l10n.diveLog_edit_weightPreset_nameLabel,
+      confirmLabel: context.l10n.common_action_save,
+    );
+    if (name == null || !mounted) return;
+
+    final weights = _weights.where((w) => w.amountKg > 0).toList();
+    if (weights.isEmpty) return;
+    await ref
+        .read(weightPresetRepositoryProvider)
+        .createFromWeights(
+          diverId: diverId,
+          displayName: name,
+          weights: weights,
+        );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.diveLog_edit_weightPreset_saved(name)),
+        ),
+      );
+    }
   }
 
   Widget _buildWeightEntryRow(

@@ -5506,6 +5506,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_useSet => 'Use Set';
 
   @override
+  String get diveLog_edit_weightPreset_use => 'Use preset';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Save as preset';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle => 'Apply a weight preset';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'You haven\'t saved any weight presets yet.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weights · $total',
+      one: '1 weight · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Weight preset applied. Adjust the entries as needed.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Save weighting as a preset';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Preset name';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Weight preset “$name” saved';
+  }
+
+  @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Total: $total';
   }
@@ -16880,6 +16920,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_manage_tankPresets_subtitle =>
       'Manage custom tank configurations';
+
+  @override
+  String get settings_manage_weightPresets => 'Weight Presets';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Reusable sets of weights for a dive';
+
+  @override
+  String get weightPresets_page_title => 'Weight Presets';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Save a weighting from the dive editor and it will appear here to reuse.';
+
+  @override
+  String get weightPresets_action_rename => 'Rename';
+
+  @override
+  String get weightPresets_rename_title => 'Rename preset';
+
+  @override
+  String get weightPresets_delete_title => 'Delete this preset?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '“$name” will be removed. Dives that used it keep their own weights.';
+  }
 
   @override
   String get settings_manage_serviceTypes => 'Service types';

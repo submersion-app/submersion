@@ -5607,6 +5607,47 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_useSet => 'Usar Conjunto';
 
   @override
+  String get diveLog_edit_weightPreset_use => 'Usar predefinição';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Guardar como predefinição';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle =>
+      'Aplicar uma predefinição de lastro';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Ainda não guardou nenhuma predefinição de lastro.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pesos · $total',
+      one: '1 peso · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Predefinição de lastro aplicada. Ajuste as entradas conforme necessário.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Guardar o lastro como predefinição';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Nome da predefinição';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Predefinição de lastro “$name” guardada';
+  }
+
+  @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Total: $total';
   }
@@ -17182,6 +17223,34 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_manage_tankPresets_subtitle =>
       'Gerenciar configuracoes personalizadas de cilindro';
+
+  @override
+  String get settings_manage_weightPresets => 'Predefinições de lastro';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Conjuntos de pesos reutilizáveis para um mergulho';
+
+  @override
+  String get weightPresets_page_title => 'Predefinições de lastro';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Guarde um lastro no editor de mergulho e ele aparecerá aqui para reutilizar.';
+
+  @override
+  String get weightPresets_action_rename => 'Renomear';
+
+  @override
+  String get weightPresets_rename_title => 'Renomear predefinição';
+
+  @override
+  String get weightPresets_delete_title => 'Eliminar esta predefinição?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '“$name” será removida. Os mergulhos que a usaram mantêm os seus próprios pesos.';
+  }
 
   @override
   String get settings_manage_serviceTypes => 'Tipos de manutenção';

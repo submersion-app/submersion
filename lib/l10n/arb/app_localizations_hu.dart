@@ -5583,6 +5583,46 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_useSet => 'Keszlet hasznalata';
 
   @override
+  String get diveLog_edit_weightPreset_use => 'Séma használata';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Mentés sémaként';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle =>
+      'Súlyzat-séma alkalmazása';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Még nem mentél el súlyzat-sémát.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count súly · $total',
+      one: '1 súly · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Súlyzat-séma alkalmazva. Szükség szerint módosítsd a bejegyzéseket.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle => 'Súlyzat mentése sémaként';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Séma neve';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return '„$name” súlyzat-séma elmentve';
+  }
+
+  @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Osszes: $total';
   }
@@ -17125,6 +17165,34 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_manage_tankPresets_subtitle =>
       'Egyedi palack konfiguraciok kezelese';
+
+  @override
+  String get settings_manage_weightPresets => 'Súlyzat-sémák';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Újrahasználható súlyzatkészletek egy merüléshez';
+
+  @override
+  String get weightPresets_page_title => 'Súlyzat-sémák';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Ments el egy súlyzatot a merülésszerkesztőből, és itt megjelenik újrahasználásra.';
+
+  @override
+  String get weightPresets_action_rename => 'Átnevezés';
+
+  @override
+  String get weightPresets_rename_title => 'Séma átnevezése';
+
+  @override
+  String get weightPresets_delete_title => 'Törlöd ezt a sémát?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '„$name” eltávolításra kerül. A merülések, amelyek használták, megtartják saját súlyaikat.';
+  }
 
   @override
   String get settings_manage_serviceTypes => 'Szerviz típusok';

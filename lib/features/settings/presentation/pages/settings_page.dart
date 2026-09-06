@@ -2339,6 +2339,16 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.fitness_center),
+                  title: Text(context.l10n.settings_manage_weightPresets),
+                  subtitle: Text(
+                    context.l10n.settings_manage_weightPresets_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/weight-presets'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.gas_meter),
                   title: Text(context.l10n.settings_section_trimixMixer_title),
                   subtitle: Text(

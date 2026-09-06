@@ -9263,6 +9263,60 @@ abstract class AppLocalizations {
   /// **'Use Set'**
   String get diveLog_edit_useSet;
 
+  /// No description provided for @diveLog_edit_weightPreset_use.
+  ///
+  /// In en, this message translates to:
+  /// **'Use preset'**
+  String get diveLog_edit_weightPreset_use;
+
+  /// No description provided for @diveLog_edit_weightPreset_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as preset'**
+  String get diveLog_edit_weightPreset_save;
+
+  /// No description provided for @diveLog_edit_weightPreset_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply a weight preset'**
+  String get diveLog_edit_weightPreset_pickerTitle;
+
+  /// No description provided for @diveLog_edit_weightPreset_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t saved any weight presets yet.'**
+  String get diveLog_edit_weightPreset_empty;
+
+  /// No description provided for @diveLog_edit_weightPreset_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 weight · {total}} other{{count} weights · {total}}}'**
+  String diveLog_edit_weightPreset_summary(int count, Object total);
+
+  /// No description provided for @diveLog_edit_weightPreset_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight preset applied. Adjust the entries as needed.'**
+  String get diveLog_edit_weightPreset_applied;
+
+  /// No description provided for @diveLog_edit_weightPreset_saveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save weighting as a preset'**
+  String get diveLog_edit_weightPreset_saveTitle;
+
+  /// No description provided for @diveLog_edit_weightPreset_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset name'**
+  String get diveLog_edit_weightPreset_nameLabel;
+
+  /// No description provided for @diveLog_edit_weightPreset_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight preset “{name}” saved'**
+  String diveLog_edit_weightPreset_saved(Object name);
+
   /// No description provided for @diveLog_edit_weightTotal.
   ///
   /// In en, this message translates to:
@@ -28374,6 +28428,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage custom tank configurations'**
   String get settings_manage_tankPresets_subtitle;
+
+  /// No description provided for @settings_manage_weightPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight Presets'**
+  String get settings_manage_weightPresets;
+
+  /// No description provided for @settings_manage_weightPresets_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reusable sets of weights for a dive'**
+  String get settings_manage_weightPresets_subtitle;
+
+  /// No description provided for @weightPresets_page_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight Presets'**
+  String get weightPresets_page_title;
+
+  /// No description provided for @weightPresets_page_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a weighting from the dive editor and it will appear here to reuse.'**
+  String get weightPresets_page_empty;
+
+  /// No description provided for @weightPresets_action_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get weightPresets_action_rename;
+
+  /// No description provided for @weightPresets_rename_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename preset'**
+  String get weightPresets_rename_title;
+
+  /// No description provided for @weightPresets_delete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this preset?'**
+  String get weightPresets_delete_title;
+
+  /// No description provided for @weightPresets_delete_body.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” will be removed. Dives that used it keep their own weights.'**
+  String weightPresets_delete_body(Object name);
 
   /// No description provided for @settings_manage_serviceTypes.
   ///

@@ -85,6 +85,10 @@ class SyncRepository {
     'diveRoles': (table: 'dive_roles', pk: 'id'),
     'diverWeightEntries': (table: 'diver_weight_entries', pk: 'id'),
     'tankPresets': (table: 'tank_presets', pk: 'id'),
+    'weightPresets': (table: 'weight_presets', pk: 'id'),
+    // weightPresetEntries has no hlc column and rides the parent preset's
+    // clock (see _exportWeightPresetEntries), like the equipmentSetItems
+    // junction above.
     'diveComputers': (table: 'dive_computers', pk: 'id'),
     'tags': (table: 'tags', pk: 'id'),
     'courses': (table: 'courses', pk: 'id'),

@@ -279,6 +279,8 @@ class SyncData {
   final List<Map<String, dynamic>> diveTypes;
   final List<Map<String, dynamic>> diveRoles;
   final List<Map<String, dynamic>> tankPresets;
+  final List<Map<String, dynamic>> weightPresets;
+  final List<Map<String, dynamic>> weightPresetEntries;
   final List<Map<String, dynamic>> diveComputers;
 
   /// Inbound only since v182: older peers still send row-per-sample arrays;
@@ -363,6 +365,8 @@ class SyncData {
     this.diveTypes = const [],
     this.diveRoles = const [],
     this.tankPresets = const [],
+    this.weightPresets = const [],
+    this.weightPresetEntries = const [],
     this.diveComputers = const [],
     this.tankPressureProfiles = const [],
     this.tideRecords = const [],
@@ -442,6 +446,8 @@ class SyncData {
     'diveTypes': diveTypes,
     'diveRoles': diveRoles,
     'tankPresets': tankPresets,
+    'weightPresets': weightPresets,
+    'weightPresetEntries': weightPresetEntries,
     'diveComputers': diveComputers,
     'tideRecords': tideRecords,
     'settings': settings,
@@ -524,6 +530,8 @@ class SyncData {
       diveTypes: _parseList(json['diveTypes']),
       diveRoles: _parseList(json['diveRoles']),
       tankPresets: _parseList(json['tankPresets']),
+      weightPresets: _parseList(json['weightPresets']),
+      weightPresetEntries: _parseList(json['weightPresetEntries']),
       diveComputers: _parseList(json['diveComputers']),
       tankPressureProfiles: _parseList(json['tankPressureProfiles']),
       tideRecords: _parseList(json['tideRecords']),
@@ -913,6 +921,13 @@ class SyncDataSerializer {
       full: () => _exportDiveRoles(null),
     ),
     (key: 'tankPresets', table: _db.tankPresets, blob: false, full: null),
+    (key: 'weightPresets', table: _db.weightPresets, blob: false, full: null),
+    (
+      key: 'weightPresetEntries',
+      table: _db.weightPresetEntries,
+      blob: false,
+      full: null,
+    ),
     (key: 'diveComputers', table: _db.diveComputers, blob: false, full: null),
     (key: 'tideRecords', table: _db.tideRecords, blob: false, full: null),
     (
@@ -1514,6 +1529,14 @@ class SyncDataSerializer {
         'tankPresets',
         () => _exportTankPresets(hlcSince),
       ),
+      weightPresets: await _safeExport(
+        'weightPresets',
+        () => _exportWeightPresets(hlcSince),
+      ),
+      weightPresetEntries: await _safeExport(
+        'weightPresetEntries',
+        () => _exportWeightPresetEntries(hlcSince),
+      ),
       diveComputers: await _safeExport(
         'diveComputers',
         () => _exportDiveComputers(hlcSince),
@@ -2002,6 +2025,16 @@ class SyncDataSerializer {
           _db.tankPresets,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'weightPresets':
+        final row = await (_db.select(
+          _db.weightPresets,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'weightPresetEntries':
+        final row = await (_db.select(
+          _db.weightPresetEntries,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'diveComputers':
         final row = await (_db.select(
           _db.diveComputers,
@@ -2314,6 +2347,16 @@ class SyncDataSerializer {
       case 'tankPresets':
         final rows = await (_db.select(
           _db.tankPresets,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'weightPresets':
+        final rows = await (_db.select(
+          _db.weightPresets,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'weightPresetEntries':
+        final rows = await (_db.select(
+          _db.weightPresetEntries,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'diveComputers':
@@ -2982,6 +3025,18 @@ class SyncDataSerializer {
             .insertOnConflictUpdate(
               TankPreset.fromJson(data).toCompanion(false),
             );
+        return;
+      case 'weightPresets':
+        await _db
+            .into(_db.weightPresets)
+            .insertOnConflictUpdate(
+              WeightPresetRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'weightPresetEntries':
+        await _db
+            .into(_db.weightPresetEntries)
+            .insertOnConflictUpdate(WeightPresetEntryRow.fromJson(data));
         return;
       case 'diveComputers':
         await _db
@@ -3881,6 +3936,24 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'weightPresets':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.weightPresets,
+            records
+                .map((r) => WeightPresetRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'weightPresetEntries':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.weightPresetEntries,
+            records.map((r) => WeightPresetEntryRow.fromJson(r)).toList(),
+          ),
+        );
+        return;
       case 'diveComputers':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -4265,6 +4338,10 @@ class SyncDataSerializer {
         return plain(_db.diveRoles, _db.diveRoles.id);
       case 'tankPresets':
         return plain(_db.tankPresets, _db.tankPresets.id);
+      case 'weightPresets':
+        return plain(_db.weightPresets, _db.weightPresets.id);
+      case 'weightPresetEntries':
+        return plain(_db.weightPresetEntries, _db.weightPresetEntries.id);
       case 'diveComputers':
         return plain(_db.diveComputers, _db.diveComputers.id);
       case 'species':
@@ -4496,6 +4573,10 @@ class SyncDataSerializer {
         return _db.diveRoles;
       case 'tankPresets':
         return _db.tankPresets;
+      case 'weightPresets':
+        return _db.weightPresets;
+      case 'weightPresetEntries':
+        return _db.weightPresetEntries;
       case 'diveComputers':
         return _db.diveComputers;
       case 'species':
@@ -4855,6 +4936,16 @@ class SyncDataSerializer {
       case 'tankPresets':
         await (_db.delete(
           _db.tankPresets,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'weightPresets':
+        await (_db.delete(
+          _db.weightPresets,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'weightPresetEntries':
+        await (_db.delete(
+          _db.weightPresetEntries,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'diveComputers':
@@ -5723,6 +5814,38 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportWeightPresets(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.weightPresets);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Weight-preset entries have no hlc of their own; an incremental export
+  /// re-sends the whole entry set of every preset whose hlc moved, mirroring
+  /// [_exportDiveWeights] under dives.
+  Future<List<Map<String, dynamic>>> _exportWeightPresetEntries(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modified = await (_db.select(
+        _db.weightPresets,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final ids = modified.map((p) => p.id).toSet();
+      if (ids.isEmpty) return [];
+      final rows = await (_db.select(
+        _db.weightPresetEntries,
+      )..where((t) => t.presetId.isIn(ids))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.weightPresetEntries).get();
     return rows.map((r) => r.toJson()).toList();
   }
 

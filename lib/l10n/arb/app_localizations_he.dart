@@ -5465,6 +5465,44 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_useSet => 'שימוש בסט';
 
   @override
+  String get diveLog_edit_weightPreset_use => 'שימוש בקבוע מראש';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'שמירה כקבוע מראש';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle => 'החלת קבוע משקולות מראש';
+
+  @override
+  String get diveLog_edit_weightPreset_empty => 'עדיין לא שמרת קבועי משקולות.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count משקולות · $total',
+      one: 'משקולת אחת · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'קבוע המשקולות הוחל. התאם את הרשומות לפי הצורך.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle => 'שמירת המשקולות כקבוע';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'שם הקבוע';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'קבוע המשקולות «$name» נשמר';
+  }
+
+  @override
   String diveLog_edit_weightTotal(Object total) {
     return 'סה\"כ: $total';
   }
@@ -16741,6 +16779,34 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_manage_tankPresets_subtitle =>
       'ניהול תצורות בלון מותאמות אישית';
+
+  @override
+  String get settings_manage_weightPresets => 'קבועי משקולות';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'סטים של משקולות לשימוש חוזר בצלילה';
+
+  @override
+  String get weightPresets_page_title => 'קבועי משקולות';
+
+  @override
+  String get weightPresets_page_empty =>
+      'שמור משקולות מעורך הצלילה והן יופיעו כאן לשימוש חוזר.';
+
+  @override
+  String get weightPresets_action_rename => 'שנה שם';
+
+  @override
+  String get weightPresets_rename_title => 'שנה שם קבוע';
+
+  @override
+  String get weightPresets_delete_title => 'למחוק קבוע זה?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '«$name» יוסר. צלילות שהשתמשו בו שומרות את המשקולות שלהן.';
+  }
 
   @override
   String get settings_manage_serviceTypes => 'סוגי טיפול';

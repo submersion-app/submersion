@@ -5603,6 +5603,47 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_useSet => 'Usa set';
 
   @override
+  String get diveLog_edit_weightPreset_use => 'Usa preset';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Salva come preset';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle =>
+      'Applica un preset di zavorra';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Non hai ancora salvato nessun preset di zavorra.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pesi · $total',
+      one: '1 peso · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Preset di zavorra applicato. Regola le voci se necessario.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Salva la zavorra come preset';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Nome del preset';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Preset di zavorra “$name” salvato';
+  }
+
+  @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Totale: $total';
   }
@@ -17179,6 +17220,34 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_manage_tankPresets_subtitle =>
       'Gestisci configurazioni bombole personalizzate';
+
+  @override
+  String get settings_manage_weightPresets => 'Preset di zavorra';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Set di pesi riutilizzabili per un\'immersione';
+
+  @override
+  String get weightPresets_page_title => 'Preset di zavorra';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Salva una zavorra dall\'editor dell\'immersione e comparirà qui per riutilizzarla.';
+
+  @override
+  String get weightPresets_action_rename => 'Rinomina';
+
+  @override
+  String get weightPresets_rename_title => 'Rinomina preset';
+
+  @override
+  String get weightPresets_delete_title => 'Eliminare questo preset?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '“$name” verrà rimosso. Le immersioni che l\'hanno usato mantengono i propri pesi.';
+  }
 
   @override
   String get settings_manage_serviceTypes => 'Tipi di manutenzione';

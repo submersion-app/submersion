@@ -5493,6 +5493,45 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_useSet => 'استخدام طقم';
 
   @override
+  String get diveLog_edit_weightPreset_use => 'استخدام إعداد مسبق';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'حفظ كإعداد مسبق';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle => 'تطبيق إعداد أوزان مسبق';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'لم تحفظ أي إعدادات أوزان مسبقة بعد.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أوزان · $total',
+      one: 'وزن واحد · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'تم تطبيق إعداد الأوزان. عدّل المدخلات حسب الحاجة.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle => 'حفظ الأوزان كإعداد مسبق';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'اسم الإعداد';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'تم حفظ إعداد الأوزان «$name»';
+  }
+
+  @override
   String diveLog_edit_weightTotal(Object total) {
     return 'الإجمالي: $total';
   }
@@ -16861,6 +16900,34 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_manage_tankPresets_subtitle =>
       'إدارة تهيئات الأسطوانات المخصصة';
+
+  @override
+  String get settings_manage_weightPresets => 'إعدادات الأوزان';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'مجموعات أوزان قابلة لإعادة الاستخدام لغطسة';
+
+  @override
+  String get weightPresets_page_title => 'إعدادات الأوزان';
+
+  @override
+  String get weightPresets_page_empty =>
+      'احفظ أوزانًا من محرر الغطسة وستظهر هنا لإعادة الاستخدام.';
+
+  @override
+  String get weightPresets_action_rename => 'إعادة تسمية';
+
+  @override
+  String get weightPresets_rename_title => 'إعادة تسمية الإعداد';
+
+  @override
+  String get weightPresets_delete_title => 'حذف هذا الإعداد؟';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return 'سيتم حذف «$name». الغطسات التي استخدمته تحتفظ بأوزانها.';
+  }
 
   @override
   String get settings_manage_serviceTypes => 'أنواع الصيانة';

@@ -5325,6 +5325,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_useSet => '使用套装';
 
   @override
+  String get diveLog_edit_weightPreset_use => '使用预设';
+
+  @override
+  String get diveLog_edit_weightPreset_save => '存为预设';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle => '应用配重预设';
+
+  @override
+  String get diveLog_edit_weightPreset_empty => '你还没有保存任何配重预设。';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项配重 · $total',
+      one: '1 项配重 · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied => '已应用配重预设，可按需调整各项。';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle => '将配重存为预设';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => '预设名称';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return '配重预设“$name”已保存';
+  }
+
+  @override
   String diveLog_edit_weightTotal(Object total) {
     return '总计：$total';
   }
@@ -16308,6 +16345,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_manage_tankPresets_subtitle => '管理自定义气瓶配置';
+
+  @override
+  String get settings_manage_weightPresets => '配重预设';
+
+  @override
+  String get settings_manage_weightPresets_subtitle => '可重复使用的潜水配重组合';
+
+  @override
+  String get weightPresets_page_title => '配重预设';
+
+  @override
+  String get weightPresets_page_empty => '在潜水编辑器中保存一份配重，它就会出现在这里供重复使用。';
+
+  @override
+  String get weightPresets_action_rename => '重命名';
+
+  @override
+  String get weightPresets_rename_title => '重命名预设';
+
+  @override
+  String get weightPresets_delete_title => '删除此预设？';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '“$name”将被删除。使用过它的潜水仍保留各自的配重。';
+  }
 
   @override
   String get settings_manage_serviceTypes => '维护类型';

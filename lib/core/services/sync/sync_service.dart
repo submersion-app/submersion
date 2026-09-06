@@ -1374,6 +1374,16 @@ class SyncService {
           (type: 'diveRoles', records: data.diveRoles, hasUpdatedAt: true),
           (type: 'tankPresets', records: data.tankPresets, hasUpdatedAt: true),
           (
+            type: 'weightPresets',
+            records: data.weightPresets,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'weightPresetEntries',
+            records: data.weightPresetEntries,
+            hasUpdatedAt: false,
+          ),
+          (
             type: 'diveComputers',
             records: data.diveComputers,
             hasUpdatedAt: true,
@@ -2215,6 +2225,8 @@ class SyncService {
     'diveTypes': true,
     'diveRoles': true,
     'tankPresets': true,
+    'weightPresets': true,
+    'weightPresetEntries': false,
     'diveComputers': true,
     'species': false,
     'tags': true,
@@ -2445,6 +2457,9 @@ class SyncService {
     'equipmentSetItems': [
       (field: 'setId', parent: 'equipmentSets', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
+    'weightPresetEntries': [
+      (field: 'presetId', parent: 'weightPresets', nullable: false),
     ],
     'equipmentSetGeofences': [
       (field: 'setId', parent: 'equipmentSets', nullable: false),

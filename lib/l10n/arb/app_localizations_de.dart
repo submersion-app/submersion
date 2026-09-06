@@ -5605,6 +5605,46 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_useSet => 'Set verwenden';
 
   @override
+  String get diveLog_edit_weightPreset_use => 'Vorlage verwenden';
+
+  @override
+  String get diveLog_edit_weightPreset_save => 'Als Vorlage speichern';
+
+  @override
+  String get diveLog_edit_weightPreset_pickerTitle => 'Bleivorlage anwenden';
+
+  @override
+  String get diveLog_edit_weightPreset_empty =>
+      'Du hast noch keine Bleivorlagen gespeichert.';
+
+  @override
+  String diveLog_edit_weightPreset_summary(int count, Object total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gewichte · $total',
+      one: '1 Gewicht · $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_weightPreset_applied =>
+      'Bleivorlage angewendet. Passe die Einträge bei Bedarf an.';
+
+  @override
+  String get diveLog_edit_weightPreset_saveTitle =>
+      'Bleimenge als Vorlage speichern';
+
+  @override
+  String get diveLog_edit_weightPreset_nameLabel => 'Vorlagenname';
+
+  @override
+  String diveLog_edit_weightPreset_saved(Object name) {
+    return 'Bleivorlage „$name“ gespeichert';
+  }
+
+  @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Gesamt: $total';
   }
@@ -17154,6 +17194,34 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_manage_tankPresets_subtitle =>
       'Benutzerdefinierte Flaschenkonfigurationen verwalten';
+
+  @override
+  String get settings_manage_weightPresets => 'Bleivorlagen';
+
+  @override
+  String get settings_manage_weightPresets_subtitle =>
+      'Wiederverwendbare Bleimengen für einen Tauchgang';
+
+  @override
+  String get weightPresets_page_title => 'Bleivorlagen';
+
+  @override
+  String get weightPresets_page_empty =>
+      'Speichere eine Bleimenge im Tauchgang-Editor, dann erscheint sie hier zur Wiederverwendung.';
+
+  @override
+  String get weightPresets_action_rename => 'Umbenennen';
+
+  @override
+  String get weightPresets_rename_title => 'Vorlage umbenennen';
+
+  @override
+  String get weightPresets_delete_title => 'Diese Vorlage löschen?';
+
+  @override
+  String weightPresets_delete_body(Object name) {
+    return '„$name“ wird entfernt. Tauchgänge, die sie genutzt haben, behalten ihre eigenen Gewichte.';
+  }
 
   @override
   String get settings_manage_serviceTypes => 'Wartungsarten';

@@ -1,7 +1,13 @@
 {
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
   "equipment_documents_removeError": "Could not remove the document: {error}",
-  "@equipment_documents_removeError": { "placeholders": { "error": { "type": "String" } } },
+  "@equipment_documents_removeError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "settings_oauth_connect_copyFailed": "Could not copy the link.",
   "settings_oauth_connect_copyLink": "Copy link",
   "settings_oauth_connect_linkCopied": "Link copied. Paste it into your browser to authorize.",
@@ -3161,6 +3167,15 @@
   "diveLog_edit_tripSuggested": "Suggested: {name}",
   "diveLog_edit_tripUse": "Use",
   "diveLog_edit_useSet": "Use Set",
+  "diveLog_edit_weightPreset_use": "Use preset",
+  "diveLog_edit_weightPreset_save": "Save as preset",
+  "diveLog_edit_weightPreset_pickerTitle": "Apply a weight preset",
+  "diveLog_edit_weightPreset_empty": "You haven't saved any weight presets yet.",
+  "diveLog_edit_weightPreset_summary": "{count, plural, =1{1 weight · {total}} other{{count} weights · {total}}}",
+  "diveLog_edit_weightPreset_applied": "Weight preset applied. Adjust the entries as needed.",
+  "diveLog_edit_weightPreset_saveTitle": "Save weighting as a preset",
+  "diveLog_edit_weightPreset_nameLabel": "Preset name",
+  "diveLog_edit_weightPreset_saved": "Weight preset “{name}” saved",
   "diveLog_edit_weightTotal": "Total: {total}",
   "diveLog_emptyFiltered_clearFilters": "Clear Filters",
   "diveLog_emptyFiltered_subtitle": "Try adjusting or clearing your filters",
@@ -4087,10 +4102,22 @@
   "diveLog_sources_menu_separate": "Separate combined dives",
   "diveLog_sources_separateDialog_title": "Separate combined dives?",
   "diveLog_sources_separateDialog_body": "This dive was combined from {count} dives. Each one's profile, events, tanks and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.",
-  "@diveLog_sources_separateDialog_body": {"placeholders": {"count": {"type": "int"}}},
+  "@diveLog_sources_separateDialog_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_sources_separateDialog_confirm": "Separate",
   "diveLog_sources_separateDone": "{count, plural, =1{1 dive restored} other{{count} dives restored}}",
-  "@diveLog_sources_separateDone": {"placeholders": {"count": {"type": "int"}}},
+  "@diveLog_sources_separateDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_sources_separateFailed": "Could not separate this dive",
   "@diveLog_sources_minutes": {
     "placeholders": {
@@ -10100,6 +10127,38 @@
   "settings_manage_tags_subtitle": "Manage, merge, and delete tags",
   "settings_manage_tankPresets": "Tank Presets",
   "settings_manage_tankPresets_subtitle": "Manage custom tank configurations",
+  "settings_manage_weightPresets": "Weight Presets",
+  "settings_manage_weightPresets_subtitle": "Reusable sets of weights for a dive",
+  "weightPresets_page_title": "Weight Presets",
+  "weightPresets_page_empty": "Save a weighting from the dive editor and it will appear here to reuse.",
+  "weightPresets_action_rename": "Rename",
+  "weightPresets_rename_title": "Rename preset",
+  "weightPresets_delete_title": "Delete this preset?",
+  "weightPresets_delete_body": "“{name}” will be removed. Dives that used it keep their own weights.",
+  "@diveLog_edit_weightPreset_summary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "@diveLog_edit_weightPreset_saved": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "@weightPresets_delete_body": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
   "settings_manage_serviceTypes": "Service types",
   "settings_manage_serviceTypes_subtitle": "Maintenance your gear needs, and how often",
   "settings_migrationProgress_doNotClose": "Please do not close the app",
@@ -19790,7 +19849,13 @@
   "equipment_documents_removeContent": "It stops being attached to this item. Your original file is never touched.",
   "equipment_documents_removed": "Document removed",
   "equipment_documents_loadError": "Could not load documents: {error}",
-  "@equipment_documents_loadError": { "placeholders": { "error": { "type": "String" } } },
+  "@equipment_documents_loadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "common_action_unpin": "Unpin",
   "diveLog_filterChip_dateRange": "{start} - {end}",
   "diveLog_filterChip_equipmentCount": "{count} Equipment",
@@ -22277,9 +22342,39 @@
   "startup_versionMismatch_restore_body": "A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.",
   "startup_versionMismatch_restore_warning": "Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.",
   "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
-  "@backup_history_preDowngradeSubtitle": { "placeholders": { "size": { "type": "String" } } },
+  "@backup_history_preDowngradeSubtitle": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} - {size}",
-  "@backup_history_manualSubtitle": {"placeholders": {"diveCount": {"type": "int"}, "siteCount": {"type": "int"}, "size": {"type": "String"}}},
+  "@backup_history_manualSubtitle": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} - {size} (auto)",
-  "@backup_history_manualSubtitleAuto": {"placeholders": {"diveCount": {"type": "int"}, "siteCount": {"type": "int"}, "size": {"type": "String"}}}
+  "@backup_history_manualSubtitleAuto": {
+    "placeholders": {
+      "diveCount": {
+        "type": "int"
+      },
+      "siteCount": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  }
 }
