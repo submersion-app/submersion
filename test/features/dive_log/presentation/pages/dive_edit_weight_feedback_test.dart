@@ -67,7 +67,7 @@ void main() {
           id: '',
           dateTime: DateTime(2026, 1, 1),
           weightingFeedback: WeightingFeedback.overweighted,
-          weightingFeedbackKg: 2.0,
+          weightingFeedbackKg: 1.25,
         ),
       );
       await pumpEditor(tester, created.id);
@@ -76,7 +76,8 @@ void main() {
         find.byType(SegmentedButton<WeightingFeedback>),
       );
       expect(segmented.selected, {WeightingFeedback.overweighted});
-      expect(find.text('2.0'), findsOneWidget);
+      // Seeded at full precision, not snapped to one decimal (issue #1609).
+      expect(find.text('1.25'), findsOneWidget);
     });
 
     testWidgets('amount field appears only for over/underweighted', (

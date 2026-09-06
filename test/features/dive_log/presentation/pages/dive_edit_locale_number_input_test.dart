@@ -154,6 +154,41 @@ void main() {
     expect(reloaded.weights.single.amountKg, closeTo(2.5, 0.0001));
   });
 
+  testWidgets('a fine-grained weight seeds at full precision, not one decimal', (
+    tester,
+  ) async {
+    Intl.defaultLocale = 'en';
+
+    // 0.65 kg seeded at one decimal showed "0.7"; a diver who then touched the
+    // field at all had 0.7 kg written back on save (issue #1609).
+    final created = await repository.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 4, 2, 9, 30),
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: '',
+            weightType: enums.WeightType.belt,
+            amountKg: 0.65,
+          ),
+        ],
+        tanks: const [DiveTank(id: 'tank-1', gasMix: GasMix())],
+      ),
+    );
+
+    await pumpEditor(tester, created.id);
+
+    final gasGear = find.text('1 tank · Air').first;
+    await tester.ensureVisible(gasGear);
+    await tester.pumpAndSettle();
+    await tester.tap(gasGear);
+    await tester.pumpAndSettle();
+
+    expect(find.text('0.7'), findsNothing);
+    expect(find.widgetWithText(TextFormField, '0.65'), findsOneWidget);
+  });
+
   testWidgets('de: saving an untouched dive does not multiply its values', (
     tester,
   ) async {
