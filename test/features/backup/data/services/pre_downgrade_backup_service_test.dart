@@ -164,7 +164,10 @@ void main() {
       sizeReader: (_) async => throw const FileSystemException('stat failed'),
     ).preserve(storedSchemaVersion: 191, appVersion: '1.8.0.7300');
 
-    expect(record.sizeBytes, 0, reason: 'size unknown, not fatal');
+    // 0 is what the non-nullable field carries for "not measured"; the
+    // service logs that it shows as "0 B" rather than claiming unknown.
+    expect(record.sizeBytes, 0);
+    expect(record.formattedSize, '0 B');
     expect(File(record.localPath!).existsSync(), isTrue);
     // Still registered, so the diver can find it in the backup list.
     final history = f.prefs.getHistory();

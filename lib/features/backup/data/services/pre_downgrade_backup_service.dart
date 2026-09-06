@@ -166,13 +166,21 @@ class PreDowngradeBackupService {
     // without a confirmed safety copy is the conservative direction. Here it
     // would block a RESTORE and strand the diver on the mismatch screen next
     // to a copy that is already on disk.
+    // Recorded as 0, which the backup list renders as "0 B" via
+    // BackupRecord.formattedSize. Named here rather than left implicit: 0 is
+    // the only value the non-nullable field can carry for "not measured", so
+    // the size shown against this record can be wrong while the record itself
+    // is correct, and this log line is what explains that to whoever chases
+    // it. Adding a nullable sentinel would change the persisted shape of
+    // every BackupRecord for a diagnostic edge case.
     var sizeBytes = 0;
     try {
       sizeBytes = await _sizeReader(finalPath);
     } catch (e, stack) {
       _log.warning(
         'Could not read the size of the preserved newer database at '
-        '$finalPath; recording it as unknown',
+        '$finalPath; recording it as 0 bytes, which the backup list shows as '
+        '"0 B". The copy itself is intact.',
         error: e,
         stackTrace: stack,
       );
