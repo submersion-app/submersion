@@ -104,18 +104,13 @@ class BuddyListTile extends ConsumerWidget {
         ? null
         : (roleMap?[usualRoleId] ?? DiveRole.synthetic(usualRoleId));
 
-    final certParts = <String>[
-      if (buddy.certificationLevel != null)
-        buddy.certificationLevel!.displayName,
-      if (buddy.certificationAgency != null)
-        buddy.certificationAgency!.displayName,
-    ];
+    final certLine = buddy.certificationLine;
 
     final trailer = <Widget>[
-      if (certParts.isNotEmpty)
+      if (certLine != null)
         _BuddyChip(
           icon: Icons.card_membership,
-          label: certParts.join(' · '),
+          label: certLine,
           color: agencyColor ?? statColor,
         ),
       if (usualRole != null)
