@@ -84,8 +84,11 @@ jobs:
             echo "::error::build-number must be digits only (got: ${BUILD})."
             exit 1
           fi
+          # --limit 100: the default page is 30, and the retained 30 betas
+          # plus the appcast pointer is 31, so the oldest would fall off.
           TAG=$(gh release list --repo submersion-app/beta-builds \
-            --json tagName -q ".[].tagName" | grep -E "\.${BUILD}$" | head -1)
+            --json tagName --limit 100 -q ".[].tagName" \
+            | grep -E "\.${BUILD}$" | head -1)
           if [ -z "$TAG" ]; then
             echo "::error::No beta release ending in .${BUILD} found (pruned or never built)."
             exit 1

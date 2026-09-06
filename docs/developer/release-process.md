@@ -78,6 +78,13 @@ mistake. `beta.yml` refreshes its asset on every run, and the prune step skips
 it by matching version tags only. Do not delete it: every beta desktop install
 in the field would stop updating.
 
+The trap this sets: in `beta-builds`, any `gh` command that means "the latest
+release" now resolves to the pointer, which carries no installers and no
+`metadata.json`. `gh release view` and `gh release download` with no tag both
+mean that. Name the tag explicitly, and select it by the highest build number
+rather than by list order. `gh release list` also needs `--limit 100`: its
+default page is 30, and the retained 30 betas plus the pointer is 31.
+
 A backfill step demotes any versioned release still flagged as a full release,
 so the Latest badge moves off the old betas on the first run rather than after
 30 more builds. It drains once and is a no-op after that.

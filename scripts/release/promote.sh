@@ -72,13 +72,26 @@ if $LATEST; then
     echo "Error: give either a build number or --latest, not both." >&2
     exit 1
   fi
-  TAG=$(gh release view --repo submersion-app/beta-builds --json tagName -q .tagName)
+  # Not "gh release view" with no tag: that means the latest release, which
+  # is now the appcast pointer rather than a build (#1591). Pick the highest
+  # build number instead, which is the commit count and only ever increases.
+  TAG=$(gh release list --repo submersion-app/beta-builds \
+    --json tagName --limit 100 \
+    -q '[.[] | select(.tagName | test("^v[0-9]"))]
+    | if length == 0 then empty
+      else max_by(.tagName | split(".") | last | tonumber) | .tagName end')
+  if [ -z "$TAG" ]; then
+    echo "Error: no beta releases found in beta-builds." >&2
+    exit 1
+  fi
   BUILD="${TAG##*.}"
   require_numeric_build "$BUILD"
 elif [ -n "$BUILD" ]; then
   require_numeric_build "$BUILD"
+  # --limit 100: the default page is 30, and the retained 30 betas plus the
+  # appcast pointer is 31, so the oldest beta would fall off the listing.
   TAG=$(gh release list --repo submersion-app/beta-builds --json tagName \
-    -q ".[].tagName" | grep -E "\.${BUILD}$" | head -1)
+    --limit 100 -q ".[].tagName" | grep -E "\.${BUILD}$" | head -1)
   if [ -z "$TAG" ]; then
     echo "Error: no beta release ending in .${BUILD} found in beta-builds." >&2
     exit 1

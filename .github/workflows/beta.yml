@@ -91,7 +91,18 @@ jobs:
         run: |
           set -euo pipefail
           PREV_SHA=""
-          if gh release download --repo submersion-app/beta-builds \
+          # Name the tag explicitly. A bare "gh release download" takes the
+          # latest release, which is now the appcast pointer (#1591): it holds
+          # no metadata.json, so the baseline would come back empty, the
+          # already-published gate would never fire, and the notes would fall
+          # back to the last stable tag.
+          PREV_TAG=$(gh release list --repo submersion-app/beta-builds \
+            --json tagName --limit 100 \
+            -q '[.[] | select(.tagName | test("^v[0-9]"))]
+                | if length == 0 then empty
+                  else max_by(.tagName | split(".") | last | tonumber) | .tagName end')
+          if [ -n "$PREV_TAG" ] && gh release download "$PREV_TAG" \
+               --repo submersion-app/beta-builds \
                --pattern metadata.json --dir /tmp/prev-beta 2>/dev/null; then
             PREV_SHA=$(python3 -c "import json;print(json.load(open('/tmp/prev-beta/metadata.json'))['sourceSha'])")
           fi
