@@ -491,7 +491,12 @@ platform :ios do
 
     # Build the Flutter app (version comes from pubspec.yaml -> Generated.xcconfig -> Info.plist)
     UI.message("Building Flutter app...")
-    sh("cd ../.. && flutter build ios --release --no-codesign --dart-define=UPDATE_CHANNEL=appstore")
+    # The train comes from the environment rather than a hardcoded value:
+    # this same lane builds the App Store submission and the TestFlight beta,
+    # and only the caller knows which. Defaults to stable so a local run of
+    # this lane behaves as it did before the define existed.
+    build_train = ENV.fetch("BUILD_TRAIN", "stable")
+    sh("cd ../.. && flutter build ios --release --no-codesign --dart-define=UPDATE_CHANNEL=appstore --dart-define=BUILD_TRAIN=#{build_train}")
 
     # Build and sign the IPA
     UI.message("Building and signing IPA...")

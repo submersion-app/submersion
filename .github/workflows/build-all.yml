@@ -22,6 +22,14 @@ on:
         required: false
         type: string
         default: ''
+      build-train:
+        description: >-
+          Release train stamped into every artifact as the BUILD_TRAIN
+          dart-define, so the app can tell the user which train it came off.
+          Only beta.yml passes "beta"; everything else builds stable.
+        required: false
+        type: string
+        default: 'stable'
     outputs:
       eddsa-signature:
         description: 'Sparkle EdDSA signature of the macOS DMG'
@@ -46,6 +54,12 @@ on:
         required: false
         type: string
         default: ''
+      build-train:
+        description: 'Release train stamped into the artifact'
+        required: false
+        type: choice
+        options: [stable, beta]
+        default: stable
 
 permissions:
   contents: read
@@ -195,7 +209,7 @@ jobs:
           echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Release.xcconfig
 
       - name: Build macOS release
-        run: flutter build macos --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+        run: flutter build macos --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }} --dart-define=BUILD_TRAIN=${{ inputs.build-train }}
 
       # -- Developer ID DMG (for GitHub Release) --
 
@@ -388,6 +402,7 @@ jobs:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+          BUILD_TRAIN: ${{ inputs.build-train }}
         run: bundle exec fastlane build
 
       - name: Upload Mac App Store pkg artifact
@@ -465,7 +480,7 @@ jobs:
           grep '^version:' pubspec.yaml
 
       - name: Build Windows release
-        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }} --dart-define=BUILD_TRAIN=${{ inputs.build-train }}
 
       - name: Check bundled native assets
         # Runs before the installer is compiled: the .iss packages whatever is
@@ -618,7 +633,7 @@ jobs:
           grep '^version:' pubspec.yaml
 
       - name: Build Linux release
-        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }} --dart-define=BUILD_TRAIN=${{ inputs.build-train }}
 
       - name: Check bundled native assets
         # Runs before the tarball is rolled, for the same reason as the Windows
@@ -826,10 +841,10 @@ jobs:
           chmod 600 android/key.properties android/app/release.keystore
 
       - name: Build Android APK
-        run: flutter build apk --release --dart-define=UPDATE_CHANNEL=github
+        run: flutter build apk --release --dart-define=UPDATE_CHANNEL=github --dart-define=BUILD_TRAIN=${{ inputs.build-train }}
 
       - name: Build Android App Bundle
-        run: flutter build appbundle --release --dart-define=HEALTH_CONNECT_ENABLED=false --dart-define=UPDATE_CHANNEL=playstore
+        run: flutter build appbundle --release --dart-define=HEALTH_CONNECT_ENABLED=false --dart-define=UPDATE_CHANNEL=playstore --dart-define=BUILD_TRAIN=${{ inputs.build-train }}
 
       # Guards against issue #318: a 4 KB-aligned native lib (liblibdc_jni.so)
       # silently shipped in v1.5.5.107 and crashed the app on Android 15+
@@ -1009,6 +1024,7 @@ jobs:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: fastlane/AuthKey.p8
+          BUILD_TRAIN: ${{ inputs.build-train }}
         run: bundle exec fastlane build
 
       - name: Rename IPA

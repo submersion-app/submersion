@@ -9,6 +9,7 @@ import 'package:submersion/features/auto_update/data/services/github_update_serv
 import 'package:submersion/features/auto_update/data/services/linux_install_method_reader.dart';
 import 'package:submersion/features/auto_update/data/services/sparkle_update_service.dart';
 import 'package:submersion/features/auto_update/data/services/update_service.dart';
+import 'package:submersion/features/auto_update/domain/entities/build_train.dart';
 import 'package:submersion/features/auto_update/domain/entities/linux_install_method.dart';
 import 'package:submersion/features/auto_update/domain/linux_upgrade_command.dart';
 import 'package:submersion/features/auto_update/domain/entities/release_channel.dart';
@@ -78,6 +79,16 @@ final updatePreferencesProvider = Provider<UpdatePreferences>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return UpdatePreferences(prefs);
 });
+
+/// The release train that produced this binary.
+///
+/// A provider rather than a bare [BuildTrainConfig.current] read at each call
+/// site, for the same reason as [linuxInstallMethodProvider]: the value comes
+/// from a compile-time `String.fromEnvironment` constant, so an override is
+/// the only way a widget test can reach the beta case at all.
+final buildTrainProvider = Provider<BuildTrain>(
+  (ref) => BuildTrainConfig.current,
+);
 
 /// The user-selected release channel, re-evaluated when preferences reload.
 final releaseChannelProvider = Provider<ReleaseChannel>((ref) {

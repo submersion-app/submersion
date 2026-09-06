@@ -25,6 +25,7 @@ final _environment = LogEnvironment(
   osVersion: 'Version 26.6 (Build 23G93)',
   locale: 'de_DE.UTF-8',
   buildMode: 'release',
+  buildTrain: 'stable',
   capturedAt: DateTime(2026, 8, 25, 20, 25, 19),
 );
 

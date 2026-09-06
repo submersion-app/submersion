@@ -66,6 +66,17 @@ void main() {
       expect(prefs.releaseChannel, ReleaseChannel.beta);
     });
 
+    test('betaBuildNoticeSeen defaults to false', () {
+      // A fresh install of a beta binary is owed the warning, so the absent
+      // key must never read as "already shown".
+      expect(prefs.betaBuildNoticeSeen, false);
+    });
+
+    test('setBetaBuildNoticeSeen round-trips', () async {
+      await prefs.setBetaBuildNoticeSeen(true);
+      expect(prefs.betaBuildNoticeSeen, true);
+    });
+
     test('releaseChannel tolerates an unknown stored value', () async {
       SharedPreferences.setMockInitialValues({
         'update_release_channel': 'nightly',

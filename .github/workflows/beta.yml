@@ -175,6 +175,11 @@ jobs:
       version-tag: ${{ needs.precheck.outputs.tag }}
       build-number: ${{ needs.precheck.outputs.build-number }}
       ref: ${{ needs.precheck.outputs.sha }}
+      # Stamps BUILD_TRAIN=beta into every artifact. The version string and the
+      # asset filenames stay identical to stable (tags and the appcast compare
+      # against them), so this define is the only thing that tells a user who
+      # direct-downloaded from beta-builds which train they are on (#1592).
+      build-train: beta
     secrets: inherit
 
   publish-beta:

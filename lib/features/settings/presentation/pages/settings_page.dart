@@ -51,6 +51,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
 import 'package:submersion/features/auto_update/domain/beta_program_links.dart';
+import 'package:submersion/features/auto_update/domain/entities/build_train.dart';
 import 'package:submersion/features/auto_update/domain/entities/release_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
@@ -3113,14 +3114,18 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
   @override
   Widget build(BuildContext context) {
     final packageInfoAsync = ref.watch(packageInfoProvider);
-    final isBetaChannel =
-        UpdateChannelConfig.isAutoUpdateEnabled &&
-        ref.watch(releaseChannelProvider) == ReleaseChannel.beta;
+    // The badge names the train that BUILT this binary, not the channel the
+    // user has selected. Those differ exactly where it matters: a direct
+    // download from the beta-builds repository runs a beta binary while the
+    // preference is still stable (#1592), and reading the preference here left
+    // that user with no badge at all. The selected channel is still shown, on
+    // the update channel tile in the updates card below.
+    final isBetaBuild = ref.watch(buildTrainProvider) == BuildTrain.beta;
     final versionString = packageInfoAsync.when(
       data: (info) {
         final version = formatAppVersion(info);
         final base = context.l10n.settings_about_version(version);
-        return isBetaChannel
+        return isBetaBuild
             ? context.l10n.settings_updates_channelBadgeBeta(base)
             : base;
       },
@@ -3381,6 +3386,12 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
     }
 
     final prefs = ref.read(updatePreferencesProvider);
+    if (selected == ReleaseChannel.beta) {
+      // The confirm dialog above is the same text the first-launch notice
+      // shows, so record it as read here too: a user who opts in from
+      // settings must not be shown it again once a beta binary arrives.
+      await prefs.setBetaBuildNoticeSeen(true);
+    }
     await prefs.setReleaseChannel(selected);
     ref.invalidate(updatePreferencesProvider);
     // releaseChannelProvider and updateServiceProvider re-derive from the

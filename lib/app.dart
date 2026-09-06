@@ -17,6 +17,8 @@ import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/settings/presentation/providers/display_zoom_menu_channel.dart';
 import 'package:submersion/features/settings/presentation/providers/display_zoom_provider.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
+import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
+import 'package:submersion/features/auto_update/presentation/widgets/beta_build_notice.dart';
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
@@ -110,10 +112,39 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeSyncOnLaunch();
+      _maybeShowBetaBuildNotice();
       _resumeMediaTransfers();
       _republishOwnedMedia();
       _fileShareHandler.initialize();
     });
+  }
+
+  /// Tell the user, once, that this binary came off the beta train.
+  ///
+  /// The in-app channel picker warns before switching to beta, but a build
+  /// installed by direct download from the beta-builds repository never passes
+  /// through it. That user only discovers the train when a later stable build
+  /// refuses to open the database their beta build upgraded (#1568), which is
+  /// too late to decide anything.
+  ///
+  /// The flag is written after the dialog closes, not before: if the app is
+  /// killed with the notice on screen the warning is still owed, and showing
+  /// it twice costs far less than never showing it at all.
+  Future<void> _maybeShowBetaBuildNotice() async {
+    final prefs = ref.read(updatePreferencesProvider);
+    if (!shouldShowBetaBuildNotice(
+      train: ref.read(buildTrainProvider),
+      alreadySeen: prefs.betaBuildNoticeSeen,
+    )) {
+      return;
+    }
+
+    final navContext = rootNavigatorKey.currentContext;
+    if (navContext == null) return;
+
+    await showBetaBuildNotice(navContext);
+    await prefs.setBetaBuildNoticeSeen(true);
+    ref.invalidate(updatePreferencesProvider);
   }
 
   @override

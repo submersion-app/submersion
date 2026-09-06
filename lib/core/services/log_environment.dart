@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/app_version.dart';
+import 'package:submersion/features/auto_update/domain/entities/build_train.dart';
 
 /// Value shown wherever a field could not be determined.
 const _unknown = 'unknown';
@@ -36,6 +37,15 @@ class LogEnvironment {
   /// Flutter build mode: `release`, `profile` or `debug`.
   final String buildMode;
 
+  /// Release train that produced the binary: `stable` or `beta`.
+  ///
+  /// Separate from [appVersion] because beta and stable binaries share a
+  /// version string: nothing in the four segments distinguishes them, so a
+  /// report from a beta build was indistinguishable from a stable one. #1568
+  /// is the worked example, where the whole diagnosis turned on which train
+  /// the reporter was on.
+  final String buildTrain;
+
   /// When this snapshot was taken.
   ///
   /// A field rather than a `DateTime.now()` inside [toExportHeader] so the
@@ -50,6 +60,7 @@ class LogEnvironment {
     required this.osVersion,
     required this.locale,
     required this.buildMode,
+    required this.buildTrain,
     required this.capturedAt,
   });
 
@@ -105,6 +116,9 @@ class LogEnvironment {
           : kProfileMode
           ? 'profile'
           : 'release',
+      // A compile-time constant, so unlike every field above it cannot fail
+      // to resolve and needs no _unknown fallback.
+      buildTrain: BuildTrainConfig.current.name,
       capturedAt: DateTime.now(),
     );
   }
@@ -117,7 +131,8 @@ class LogEnvironment {
       'Session start: Submersion $appVersion'
       ' | $platform $osVersion'
       ' | locale $locale'
-      ' | $buildMode build';
+      ' | $buildMode build'
+      ' | $buildTrain train';
 
   /// Multi-line header prepended to an exported or copied log.
   ///
@@ -132,6 +147,7 @@ app:      Submersion $appVersion
 platform: $platform $osVersion
 locale:   $locale
 build:    $buildMode
+train:    $buildTrain
 exported: $exportedAt
 ============================
 ''';

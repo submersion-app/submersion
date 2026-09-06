@@ -9,6 +9,7 @@ class UpdatePreferences {
   static const _keyLastCheckTime = 'auto_update_last_check';
   static const _keyCheckIntervalHours = 'auto_update_check_interval_hours';
   static const _keyReleaseChannel = 'update_release_channel';
+  static const _keyBetaBuildNoticeSeen = 'beta_build_notice_seen';
 
   UpdatePreferences(this._prefs);
 
@@ -31,6 +32,19 @@ class UpdatePreferences {
 
   Future<void> setReleaseChannel(ReleaseChannel value) =>
       _prefs.setString(_keyReleaseChannel, value.name);
+
+  /// Whether the user has already read the beta warning: either by confirming
+  /// the in-app channel switch, or by dismissing the first-launch notice a
+  /// beta binary shows.
+  ///
+  /// One flag for both paths so the same text is never shown twice. It is not
+  /// scoped to a version: the warning is about the beta train, not about any
+  /// particular build.
+  bool get betaBuildNoticeSeen =>
+      _prefs.getBool(_keyBetaBuildNoticeSeen) ?? false;
+
+  Future<void> setBetaBuildNoticeSeen(bool value) =>
+      _prefs.setBool(_keyBetaBuildNoticeSeen, value);
 
   int get checkIntervalHours => _prefs.getInt(_keyCheckIntervalHours) ?? 4;
 

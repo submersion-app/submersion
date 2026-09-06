@@ -15,11 +15,12 @@ void main() {
     osVersion: 'Version 26.6 (Build 23G93)',
     locale: 'de_DE.UTF-8',
     buildMode: 'release',
+    buildTrain: 'beta',
     capturedAt: DateTime(2026, 8, 25, 20, 25, 19),
   );
 
   group('toSummaryLine', () {
-    test('names the build, platform, locale and build mode', () {
+    test('names the build, platform, locale, build mode and train', () {
       final line = environment.toSummaryLine();
 
       expect(line, contains('1.7.6.123'));
@@ -27,6 +28,9 @@ void main() {
       expect(line, contains('Version 26.6 (Build 23G93)'));
       expect(line, contains('de_DE.UTF-8'));
       expect(line, contains('release'));
+      // Beta and stable binaries share a version string, so the train is the
+      // only thing in the marker that separates them (#1592).
+      expect(line, contains('beta train'));
     });
 
     test('is a single line so it survives the log-line parser', () {
@@ -46,6 +50,7 @@ void main() {
       expect(header, contains('Version 26.6 (Build 23G93)'));
       expect(header, contains('de_DE.UTF-8'));
       expect(header, contains('release'));
+      expect(header, contains('train:    beta'));
       expect(header, contains('exported:'));
     });
 
@@ -157,6 +162,15 @@ void main() {
       final captured = await LogEnvironment.capture();
 
       expect(captured.buildMode, anyOf('debug', 'profile', 'release'));
+    });
+
+    test('reports the train the test host was compiled on', () async {
+      // Unlike every other field, the train cannot degrade to 'unknown': it
+      // reads a compile-time constant. The test host passes no BUILD_TRAIN
+      // define, which is the stable case.
+      final captured = await LogEnvironment.capture();
+
+      expect(captured.buildTrain, 'stable');
     });
 
     test(

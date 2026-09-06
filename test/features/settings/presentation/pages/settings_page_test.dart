@@ -10,6 +10,7 @@ import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/auto_update/domain/entities/build_train.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 // ignore: implementation_imports
@@ -963,6 +964,7 @@ void main() {
       Map<String, Object> extraPrefs = const {},
       UpdateStatus? status,
       AppSettings settings = const AppSettings(),
+      BuildTrain train = BuildTrain.stable,
     }) async {
       SharedPreferences.setMockInitialValues({
         'auto_update_enabled': false,
@@ -986,6 +988,9 @@ void main() {
         // No real update service: channel-switch tests exercise the settings
         // flow, not Sparkle/GitHub polling.
         updateServiceProvider.overrideWith((ref) async => null),
+        // BuildTrainConfig reads a compile-time const, so an override is the
+        // only way a test can stand in a beta binary.
+        buildTrainProvider.overrideWithValue(train),
         if (status != null)
           updateStatusProvider.overrideWith(
             (ref) => UpdateStatusNotifier(ref)..state = status,
@@ -1097,6 +1102,72 @@ void main() {
       );
     });
 
+    /// Pin a version so the badge assertions can match the whole rendered
+    /// string rather than a substring.
+    void mockPackageVersion() {
+      PackageInfo.setMockInitialValues(
+        appName: 'Submersion',
+        packageName: 'app.submersion',
+        version: '1.7.2',
+        buildNumber: '119',
+        buildSignature: '',
+        installerStore: null,
+      );
+    }
+
+    testWidgets('a beta binary badges its version, whatever the channel', (
+      tester,
+    ) async {
+      // The #1568 case: reached by direct download from beta-builds, so the
+      // stored channel is still stable and only the binary knows the truth.
+      mockPackageVersion();
+      await tester.pumpWidget(
+        buildAboutWidget(await aboutOverrides(train: BuildTrain.beta)),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      expect(find.text('Version 1.7.2.119 (Beta)'), findsWidgets);
+    });
+
+    testWidgets('a stable binary is unbadged even on the beta channel', (
+      tester,
+    ) async {
+      // Selecting beta only changes which feed is polled. Until a beta build
+      // actually lands, badging this binary would be a lie, and a lie here
+      // masks the badge that matters (#1592).
+      mockPackageVersion();
+      await tester.pumpWidget(
+        buildAboutWidget(await aboutOverrides(channel: 'beta')),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      expect(find.text('Version 1.7.2.119'), findsWidgets);
+      expect(find.textContaining('(Beta)'), findsNothing);
+    });
+
+    testWidgets('confirming the beta switch records the warning as read', (
+      tester,
+    ) async {
+      // Same body text as the first-launch notice, so reading it here must
+      // stop that notice firing when a beta build later arrives.
+      await tester.pumpWidget(buildAboutWidget(await aboutOverrides()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      await tester.tap(find.text('Update channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Beta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Switch to Beta'));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('beta_build_notice_seen'), isTrue);
+    });
+
     testWidgets('status text renders the downloading and ready states', (
       tester,
     ) async {
@@ -1169,26 +1240,6 @@ void main() {
       expect(find.text('Never'), findsNothing);
       // The old hand-rolled shape, which no preference could ever produce.
       expect(find.text('7/4/2026 09:05'), findsNothing);
-    });
-
-    testWidgets('version row shows a beta badge on the beta channel', (
-      tester,
-    ) async {
-      PackageInfo.setMockInitialValues(
-        appName: 'Submersion',
-        packageName: 'app.submersion',
-        version: '1.7.2',
-        buildNumber: '119',
-        buildSignature: '',
-        installerStore: null,
-      );
-      await tester.pumpWidget(
-        buildAboutWidget(await aboutOverrides(channel: 'beta')),
-      );
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(seconds: 6));
-
-      expect(find.textContaining('(Beta)'), findsOneWidget);
     });
   });
 
