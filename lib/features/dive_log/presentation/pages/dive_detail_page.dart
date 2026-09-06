@@ -96,7 +96,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_ca
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_controls.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_stats_panel.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_properties_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_section_fold.dart';
@@ -2307,6 +2306,20 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                               dismissed: true,
                             ),
                         onSafetyFindingDetails: (_) => _scrollToSafetySection(),
+                        // Range handles are drawn by the chart itself so they
+                        // land on the plot rect at any zoom (issue #1579).
+                        rangeSelection: rangeState.isEnabled
+                            ? (
+                                startSeconds: rangeState.startTimestamp ?? 0,
+                                endSeconds:
+                                    rangeState.endTimestamp ??
+                                    rangeState.maxTimestamp,
+                                maxSeconds: rangeState.maxTimestamp,
+                              )
+                            : null,
+                        onRangeChanged: (start, end) => ref
+                            .read(rangeSelectionProvider(dive.id).notifier)
+                            .setRange(start, end),
                         onPointSelected: (index) {
                           ref
                                   .read(
@@ -2319,20 +2332,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         },
                       ),
                     ),
-                    // Range selection overlay (positioned on top of chart)
-                    if (rangeState.isEnabled)
-                      Positioned.fill(
-                        child: RangeSelectionOverlay(
-                          diveId: dive.id,
-                          chartWidth: constraints.maxWidth,
-                          leftPadding:
-                              DiveProfileChart.leftAxisSize(
-                                constraints.maxWidth,
-                              ) +
-                              5,
-                          rightPadding: 16,
-                        ),
-                      ),
                   ],
                 );
               },
