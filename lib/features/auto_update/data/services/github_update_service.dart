@@ -97,11 +97,14 @@ class GithubUpdateService extends UpdateService {
       return release;
     }
 
-    // GitHub returns the list newest-first by tag creation date, but every
-    // beta-builds release shares one creation date, so that order says
-    // nothing about which build is newest. Compare versions instead. The
-    // permanent "appcast" pointer release, which exists only to keep the
-    // Sparkle feed URL resolving, parses as version 0 and so never wins.
+    // GitHub orders the list by each release's created_at, which is the
+    // date of the commit its tag points at rather than when the release was
+    // published. beta.yml cuts every beta tag from the beta-builds default
+    // branch, which has not moved since the repo was seeded, so all of them
+    // report the same created_at and the list order says nothing about which
+    // build is newest. Compare versions instead. The permanent "appcast"
+    // pointer release, which exists only to keep the Sparkle feed URL
+    // resolving, parses as version 0 and so never wins.
     Map<String, dynamic>? newest;
     for (final release
         in (decoded as List<dynamic>).cast<Map<String, dynamic>>()) {

@@ -167,7 +167,8 @@ before any database upgrade.
   through the normal auto-updater), or download directly from
   [beta-builds](https://github.com/submersion-app/beta-builds/releases). Every
   build on that page is a pre-release: once one has upgraded your database, the
-  stable build will not open your dive log again.
+  stable build will not open your dive log again. The one entry badged "Latest"
+  there is not a build at all, only the update feed.
 - **Android:** [join the open test](https://play.google.com/apps/testing/app.submersion),
   then Play delivers beta updates automatically
 - **iOS / Mac App Store:** [join via TestFlight](https://testflight.apple.com/join/aMD393sB)
