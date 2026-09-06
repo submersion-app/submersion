@@ -34530,7 +34530,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_action_retry => 'Retry';
 
   @override
-  String get startup_versionMismatch_title => 'Update Required';
+  String get startup_versionMismatch_title =>
+      'Your Data Is Newer Than This App';
 
   @override
   String startup_versionMismatch_body(
@@ -34541,19 +34542,31 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get startup_versionMismatch_causes =>
+      'This usually means a beta build upgraded your data, a backup was restored from a newer build, or the file is shared with a device on a different update channel. A newer stable release may not exist yet.';
+
+  @override
   String get startup_versionMismatch_instructions =>
-      'Please update Submersion to the latest version. Your data is safe and has not been modified. If a backup was taken before the upgrade, it is in your Backups folder and can be restored after updating.';
+      'Your data is safe and has not been modified. Reopen it with the build that wrote it, or with any later build. If a backup was taken before the upgrade, it is in your Backups folder and can be restored once you are running a build that opens it.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
       'This app was installed from an app store and is older than the version that created your data. Your data is safe and has not been modified. Update Submersion when the new version appears in the store, then reopen it.';
 
   @override
-  String get startup_versionMismatch_download => 'Download Latest Version';
+  String get startup_versionMismatch_download =>
+      'Check for a Newer Stable Release';
+
+  @override
+  String get startup_versionMismatch_betaAction => 'Get the Beta Build';
+
+  @override
+  String get startup_versionMismatch_betaNote =>
+      'Beta builds are pre-release. Choose this only if a beta build wrote your data.';
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'If that does not open a browser, visit:';
+      'If those buttons do not open a browser, visit:';
 
   @override
   String get universalImport_compare_downloaded => 'Downloaded';

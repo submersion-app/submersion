@@ -34902,7 +34902,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_retry => 'Újra';
 
   @override
-  String get startup_versionMismatch_title => 'Frissítés szükséges';
+  String get startup_versionMismatch_title =>
+      'Az adatai újabbak ennél az alkalmazásnál';
 
   @override
   String startup_versionMismatch_body(
@@ -34913,19 +34914,30 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get startup_versionMismatch_causes =>
+      'Ez általában azt jelenti, hogy egy béta verzió frissítette az adatait, hogy egy újabb verzióból készült biztonsági mentés lett visszaállítva, vagy hogy a fájl egy másik frissítési csatornán lévő eszközzel van megosztva. Lehet, hogy még nem létezik újabb stabil verzió.';
+
+  @override
   String get startup_versionMismatch_instructions =>
-      'Kérjük, frissítse a Submersiont a legújabb verzióra. Az adatai biztonságban vannak, és nem módosultak. Ha a frissítés előtt készült biztonsági mentés, az a Backups mappában található, és a frissítés után visszaállítható.';
+      'Az adatai biztonságban vannak, és nem módosultak. Nyissa meg őket azzal a verzióval, amely írta őket, vagy bármely későbbi verzióval. Ha a frissítés előtt készült biztonsági mentés, az a Backups mappában található, és visszaállítható, amint olyan verziót futtat, amely meg tudja nyitni a fájlt.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
       'Ezt az alkalmazást alkalmazásboltból telepítetted, és régebbi, mint az adataidat létrehozó verzió. Az adataid biztonságban vannak, nem módosultak. Frissítsd a Submersiont, amint az új verzió megjelenik a boltban, majd nyisd meg újra.';
 
   @override
-  String get startup_versionMismatch_download => 'Legújabb verzió letöltése';
+  String get startup_versionMismatch_download => 'Újabb stabil verzió keresése';
+
+  @override
+  String get startup_versionMismatch_betaAction => 'Béta verzió letöltése';
+
+  @override
+  String get startup_versionMismatch_betaNote =>
+      'A béta verziók előzetes kiadások. Csak akkor válassza ezt, ha egy béta verzió írta az adatait.';
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Ha ez nem nyit meg böngészőt, keresse fel:';
+      'Ha ezek a gombok nem nyitnak meg böngészőt, keresse fel:';
 
   @override
   String get universalImport_compare_downloaded => 'Letöltött';

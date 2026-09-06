@@ -35,6 +35,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_decima
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
@@ -260,6 +261,15 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// Height of the safety findings lane in logical pixels.
   static const double safetyLaneHeight = 24.0;
+
+  /// Range-statistics selection in seconds from the start of the dive, or
+  /// null when range mode is off. Drawn as draggable handles over the plot
+  /// rect; [maxSeconds] is the profile's last timestamp, where the end
+  /// handle stops.
+  final ({int startSeconds, int endSeconds, int maxSeconds})? rangeSelection;
+
+  /// New range reported while a handle is dragged.
+  final void Function(int startSeconds, int endSeconds)? onRangeChanged;
 
   // Advanced decompression/gas curves
   /// ppO2 curve in bar
@@ -578,6 +588,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.onSafetyFindingTap,
     this.onSafetyFindingDismiss,
     this.onSafetyFindingDetails,
+    this.rangeSelection,
+    this.onRangeChanged,
     this.ppO2Curve,
     this.o2SensorCurves,
     this.o2CellMvCurves,
@@ -961,6 +973,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // The Listener only pans a touch drag when claimed, so a long-press scrub
   // (which wins the arena before any movement) is never fought by a pan.
   bool _touchDragClaimed = false;
+
+  // True while a range-selection handle is being dragged. The handle's
+  // recognizer wins the arena, but this Listener sees the same pointer
+  // moves (it is an ancestor), so without this the chart would pan under
+  // the handle. Only event handlers read it, so no rebuild is needed.
+  bool _rangeDragActive = false;
 
   // The two pointer ids driving the current two-finger gesture, plus its
   // start geometry. Cumulative scale/pan is applied against
@@ -1939,10 +1957,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
-  /// The plot-rect insets (reserved axis gutters) for the current build, so a
-  /// gesture's local position can be mapped to a plot-area fraction. Mirrors
-  /// the axis reservations used for the gas-strip overlay (left/right at
-  /// :2265-2270, bottom at :1379-1382). Top has no titles, so its inset is 0.
+  /// The plot-rect insets (reserved axis gutters) for the current build: the
+  /// single source of the plot rect, both for mapping a gesture's local
+  /// position to a plot-area fraction and for positioning every layer drawn
+  /// over the chart (gas strip, cursors, photo markers, safety lane, range
+  /// handles). These must match what fl_chart itself reserves from the
+  /// FlTitlesData below, which reserves a side only while that side shows an
+  /// axis name or side titles. Top has no titles, so its inset is 0.
   ({double left, double top, double right, double bottom}) _plotInsets(
     double availableWidth,
     UnitFormatter units,
@@ -1968,9 +1989,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           DiveProfileChart._leftRightAxisNameSize +
           DiveProfileChart.leftAxisSize(availableWidth),
       top: 0,
-      right:
-          (hasRightAxisName ? DiveProfileChart._leftRightAxisNameSize : 0) +
-          DiveProfileChart.rightAxisSize(availableWidth),
+      // fl_chart reserves a side's tick gutter only while that side shows
+      // titles, and the right axis shows none without a metric -- so with no
+      // right-axis metric the plot rect runs to the chart's right edge.
+      right: hasRightAxisName
+          ? DiveProfileChart._leftRightAxisNameSize +
+                DiveProfileChart.rightAxisSize(availableWidth)
+          : 0,
       bottom:
           DiveProfileChart._bottomAxisNameSize +
           DiveProfileChart._bottomTickReservedSize +
@@ -2369,6 +2394,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 }
               },
               onPointerMove: (event) {
+                if (_rangeDragActive) return;
                 final prev = _lastPointerLocal;
                 _lastPointerLocal = event.localPosition;
                 if (event.kind == PointerDeviceKind.touch) {
@@ -2737,12 +2763,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final visibleMinDepth = _viewport.offsetY * totalMaxDepth;
     final visibleMaxDepth = visibleMinDepth + visibleRangeY;
 
+    // One plot rect for every layer drawn over the chart (highlight band, gas
+    // strip, cursor extensions, photo markers, safety lane, range handles):
+    // they all have to agree with fl_chart's own axis reservations, so they
+    // all read them from here.
+    final plotInsets = _plotInsets(availableWidth, units);
+
     // Highlight band, inflated to a 12 px minimum so short/instant findings
     // stay visible (spec: safety-findings-lane). Computed once and shared by
     // the band annotation and its edge lines.
     ({double x1, double x2})? highlightSpan;
     if (widget.highlightRange != null) {
-      final plotInsets = _plotInsets(availableWidth, units);
       final plotWidth = (availableWidth - plotInsets.left - plotInsets.right)
           .clamp(1.0, double.infinity);
       highlightSpan = highlightBandSpan(
@@ -4294,24 +4325,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ),
           ),
         // Gas-usage timeline strip rendered between the plot area and the
-        // X-axis tick labels. Sized to exactly the chart's plot width by
-        // mirroring the chart's left/right axis reservations, and offset
-        // from the bottom so it lands in the gap reserved above by
-        // `_hasGasStrip` (_bottomAxisNameSize + _bottomTickReservedSize).
-        //
-        // Plot bounds = _leftRightAxisNameSize + sideTitles reservedSize
-        // on each side that has an axisNameWidget. Left axis always renders
-        // its name; the right axis only does so when a metric is selected.
+        // X-axis tick labels. Sized to exactly the chart's plot width from
+        // the shared plot rect, and offset from the bottom so it lands in
+        // the gap reserved above by `_hasGasStrip`
+        // (_bottomAxisNameSize + _bottomTickReservedSize).
         if (_hasGasStrip)
           Positioned(
-            left:
-                DiveProfileChart._leftRightAxisNameSize +
-                DiveProfileChart.leftAxisSize(availableWidth),
-            right:
-                (effectiveRightAxisMetric != null && rightAxisRange != null
-                    ? DiveProfileChart._leftRightAxisNameSize
-                    : 0) +
-                DiveProfileChart.rightAxisSize(availableWidth),
+            left: plotInsets.left,
+            right: plotInsets.right,
             bottom:
                 DiveProfileChart._bottomAxisNameSize +
                 DiveProfileChart._bottomTickReservedSize +
@@ -4333,16 +4354,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         // the same horizontal position to bridge the gap visually.
         if (_hasGasStrip)
           ..._buildGasStripCursorExtensions(
+            insets: plotInsets,
             availableWidth: availableWidth,
             visibleMinX: visibleMinX,
             visibleMaxX: visibleMaxX,
-            hasRightAxisName:
-                effectiveRightAxisMetric != null && rightAxisRange != null,
           ),
         // Photo markers: tappable camera chips at each photo's (time, depth).
         // A widget layer (not an fl_chart element) so its taps never enter
-        // the chart's gesture arena; insets mirror the plot-rect math used
-        // by the gas strip above.
+        // the chart's gesture arena; positioned by the shared plot rect.
         if (_showPhotoMarkers &&
             widget.photoMarkers != null &&
             widget.photoMarkers!.isNotEmpty)
@@ -4353,7 +4372,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               visibleMaxSeconds: visibleMaxX,
               visibleMinDepth: visibleMinDepth,
               visibleMaxDepth: visibleMaxDepth,
-              insets: _plotInsets(availableWidth, units),
+              insets: plotInsets,
               units: units,
             ),
           ),
@@ -4368,7 +4387,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               selectedFindingId: widget.selectedSafetyFindingId,
               visibleMinSeconds: visibleMinX,
               visibleMaxSeconds: visibleMaxX,
-              insets: _plotInsets(availableWidth, units),
+              insets: plotInsets,
               laneHeight: DiveProfileChart.safetyLaneHeight,
               laneBottomOffset:
                   DiveProfileChart._bottomAxisNameSize +
@@ -4379,6 +4398,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               onFindingDetails: widget.onSafetyFindingDetails,
             ),
           ),
+        // Range-statistics handles. Topmost so a handle wins the pointer
+        // over the layers below it, and inside the chart so it shares the
+        // plot rect and visible window (issue #1579).
+        if (widget.rangeSelection != null)
+          Positioned.fill(
+            child: RangeSelectionOverlay(
+              startSeconds: widget.rangeSelection!.startSeconds,
+              endSeconds: widget.rangeSelection!.endSeconds,
+              maxSeconds: widget.rangeSelection!.maxSeconds,
+              visibleMinSeconds: visibleMinX,
+              visibleMaxSeconds: visibleMaxX,
+              insets: plotInsets,
+              onRangeChanged: widget.onRangeChanged ?? (_, _) {},
+              onDragActiveChanged: (active) => _rangeDragActive = active,
+            ),
+          ),
       ],
     );
   }
@@ -4387,10 +4422,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// active cursors (hover highlight + step-through playback) so the line
   /// visually continues past the chart's plot area.
   List<Widget> _buildGasStripCursorExtensions({
+    required ({double left, double top, double right, double bottom}) insets,
     required double availableWidth,
     required double visibleMinX,
     required double visibleMaxX,
-    required bool hasRightAxisName,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final cursors = <(int timestamp, Color color, double width)>[
@@ -4405,12 +4440,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     ];
     if (cursors.isEmpty) return const [];
 
-    final left =
-        DiveProfileChart._leftRightAxisNameSize +
-        DiveProfileChart.leftAxisSize(availableWidth);
-    final right =
-        (hasRightAxisName ? DiveProfileChart._leftRightAxisNameSize : 0) +
-        DiveProfileChart.rightAxisSize(availableWidth);
+    final left = insets.left;
+    final right = insets.right;
     final stripWidth = (availableWidth - left - right).clamp(
       0.0,
       double.infinity,

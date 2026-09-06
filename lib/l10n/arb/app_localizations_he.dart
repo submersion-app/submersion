@@ -34374,7 +34374,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_retry => 'נסה שוב';
 
   @override
-  String get startup_versionMismatch_title => 'נדרש עדכון';
+  String get startup_versionMismatch_title =>
+      'הנתונים שלכם חדשים יותר מהאפליקציה הזו';
 
   @override
   String startup_versionMismatch_body(
@@ -34385,19 +34386,30 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get startup_versionMismatch_causes =>
+      'בדרך כלל המשמעות היא שגרסת בטא שדרגה את הנתונים שלכם, ששוחזר גיבוי מגרסה חדשה יותר, או שהקובץ משותף עם מכשיר בערוץ עדכונים אחר. ייתכן שגרסה יציבה חדשה יותר עדיין אינה קיימת.';
+
+  @override
   String get startup_versionMismatch_instructions =>
-      'עדכנו את Submersion לגרסה האחרונה. הנתונים שלכם בטוחים ולא שונו. אם נוצר גיבוי לפני השדרוג, הוא נמצא בתיקיית Backups וניתן לשחזר אותו לאחר העדכון.';
+      'הנתונים שלכם בטוחים ולא שונו. פתחו אותם עם הגרסה שכתבה אותם, או עם כל גרסה מאוחרת יותר. אם נוצר גיבוי לפני השדרוג, הוא נמצא בתיקיית Backups וניתן לשחזר אותו לאחר שתריצו גרסה שמסוגלת לפתוח את הקובץ.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
       'אפליקציה זו הותקנה מחנות אפליקציות והיא ישנה יותר מהגרסה שיצרה את הנתונים שלך. הנתונים שלך בטוחים ולא שונו. עדכן את Submersion כשהגרסה החדשה תופיע בחנות, ואז פתח את האפליקציה מחדש.';
 
   @override
-  String get startup_versionMismatch_download => 'הורדת הגרסה האחרונה';
+  String get startup_versionMismatch_download => 'חיפוש גרסה יציבה חדשה יותר';
+
+  @override
+  String get startup_versionMismatch_betaAction => 'הורדת גרסת בטא';
+
+  @override
+  String get startup_versionMismatch_betaNote =>
+      'גרסאות בטא הן גרסאות מקדימות. בחרו באפשרות זו רק אם גרסת בטא כתבה את הנתונים שלכם.';
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'אם פעולה זו אינה פותחת דפדפן, בקרו בכתובת:';
+      'אם הכפתורים אינם פותחים דפדפן, בקרו בכתובת:';
 
   @override
   String get universalImport_compare_downloaded => 'הורד';

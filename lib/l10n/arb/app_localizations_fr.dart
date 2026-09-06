@@ -35150,7 +35150,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_action_retry => 'Réessayer';
 
   @override
-  String get startup_versionMismatch_title => 'Mise à jour requise';
+  String get startup_versionMismatch_title =>
+      'Vos données sont plus récentes que cette application';
 
   @override
   String startup_versionMismatch_body(
@@ -35161,8 +35162,12 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get startup_versionMismatch_causes =>
+      'Cela signifie généralement qu’une version bêta a mis à niveau vos données, qu’une sauvegarde issue d’une version plus récente a été restaurée, ou que le fichier est partagé avec un appareil sur un autre canal de mise à jour. Une version stable plus récente n’existe peut-être pas encore.';
+
+  @override
   String get startup_versionMismatch_instructions =>
-      'Veuillez mettre à jour Submersion vers la dernière version. Vos données sont intactes et n’ont pas été modifiées. Si une sauvegarde a été effectuée avant la mise à niveau, elle se trouve dans votre dossier Backups et peut être restaurée après la mise à jour.';
+      'Vos données sont intactes et n’ont pas été modifiées. Rouvrez-les avec la version qui les a écrites, ou avec toute version ultérieure. Si une sauvegarde a été effectuée avant la mise à niveau, elle se trouve dans votre dossier Backups et peut être restaurée dès que vous utilisez une version capable d’ouvrir le fichier.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
@@ -35170,11 +35175,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_download =>
-      'Télécharger la dernière version';
+      'Rechercher une version stable plus récente';
+
+  @override
+  String get startup_versionMismatch_betaAction => 'Obtenir la version bêta';
+
+  @override
+  String get startup_versionMismatch_betaNote =>
+      'Les versions bêta sont des préversions. Ne choisissez cette option que si une version bêta a écrit vos données.';
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Si cela n’ouvre pas de navigateur, rendez-vous sur :';
+      'Si ces boutons n’ouvrent pas de navigateur, rendez-vous sur :';
 
   @override
   String get universalImport_compare_downloaded => 'Téléchargée';

@@ -33009,7 +33009,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_retry => '重试';
 
   @override
-  String get startup_versionMismatch_title => '需要更新';
+  String get startup_versionMismatch_title => '您的数据比此应用更新';
 
   @override
   String startup_versionMismatch_body(
@@ -33020,18 +33020,29 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get startup_versionMismatch_causes =>
+      '这通常意味着测试版构建升级了您的数据、从更新的构建恢复了备份，或者该文件与其他更新通道上的设备共享。更新的稳定版可能尚未发布。';
+
+  @override
   String get startup_versionMismatch_instructions =>
-      '请将 Submersion 更新到最新版本。您的数据是安全的，未被修改。如果升级前已创建备份，它位于您的 Backups 文件夹中，更新后可以恢复。';
+      '您的数据是安全的，未被修改。请使用写入这些数据的构建版本，或任何更高版本重新打开。如果升级前已创建备份，它位于您的 Backups 文件夹中，待您运行可以打开该文件的版本后即可恢复。';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
       '此应用安装自应用商店，版本低于创建您数据的版本。您的数据是安全的，未被修改。当新版本在商店上架后，请更新 Submersion 并重新打开。';
 
   @override
-  String get startup_versionMismatch_download => '下载最新版本';
+  String get startup_versionMismatch_download => '查找更新的稳定版';
 
   @override
-  String get startup_versionMismatch_manualLink => '如果未打开浏览器，请访问：';
+  String get startup_versionMismatch_betaAction => '获取测试版构建';
+
+  @override
+  String get startup_versionMismatch_betaNote =>
+      '测试版构建为预发布版本。仅当测试版构建写入了您的数据时才选择此项。';
+
+  @override
+  String get startup_versionMismatch_manualLink => '如果这些按钮未打开浏览器，请访问：';
 
   @override
   String get universalImport_compare_downloaded => '已下载';

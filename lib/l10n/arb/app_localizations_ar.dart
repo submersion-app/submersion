@@ -34698,7 +34698,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_action_retry => 'إعادة المحاولة';
 
   @override
-  String get startup_versionMismatch_title => 'التحديث مطلوب';
+  String get startup_versionMismatch_title => 'بياناتك أحدث من هذا التطبيق';
 
   @override
   String startup_versionMismatch_body(
@@ -34709,19 +34709,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get startup_versionMismatch_causes =>
+      'يعني هذا عادةً أن إصدارًا تجريبيًا (بيتا) قد رقّى بياناتك، أو أنه تمت استعادة نسخة احتياطية من إصدار أحدث، أو أن الملف مشترك مع جهاز على قناة تحديث مختلفة. قد لا يكون هناك إصدار مستقر أحدث بعد.';
+
+  @override
   String get startup_versionMismatch_instructions =>
-      'يرجى تحديث Submersion إلى أحدث إصدار. بياناتك آمنة ولم تُعدَّل. إذا أُخذت نسخة احتياطية قبل الترقية، فهي موجودة في مجلد Backups ويمكن استعادتها بعد التحديث.';
+      'بياناتك آمنة ولم تُعدَّل. افتحها بالإصدار الذي كتبها، أو بأي إصدار أحدث. إذا أُخذت نسخة احتياطية قبل الترقية، فهي موجودة في مجلد Backups ويمكن استعادتها بمجرد تشغيل إصدار قادر على فتح الملف.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
       'تم تثبيت هذا التطبيق من متجر تطبيقات وهو أقدم من الإصدار الذي أنشأ بياناتك. بياناتك آمنة ولم يتم تعديلها. حدّث Submersion عندما يظهر الإصدار الجديد في المتجر، ثم أعد فتحه.';
 
   @override
-  String get startup_versionMismatch_download => 'تنزيل أحدث إصدار';
+  String get startup_versionMismatch_download => 'البحث عن إصدار مستقر أحدث';
+
+  @override
+  String get startup_versionMismatch_betaAction => 'الحصول على إصدار البيتا';
+
+  @override
+  String get startup_versionMismatch_betaNote =>
+      'إصدارات البيتا أولية. اختر هذا فقط إذا كان إصدار بيتا قد كتب بياناتك.';
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'إذا لم يفتح ذلك متصفحًا، فتفضل بزيارة:';
+      'إذا لم تفتح هذه الأزرار متصفحًا، فتفضل بزيارة:';
 
   @override
   String get universalImport_compare_downloaded => 'المنزَّلة';

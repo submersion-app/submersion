@@ -34975,7 +34975,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get common_action_retry => 'Wiederholen';
 
   @override
-  String get startup_versionMismatch_title => 'Update erforderlich';
+  String get startup_versionMismatch_title =>
+      'Ihre Daten sind neuer als diese App';
 
   @override
   String startup_versionMismatch_body(
@@ -34986,8 +34987,12 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get startup_versionMismatch_causes =>
+      'Das bedeutet meist, dass ein Beta-Build Ihre Daten aktualisiert hat, dass eine Sicherung aus einem neueren Build wiederhergestellt wurde oder dass die Datei mit einem Gerät in einem anderen Update-Kanal geteilt wird. Eine neuere stabile Version muss noch nicht existieren.';
+
+  @override
   String get startup_versionMismatch_instructions =>
-      'Bitte aktualisieren Sie Submersion auf die neueste Version. Ihre Daten sind sicher und wurden nicht verändert. Falls vor dem Upgrade eine Sicherung erstellt wurde, liegt sie in Ihrem Ordner Backups und kann nach dem Update wiederhergestellt werden.';
+      'Ihre Daten sind sicher und wurden nicht verändert. Öffnen Sie sie mit dem Build, der sie geschrieben hat, oder mit einem neueren Build. Falls vor dem Upgrade eine Sicherung erstellt wurde, liegt sie in Ihrem Ordner Backups und kann wiederhergestellt werden, sobald Sie einen Build verwenden, der die Datei öffnet.';
 
   @override
   String get startup_versionMismatch_storeInstructions =>
@@ -34995,11 +35000,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_download =>
-      'Neueste Version herunterladen';
+      'Nach neuerer stabiler Version suchen';
+
+  @override
+  String get startup_versionMismatch_betaAction => 'Beta-Build herunterladen';
+
+  @override
+  String get startup_versionMismatch_betaNote =>
+      'Beta-Builds sind Vorabversionen. Wählen Sie dies nur, wenn ein Beta-Build Ihre Daten geschrieben hat.';
 
   @override
   String get startup_versionMismatch_manualLink =>
-      'Falls sich dadurch kein Browser öffnet, besuchen Sie:';
+      'Falls diese Schaltflächen keinen Browser öffnen, besuchen Sie:';
 
   @override
   String get universalImport_compare_downloaded => 'Heruntergeladen';

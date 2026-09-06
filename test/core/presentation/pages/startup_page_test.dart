@@ -260,6 +260,7 @@ Widget _buildVersionMismatchError({
   required int appVersion,
   VoidCallback? onClose,
   VoidCallback? onDownloadLatest,
+  VoidCallback? onOpenBetaBuilds,
 }) {
   // Renders the real production widget so these tests cannot drift from the
   // screen users actually see (the previous inline replica did exactly that).
@@ -277,6 +278,7 @@ Widget _buildVersionMismatchError({
             textColor: Colors.black87,
             subtitleColor: Colors.black54,
             onDownloadLatest: onDownloadLatest ?? () {},
+            onOpenBetaBuilds: onOpenBetaBuilds ?? () {},
             onClose: onClose ?? () {},
           ),
         ),
@@ -390,14 +392,19 @@ void main() {
   });
 
   group('Error UI - version mismatch', () {
-    testWidgets('shows update required with version numbers', (tester) async {
+    testWidgets('states the mismatch without demanding an update', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _buildVersionMismatchError(dbVersion: 99, appVersion: 63),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Update Required'), findsOneWidget);
-      expect(find.byIcon(Icons.update), findsOneWidget);
+      // "Update Required" asserted a fix that usually does not exist: a beta
+      // build commonly wrote the file, and stable has no such release (#1588).
+      expect(find.text('Update Required'), findsNothing);
+      expect(find.text('Your Data Is Newer Than This App'), findsOneWidget);
+      expect(find.byIcon(Icons.sync_problem), findsOneWidget);
       expect(find.textContaining('schema v99'), findsOneWidget);
       expect(find.textContaining('schema v63'), findsOneWidget);
       expect(find.text('Close'), findsOneWidget);
@@ -426,6 +433,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.text('Close'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Close'));
       expect(closeCalled, isTrue);
     });
@@ -439,7 +448,7 @@ void main() {
       expect(find.byKey(const ValueKey('error')), findsOneWidget);
     });
 
-    testWidgets('offers a download link for the latest version', (
+    testWidgets('offers both the stable and the beta release pages', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -447,7 +456,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Download Latest Version'), findsOneWidget);
+      expect(find.text('Check for a Newer Stable Release'), findsOneWidget);
+      expect(find.text('Get the Beta Build'), findsOneWidget);
     });
 
     testWidgets('mentions the pre-upgrade backup conditionally', (
@@ -480,7 +490,11 @@ void main() {
         find.textContaining(VersionMismatchView.latestReleaseUrl),
         findsOneWidget,
       );
-      expect(find.textContaining('does not open a browser'), findsOneWidget);
+      expect(
+        find.textContaining(VersionMismatchView.betaReleasesUrl),
+        findsOneWidget,
+      );
+      expect(find.textContaining('open a browser'), findsOneWidget);
     });
   });
 
@@ -536,6 +550,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.text('Close'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Close'));
       expect(closeCalled, isTrue);
     });
@@ -822,9 +838,11 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
-      // Should show version mismatch error UI
-      expect(find.text('Update Required'), findsOneWidget);
-      expect(find.byIcon(Icons.update), findsOneWidget);
+      // Should show version mismatch error UI. Deliberately NOT titled
+      // "Update Required": the build that wrote the file is often a beta,
+      // and no stable update exists to install (#1588).
+      expect(find.text('Your Data Is Newer Than This App'), findsOneWidget);
+      expect(find.byIcon(Icons.sync_problem), findsOneWidget);
       expect(find.textContaining('schema v99'), findsOneWidget);
       expect(find.textContaining('schema v63'), findsOneWidget);
       expect(find.byKey(const ValueKey('error')), findsOneWidget);
@@ -882,6 +900,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap the Close button
+      await tester.ensureVisible(find.text('Close'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Close'));
       await tester.pump();
 
@@ -913,6 +933,8 @@ void main() {
         await tester.pump(const Duration(seconds: 2));
         await tester.pumpAndSettle();
 
+        await tester.ensureVisible(find.text('Close'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Close'));
         await tester.pump();
 
@@ -2203,7 +2225,7 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
-      expect(find.text('Update Required'), findsOneWidget);
+      expect(find.text('Your Data Is Newer Than This App'), findsOneWidget);
       expect(find.text('Restore your pre-upgrade backup'), findsOneWidget);
       expect(find.textContaining('v170'), findsOneWidget);
     });
@@ -2234,7 +2256,7 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
-      expect(find.text('Update Required'), findsOneWidget);
+      expect(find.text('Your Data Is Newer Than This App'), findsOneWidget);
       expect(find.text('Restore this backup'), findsNothing);
     });
 
@@ -2295,7 +2317,7 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
-      expect(find.text('Update Required'), findsOneWidget);
+      expect(find.text('Your Data Is Newer Than This App'), findsOneWidget);
       expect(find.text('Restore this backup'), findsNothing);
     });
 
@@ -2376,7 +2398,7 @@ void main() {
       );
       expect(restoredFrom, copyPath);
       expect(initializerCalls, 2, reason: 'startup must resume after restore');
-      expect(find.text('Update Required'), findsNothing);
+      expect(find.text('Your Data Is Newer Than This App'), findsNothing);
       expect(find.byKey(const ValueKey('splash')), findsOneWidget);
 
       // Drain the splash-delay timer started by the second _runInitialization.
