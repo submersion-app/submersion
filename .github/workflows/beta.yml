@@ -335,6 +335,25 @@ jobs:
           fi
           gh release upload appcast appcast-beta.xml --repo "$REPO" --clobber
 
+      # Every beta published before #1591 is still flagged a full release, so
+      # without this the Latest badge would sit on an old beta until pruning
+      # aged all 30 of them out. Runs after the pointer release exists, so
+      # releases/latest never has a moment with nothing to resolve to. Drains
+      # on the first run and is a no-op forever after.
+      - name: Backfill the pre-release flag on older betas
+        env:
+          GH_TOKEN: ${{ secrets.BETA_BUILDS_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO=submersion-app/beta-builds
+          gh release list --repo "$REPO" --json tagName,isPrerelease --limit 100 \
+            -q '.[] | select(.isPrerelease == false)
+                    | select(.tagName | test("^v[0-9]")) | .tagName' \
+            | while read -r tag; do
+            echo "Marking $tag as a pre-release"
+            gh release edit "$tag" --repo "$REPO" --prerelease
+          done
+
       - name: Prune old betas
         env:
           GH_TOKEN: ${{ secrets.BETA_BUILDS_TOKEN }}

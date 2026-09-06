@@ -78,6 +78,10 @@ mistake. `beta.yml` refreshes its asset on every run, and the prune step skips
 it by matching version tags only. Do not delete it: every beta desktop install
 in the field would stop updating.
 
+A backfill step demotes any versioned release still flagged as a full release,
+so the Latest badge moves off the old betas on the first run rather than after
+30 more builds. It drains once and is a no-op after that.
+
 The API pollers are handled in the app instead: `GithubUpdateService` takes
 `includePrereleases` and, on the beta channel, enumerates `/releases` and picks
 the highest version rather than asking for the latest. Beta installs predating
