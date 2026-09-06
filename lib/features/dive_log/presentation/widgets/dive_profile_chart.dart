@@ -5192,26 +5192,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return lines;
   }
 
-  /// Extend a curve back to the t=0 axis origin with a lead-in vertex at
-  /// [surfaceY] (already in chart y-space, i.e. negated/normalised the same way
-  /// the curve's own points are).
-  ///
-  /// Computers do not sample at t=0, so without this every line starts one
-  /// sample interval inside the chart and the left edge reads as ragged
-  /// (issue #684). No-ops when the profile already starts at zero, when the gap
-  /// is too wide to attribute to the sampling rate, or when the curve drew no
-  /// points at all.
-  /// Whether [spots] is eligible for a lead-in against [owner], the profile the
-  /// series was built from.
-  ///
-  /// [owner] is passed rather than assumed to be [widget.profile]: an overlaid
-  /// source has its own samples and its own sampling interval, so keying an
-  /// overlay's lead-in off the active profile would test the wrong dive.
-  ///
-  /// A curve that is only drawn where it has data (the ceiling line skips
-  /// ceiling <= 0, a deco bottle's pressure starts when it is first breathed)
-  /// may legitimately start mid-dive; only a curve whose own first point is its
-  /// profile's first sample is bridged back to t=0.
   /// Adds one overlaid computer's trace of a metric drawn as a banded curve.
   ///
   /// Eight metrics are plotted identically: take that source's own analysis
@@ -5284,12 +5264,32 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
+  /// Whether [spots] is eligible for a lead-in against [owner], the profile the
+  /// series was built from.
+  ///
+  /// [owner] is passed rather than assumed to be [widget.profile]: an overlaid
+  /// source has its own samples and its own sampling interval, so keying an
+  /// overlay's lead-in off the active profile would test the wrong dive.
+  ///
+  /// A curve that is only drawn where it has data (the ceiling line skips
+  /// ceiling <= 0, a deco bottle's pressure starts when it is first breathed)
+  /// may legitimately start mid-dive; only a curve whose own first point is its
+  /// profile's first sample is bridged back to t=0.
   bool _seriesGetsLeadIn(List<FlSpot> spots, List<DiveProfilePoint> owner) =>
       spots.isNotEmpty &&
       owner.isNotEmpty &&
       shouldDrawSurfaceLeadIn(owner) &&
       spots.first.x == owner.first.timestamp.toDouble();
 
+  /// Extend a curve back to the t=0 axis origin with a lead-in vertex at
+  /// [surfaceY] (already in chart y-space, i.e. negated/normalised the same way
+  /// the curve's own points are).
+  ///
+  /// Computers do not sample at t=0, so without this every line starts one
+  /// sample interval inside the chart and the left edge reads as ragged
+  /// (issue #684). No-ops when the profile already starts at zero, when the gap
+  /// is too wide to attribute to the sampling rate, or when the curve drew no
+  /// points at all.
   List<FlSpot> _withSurfaceLeadIn(
     List<FlSpot> spots,
     double surfaceY, {

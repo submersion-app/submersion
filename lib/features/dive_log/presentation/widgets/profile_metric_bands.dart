@@ -48,12 +48,18 @@ class ProfileMetricBand {
       max ?? (throw StateError('this metric has no fixed maximum'));
 }
 
-/// One entry per metric the profile chart draws as its own curve.
+/// The metrics an overlaid computer can draw alongside the active one.
 ///
-/// Most are banded, sharing the right-hand axis through [ProfileMetricBand.min]
-/// and [ProfileMetricBand.max]. MOD and mean depth are plotted in depth units
-/// instead and appear here only so their colour and dash pattern have one
-/// definition too.
+/// Deliberately not every curve on the chart: depth, tank pressure, heart
+/// rate, SAC and the markers are drawn for the active source only, are styled
+/// where they are built, and are absent here. What earns an entry is being
+/// comparable across computers, because that is what forces the active trace
+/// and the overlay onto one definition.
+///
+/// Most entries are band-mapped, sharing the right-hand axis through
+/// [ProfileMetricBand.min] and [ProfileMetricBand.max]. MOD and mean depth are
+/// plotted in the profile's depth unit instead and appear here only so their
+/// colour and dash pattern have a single definition too.
 abstract final class ProfileMetricBands {
   /// Seconds-based metrics share a 60 minute ceiling; longer readings clamp.
   static const double _oneHourSeconds = 3600.0;
