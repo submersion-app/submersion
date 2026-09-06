@@ -132,6 +132,8 @@ import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -3570,7 +3572,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               _buildDetailRow(
                 context,
                 context.l10n.diveLog_detail_label_visibility,
-                dive.visibility!.displayName,
+                visibilityName(dive.visibility!, context.l10n),
               ),
             if (dive.avgDepth != null)
               _buildDetailRow(
@@ -3584,7 +3586,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               _buildDetailRow(
                 context,
                 context.l10n.diveLog_detail_label_waterType,
-                dive.effectiveWaterType!.displayName,
+                dive.effectiveWaterType!.localizedName(context.l10n),
               ),
             if (dive.buddy != null && dive.buddy!.isNotEmpty)
               _buildDetailRow(
@@ -4069,7 +4071,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            altitudeGroup.displayName,
+                            altitudeGroup.localizedName(context.l10n),
                             style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.w600,

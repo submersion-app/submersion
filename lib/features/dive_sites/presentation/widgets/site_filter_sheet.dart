@@ -6,6 +6,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 
 /// Bottom sheet for filtering dive sites.
 ///
@@ -247,7 +248,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
             ),
             ...SiteDifficulty.values.map((difficulty) {
               return FilterChip(
-                label: Text(difficulty.displayName),
+                label: Text(difficulty.localizedName(context.l10n)),
                 selected: _difficulty == difficulty,
                 onSelected: (selected) {
                   setState(() {

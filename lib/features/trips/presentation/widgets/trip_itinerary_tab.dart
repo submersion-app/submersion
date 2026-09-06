@@ -12,6 +12,7 @@ import 'package:submersion/features/trips/presentation/providers/liveaboard_prov
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary_day_edit_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 
 /// Itinerary tab showing the day-by-day timeline for a liveaboard trip.
 ///
@@ -182,7 +183,7 @@ class _ItineraryDayCard extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        day.dayType.displayName,
+                        day.dayType.localizedName(context),
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: _dayTypeColor(colorScheme),
                           fontWeight: FontWeight.w600,

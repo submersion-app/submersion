@@ -115,6 +115,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
 const _createNewSiteSentinel = '__create_new__';
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
@@ -3889,7 +3890,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   String _conditionsSummary(UnitFormatter units) {
     return [
-      if (_waterType != null) _waterType!.displayName,
+      if (_waterType != null) _waterType!.localizedName(context.l10n),
       if (_waterTempController.text.isNotEmpty)
         '${_waterTempController.text} ${units.temperatureSymbol}',
       // Through the formatter rather than hand-concatenated, so the summary
@@ -5216,7 +5217,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final group = AltitudeGroup.fromAltitude(altitudeMeters);
 
     if (group == AltitudeGroup.seaLevel) return null;
-    return '${group.displayName} - ${group.rangeDescription}';
+    return '${group.localizedName(context.l10n)} - ${group.localizedRange(context.l10n)}';
   }
 
   /// Get warning color for altitude dives based on altitude group.

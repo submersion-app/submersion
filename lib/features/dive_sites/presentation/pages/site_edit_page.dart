@@ -916,7 +916,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       '${_minDepthController.text.isEmpty ? '?' : _minDepthController.text}'
           '-${_maxDepthController.text.isEmpty ? '?' : _maxDepthController.text}',
     if (_difficulty != null) _difficulty!.displayName,
-    if (_waterType != null) _waterType!.displayName,
+    if (_waterType != null) _waterType!.localizedName(context.l10n),
     if (_rating > 0) '★' * _rating.round(),
   ].join(' · ');
 

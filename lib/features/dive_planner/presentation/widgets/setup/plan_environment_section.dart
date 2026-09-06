@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
 /// Environment settings for the Setup accordion: altitude with the altitude
 /// group indicator. Water type / salinity lands here in later phases.
@@ -133,7 +134,7 @@ class _AltitudeInputState extends State<_AltitudeInput> {
         ? Flexible(
             child: Semantics(
               label: context.l10n.divePlanner_semantics_altitudeGroup(
-                altitudeGroup.displayName,
+                altitudeGroup.localizedName(context.l10n),
               ),
               child: _buildGroupChip(theme, altitudeGroup),
             ),
@@ -199,7 +200,7 @@ class _AltitudeInputState extends State<_AltitudeInput> {
         ),
       ),
       child: Text(
-        group.displayName,
+        group.localizedName(context.l10n),
         style: theme.textTheme.labelSmall?.copyWith(
           color: _getGroupColor(theme, group),
           fontWeight: FontWeight.w600,

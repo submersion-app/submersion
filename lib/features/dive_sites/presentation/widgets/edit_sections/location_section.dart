@@ -9,6 +9,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
 /// Site group 2: latitude/longitude rows, locate/pick actions, altitude
 /// row with the altitude-group indicator.
@@ -222,7 +223,7 @@ Widget _altitudeGroupIndicator(BuildContext context, AltitudeGroup group) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                group.displayName,
+                group.localizedName(context.l10n),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: foregroundColor,
                   fontWeight: FontWeight.w600,

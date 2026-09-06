@@ -7,6 +7,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 
 /// Site group 3: min/max depth rows, difficulty chips row, rating row.
 class DiveInfoSection extends StatelessWidget {
@@ -110,7 +112,7 @@ class DiveInfoSection extends StatelessWidget {
                 children: SiteDifficulty.values.map((value) {
                   final isSelected = difficulty == value;
                   return ChoiceChip(
-                    label: Text(value.displayName),
+                    label: Text(value.localizedName(context.l10n)),
                     selected: isSelected,
                     visualDensity: VisualDensity.compact,
                     onSelected: (selected) =>
@@ -138,7 +140,7 @@ class DiveInfoSection extends StatelessWidget {
                 children: WaterType.values.map((value) {
                   final isSelected = waterType == value;
                   return ChoiceChip(
-                    label: Text(value.displayName),
+                    label: Text(value.localizedName(context.l10n)),
                     selected: isSelected,
                     visualDensity: VisualDensity.compact,
                     onSelected: (selected) =>

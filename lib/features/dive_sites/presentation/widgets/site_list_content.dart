@@ -35,6 +35,7 @@ import 'package:submersion/features/dive_sites/domain/services/site_location_bac
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 class SiteListContent extends ConsumerStatefulWidget {
@@ -1115,7 +1116,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               ),
             if (filter.difficulty != null)
               _buildFilterChip(
-                filter.difficulty!.displayName,
+                filter.difficulty!.localizedName(context.l10n),
                 () => ref.read(siteFilterProvider.notifier).state = filter
                     .copyWith(clearDifficulty: true),
               ),

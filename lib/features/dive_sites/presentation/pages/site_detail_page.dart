@@ -24,6 +24,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
@@ -39,6 +40,7 @@ import 'package:submersion/features/tides/presentation/widgets/tide_section.dart
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -1403,7 +1405,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            altitudeGroup.displayName,
+                            altitudeGroup.localizedName(context.l10n),
                             style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.w600,
@@ -1510,7 +1512,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      site.difficulty!.displayName,
+                      site.difficulty!.localizedName(context.l10n),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: getDifficultyColor(site.difficulty!),
