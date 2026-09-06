@@ -16,6 +16,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
   final String? equipmentId;
@@ -234,7 +235,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             items: EquipmentType.values.map((type) {
               return DropdownMenuItem(
                 value: type,
-                child: Text(type.displayName),
+                child: Text(type.localizedName(context.l10n)),
               );
             }).toList(),
             onChanged: (value) {
@@ -258,7 +259,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             items: EquipmentStatus.values.map((status) {
               return DropdownMenuItem(
                 value: status,
-                child: Text(status.displayName),
+                child: Text(status.localizedName(context.l10n)),
               );
             }).toList(),
             onChanged: (value) {

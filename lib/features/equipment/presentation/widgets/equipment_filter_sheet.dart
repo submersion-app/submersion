@@ -6,6 +6,7 @@ import 'package:submersion/features/equipment/domain/models/equipment_filter_sta
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
 /// Open the equipment filter panel.
 ///
@@ -186,7 +187,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
             ))
               ChoiceChip(
                 key: ValueKey('equipment_filter_status_${status.name}'),
-                label: Text(status.displayName),
+                label: Text(status.localizedName(context.l10n)),
                 selected: _status == status,
                 onSelected: (selected) => setState(() {
                   _status = selected ? status : null;
@@ -232,7 +233,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
               ChoiceChip(
                 key: ValueKey('equipment_filter_type_${type.name}'),
                 avatar: Icon(equipmentTypeIcon(type), size: 18),
-                label: Text(type.displayName),
+                label: Text(type.localizedName(context.l10n)),
                 selected: _type == type,
                 onSelected: (selected) =>
                     setState(() => _type = selected ? type : null),

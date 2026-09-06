@@ -17268,6 +17268,48 @@ abstract class AppLocalizations {
   /// **'Wetsuit'**
   String get enum_equipmentType_wetsuit;
 
+  /// No description provided for @enum_equipmentType_snorkel.
+  ///
+  /// In en, this message translates to:
+  /// **'Snorkel'**
+  String get enum_equipmentType_snorkel;
+
+  /// No description provided for @enum_equipmentType_transmitter.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter'**
+  String get enum_equipmentType_transmitter;
+
+  /// No description provided for @enum_equipmentType_instrument.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrument / Gauge'**
+  String get enum_equipmentType_instrument;
+
+  /// No description provided for @enum_equipmentType_compass.
+  ///
+  /// In en, this message translates to:
+  /// **'Compass'**
+  String get enum_equipmentType_compass;
+
+  /// No description provided for @enum_equipmentType_rebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather'**
+  String get enum_equipmentType_rebreather;
+
+  /// No description provided for @enum_equipmentType_tool.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool'**
+  String get enum_equipmentType_tool;
+
+  /// No description provided for @enum_equipmentType_rashGuard.
+  ///
+  /// In en, this message translates to:
+  /// **'Rash Guard'**
+  String get enum_equipmentType_rashGuard;
+
   /// No description provided for @enum_eventSeverity_alert.
   ///
   /// In en, this message translates to:

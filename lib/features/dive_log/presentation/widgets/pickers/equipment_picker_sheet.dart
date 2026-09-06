@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
 /// Equipment picker bottom sheet
 class EquipmentPickerSheet extends ConsumerWidget {
@@ -100,7 +101,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
                       ),
                     ),
                     title: Text(equipment.name),
-                    subtitle: Text(equipment.type.displayName),
+                    subtitle: Text(equipment.type.localizedName(context.l10n)),
                     onTap: () => onEquipmentSelected(equipment),
                   );
                 },

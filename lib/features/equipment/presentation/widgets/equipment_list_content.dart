@@ -32,6 +32,7 @@ import 'package:submersion/features/equipment/presentation/widgets/dense_equipme
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
 /// Content widget for the equipment list, used in master-detail layout.
 class EquipmentListContent extends ConsumerStatefulWidget {
@@ -979,7 +980,7 @@ class EquipmentListTile extends ConsumerWidget {
     final theme = Theme.of(context);
 
     final typeLabel = Text(
-      item.type.displayName,
+      item.type.localizedName(context.l10n),
       style: theme.textTheme.bodySmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       ),
@@ -1019,7 +1020,7 @@ class EquipmentListTile extends ConsumerWidget {
           typeLabel,
           const SizedBox(height: 2),
           Text(
-            item.status.displayName,
+            item.status.localizedName(context.l10n),
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSecondaryContainer,
               fontWeight: FontWeight.w500,

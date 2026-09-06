@@ -130,6 +130,7 @@ import 'package:submersion/features/reef/presentation/widgets/water_conditions_c
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -5037,7 +5038,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      item.type.displayName,
+                      item.type.localizedName(context.l10n),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),

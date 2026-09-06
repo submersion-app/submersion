@@ -10088,6 +10088,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_wetsuit => 'بدلة غوص';
 
   @override
+  String get enum_equipmentType_snorkel => 'سنوركل';
+
+  @override
+  String get enum_equipmentType_transmitter => 'جهاز إرسال';
+
+  @override
+  String get enum_equipmentType_instrument => 'أداة / مقياس';
+
+  @override
+  String get enum_equipmentType_compass => 'بوصلة';
+
+  @override
+  String get enum_equipmentType_rebreather => 'جهاز إعادة التنفس';
+
+  @override
+  String get enum_equipmentType_tool => 'أداة';
+
+  @override
+  String get enum_equipmentType_rashGuard => 'قميص واقٍ من الاحتكاك';
+
+  @override
   String get enum_eventSeverity_alert => 'تنبيه';
 
   @override

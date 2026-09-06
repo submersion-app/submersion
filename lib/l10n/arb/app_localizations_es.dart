@@ -10275,6 +10275,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_equipmentType_wetsuit => 'Traje de neopreno';
 
   @override
+  String get enum_equipmentType_snorkel => 'Tubo';
+
+  @override
+  String get enum_equipmentType_transmitter => 'Transmisor';
+
+  @override
+  String get enum_equipmentType_instrument => 'Instrumento / Manómetro';
+
+  @override
+  String get enum_equipmentType_compass => 'Brújula';
+
+  @override
+  String get enum_equipmentType_rebreather => 'Recirculador';
+
+  @override
+  String get enum_equipmentType_tool => 'Herramienta';
+
+  @override
+  String get enum_equipmentType_rashGuard => 'Licra';
+
+  @override
   String get enum_eventSeverity_alert => 'Alerta';
 
   @override

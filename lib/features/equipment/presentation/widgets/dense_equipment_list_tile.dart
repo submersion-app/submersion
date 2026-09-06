@@ -6,6 +6,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Single-row flat tile for the equipment list (maximum density).
 ///
@@ -77,7 +79,7 @@ class DenseEquipmentListTile extends ConsumerWidget {
                 SizedBox(
                   width: 80,
                   child: Text(
-                    item.type.displayName,
+                    item.type.localizedName(context.l10n),
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: secondaryTextColor),
@@ -125,7 +127,7 @@ class DenseEquipmentListTile extends ConsumerWidget {
 
     if (item.status != EquipmentStatus.active) {
       return Text(
-        item.status.displayName,
+        item.status.localizedName(context.l10n),
         style: theme.textTheme.labelSmall?.copyWith(
           color: theme.colorScheme.onSecondaryContainer,
           fontWeight: FontWeight.w500,

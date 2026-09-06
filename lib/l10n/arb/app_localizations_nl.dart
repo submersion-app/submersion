@@ -10195,6 +10195,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_wetsuit => 'Wetsuit';
 
   @override
+  String get enum_equipmentType_snorkel => 'Snorkel';
+
+  @override
+  String get enum_equipmentType_transmitter => 'Zender';
+
+  @override
+  String get enum_equipmentType_instrument => 'Instrument / Meter';
+
+  @override
+  String get enum_equipmentType_compass => 'Kompas';
+
+  @override
+  String get enum_equipmentType_rebreather => 'Rebreather';
+
+  @override
+  String get enum_equipmentType_tool => 'Gereedschap';
+
+  @override
+  String get enum_equipmentType_rashGuard => 'Rashguard';
+
+  @override
   String get enum_eventSeverity_alert => 'Alarm';
 
   @override

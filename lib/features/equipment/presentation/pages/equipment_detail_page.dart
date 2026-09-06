@@ -10,6 +10,7 @@ import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.d
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -267,7 +268,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  equipment.type.displayName,
+                  equipment.type.localizedName(context.l10n),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -361,7 +362,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       Text(
-                        equipment.type.displayName,
+                        equipment.type.localizedName(context.l10n),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -442,7 +443,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
             _buildDetailRow(
               context,
               context.l10n.equipment_detail_statusLabel,
-              equipment.status.displayName,
+              equipment.status.localizedName(context.l10n),
             ),
             diveCountAsync.when(
               data: (count) => Semantics(

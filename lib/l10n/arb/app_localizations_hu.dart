@@ -10246,6 +10246,27 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_wetsuit => 'Neopren ruha';
 
   @override
+  String get enum_equipmentType_snorkel => 'Pipa';
+
+  @override
+  String get enum_equipmentType_transmitter => 'Jeladó';
+
+  @override
+  String get enum_equipmentType_instrument => 'Műszer / Nyomásmérő';
+
+  @override
+  String get enum_equipmentType_compass => 'Iránytű';
+
+  @override
+  String get enum_equipmentType_rebreather => 'Zárt rendszerű légzőkészülék';
+
+  @override
+  String get enum_equipmentType_tool => 'Szerszám';
+
+  @override
+  String get enum_equipmentType_rashGuard => 'Vízi trikó';
+
+  @override
   String get enum_eventSeverity_alert => 'Riasztas';
 
   @override

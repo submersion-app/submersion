@@ -9793,6 +9793,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_wetsuit => '湿衣';
 
   @override
+  String get enum_equipmentType_snorkel => '呼吸管';
+
+  @override
+  String get enum_equipmentType_transmitter => '无线发射器';
+
+  @override
+  String get enum_equipmentType_instrument => '仪表';
+
+  @override
+  String get enum_equipmentType_compass => '指南针';
+
+  @override
+  String get enum_equipmentType_rebreather => '循环呼吸器';
+
+  @override
+  String get enum_equipmentType_tool => '工具';
+
+  @override
+  String get enum_equipmentType_rashGuard => '防磨衣';
+
+  @override
   String get enum_eventSeverity_alert => '警报';
 
   @override

@@ -10312,6 +10312,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentType_wetsuit => 'Combinaison';
 
   @override
+  String get enum_equipmentType_snorkel => 'Tuba';
+
+  @override
+  String get enum_equipmentType_transmitter => 'Émetteur';
+
+  @override
+  String get enum_equipmentType_instrument => 'Instrument / Manomètre';
+
+  @override
+  String get enum_equipmentType_compass => 'Compas';
+
+  @override
+  String get enum_equipmentType_rebreather => 'Recycleur';
+
+  @override
+  String get enum_equipmentType_tool => 'Outil';
+
+  @override
+  String get enum_equipmentType_rashGuard => 'Lycra';
+
+  @override
   String get enum_eventSeverity_alert => 'Alerte';
 
   @override
