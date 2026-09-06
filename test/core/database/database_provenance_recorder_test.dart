@@ -59,12 +59,62 @@ void main() {
     expect(record.previousOpen, isNull);
   });
 
-  test('records the release train the build came off', () async {
+  test('records no train at all when the build carries no stamp', () async {
     await DatabaseProvenanceRecorder.record(db, schemaVersion: 194);
     final record = await _read(db);
-    // The test binary carries no BUILD_TRAIN define, so it is a stable build.
-    expect(record.lastOpen!.releaseTrain, 'stable');
+    // The test binary sets no BUILD_TRAIN define, which is also true of every
+    // build shipping today until #1592 stamps the beta workflow. Defaulting
+    // to 'stable' here would have a beta-written dive log claim the stable
+    // train and send a stranded diver to the stable releases page, which is
+    // the dead end #1568 is about. Absent says "unknown"; defaulted lies.
+    expect(record.lastOpen!.releaseTrain, isNull);
   });
+
+  test('records the train when the build was stamped with one', () async {
+    await DatabaseProvenanceRecorder.record(
+      db,
+      schemaVersion: 194,
+      upgradedFrom: 191,
+      releaseTrainOverride: 'beta',
+    );
+    final record = await _read(db);
+    expect(record.lastOpen!.releaseTrain, 'beta');
+    expect(record.lastUpgrade!.releaseTrain, 'beta');
+  });
+
+  test(
+    'an unstamped open cannot erase the train that ran the upgrade',
+    () async {
+      // The fact #1568 turns on: a beta build upgraded this file. Later opens
+      // must not be able to launder that away, or the mismatch screen is back
+      // to guessing which repository hosts the build the diver needs.
+      await DatabaseProvenanceRecorder.record(
+        db,
+        schemaVersion: 194,
+        upgradedFrom: 191,
+        now: DateTime.utc(2026, 8, 1),
+        installIdOverride: 'device-a',
+        releaseTrainOverride: 'beta',
+      );
+      await DatabaseProvenanceRecorder.record(
+        db,
+        schemaVersion: 194,
+        now: DateTime.utc(2026, 9, 5),
+        installIdOverride: 'device-a',
+      );
+
+      final record = await _read(db);
+      // The current open genuinely does not know its train, and says so.
+      expect(record.lastOpen!.releaseTrain, isNull);
+      // The upgrade entry is a different event and keeps its own answer.
+      expect(record.lastUpgrade!.releaseTrain, 'beta');
+      expect(record.lastUpgrade!.fromSchemaVersion, 191);
+      // No rotation: an unknown train is not evidence of a different build, so
+      // it does not count as a difference. Weakening that would have every
+      // headless open rotate a near-duplicate over the real predecessor.
+      expect(record.previousOpen, isNull);
+    },
+  );
 
   test('stamps the upgrade entry when the ladder ran', () async {
     await DatabaseProvenanceRecorder.record(

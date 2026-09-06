@@ -52,18 +52,25 @@ class DatabaseProvenanceRecorder {
   /// answer to that question. Null means this open found the file already on
   /// [schemaVersion] and left the existing `upgrade_*` entry alone.
   ///
-  /// [now] and [installIdOverride] exist so a test can assert on exact
-  /// values; production passes neither.
+  /// [now], [installIdOverride] and [releaseTrainOverride] exist so a test can
+  /// assert on exact values; production passes none of them. The train in
+  /// particular is a compile-time define, so a test binary cannot vary it.
   static Future<void> record(
     DatabaseConnectionUser db, {
     required int schemaVersion,
     int? upgradedFrom,
     DateTime? now,
     String? installIdOverride,
+    String? releaseTrainOverride,
   }) async {
     try {
       final timestamp = (now ?? DateTime.now()).toUtc();
       final appVersion = await _resolveAppVersion();
+      // BuildTrain.stamped, NOT the defaulted BuildTrain.current: an
+      // unstamped build must record no train at all rather than defaulting
+      // itself onto the stable one. See BuildTrain.stamped for why a
+      // defaulted value here would be worse than an absent one.
+      final releaseTrain = releaseTrainOverride ?? BuildTrain.stamped;
       final installId = installIdOverride ?? await _resolveInstallId(db);
       final existing = await _readRows(db);
 
@@ -89,7 +96,7 @@ class DatabaseProvenanceRecorder {
       // (rung, install, timestamp, train) stays true meanwhile.
       final writes = <String, String?>{
         DatabaseProvenanceKeys.appVersion: appVersion,
-        DatabaseProvenanceKeys.releaseTrain: BuildTrain.current,
+        DatabaseProvenanceKeys.releaseTrain: releaseTrain,
         DatabaseProvenanceKeys.schemaVersion: '$schemaVersion',
         DatabaseProvenanceKeys.writtenAt: timestamp.toIso8601String(),
         DatabaseProvenanceKeys.installId: installId,
@@ -115,7 +122,7 @@ class DatabaseProvenanceRecorder {
 
       if (upgradedFrom != null) {
         writes[DatabaseProvenanceKeys.upgradeAppVersion] = appVersion;
-        writes[DatabaseProvenanceKeys.upgradeReleaseTrain] = BuildTrain.current;
+        writes[DatabaseProvenanceKeys.upgradeReleaseTrain] = releaseTrain;
         writes[DatabaseProvenanceKeys.upgradeSchemaVersion] = '$schemaVersion';
         writes[DatabaseProvenanceKeys.upgradeFromSchemaVersion] =
             '$upgradedFrom';

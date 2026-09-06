@@ -206,7 +206,11 @@ void main() {
     final record = DatabaseService.readProvenance(path)!;
     expect(record.lastOpen!.appVersion, '1.7.7.8064');
     expect(record.lastOpen!.schemaVersion, AppDatabase.currentSchemaVersion);
-    expect(record.lastOpen!.releaseTrain, 'stable');
+    // No BUILD_TRAIN define in a test binary, and none in any build shipping
+    // today until #1592 stamps the beta workflow. Recording nothing is the
+    // honest answer; defaulting to 'stable' would have a beta-written file
+    // claim the stable train.
+    expect(record.lastOpen!.releaseTrain, isNull);
     // A file this build created is a file this build put on its current rung,
     // which is the question the mismatch screen asks.
     expect(record.lastUpgrade!.appVersion, '1.7.7.8064');
