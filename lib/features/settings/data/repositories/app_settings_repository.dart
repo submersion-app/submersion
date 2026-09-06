@@ -18,6 +18,7 @@ class AppSettingsRepository {
 
   static const _shareByDefaultKey = 'share_new_records_by_default';
   static const _navPrimaryIdsKey = 'nav_primary_ids';
+  static const _navRailIdsKey = 'nav_rail_ids';
   static const _blenderPrefsKey = 'gas_blender_prefs';
 
   /// Emits whenever the `settings` table changes so providers holding a
@@ -36,14 +37,34 @@ class AppSettingsRepository {
     return db.tableUpdates(TableUpdateQuery.onTable(db.settings));
   }
 
-  /// Returns the raw stored nav primary ids, or `null` if unset / on read error.
+  /// Returns the raw stored phone nav order, or `null` if unset / on read error.
   ///
-  /// Caller should normalize via `normalizeNavPrimaryIds` before using the result.
-  Future<List<String>?> getNavPrimaryIdsRaw() async {
+  /// Caller should normalize via `normalizeNavOrder` before using the result.
+  Future<List<String>?> getNavPrimaryIdsRaw() =>
+      _getIdListRaw(_navPrimaryIdsKey);
+
+  /// Persists the phone nav order (bottom-bar slots first, then the More menu).
+  Future<void> setNavPrimaryIds(List<String> ids) =>
+      _setIdList(_navPrimaryIdsKey, ids);
+
+  /// Returns the raw stored wide-screen rail order, or `null` if unset / on
+  /// read error. Normalize via `normalizeNavOrder` before using the result.
+  ///
+  /// Stored under its own key so a phone and a desktop syncing to the same
+  /// account each keep their own layout instead of overwriting each other.
+  Future<List<String>?> getNavRailIdsRaw() => _getIdListRaw(_navRailIdsKey);
+
+  /// Persists the wide-screen rail order, below the pinned Home destination.
+  Future<void> setNavRailIds(List<String> ids) =>
+      _setIdList(_navRailIdsKey, ids);
+
+  /// Reads a JSON-encoded list of strings, returning `null` when unset, when
+  /// the stored value is not a JSON list, or on read error.
+  Future<List<String>?> _getIdListRaw(String key) async {
     try {
       final row = await (_db.select(
         _db.settings,
-      )..where((t) => t.key.equals(_navPrimaryIdsKey))).getSingleOrNull();
+      )..where((t) => t.key.equals(key))).getSingleOrNull();
       if (row == null) return null;
       final raw = row.value;
       if (raw == null) return null;
@@ -51,40 +72,35 @@ class AppSettingsRepository {
       if (decoded is! List) return null;
       return decoded.whereType<String>().toList(growable: false);
     } catch (e, stackTrace) {
-      _log.error(
-        'Failed to read $_navPrimaryIdsKey',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      _log.error('Failed to read $key', error: e, stackTrace: stackTrace);
       return null;
     }
   }
 
-  /// Persists the nav primary ids as a JSON-encoded string in the settings table.
-  Future<void> setNavPrimaryIds(List<String> ids) async {
+  /// Writes a JSON-encoded list of strings and marks it pending for sync.
+  ///
+  /// Rethrows so a failed save is visible to the caller, which rolls the UI
+  /// back rather than leaving the user believing a layout was stored.
+  Future<void> _setIdList(String key, List<String> ids) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       await _db
           .into(_db.settings)
           .insertOnConflictUpdate(
             SettingsCompanion(
-              key: const Value(_navPrimaryIdsKey),
+              key: Value(key),
               value: Value(jsonEncode(ids)),
               updatedAt: Value(now),
             ),
           );
       await _syncRepository.markRecordPending(
         entityType: 'settings',
-        recordId: _navPrimaryIdsKey,
+        recordId: key,
         localUpdatedAt: now,
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
-      _log.error(
-        'Failed to write $_navPrimaryIdsKey',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      _log.error('Failed to write $key', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }

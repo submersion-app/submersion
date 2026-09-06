@@ -15576,11 +15576,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_theme_system => 'الافتراضي للنظام';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'تخطيط التنقل';
 
   @override
   String get settings_navCustomization_description =>
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_descriptionDesktop =>
+      'اسحب العناصر لإعادة ترتيب الشريط الجانبي. تبقى الصفحة الرئيسية دائمًا في الأعلى.';
+
+  @override
+  String get settings_navCustomization_scopePhone => 'الهاتف';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => 'سطح المكتب';
 
   @override
   String get settings_navCustomization_dividerLabel =>

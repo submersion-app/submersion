@@ -15807,11 +15807,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_theme_system => 'Rendszer alapertelmezett';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'Navigáció elrendezése';
 
   @override
   String get settings_navCustomization_description =>
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_descriptionDesktop =>
+      'Húzza az elemeket az oldalsáv átrendezéséhez. A Kezdőlap mindig felül marad.';
+
+  @override
+  String get settings_navCustomization_scopePhone => 'Telefon';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => 'Asztali';
 
   @override
   String get settings_navCustomization_dividerLabel =>

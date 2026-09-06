@@ -15073,11 +15073,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_theme_system => '系统默认';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => '导航布局';
 
   @override
   String get settings_navCustomization_description =>
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_descriptionDesktop =>
+      '拖动项目以重新排列侧边栏。主页始终位于顶部。';
+
+  @override
+  String get settings_navCustomization_scopePhone => '手机';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => '桌面';
 
   @override
   String get settings_navCustomization_dividerLabel =>

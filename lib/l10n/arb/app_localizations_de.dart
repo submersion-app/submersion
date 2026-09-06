@@ -15838,11 +15838,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_appearance_theme_system => 'Systemstandard';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'Navigationslayout';
 
   @override
   String get settings_navCustomization_description =>
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_descriptionDesktop =>
+      'Elemente ziehen, um die Seitenleiste neu zu ordnen. Startseite bleibt immer oben.';
+
+  @override
+  String get settings_navCustomization_scopePhone => 'Telefon';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => 'Desktop';
 
   @override
   String get settings_navCustomization_dividerLabel =>

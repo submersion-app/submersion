@@ -15738,11 +15738,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_theme_system => 'Systeemstandaard';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'Navigatie-indeling';
 
   @override
   String get settings_navCustomization_description =>
       'Drag items to reorder. The top three appear in your bottom navigation bar.';
+
+  @override
+  String get settings_navCustomization_descriptionDesktop =>
+      'Sleep items om de zijbalk opnieuw te ordenen. Home blijft altijd bovenaan.';
+
+  @override
+  String get settings_navCustomization_scopePhone => 'Telefoon';
+
+  @override
+  String get settings_navCustomization_scopeDesktop => 'Desktop';
 
   @override
   String get settings_navCustomization_dividerLabel =>

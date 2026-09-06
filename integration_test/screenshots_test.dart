@@ -548,7 +548,9 @@ void main() {
       await _settle(tester);
       await tester.tap(find.widgetWithText(ListTile, 'Appearance').first);
       await _settle(tester);
-      await tester.tap(find.widgetWithText(ListTile, 'Navigation bar').first);
+      await tester.tap(
+        find.widgetWithText(ListTile, 'Navigation layout').first,
+      );
       await _settle(tester);
     }
 

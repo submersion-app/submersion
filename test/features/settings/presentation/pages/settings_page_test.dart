@@ -43,7 +43,10 @@ import 'package:submersion/features/settings/presentation/providers/debug_log_pr
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../support/fake_app_settings_repository.dart';
 
 typedef Override = riverpod.Override;
 
@@ -1223,6 +1226,51 @@ void main() {
         ),
       );
     }
+
+    // Same twin problem as the accent toggles below: the navigation
+    // customizer row lived only on AppearancePage, so on wide screens the
+    // rail had no way to reach its own ordering.
+    testWidgets('hub shows the navigation customization row', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        buildAppearanceWidget([
+          ...getOverrides(),
+          appSettingsRepositoryProvider.overrideWithValue(
+            FakeAppSettingsRepository(),
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NavCustomizationTile), findsOneWidget);
+      expect(find.text('Navigation layout'), findsOneWidget);
+      // Narrow: the subtitle previews the phone bottom-bar slots.
+      expect(find.text('Dives · Sites · Trips'), findsOneWidget);
+    });
+
+    testWidgets('hub row previews the rail order at rail width', (
+      tester,
+    ) async {
+      // Above the 800px rail breakpoint, below the 1100px master-detail one,
+      // so _AppearanceSectionContent renders without MasterDetailScaffold.
+      await tester.binding.setSurfaceSize(const Size(900, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final repo = FakeAppSettingsRepository()
+        ..navRailIds = ['statistics', 'gps-log', 'planning'];
+      await tester.pumpWidget(
+        buildAppearanceWidget([
+          ...getOverrides(),
+          appSettingsRepositoryProvider.overrideWithValue(repo),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NavCustomizationTile), findsOneWidget);
+      expect(find.text('Statistics · GPS Log · Planning'), findsOneWidget);
+    });
 
     // The desktop master-detail pane renders _AppearanceSectionContent, a
     // separate widget from AppearancePage. The color-accent toggles have to
