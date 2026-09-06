@@ -21,6 +21,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_selector_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 
 /// Widget for selecting buddies for a dive
 class BuddyPicker extends ConsumerWidget {
@@ -646,7 +647,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
           title: Text(buddy.name),
           subtitle: buddy.certificationLevel == null
               ? null
-              : Text(buddy.certificationLevel!.displayName),
+              : Text(buddy.certificationLevel!.localizedName(context.l10n)),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
+import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Single-row flat tile for the buddy list (maximum density).
 ///
@@ -78,7 +80,7 @@ class DenseBuddyListTile extends StatelessWidget {
                   SizedBox(
                     width: 100,
                     child: Text(
-                      buddy.certificationLevel!.displayName,
+                      buddy.certificationLevel!.localizedName(context.l10n),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: secondaryTextColor,
                       ),

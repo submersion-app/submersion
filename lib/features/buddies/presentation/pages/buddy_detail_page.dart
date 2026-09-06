@@ -21,6 +21,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
@@ -258,7 +259,7 @@ class _BuddyDetailContent extends ConsumerWidget {
                 ),
                 if (buddy.certificationLevel != null)
                   Text(
-                    buddy.certificationLevel!.displayName,
+                    buddy.certificationLevel!.localizedName(context.l10n),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),

@@ -9884,6 +9884,101 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_certificationLevel_wreck => 'غوص حطام';
 
   @override
+  String get enum_certificationLevel_masterDiver => 'غواص ماستر';
+
+  @override
+  String get enum_certificationLevel_assistantInstructor => 'مساعد مدرب';
+
+  @override
+  String get enum_certificationLevel_extendedRange => 'Extended Range';
+
+  @override
+  String get enum_certificationLevel_advancedTrimix => 'ترايمكس متقدم';
+
+  @override
+  String get enum_certificationLevel_cmas1StarDiver => 'غواص نجمة واحدة';
+
+  @override
+  String get enum_certificationLevel_cmas2StarDiver => 'غواص نجمتان';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiver => 'غواص ثلاث نجمات';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiver => 'غواص أربع نجمات';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor =>
+      'غواص ثلاث نجمات - مساعد مدرب';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor =>
+      'غواص أربع نجمات - مساعد مدرب';
+
+  @override
+  String get enum_certificationLevel_cmas1StarInstructor => 'مدرب نجمة واحدة';
+
+  @override
+  String get enum_certificationLevel_cmas2StarInstructor => 'مدرب نجمتان';
+
+  @override
+  String get enum_certificationLevel_cmas3StarInstructor => 'مدرب ثلاث نجمات';
+
+  @override
+  String get enum_certificationLevel_bsacOceanDiver => 'Ocean Diver';
+
+  @override
+  String get enum_certificationLevel_bsacSportsDiver => 'Sports Diver';
+
+  @override
+  String get enum_certificationLevel_bsacDiveLeader => 'Dive Leader';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedDiver => 'Advanced Diver';
+
+  @override
+  String get enum_certificationLevel_bsacFirstClassDiver => 'First Class Diver';
+
+  @override
+  String get enum_certificationLevel_bsacOpenWaterInstructor =>
+      'Open Water Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedInstructor =>
+      'Advanced Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacNationalInstructor =>
+      'National Instructor';
+
+  @override
+  String get enum_certificationLevel_gueFundamentals => 'Fundamentals';
+
+  @override
+  String get enum_certificationLevel_gueRec1 => 'Rec 1';
+
+  @override
+  String get enum_certificationLevel_gueRec2 => 'Rec 2';
+
+  @override
+  String get enum_certificationLevel_gueRec3 => 'Rec 3';
+
+  @override
+  String get enum_certificationLevel_gueTech1 => 'Tech 1';
+
+  @override
+  String get enum_certificationLevel_gueTech2 => 'Tech 2';
+
+  @override
+  String get enum_certificationLevel_gueCave1 => 'Cave 1';
+
+  @override
+  String get enum_certificationLevel_gueCave2 => 'Cave 2';
+
+  @override
+  String get enum_certificationLevel_gueDpv => 'DPV';
+
+  @override
   String get enum_currentDirection_east => 'شرق';
 
   @override

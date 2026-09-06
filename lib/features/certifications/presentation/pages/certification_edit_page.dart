@@ -18,6 +18,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -427,7 +428,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     DropdownMenuItem<CertificationOption> item(CertificationLevel value) =>
         DropdownMenuItem<CertificationOption>(
           value: CertificationOption.value(value),
-          child: Text(value.displayName),
+          child: Text(value.localizedName(context.l10n)),
         );
 
     return [

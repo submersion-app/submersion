@@ -17,6 +17,7 @@ import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_extra_fields.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 
 /// Detailed list card for one buddy.
 ///
@@ -106,7 +107,7 @@ class BuddyListTile extends ConsumerWidget {
 
     final certParts = <String>[
       if (buddy.certificationLevel != null)
-        buddy.certificationLevel!.displayName,
+        buddy.certificationLevel!.localizedName(context.l10n),
       if (buddy.certificationAgency != null)
         buddy.certificationAgency!.displayName,
     ];

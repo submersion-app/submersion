@@ -15,6 +15,7 @@ import 'package:submersion/features/certifications/domain/certification_title.da
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;
@@ -499,7 +500,7 @@ class _CertificationDetailContent extends ConsumerWidget {
               _InfoRow(
                 icon: Icons.workspace_premium,
                 label: context.l10n.certifications_detail_label_certification,
-                value: certification.level!.displayName,
+                value: certification.level!.localizedName(context.l10n),
               ),
             if (certification.cardNumber != null)
               _InfoRow(
