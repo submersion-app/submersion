@@ -15917,7 +15917,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_appearance_theme_system => 'Defaut du systeme';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'Disposition de la navigation';
 
   @override
   String get settings_navCustomization_description =>

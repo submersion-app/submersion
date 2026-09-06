@@ -4738,7 +4738,7 @@
   "settings_appearance_theme_dark": "داكن",
   "settings_appearance_theme_light": "فاتح",
   "settings_appearance_theme_system": "الافتراضي للنظام",
-  "settings_navCustomization_title": "Navigation bar",
+  "settings_navCustomization_title": "تخطيط التنقل",
   "settings_navCustomization_description": "Drag items to reorder. The top three appear in your bottom navigation bar.",
   "settings_navCustomization_descriptionDesktop": "اسحب العناصر لإعادة ترتيب الشريط الجانبي. تبقى الصفحة الرئيسية دائمًا في الأعلى.",
   "settings_navCustomization_scopePhone": "الهاتف",

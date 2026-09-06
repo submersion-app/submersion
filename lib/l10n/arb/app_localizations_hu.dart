@@ -15807,7 +15807,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_theme_system => 'Rendszer alapertelmezett';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'Navigáció elrendezése';
 
   @override
   String get settings_navCustomization_description =>

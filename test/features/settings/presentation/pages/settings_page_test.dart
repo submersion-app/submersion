@@ -1245,7 +1245,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(NavCustomizationTile), findsOneWidget);
-      expect(find.text('Navigation bar'), findsOneWidget);
+      expect(find.text('Navigation layout'), findsOneWidget);
       // Narrow: the subtitle previews the phone bottom-bar slots.
       expect(find.text('Dives · Sites · Trips'), findsOneWidget);
     });

@@ -26328,10 +26328,10 @@ abstract class AppLocalizations {
   /// **'System default'**
   String get settings_appearance_theme_system;
 
-  /// Title of the settings page for customizing bottom navigation primary slots.
+  /// Title of the settings page for arranging the phone bottom bar and the wide-screen navigation rail.
   ///
   /// In en, this message translates to:
-  /// **'Navigation bar'**
+  /// **'Navigation layout'**
   String get settings_navCustomization_title;
 
   /// Help text at the top of the navigation customization page.

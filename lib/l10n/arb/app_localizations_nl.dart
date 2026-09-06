@@ -15738,7 +15738,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_theme_system => 'Systeemstandaard';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'Navigatie-indeling';
 
   @override
   String get settings_navCustomization_description =>

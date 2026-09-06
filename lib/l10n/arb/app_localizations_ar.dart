@@ -15576,7 +15576,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_theme_system => 'الافتراضي للنظام';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'تخطيط التنقل';
 
   @override
   String get settings_navCustomization_description =>

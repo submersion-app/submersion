@@ -15073,7 +15073,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_theme_system => '系统默认';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => '导航布局';
 
   @override
   String get settings_navCustomization_description =>

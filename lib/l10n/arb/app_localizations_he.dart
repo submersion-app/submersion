@@ -15472,7 +15472,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_theme_system => 'ברירת מחדל של המערכת';
 
   @override
-  String get settings_navCustomization_title => 'Navigation bar';
+  String get settings_navCustomization_title => 'פריסת הניווט';
 
   @override
   String get settings_navCustomization_description =>
