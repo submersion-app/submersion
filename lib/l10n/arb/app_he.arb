@@ -10712,5 +10712,9 @@
   "diveComputer_detail_mergePickerSameSerial": "אותו מספר סידורי",
   "diveComputer_detail_duplicateBanner": "{name} מדווח על אותו מספר סידורי. ייתכן שזהו אותו מחשב שנשמר פעמיים.",
   "diveComputer_detail_duplicateBannerMultiple": "{count} רשומות שמורות נוספות מדווחות על אותו מספר סידורי. ייתכן שזהו אותו מחשב שנשמר יותר מפעם אחת.",
-  "diveComputer_detail_duplicateBannerAction": "מיזוג"
+  "diveComputer_detail_duplicateBannerAction": "מיזוג",
+  "startup_versionMismatch_restore_title": "שחזור הגיבוי שלפני העדכון",
+  "startup_versionMismatch_restore_body": "במכשיר הזה שמור עותק בטיחות של יומן הצלילה שנלקח לפני העדכון, והגרסה הזו יכולה לפתוח אותו.",
+  "startup_versionMismatch_restore_warning": "כל מה שתיעדת אחרי העדכון קיים רק בקובץ החדש יותר. הקובץ הזה נשמר כגיבוי מוצמד, כך שהתקנה מחדש של הגרסה החדשה תחזיר אותו.",
+  "backup_history_preDowngradeSubtitle": "מסד נתונים חדש יותר, נשמר בעת החזרה - {size}"
 }

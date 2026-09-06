@@ -46,6 +46,11 @@ void main() {
     // the resolved system locale is the only source of formatting there.
     'lib/core/presentation/widgets/startup_failure_view.dart':
         'renders before settings are readable',
+    // The backup card those startup screens share, for the same reason: it is
+    // shown by the failure screen and the schema-mismatch screen, both of
+    // which run before the database (and the diver's preferences) can be read.
+    'lib/core/presentation/widgets/startup_restore_card.dart':
+        'renders before settings are readable',
     // The printed card face imitates a physical certification card, so it
     // keeps that card's compact month/year whatever the diver picked. There is
     // no day to reorder; the spoken Semantics label carries the full date in

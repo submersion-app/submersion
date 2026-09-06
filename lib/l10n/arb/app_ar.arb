@@ -10712,5 +10712,9 @@
   "diveComputer_detail_mergePickerSameSerial": "نفس الرقم التسلسلي",
   "diveComputer_detail_duplicateBanner": "يُبلغ {name} عن نفس الرقم التسلسلي. قد يكون هذا الجهاز محفوظاً مرتين.",
   "diveComputer_detail_duplicateBannerMultiple": "تُبلغ {count} سجلات محفوظة أخرى عن نفس الرقم التسلسلي. قد يكون هذا الجهاز محفوظاً أكثر من مرة.",
-  "diveComputer_detail_duplicateBannerAction": "دمج"
+  "diveComputer_detail_duplicateBannerAction": "دمج",
+  "startup_versionMismatch_restore_title": "استعادة النسخة الاحتياطية السابقة للترقية",
+  "startup_versionMismatch_restore_body": "توجد على هذا الجهاز نسخة احتياطية من سجل الغوص أُخذت قبل الترقية، وهذا الإصدار يستطيع فتحها.",
+  "startup_versionMismatch_restore_warning": "كل ما سجّلته بعد الترقية موجود في الملف الأحدث فقط. يُحتفظ بذلك الملف كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيده.",
+  "backup_history_preDowngradeSubtitle": "قاعدة بيانات أحدث، محفوظة عند الرجوع - {size}"
 }

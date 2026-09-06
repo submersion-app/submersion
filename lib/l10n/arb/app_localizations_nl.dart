@@ -36504,4 +36504,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'Samenvoegen';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'Back-up van voor de upgrade terugzetten';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'Er staat een veiligheidskopie van je duiklogboek van voor de upgrade op dit apparaat, en deze versie kan die openen.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'Alles wat je na de upgrade hebt gelogd, bestaat alleen in het nieuwere bestand. Dat bestand wordt bewaard als vastgezette back-up, dus je krijgt het terug door de nieuwere versie opnieuw te installeren.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'Nieuwere database, bewaard bij het teruggaan - $size';
+  }
 }

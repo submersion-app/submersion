@@ -19,6 +19,7 @@ import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart'
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/pre_downgrade_backup_service.dart';
 import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
@@ -94,6 +95,40 @@ class _NoOpBackupService extends PreMigrationBackupService {
   }
 }
 
+/// Records that the newer database was preserved, without copying anything.
+class _RecordingPreDowngradeService extends PreDowngradeBackupService {
+  _RecordingPreDowngradeService({required super.preferences, this.error})
+    : super(
+        livePathProvider: () async => '/tmp/test.db',
+        backupsDirProvider: () async => '/tmp/test-backups',
+      );
+
+  final Object? error;
+  int calls = 0;
+  int? preservedSchemaVersion;
+
+  @override
+  Future<BackupRecord> preserve({
+    required int storedSchemaVersion,
+    required String appVersion,
+  }) async {
+    calls++;
+    preservedSchemaVersion = storedSchemaVersion;
+    if (error != null) throw error!;
+    return BackupRecord(
+      id: 'preserved',
+      filename: 'newer.db',
+      timestamp: DateTime.utc(2026, 9, 1),
+      sizeBytes: 4096,
+      location: BackupLocation.local,
+      localPath: '/tmp/test-backups/newer.db',
+      type: BackupType.preDowngrade,
+      fromSchemaVersion: storedSchemaVersion,
+      pinned: true,
+    );
+  }
+}
+
 /// Factory for the no-op backup service used by tests that exercise the
 /// migration path but do not want to test backup behaviour.
 PreMigrationBackupService _noOpBackupFactory({
@@ -116,6 +151,12 @@ Widget _buildStartupWrapper({
     required BackupPreferences preferences,
   })?
   preMigrationBackupFactory,
+  PreDowngradeBackupService Function({
+    required String livePath,
+    required BackupPreferences preferences,
+  })?
+  preDowngradeBackupFactory,
+  int? Function(String path)? downgradeCandidateProbeOverride,
   void Function()? enginePreflightOverride,
   Future<void> Function(
     String backupPath,
@@ -131,6 +172,8 @@ Widget _buildStartupWrapper({
     schemaVersionProbeOverride: schemaVersionProbeOverride,
     closeAppOverride: closeAppOverride,
     preMigrationBackupFactory: preMigrationBackupFactory,
+    preDowngradeBackupFactory: preDowngradeBackupFactory,
+    downgradeCandidateProbeOverride: downgradeCandidateProbeOverride,
     // Default to a no-op so widget tests never depend on the host runner's
     // linked SQLite. Tests that WANT an engine failure pass their own.
     enginePreflightOverride: enginePreflightOverride ?? () {},
@@ -2040,6 +2083,300 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Restore this backup'), findsNothing);
+    });
+  });
+
+  group('Version mismatch - going back to the pre-upgrade copy', () {
+    late SharedPreferences prefs;
+    late LogFileService logFileService;
+    late DatabaseLocationService locationService;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      logFileService = LogFileService(logDirectory: '/tmp/test-logs');
+      locationService = _FakeLocationService(prefs);
+    });
+
+    /// Registers a pre-migration copy on disk, and returns its path.
+    Future<String> seedCopy(
+      Directory dir, {
+      required String id,
+      required int fromSchemaVersion,
+      required int toSchemaVersion,
+      required DateTime timestamp,
+    }) async {
+      final file = File(p.join(dir.path, '$id.db'))
+        ..writeAsStringSync('backup bytes');
+      await BackupPreferences(prefs).addRecord(
+        BackupRecord(
+          id: id,
+          filename: '$id.db',
+          timestamp: timestamp,
+          sizeBytes: 12,
+          location: BackupLocation.local,
+          localPath: file.path,
+          isAutomatic: true,
+          type: BackupType.preMigration,
+          fromSchemaVersion: fromSchemaVersion,
+          toSchemaVersion: toSchemaVersion,
+        ),
+      );
+      return file.path;
+    }
+
+    Widget wrapper({
+      required int storedSchemaVersion,
+      required int supportedSchemaVersion,
+      int? Function(String path)? probe,
+      PreDowngradeBackupService Function({
+        required String livePath,
+        required BackupPreferences preferences,
+      })?
+      preDowngradeBackupFactory,
+      Future<void> Function(
+        String backupPath,
+        void Function(int currentStep, int totalSteps) onMigrationProgress,
+      )?
+      restoreOverride,
+      ServiceInitializer? initializerOverride,
+    }) {
+      return _buildStartupWrapper(
+        prefs: prefs,
+        logFileService: logFileService,
+        locationService: locationService,
+        schemaVersionProbeOverride: (_) =>
+            (needsMigration: false, totalSteps: 0),
+        downgradeCandidateProbeOverride: probe,
+        preDowngradeBackupFactory: preDowngradeBackupFactory,
+        restoreOverride: restoreOverride,
+        initializerOverride:
+            initializerOverride ??
+            (_) async {
+              throw DatabaseVersionMismatchException(
+                storedSchemaVersion: storedSchemaVersion,
+                supportedSchemaVersion: supportedSchemaVersion,
+              );
+            },
+      );
+    }
+
+    testWidgets('offers the newest copy this build can still open', (
+      tester,
+    ) async {
+      final dir = Directory.systemTemp.createTempSync('startup-downgrade-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      await seedCopy(
+        dir,
+        id: 'old',
+        fromSchemaVersion: 170,
+        toSchemaVersion: 175,
+        timestamp: DateTime.utc(2026, 8, 1, 9),
+      );
+      // Taken by the beta build, so its contents are at 191: unopenable here,
+      // and the newest record in the registry. Ordering alone would pick it.
+      await seedCopy(
+        dir,
+        id: 'beta',
+        fromSchemaVersion: 191,
+        toSchemaVersion: 195,
+        timestamp: DateTime.utc(2026, 9, 1, 9),
+      );
+
+      await tester.pumpWidget(
+        wrapper(
+          storedSchemaVersion: 191,
+          supportedSchemaVersion: 175,
+          probe: (path) => p.basename(path) == 'old.db' ? 170 : 191,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Update Required'), findsOneWidget);
+      expect(find.text('Restore your pre-upgrade backup'), findsOneWidget);
+      expect(find.textContaining('v170'), findsOneWidget);
+    });
+
+    testWidgets('shows no restore when every copy is itself too new', (
+      tester,
+    ) async {
+      // What retention leaves behind after a few beta launches (#1590). The
+      // screen must degrade to its old shape rather than offer a button that
+      // fails the same way the database just did.
+      final dir = Directory.systemTemp.createTempSync('startup-downgrade-x-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      await seedCopy(
+        dir,
+        id: 'beta',
+        fromSchemaVersion: 191,
+        toSchemaVersion: 195,
+        timestamp: DateTime.utc(2026, 9, 1, 9),
+      );
+
+      await tester.pumpWidget(
+        wrapper(
+          storedSchemaVersion: 195,
+          supportedSchemaVersion: 175,
+          probe: (_) => 191,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Update Required'), findsOneWidget);
+      expect(find.text('Restore this backup'), findsNothing);
+    });
+
+    testWidgets('shows no restore when the registry lies about the copy', (
+      tester,
+    ) async {
+      // The record claims v170, but the file will not open. Only opening it
+      // proves the claim, which is why the probe exists.
+      final dir = Directory.systemTemp.createTempSync('startup-downgrade-p-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      await seedCopy(
+        dir,
+        id: 'corrupt',
+        fromSchemaVersion: 170,
+        toSchemaVersion: 175,
+        timestamp: DateTime.utc(2026, 9, 1, 9),
+      );
+
+      await tester.pumpWidget(
+        wrapper(
+          storedSchemaVersion: 191,
+          supportedSchemaVersion: 175,
+          probe: (_) => null,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Restore this backup'), findsNothing);
+    });
+
+    testWidgets('preserves the newer database BEFORE swapping it away, then '
+        'resumes startup', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('startup-downgrade-r-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final copyPath = await seedCopy(
+        dir,
+        id: 'old',
+        fromSchemaVersion: 170,
+        toSchemaVersion: 175,
+        timestamp: DateTime.utc(2026, 8, 1, 9),
+      );
+
+      late _RecordingPreDowngradeService preserver;
+      final order = <String>[];
+      String? restoredFrom;
+      var initializerCalls = 0;
+      // Left pending on purpose: reaching `ready` would mount the real app
+      // against an uninitialized DatabaseService.
+      final secondAttempt = Completer<void>();
+
+      await tester.pumpWidget(
+        wrapper(
+          storedSchemaVersion: 191,
+          supportedSchemaVersion: 175,
+          probe: (_) => 170,
+          preDowngradeBackupFactory:
+              ({required livePath, required preferences}) {
+                preserver = _RecordingPreDowngradeService(
+                  preferences: preferences,
+                );
+                return preserver;
+              },
+          restoreOverride: (path, _) async {
+            order.add('restore');
+            restoredFrom = path;
+          },
+          initializerOverride: (_) async {
+            initializerCalls++;
+            if (initializerCalls == 1) {
+              throw const DatabaseVersionMismatchException(
+                storedSchemaVersion: 191,
+                supportedSchemaVersion: 175,
+              );
+            }
+            await secondAttempt.future;
+          },
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Restore this backup'));
+      await tester.tap(find.text('Restore this backup'));
+      // Drive the restore microtasks: setState(running), preserve, restore,
+      // setState(initializing), _runInitialization re-entry, probe, second
+      // initializer call (pends).
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(preserver.calls, 1);
+      expect(
+        preserver.preservedSchemaVersion,
+        191,
+        reason: 'the copy must record the schema the newer file holds',
+      );
+      expect(order, ['restore'], reason: 'preserve ran before the swap');
+      expect(restoredFrom, copyPath);
+      expect(initializerCalls, 2, reason: 'startup must resume after restore');
+      expect(find.text('Update Required'), findsNothing);
+      expect(find.byKey(const ValueKey('splash')), findsOneWidget);
+
+      // Drain the splash-delay timer started by the second _runInitialization.
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('a failure to preserve the newer database aborts the swap', (
+      tester,
+    ) async {
+      // The newer file is the thing at risk here, so a restore that cannot
+      // save it first must not happen at all.
+      final dir = Directory.systemTemp.createTempSync('startup-downgrade-f-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      await seedCopy(
+        dir,
+        id: 'old',
+        fromSchemaVersion: 170,
+        toSchemaVersion: 175,
+        timestamp: DateTime.utc(2026, 8, 1, 9),
+      );
+
+      var restoreCalls = 0;
+
+      await tester.pumpWidget(
+        wrapper(
+          storedSchemaVersion: 191,
+          supportedSchemaVersion: 175,
+          probe: (_) => 170,
+          preDowngradeBackupFactory:
+              ({required livePath, required preferences}) =>
+                  _RecordingPreDowngradeService(
+                    preferences: preferences,
+                    error: Exception('disk full'),
+                  ),
+          restoreOverride: (_, _) async => restoreCalls++,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Restore this backup'));
+      await tester.tap(find.text('Restore this backup'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(restoreCalls, 0, reason: 'nothing may be swapped');
+      expect(find.textContaining('left exactly as it was'), findsOneWidget);
+      expect(find.textContaining('disk full'), findsOneWidget);
+      expect(find.text('Restore this backup'), findsOneWidget);
     });
   });
 }

@@ -10712,5 +10712,9 @@
   "diveComputer_detail_mergePickerSameSerial": "Stesso numero di serie",
   "diveComputer_detail_duplicateBanner": "{name} riporta lo stesso numero di serie. Potrebbe essere questo computer salvato due volte.",
   "diveComputer_detail_duplicateBannerMultiple": "Altri {count} record salvati riportano lo stesso numero di serie. Potrebbe essere questo computer salvato più di una volta.",
-  "diveComputer_detail_duplicateBannerAction": "Unisci"
+  "diveComputer_detail_duplicateBannerAction": "Unisci",
+  "startup_versionMismatch_restore_title": "Ripristina la copia precedente all'aggiornamento",
+  "startup_versionMismatch_restore_body": "Su questo dispositivo c'è una copia di sicurezza del tuo diario di immersione fatta prima dell'aggiornamento, e questa versione può aprirla.",
+  "startup_versionMismatch_restore_warning": "Tutto ciò che hai registrato dopo l'aggiornamento esiste solo nel file più recente. Quel file viene conservato come backup bloccato: reinstallando la versione più recente lo recuperi.",
+  "backup_history_preDowngradeSubtitle": "Database più recente, conservato tornando indietro - {size}"
 }

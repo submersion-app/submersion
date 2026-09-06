@@ -36860,4 +36860,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'Fusionner';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'Restaurer la sauvegarde d\'avant la mise à jour';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'Une copie de sécurité de votre carnet de plongée, prise avant la mise à jour, se trouve sur cet appareil et cette version peut l\'ouvrir.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'Tout ce que vous avez enregistré après la mise à jour n\'existe que dans le fichier le plus récent. Ce fichier est conservé comme sauvegarde épinglée : réinstallez la version plus récente pour le retrouver.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'Base plus récente, conservée lors du retour en arrière - $size';
+  }
 }

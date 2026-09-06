@@ -10712,5 +10712,9 @@
   "diveComputer_detail_mergePickerSameSerial": "Gleiche Seriennummer",
   "diveComputer_detail_duplicateBanner": "{name} meldet dieselbe Seriennummer. Möglicherweise ist dieser Computer doppelt gespeichert.",
   "diveComputer_detail_duplicateBannerMultiple": "{count} andere gespeicherte Einträge melden dieselbe Seriennummer. Möglicherweise ist dieser Computer mehrfach gespeichert.",
-  "diveComputer_detail_duplicateBannerAction": "Zusammenführen"
+  "diveComputer_detail_duplicateBannerAction": "Zusammenführen",
+  "startup_versionMismatch_restore_title": "Sicherung von vor dem Upgrade wiederherstellen",
+  "startup_versionMismatch_restore_body": "Eine Sicherheitskopie deines Tauchlogbuchs von vor dem Upgrade liegt auf diesem Gerät, und diese Version kann sie öffnen.",
+  "startup_versionMismatch_restore_warning": "Alles, was du nach dem Upgrade eingetragen hast, liegt nur in der neueren Datei. Diese Datei wird als angeheftete Sicherung behalten; installiere die neuere Version erneut, um sie zurückzuholen.",
+  "backup_history_preDowngradeSubtitle": "Neuere Datenbank, beim Zurückwechseln behalten - {size}"
 }

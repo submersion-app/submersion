@@ -36801,4 +36801,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'Combinar';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'Restaurar la copia anterior a la actualización';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'En este dispositivo hay una copia de seguridad de tu cuaderno de buceo tomada antes de la actualización, y esta versión puede abrirla.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'Todo lo que registraste después de la actualización solo existe en el archivo más reciente. Ese archivo se conserva como copia fijada, así que volver a instalar la versión más reciente lo recupera.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'Base de datos más reciente, conservada al volver atrás - $size';
+  }
 }

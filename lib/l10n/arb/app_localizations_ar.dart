@@ -36385,4 +36385,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'دمج';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'استعادة النسخة الاحتياطية السابقة للترقية';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'توجد على هذا الجهاز نسخة احتياطية من سجل الغوص أُخذت قبل الترقية، وهذا الإصدار يستطيع فتحها.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'كل ما سجّلته بعد الترقية موجود في الملف الأحدث فقط. يُحتفظ بذلك الملف كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيده.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'قاعدة بيانات أحدث، محفوظة عند الرجوع - $size';
+  }
 }

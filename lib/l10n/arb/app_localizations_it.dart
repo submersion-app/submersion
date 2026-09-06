@@ -36754,4 +36754,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'Unisci';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'Ripristina la copia precedente all\'aggiornamento';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'Su questo dispositivo c\'è una copia di sicurezza del tuo diario di immersione fatta prima dell\'aggiornamento, e questa versione può aprirla.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'Tutto ciò che hai registrato dopo l\'aggiornamento esiste solo nel file più recente. Quel file viene conservato come backup bloccato: reinstallando la versione più recente lo recuperi.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'Database più recente, conservato tornando indietro - $size';
+  }
 }

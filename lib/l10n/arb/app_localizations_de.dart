@@ -36689,4 +36689,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'Zusammenführen';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'Sicherung von vor dem Upgrade wiederherstellen';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'Eine Sicherheitskopie deines Tauchlogbuchs von vor dem Upgrade liegt auf diesem Gerät, und diese Version kann sie öffnen.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'Alles, was du nach dem Upgrade eingetragen hast, liegt nur in der neueren Datei. Diese Datei wird als angeheftete Sicherung behalten; installiere die neuere Version erneut, um sie zurückzuholen.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'Neuere Datenbank, beim Zurückwechseln behalten - $size';
+  }
 }

@@ -47,6 +47,8 @@ import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
+import 'package:submersion/features/backup/data/services/downgrade_restore_candidates.dart';
+import 'package:submersion/features/backup/data/services/pre_downgrade_backup_service.dart';
 import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
@@ -135,6 +137,21 @@ class StartupWrapper extends StatefulWidget {
   })?
   preMigrationBackupFactory;
 
+  /// Optional override for the pre-downgrade backup service factory (tests,
+  /// which must not copy real database files).
+  @visibleForTesting
+  final PreDowngradeBackupService Function({
+    required String livePath,
+    required BackupPreferences preferences,
+  })?
+  preDowngradeBackupFactory;
+
+  /// Optional override for the `PRAGMA user_version` probe run against a
+  /// candidate backup before it is offered (used in tests, whose fixture
+  /// "backups" are text files no SQLite build would open).
+  @visibleForTesting
+  final int? Function(String path)? downgradeCandidateProbeOverride;
+
   /// Optional override for the database engine preflight (used in tests to
   /// simulate a build whose native library does not resolve).
   @visibleForTesting
@@ -158,6 +175,8 @@ class StartupWrapper extends StatefulWidget {
     this.schemaVersionProbeOverride,
     this.closeAppOverride,
     this.preMigrationBackupFactory,
+    this.preDowngradeBackupFactory,
+    this.downgradeCandidateProbeOverride,
     this.enginePreflightOverride,
     this.restoreOverride,
   });
@@ -196,6 +215,13 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// backups by hand. Backup *settings* are unreachable from the splash: it
   /// runs before the router and the database exist.
   String? _backupsDirectory;
+
+  /// The pre-upgrade safety copy offered on the schema-mismatch screen, or
+  /// null when the registry holds none this build could open. Separate from
+  /// [_recoveryBackup] because the two are chosen by opposite rules: the
+  /// terminal failure screen wants the NEWEST copy, while a mismatch needs
+  /// the newest copy that is still OLD enough to open here.
+  BackupRecord? _downgradeBackup;
 
   StartupRestoreStatus _restoreStatus = StartupRestoreStatus.idle;
   String? _restoreError;
@@ -344,6 +370,7 @@ class _StartupWrapperState extends State<StartupWrapper>
           _dbVersion = e.storedSchemaVersion;
           _appVersion = e.supportedSchemaVersion;
         });
+        await _loadDowngradeOption();
       }
     } on DatabaseLockedException {
       // The cached/typed key did not open the file (e.g. a keychain restored
@@ -942,13 +969,162 @@ class _StartupWrapperState extends State<StartupWrapper>
     }
   }
 
+  /// Finds a pre-upgrade safety copy the diver could go BACK to, for the
+  /// schema-mismatch screen.
+  ///
+  /// Everything this needs is already in memory when the mismatch is raised:
+  /// `main.dart` loads SharedPreferences before it opens the database, and
+  /// the backup registry lives there precisely so it survives a database swap
+  /// (issue #1589). No restore UI is reachable from here -- it lives behind
+  /// the database that will not open.
+  ///
+  /// The registry only records what a copy CLAIMED to hold. Opening it is
+  /// what proves the claim, so each candidate is probed before it is offered:
+  /// a button that fails the same way the database just did would leave the
+  /// diver exactly where this screen already left them.
+  ///
+  /// Best-effort and silent on failure, like [_loadRecoveryOptions]: a second
+  /// failure here must degrade to the plain mismatch screen rather than
+  /// replace one terminal state with another.
+  Future<void> _loadDowngradeOption() async {
+    try {
+      final history = BackupPreferences(widget.prefs).getHistory();
+      final candidates = downgradeRestoreCandidates(
+        history,
+        supportedSchemaVersion: _appVersion,
+      );
+
+      for (final record in candidates) {
+        // Non-null by construction: downgradeRestoreCandidates drops records
+        // without a plain local path.
+        final path = record.localPath!;
+        // Synchronous stat, matching _loadRecoveryOptions: the set is a
+        // handful of registry entries read once on an already-terminal
+        // screen, and the async form left the widget tests covering this
+        // screen pumping until their timeout.
+        if (!File(path).existsSync()) continue;
+        final stored = _probeCandidateSchema(path);
+        if (stored == null || stored > _appVersion) continue;
+        if (!mounted) return;
+        setState(() => _downgradeBackup = record);
+        return;
+      }
+    } catch (e) {
+      debugPrint('Startup downgrade options unavailable: $e');
+    }
+  }
+
+  /// Reads `PRAGMA user_version` from a candidate backup, or null when the
+  /// file cannot be opened at all.
+  ///
+  /// Tries the live key first: a pre-migration copy of a protected database
+  /// is SQLCipher ciphertext, and the security gate has already run by the
+  /// time a mismatch is raised, so the key is available. The keyless retry
+  /// covers the install that turned protection ON after that copy was taken,
+  /// where the copy on disk is still plaintext.
+  ///
+  /// [DatabaseService.getStoredSchemaVersion] opens read-WRITE, which is what
+  /// lets SQLite roll back a hot journal, but also means a copy sitting in a
+  /// read-only location cannot be probed. Every candidate here was written by
+  /// this app into its own resolved backups directory, so that is not the
+  /// normal case; when it does happen the failure lands on the safe side, and
+  /// no restore is offered rather than one that cannot run.
+  int? _probeCandidateSchema(String path) {
+    final probeOverride = widget.downgradeCandidateProbeOverride;
+    if (probeOverride != null) return probeOverride(path);
+
+    final keyHex = DatabaseService.instance.databaseKeyHex;
+    try {
+      return DatabaseService.getStoredSchemaVersion(path, keyHex: keyHex);
+    } catch (e) {
+      debugPrint('Candidate backup did not open with the live key: $e');
+    }
+    if (keyHex == null) return null;
+    try {
+      return DatabaseService.getStoredSchemaVersion(path);
+    } catch (e) {
+      debugPrint('Candidate backup did not open unkeyed either: $e');
+      return null;
+    }
+  }
+
+  /// Copies the newer-schema database into the backups folder and registers
+  /// it, BEFORE the downgrade restore swaps it away.
+  ///
+  /// [DatabaseService.restore] deletes its own `.pre-restore` copy once the
+  /// swap succeeds, so without this step accepting the offer would be the
+  /// moment every dive logged in the newer build stopped existing. A throw
+  /// here aborts the restore, which costs the diver nothing they had a
+  /// moment ago.
+  Future<void> _preserveNewerDatabase() async {
+    final prefs = BackupPreferences(widget.prefs);
+    final dbPath = await widget.locationService.getDatabasePath();
+
+    final PreDowngradeBackupService service;
+    final String appVersion;
+    BackupDirLease? lease;
+    if (widget.preDowngradeBackupFactory != null) {
+      service = widget.preDowngradeBackupFactory!(
+        livePath: dbPath,
+        preferences: prefs,
+      );
+      appVersion = '0.0.0.0';
+    } else {
+      final info = await PackageInfo.fromPlatform();
+      appVersion = formatAppVersion(info);
+      service = PreDowngradeBackupService(
+        livePathProvider: () async => dbPath,
+        // Resolved lazily inside the provider, for the same reason
+        // _runPreMigrationBackup does it: resolution touches the filesystem
+        // and can throw, and inside the provider that throw is recoverable
+        // through fallbackBackupsDirProvider.
+        backupsDirProvider: () async {
+          lease = await BackupService.resolveBackupsDirectoryLeased(prefs);
+          return lease!.path;
+        },
+        fallbackBackupsDirProvider:
+            BackupService.resolveDefaultBackupsDirectory,
+        preferences: prefs,
+        databaseKeyHexProvider: () => DatabaseService.instance.databaseKeyHex,
+      );
+    }
+
+    try {
+      await service.preserve(
+        storedSchemaVersion: _dbVersion,
+        appVersion: appVersion,
+      );
+    } finally {
+      await lease?.release();
+    }
+  }
+
+  /// Goes back to [_downgradeBackup], keeping the newer database first.
+  ///
+  /// The order is the whole point: preserve, then swap. A failure to preserve
+  /// leaves the diver on the mismatch screen with both files intact, which is
+  /// strictly better than a completed downgrade that lost the newer one.
+  Future<void> _restoreFromDowngradeBackup() =>
+      _restoreAtStartup(_downgradeBackup, before: _preserveNewerDatabase);
+
   /// Swaps [_recoveryBackup] in for the live database, then resumes startup.
   ///
   /// Safe here precisely because startup failed: the database is closed, so
   /// [DatabaseService.restore] does its staged swap without contending with an
   /// open connection, and it rolls the original file back if the swap fails.
-  Future<void> _restoreFromStartupBackup() async {
-    final record = _recoveryBackup;
+  Future<void> _restoreFromStartupBackup() =>
+      _restoreAtStartup(_recoveryBackup);
+
+  /// Shared body of both startup restores: swap [record] in, then resume
+  /// startup from the top.
+  ///
+  /// [before] runs while the screen already shows progress and before
+  /// anything is swapped, so a throw from it aborts with the live database
+  /// untouched.
+  Future<void> _restoreAtStartup(
+    BackupRecord? record, {
+    Future<void> Function()? before,
+  }) async {
     final path = record?.localPath;
     if (path == null) return;
     if (_restoreStatus == StartupRestoreStatus.running) return;
@@ -970,6 +1146,7 @@ class _StartupWrapperState extends State<StartupWrapper>
     }
 
     try {
+      await before?.call();
       if (widget.restoreOverride != null) {
         await widget.restoreOverride!(path, onProgress);
       } else {
@@ -992,6 +1169,11 @@ class _StartupWrapperState extends State<StartupWrapper>
         _state = _StartupState.initializing;
         _errorMessage = '';
         _recoveryBackup = null;
+        _downgradeBackup = null;
+        // Cleared so the relaunch shows the splash rather than the screen the
+        // diver just acted on. The reopen re-raises the mismatch if the swap
+        // somehow left a newer file in place.
+        _isVersionMismatch = false;
       });
       await _runInitialization();
     } catch (e) {
@@ -1295,6 +1477,12 @@ class _StartupWrapperState extends State<StartupWrapper>
         subtitleColor: subtitleColor,
         onDownloadLatest: _openLatestRelease,
         onClose: _closeApp,
+        restoreCandidate: _downgradeBackup,
+        onRestoreBackup: _downgradeBackup == null
+            ? null
+            : _restoreFromDowngradeBackup,
+        restoreStatus: _restoreStatus,
+        restoreError: _restoreError,
       );
     }
 

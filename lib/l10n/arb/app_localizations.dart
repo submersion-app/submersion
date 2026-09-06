@@ -60333,6 +60333,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Merge'**
   String get diveComputer_detail_duplicateBannerAction;
+
+  /// No description provided for @startup_versionMismatch_restore_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore your pre-upgrade backup'**
+  String get startup_versionMismatch_restore_title;
+
+  /// No description provided for @startup_versionMismatch_restore_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.'**
+  String get startup_versionMismatch_restore_body;
+
+  /// No description provided for @startup_versionMismatch_restore_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.'**
+  String get startup_versionMismatch_restore_warning;
+
+  /// No description provided for @backup_history_preDowngradeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Newer database, kept when going back - {size}'**
+  String backup_history_preDowngradeSubtitle(String size);
 }
 
 class _AppLocalizationsDelegate

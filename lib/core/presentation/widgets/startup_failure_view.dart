@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/presentation/startup_failure.dart';
+import 'package:submersion/core/presentation/startup_restore_status.dart';
+import 'package:submersion/core/presentation/widgets/startup_restore_card.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
-import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// How far the in-place restore offered by [StartupFailureView] has got.
-enum StartupRestoreStatus { idle, running, failed }
+// Re-exported so callers that reach StartupRestoreStatus through this screen
+// keep working now that the schema-mismatch screen shares the same enum.
+export 'package:submersion/core/presentation/startup_restore_status.dart';
 
 /// The terminal startup failure screen.
 ///
@@ -204,8 +206,10 @@ class StartupFailureView extends StatelessWidget {
           ],
           if (_canRestore) ...[
             const SizedBox(height: 24),
-            _RecoveryBackupCard(
+            StartupRestoreCard(
               record: recoveryBackup!,
+              title: context.l10n.startup_failure_backupAvailable_title,
+              actionLabel: context.l10n.startup_failure_restoreAction,
               onRestore: onRestoreBackup!,
               status: restoreStatus,
               error: restoreError,
@@ -278,127 +282,6 @@ class StartupFailureView extends StatelessWidget {
             child: Text(context.l10n.common_action_close),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// The offered backup, with whatever the restore attempt is currently doing.
-class _RecoveryBackupCard extends StatelessWidget {
-  const _RecoveryBackupCard({
-    required this.record,
-    required this.onRestore,
-    required this.status,
-    required this.error,
-    required this.textColor,
-    required this.subtitleColor,
-  });
-
-  final BackupRecord record;
-  final VoidCallback onRestore;
-  final StartupRestoreStatus status;
-  final String? error;
-  final Color textColor;
-  final Color subtitleColor;
-
-  /// Formatted through [MaterialLocalizations] rather than `intl` directly:
-  /// this screen renders before the diver's saved locale is readable, so the
-  /// only sensible source of formatting is the resolved system locale that
-  /// the splash [MaterialApp] already carries.
-  String _taken(BuildContext context) {
-    final local = record.timestamp.toLocal();
-    final l = MaterialLocalizations.of(context);
-    final date = l.formatMediumDate(local);
-    final time = l.formatTimeOfDay(TimeOfDay.fromDateTime(local));
-    return '$date $time';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final captionStyle = TextStyle(fontSize: 12, color: subtitleColor);
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              context.l10n.startup_failure_backupAvailable_title,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: textColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.startup_failure_backupAvailable_taken(
-                _taken(context),
-              ),
-              style: captionStyle,
-              textAlign: TextAlign.center,
-            ),
-            if (record.type == BackupType.preMigration &&
-                record.fromSchemaVersion != null &&
-                record.toSchemaVersion != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                context.l10n.startup_failure_backupAvailable_preMigration(
-                  record.fromSchemaVersion!,
-                  record.toSchemaVersion!,
-                ),
-                style: captionStyle,
-                textAlign: TextAlign.center,
-              ),
-            ],
-            if (status == StartupRestoreStatus.failed) ...[
-              const SizedBox(height: 12),
-              Text(
-                context.l10n.startup_failure_restoreFailed,
-                style: captionStyle,
-                textAlign: TextAlign.center,
-              ),
-              if (error != null && error!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                SelectableText(
-                  error!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: subtitleColor,
-                    fontFamily: 'monospace',
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ],
-            const SizedBox(height: 16),
-            if (status == StartupRestoreStatus.running)
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.l10n.startup_failure_restoring,
-                    style: captionStyle,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              )
-            else
-              FilledButton.tonal(
-                onPressed: onRestore,
-                child: Text(context.l10n.startup_failure_restoreAction),
-              ),
-          ],
-        ),
       ),
     );
   }

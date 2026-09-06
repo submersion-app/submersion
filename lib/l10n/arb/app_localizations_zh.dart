@@ -34591,4 +34591,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => '合并';
+
+  @override
+  String get startup_versionMismatch_restore_title => '恢复升级前的备份';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      '本设备上存有升级前的潜水日志安全副本，当前版本可以打开它。';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      '升级之后记录的内容只存在于较新的文件中。该文件会作为已固定的备份保留，重新安装较新版本即可取回。';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return '较新的数据库，回退时保留 - $size';
+  }
 }

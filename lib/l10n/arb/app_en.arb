@@ -22250,5 +22250,10 @@
       }
     }
   },
-  "diveComputer_detail_duplicateBannerAction": "Merge"
+  "diveComputer_detail_duplicateBannerAction": "Merge",
+  "startup_versionMismatch_restore_title": "Restore your pre-upgrade backup",
+  "startup_versionMismatch_restore_body": "A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.",
+  "startup_versionMismatch_restore_warning": "Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.",
+  "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
+  "@backup_history_preDowngradeSubtitle": { "placeholders": { "size": { "type": "String" } } }
 }

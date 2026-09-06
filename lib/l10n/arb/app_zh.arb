@@ -10712,5 +10712,9 @@
   "diveComputer_detail_mergePickerSameSerial": "序列号相同",
   "diveComputer_detail_duplicateBanner": "{name} 的序列号与此相同，可能是同一台潜水电脑被保存了两次。",
   "diveComputer_detail_duplicateBannerMultiple": "另有 {count} 条已保存记录的序列号与此相同，可能是同一台潜水电脑被保存了多次。",
-  "diveComputer_detail_duplicateBannerAction": "合并"
+  "diveComputer_detail_duplicateBannerAction": "合并",
+  "startup_versionMismatch_restore_title": "恢复升级前的备份",
+  "startup_versionMismatch_restore_body": "本设备上存有升级前的潜水日志安全副本，当前版本可以打开它。",
+  "startup_versionMismatch_restore_warning": "升级之后记录的内容只存在于较新的文件中。该文件会作为已固定的备份保留，重新安装较新版本即可取回。",
+  "backup_history_preDowngradeSubtitle": "较新的数据库，回退时保留 - {size}"
 }

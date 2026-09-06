@@ -10712,5 +10712,9 @@
   "diveComputer_detail_mergePickerSameSerial": "Azonos sorozatszam",
   "diveComputer_detail_duplicateBanner": "{name} ugyanazt a sorozatszamot jelzi. Lehet, hogy ez a szamitogep ketszer van elmentve.",
   "diveComputer_detail_duplicateBannerMultiple": "{count} masik mentett rekord ugyanazt a sorozatszamot jelzi. Lehet, hogy ez a szamitogep tobbszor van elmentve.",
-  "diveComputer_detail_duplicateBannerAction": "Osszevonas"
+  "diveComputer_detail_duplicateBannerAction": "Osszevonas",
+  "startup_versionMismatch_restore_title": "A frissítés előtti biztonsági mentés visszaállítása",
+  "startup_versionMismatch_restore_body": "A frissítés előtt készült biztonsági másolat a merülőnaplódról ezen az eszközön van, és ez a verzió meg tudja nyitni.",
+  "startup_versionMismatch_restore_warning": "Minden, amit a frissítés után rögzítettél, csak az újabb fájlban létezik. Azt a fájlt rögzített biztonsági mentésként megőrizzük, így az újabb verzió ismételt telepítésével visszakapod.",
+  "backup_history_preDowngradeSubtitle": "Újabb adatbázis, visszalépéskor megőrizve - {size}"
 }

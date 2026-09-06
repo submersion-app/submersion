@@ -36769,4 +36769,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'Mesclar';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'Restaurar a cópia anterior à atualização';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'Existe neste dispositivo uma cópia de segurança do teu registo de mergulhos feita antes da atualização, e esta versão consegue abri-la.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'Tudo o que registaste depois da atualização existe apenas no ficheiro mais recente. Esse ficheiro fica guardado como cópia fixada, por isso instalar de novo a versão mais recente recupera-o.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'Base de dados mais recente, guardada ao recuar - $size';
+  }
 }

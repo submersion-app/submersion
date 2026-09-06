@@ -36605,4 +36605,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_detail_duplicateBannerAction => 'Osszevonas';
+
+  @override
+  String get startup_versionMismatch_restore_title =>
+      'A frissítés előtti biztonsági mentés visszaállítása';
+
+  @override
+  String get startup_versionMismatch_restore_body =>
+      'A frissítés előtt készült biztonsági másolat a merülőnaplódról ezen az eszközön van, és ez a verzió meg tudja nyitni.';
+
+  @override
+  String get startup_versionMismatch_restore_warning =>
+      'Minden, amit a frissítés után rögzítettél, csak az újabb fájlban létezik. Azt a fájlt rögzített biztonsági mentésként megőrizzük, így az újabb verzió ismételt telepítésével visszakapod.';
+
+  @override
+  String backup_history_preDowngradeSubtitle(String size) {
+    return 'Újabb adatbázis, visszalépéskor megőrizve - $size';
+  }
 }
