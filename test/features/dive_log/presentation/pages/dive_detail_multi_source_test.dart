@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -232,22 +233,46 @@ void main() {
     expect(chart.overlays!.single.name, 'Erics Teric');
   });
 
+  testWidgets('the sources bar chip menu does not offer split', (tester) async {
+    await pumpPage(tester);
+
+    await tester.ensureVisible(inSourceBar(find.byIcon(Icons.more_vert)).last);
+    await tester.pump();
+    await tester.tap(inSourceBar(find.byIcon(Icons.more_vert)).last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Set as primary'), findsOneWidget);
+    expect(find.text('Split into separate dive'), findsNothing);
+  });
+
   testWidgets(
-    'split menu action shows a confirmation; confirming calls the service '
-    'and shows a snackbar; cancel does not',
+    'the Data Sources card split action shows a confirmation; confirming '
+    'calls the service and shows a snackbar; cancel does not',
     (tester) async {
+      // The detail page is far taller than the default 600px test surface,
+      // and the Data Sources card sits below the profile: at the default
+      // size the card's overflow menu stays off screen even at max scroll.
+      await tester.binding.setSurfaceSize(const Size(800, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       await pumpPage(tester);
 
-      // Open the secondary chip's menu (menus render in SourceBar order).
-      await tester.ensureVisible(
-        inSourceBar(find.byIcon(Icons.more_vert)).last,
-      );
-      await tester.pump();
-      await tester.tap(inSourceBar(find.byIcon(Icons.more_vert)).last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Split into separate dive'));
-      await tester.pumpAndSettle();
+      Finder secondaryCardMenu() => find
+          .descendant(
+            of: find.byType(DataSourcesSection),
+            matching: find.byIcon(Icons.more_vert),
+          )
+          .last;
 
+      Future<void> openSplitDialog() async {
+        await tester.ensureVisible(secondaryCardMenu());
+        await tester.pumpAndSettle();
+        await tester.tap(secondaryCardMenu());
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Split into separate dive'));
+        await tester.pumpAndSettle();
+      }
+
+      await openSplitDialog();
       expect(find.text('Split into separate dive?'), findsOneWidget);
 
       // Cancel first: no call.
@@ -256,14 +281,7 @@ void main() {
       expect(splitService.calls, isEmpty);
 
       // Again, confirming this time.
-      await tester.ensureVisible(
-        inSourceBar(find.byIcon(Icons.more_vert)).last,
-      );
-      await tester.pump();
-      await tester.tap(inSourceBar(find.byIcon(Icons.more_vert)).last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Split into separate dive'));
-      await tester.pumpAndSettle();
+      await openSplitDialog();
       await tester.tap(find.text('Split'));
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
@@ -272,6 +290,7 @@ void main() {
       expect(find.text('Dive split'), findsOneWidget);
     },
   );
+
   testWidgets('the Details card Dive Computer row follows the active source', (
     tester,
   ) async {
