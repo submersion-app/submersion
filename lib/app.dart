@@ -144,6 +144,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
     await showBetaBuildNotice(navContext);
     await prefs.setBetaBuildNoticeSeen(true);
+    // The dialog can outlive this State when the app is quit with it open, and
+    // invalidating through a disposed ref throws. The write above is the part
+    // that has to land; the invalidate only refreshes readers still on screen.
+    if (!mounted) return;
     ref.invalidate(updatePreferencesProvider);
   }
 
