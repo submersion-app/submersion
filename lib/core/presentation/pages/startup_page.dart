@@ -1031,40 +1031,40 @@ class _StartupWrapperState extends State<StartupWrapper>
     StartupFailureView.previousReleasesUrl,
   );
 
-  Future<void> _openPreviousReleases() async {
-    // Same reasoning as _showBackupsFolder: a refused hand-off shows up as a
-    // false return at least as often as an exception, and an unlogged one
-    // makes the button look broken. The address is rendered beneath the
-    // button either way, so the diver keeps a usable route.
+  /// Hands [uri] to the browser, reporting both ways the hand-off can fail.
+  ///
+  /// Same reasoning as _showBackupsFolder: a refused hand-off shows up as a
+  /// false return at least as often as an exception, and an unlogged one makes
+  /// the button look broken. Every caller renders its address on screen too,
+  /// so the diver keeps a usable route either way, and leaving them on this
+  /// screen is the only safe fallback: the database is untouched and must stay
+  /// that way.
+  ///
+  /// [label] names the destination in the log line, since the three terminal
+  /// screens offer three different release pages.
+  Future<void> _openReleasePage(Uri uri, String label) async {
     try {
       final launched = await launchUrl(
-        _previousReleasesUri,
+        uri,
         mode: LaunchMode.externalApplication,
       );
       if (!launched) {
-        debugPrint(
-          'Could not open the releases page: launchUrl returned false',
-        );
+        debugPrint('Could not open the $label page: launchUrl returned false');
       }
     } catch (e) {
-      debugPrint('Could not open the releases page: $e');
+      debugPrint('Could not open the $label page: $e');
     }
   }
+
+  Future<void> _openPreviousReleases() =>
+      _openReleasePage(_previousReleasesUri, 'releases');
 
   static final Uri _latestReleaseUri = Uri.parse(
     VersionMismatchView.latestReleaseUrl,
   );
 
-  Future<void> _openLatestRelease() async {
-    try {
-      await launchUrl(_latestReleaseUri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      // Leaving the user on this screen is the only safe fallback: the
-      // database is untouched and must stay that way. VersionMismatchView
-      // renders this same URL beneath the button, so a launch failure still
-      // leaves the user an address they can type in manually.
-    }
-  }
+  Future<void> _openLatestRelease() =>
+      _openReleasePage(_latestReleaseUri, 'latest stable release');
 
   static final Uri _betaReleasesUri = Uri.parse(
     VersionMismatchView.betaReleasesUrl,
@@ -1073,13 +1073,8 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// The other half of the version-mismatch screen's answer (#1588). When a
   /// beta build wrote the file, the stable page above is the build that just
   /// refused it; this is where the build that can open it actually lives.
-  Future<void> _openBetaReleases() async {
-    try {
-      await launchUrl(_betaReleasesUri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      // Same reasoning as _openLatestRelease: the address stays on screen.
-    }
-  }
+  Future<void> _openBetaReleases() =>
+      _openReleasePage(_betaReleasesUri, 'beta builds');
 
   void _quitApp() {
     if (widget.closeAppOverride != null) {
