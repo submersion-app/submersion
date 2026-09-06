@@ -47,6 +47,7 @@ import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_event_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_highlight_range.dart';
 import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/profile_event_label.dart';
 
 /// Opacity of the shaded region between the ceiling and the surface.
 ///
@@ -6797,7 +6798,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final t = kept[i].timestamp.toDouble();
       if (t < visibleMinX || t > visibleMaxX) continue;
       final painter = TextPainter(
-        text: TextSpan(text: kept[i].displayName, style: labelStyle),
+        text: TextSpan(
+          text: kept[i].eventType.localizedName(context.l10n),
+          style: labelStyle,
+        ),
         // Deliberately LTR regardless of locale: fl_chart's painter lays
         // vertical-line labels out with TextDirection.ltr
         // (axis_chart_painter.dart), and this measurement must match the
@@ -6873,7 +6877,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           fontSize: 9,
           backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
         ),
-        labelResolver: (line) => event.displayName,
+        labelResolver: (line) => event.eventType.localizedName(context.l10n),
       ),
     );
   }
