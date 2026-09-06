@@ -999,6 +999,25 @@
   "checklists_item_delete": "删除事项",
   "checklists_menu_applyTemplate": "应用模板…",
   "checklists_menu_saveAsTemplate": "保存为模板…",
+  "checklists_menu_clearAll": "清空清单…",
+  "checklists_clear_title": "清空清单",
+  "checklists_clear_content": "{count, plural, other{要删除此清单中的全部 {count} 个项目吗？模板不受影响。}}",
+  "@checklists_clear_content": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checklists_clear_confirm": "清空",
+  "checklists_clear_success": "{count, plural, other{已移除 {count} 个项目}}",
+  "@checklists_clear_success": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_applySheet_title": "应用模板",
   "checklists_applySheet_empty": "暂无模板。请在设置中创建。",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 项事项} other{{count} 项事项}}",

@@ -2175,6 +2175,37 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'שמור כתבנית...';
 
   @override
+  String get checklists_menu_clearAll => 'ניקוי רשימת המשימות...';
+
+  @override
+  String get checklists_clear_title => 'ניקוי רשימת המשימות';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'למחוק את כל $count הפריטים מרשימה זו? התבניות לא יושפעו.',
+      one: 'למחוק את הפריט היחיד מרשימה זו? התבניות לא יושפעו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'ניקוי';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים הוסרו',
+      one: 'פריט אחד הוסר',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'החלת תבנית';
 
   @override

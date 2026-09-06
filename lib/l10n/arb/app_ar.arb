@@ -905,6 +905,25 @@
   "checklists_item_delete": "حذف العنصر",
   "checklists_menu_applyTemplate": "تطبيق قالب...",
   "checklists_menu_saveAsTemplate": "حفظ كقالب...",
+  "checklists_menu_clearAll": "مسح قائمة التحقق...",
+  "checklists_clear_title": "مسح قائمة التحقق",
+  "checklists_clear_content": "{count, plural, =1{هل تريد حذف العنصر الوحيد من قائمة التحقق هذه؟ لن تتأثر القوالب.} other{هل تريد حذف جميع العناصر البالغ عددها {count} من قائمة التحقق هذه؟ لن تتأثر القوالب.}}",
+  "@checklists_clear_content": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checklists_clear_confirm": "مسح",
+  "checklists_clear_success": "{count, plural, =1{تمت إزالة عنصر واحد} other{تمت إزالة {count} عناصر}}",
+  "@checklists_clear_success": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_applySheet_title": "تطبيق القالب",
   "checklists_applySheet_empty": "لا توجد قوالب بعد. يمكنك إنشاؤها من الإعدادات.",
   "checklists_applySheet_itemCount": "{count, plural, =1{عنصر واحد} other{{count} عناصر}}",

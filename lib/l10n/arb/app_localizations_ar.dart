@@ -2195,6 +2195,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'حفظ كقالب...';
 
   @override
+  String get checklists_menu_clearAll => 'مسح قائمة التحقق...';
+
+  @override
+  String get checklists_clear_title => 'مسح قائمة التحقق';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'هل تريد حذف جميع العناصر البالغ عددها $count من قائمة التحقق هذه؟ لن تتأثر القوالب.',
+      one: 'هل تريد حذف العنصر الوحيد من قائمة التحقق هذه؟ لن تتأثر القوالب.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'مسح';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إزالة $count عناصر',
+      one: 'تمت إزالة عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'تطبيق القالب';
 
   @override

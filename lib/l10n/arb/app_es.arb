@@ -905,6 +905,25 @@
   "checklists_item_delete": "Eliminar elemento",
   "checklists_menu_applyTemplate": "Aplicar plantilla...",
   "checklists_menu_saveAsTemplate": "Guardar como plantilla...",
+  "checklists_menu_clearAll": "Vaciar lista...",
+  "checklists_clear_title": "Vaciar lista",
+  "checklists_clear_content": "{count, plural, =1{¿Eliminar el único elemento de esta lista? Las plantillas no se ven afectadas.} other{¿Eliminar los {count} elementos de esta lista? Las plantillas no se ven afectadas.}}",
+  "@checklists_clear_content": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checklists_clear_confirm": "Vaciar",
+  "checklists_clear_success": "{count, plural, =1{1 elemento eliminado} other{{count} elementos eliminados}}",
+  "@checklists_clear_success": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_applySheet_title": "Aplicar plantilla",
   "checklists_applySheet_empty": "Aún no hay plantillas. Créalas en Ajustes.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 elemento} other{{count} elementos}}",

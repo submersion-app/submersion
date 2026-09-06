@@ -2249,6 +2249,39 @@ class AppLocalizationsDe extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'Als Vorlage speichern...';
 
   @override
+  String get checklists_menu_clearAll => 'Checkliste leeren...';
+
+  @override
+  String get checklists_clear_title => 'Checkliste leeren';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Alle $count Einträge aus dieser Checkliste löschen? Vorlagen sind nicht betroffen.',
+      one:
+          'Den einzigen Eintrag aus dieser Checkliste löschen? Vorlagen sind nicht betroffen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'Leeren';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Einträge entfernt',
+      one: '1 Eintrag entfernt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'Vorlage anwenden';
 
   @override

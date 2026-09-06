@@ -2108,6 +2108,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => '保存为模板…';
 
   @override
+  String get checklists_menu_clearAll => '清空清单…';
+
+  @override
+  String get checklists_clear_title => '清空清单';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '要删除此清单中的全部 $count 个项目吗？模板不受影响。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => '清空';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已移除 $count 个项目',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => '应用模板';
 
   @override

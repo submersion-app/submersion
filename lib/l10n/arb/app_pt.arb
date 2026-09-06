@@ -905,6 +905,25 @@
   "checklists_item_delete": "Excluir item",
   "checklists_menu_applyTemplate": "Aplicar modelo...",
   "checklists_menu_saveAsTemplate": "Salvar como modelo...",
+  "checklists_menu_clearAll": "Limpar lista...",
+  "checklists_clear_title": "Limpar lista",
+  "checklists_clear_content": "{count, plural, =1{Eliminar o único item desta lista? Os modelos não são afetados.} other{Eliminar os {count} itens desta lista? Os modelos não são afetados.}}",
+  "@checklists_clear_content": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checklists_clear_confirm": "Limpar",
+  "checklists_clear_success": "{count, plural, =1{1 item removido} other{{count} itens removidos}}",
+  "@checklists_clear_success": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_applySheet_title": "Aplicar modelo",
   "checklists_applySheet_empty": "Ainda não há modelos. Crie-os em Configurações.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 item} other{{count} itens}}",
