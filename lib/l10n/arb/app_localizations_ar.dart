@@ -6835,10 +6835,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => 'عمق أقصى ppO2';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => 'الوقت فوق 1.4 bar';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => 'الوقت فوق 1.6 bar';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return 'الوقت فوق $limit bar';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => 'من الحد اليومي';
@@ -16490,6 +16489,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_decompression_header_oxygenToxicity => 'سمية الأكسجين';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle =>
+      'حدود الضغط الجزئي للأكسجين';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return 'العمل $working bar · الحد الأقصى $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title =>
+      'حدود الضغط الجزئي للأكسجين';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      'حدود الضغط الجزئي للأكسجين المستخدمة لحساب العمق الأقصى للتشغيل وتخطيط الغازات وتحذيرات تسمم الأكسجين. اضبطها لتطابق الحدود المضبوطة على جهاز الغوص الخاص بك.';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working =>
+      'الضغط الجزئي للأكسجين أثناء العمل';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint =>
+      'غاز القاع، الجزء النشط من الغوص';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max =>
+      'الحد الأقصى للضغط الجزئي للأكسجين';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint =>
+      'إزالة الضغط والطوارئ';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {

@@ -1484,6 +1484,18 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Set both ppO2 ceilings at once, holding deco >= working, in a single
+  /// persisted write.
+  Future<void> setPpO2Limits(double working, double max) async {
+    final clampedWorking = working.clamp(1.0, 1.6);
+    final clampedMax = max.clamp(1.2, 1.6);
+    state = state.copyWith(
+      ppO2MaxWorking: clampedWorking,
+      ppO2MaxDeco: clampedMax < clampedWorking ? clampedWorking : clampedMax,
+    );
+    await _saveSettings();
+  }
+
   Future<void> setCnsWarningThreshold(int value) async {
     final clamped = value.clamp(50, 100);
     state = state.copyWith(cnsWarningThreshold: clamped);

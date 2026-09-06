@@ -35,6 +35,7 @@ DiveQualityContext makeContext({
   Map<String, List<QualityPressureSample>> pressures = const {},
   List<QualityNeighbor> neighbors = const [],
   List<GasSwitch> gasSwitches = const [],
+  double ppO2MaxBar = 1.6,
 }) => DiveQualityContext(
   dive: dive,
   now: now ?? DateTime.utc(2026, 7, 17, 12),
@@ -44,6 +45,7 @@ DiveQualityContext makeContext({
   pressuresByTankId: pressures,
   gasSwitches: gasSwitches,
   neighbors: neighbors,
+  ppO2MaxBar: ppO2MaxBar,
 );
 
 /// Descend to [depth] at t=0..60, hold, surface in the last minute.

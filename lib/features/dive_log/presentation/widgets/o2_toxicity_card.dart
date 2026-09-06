@@ -375,7 +375,9 @@ class O2ToxicityCard extends StatelessWidget {
         if (exposure.timeAboveWarning > 0)
           _buildDetailRow(
             context,
-            context.l10n.diveLog_o2tox_label_timeAbove14,
+            context.l10n.diveLog_o2tox_label_timeAboveLimit(
+              exposure.warningThreshold.toStringAsFixed(1),
+            ),
             _formatDuration(context.l10n, exposure.timeAboveWarning),
             icon: Icons.timer,
             valueColor: Colors.orange,
@@ -383,7 +385,9 @@ class O2ToxicityCard extends StatelessWidget {
         if (exposure.timeAboveCritical > 0)
           _buildDetailRow(
             context,
-            context.l10n.diveLog_o2tox_label_timeAbove16,
+            context.l10n.diveLog_o2tox_label_timeAboveLimit(
+              exposure.criticalThreshold.toStringAsFixed(1),
+            ),
             _formatDuration(context.l10n, exposure.timeAboveCritical),
             icon: Icons.warning,
             valueColor: colorScheme.error,
@@ -1039,7 +1043,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
       parts.add(
         TextSpan(
           text:
-              '${context.l10n.diveLog_o2tox_label_timeAbove14}: '
+              '${context.l10n.diveLog_o2tox_label_timeAboveLimit(exposure.warningThreshold.toStringAsFixed(1))}: '
               '${_formatDuration(context.l10n, exposure.timeAboveWarning)}',
           style: textTheme.labelSmall?.copyWith(color: Colors.orange),
         ),
@@ -1053,7 +1057,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
       parts.add(
         TextSpan(
           text:
-              '${context.l10n.diveLog_o2tox_label_timeAbove16}: '
+              '${context.l10n.diveLog_o2tox_label_timeAboveLimit(exposure.criticalThreshold.toStringAsFixed(1))}: '
               '${_formatDuration(context.l10n, exposure.timeAboveCritical)}',
           style: textTheme.labelSmall?.copyWith(color: colorScheme.error),
         ),

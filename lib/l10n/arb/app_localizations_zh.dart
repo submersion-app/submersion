@@ -6622,10 +6622,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => '最大氧分压深度';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => '超过 1.4 bar 的时间';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => '超过 1.6 bar 的时间';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return '高于 $limit bar 的时间';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => '占每日限制';
@@ -15957,6 +15956,33 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_decompression_header_oxygenToxicity => '氧中毒';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle => '氧分压上限';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return '工作 $working bar · 最大 $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title => '氧分压上限';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      '用于计算最大工作深度、气体规划和氧中毒警告的氧分压上限。请将其设置为与你的潜水电脑上配置的限值一致。';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working => '工作氧分压';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint => '底部气体，潜水的活动阶段';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max => '最大氧分压';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint => '减压和应急';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {

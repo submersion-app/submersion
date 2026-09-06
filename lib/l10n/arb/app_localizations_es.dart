@@ -6980,10 +6980,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => 'Profundidad del ppO2 máximo';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => 'Tiempo por encima de 1.4 bar';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => 'Tiempo por encima de 1.6 bar';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return 'Tiempo por encima de $limit bar';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => 'del límite diario';
@@ -16803,6 +16802,35 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_decompression_header_oxygenToxicity =>
       'Toxicidad del oxígeno';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle => 'Límites de ppO2';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return 'Trabajo $working bar · Máx $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title => 'Límites de ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      'Los límites de ppO2 usados para la MOD, la planificación de gases y los avisos de toxicidad por oxígeno. Ajústalos a los límites configurados en tu ordenador de buceo.';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working => 'ppO2 de trabajo';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint =>
+      'Gas de fondo, parte activa de la inmersión';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max => 'ppO2 máxima';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint =>
+      'Descompresión y contingencia';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {

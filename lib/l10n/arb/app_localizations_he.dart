@@ -6798,10 +6798,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => 'עומק ppO2 מרבי';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => 'זמן מעל 1.4 bar';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => 'זמן מעל 1.6 bar';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return 'זמן מעל $limit bar';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => 'מהמגבלה היומית';
@@ -16375,6 +16374,35 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_decompression_header_oxygenToxicity => 'רעילות חמצן';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle => 'מגבלות ppO2';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return 'עבודה $working bar · מקסימום $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title => 'מגבלות ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      'תקרות ה-ppO2 המשמשות לחישוב MOD, לתכנון גזים ולהתראות רעילות חמצן. הגדר אותן כך שיתאמו למגבלות שהוגדרו במחשב הצלילה שלך.';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working => 'ppO2 בעבודה';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint =>
+      'גז תחתית, החלק הפעיל של הצלילה';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max => 'ppO2 מרבי';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint =>
+      'דקומפרסיה ומצבי חירום';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {

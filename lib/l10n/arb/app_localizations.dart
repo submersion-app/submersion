@@ -11573,17 +11573,11 @@ abstract class AppLocalizations {
   /// **'Max ppO2 Depth'**
   String get diveLog_o2tox_label_maxPpO2Depth;
 
-  /// No description provided for @diveLog_o2tox_label_timeAbove14.
+  /// No description provided for @diveLog_o2tox_label_timeAboveLimit.
   ///
   /// In en, this message translates to:
-  /// **'Time above 1.4 bar'**
-  String get diveLog_o2tox_label_timeAbove14;
-
-  /// No description provided for @diveLog_o2tox_label_timeAbove16.
-  ///
-  /// In en, this message translates to:
-  /// **'Time above 1.6 bar'**
-  String get diveLog_o2tox_label_timeAbove16;
+  /// **'Time above {limit} bar'**
+  String diveLog_o2tox_label_timeAboveLimit(String limit);
 
   /// No description provided for @diveLog_o2tox_ofDailyLimit.
   ///
@@ -27728,6 +27722,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Oxygen Toxicity'**
   String get settings_decompression_header_oxygenToxicity;
+
+  /// No description provided for @settings_decompression_ppO2LimitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 limits'**
+  String get settings_decompression_ppO2LimitsTitle;
+
+  /// No description provided for @settings_decompression_ppO2LimitsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Working {working} bar · Max {max} bar'**
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max);
+
+  /// No description provided for @settings_decompression_ppO2Dialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 limits'**
+  String get settings_decompression_ppO2Dialog_title;
+
+  /// No description provided for @settings_decompression_ppO2Dialog_info.
+  ///
+  /// In en, this message translates to:
+  /// **'The ppO2 ceilings used for MOD, gas planning and oxygen toxicity warnings. Set these to match the limits configured on your dive computer.'**
+  String get settings_decompression_ppO2Dialog_info;
+
+  /// No description provided for @settings_decompression_ppO2Dialog_working.
+  ///
+  /// In en, this message translates to:
+  /// **'Working ppO2'**
+  String get settings_decompression_ppO2Dialog_working;
+
+  /// No description provided for @settings_decompression_ppO2Dialog_workingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom gas, active part of the dive'**
+  String get settings_decompression_ppO2Dialog_workingHint;
+
+  /// No description provided for @settings_decompression_ppO2Dialog_max.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum ppO2'**
+  String get settings_decompression_ppO2Dialog_max;
+
+  /// No description provided for @settings_decompression_ppO2Dialog_maxHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression and contingency'**
+  String get settings_decompression_ppO2Dialog_maxHint;
 
   /// No description provided for @settings_decompression_preset_selectLabel.
   ///

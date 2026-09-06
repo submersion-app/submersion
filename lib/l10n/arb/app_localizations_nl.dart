@@ -6923,10 +6923,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => 'Max ppO2-diepte';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => 'Tijd boven 1,4 bar';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => 'Tijd boven 1,6 bar';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return 'Tijd boven $limit bar';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => 'van dagelijks limiet';
@@ -16665,6 +16664,35 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_decompression_header_oxygenToxicity =>
       'Zuurstoftoxiciteit';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle => 'ppO2-limieten';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return 'Werk $working bar · Max $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title => 'ppO2-limieten';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      'De ppO2-plafonds die worden gebruikt voor MOD, gasplanning en zuurstoftoxiciteitswaarschuwingen. Stel ze in op de limieten die op je duikcomputer zijn ingesteld.';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working => 'Werk-ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint =>
+      'Bodemgas, actief deel van de duik';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max => 'Maximale ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint =>
+      'Decompressie en reserve';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {

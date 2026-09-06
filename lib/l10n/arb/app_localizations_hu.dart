@@ -6955,10 +6955,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => 'Max ppO2 melyseg';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => '1,4 bar feletti ido';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => '1,6 bar feletti ido';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return '$limit bar feletti idő';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => 'a napi limitbol';
@@ -16746,6 +16745,35 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_header_oxygenToxicity => 'Oxigéntoxicitás';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle => 'ppO2-határok';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return 'Munka $working bar · Max. $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title => 'ppO2-határok';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      'A MOD-hoz, a gáztervezéshez és az oxigéntoxicitási figyelmeztetésekhez használt ppO2-plafonértékek. Állítsd be őket a búvárkomputereden konfigurált határok szerint.';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working => 'Munka ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint =>
+      'Fenékgáz, a merülés aktív része';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max => 'Maximális ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint =>
+      'Dekompresszió és tartalék';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {

@@ -1,6 +1,17 @@
 {
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
   "equipment_documents_removeError": "Could not remove the document: {error}",
+  "@diveLog_o2tox_label_timeAboveLimit": {
+    "placeholders": {
+      "limit": { "type": "String" }
+    }
+  },
+  "@settings_decompression_ppO2LimitsSubtitle": {
+    "placeholders": {
+      "working": { "type": "String" },
+      "max": { "type": "String" }
+    }
+  },
   "@equipment_documents_removeError": { "placeholders": { "error": { "type": "String" } } },
   "settings_oauth_connect_copyFailed": "Could not copy the link.",
   "settings_oauth_connect_copyLink": "Copy link",
@@ -3839,8 +3850,7 @@
   "diveLog_o2tox_details": "Details",
   "diveLog_o2tox_label_maxPpO2": "Max ppO2",
   "diveLog_o2tox_label_maxPpO2Depth": "Max ppO2 Depth",
-  "diveLog_o2tox_label_timeAbove14": "Time above 1.4 bar",
-  "diveLog_o2tox_label_timeAbove16": "Time above 1.6 bar",
+  "diveLog_o2tox_label_timeAboveLimit": "Time above {limit} bar",
   "diveLog_o2tox_ofDailyLimit": "of daily limit",
   "diveLog_o2tox_oxygenToleranceUnits": "Oxygen Tolerance Units",
   "diveLog_o2tox_semantics_cnsBadge": "CNS oxygen toxicity {value}",
@@ -9946,6 +9956,14 @@
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "Gradient Factors",
   "settings_decompression_header_oxygenToxicity": "Oxygen Toxicity",
+  "settings_decompression_ppO2LimitsTitle": "ppO2 limits",
+  "settings_decompression_ppO2LimitsSubtitle": "Working {working} bar · Max {max} bar",
+  "settings_decompression_ppO2Dialog_title": "ppO2 limits",
+  "settings_decompression_ppO2Dialog_info": "The ppO2 ceilings used for MOD, gas planning and oxygen toxicity warnings. Set these to match the limits configured on your dive computer.",
+  "settings_decompression_ppO2Dialog_working": "Working ppO2",
+  "settings_decompression_ppO2Dialog_workingHint": "Bottom gas, active part of the dive",
+  "settings_decompression_ppO2Dialog_max": "Maximum ppO2",
+  "settings_decompression_ppO2Dialog_maxHint": "Decompression and contingency",
   "settings_decompression_preset_selectLabel": "Select {presetName} conservatism preset",
   "settings_decompression_header_narcosis": "Narcosis",
   "settings_decompression_o2Narcotic": "O2 is narcotic",

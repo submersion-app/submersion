@@ -27,11 +27,20 @@ class O2Exposure extends Equatable {
   /// Depth at which max ppO2 occurred (meters)
   final double maxPpO2Depth;
 
-  /// Time spent above warning threshold (1.4 bar) in seconds
+  /// Time spent above [warningThreshold] in seconds
   final int timeAboveWarning;
 
-  /// Time spent above critical threshold (1.6 bar) in seconds
+  /// Time spent above [criticalThreshold] in seconds
   final int timeAboveCritical;
+
+  /// ppO2 working limit this exposure was evaluated against, in bar. Defaults
+  /// to the 1.4 bar recreational working limit; the diver can raise or lower
+  /// it in decompression settings.
+  final double warningThreshold;
+
+  /// ppO2 maximum (deco/contingency) limit this exposure was evaluated
+  /// against, in bar. Defaults to the 1.6 bar limit.
+  final double criticalThreshold;
 
   const O2Exposure({
     this.cnsStart = 0.0,
@@ -42,6 +51,8 @@ class O2Exposure extends Equatable {
     this.maxPpO2Depth = 0.0,
     this.timeAboveWarning = 0,
     this.timeAboveCritical = 0,
+    this.warningThreshold = 1.4,
+    this.criticalThreshold = 1.6,
   });
 
   /// CNS% accumulated during this dive
@@ -53,11 +64,11 @@ class O2Exposure extends Equatable {
   /// Whether CNS is critical (>100%)
   bool get cnsCritical => cnsEnd >= 100.0;
 
-  /// Whether ppO2 exceeded safe working limit (1.4 bar)
-  bool get ppO2Warning => maxPpO2 > 1.4;
+  /// Whether ppO2 exceeded the diver's working limit ([warningThreshold])
+  bool get ppO2Warning => maxPpO2 > warningThreshold;
 
-  /// Whether ppO2 exceeded maximum deco limit (1.6 bar)
-  bool get ppO2Critical => maxPpO2 > 1.6;
+  /// Whether ppO2 exceeded the diver's maximum deco limit ([criticalThreshold])
+  bool get ppO2Critical => maxPpO2 > criticalThreshold;
 
   /// Daily OTU limit (typically 300 for single day, 850 cumulative)
   static const double dailyOtuLimit = 300.0;
@@ -97,6 +108,8 @@ class O2Exposure extends Equatable {
     double? maxPpO2Depth,
     int? timeAboveWarning,
     int? timeAboveCritical,
+    double? warningThreshold,
+    double? criticalThreshold,
   }) {
     return O2Exposure(
       cnsStart: cnsStart ?? this.cnsStart,
@@ -107,6 +120,8 @@ class O2Exposure extends Equatable {
       maxPpO2Depth: maxPpO2Depth ?? this.maxPpO2Depth,
       timeAboveWarning: timeAboveWarning ?? this.timeAboveWarning,
       timeAboveCritical: timeAboveCritical ?? this.timeAboveCritical,
+      warningThreshold: warningThreshold ?? this.warningThreshold,
+      criticalThreshold: criticalThreshold ?? this.criticalThreshold,
     );
   }
 
@@ -120,6 +135,8 @@ class O2Exposure extends Equatable {
     maxPpO2Depth,
     timeAboveWarning,
     timeAboveCritical,
+    warningThreshold,
+    criticalThreshold,
   ];
 }
 

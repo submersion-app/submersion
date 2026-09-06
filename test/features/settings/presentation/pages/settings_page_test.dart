@@ -237,6 +237,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setPpO2MaxDeco(double value) async =>
       state = state.copyWith(ppO2MaxDeco: value);
   @override
+  Future<void> setPpO2Limits(double working, double max) async =>
+      state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
+  @override
   Future<void> setCnsWarningThreshold(int value) async =>
       state = state.copyWith(cnsWarningThreshold: value);
   @override
@@ -1963,6 +1966,63 @@ void main() {
 
       expect(find.text('70 bar'), findsOneWidget);
       expect(find.text('50 bar'), findsNothing);
+    });
+  });
+
+  group('Decompression ppO2 limits', () {
+    Widget buildDecompressionWidget(List<Override> overrides) {
+      final router = GoRouter(
+        initialLocation: '/settings?selected=decompression',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
+      );
+      return ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    testWidgets('tile shows the current working and max ceilings', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 6000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ppO2 limits'), findsOneWidget);
+      expect(find.text('Working 1.4 bar · Max 1.6 bar'), findsOneWidget);
+    });
+
+    testWidgets('saving a new maximum updates the tile', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 6000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('ppO2 limits'));
+      await tester.pumpAndSettle();
+
+      // The "Maximum ppO2" dropdown currently reads 1.6 bar (working is 1.4).
+      await tester.tap(find.text('1.6 bar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('1.5 bar').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Working 1.4 bar · Max 1.5 bar'), findsOneWidget);
     });
   });
 
