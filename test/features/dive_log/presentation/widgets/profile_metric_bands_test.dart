@@ -64,12 +64,24 @@ void main() {
       });
     });
 
-    test('a runtime-scaled metric refuses to hand out a fixed maximum', () {
-      // CNS and OTU scale to the dive, so a caller reaching for fixedMax has
-      // mistaken them for a fixed-band metric rather than silently plotting
-      // on the wrong axis.
-      expect(() => ProfileMetricBands.cns.fixedMax, throwsStateError);
-      expect(() => ProfileMetricBands.otu.fixedMax, throwsStateError);
+    test('a metric with no fixed maximum refuses to hand one out', () {
+      // Two reasons a metric has none: CNS and OTU are scaled to the dive,
+      // MOD and mean depth are plotted in depth units. Either way a caller
+      // reaching for fixedMax has mistaken it for a fixed-band metric and
+      // should hear about it rather than silently plot on the wrong axis.
+      //
+      // Derived from the map rather than listed, so a metric added later
+      // with a null maximum is covered without anyone remembering to.
+      final unbounded = {
+        for (final e in _all.entries)
+          if (e.value.max == null) e.key,
+      };
+      expect(unbounded, {'mod', 'meanDepth', 'cns', 'otu'});
+      for (final name in unbounded) {
+        expect(() => _all[name]!.fixedMax, throwsStateError, reason: name);
+      }
+
+      // A fixed-band metric hands its maximum over as normal.
       expect(ProfileMetricBands.ppO2.fixedMax, 2.0);
     });
   });
