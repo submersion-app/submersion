@@ -16,8 +16,13 @@ class ProfileMetricBand {
   /// Bottom of the plotted range, in the metric's own units.
   final double min;
 
-  /// Top of the plotted range, or null where the scale is derived from the
-  /// data at runtime (CNS and OTU scale to the dive).
+  /// Top of the plotted range, or null where the metric has no fixed one and
+  /// the caller supplies the mapping.
+  ///
+  /// Null for two different reasons: CNS and OTU are scaled to the dive, so
+  /// their maximum is computed at render time; MOD and mean depth are not
+  /// band-mapped at all, being plotted in the profile's own depth unit, and
+  /// take only a colour and a dash pattern from here.
   final double? max;
 
   final Color color;
@@ -33,13 +38,22 @@ class ProfileMetricBand {
     required this.dashArray,
   });
 
-  /// [max] for metrics that always have one; throws for the runtime-scaled
-  /// metrics, which must take their maximum from the caller.
+  /// [max] for the metrics that have a fixed one.
+  ///
+  /// Throws where [max] is null rather than substituting a default: a caller
+  /// reaching for this on a runtime-scaled or depth-mapped metric has
+  /// mistaken it for a fixed-band one, and a silent fallback would plot it on
+  /// the wrong axis.
   double get fixedMax =>
-      max ?? (throw StateError('this metric is scaled at runtime'));
+      max ?? (throw StateError('this metric has no fixed maximum'));
 }
 
-/// One entry per metric the profile chart can plot as a banded curve.
+/// One entry per metric the profile chart draws as its own curve.
+///
+/// Most are banded, sharing the right-hand axis through [ProfileMetricBand.min]
+/// and [ProfileMetricBand.max]. MOD and mean depth are plotted in depth units
+/// instead and appear here only so their colour and dash pattern have one
+/// definition too.
 abstract final class ProfileMetricBands {
   /// Seconds-based metrics share a 60 minute ceiling; longer readings clamp.
   static const double _oneHourSeconds = 3600.0;
