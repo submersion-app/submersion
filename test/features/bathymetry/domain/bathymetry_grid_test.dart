@@ -140,5 +140,50 @@ void main() {
       final g = grid(List<double?>.filled(16, 5.0), rows: 4, cols: 4);
       expect(g.downsampleTo(2).resolutionMeters, closeTo(900.0, 1e-9));
     });
+
+    test('recentres the origin on the block, not on its first sample', () {
+      // Origin is the SOUTH-WEST CELL CENTER. Striding sampled the block's
+      // first cell, so the origin was already that sample's center and had
+      // to stay put. A block MEAN sits at the block's centroid instead,
+      // half a stride further north and east, so the origin has to move
+      // with it or every cell is reported half a block south-west of the
+      // data it holds.
+      final g = grid(List<double?>.filled(16, 5.0), rows: 4, cols: 4);
+      final d = g.downsampleTo(2);
+      // step 2: shift by cell * (step - 1) / 2 = half a cell.
+      expect(d.originLat, closeTo(12.14 + 0.004 * 0.5, 1e-12));
+      expect(d.originLon, closeTo(-68.31 + 0.004 * 0.5, 1e-12));
+    });
+
+    test('recentres by a full cell at stride 3', () {
+      final g = grid(List<double?>.filled(81, 5.0), rows: 9, cols: 9);
+      final d = g.downsampleTo(3);
+      // step 3: shift by cell * (3 - 1) / 2 = one whole cell.
+      expect(d.originLat, closeTo(12.14 + 0.004, 1e-12));
+      expect(d.originLon, closeTo(-68.31 + 0.004, 1e-12));
+    });
+
+    test('preserves the south-west edge of the geographic footprint', () {
+      // The invariant that matters downstream: the overlay image, the
+      // imagery mosaic and the 3D mesh all derive their bounds from the
+      // origin and cell size, so the covered area must not move.
+      final g = grid(List<double?>.filled(16, 5.0), rows: 4, cols: 4);
+      final d = g.downsampleTo(2);
+      expect(
+        d.originLat - d.cellSizeLatDeg / 2,
+        closeTo(12.14 - 0.004 / 2, 1e-12),
+      );
+      expect(
+        d.originLon - d.cellSizeLonDeg / 2,
+        closeTo(-68.31 - 0.004 / 2, 1e-12),
+      );
+    });
+
+    test('an identity downsample leaves the origin alone', () {
+      final g = grid(const [1.0, 2.0, 3.0, 4.0], rows: 2, cols: 2);
+      final d = g.downsampleTo(4);
+      expect(d.originLat, 12.14);
+      expect(d.originLon, -68.31);
+    });
   });
 }

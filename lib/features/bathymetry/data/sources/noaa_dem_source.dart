@@ -134,7 +134,7 @@ class NoaaDemSource implements BathymetrySource {
     GeoPoint center, {
     required double spanMeters,
   }) async {
-    final dLat = spanMeters / 2 / 110540.0;
+    final dLat = spanMeters / 2 / _metersPerDegLat;
     final dLon = spanMeters / 2 / metersPerDegreeLongitude(center.latitude);
     final west = center.longitude - dLon;
     final east = center.longitude + dLon;

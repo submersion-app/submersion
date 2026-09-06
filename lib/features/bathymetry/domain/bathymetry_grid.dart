@@ -93,8 +93,17 @@ class BathymetryGrid {
       }
     }
     return BathymetryGrid(
-      originLat: originLat,
-      originLon: originLon,
+      // Origin is the SOUTH-WEST CELL CENTER, so it has to follow the data.
+      // Striding kept the block's first sample, whose center already WAS
+      // the origin; a block mean sits at the block's centroid instead, half
+      // a stride further north and east. Leaving the origin put would
+      // report every cell half a block south-west of the depths it holds,
+      // dragging the 3D mesh, the 2D overlay bounds, the imagery mosaic and
+      // the hover lat/lon readout with it. The south-west edge of the
+      // footprint is unchanged by this shift, which is the invariant those
+      // consumers actually depend on.
+      originLat: originLat + cellSizeLatDeg * (stepR - 1) / 2,
+      originLon: originLon + cellSizeLonDeg * (stepC - 1) / 2,
       cellSizeLatDeg: cellSizeLatDeg * stepR,
       cellSizeLonDeg: cellSizeLonDeg * stepC,
       rows: newRows,
