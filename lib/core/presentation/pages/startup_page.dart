@@ -1004,7 +1004,34 @@ class _StartupWrapperState extends State<StartupWrapper>
         // screen pumping until their timeout.
         if (!File(path).existsSync()) continue;
         final stored = _probeCandidateSchema(path);
-        if (stored == null || stored > _appVersion) continue;
+        if (stored == null) continue;
+
+        // Two separate questions, and the offer needs both.
+        //
+        // Can this build open the file at all? The selector already applied
+        // this bound to what the registry CLAIMS; re-applying it to what the
+        // file actually holds is what makes the claim load-bearing.
+        if (stored > _appVersion) continue;
+
+        // Is it the copy the card is about to describe? The card names
+        // record.fromSchemaVersion and toSchemaVersion, so a file whose own
+        // user_version disagrees with the claim would have the screen promise
+        // to undo one upgrade and restore a database from another. For a
+        // pre-migration copy the two are equal by construction: the service
+        // records fromSchemaVersion from the live file's user_version at copy
+        // time, and settling the journal mode does not change it. A
+        // discrepancy therefore means the registry and the file have come
+        // apart -- a replaced file, or a hand-edited registry -- and the
+        // honest move on a data-loss path is to offer nothing rather than
+        // something mislabelled.
+        if (stored != record.fromSchemaVersion) {
+          debugPrint(
+            'Skipping backup at $path: it holds schema v$stored but the '
+            'registry claims v${record.fromSchemaVersion}',
+          );
+          continue;
+        }
+
         if (!mounted) return;
         setState(() => _downgradeBackup = record);
         return;

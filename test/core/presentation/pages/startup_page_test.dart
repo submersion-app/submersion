@@ -2266,6 +2266,39 @@ void main() {
       expect(find.text('Restore this backup'), findsNothing);
     });
 
+    testWidgets('shows no restore when the file disagrees with the registry', (
+      tester,
+    ) async {
+      // The card names the record's schema pair, so a file whose own
+      // user_version differs from the claim would have the screen promise to
+      // undo one upgrade while restoring a database from another. Openable is
+      // not the same question as "is this the copy we are describing".
+      final dir = Directory.systemTemp.createTempSync('startup-downgrade-m-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      await seedCopy(
+        dir,
+        id: 'mislabelled',
+        fromSchemaVersion: 170,
+        toSchemaVersion: 175,
+        timestamp: DateTime.utc(2026, 9, 1, 9),
+      );
+
+      await tester.pumpWidget(
+        wrapper(
+          storedSchemaVersion: 191,
+          supportedSchemaVersion: 175,
+          // Opens fine and is old enough to restore, but is not the v170 copy
+          // the registry claims it is.
+          probe: (_) => 168,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Update Required'), findsOneWidget);
+      expect(find.text('Restore this backup'), findsNothing);
+    });
+
     testWidgets('preserves the newer database BEFORE swapping it away, then '
         'resumes startup', (tester) async {
       final dir = Directory.systemTemp.createTempSync('startup-downgrade-r-');

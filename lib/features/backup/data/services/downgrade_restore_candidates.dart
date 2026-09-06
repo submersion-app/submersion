@@ -27,8 +27,12 @@ import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 ///   cannot satisfy.
 ///
 /// Callers still have to check the file itself. This function knows what the
-/// registry claims; only opening the copy proves the claim (see
-/// `_loadDowngradeOption`).
+/// registry claims; only opening the copy proves the claim, and the claim is
+/// what the screen goes on to display. `_loadDowngradeOption` therefore
+/// requires the file's own `user_version` to EQUAL the recorded
+/// [BackupRecord.fromSchemaVersion], not merely to fall within the same
+/// bound: a copy that opens but disagrees with its record would be offered
+/// under the wrong description.
 List<BackupRecord> downgradeRestoreCandidates(
   List<BackupRecord> history, {
   required int supportedSchemaVersion,
