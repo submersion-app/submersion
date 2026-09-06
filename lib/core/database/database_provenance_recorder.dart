@@ -133,7 +133,13 @@ class DatabaseProvenanceRecorder {
 
       await db.transaction(() async {
         for (final entry in writes.entries) {
-          final value = entry.value;
+          // Normalised at this one boundary, which is every path that reaches
+          // the table: a resolved fact, a rotated one copied out of the
+          // existing rows, and the train from the compile-time define. A
+          // value that carries no information must be DELETED rather than
+          // stored, or the table accumulates rows that parse back to null --
+          // rows that say nothing while looking like an answer.
+          final value = _normalise(entry.value);
           if (value == null) {
             await _clear(db, entry.key);
           } else {
@@ -144,6 +150,22 @@ class DatabaseProvenanceRecorder {
     } on Object {
       // Best-effort by contract; see the class doc.
     }
+  }
+
+  /// Blank and whitespace-only alike become null, and a kept value is stored
+  /// trimmed.
+  ///
+  /// The parser already treats blank as absent, so normalising here is what
+  /// makes the stored bytes agree with what reading them back yields: a raw
+  /// look at the table and a parsed record give the same answer. Without it a
+  /// `--dart-define=BUILD_TRAIN=` (present but empty, so `isStamped` is true
+  /// and the train is the empty string) or a whitespace-only
+  /// `sync_metadata.device_id` (past the `!= ''` guard on the read) would
+  /// persist a row that reads back as nothing.
+  static String? _normalise(String? value) {
+    if (value == null) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
   static Future<void> _put(
@@ -183,9 +205,11 @@ class DatabaseProvenanceRecorder {
       // predecessor away and replace it with a duplicate of the entry that is
       // staying put -- which is precisely what a headless open with no plugin
       // registrant (and so no app version) would do on every background task.
-      final value = incoming[key];
+      // Normalised on both sides: whitespace is not a difference, and a
+      // spurious rotation would push the real predecessor out.
+      final value = _normalise(incoming[key]);
       if (value == null) continue;
-      if (existing[key] != value) return true;
+      if (_normalise(existing[key]) != value) return true;
     }
     return false;
   }

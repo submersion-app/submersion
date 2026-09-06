@@ -17,6 +17,16 @@ PackageInfo _info(String version, String build) => PackageInfo(
   buildNumber: build,
 );
 
+Future<Map<String, String>> _rawRows(AppDatabase db) async {
+  final rows = await db
+      .customSelect('SELECT key, value FROM database_provenance')
+      .get();
+  return {
+    for (final row in rows)
+      row.data['key'] as String: row.data['value'] as String,
+  };
+}
+
 Future<DatabaseProvenanceRecord> _read(AppDatabase db) async {
   final rows = await db
       .customSelect('SELECT key, value FROM database_provenance')
@@ -424,6 +434,96 @@ void main() {
       expect(record.lastOpen!.installId, 'device-from-sync');
     },
   );
+
+  group('a value that says nothing is never stored', () {
+    // The parser reads blank as absent, so a blank row and a missing row give
+    // the same record. These assert on the RAW rows, because the difference
+    // they are about is invisible through the parser.
+    test('a blank train is deleted rather than persisted', () async {
+      // An empty --dart-define=BUILD_TRAIN= is present but empty, so the
+      // stamp check passes and the train is the empty string.
+      await DatabaseProvenanceRecorder.record(
+        db,
+        schemaVersion: 194,
+        releaseTrainOverride: '   ',
+      );
+
+      expect(await _rawRows(db), isNot(contains('release_train')));
+    });
+
+    test('a whitespace install id is deleted rather than persisted', () async {
+      // Past the `device_id != ''` guard on the read, which catches empty but
+      // not whitespace.
+      await DatabaseProvenanceRecorder.record(
+        db,
+        schemaVersion: 194,
+        installIdOverride: ' \t ',
+      );
+
+      expect(await _rawRows(db), isNot(contains('install_id')));
+    });
+
+    test(
+      'a blank value a future build stored is not rotated forward',
+      () async {
+        // Rotation copies the existing rows verbatim, so a blank one written by
+        // a build this code has never met would otherwise propagate into the
+        // previous_* block.
+        await db.customStatement(
+          "INSERT OR REPLACE INTO database_provenance (key, value) "
+          "VALUES ('release_train', '   ')",
+        );
+        await DatabaseProvenanceRecorder.record(
+          db,
+          schemaVersion: 194,
+          now: DateTime.utc(2026, 8, 1),
+          installIdOverride: 'device-a',
+        );
+        await DatabaseProvenanceRecorder.record(
+          db,
+          schemaVersion: 200,
+          now: DateTime.utc(2026, 9, 5),
+          installIdOverride: 'device-a',
+        );
+
+        final raw = await _rawRows(db);
+        expect(raw, isNot(contains('previous_release_train')));
+        expect(raw, isNot(contains('release_train')));
+      },
+    );
+
+    test(
+      'a stored value is trimmed so the table agrees with the parse',
+      () async {
+        await DatabaseProvenanceRecorder.record(
+          db,
+          schemaVersion: 194,
+          installIdOverride: '  device-a  ',
+        );
+
+        expect((await _rawRows(db))['install_id'], 'device-a');
+        expect((await _read(db)).lastOpen!.installId, 'device-a');
+      },
+    );
+
+    test('whitespace alone does not count as a different open', () async {
+      await DatabaseProvenanceRecorder.record(
+        db,
+        schemaVersion: 194,
+        now: DateTime.utc(2026, 8, 1),
+        installIdOverride: 'device-a',
+      );
+      await DatabaseProvenanceRecorder.record(
+        db,
+        schemaVersion: 194,
+        now: DateTime.utc(2026, 9, 5),
+        installIdOverride: '  device-a  ',
+      );
+
+      // A spurious rotation here would push the real predecessor out.
+      expect((await _read(db)).previousOpen, isNull);
+    });
+  });
 
   test('a missing table costs the open nothing', () async {
     await db.customStatement('DROP TABLE database_provenance');
