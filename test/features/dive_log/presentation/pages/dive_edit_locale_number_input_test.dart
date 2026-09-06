@@ -185,8 +185,16 @@ void main() {
     await tester.tap(gasGear);
     await tester.pumpAndSettle();
 
-    expect(find.text('0.7'), findsNothing);
-    expect(find.widgetWithText(TextFormField, '0.65'), findsOneWidget);
+    final amountField = find
+        .ancestor(of: find.text('kg'), matching: find.byType(TextFormField))
+        .first;
+    final amountText = tester
+        .widget<EditableText>(
+          find.descendant(of: amountField, matching: find.byType(EditableText)),
+        )
+        .controller
+        .text;
+    expect(amountText, '0.65');
   });
 
   testWidgets('de: saving an untouched dive does not multiply its values', (

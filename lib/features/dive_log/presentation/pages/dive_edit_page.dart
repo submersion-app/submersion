@@ -140,8 +140,8 @@ String _seedDecimal(double value, int fractionDigits) =>
 /// decimal snapped a stored 0.65 kg to "0.7", and opening a dive and saving it
 /// untouched then persisted the rounded value (#1609). Three decimals in the
 /// display unit is lossless for any weight a diver enters while still hiding
-/// the float tail a kg<->lb conversion leaves; trailing zeros are dropped so a
-/// clean 2 kg still seeds as "2".
+/// the float tail a kg-to-lb conversion leaves; trailing zeros are dropped so
+/// a clean 2 kg still seeds as "2".
 String _seedWeight(double displayValue) =>
     formatRoundedForInput(displayValue, 3);
 
