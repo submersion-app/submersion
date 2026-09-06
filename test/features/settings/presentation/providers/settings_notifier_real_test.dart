@@ -373,6 +373,32 @@ void main() {
       expect(container.read(settingsProvider).showDataSourceBadges, isFalse);
     });
 
+    test(
+      'setPpO2Limits clamps to the picker grid and holds max >= working',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        final notifier = container.read(settingsProvider.notifier);
+
+        // Off-grid values (working below 1.2, max below 1.4) are pulled onto
+        // the selectable range rather than persisted as-is.
+        await notifier.setPpO2Limits(0.9, 1.1);
+        expect(container.read(settingsProvider).ppO2MaxWorking, 1.2);
+        expect(container.read(settingsProvider).ppO2MaxDeco, 1.4);
+
+        // A max below the working ceiling is raised to it.
+        await notifier.setPpO2Limits(1.6, 1.4);
+        expect(container.read(settingsProvider).ppO2MaxWorking, 1.6);
+        expect(container.read(settingsProvider).ppO2MaxDeco, 1.6);
+
+        // In-range values pass through untouched.
+        await notifier.setPpO2Limits(1.3, 1.5);
+        expect(container.read(settingsProvider).ppO2MaxWorking, 1.3);
+        expect(container.read(settingsProvider).ppO2MaxDeco, 1.5);
+      },
+    );
+
     test('setDefaultShowAscentRateLine persists the new default', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

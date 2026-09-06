@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -1200,8 +1201,8 @@ class _DecompressionSectionContent extends ConsumerWidget {
                   ),
                   subtitle: Text(
                     context.l10n.settings_decompression_ppO2LimitsSubtitle(
-                      settings.ppO2MaxWorking.toStringAsFixed(1),
-                      settings.ppO2MaxDeco.toStringAsFixed(1),
+                      formatRoundedForInput(settings.ppO2MaxWorking, 1),
+                      formatRoundedForInput(settings.ppO2MaxDeco, 1),
                     ),
                   ),
                   trailing: const Icon(Icons.edit),
@@ -4029,7 +4030,7 @@ class _PpO2LimitDialogState extends State<_PpO2LimitDialog> {
             for (final o in options)
               DropdownMenuItem(
                 value: o,
-                child: Text('${o.toStringAsFixed(1)} bar'),
+                child: Text('${formatRoundedForInput(o, 1)} bar'),
               ),
           ],
         ),

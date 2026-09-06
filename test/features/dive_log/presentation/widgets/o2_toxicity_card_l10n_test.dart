@@ -61,4 +61,24 @@ void main() {
     expect(source.contains("toStringAsFixed(2)} bar'"), isTrue);
     expect(source.contains('convertPressure(selectedPpO2'), isFalse);
   });
+
+  test(
+    'the "time above" threshold is locale-formatted, not toStringAsFixed',
+    () {
+      // The threshold is interpolated into a translated string that previously
+      // carried the locale's own decimal separator (fr/de/nl "1,4"), so it must
+      // not be forced to a "." by toStringAsFixed.
+      for (final field in ['warningThreshold', 'criticalThreshold']) {
+        expect(
+          source.contains('exposure.$field.toStringAsFixed'),
+          isFalse,
+          reason: '$field must go through formatRoundedForInput',
+        );
+        expect(
+          source.contains('formatRoundedForInput(exposure.$field, 1)'),
+          isTrue,
+        );
+      }
+    },
+  );
 }

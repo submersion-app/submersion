@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -376,7 +377,7 @@ class O2ToxicityCard extends StatelessWidget {
           _buildDetailRow(
             context,
             context.l10n.diveLog_o2tox_label_timeAboveLimit(
-              exposure.warningThreshold.toStringAsFixed(1),
+              formatRoundedForInput(exposure.warningThreshold, 1),
             ),
             _formatDuration(context.l10n, exposure.timeAboveWarning),
             icon: Icons.timer,
@@ -386,7 +387,7 @@ class O2ToxicityCard extends StatelessWidget {
           _buildDetailRow(
             context,
             context.l10n.diveLog_o2tox_label_timeAboveLimit(
-              exposure.criticalThreshold.toStringAsFixed(1),
+              formatRoundedForInput(exposure.criticalThreshold, 1),
             ),
             _formatDuration(context.l10n, exposure.timeAboveCritical),
             icon: Icons.warning,
@@ -1043,7 +1044,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
       parts.add(
         TextSpan(
           text:
-              '${context.l10n.diveLog_o2tox_label_timeAboveLimit(exposure.warningThreshold.toStringAsFixed(1))}: '
+              '${context.l10n.diveLog_o2tox_label_timeAboveLimit(formatRoundedForInput(exposure.warningThreshold, 1))}: '
               '${_formatDuration(context.l10n, exposure.timeAboveWarning)}',
           style: textTheme.labelSmall?.copyWith(color: Colors.orange),
         ),
@@ -1057,7 +1058,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
       parts.add(
         TextSpan(
           text:
-              '${context.l10n.diveLog_o2tox_label_timeAboveLimit(exposure.criticalThreshold.toStringAsFixed(1))}: '
+              '${context.l10n.diveLog_o2tox_label_timeAboveLimit(formatRoundedForInput(exposure.criticalThreshold, 1))}: '
               '${_formatDuration(context.l10n, exposure.timeAboveCritical)}',
           style: textTheme.labelSmall?.copyWith(color: colorScheme.error),
         ),
