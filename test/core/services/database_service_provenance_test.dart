@@ -118,7 +118,13 @@ void main() {
 
       expect(File(path).lastModifiedSync(), before);
       expect(File(path).readAsBytesSync(), bytesBefore);
+      // All three sidecars: -shm is the shared-memory index that accompanies
+      // -wal, so omitting it would leave the guarantee half-checked. openRaw
+      // deliberately never sets the journal mode, which is what keeps a probe
+      // from rewriting the header of a file it is only looking at, and this
+      // is the assertion that would fail if that ever changed.
       expect(File('$path-wal').existsSync(), isFalse);
+      expect(File('$path-shm').existsSync(), isFalse);
       expect(File('$path-journal').existsSync(), isFalse);
     });
 
