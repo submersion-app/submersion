@@ -2229,6 +2229,39 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'Opslaan als sjabloon...';
 
   @override
+  String get checklists_menu_clearAll => 'Checklist wissen...';
+
+  @override
+  String get checklists_clear_title => 'Checklist wissen';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Alle $count items uit deze checklist verwijderen? Sjablonen blijven ongewijzigd.',
+      one:
+          'Het enige item uit deze checklist verwijderen? Sjablonen blijven ongewijzigd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'Wissen';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items verwijderd',
+      one: '1 item verwijderd',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'Sjabloon toepassen';
 
   @override

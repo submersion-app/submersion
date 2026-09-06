@@ -905,6 +905,25 @@
   "checklists_item_delete": "Supprimer l'élément",
   "checklists_menu_applyTemplate": "Appliquer un modèle...",
   "checklists_menu_saveAsTemplate": "Enregistrer comme modèle...",
+  "checklists_menu_clearAll": "Vider la check-list...",
+  "checklists_clear_title": "Vider la check-list",
+  "checklists_clear_content": "{count, plural, =1{Supprimer le seul élément de cette check-list ? Les modèles ne sont pas affectés.} other{Supprimer les {count} éléments de cette check-list ? Les modèles ne sont pas affectés.}}",
+  "@checklists_clear_content": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checklists_clear_confirm": "Vider",
+  "checklists_clear_success": "{count, plural, =1{1 élément supprimé} other{{count} éléments supprimés}}",
+  "@checklists_clear_success": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_applySheet_title": "Appliquer un modèle",
   "checklists_applySheet_empty": "Aucun modèle pour l'instant. Créez-en dans les Paramètres.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 élément} other{{count} éléments}}",

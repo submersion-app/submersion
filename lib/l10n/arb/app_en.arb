@@ -1433,6 +1433,25 @@
   "checklists_item_delete": "Delete item",
   "checklists_menu_applyTemplate": "Apply template...",
   "checklists_menu_saveAsTemplate": "Save as template...",
+  "checklists_menu_clearAll": "Clear checklist...",
+  "checklists_clear_title": "Clear checklist",
+  "checklists_clear_content": "{count, plural, =1{Delete the only item from this checklist? Templates are not affected.} other{Delete all {count} items from this checklist? Templates are not affected.}}",
+  "@checklists_clear_content": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checklists_clear_confirm": "Clear",
+  "checklists_clear_success": "{count, plural, =1{1 item removed} other{{count} items removed}}",
+  "@checklists_clear_success": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_applySheet_title": "Apply template",
   "checklists_applySheet_empty": "No templates yet. Create them in Settings.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 item} other{{count} items}}",

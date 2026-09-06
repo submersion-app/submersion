@@ -2230,6 +2230,39 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'Mentés sablonként...';
 
   @override
+  String get checklists_menu_clearAll => 'Ellenőrzőlista törlése...';
+
+  @override
+  String get checklists_clear_title => 'Ellenőrzőlista törlése';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Törli mind a(z) $count elemet az ellenőrzőlistáról? A sablonokat ez nem érinti.',
+      one:
+          'Törli az ellenőrzőlista egyetlen elemét? A sablonokat ez nem érinti.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'Törlés';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem eltávolítva',
+      one: '1 elem eltávolítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'Sablon alkalmazása';
 
   @override

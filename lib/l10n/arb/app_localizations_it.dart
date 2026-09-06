@@ -2243,6 +2243,39 @@ class AppLocalizationsIt extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'Salva come modello...';
 
   @override
+  String get checklists_menu_clearAll => 'Svuota checklist...';
+
+  @override
+  String get checklists_clear_title => 'Svuota checklist';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Eliminare tutti i $count elementi da questa checklist? I modelli non vengono modificati.',
+      one:
+          'Eliminare l\'unico elemento da questa checklist? I modelli non vengono modificati.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'Svuota';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi rimossi',
+      one: '1 elemento rimosso',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'Applica modello';
 
   @override

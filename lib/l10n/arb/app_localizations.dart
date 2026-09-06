@@ -3797,6 +3797,36 @@ abstract class AppLocalizations {
   /// **'Save as template...'**
   String get checklists_menu_saveAsTemplate;
 
+  /// No description provided for @checklists_menu_clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear checklist...'**
+  String get checklists_menu_clearAll;
+
+  /// No description provided for @checklists_clear_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear checklist'**
+  String get checklists_clear_title;
+
+  /// No description provided for @checklists_clear_content.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete the only item from this checklist? Templates are not affected.} other{Delete all {count} items from this checklist? Templates are not affected.}}'**
+  String checklists_clear_content(int count);
+
+  /// No description provided for @checklists_clear_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get checklists_clear_confirm;
+
+  /// No description provided for @checklists_clear_success.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item removed} other{{count} items removed}}'**
+  String checklists_clear_success(int count);
+
   /// No description provided for @checklists_applySheet_title.
   ///
   /// In en, this message translates to:

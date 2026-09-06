@@ -2199,6 +2199,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'Save as template...';
 
   @override
+  String get checklists_menu_clearAll => 'Clear checklist...';
+
+  @override
+  String get checklists_clear_title => 'Clear checklist';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Delete all $count items from this checklist? Templates are not affected.',
+      one:
+          'Delete the only item from this checklist? Templates are not affected.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'Clear';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items removed',
+      one: '1 item removed',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'Apply template';
 
   @override

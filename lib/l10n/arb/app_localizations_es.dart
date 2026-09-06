@@ -2247,6 +2247,39 @@ class AppLocalizationsEs extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'Guardar como plantilla...';
 
   @override
+  String get checklists_menu_clearAll => 'Vaciar lista...';
+
+  @override
+  String get checklists_clear_title => 'Vaciar lista';
+
+  @override
+  String checklists_clear_content(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '¿Eliminar los $count elementos de esta lista? Las plantillas no se ven afectadas.',
+      one:
+          '¿Eliminar el único elemento de esta lista? Las plantillas no se ven afectadas.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_clear_confirm => 'Vaciar';
+
+  @override
+  String checklists_clear_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos eliminados',
+      one: '1 elemento eliminado',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checklists_applySheet_title => 'Aplicar plantilla';
 
   @override

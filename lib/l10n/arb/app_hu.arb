@@ -905,6 +905,25 @@
   "checklists_item_delete": "Tétel törlése",
   "checklists_menu_applyTemplate": "Sablon alkalmazása...",
   "checklists_menu_saveAsTemplate": "Mentés sablonként...",
+  "checklists_menu_clearAll": "Ellenőrzőlista törlése...",
+  "checklists_clear_title": "Ellenőrzőlista törlése",
+  "checklists_clear_content": "{count, plural, =1{Törli az ellenőrzőlista egyetlen elemét? A sablonokat ez nem érinti.} other{Törli mind a(z) {count} elemet az ellenőrzőlistáról? A sablonokat ez nem érinti.}}",
+  "@checklists_clear_content": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checklists_clear_confirm": "Törlés",
+  "checklists_clear_success": "{count, plural, =1{1 elem eltávolítva} other{{count} elem eltávolítva}}",
+  "@checklists_clear_success": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_applySheet_title": "Sablon alkalmazása",
   "checklists_applySheet_empty": "Még nincsenek sablonok. Hozza létre őket a Beállításokban.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 tétel} other{{count} tétel}}",

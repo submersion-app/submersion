@@ -905,6 +905,25 @@
   "checklists_item_delete": "Item verwijderen",
   "checklists_menu_applyTemplate": "Sjabloon toepassen...",
   "checklists_menu_saveAsTemplate": "Opslaan als sjabloon...",
+  "checklists_menu_clearAll": "Checklist wissen...",
+  "checklists_clear_title": "Checklist wissen",
+  "checklists_clear_content": "{count, plural, =1{Het enige item uit deze checklist verwijderen? Sjablonen blijven ongewijzigd.} other{Alle {count} items uit deze checklist verwijderen? Sjablonen blijven ongewijzigd.}}",
+  "@checklists_clear_content": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checklists_clear_confirm": "Wissen",
+  "checklists_clear_success": "{count, plural, =1{1 item verwijderd} other{{count} items verwijderd}}",
+  "@checklists_clear_success": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_applySheet_title": "Sjabloon toepassen",
   "checklists_applySheet_empty": "Nog geen sjablonen. Maak ze aan in Instellingen.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 item} other{{count} items}}",
