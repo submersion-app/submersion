@@ -75,6 +75,14 @@ Widget _wrap(Widget child) {
     // harness never starts, so stand in with the shared mock.
     overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
     child: MaterialApp(
+      // Pinned: flutter_test forwards the HOST machine's locale list rather
+      // than a fixed en_US, and this app supports 11 locales, so an unpinned
+      // MaterialApp renders a translated UI on a non-English machine and
+      // every English assertion below finds nothing. CI stays green because
+      // its runners are en_US, so this would fail only for a contributor.
+      // Load-bearing since the manual subtitle moved to l10n: it used to be a
+      // Dart string literal that rendered English whatever the locale.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
