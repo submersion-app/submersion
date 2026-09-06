@@ -37,6 +37,10 @@ class ArcgisFloat32TiffParser {
   /// alone cannot tell them apart from float.
   static const int _sampleFormatIeeeFloat = 3;
 
+  /// TIFF field type 4, a 32-bit unsigned integer. The tile offset and
+  /// byte-count arrays are read at this width and no other.
+  static const int _fieldTypeLong = 4;
+
   static BathymetryGrid parse(
     Uint8List bytes, {
     required double westLon,
@@ -218,6 +222,22 @@ class ArcgisFloat32TiffParser {
     int length,
   ) {
     if (tag == null) throw FormatException('TIFF is missing $what');
+    // The element width is implied by the field type, so reading a SHORT
+    // array at LONG width walks the wrong bytes and yields offsets that
+    // can still land inside the body: the tiles then decode into
+    // plausible-looking nonsense rather than failing. BigTIFF's LONG8 is
+    // already excluded by the magic-number check, but an out-of-spec
+    // classic TIFF could still declare it, so the type is pinned here
+    // rather than assumed.
+    if (tag.type != _fieldTypeLong) {
+      throw FormatException(
+        '$what has TIFF field type ${tag.type}; only LONG '
+        '($_fieldTypeLong) is supported',
+      );
+    }
+    if (tag.count < 1) {
+      throw FormatException('$what has no entries');
+    }
     if (tag.count == 1) return [tag.value];
     if (tag.value + tag.count * 4 > length) {
       throw FormatException('$what array runs past the body');

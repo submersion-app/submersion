@@ -24,7 +24,8 @@ class BathymetryResolution {
 /// both quality floors.
 ///
 /// No mosaicking: sources use different vertical datums (EMODnet is LAT,
-/// GMRT and ETOPO are MSL) and stitching them seams.
+/// GMRT and ETOPO are MSL), so stitching two of them together would leave
+/// a visible step wherever they meet.
 class BathymetryResolver {
   static const double minWetFraction = 0.10;
 

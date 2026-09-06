@@ -443,5 +443,52 @@ void main() {
       ).setUint32(tileOffsetsValue, 0x0FFFFFF0, Endian.little);
       expectRejected(bytes);
     });
+
+    test('rejects TileOffsets declared as SHORT rather than LONG', () {
+      // A SHORT array has 2-byte elements. Reading it as 4-byte LONGs
+      // yields garbage offsets that still land inside the body, so without
+      // a type check the tiles decode into plausible-looking nonsense.
+      // Entry layout is tag(2) type(2) count(4) value(4).
+      final bytes = buildTiff(
+        width: 4,
+        height: 4,
+        tileSize: 2,
+        tilePixels: List<double>.filled(16, -5.0),
+      );
+      const typeField = 10 + 7 * 12 + 2;
+      ByteData.sublistView(bytes).setUint16(typeField, 3, Endian.little);
+      expectRejected(bytes);
+    });
+
+    test('rejects TileOffsets declared as LONG8', () {
+      final bytes = buildTiff(
+        width: 4,
+        height: 4,
+        tileSize: 2,
+        tilePixels: List<double>.filled(16, -5.0),
+      );
+      const typeField = 10 + 7 * 12 + 2;
+      ByteData.sublistView(bytes).setUint16(typeField, 16, Endian.little);
+      expectRejected(bytes);
+    });
+
+    test('rejects TileByteCounts declared with an unexpected type', () {
+      final bytes = buildTiff(
+        width: 4,
+        height: 4,
+        tileSize: 2,
+        tilePixels: List<double>.filled(16, -5.0),
+      );
+      const typeField = 10 + 8 * 12 + 2;
+      ByteData.sublistView(bytes).setUint16(typeField, 3, Endian.little);
+      expectRejected(bytes);
+    });
+
+    test('rejects a TileOffsets count of zero', () {
+      final bytes = variant();
+      const countField = 10 + 7 * 12 + 4;
+      ByteData.sublistView(bytes).setUint32(countField, 0, Endian.little);
+      expectRejected(bytes);
+    });
   });
 }
