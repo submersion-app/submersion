@@ -106,9 +106,12 @@ class LiveDatabaseCopier {
     return finalPath;
   }
 
-  /// Filename stem shared by every safety copy: sortable, second-resolution
-  /// UTC with milliseconds, so two copies taken in the same second still get
-  /// distinct names.
+  /// Filename stem shared by every safety copy: `YYYYMMDD-HHMMSSmmm`, UTC at
+  /// millisecond resolution.
+  ///
+  /// Fixed-width throughout, so a lexical sort of the backups directory is
+  /// also a chronological one. The milliseconds are what keep two copies
+  /// taken within the same second from colliding on a name.
   static String formatTimestamp(DateTime utc) {
     String two(int v) => v.toString().padLeft(2, '0');
     String three(int v) => v.toString().padLeft(3, '0');
