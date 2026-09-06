@@ -29579,6 +29579,18 @@ abstract class AppLocalizations {
   /// **'Check for updates periodically'**
   String get settings_updates_automaticUpdatesSubtitle;
 
+  /// No description provided for @settings_updates_betaBuildNoticeIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'This copy of Submersion came from the beta channel, not from a stable release.'**
+  String get settings_updates_betaBuildNoticeIntro;
+
+  /// No description provided for @settings_updates_betaBuildNoticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You are running a beta build'**
+  String get settings_updates_betaBuildNoticeTitle;
+
   /// No description provided for @settings_updates_betaDialogBody.
   ///
   /// In en, this message translates to:

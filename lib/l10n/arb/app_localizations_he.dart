@@ -17407,6 +17407,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'בדיקת עדכונים מעת לעת';
 
   @override
+  String get settings_updates_betaBuildNoticeIntro =>
+      'עותק זה של Submersion הגיע מערוץ הבטא, ולא מגרסה יציבה.';
+
+  @override
+  String get settings_updates_betaBuildNoticeTitle => 'אתה מריץ גרסת בטא';
+
+  @override
   String get settings_updates_betaDialogBody =>
       'גרסאות בטא מתפרסמות מכל שינוי ועשויות לשדרג את מסד הנתונים של יומן הצלילה שלך לפני הגרסה היציבה. חזרה מאוחר יותר לערוץ היציב לא תחזיר את האפליקציה לגרסה קודמת, וכל המכשירים שמסתנכרנים יחד צריכים להשתמש באותו ערוץ. גיבוי נוצר אוטומטית לפני כל שדרוג של מסד הנתונים.';
 

@@ -16948,6 +16948,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_updates_automaticUpdatesSubtitle => '定期检查更新';
 
   @override
+  String get settings_updates_betaBuildNoticeIntro =>
+      '此 Submersion 副本来自 Beta 渠道，而非稳定版。';
+
+  @override
+  String get settings_updates_betaBuildNoticeTitle => '您正在运行 Beta 版本';
+
+  @override
   String get settings_updates_betaDialogBody =>
       'Beta 版本会随每次更改发布，可能会先于稳定版升级您的潜水日志数据库。之后切换回稳定版不会降级应用，并且所有相互同步的设备应使用相同的更新渠道。每次数据库升级前都会自动创建备份。';
 

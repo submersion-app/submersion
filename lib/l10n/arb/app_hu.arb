@@ -5196,6 +5196,8 @@
   "settings_units_weight_pounds": "Font (lbs)",
   "settings_updates_automaticUpdates": "Automatikus frissítések",
   "settings_updates_automaticUpdatesSubtitle": "Frissítések rendszeres keresése",
+  "settings_updates_betaBuildNoticeIntro": "A Submersion ezen példánya a béta csatornáról származik, nem stabil kiadásból.",
+  "settings_updates_betaBuildNoticeTitle": "Béta buildet használsz",
   "settings_updates_betaDialogBody": "A béta buildek minden változtatásból megjelennek, és a merülési napló adatbázisát a stabil kiadás előtt frissíthetik. Ha később visszaváltasz a stabil csatornára, az alkalmazás nem áll vissza korábbi verzióra, és az együtt szinkronizáló eszközöknek ugyanazt a csatornát érdemes használniuk. Minden adatbázis-frissítés előtt automatikusan biztonsági mentés készül.",
   "settings_updates_betaDialogConfirm": "Váltás bétára",
   "settings_updates_betaDialogTitle": "Szeretnél béta frissítéseket kapni?",

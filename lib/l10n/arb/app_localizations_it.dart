@@ -17856,6 +17856,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Controlla periodicamente gli aggiornamenti';
 
   @override
+  String get settings_updates_betaBuildNoticeIntro =>
+      'Questa copia di Submersion proviene dal canale beta, non da una versione stabile.';
+
+  @override
+  String get settings_updates_betaBuildNoticeTitle =>
+      'Stai usando una build beta';
+
+  @override
   String get settings_updates_betaDialogBody =>
       'Le build beta vengono pubblicate a ogni modifica e possono aggiornare il database del tuo diario immersioni prima della versione stabile. Tornare in seguito al canale stabile non riporterà l\'app a una versione precedente, e tutti i dispositivi che si sincronizzano tra loro dovrebbero usare lo stesso canale. Prima di ogni aggiornamento del database viene eseguito automaticamente un backup.';
 

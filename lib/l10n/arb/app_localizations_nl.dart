@@ -17710,6 +17710,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Periodiek controleren op updates';
 
   @override
+  String get settings_updates_betaBuildNoticeIntro =>
+      'Deze kopie van Submersion komt van het bètakanaal, niet van een stabiele versie.';
+
+  @override
+  String get settings_updates_betaBuildNoticeTitle =>
+      'Je gebruikt een bètabuild';
+
+  @override
   String get settings_updates_betaDialogBody =>
       'Bètabuilds worden bij elke wijziging gepubliceerd en kunnen de database van je duiklogboek upgraden vóór de stabiele versie. Later terugschakelen naar stabiel zet de app niet terug naar een oudere versie, en alle apparaten die met elkaar synchroniseren moeten hetzelfde kanaal gebruiken. Vóór elke database-upgrade wordt automatisch een back-up gemaakt.';
 

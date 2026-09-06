@@ -5192,6 +5192,8 @@
   "settings_units_weight_pounds": "Libbre (lbs)",
   "settings_updates_automaticUpdates": "Aggiornamenti automatici",
   "settings_updates_automaticUpdatesSubtitle": "Controlla periodicamente gli aggiornamenti",
+  "settings_updates_betaBuildNoticeIntro": "Questa copia di Submersion proviene dal canale beta, non da una versione stabile.",
+  "settings_updates_betaBuildNoticeTitle": "Stai usando una build beta",
   "settings_updates_betaDialogBody": "Le build beta vengono pubblicate a ogni modifica e possono aggiornare il database del tuo diario immersioni prima della versione stabile. Tornare in seguito al canale stabile non riporterà l'app a una versione precedente, e tutti i dispositivi che si sincronizzano tra loro dovrebbero usare lo stesso canale. Prima di ogni aggiornamento del database viene eseguito automaticamente un backup.",
   "settings_updates_betaDialogConfirm": "Passa alla Beta",
   "settings_updates_betaDialogTitle": "Ricevere aggiornamenti beta?",

@@ -5196,6 +5196,8 @@
   "settings_units_weight_pounds": "Livres (lbs)",
   "settings_updates_automaticUpdates": "Mises à jour automatiques",
   "settings_updates_automaticUpdatesSubtitle": "Rechercher les mises à jour périodiquement",
+  "settings_updates_betaBuildNoticeIntro": "Cette copie de Submersion provient du canal bêta, et non d'une version stable.",
+  "settings_updates_betaBuildNoticeTitle": "Vous utilisez une version bêta",
   "settings_updates_betaDialogBody": "Les versions bêta sont publiées à chaque modification et peuvent mettre à niveau la base de données de votre carnet de plongée avant la version stable. Revenir ensuite au canal stable ne rétrogradera pas l'application, et tous les appareils qui se synchronisent ensemble devraient utiliser le même canal. Une sauvegarde est effectuée automatiquement avant toute mise à niveau de la base de données.",
   "settings_updates_betaDialogConfirm": "Passer à la bêta",
   "settings_updates_betaDialogTitle": "Recevoir les mises à jour bêta ?",

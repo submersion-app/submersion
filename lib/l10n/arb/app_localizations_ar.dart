@@ -17532,6 +17532,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'التحقق من التحديثات بشكل دوري';
 
   @override
+  String get settings_updates_betaBuildNoticeIntro =>
+      'جاء هذا الإصدار من Submersion من قناة البيتا، وليس من إصدار مستقر.';
+
+  @override
+  String get settings_updates_betaBuildNoticeTitle => 'أنت تستخدم إصدار بيتا';
+
+  @override
   String get settings_updates_betaDialogBody =>
       'تُنشر إصدارات البيتا مع كل تغيير وقد تقوم بترقية قاعدة بيانات سجل الغوص قبل الإصدار المستقر. العودة لاحقًا إلى القناة المستقرة لن تعيد التطبيق إلى إصدار أقدم، وينبغي أن تستخدم جميع الأجهزة التي تتزامن معًا القناة نفسها. يتم إنشاء نسخة احتياطية تلقائيًا قبل أي ترقية لقاعدة البيانات.';
 

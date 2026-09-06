@@ -17550,6 +17550,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Check for updates periodically';
 
   @override
+  String get settings_updates_betaBuildNoticeIntro =>
+      'This copy of Submersion came from the beta channel, not from a stable release.';
+
+  @override
+  String get settings_updates_betaBuildNoticeTitle =>
+      'You are running a beta build';
+
+  @override
   String get settings_updates_betaDialogBody =>
       'Beta builds are published from every change and may upgrade your dive log\'s database before the stable release does. Switching back to stable later will not downgrade the app, and all devices that sync together should use the same channel. A backup is taken automatically before any database upgrade.';
 

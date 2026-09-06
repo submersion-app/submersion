@@ -17926,6 +17926,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Rechercher les mises à jour périodiquement';
 
   @override
+  String get settings_updates_betaBuildNoticeIntro =>
+      'Cette copie de Submersion provient du canal bêta, et non d\'une version stable.';
+
+  @override
+  String get settings_updates_betaBuildNoticeTitle =>
+      'Vous utilisez une version bêta';
+
+  @override
   String get settings_updates_betaDialogBody =>
       'Les versions bêta sont publiées à chaque modification et peuvent mettre à niveau la base de données de votre carnet de plongée avant la version stable. Revenir ensuite au canal stable ne rétrogradera pas l\'application, et tous les appareils qui se synchronisent ensemble devraient utiliser le même canal. Une sauvegarde est effectuée automatiquement avant toute mise à niveau de la base de données.';
 

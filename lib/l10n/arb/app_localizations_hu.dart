@@ -17801,6 +17801,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Frissítések rendszeres keresése';
 
   @override
+  String get settings_updates_betaBuildNoticeIntro =>
+      'A Submersion ezen példánya a béta csatornáról származik, nem stabil kiadásból.';
+
+  @override
+  String get settings_updates_betaBuildNoticeTitle => 'Béta buildet használsz';
+
+  @override
   String get settings_updates_betaDialogBody =>
       'A béta buildek minden változtatásból megjelennek, és a merülési napló adatbázisát a stabil kiadás előtt frissíthetik. Ha később visszaváltasz a stabil csatornára, az alkalmazás nem áll vissza korábbi verzióra, és az együtt szinkronizáló eszközöknek ugyanazt a csatornát érdemes használniuk. Minden adatbázis-frissítés előtt automatikusan biztonsági mentés készül.';
 

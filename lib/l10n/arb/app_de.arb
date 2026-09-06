@@ -5280,6 +5280,8 @@
   "settings_units_weight_pounds": "Pfund (lbs)",
   "settings_updates_automaticUpdates": "Automatische Updates",
   "settings_updates_automaticUpdatesSubtitle": "Regelmäßig nach Updates suchen",
+  "settings_updates_betaBuildNoticeIntro": "Diese Kopie von Submersion stammt aus dem Beta-Kanal, nicht aus einer stabilen Version.",
+  "settings_updates_betaBuildNoticeTitle": "Sie verwenden einen Beta-Build",
   "settings_updates_betaDialogBody": "Beta-Builds werden aus jeder Änderung veröffentlicht und können die Datenbank Ihres Tauchlogbuchs vor der stabilen Version aktualisieren. Ein späterer Wechsel zurück zu Stabil stuft die App nicht herab, und alle Geräte, die miteinander synchronisieren, sollten denselben Kanal verwenden. Vor jedem Datenbank-Upgrade wird automatisch ein Backup erstellt.",
   "settings_updates_betaDialogConfirm": "Zu Beta wechseln",
   "settings_updates_betaDialogTitle": "Beta-Updates erhalten?",

@@ -10303,6 +10303,8 @@
   "settings_units_weight_pounds": "Pounds (lbs)",
   "settings_updates_automaticUpdates": "Automatic updates",
   "settings_updates_automaticUpdatesSubtitle": "Check for updates periodically",
+  "settings_updates_betaBuildNoticeIntro": "This copy of Submersion came from the beta channel, not from a stable release.",
+  "settings_updates_betaBuildNoticeTitle": "You are running a beta build",
   "settings_updates_betaDialogBody": "Beta builds are published from every change and may upgrade your dive log's database before the stable release does. Switching back to stable later will not downgrade the app, and all devices that sync together should use the same channel. A backup is taken automatically before any database upgrade.",
   "settings_updates_betaDialogConfirm": "Switch to Beta",
   "settings_updates_betaDialogTitle": "Receive beta updates?",

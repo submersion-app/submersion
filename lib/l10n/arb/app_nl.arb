@@ -5280,6 +5280,8 @@
   "settings_units_weight_pounds": "Pond (lbs)",
   "settings_updates_automaticUpdates": "Automatische updates",
   "settings_updates_automaticUpdatesSubtitle": "Periodiek controleren op updates",
+  "settings_updates_betaBuildNoticeIntro": "Deze kopie van Submersion komt van het bètakanaal, niet van een stabiele versie.",
+  "settings_updates_betaBuildNoticeTitle": "Je gebruikt een bètabuild",
   "settings_updates_betaDialogBody": "Bètabuilds worden bij elke wijziging gepubliceerd en kunnen de database van je duiklogboek upgraden vóór de stabiele versie. Later terugschakelen naar stabiel zet de app niet terug naar een oudere versie, en alle apparaten die met elkaar synchroniseren moeten hetzelfde kanaal gebruiken. Vóór elke database-upgrade wordt automatisch een back-up gemaakt.",
   "settings_updates_betaDialogConfirm": "Overschakelen naar bèta",
   "settings_updates_betaDialogTitle": "Bèta-updates ontvangen?",

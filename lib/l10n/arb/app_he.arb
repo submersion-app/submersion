@@ -5280,6 +5280,8 @@
   "settings_units_weight_pounds": "ליברות (lbs)",
   "settings_updates_automaticUpdates": "עדכונים אוטומטיים",
   "settings_updates_automaticUpdatesSubtitle": "בדיקת עדכונים מעת לעת",
+  "settings_updates_betaBuildNoticeIntro": "עותק זה של Submersion הגיע מערוץ הבטא, ולא מגרסה יציבה.",
+  "settings_updates_betaBuildNoticeTitle": "אתה מריץ גרסת בטא",
   "settings_updates_betaDialogBody": "גרסאות בטא מתפרסמות מכל שינוי ועשויות לשדרג את מסד הנתונים של יומן הצלילה שלך לפני הגרסה היציבה. חזרה מאוחר יותר לערוץ היציב לא תחזיר את האפליקציה לגרסה קודמת, וכל המכשירים שמסתנכרנים יחד צריכים להשתמש באותו ערוץ. גיבוי נוצר אוטומטית לפני כל שדרוג של מסד הנתונים.",
   "settings_updates_betaDialogConfirm": "מעבר לבטא",
   "settings_updates_betaDialogTitle": "לקבל עדכוני בטא?",
