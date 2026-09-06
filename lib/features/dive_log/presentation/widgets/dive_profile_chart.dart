@@ -4963,93 +4963,27 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // ceiling comment above for why this reads the computed curve rather
       // than the raw device field.
       if (_showPpO2) {
-        final minPpO2 = ProfileMetricBands.ppO2.min;
-        final maxPpO2 = ProfileMetricBands.ppO2.fixedMax;
-        final ppO2Curve = overlay.analysis?.ppO2Curve;
-        if (ppO2Curve != null && ppO2Curve.isNotEmpty) {
-          final length = math.min(ppO2Curve.length, overlay.points.length);
-          final curve = ppO2Curve.sublist(0, length);
-          final spots = <FlSpot>[
-            for (final i in _decimatedOverlayCurveIndices(curve))
-              FlSpot(
-                overlay.points[i].timestamp.toDouble(),
-                -band.map(curve[i].clamp(minPpO2, maxPpO2), minPpO2, maxPpO2),
-              ),
-          ];
-          lines.add(
-            LineChartBarData(
-              spots: _withSurfaceLeadIn(
-                spots,
-                -band.map(
-                  _overlaySurfaceValueOf(
-                    curve.first,
-                    overlay.points,
-                  ).clamp(minPpO2, maxPpO2),
-                  minPpO2,
-                  maxPpO2,
-                ),
-                owner: overlay.points,
-              ),
-              isCurved: true,
-              curveSmoothness: 0.2,
-              preventCurveOverShooting: _seriesGetsLeadIn(
-                spots,
-                overlay.points,
-              ),
-              color: _overlayColor(overlay, ProfileMetricColors.ppO2),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              dashArray: ProfileMetricBands.ppO2.dashArray,
-            ),
-          );
-        }
+        _addOverlayBandLine(
+          lines,
+          overlay: overlay,
+          band: band,
+          curve: overlay.analysis?.ppO2Curve,
+          spec: ProfileMetricBands.ppO2,
+          leadIn: _OverlayLeadIn.computed,
+        );
       }
 
       // ppN2, same shape as ppO2 above but on the active ppN2 line's 0-5 bar
       // band (see _buildPpN2Line).
       if (_showPpN2) {
-        final minPpN2 = ProfileMetricBands.ppN2.min;
-        final maxPpN2 = ProfileMetricBands.ppN2.fixedMax;
-        final ppN2Curve = overlay.analysis?.ppN2Curve;
-        if (ppN2Curve != null && ppN2Curve.isNotEmpty) {
-          final length = math.min(ppN2Curve.length, overlay.points.length);
-          final curve = ppN2Curve.sublist(0, length);
-          final spots = <FlSpot>[
-            for (final i in _decimatedOverlayCurveIndices(curve))
-              FlSpot(
-                overlay.points[i].timestamp.toDouble(),
-                -band.map(curve[i].clamp(minPpN2, maxPpN2), minPpN2, maxPpN2),
-              ),
-          ];
-          lines.add(
-            LineChartBarData(
-              spots: _withSurfaceLeadIn(
-                spots,
-                -band.map(
-                  _overlaySurfaceValueOf(
-                    curve.first,
-                    overlay.points,
-                  ).clamp(minPpN2, maxPpN2),
-                  minPpN2,
-                  maxPpN2,
-                ),
-                owner: overlay.points,
-              ),
-              isCurved: true,
-              curveSmoothness: 0.2,
-              preventCurveOverShooting: _seriesGetsLeadIn(
-                spots,
-                overlay.points,
-              ),
-              color: _overlayColor(overlay, ProfileMetricColors.ppN2),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              dashArray: ProfileMetricBands.ppN2.dashArray,
-            ),
-          );
-        }
+        _addOverlayBandLine(
+          lines,
+          overlay: overlay,
+          band: band,
+          curve: overlay.analysis?.ppN2Curve,
+          spec: ProfileMetricBands.ppN2,
+          leadIn: _OverlayLeadIn.computed,
+        );
       }
 
       // ppHe, same shape as ppO2/ppN2 above but on the active ppHe line's
@@ -5057,50 +4991,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // present -- the same ppHe > 0.001 filter the active line uses so a
       // non-trimix overlay draws nothing.
       if (_showPpHe) {
-        final minPpHe = ProfileMetricBands.ppHe.min;
-        final maxPpHe = ProfileMetricBands.ppHe.fixedMax;
-        final ppHeCurve = overlay.analysis?.ppHeCurve;
-        if (ppHeCurve != null && ppHeCurve.isNotEmpty) {
-          final length = math.min(ppHeCurve.length, overlay.points.length);
-          final curve = ppHeCurve.sublist(0, length);
-          final spots = <FlSpot>[
-            for (final i in _decimatedOverlayCurveIndices(curve))
-              if (curve[i] > 0.001)
-                FlSpot(
-                  overlay.points[i].timestamp.toDouble(),
-                  -band.map(curve[i].clamp(minPpHe, maxPpHe), minPpHe, maxPpHe),
-                ),
-          ];
-          if (spots.isNotEmpty) {
-            lines.add(
-              LineChartBarData(
-                spots: _withSurfaceLeadIn(
-                  spots,
-                  -band.map(
-                    _overlaySurfaceValueOf(
-                      curve.first,
-                      overlay.points,
-                    ).clamp(minPpHe, maxPpHe),
-                    minPpHe,
-                    maxPpHe,
-                  ),
-                  owner: overlay.points,
-                ),
-                isCurved: true,
-                curveSmoothness: 0.2,
-                preventCurveOverShooting: _seriesGetsLeadIn(
-                  spots,
-                  overlay.points,
-                ),
-                color: _overlayColor(overlay, ProfileMetricColors.ppHe),
-                barWidth: 2,
-                isStrokeCapRound: true,
-                dotData: const FlDotData(show: false),
-                dashArray: ProfileMetricBands.ppHe.dashArray,
-              ),
-            );
-          }
-        }
+        _addOverlayBandLine(
+          lines,
+          overlay: overlay,
+          band: band,
+          curve: overlay.analysis?.ppHeCurve,
+          spec: ProfileMetricBands.ppHe,
+          leadIn: _OverlayLeadIn.computed,
+          include: (value) => value > 0.001,
+        );
       }
 
       // MOD, from this source's own computed analysis, in the active
@@ -5138,121 +5037,38 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // Gas density, from this source's own computed analysis, on the same
       // 0-8 g/L band as the active density line (see _buildDensityLine).
       if (_showDensity) {
-        final minDensity = ProfileMetricBands.density.min;
-        final maxDensity = ProfileMetricBands.density.fixedMax;
-        final densityCurve = overlay.analysis?.densityCurve;
-        if (densityCurve != null && densityCurve.isNotEmpty) {
-          final length = math.min(densityCurve.length, overlay.points.length);
-          final curve = densityCurve.sublist(0, length);
-          final spots = <FlSpot>[
-            for (final i in _decimatedOverlayCurveIndices(curve))
-              FlSpot(
-                overlay.points[i].timestamp.toDouble(),
-                -band.map(
-                  curve[i].clamp(minDensity, maxDensity),
-                  minDensity,
-                  maxDensity,
-                ),
-              ),
-          ];
-          lines.add(
-            LineChartBarData(
-              spots: _withSurfaceLeadIn(
-                spots,
-                -band.map(
-                  _overlaySurfaceValueOf(
-                    curve.first,
-                    overlay.points,
-                  ).clamp(minDensity, maxDensity),
-                  minDensity,
-                  maxDensity,
-                ),
-                owner: overlay.points,
-              ),
-              isCurved: true,
-              curveSmoothness: 0.2,
-              preventCurveOverShooting: _seriesGetsLeadIn(
-                spots,
-                overlay.points,
-              ),
-              color: _overlayColor(overlay, ProfileMetricColors.density),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              dashArray: ProfileMetricBands.density.dashArray,
-            ),
-          );
-        }
+        _addOverlayBandLine(
+          lines,
+          overlay: overlay,
+          band: band,
+          curve: overlay.analysis?.densityCurve,
+          spec: ProfileMetricBands.density,
+          leadIn: _OverlayLeadIn.computed,
+        );
       }
 
       // GF%, from this source's own computed analysis, on the same 0-120%
       // band as the active GF% line (see _buildGfLine).
       if (_showGf) {
-        final minGf = ProfileMetricBands.gf.min;
-        final maxGf = ProfileMetricBands.gf.fixedMax;
-        final gfCurve = overlay.analysis?.gfCurve;
-        if (gfCurve != null && gfCurve.isNotEmpty) {
-          final length = math.min(gfCurve.length, overlay.points.length);
-          final curve = gfCurve.sublist(0, length);
-          final spots = <FlSpot>[
-            for (final i in _decimatedOverlayCurveIndices(curve))
-              FlSpot(
-                overlay.points[i].timestamp.toDouble(),
-                -band.map(curve[i].clamp(minGf, maxGf), minGf, maxGf),
-              ),
-          ];
-          lines.add(
-            LineChartBarData(
-              spots: _withFlatSurfaceLeadIn(spots, owner: overlay.points),
-              isCurved: true,
-              curveSmoothness: 0.2,
-              preventCurveOverShooting: _seriesGetsLeadIn(
-                spots,
-                overlay.points,
-              ),
-              color: _overlayColor(overlay, ProfileMetricColors.gf),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              dashArray: ProfileMetricBands.gf.dashArray,
-            ),
-          );
-        }
+        _addOverlayBandLine(
+          lines,
+          overlay: overlay,
+          band: band,
+          curve: overlay.analysis?.gfCurve,
+          spec: ProfileMetricBands.gf,
+        );
       }
 
       // Surface GF%, from this source's own computed analysis, on the same
       // 0-150% band as the active surface GF% line (see _buildSurfaceGfLine).
       if (_showSurfaceGf) {
-        final minGf = ProfileMetricBands.surfaceGf.min;
-        final maxGf = ProfileMetricBands.surfaceGf.fixedMax;
-        final surfaceGfCurve = overlay.analysis?.surfaceGfCurve;
-        if (surfaceGfCurve != null && surfaceGfCurve.isNotEmpty) {
-          final length = math.min(surfaceGfCurve.length, overlay.points.length);
-          final curve = surfaceGfCurve.sublist(0, length);
-          final spots = <FlSpot>[
-            for (final i in _decimatedOverlayCurveIndices(curve))
-              FlSpot(
-                overlay.points[i].timestamp.toDouble(),
-                -band.map(curve[i].clamp(minGf, maxGf), minGf, maxGf),
-              ),
-          ];
-          lines.add(
-            LineChartBarData(
-              spots: _withFlatSurfaceLeadIn(spots, owner: overlay.points),
-              isCurved: true,
-              curveSmoothness: 0.2,
-              preventCurveOverShooting: _seriesGetsLeadIn(
-                spots,
-                overlay.points,
-              ),
-              color: _overlayColor(overlay, ProfileMetricColors.surfaceGf),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              dashArray: ProfileMetricBands.surfaceGf.dashArray,
-            ),
-          );
-        }
+        _addOverlayBandLine(
+          lines,
+          overlay: overlay,
+          band: band,
+          curve: overlay.analysis?.surfaceGfCurve,
+          spec: ProfileMetricBands.surfaceGf,
+        );
       }
 
       // Mean depth, from this source's own computed analysis, in the active
@@ -5349,72 +5165,28 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // curves would be scaled independently and not be visually comparable
       // (see _buildCnsLine).
       if (_showCns) {
-        final minCns = ProfileMetricBands.cns.min;
-        final maxCns = _getCnsMaxScale();
-        final cnsCurve = overlay.analysis?.cnsCurve;
-        if (cnsCurve != null && cnsCurve.isNotEmpty) {
-          final length = math.min(cnsCurve.length, overlay.points.length);
-          final curve = cnsCurve.sublist(0, length);
-          final spots = <FlSpot>[
-            for (final i in _decimatedOverlayCurveIndices(curve))
-              FlSpot(
-                overlay.points[i].timestamp.toDouble(),
-                -band.map(curve[i].clamp(minCns, maxCns), minCns, maxCns),
-              ),
-          ];
-          lines.add(
-            LineChartBarData(
-              spots: _withFlatSurfaceLeadIn(spots, owner: overlay.points),
-              isCurved: true,
-              curveSmoothness: 0.2,
-              preventCurveOverShooting: _seriesGetsLeadIn(
-                spots,
-                overlay.points,
-              ),
-              color: _overlayColor(overlay, ProfileMetricColors.cns),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              dashArray: ProfileMetricBands.cns.dashArray,
-            ),
-          );
-        }
+        _addOverlayBandLine(
+          lines,
+          overlay: overlay,
+          band: band,
+          curve: overlay.analysis?.cnsCurve,
+          spec: ProfileMetricBands.cns,
+          max: _getCnsMaxScale(),
+        );
       }
 
       // OTU, from this source's own computed analysis, on the SAME dynamic
       // scale as the active OTU line (see the CNS% comment above and
       // _buildOtuLine).
       if (_showOtu) {
-        final minOtu = ProfileMetricBands.otu.min;
-        final maxOtu = _getOtuMaxScale();
-        final otuCurve = overlay.analysis?.otuCurve;
-        if (otuCurve != null && otuCurve.isNotEmpty) {
-          final length = math.min(otuCurve.length, overlay.points.length);
-          final curve = otuCurve.sublist(0, length);
-          final spots = <FlSpot>[
-            for (final i in _decimatedOverlayCurveIndices(curve))
-              FlSpot(
-                overlay.points[i].timestamp.toDouble(),
-                -band.map(curve[i].clamp(minOtu, maxOtu), minOtu, maxOtu),
-              ),
-          ];
-          lines.add(
-            LineChartBarData(
-              spots: _withFlatSurfaceLeadIn(spots, owner: overlay.points),
-              isCurved: true,
-              curveSmoothness: 0.2,
-              preventCurveOverShooting: _seriesGetsLeadIn(
-                spots,
-                overlay.points,
-              ),
-              color: _overlayColor(overlay, ProfileMetricColors.otu),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              dashArray: ProfileMetricBands.otu.dashArray,
-            ),
-          );
-        }
+        _addOverlayBandLine(
+          lines,
+          overlay: overlay,
+          band: band,
+          curve: overlay.analysis?.otuCurve,
+          spec: ProfileMetricBands.otu,
+          max: _getOtuMaxScale(),
+        );
       }
     }
     return lines;
@@ -5440,6 +5212,78 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// ceiling <= 0, a deco bottle's pressure starts when it is first breathed)
   /// may legitimately start mid-dive; only a curve whose own first point is its
   /// profile's first sample is bridged back to t=0.
+  /// Adds one overlaid computer's trace of a metric drawn as a banded curve.
+  ///
+  /// Eight metrics are plotted identically: take that source's own analysis
+  /// curve, clamp it into the metric's band, decimate it, map it onto the
+  /// shared right-hand axis and stroke it in the overlay's tint of the metric
+  /// colour. Only the curve, the band and the lead-in differ, so those are
+  /// parameters rather than another copy of the block. The metrics that are
+  /// genuinely different stay written out: depth-mapped (MOD, mean depth),
+  /// gap-broken (ceiling, NDL, GTR) and normalised (TTS).
+  void _addOverlayBandLine(
+    List<LineChartBarData> lines, {
+    required ChartSourceOverlay overlay,
+    required MetricBand band,
+    required List<double>? curve,
+    required ProfileMetricBand spec,
+    // Overrides the spec's maximum for the metrics scaled to the dive.
+    double? max,
+    _OverlayLeadIn leadIn = _OverlayLeadIn.flat,
+    // Drops points that should not be plotted at all, such as helium on a
+    // dive that carried none.
+    bool Function(double value)? include,
+  }) {
+    if (curve == null || curve.isEmpty) return;
+
+    final min = spec.min;
+    final limit = max ?? spec.fixedMax;
+
+    // The curve is computed from these very points, so the lengths agree in
+    // practice; the bound is here so a mismatched pair cannot index past the
+    // end, not because a mismatch is expected.
+    final length = math.min(curve.length, overlay.points.length);
+    final values = curve.sublist(0, length);
+
+    final spots = <FlSpot>[
+      for (final i in _decimatedOverlayCurveIndices(values))
+        if (include == null || include(values[i]))
+          FlSpot(
+            overlay.points[i].timestamp.toDouble(),
+            -band.map(values[i].clamp(min, limit), min, limit),
+          ),
+    ];
+    // A filtered metric can end up with nothing to draw.
+    if (spots.isEmpty) return;
+
+    lines.add(
+      LineChartBarData(
+        spots: leadIn == _OverlayLeadIn.flat
+            ? _withFlatSurfaceLeadIn(spots, owner: overlay.points)
+            : _withSurfaceLeadIn(
+                spots,
+                -band.map(
+                  _overlaySurfaceValueOf(
+                    values.first,
+                    overlay.points,
+                  ).clamp(min, limit),
+                  min,
+                  limit,
+                ),
+                owner: overlay.points,
+              ),
+        isCurved: true,
+        curveSmoothness: 0.2,
+        preventCurveOverShooting: _seriesGetsLeadIn(spots, overlay.points),
+        color: _overlayColor(overlay, spec.color),
+        barWidth: 2,
+        isStrokeCapRound: true,
+        dotData: const FlDotData(show: false),
+        dashArray: spec.dashArray,
+      ),
+    );
+  }
+
   bool _seriesGetsLeadIn(List<FlSpot> spots, List<DiveProfilePoint> owner) =>
       spots.isNotEmpty &&
       owner.isNotEmpty &&
@@ -7522,4 +7366,13 @@ class DiveProfileMiniChart extends StatelessWidget {
       ),
     );
   }
+}
+
+/// How an overlay trace reaches the left edge of the chart.
+enum _OverlayLeadIn {
+  /// Hold the first value flat back to the surface.
+  flat,
+
+  /// Compute the value the metric would have had at the surface.
+  computed,
 }
