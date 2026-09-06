@@ -113,4 +113,51 @@ void main() {
       expect(record.previousOpen, isNull);
     });
   });
+
+  group('toString', () {
+    // Self-describing bug reports are one of the stated payoffs of recording
+    // provenance at all (issue #1593): a record that reaches a log line has to
+    // carry the facts a reader needs without them going back to the file.
+    test('a record names every entry it holds', () {
+      final record = DatabaseProvenanceRecord.parse(const {
+        'app_version': '1.7.8.8200',
+        'previous_app_version': '1.7.6.7161',
+        'upgrade_app_version': '1.7.7.8064',
+      });
+
+      final rendered = record.toString();
+      expect(rendered, contains('1.7.8.8200'));
+      expect(rendered, contains('1.7.6.7161'));
+      expect(rendered, contains('1.7.7.8064'));
+    });
+
+    test('an entry names the build, the train, and both rungs', () {
+      final record = DatabaseProvenanceRecord.parse(const {
+        'upgrade_app_version': '1.7.7.8064',
+        'upgrade_release_train': 'beta',
+        'upgrade_to_schema_version': '194',
+        'upgrade_from_schema_version': '191',
+        'upgrade_written_at': '2026-09-05T10:11:12.000Z',
+        'upgrade_install_id': 'device-a',
+      });
+
+      final rendered = record.lastUpgrade.toString();
+      expect(rendered, contains('1.7.7.8064'));
+      expect(rendered, contains('beta'));
+      // Both rungs: "upgraded TO 194" and "FROM 191" are the pair that makes a
+      // mismatch report actionable, and one without the other is not.
+      expect(rendered, contains('194'));
+      expect(rendered, contains('191'));
+      expect(rendered, contains('device-a'));
+      expect(rendered, contains('2026-09-05'));
+    });
+
+    test('an absent entry renders as null rather than an empty shell', () {
+      final record = DatabaseProvenanceRecord.parse(const {
+        'app_version': '1.7.8.8200',
+      });
+      expect(record.toString(), contains('previousOpen: null'));
+      expect(record.toString(), contains('lastUpgrade: null'));
+    });
+  });
 }
