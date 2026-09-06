@@ -409,10 +409,26 @@ void main() {
     elapsed.stop();
 
     // Non-vacuity: without this the test would pass just as happily against a
-    // loader that answered instantly, proving nothing about the timeout.
+    // loader that answered instantly, proving nothing about the timeout. An
+    // earlier version of this test did exactly that.
+    //
+    // Floored at HALF the timeout rather than at the timeout itself,
+    // following the convention in s3_api_client_test.dart. A lower bound is
+    // already safe against a loaded machine, which can only make the wait
+    // longer; the margin is for the other end, where an exact floor bets that
+    // Stopwatch and the Timer behind Future.timeout agree to the millisecond.
+    // They read the same monotonic clock through different conversions, so a
+    // genuine 2s wait could in principle measure a hair under.
+    //
+    // Measured, so the floor can be re-tuned from real numbers: an instant
+    // loader lands at ~250ms (the setUp database work, not zero), a real
+    // timeout at ~2000ms. The 1000ms floor sits between them with roughly 4x
+    // margin below and 2x above.
     expect(
       elapsed.elapsed,
-      greaterThanOrEqualTo(DatabaseProvenanceRecorder.versionLookupTimeout),
+      greaterThanOrEqualTo(
+        DatabaseProvenanceRecorder.versionLookupTimeout ~/ 2,
+      ),
     );
 
     final record = await _read(db);
