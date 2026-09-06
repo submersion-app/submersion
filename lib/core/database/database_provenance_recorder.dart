@@ -67,6 +67,26 @@ class DatabaseProvenanceRecorder {
       final installId = installIdOverride ?? await _resolveInstallId(db);
       final existing = await _readRows(db);
 
+      // ONE RULE, no exceptions: a fact this open could not determine is
+      // DELETED, never inherited from whatever the last open wrote.
+      //
+      // Inheriting looks harmless -- "the previous launch's answer beats no
+      // answer" -- and it is not. Each of these three blocks describes ONE
+      // event: one build, on one install, at one moment, with the file on one
+      // rung. A key left standing from an earlier event does not degrade the
+      // record, it FABRICATES one. An upgrade block that keeps the previous
+      // upgrade's `upgrade_app_version` alongside this upgrade's rungs and
+      // timestamp says the old build performed the new upgrade, which never
+      // happened, and the mismatch screen would then send the diver after the
+      // wrong build -- the exact failure #1568 is about.
+      //
+      // The current-open block is not exempt, though it looks like it could
+      // be. A hybrid there does not stay put: the next open that differs
+      // rotates it into `previous_*`, freezing the misattribution into a
+      // snapshot. Losing the app version on a headless open (no plugin
+      // registrant, so no version) is the price, and it is the right one --
+      // the next foreground launch restores it, and everything still written
+      // (rung, install, timestamp, train) stays true meanwhile.
       final writes = <String, String?>{
         DatabaseProvenanceKeys.appVersion: appVersion,
         DatabaseProvenanceKeys.releaseTrain: BuildTrain.current,
@@ -107,20 +127,36 @@ class DatabaseProvenanceRecorder {
       await db.transaction(() async {
         for (final entry in writes.entries) {
           final value = entry.value;
-          // A key we could not determine is left as it was rather than
-          // written blank: the previous launch's answer beats no answer.
-          if (value == null) continue;
-          await db.customStatement(
-            'INSERT OR REPLACE INTO '
-            '${DatabaseProvenanceKeys.tableName} (key, value) VALUES (?, ?)',
-            [entry.key, value],
-          );
+          if (value == null) {
+            await _clear(db, entry.key);
+          } else {
+            await _put(db, entry.key, value);
+          }
         }
       });
     } on Object {
       // Best-effort by contract; see the class doc.
     }
   }
+
+  static Future<void> _put(
+    DatabaseConnectionUser db,
+    String key,
+    String value,
+  ) => db.customStatement(
+    'INSERT OR REPLACE INTO '
+    '${DatabaseProvenanceKeys.tableName} (key, value) VALUES (?, ?)',
+    [key, value],
+  );
+
+  /// Removes a key rather than writing it blank. Absent and blank read alike
+  /// through the parser, and removing keeps the table free of rows that say
+  /// nothing.
+  static Future<void> _clear(DatabaseConnectionUser db, String key) =>
+      db.customStatement(
+        'DELETE FROM ${DatabaseProvenanceKeys.tableName} WHERE key = ?',
+        [key],
+      );
 
   /// True when the entry already on the file is worth keeping as the
   /// predecessor of the one about to be written.
@@ -186,9 +222,9 @@ class DatabaseProvenanceRecorder {
     }
   }
 
-  /// Null rather than a placeholder when the platform will not say: the
-  /// reader treats an absent key and a blank one alike, and writing nothing
-  /// leaves the previous launch's answer in place.
+  /// Null rather than a placeholder when the platform will not say, which
+  /// [record] then writes as a DELETED key rather than inheriting the last
+  /// open's answer. See the rule in [record].
   static Future<String?> _resolveAppVersion() async {
     try {
       final info = await packageInfoLoader().timeout(versionLookupTimeout);
