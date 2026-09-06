@@ -35162,12 +35162,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String startup_versionMismatch_writtenBy(Object version, Object date) {
-    return 'Ton carnet de plongée a été mis à jour pour la dernière fois par Submersion $version le $date.';
+    return 'Votre carnet de plongée a été mis à jour pour la dernière fois par Submersion $version le $date.';
   }
 
   @override
   String startup_versionMismatch_writtenByUndated(Object version) {
-    return 'Ton carnet de plongée a été mis à jour pour la dernière fois par Submersion $version.';
+    return 'Votre carnet de plongée a été mis à jour pour la dernière fois par Submersion $version.';
   }
 
   @override

@@ -107,6 +107,33 @@ void main() {
       );
     });
 
+    testWidgets('falls back when the upgrade entry cannot name a build', (
+      tester,
+    ) async {
+      // The recorder never inherits a fact it could not determine, so an
+      // upgrade run by an open with no plugin registrant records rungs and a
+      // timestamp but no version. Insisting on the upgrade entry there would
+      // suppress the line while the file is still naming a build.
+      await tester.pumpWidget(
+        host(
+          buildView(
+            UpdateChannel.github,
+            provenance: DatabaseProvenanceRecord.parse(const {
+              'app_version': '1.7.8.8200',
+              'release_train': 'stable',
+              'upgrade_to_schema_version': '210',
+              'upgrade_from_schema_version': '194',
+              'upgrade_written_at': '2026-09-05T10:00:00.000Z',
+            }),
+          ),
+        ),
+      );
+      expect(
+        find.textContaining('Submersion 1.7.8.8200 (stable)'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('renders a train name this build has never heard of', (
       tester,
     ) async {

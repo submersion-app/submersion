@@ -33021,12 +33021,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String startup_versionMismatch_writtenBy(Object version, Object date) {
-    return '你的潜水日志上次由 Submersion $version 于 $date 升级。';
+    return '您的潜水日志上次由 Submersion $version 于 $date 升级。';
   }
 
   @override
   String startup_versionMismatch_writtenByUndated(Object version) {
-    return '你的潜水日志上次由 Submersion $version 升级。';
+    return '您的潜水日志上次由 Submersion $version 升级。';
   }
 
   @override

@@ -34386,12 +34386,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String startup_versionMismatch_writtenBy(Object version, Object date) {
-    return 'יומן הצלילה שלך עודכן לאחרונה על ידי Submersion $version בתאריך $date.';
+    return 'יומן הצלילה שלכם עודכן לאחרונה על ידי Submersion $version בתאריך $date.';
   }
 
   @override
   String startup_versionMismatch_writtenByUndated(Object version) {
-    return 'יומן הצלילה שלך עודכן לאחרונה על ידי Submersion $version.';
+    return 'יומן הצלילה שלכם עודכן לאחרונה על ידי Submersion $version.';
   }
 
   @override

@@ -34914,12 +34914,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String startup_versionMismatch_writtenBy(Object version, Object date) {
-    return 'A merülésnaplódat legutóbb a Submersion $version frissítette ekkor: $date.';
+    return 'A merülésnaplóját legutóbb a Submersion $version frissítette ekkor: $date.';
   }
 
   @override
   String startup_versionMismatch_writtenByUndated(Object version) {
-    return 'A merülésnaplódat legutóbb a Submersion $version frissítette.';
+    return 'A merülésnaplóját legutóbb a Submersion $version frissítette.';
   }
 
   @override

@@ -134,6 +134,14 @@ class VersionMismatchView extends StatelessWidget {
   /// the file on a rung this app cannot read is the one worth naming, and it
   /// is not necessarily the one that touched the file most recently.
   ///
+  /// Prefers it only when it can actually NAME a build, though. The recorder
+  /// never inherits a fact it could not determine, so an upgrade run by an
+  /// open that could not resolve its version (a headless isolate has no
+  /// plugin registrant) records rungs and a timestamp but no version at all.
+  /// Insisting on that entry there would suppress the whole line while the
+  /// file is still naming a build in its last-open entry, which is worse than
+  /// naming the slightly less precise one.
+  ///
   /// The train is rendered verbatim in parentheses rather than translated.
   /// It is an identifier written into the database by a build that may be
   /// newer than this one, so a train name that did not exist when these
@@ -141,7 +149,14 @@ class VersionMismatchView extends StatelessWidget {
   String? _writtenByLine(BuildContext context) {
     final record = provenance;
     if (record == null) return null;
-    final entry = record.lastUpgrade ?? record.lastOpen;
+
+    DatabaseProvenanceEntry? entry;
+    for (final candidate in [record.lastUpgrade, record.lastOpen]) {
+      if (candidate?.appVersion != null) {
+        entry = candidate;
+        break;
+      }
+    }
     final version = entry?.appVersion;
     if (entry == null || version == null) return null;
 

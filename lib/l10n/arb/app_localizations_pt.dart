@@ -35082,12 +35082,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String startup_versionMismatch_writtenBy(Object version, Object date) {
-    return 'O teu diário de mergulho foi atualizado pela última vez pelo Submersion $version em $date.';
+    return 'Seu diário de mergulho foi atualizado pela última vez pelo Submersion $version em $date.';
   }
 
   @override
   String startup_versionMismatch_writtenByUndated(Object version) {
-    return 'O teu diário de mergulho foi atualizado pela última vez pelo Submersion $version.';
+    return 'Seu diário de mergulho foi atualizado pela última vez pelo Submersion $version.';
   }
 
   @override

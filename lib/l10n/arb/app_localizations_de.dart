@@ -34987,12 +34987,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String startup_versionMismatch_writtenBy(Object version, Object date) {
-    return 'Dein Tauchbuch wurde zuletzt von Submersion $version am $date aktualisiert.';
+    return 'Ihr Tauchbuch wurde zuletzt von Submersion $version am $date aktualisiert.';
   }
 
   @override
   String startup_versionMismatch_writtenByUndated(Object version) {
-    return 'Dein Tauchbuch wurde zuletzt von Submersion $version aktualisiert.';
+    return 'Ihr Tauchbuch wurde zuletzt von Submersion $version aktualisiert.';
   }
 
   @override
