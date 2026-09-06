@@ -25,6 +25,20 @@ void main() {
       expect(_buddy().certificationLine, isNull);
     });
 
+    test('agency but no level or title -> the agency name alone', () {
+      expect(
+        _buddy(agency: CertificationAgency.padi).certificationLine,
+        'PADI',
+      );
+    });
+
+    test('agency Other but no level or title -> null', () {
+      expect(
+        _buddy(agency: CertificationAgency.other).certificationLine,
+        isNull,
+      );
+    });
+
     test('agency + level -> "level · agency"', () {
       final b = _buddy(
         level: CertificationLevel.advancedOpenWater,
