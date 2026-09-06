@@ -58,9 +58,27 @@ returned 53.7% land above zero.
 ### Render budget
 
 GMRT holds ~60 m natively at any span, so a naive 30 km box would be
-504 x 495 cells = 496,964 triangles against today's 28,322. The painter is a
-CPU painter's algorithm with a full per-frame triangle sort and no depth
-buffer, so uniform scaling is not available.
+504 x 495 cells = 496,964 triangles. The painter is a CPU painter's
+algorithm with a full per-frame triangle sort and no depth buffer, so
+uniform scaling is not available.
+
+Measured end to end on 2026-09-05, after PR 1 landed, the cap is the
+binding constraint well before the painter is:
+
+| Site | Fetched | Rendered after the 120 cap | Triangles |
+| --- | --- | --- | --- |
+| Bonaire | 133 x 136 @ 60 m | 67 x 68 @ 120 m | 8,844 |
+| Florida Keys | 256 x 256 @ 31 m | 86 x 86 @ 94 m | 14,450 |
+| Medes Islands | 70 x 94 @ 115 m | unchanged | 12,834 |
+
+Two consequences for PR 3. Real scenes run 8,800 to 14,500 triangles, not
+the 28,322 a full 120 x 120 would produce, so there is more headroom than a
+worst-case reading of the cap suggests. And `maxGridDim` currently discards
+most of what the new source layer fetches: Bonaire renders at 120 m from a
+60 m grid, which is no better than the 115 m EMODnet tile it replaced. PR 1
+delivers coverage and a real coastline there; the resolution win is still
+locked behind the cap, and raising it is the single highest-leverage change
+left. It stays gated on the budget measurement rather than guessed at.
 
 ## Root causes
 
