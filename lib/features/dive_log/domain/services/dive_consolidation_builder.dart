@@ -134,14 +134,30 @@ class DiveConsolidationBuilder {
     if (!o2Close || !heClose) return false;
     // Pressures rarely agree across computers (different logging cadence,
     // missing air-integration, etc.), so gas mix alone identifies the same
-    // physical tank. When both sides do have pressure, require it to agree
-    // so we don't merge two genuinely different tanks that happen to share
-    // a gas mix (e.g. twin identical cylinders).
-    final ps = primary.startPressure, pe = primary.endPressure;
-    final ss = secondary.startPressure, se = secondary.endPressure;
-    if (ps == null || pe == null || ss == null || se == null) return true;
-    return (ps - ss).abs() <= _pressureToleranceBar &&
-        (pe - se).abs() <= _pressureToleranceBar;
+    // physical tank. Each pressure that IS reported on both sides must still
+    // agree, so two genuinely different tanks sharing a gas mix (twin
+    // identical cylinders, a stage on the same mix) are not merged.
+    //
+    // Checked pair by pair rather than all-or-nothing: requiring all four
+    // values before comparing any of them means one missing reading discards
+    // the evidence the other pair provides, and a tank 87 bar apart at the
+    // end merges because its start pressure happens to be absent.
+    if (!_pressuresAgree(primary.startPressure, secondary.startPressure)) {
+      return false;
+    }
+    if (!_pressuresAgree(primary.endPressure, secondary.endPressure)) {
+      return false;
+    }
+    return true;
+  }
+
+  /// Whether a pair of pressure readings is compatible.
+  ///
+  /// A reading missing on either side carries no evidence either way, so it
+  /// cannot block a merge; two present readings must agree within tolerance.
+  bool _pressuresAgree(double? primary, double? secondary) {
+    if (primary == null || secondary == null) return true;
+    return (primary - secondary).abs() <= _pressureToleranceBar;
   }
 
   DiveConsolidationPlan build(List<Dive> dives, {String? primaryDiveId}) {

@@ -33,6 +33,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readou
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_spread.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
@@ -4879,7 +4880,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // _buildNdlLine); see the ceiling comment above for why this reads the
       // computed curve rather than the raw device field.
       if (_showNdl) {
-        const maxNdlSeconds = 3600.0;
+        final maxNdlSeconds = ProfileMetricBands.ndl.fixedMax;
         final ndlCurve = overlay.analysis?.ndlCurve;
         if (ndlCurve != null && ndlCurve.isNotEmpty) {
           final length = math.min(ndlCurve.length, overlay.points.length);
@@ -4910,7 +4911,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 barWidth: 2,
                 isStrokeCapRound: true,
                 dotData: const FlDotData(show: false),
-                dashArray: const [6, 3],
+                dashArray: ProfileMetricBands.ndl.dashArray,
               ),
             );
           }
@@ -4922,7 +4923,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // ceiling comment above for why this reads the computed curve rather
       // than the raw device field.
       if (_showTts) {
-        const maxTtsSeconds = 3600.0;
+        final maxTtsSeconds = ProfileMetricBands.tts.fixedMax;
         final ttsCurve = overlay.analysis?.ttsCurve;
         if (ttsCurve != null && ttsCurve.isNotEmpty) {
           final length = math.min(ttsCurve.length, overlay.points.length);
@@ -4951,7 +4952,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
-              dashArray: const [5, 4],
+              dashArray: ProfileMetricBands.tts.dashArray,
             ),
           );
         }
@@ -4962,8 +4963,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // ceiling comment above for why this reads the computed curve rather
       // than the raw device field.
       if (_showPpO2) {
-        const minPpO2 = 0.0;
-        const maxPpO2 = 2.0;
+        final minPpO2 = ProfileMetricBands.ppO2.min;
+        final maxPpO2 = ProfileMetricBands.ppO2.fixedMax;
         final ppO2Curve = overlay.analysis?.ppO2Curve;
         if (ppO2Curve != null && ppO2Curve.isNotEmpty) {
           final length = math.min(ppO2Curve.length, overlay.points.length);
@@ -4999,7 +5000,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
-              dashArray: const [5, 3],
+              dashArray: ProfileMetricBands.ppO2.dashArray,
             ),
           );
         }
@@ -5008,8 +5009,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // ppN2, same shape as ppO2 above but on the active ppN2 line's 0-5 bar
       // band (see _buildPpN2Line).
       if (_showPpN2) {
-        const minPpN2 = 0.0;
-        const maxPpN2 = 5.0;
+        final minPpN2 = ProfileMetricBands.ppN2.min;
+        final maxPpN2 = ProfileMetricBands.ppN2.fixedMax;
         final ppN2Curve = overlay.analysis?.ppN2Curve;
         if (ppN2Curve != null && ppN2Curve.isNotEmpty) {
           final length = math.min(ppN2Curve.length, overlay.points.length);
@@ -5045,7 +5046,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
-              dashArray: const [4, 2],
+              dashArray: ProfileMetricBands.ppN2.dashArray,
             ),
           );
         }
@@ -5056,8 +5057,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // present -- the same ppHe > 0.001 filter the active line uses so a
       // non-trimix overlay draws nothing.
       if (_showPpHe) {
-        const minPpHe = 0.0;
-        const maxPpHe = 3.0;
+        final minPpHe = ProfileMetricBands.ppHe.min;
+        final maxPpHe = ProfileMetricBands.ppHe.fixedMax;
         final ppHeCurve = overlay.analysis?.ppHeCurve;
         if (ppHeCurve != null && ppHeCurve.isNotEmpty) {
           final length = math.min(ppHeCurve.length, overlay.points.length);
@@ -5095,7 +5096,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 barWidth: 2,
                 isStrokeCapRound: true,
                 dotData: const FlDotData(show: false),
-                dashArray: const [3, 3],
+                dashArray: ProfileMetricBands.ppHe.dashArray,
               ),
             );
           }
@@ -5127,7 +5128,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 barWidth: 2,
                 isStrokeCapRound: true,
                 dotData: const FlDotData(show: false),
-                dashArray: const [8, 4],
+                dashArray: ProfileMetricBands.mod.dashArray,
               ),
             );
           }
@@ -5137,8 +5138,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // Gas density, from this source's own computed analysis, on the same
       // 0-8 g/L band as the active density line (see _buildDensityLine).
       if (_showDensity) {
-        const minDensity = 0.0;
-        const maxDensity = 8.0;
+        final minDensity = ProfileMetricBands.density.min;
+        final maxDensity = ProfileMetricBands.density.fixedMax;
         final densityCurve = overlay.analysis?.densityCurve;
         if (densityCurve != null && densityCurve.isNotEmpty) {
           final length = math.min(densityCurve.length, overlay.points.length);
@@ -5178,7 +5179,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
-              dashArray: const [5, 2],
+              dashArray: ProfileMetricBands.density.dashArray,
             ),
           );
         }
@@ -5187,8 +5188,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // GF%, from this source's own computed analysis, on the same 0-120%
       // band as the active GF% line (see _buildGfLine).
       if (_showGf) {
-        const minGf = 0.0;
-        const maxGf = 120.0;
+        final minGf = ProfileMetricBands.gf.min;
+        final maxGf = ProfileMetricBands.gf.fixedMax;
         final gfCurve = overlay.analysis?.gfCurve;
         if (gfCurve != null && gfCurve.isNotEmpty) {
           final length = math.min(gfCurve.length, overlay.points.length);
@@ -5213,7 +5214,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
-              dashArray: const [4, 3],
+              dashArray: ProfileMetricBands.gf.dashArray,
             ),
           );
         }
@@ -5222,8 +5223,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // Surface GF%, from this source's own computed analysis, on the same
       // 0-150% band as the active surface GF% line (see _buildSurfaceGfLine).
       if (_showSurfaceGf) {
-        const minGf = 0.0;
-        const maxGf = 150.0;
+        final minGf = ProfileMetricBands.surfaceGf.min;
+        final maxGf = ProfileMetricBands.surfaceGf.fixedMax;
         final surfaceGfCurve = overlay.analysis?.surfaceGfCurve;
         if (surfaceGfCurve != null && surfaceGfCurve.isNotEmpty) {
           final length = math.min(surfaceGfCurve.length, overlay.points.length);
@@ -5248,7 +5249,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
-              dashArray: const [6, 2],
+              dashArray: ProfileMetricBands.surfaceGf.dashArray,
             ),
           );
         }
@@ -5281,7 +5282,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
-              dashArray: const [3, 4],
+              dashArray: ProfileMetricBands.meanDepth.dashArray,
             ),
           );
         }
@@ -5293,7 +5294,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // zero, same as the active line; no surface lead-in, since GTR is
       // blank on the surface by definition.
       if (_showGtr) {
-        const maxGtrSeconds = 3600.0;
+        final maxGtrSeconds = ProfileMetricBands.gtr.fixedMax;
         final gtrCurve = overlay.analysis?.gtrCurve;
         if (gtrCurve != null && gtrCurve.isNotEmpty) {
           final length = math.min(gtrCurve.length, overlay.points.length);
@@ -5334,7 +5335,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   barWidth: 2,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
-                  dashArray: const [2, 4],
+                  dashArray: ProfileMetricBands.gtr.dashArray,
                 ),
               );
             }
@@ -5348,7 +5349,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // curves would be scaled independently and not be visually comparable
       // (see _buildCnsLine).
       if (_showCns) {
-        const minCns = 0.0;
+        final minCns = ProfileMetricBands.cns.min;
         final maxCns = _getCnsMaxScale();
         final cnsCurve = overlay.analysis?.cnsCurve;
         if (cnsCurve != null && cnsCurve.isNotEmpty) {
@@ -5374,7 +5375,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
-              dashArray: const [6, 3],
+              dashArray: ProfileMetricBands.cns.dashArray,
             ),
           );
         }
@@ -5384,7 +5385,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // scale as the active OTU line (see the CNS% comment above and
       // _buildOtuLine).
       if (_showOtu) {
-        const minOtu = 0.0;
+        final minOtu = ProfileMetricBands.otu.min;
         final maxOtu = _getOtuMaxScale();
         final otuCurve = overlay.analysis?.otuCurve;
         if (otuCurve != null && otuCurve.isNotEmpty) {
@@ -5410,7 +5411,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               barWidth: 2,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
-              dashArray: const [4, 4],
+              dashArray: ProfileMetricBands.otu.dashArray,
             ),
           );
         }
@@ -5978,7 +5979,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const ndlColor = ProfileMetricColors.ndl;
 
     // Map NDL to chart: max NDL (~60 min) at top, 0 at bottom
-    const maxNdlSeconds = 3600.0; // 60 minutes as max display
+    final maxNdlSeconds = ProfileMetricBands.ndl.fixedMax;
 
     final spots = <FlSpot>[];
     for (final i in _decimatedCurveIndices(ndlData)) {
@@ -6011,7 +6012,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [6, 3],
+      dashArray: ProfileMetricBands.ndl.dashArray,
     );
   }
 
@@ -6022,8 +6023,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const ppO2Color = ProfileMetricColors.ppO2;
 
     // Map ppO2 to chart: 0 at top, 2.0 bar at bottom
-    const minPpO2 = 0.0;
-    const maxPpO2 = 2.0;
+    final minPpO2 = ProfileMetricBands.ppO2.min;
+    final maxPpO2 = ProfileMetricBands.ppO2.fixedMax;
 
     final spots = <FlSpot>[];
     for (final i in _decimatedCurveIndices(ppO2Data)) {
@@ -6054,7 +6055,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [5, 3],
+      dashArray: ProfileMetricBands.ppO2.dashArray,
     );
   }
 
@@ -6301,8 +6302,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const ppN2Color = ProfileMetricColors.ppN2;
 
     // Map ppN2 to chart: 0 at top, ~5 bar at bottom (deep dive)
-    const minPpN2 = 0.0;
-    const maxPpN2 = 5.0;
+    final minPpN2 = ProfileMetricBands.ppN2.min;
+    final maxPpN2 = ProfileMetricBands.ppN2.fixedMax;
 
     final spots = <FlSpot>[];
     for (final i in _decimatedCurveIndices(ppN2Data)) {
@@ -6332,7 +6333,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [4, 2],
+      dashArray: ProfileMetricBands.ppN2.dashArray,
     );
   }
 
@@ -6342,8 +6343,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const ppHeColor = ProfileMetricColors.ppHe;
 
     // Map ppHe to chart: 0 at top, ~3 bar at bottom
-    const minPpHe = 0.0;
-    const maxPpHe = 3.0;
+    final minPpHe = ProfileMetricBands.ppHe.min;
+    final maxPpHe = ProfileMetricBands.ppHe.fixedMax;
 
     final spots = <FlSpot>[];
     for (final i in _decimatedCurveIndices(ppHeData)) {
@@ -6378,7 +6379,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [3, 3],
+      dashArray: ProfileMetricBands.ppHe.dashArray,
     );
   }
 
@@ -6413,7 +6414,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [8, 4],
+      dashArray: ProfileMetricBands.mod.dashArray,
     );
   }
 
@@ -6425,8 +6426,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const densityColor = ProfileMetricColors.density;
 
     // Map density to chart: 0 at top, 8 g/L at bottom
-    const minDensity = 0.0;
-    const maxDensity = 8.0;
+    final minDensity = ProfileMetricBands.density.min;
+    final maxDensity = ProfileMetricBands.density.fixedMax;
 
     final spots = <FlSpot>[];
     for (final i in _decimatedCurveIndices(densityData)) {
@@ -6457,7 +6458,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [5, 2],
+      dashArray: ProfileMetricBands.density.dashArray,
     );
   }
 
@@ -6468,8 +6469,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const gfColor = ProfileMetricColors.gf;
 
     // Map GF% to chart: 0% at top, 120% at bottom
-    const minGf = 0.0;
-    const maxGf = 120.0;
+    final minGf = ProfileMetricBands.gf.min;
+    final maxGf = ProfileMetricBands.gf.fixedMax;
 
     final spots = <FlSpot>[];
     for (final i in _decimatedCurveIndices(gfData)) {
@@ -6491,7 +6492,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [4, 3],
+      dashArray: ProfileMetricBands.gf.dashArray,
     );
   }
 
@@ -6502,8 +6503,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const surfaceGfColor = ProfileMetricColors.surfaceGf;
 
     // Map Surface GF% to chart: 0% at top, 150% at bottom
-    const minGf = 0.0;
-    const maxGf = 150.0;
+    final minGf = ProfileMetricBands.surfaceGf.min;
+    final maxGf = ProfileMetricBands.surfaceGf.fixedMax;
 
     final spots = <FlSpot>[];
     for (final i in _decimatedCurveIndices(surfaceGfData)) {
@@ -6525,7 +6526,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [6, 2],
+      dashArray: ProfileMetricBands.surfaceGf.dashArray,
     );
   }
 
@@ -6557,7 +6558,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [3, 4],
+      dashArray: ProfileMetricBands.meanDepth.dashArray,
     );
   }
 
@@ -6568,7 +6569,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const ttsColor = ProfileMetricColors.tts;
 
     // Map TTS to chart: 0 at top, 60 min at bottom
-    const maxTtsSeconds = 3600.0;
+    final maxTtsSeconds = ProfileMetricBands.tts.fixedMax;
 
     final spots = <FlSpot>[];
     for (final i in _decimatedCurveIndices(ttsData)) {
@@ -6591,7 +6592,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [5, 4],
+      dashArray: ProfileMetricBands.tts.dashArray,
     );
   }
 
@@ -6603,7 +6604,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   LineChartBarData _buildGtrLine(MetricBand band) {
     final gtrData = widget.gtrCurve!;
     // Same 0-60 min band as NDL and TTS so the three read on one scale.
-    const maxGtrSeconds = 3600.0;
+    final maxGtrSeconds = ProfileMetricBands.gtr.fixedMax;
 
     // Gaps are excluded before decimation (a blank must never be sampled as
     // a zero), then the line is broken wherever consecutive kept samples are
@@ -6629,7 +6630,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [2, 4],
+      dashArray: ProfileMetricBands.gtr.dashArray,
     );
   }
 
@@ -6664,7 +6665,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final cnsData = widget.cnsCurve!;
     const cnsColor = ProfileMetricColors.cns;
 
-    const minCns = 0.0;
+    final minCns = ProfileMetricBands.cns.min;
     final maxCns = _getCnsMaxScale();
 
     final spots = <FlSpot>[];
@@ -6687,7 +6688,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [6, 3],
+      dashArray: ProfileMetricBands.cns.dashArray,
     );
   }
 
@@ -6696,7 +6697,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final otuData = widget.otuCurve!;
     const otuColor = ProfileMetricColors.otu;
 
-    const minOtu = 0.0;
+    final minOtu = ProfileMetricBands.otu.min;
     final maxOtu = _getOtuMaxScale();
 
     final spots = <FlSpot>[];
@@ -6719,7 +6720,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [4, 4],
+      dashArray: ProfileMetricBands.otu.dashArray,
     );
   }
 

@@ -257,6 +257,96 @@ void main() {
       expect(plan.tankMerges, {'s1': 'p1'});
     });
 
+    test('a pressure that IS on both sides must still agree', () {
+      // Only the secondary's start pressure is missing. Both sides report an
+      // end pressure and they are 87 bar apart, so these are plainly not the
+      // same cylinder and must not be merged. Skipping the whole pressure
+      // check whenever any one of the four values is null would merge them.
+      const primaryTank = DiveTank(
+        id: 'p1',
+        gasMix: GasMix(o2: 32.0),
+        startPressure: 207,
+        endPressure: 63,
+      );
+      const secondaryTank = DiveTank(
+        id: 's1',
+        gasMix: GasMix(o2: 32.0),
+        startPressure: null,
+        endPressure: 150,
+      );
+      final primary = makeDive(
+        'p',
+        entry: t,
+        runtimeMin: 40,
+        tanks: [primaryTank],
+      );
+      final secondary = makeDive(
+        's',
+        entry: t.add(const Duration(minutes: 10)),
+        runtimeMin: 30,
+        tanks: [secondaryTank],
+      );
+      final plan = builder.build([primary, secondary]);
+      expect(plan.tankMerges.containsKey('s1'), isFalse);
+    });
+
+    test('a disagreeing start pressure blocks the merge on its own', () {
+      // The mirror case: the end pressures are missing, the start pressures
+      // are present and 100 bar apart.
+      const primaryTank = DiveTank(
+        id: 'p1',
+        gasMix: GasMix(o2: 32.0),
+        startPressure: 207,
+        endPressure: null,
+      );
+      const secondaryTank = DiveTank(
+        id: 's1',
+        gasMix: GasMix(o2: 32.0),
+        startPressure: 107,
+        endPressure: null,
+      );
+      final primary = makeDive(
+        'p',
+        entry: t,
+        runtimeMin: 40,
+        tanks: [primaryTank],
+      );
+      final secondary = makeDive(
+        's',
+        entry: t.add(const Duration(minutes: 10)),
+        runtimeMin: 30,
+        tanks: [secondaryTank],
+      );
+      final plan = builder.build([primary, secondary]);
+      expect(plan.tankMerges.containsKey('s1'), isFalse);
+    });
+
+    test('no pressure at all on one side still merges on gas mix alone', () {
+      // The case the relaxed rule exists for: a computer without air
+      // integration reports no pressure, so gas mix is all there is to go on.
+      const primaryTank = DiveTank(
+        id: 'p1',
+        gasMix: GasMix(o2: 32.0),
+        startPressure: 207,
+        endPressure: 63,
+      );
+      const secondaryTank = DiveTank(id: 's1', gasMix: GasMix(o2: 32.0));
+      final primary = makeDive(
+        'p',
+        entry: t,
+        runtimeMin: 40,
+        tanks: [primaryTank],
+      );
+      final secondary = makeDive(
+        's',
+        entry: t.add(const Duration(minutes: 10)),
+        runtimeMin: 30,
+        tanks: [secondaryTank],
+      );
+      final plan = builder.build([primary, secondary]);
+      expect(plan.tankMerges, {'s1': 'p1'});
+    });
+
     test(
       'two secondary tanks cannot both merge into the same primary tank',
       () {
