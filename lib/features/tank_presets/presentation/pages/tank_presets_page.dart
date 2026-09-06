@@ -9,6 +9,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
 class TankPresetsPage extends ConsumerWidget {
   const TankPresetsPage({super.key});
@@ -160,7 +161,7 @@ class TankPresetsPage extends ConsumerWidget {
             : preset.displayName,
       ),
       subtitle: Text(
-        '$volumeStr • $pressureStr • ${preset.material.displayName}',
+        '$volumeStr • $pressureStr • ${preset.material.localizedName(context.l10n)}',
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

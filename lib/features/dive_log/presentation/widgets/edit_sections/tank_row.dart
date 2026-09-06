@@ -4,6 +4,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
 /// One tank inside Gas & Gear: identity-first two-line row at ordinary row
 /// scale ("Tank 1 - Back Gas" over "EAN32 - 11 L - 200 -> 50 bar").
@@ -96,7 +97,7 @@ class _TankRowState extends State<TankRow> {
                 children: [
                   Text(
                     '${l10n.diveLog_edit_tankCard_title(widget.tankNumber)}'
-                    ' · ${widget.tank.role.displayName}',
+                    ' · ${widget.tank.role.localizedName(l10n)}',
                     style: theme.textTheme.bodyMedium!.copyWith(
                       fontWeight: FontWeight.w500,
                     ),

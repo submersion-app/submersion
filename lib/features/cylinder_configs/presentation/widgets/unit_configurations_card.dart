@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
 /// The configurations belonging to one rebreather, shown on its detail page.
 ///
@@ -76,7 +77,9 @@ class UnitConfigurationsCard extends ConsumerWidget {
                         title: Text(config.name),
                         subtitle: Text(
                           config.items
-                              .map((i) => i.tankRole.displayName)
+                              .map(
+                                (i) => i.tankRole.localizedName(context.l10n),
+                              )
                               .join(', '),
                         ),
                         trailing: Text('${config.cylinderCount}'),
