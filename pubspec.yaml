@@ -179,6 +179,7 @@ dev_dependencies:
   permission_handler_platform_interface: ^4.4.0  # mock BLE scan permission grants
   file_picker_platform_interface: ^3.0.1  # fake picker in file/import tests
   geocoding_platform_interface: ^5.0.0  # fake geocoder in location service tests
+  url_launcher_platform_interface: ^2.3.2  # assert which URL the startup screens hand to the browser
   flutter_web_auth_2_platform_interface: ^5.0.0  # mock auth in redirect-capture test
   share_plus_platform_interface: ^7.2.0  # fake share sheet in media share tests
   video_player_platform_interface: ^6.7.0  # fake player in media viewer tests
