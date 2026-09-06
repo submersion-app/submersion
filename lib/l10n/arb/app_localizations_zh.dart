@@ -2108,7 +2108,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => '保存为模板…';
 
   @override
-  String get checklists_menu_clearAll => '清空清单...';
+  String get checklists_menu_clearAll => '清空清单…';
 
   @override
   String get checklists_clear_title => '清空清单';

@@ -354,6 +354,9 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Fins'), findsNothing);
       expect(await checklistRepository.getByTripId(trip.id), isEmpty);
+      // The section is still mounted here, so the mounted guard around the
+      // confirmation must not swallow it.
+      expect(find.text('3 items removed'), findsOneWidget);
     });
 
     testWidgets('cancelling the clear-checklist dialog keeps every item', (

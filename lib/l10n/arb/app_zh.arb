@@ -999,7 +999,7 @@
   "checklists_item_delete": "删除事项",
   "checklists_menu_applyTemplate": "应用模板…",
   "checklists_menu_saveAsTemplate": "保存为模板…",
-  "checklists_menu_clearAll": "清空清单...",
+  "checklists_menu_clearAll": "清空清单…",
   "checklists_clear_title": "清空清单",
   "checklists_clear_content": "{count, plural, other{要删除此清单中的全部 {count} 个项目吗？模板不受影响。}}",
   "@checklists_clear_content": {

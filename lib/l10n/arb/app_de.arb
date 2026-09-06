@@ -905,7 +905,7 @@
   "checklists_item_delete": "Eintrag löschen",
   "checklists_menu_applyTemplate": "Vorlage anwenden...",
   "checklists_menu_saveAsTemplate": "Als Vorlage speichern...",
-  "checklists_menu_clearAll": "Checkliste leeren ...",
+  "checklists_menu_clearAll": "Checkliste leeren...",
   "checklists_clear_title": "Checkliste leeren",
   "checklists_clear_content": "{count, plural, =1{Den einzigen Eintrag aus dieser Checkliste löschen? Vorlagen sind nicht betroffen.} other{Alle {count} Einträge aus dieser Checkliste löschen? Vorlagen sind nicht betroffen.}}",
   "@checklists_clear_content": {

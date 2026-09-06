@@ -171,6 +171,10 @@ class TripChecklistSection extends ConsumerWidget {
     if (confirmed != true) return;
 
     await repository.deleteByTripId(trip.id);
+    // The wipe stands either way, being the user's confirmed intent, but its
+    // confirmation belongs to a page that may be gone: the route can be
+    // popped while the dialog is open or while the delete is in flight.
+    if (!context.mounted) return;
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.checklists_clear_success(count)),

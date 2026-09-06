@@ -2249,7 +2249,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get checklists_menu_saveAsTemplate => 'Als Vorlage speichern...';
 
   @override
-  String get checklists_menu_clearAll => 'Checkliste leeren ...';
+  String get checklists_menu_clearAll => 'Checkliste leeren...';
 
   @override
   String get checklists_clear_title => 'Checkliste leeren';
