@@ -10535,6 +10535,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_tankRole_stage => 'סטייג\'';
 
   @override
+  String get enum_tideState_rising => 'עולה';
+
+  @override
+  String get enum_tideState_falling => 'יורד';
+
+  @override
+  String get enum_tideState_slackHigh => 'גאות מלאה (רגיעה)';
+
+  @override
+  String get enum_tideState_slackLow => 'שפל (רגיעה)';
+
+  @override
   String get enum_visibility_excellent => 'מצוינת (>30m / >100ft)';
 
   @override

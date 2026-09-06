@@ -134,6 +134,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
+import 'package:submersion/features/tides/presentation/tide_state_display.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -4276,7 +4277,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // Build collapsed subtitle with tide state and height
     final collapsedSubtitle =
-        '${record.tideState.displayName} • ${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(1)}${settings.depthUnit.symbol}';
+        '${record.tideState.localizedName(context.l10n)} • ${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(1)}${settings.depthUnit.symbol}';
 
     // Compute cycle time range for the header
     final (cycleStart, cycleEnd) = _calculateCycleTimes(
@@ -4371,7 +4372,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   child: _buildDetailRow(
                     context,
                     context.l10n.diveLog_detail_label_state,
-                    record.tideState.displayName,
+                    record.tideState.localizedName(context.l10n),
                   ),
                 ),
               ],

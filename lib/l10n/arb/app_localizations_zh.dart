@@ -10293,6 +10293,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_tankRole_stage => '阶段';
 
   @override
+  String get enum_tideState_rising => '涨潮';
+
+  @override
+  String get enum_tideState_falling => '落潮';
+
+  @override
+  String get enum_tideState_slackHigh => '高潮平潮';
+
+  @override
+  String get enum_tideState_slackLow => '低潮平潮';
+
+  @override
   String get enum_visibility_excellent => '极好 (>30m / >100ft)';
 
   @override

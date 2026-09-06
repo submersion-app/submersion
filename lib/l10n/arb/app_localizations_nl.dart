@@ -10701,6 +10701,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_tankRole_stage => 'Stagefles';
 
   @override
+  String get enum_tideState_rising => 'Opkomend';
+
+  @override
+  String get enum_tideState_falling => 'Afgaand';
+
+  @override
+  String get enum_tideState_slackHigh => 'Hoogwater (kentering)';
+
+  @override
+  String get enum_tideState_slackLow => 'Laagwater (kentering)';
+
+  @override
   String get enum_visibility_excellent => 'Uitstekend (>30m / >100ft)';
 
   @override

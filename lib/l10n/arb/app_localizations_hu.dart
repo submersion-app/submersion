@@ -10752,6 +10752,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tideState_rising => 'Emelkedő';
+
+  @override
+  String get enum_tideState_falling => 'Apadó';
+
+  @override
+  String get enum_tideState_slackHigh => 'Dagály (állóvíz)';
+
+  @override
+  String get enum_tideState_slackLow => 'Apály (állóvíz)';
+
+  @override
   String get enum_visibility_excellent => 'Kituno (>30m / >100ft)';
 
   @override

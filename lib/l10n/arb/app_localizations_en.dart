@@ -10611,6 +10611,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tideState_rising => 'Rising';
+
+  @override
+  String get enum_tideState_falling => 'Falling';
+
+  @override
+  String get enum_tideState_slackHigh => 'High Tide (Slack)';
+
+  @override
+  String get enum_tideState_slackLow => 'Low Tide (Slack)';
+
+  @override
   String get enum_visibility_excellent => 'Excellent (>30m / >100ft)';
 
   @override

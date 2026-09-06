@@ -10780,6 +10780,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_tankRole_stage => 'Stageflasche';
 
   @override
+  String get enum_tideState_rising => 'Auflaufend';
+
+  @override
+  String get enum_tideState_falling => 'Ablaufend';
+
+  @override
+  String get enum_tideState_slackHigh => 'Hochwasser (Stillwasser)';
+
+  @override
+  String get enum_tideState_slackLow => 'Niedrigwasser (Stillwasser)';
+
+  @override
   String get enum_visibility_excellent => 'Ausgezeichnet (>30m / >100ft)';
 
   @override

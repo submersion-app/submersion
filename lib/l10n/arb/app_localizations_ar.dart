@@ -10592,6 +10592,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_tankRole_stage => 'أسطوانة مرحلية';
 
   @override
+  String get enum_tideState_rising => 'مد';
+
+  @override
+  String get enum_tideState_falling => 'جزر';
+
+  @override
+  String get enum_tideState_slackHigh => 'المد الأعلى (ركود)';
+
+  @override
+  String get enum_tideState_slackLow => 'الجزر الأدنى (ركود)';
+
+  @override
   String get enum_visibility_excellent => 'ممتازة (>30m / >100ft)';
 
   @override

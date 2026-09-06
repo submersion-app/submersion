@@ -18258,6 +18258,30 @@ abstract class AppLocalizations {
   /// **'Stage'**
   String get enum_tankRole_stage;
 
+  /// No description provided for @enum_tideState_rising.
+  ///
+  /// In en, this message translates to:
+  /// **'Rising'**
+  String get enum_tideState_rising;
+
+  /// No description provided for @enum_tideState_falling.
+  ///
+  /// In en, this message translates to:
+  /// **'Falling'**
+  String get enum_tideState_falling;
+
+  /// No description provided for @enum_tideState_slackHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High Tide (Slack)'**
+  String get enum_tideState_slackHigh;
+
+  /// No description provided for @enum_tideState_slackLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Tide (Slack)'**
+  String get enum_tideState_slackLow;
+
   /// No description provided for @enum_visibility_excellent.
   ///
   /// In en, this message translates to:
