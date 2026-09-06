@@ -18,6 +18,9 @@ typedef AsyncPathResolver = Future<String> Function();
 /// existing BackupPreferences registry so it appears alongside manual
 /// backups in the backup list UI.
 class PreMigrationBackupService {
+  /// How many unpinned pre-migration copies survive a prune. Each one is a
+  /// full database, so this stays small; see [_pruneExcess] for which of
+  /// them are kept.
   static const int _retainN = 3;
   final AsyncPathResolver _livePathProvider;
   final AsyncPathResolver _backupsDirProvider;
@@ -244,22 +247,70 @@ class PreMigrationBackupService {
     }
   }
 
+  /// Keeps [_retainN] pre-migration copies: the recovery floor, plus the
+  /// newest of the rest.
+  ///
+  /// Retention here is not "the last few backups". These copies exist for one
+  /// job: to be opened by a build that refuses the live database because the
+  /// schema has moved past what that build understands. Only a copy whose
+  /// [BackupRecord.fromSchemaVersion] is at or below that build's own version
+  /// can do that job, so the single most valuable record is the one with the
+  /// LOWEST `fromSchemaVersion` -- and pruning newest-first is precisely the
+  /// order that deletes it first. A diver crossing several schema rungs would
+  /// otherwise end up holding three copies, none of which the build in front
+  /// of them can open, having deleted the one that it could.
+  ///
+  /// The floor is therefore retained in place of the third-newest rather than
+  /// in addition to it: which copies are kept changes, how many does not.
   Future<void> _pruneExcess() async {
     final all = _preferences.getHistory();
-    final preMigration = all
-        .where((r) => r.type == BackupType.preMigration)
-        .toList();
-    final unpinned = preMigration.where((r) => !r.pinned).toList()
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    if (unpinned.length <= _retainN) return;
-    final toDelete = unpinned.sublist(_retainN);
-    for (final record in toDelete) {
+    final candidates =
+        all
+            .where((r) => r.type == BackupType.preMigration && !r.pinned)
+            .toList()
+          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    if (candidates.length <= _retainN) return;
+
+    final keep = <String>{};
+    final floor = _recoveryFloor(candidates);
+    if (floor != null) keep.add(floor.id);
+    for (final record in candidates) {
+      if (keep.length >= _retainN) break;
+      keep.add(record.id);
+    }
+
+    for (final record in candidates) {
+      if (keep.contains(record.id)) continue;
       final path = record.localPath;
       if (path != null) {
         await _safeDelete(path);
       }
       await _preferences.removeRecord(record.id);
     }
+  }
+
+  /// The copy the oldest build could still open: the lowest
+  /// [BackupRecord.fromSchemaVersion] among [candidates], ties going to the
+  /// newer copy since both open in the same builds and the newer one holds
+  /// more of the diver's data.
+  ///
+  /// A record with no recorded `fromSchemaVersion` was written before the
+  /// schema pair existed, so there is nothing to show it opens anywhere; it
+  /// never claims the floor slot and competes on recency like any other copy.
+  /// Returns null when no candidate records a version, which leaves retention
+  /// purely newest-first.
+  ///
+  /// [candidates] must already be ordered newest-first, which is what makes
+  /// the strict `<` below resolve ties toward the newer copy.
+  BackupRecord? _recoveryFloor(List<BackupRecord> candidates) {
+    BackupRecord? floor;
+    for (final record in candidates) {
+      final version = record.fromSchemaVersion;
+      if (version == null) continue;
+      final lowest = floor?.fromSchemaVersion;
+      if (lowest == null || version < lowest) floor = record;
+    }
+    return floor;
   }
 
   Future<void> _sweepTempFiles(String backupsDir) async {
