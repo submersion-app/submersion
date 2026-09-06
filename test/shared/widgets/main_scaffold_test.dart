@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
+import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 Future<Widget> _buildTestApp({
@@ -105,6 +107,24 @@ class _StubUpdateStatusNotifier extends StateNotifier<UpdateStatus>
 class _StubDownloadNotifier extends StateNotifier<DownloadState>
     implements DownloadNotifier {
   _StubDownloadNotifier() : super(const DownloadState());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Reports a download in flight, so tapping a destination raises the exit
+/// confirmation and suspends the tap handler while the dialog is up.
+class _DownloadingStubNotifier extends StateNotifier<DownloadState>
+    implements DownloadNotifier {
+  _DownloadingStubNotifier()
+    : super(const DownloadState(phase: DownloadPhase.downloading));
+
+  bool cancelled = false;
+
+  @override
+  Future<void> cancelDownload() async {
+    cancelled = true;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -300,6 +320,7 @@ void main() {
     Future<({Widget app, GoRouter router})> buildHarnessWithRouter({
       required AppSettingsRepository repo,
       EdgeInsets systemPadding = EdgeInsets.zero,
+      DownloadNotifier Function()? downloadNotifier,
     }) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -376,7 +397,7 @@ void main() {
             (ref) => _StubUpdateStatusNotifier(),
           ),
           downloadNotifierProvider.overrideWith(
-            (ref) => _StubDownloadNotifier(),
+            (ref) => downloadNotifier?.call() ?? _StubDownloadNotifier(),
           ),
           settingsProvider.overrideWith(
             (ref) => _StubSettingsNotifier(const AppSettings()),
@@ -643,6 +664,54 @@ void main() {
         harness.router.routerDelegate.currentConfiguration.uri.path,
         '/transfer',
       );
+    });
+
+    testWidgets('an order change mid-tap does not reroute the tap', (
+      tester,
+    ) async {
+      // The tap handler suspends on the download confirmation. If it resolved
+      // the index against the provider afterwards instead of against the list
+      // that rendered the rail, an order change arriving in that gap would
+      // send the user somewhere they never tapped.
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final repo = _FakeRepo();
+      final download = _DownloadingStubNotifier();
+      final harness = await buildHarnessWithRouter(
+        repo: repo,
+        downloadNotifier: () => download,
+      );
+      await tester.pumpWidget(harness.app);
+      await tester.pumpAndSettle();
+
+      // Rail renders the canonical order, so index 1 is Dives.
+      await tester.tap(find.text('Dives'));
+      await tester.pump();
+      expect(find.text('Leave'), findsOneWidget, reason: 'dialog should be up');
+
+      // While the dialog is up, a sync applies a different rail order.
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(NavigationRail)),
+      );
+      await container.read(navRailOrderNotifierProvider.notifier).setOrder([
+        'transfer',
+        'gps-log',
+      ]);
+      await tester.pump();
+
+      await tester.tap(find.text('Leave'));
+      await tester.pumpAndSettle();
+
+      // Dives is what was tapped, so Dives is where we land, even though
+      // index 1 now means Transfer.
+      expect(
+        harness.router.routerDelegate.currentConfiguration.uri.path,
+        '/dives',
+      );
+      expect(download.cancelled, isTrue);
     });
 
     testWidgets('tapping a customized primary item navigates to its route', (

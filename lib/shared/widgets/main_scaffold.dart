@@ -78,10 +78,22 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     return primary.length - 1; // fall through to More (index 4)
   }
 
+  /// Handles a tap on the rail or the bottom bar.
+  ///
+  /// [destinations] is the list that rendered the tapped control, captured in
+  /// the same build. Re-reading the provider here instead would let the order
+  /// change between render and tap and resolve [index] against a different
+  /// list, routing somewhere the user did not tap. The window is real: the
+  /// download confirmation below suspends this method for as long as the user
+  /// takes to answer, and a sync applying a remote settings change or a
+  /// cold-start load landing in that gap would swap the list out.
   Future<void> _onDestinationSelected(
     int index, {
-    required bool isWideScreen,
+    required List<NavDestination> destinations,
   }) async {
+    if (index < 0 || index >= destinations.length) return;
+    final destination = destinations[index];
+
     // Guard: if a download is in progress, confirm before navigating away
     final isDownloading = ref.read(downloadNotifierProvider).isDownloading;
     if (isDownloading) {
@@ -91,19 +103,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       if (!mounted) return;
     }
 
-    if (isWideScreen) {
-      final rail = ref.read(navRailDestinationsProvider);
-      if (index >= 0 && index < rail.length) {
-        context.go(rail[index].route);
-      }
-    } else {
-      final primary = ref.read(navPrimaryDestinationsProvider);
-      if (index == primary.length - 1) {
-        _showMoreMenu(context);
-        return;
-      }
-      context.go(primary[index].route);
+    // The bottom bar's last entry is the `more` sentinel, which opens the
+    // overflow sheet rather than routing. The rail never contains it.
+    if (destination.id == 'more') {
+      _showMoreMenu(context);
+      return;
     }
+    if (destination.route.isEmpty) return;
+    context.go(destination.route);
   }
 
   void _showMoreMenu(BuildContext context) {
@@ -269,7 +276,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                             onDestinationSelected: (index) =>
                                 _onDestinationSelected(
                                   index,
-                                  isWideScreen: true,
+                                  destinations: railDestinations,
                                 ),
                             destinations: [
                               for (final destination in railDestinations)
@@ -329,7 +336,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     return NavigationBar(
       selectedIndex: selectedIndex,
       onDestinationSelected: (index) =>
-          _onDestinationSelected(index, isWideScreen: false),
+          _onDestinationSelected(index, destinations: primary),
       destinations: [
         for (final destination in primary)
           NavigationDestination(
