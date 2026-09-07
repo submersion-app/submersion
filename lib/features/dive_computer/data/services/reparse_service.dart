@@ -722,6 +722,11 @@ class ReparseService {
             endPressure: Value(tank.endPressure),
             o2Percent: Value(tank.o2Percent),
             hePercent: Value(tank.hePercent),
+            // The transmitter serial is computer-owned and written
+            // unconditionally, so a re-parse is how a tank downloaded
+            // before the serial was stored gains it (and a parse that stops
+            // reporting one clears the stale value).
+            transmitterSerial: Value(tank.transmitterSerial),
             // tankName, presetName, equipmentId, tankRole, tankMaterial
             // are user-authored -- NOT touched
           ),
@@ -744,6 +749,7 @@ class ReparseService {
                 hePercent: Value(tank.hePercent),
                 tankOrder: Value(tank.index),
                 tankRole: Value(tank.role ?? 'backGas'),
+                transmitterSerial: Value(tank.transmitterSerial),
               ),
             );
       }

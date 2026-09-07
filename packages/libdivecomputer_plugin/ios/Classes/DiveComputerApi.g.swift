@@ -334,6 +334,11 @@ struct TankInfo {
   /// Tank usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
   /// 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
   var usage: Int64? = nil
+  /// Serial number of the air-integration transmitter that reported this
+  /// tank's pressures (`dc_tank_t.serial`, a fork extension); null when the
+  /// computer reported none. Identifies the physical cylinder across
+  /// computers paired to the same transmitter.
+  var transmitterSerial: Int64? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -344,6 +349,7 @@ struct TankInfo {
     let startPressureBar: Double? = nilOrValue(pigeonVar_list[3])
     let endPressureBar: Double? = nilOrValue(pigeonVar_list[4])
     let usage: Int64? = nilOrValue(pigeonVar_list[5])
+    let transmitterSerial: Int64? = nilOrValue(pigeonVar_list[6])
 
     return TankInfo(
       index: index,
@@ -351,7 +357,8 @@ struct TankInfo {
       volumeLiters: volumeLiters,
       startPressureBar: startPressureBar,
       endPressureBar: endPressureBar,
-      usage: usage
+      usage: usage,
+      transmitterSerial: transmitterSerial
     )
   }
   func toList() -> [Any?] {
@@ -362,6 +369,7 @@ struct TankInfo {
       startPressureBar,
       endPressureBar,
       usage,
+      transmitterSerial,
     ]
   }
 }

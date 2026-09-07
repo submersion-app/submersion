@@ -157,6 +157,7 @@ _ResolvedCylinders _resolveCylinders(
         ),
         volumeLiters: tank.volumeLiters,
         role: _inferRole(tank.usage, o2, he),
+        transmitterSerial: _transmitterSerial(tank.transmitterSerial),
       ),
     );
   }
@@ -186,6 +187,11 @@ _ResolvedCylinders _resolveCylinders(
 /// [usage] (libdivecomputer `dc_usage_t`: 1=oxygen, 2=diluent) is authoritative
 /// when present; otherwise fall back to an open-circuit gas heuristic where a
 /// nitrox mix of 41% O2 or more is a deco gas. Everything else is back gas.
+/// The native layer sends zero for "no transmitter"; keep that out of the
+/// stored identity so two serial-less tanks never look like the same cylinder.
+String? _transmitterSerial(int? serial) =>
+    serial == null || serial <= 0 ? null : '$serial';
+
 String _inferRole(int? usage, double o2Percent, double hePercent) {
   switch (usage) {
     case 1: // DC_USAGE_OXYGEN

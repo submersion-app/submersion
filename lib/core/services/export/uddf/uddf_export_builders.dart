@@ -481,6 +481,15 @@ class UddfExportBuilders {
                 }
                 // Tank order (for multi-tank configurations)
                 builder.element('tankorder', nest: tank.order.toString());
+                // Air-integration transmitter serial (app-specific): UDDF
+                // has no element for it, and it is the cylinder's identity
+                // across computers, so our own round trip must keep it.
+                if (tank.transmitterSerial != null) {
+                  builder.element(
+                    'transmitterserial',
+                    nest: tank.transmitterSerial,
+                  );
+                }
               },
             );
           }

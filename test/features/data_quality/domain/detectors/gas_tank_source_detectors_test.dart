@@ -17,11 +17,13 @@ domain.DiveTank tank({
   double o2 = 21.0,
   int order = 0,
   double? volume = 12,
+  String? transmitterSerial,
 }) => domain.DiveTank(
   id: id,
   volume: volume,
   gasMix: domain.GasMix(o2: o2, he: 0),
   order: order,
+  transmitterSerial: transmitterSerial,
 );
 
 GasSwitch sw({
@@ -193,6 +195,72 @@ void main() {
       final out = det.detect(ctx);
       expect(out, hasLength(1));
       expect(out.single.params['meanDiffBar'], 0.0);
+    });
+
+    test('two tanks on the same transmitter serial are twins, no series '
+        'needed', () {
+      // Two computers paired to one transmitter, consolidated before the
+      // serial gate existed: the same cylinder sits on the dive twice. The
+      // serial alone is proof, whatever the pressure series look like.
+      final ctx = makeContext(
+        dive: makeTestDive(
+          tanks: [
+            tank(id: 'a', o2: 31, transmitterSerial: '180777'),
+            tank(id: 'b', o2: 32, order: 1, transmitterSerial: '180777'),
+          ],
+        ),
+      );
+      final out = det.detect(ctx);
+      expect(out, hasLength(1));
+      expect(out.single.params['tankIdA'], 'a');
+      expect(out.single.params['tankIdB'], 'b');
+      expect(out.single.params['sameTransmitter'], isTrue);
+    });
+
+    test('tanks on different transmitter serials are never twins, even with '
+        'identical series', () {
+      // Twin cylinders on the same mix each carry their own transmitter;
+      // matching curves are a coincidence, not a double assignment.
+      final series = [
+        for (var t = 0; t <= 1200; t += 60)
+          QualityPressureSample(t: t, bar: 200 - t * 0.05),
+      ];
+      final ctx = makeContext(
+        dive: makeTestDive(
+          tanks: [
+            tank(id: 'a', transmitterSerial: '180777'),
+            tank(id: 'b', order: 1, transmitterSerial: '180778'),
+          ],
+        ),
+        pressures: {'a': series, 'b': series},
+      );
+      expect(det.detect(ctx), isEmpty);
+    });
+
+    test('twin series logged on offset cadences are still matched', () {
+      // Two computers at 10 s cadence, consolidated with a 3 s offset: no
+      // two samples share a timestamp, but the curves are the same. Nearest
+      // samples within the gap tolerance must be compared.
+      final a = [
+        for (var t = 0; t <= 1200; t += 10)
+          QualityPressureSample(t: t, bar: 200 - t * 0.05),
+      ];
+      final b = [
+        for (var t = 3; t <= 1200; t += 10)
+          QualityPressureSample(t: t, bar: 200 - t * 0.05),
+      ];
+      final ctx = makeContext(
+        dive: makeTestDive(
+          tanks: [
+            tank(id: 'a'),
+            tank(id: 'b', order: 1),
+          ],
+        ),
+        pressures: {'a': a, 'b': b},
+      );
+      final out = det.detect(ctx);
+      expect(out, hasLength(1));
+      expect(out.single.params['meanDiffBar'], lessThan(1.0));
     });
 
     test('single-tank dives are skipped', () {

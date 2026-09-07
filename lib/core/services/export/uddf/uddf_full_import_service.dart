@@ -1886,6 +1886,16 @@ class UddfFullImportService {
         tankInfo['order'] = UddfImportParsers.parseUddfInt(tankOrder) ?? 0;
       }
 
+      // Air-integration transmitter serial (app-specific, written by our
+      // own export)
+      final transmitterSerial = UddfImportParsers.getElementText(
+        tankDataElement,
+        'transmitterserial',
+      )?.trim();
+      if (transmitterSerial != null && transmitterSerial.isNotEmpty) {
+        tankInfo['transmitterSerial'] = transmitterSerial;
+      }
+
       // Validate tank data before adding
       final startPressure = (tankInfo['startPressure'] as num?)?.toDouble();
       final endPressure = (tankInfo['endPressure'] as num?)?.toDouble();

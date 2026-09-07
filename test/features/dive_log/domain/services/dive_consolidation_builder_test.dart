@@ -170,6 +170,178 @@ void main() {
       },
     );
 
+    test(
+      'matching transmitter serials merge even when the programmed mix differs',
+      () {
+        // Two Terics paired to the same transmitter: one programmed 31%,
+        // the other 32%. Same physical cylinder, so the gas gate must yield.
+        const primaryTank = DiveTank(
+          id: 'p1',
+          gasMix: GasMix(o2: 31.0, he: 0.0),
+          startPressure: 207,
+          endPressure: 63,
+          transmitterSerial: '180777',
+        );
+        const secondaryTank = DiveTank(
+          id: 's1',
+          gasMix: GasMix(o2: 32.0, he: 0.0),
+          startPressure: 208,
+          endPressure: 64,
+          transmitterSerial: '180777',
+        );
+        final primary = makeDive(
+          'p',
+          entry: t,
+          runtimeMin: 40,
+          tanks: [primaryTank],
+        );
+        final secondary = makeDive(
+          's',
+          entry: t.add(const Duration(minutes: 10)),
+          runtimeMin: 30,
+          tanks: [secondaryTank],
+        );
+        final plan = builder.build([primary, secondary]);
+        expect(plan.tankMerges, {'s1': 'p1'});
+      },
+    );
+
+    test('matching transmitter serials merge even when pressures disagree', () {
+      // The transmitter is the cylinder's identity; a pressure gap only
+      // says the two computers logged it at different moments.
+      const primaryTank = DiveTank(
+        id: 'p1',
+        gasMix: GasMix(o2: 32.0, he: 0.0),
+        startPressure: 207,
+        endPressure: 63,
+        transmitterSerial: '180777',
+      );
+      const secondaryTank = DiveTank(
+        id: 's1',
+        gasMix: GasMix(o2: 32.0, he: 0.0),
+        startPressure: 190,
+        endPressure: 80,
+        transmitterSerial: '180777',
+      );
+      final primary = makeDive(
+        'p',
+        entry: t,
+        runtimeMin: 40,
+        tanks: [primaryTank],
+      );
+      final secondary = makeDive(
+        's',
+        entry: t.add(const Duration(minutes: 10)),
+        runtimeMin: 30,
+        tanks: [secondaryTank],
+      );
+      final plan = builder.build([primary, secondary]);
+      expect(plan.tankMerges, {'s1': 'p1'});
+    });
+
+    test(
+      'differing transmitter serials never merge, even on identical data',
+      () {
+        // Twin cylinders on the same mix with their own transmitters are two
+        // tanks, however closely their readings agree.
+        const primaryTank = DiveTank(
+          id: 'p1',
+          gasMix: GasMix(o2: 32.0, he: 0.0),
+          startPressure: 207,
+          endPressure: 63,
+          transmitterSerial: '180777',
+        );
+        const secondaryTank = DiveTank(
+          id: 's1',
+          gasMix: GasMix(o2: 32.0, he: 0.0),
+          startPressure: 207,
+          endPressure: 63,
+          transmitterSerial: '180778',
+        );
+        final primary = makeDive(
+          'p',
+          entry: t,
+          runtimeMin: 40,
+          tanks: [primaryTank],
+        );
+        final secondary = makeDive(
+          's',
+          entry: t.add(const Duration(minutes: 10)),
+          runtimeMin: 30,
+          tanks: [secondaryTank],
+        );
+        final plan = builder.build([primary, secondary]);
+        expect(plan.tankMerges, isEmpty);
+      },
+    );
+
+    test('a serial on only one side falls back to the gas-mix rule', () {
+      const primaryTank = DiveTank(
+        id: 'p1',
+        gasMix: GasMix(o2: 32.0, he: 0.0),
+        startPressure: 207,
+        endPressure: 63,
+        transmitterSerial: '180777',
+      );
+      const secondaryTank = DiveTank(
+        id: 's1',
+        gasMix: GasMix(o2: 32.0, he: 0.0),
+        startPressure: 208,
+        endPressure: 64,
+      );
+      final primary = makeDive(
+        'p',
+        entry: t,
+        runtimeMin: 40,
+        tanks: [primaryTank],
+      );
+      final secondary = makeDive(
+        's',
+        entry: t.add(const Duration(minutes: 10)),
+        runtimeMin: 30,
+        tanks: [secondaryTank],
+      );
+      final plan = builder.build([primary, secondary]);
+      expect(plan.tankMerges, {'s1': 'p1'});
+    });
+
+    test('a serial match claims the primary tank that shares the serial, '
+        'not the first tank with a close mix', () {
+      // Primary: back gas (32%, serial A) then a stage (32%, no serial).
+      // Secondary: one tank with serial A. It must land on the primary tank
+      // carrying that serial rather than whichever tank is listed first.
+      const primaryStage = DiveTank(
+        id: 'p-stage',
+        gasMix: GasMix(o2: 32.0, he: 0.0),
+        order: 0,
+      );
+      const primaryBack = DiveTank(
+        id: 'p-back',
+        gasMix: GasMix(o2: 32.0, he: 0.0),
+        order: 1,
+        transmitterSerial: '180777',
+      );
+      const secondaryTank = DiveTank(
+        id: 's1',
+        gasMix: GasMix(o2: 32.0, he: 0.0),
+        transmitterSerial: '180777',
+      );
+      final primary = makeDive(
+        'p',
+        entry: t,
+        runtimeMin: 40,
+        tanks: [primaryStage, primaryBack],
+      );
+      final secondary = makeDive(
+        's',
+        entry: t.add(const Duration(minutes: 10)),
+        runtimeMin: 30,
+        tanks: [secondaryTank],
+      );
+      final plan = builder.build([primary, secondary]);
+      expect(plan.tankMerges, {'s1': 'p-back'});
+    });
+
     test('gas differing by more than 0.5% keeps tanks separate', () {
       const primaryTank = DiveTank(
         id: 'p1',

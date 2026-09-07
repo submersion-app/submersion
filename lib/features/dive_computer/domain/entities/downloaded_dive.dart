@@ -325,6 +325,11 @@ class DownloadedTank {
   /// the default. Derived from the computer's tank usage / the gas mix.
   final String? role;
 
+  /// Serial of the air-integration transmitter that reported this tank, or
+  /// null when the computer did not report one. Two computers paired to the
+  /// same transmitter logged the same cylinder.
+  final String? transmitterSerial;
+
   const DownloadedTank({
     required this.index,
     required this.o2Percent,
@@ -333,6 +338,7 @@ class DownloadedTank {
     this.endPressure,
     this.volumeLiters,
     this.role,
+    this.transmitterSerial,
   });
 
   /// Whether this is air (21% O2)
