@@ -56,6 +56,53 @@ void main() {
     expect(toggles, [true, false]);
   });
 
+  group('acquire', () {
+    test('takes the lock and releases it on the returned handle', () {
+      final held = ScreenAwake.acquire();
+      expect(toggles, [true]);
+
+      held.release();
+      expect(toggles, [true, false]);
+      expect(ScreenAwake.debugHolders, 0);
+    });
+
+    test('release is idempotent', () {
+      final held = ScreenAwake.acquire();
+      held.release();
+      held.release();
+      held.release();
+
+      expect(toggles, [
+        true,
+        false,
+      ], reason: 'an owner may release on several end paths');
+      expect(ScreenAwake.debugHolders, 0);
+    });
+
+    test('is counted against a concurrent hold', () async {
+      final held = ScreenAwake.acquire();
+      final gate = Completer<void>();
+      final running = ScreenAwake.hold(() => gate.future);
+
+      held.release();
+      expect(toggles, [true], reason: 'the hold is still running');
+
+      gate.complete();
+      await running;
+      expect(toggles, [true, false]);
+    });
+
+    test('debugReset releases an acquire a test leaked', () {
+      ScreenAwake.acquire();
+      expect(toggles, [true]);
+
+      ScreenAwake.debugReset();
+
+      expect(toggles, [true, false]);
+      expect(ScreenAwake.debugHolders, 0);
+    });
+  });
+
   test('debugReset releases a hold a test leaked', () {
     // A test that fails mid-hold never reaches its own release. Clearing the
     // count without releasing would pin the screen on for the rest of the run.

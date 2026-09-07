@@ -5,11 +5,13 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 ///
 /// A phone that locks part-way through a sync repair suspends the app behind
 /// it, so an operation the user was told not to interrupt is interrupted by
-/// the idle timer instead (issue #1194). Every holder that takes a lock must
-/// release it, which [hold] guarantees by construction.
+/// the idle timer instead (issue #1194); a dive-computer download dropped the
+/// same way, suspended mid-transfer when the screen locked (issue #1646).
+/// Every holder that takes a lock must release it, which [hold] guarantees by
+/// construction and [acquire] leaves to the caller.
 ///
 /// The lock is deliberately tied to work the user is WATCHING. Nothing here is
-/// for background sync: a lock that outlives its dialog is a flat battery.
+/// for background sync: a lock that outlives its screen is a flat battery.
 class ScreenAwake {
   const ScreenAwake._();
 
@@ -57,6 +59,21 @@ class ScreenAwake {
     }
   }
 
+  /// Takes a hold that lives until [ScreenAwakeHold.release] is called, for
+  /// work whose span is not a single [Future] and so cannot use [hold] -- an
+  /// event-driven dive-computer download, say, that starts on one call and
+  /// ends when a completion event arrives.
+  ///
+  /// The caller owns the release. Every path that ends the work -- success,
+  /// error, cancel, and the owner's own disposal as a backstop -- must call
+  /// [ScreenAwakeHold.release]; it is idempotent, so calling it on more than
+  /// one of those paths is safe. Prefer [hold] wherever the work is scoped to
+  /// a future: it cannot leak.
+  static ScreenAwakeHold acquire() {
+    _acquire();
+    return ScreenAwakeHold._();
+  }
+
   static void _acquire() {
     _holders++;
     if (_holders == 1) _toggle(enable: true);
@@ -77,5 +94,20 @@ class ScreenAwake {
     } catch (_) {
       // Cosmetic. The operation matters; the screen staying on does not.
     }
+  }
+}
+
+/// One outstanding [ScreenAwake.acquire] hold. [release] drops it exactly
+/// once; further calls are no-ops, so an owner can release on several end
+/// paths (completion, error, cancel, disposal) without counting them.
+class ScreenAwakeHold {
+  ScreenAwakeHold._();
+
+  bool _released = false;
+
+  void release() {
+    if (_released) return;
+    _released = true;
+    ScreenAwake._release();
   }
 }
