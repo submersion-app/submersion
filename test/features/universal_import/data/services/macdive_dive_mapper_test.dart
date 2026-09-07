@@ -709,6 +709,17 @@ void main() {
         final dive = payload.entitiesOf(ImportEntityType.dives).single;
         expect(dive.containsKey('surfaceInterval'), isFalse);
       });
+
+      test('a fraction of a minute rounds away rather than to 0m', () async {
+        // The column is a float. Guarding on the raw value before rounding
+        // let anything under half a minute through as Duration.zero, which
+        // is the 0m interval this field is meant to never produce.
+        final payload = await MacDiveDiveMapper.toPayload(
+          _surfaceIntervalLogbook(0.4),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('surfaceInterval'), isFalse);
+      });
     });
 
     group('ZSAMPLES', () {
