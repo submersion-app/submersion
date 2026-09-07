@@ -108,6 +108,21 @@ void main() {
     },
   );
 
+  testWidgets(
+    'computed events never flash in on the first frame (issue #1523)',
+    (tester) async {
+      await tester.pumpWidget(
+        _chart([
+          _event(300, ProfileEventType.ascentRateWarning, EventSource.imported),
+          _event(600, ProfileEventType.ascentRateWarning, EventSource.computed),
+        ]),
+      );
+      // First frame only -- before the post-frame seed callback runs.
+      await tester.pump();
+      expect(_eventLines(tester), hasLength(1));
+    },
+  );
+
   testWidgets('with no imported events, computed events show by default', (
     tester,
   ) async {

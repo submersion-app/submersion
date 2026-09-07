@@ -577,6 +577,16 @@ void main() {
       expect(c.read(profileLegendProvider).showComputedEvents, isFalse);
     });
 
+    test('computedEventsFollowsDive is true until the user toggles', () {
+      final c = makeContainer();
+      final notifier = c.read(profileLegendProvider.notifier);
+      expect(notifier.computedEventsFollowsDive, isTrue);
+      notifier.seedComputedEventsVisibility(diveHasImportedEvents: true);
+      expect(notifier.computedEventsFollowsDive, isTrue);
+      notifier.toggleComputedEvents();
+      expect(notifier.computedEventsFollowsDive, isFalse);
+    });
+
     test('toggle flips the value', () {
       final c = makeContainer();
       final notifier = c.read(profileLegendProvider.notifier);

@@ -37,10 +37,11 @@ class ProfileLegendState {
   final bool showEvents;
 
   /// Whether the app's own auto-detected events (`EventSource.computed`) are
-  /// drawn. Independent of [showEvents], which governs the computer's own and
-  /// user events. Seeded off for a dive that carries imported events so a
-  /// computer download shows just the computer's events by default
-  /// (issue #1523).
+  /// drawn. A sub-filter of [showEvents]: event markers appear only when
+  /// [showEvents] is on, and among those this one hides the computed events
+  /// while keeping the computer's own and user events. Seeded off for a dive
+  /// that carries imported events so a computer download shows just the
+  /// computer's events by default (issue #1523).
   final bool showComputedEvents;
   final bool showMaxDepthMarker;
   final bool showPressureMarkers;
@@ -522,6 +523,12 @@ class ProfileLegend extends _$ProfileLegend {
   /// Records that the user has explicitly set the computed-events toggle, so
   /// [seedComputedEventsVisibility] stops overriding their choice.
   bool _computedEventsUserSet = false;
+
+  /// True until the user first toggles computed-events visibility this session.
+  /// While true the chart mirrors [seedComputedEventsVisibility]'s decision on
+  /// its own first frame, so the computed markers never flash before the
+  /// post-frame seed lands (issue #1523).
+  bool get computedEventsFollowsDive => !_computedEventsUserSet;
 
   void toggleComputedEvents() {
     _computedEventsUserSet = true;

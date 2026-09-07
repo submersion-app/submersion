@@ -1280,12 +1280,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     });
   }
 
+  /// Whether this dive carries the computer's own (imported) events.
+  bool get _diveHasImportedEvents =>
+      widget.events?.any((e) => e.source == EventSource.imported) ?? false;
+
   /// Seed the legend's "Computed events" toggle from this dive: hidden when the
-  /// dive carries the computer's own events, shown otherwise (issue #1523).
+  /// dive carries the computer's own events, shown otherwise (issue #1523). The
+  /// chart's own first paint already reflects this (see [build]); the post-frame
+  /// hop keeps the shared provider -- and the legend checkbox -- in step.
   void _scheduleComputedEventsSeed() {
     final events = widget.events;
     if (events == null || events.isEmpty) return;
-    final hasImported = events.any((e) => e.source == EventSource.imported);
+    final hasImported = _diveHasImportedEvents;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref
@@ -2103,6 +2109,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAscentRateLine = legendState.showAscentRateLine;
     _showEvents = legendState.showEvents;
     _showComputedEvents = legendState.showComputedEvents;
+    // Issue #1523: the provider default is `true`, and for a dive that carries
+    // the computer's own events the post-frame seed only flips it to `false`
+    // after the first frame -- long enough to flash the computed markers. Until
+    // the user takes over the toggle, mirror the seed's decision here so the
+    // first paint is already right (and stays right when switching dives).
+    if (ref.read(profileLegendProvider.notifier).computedEventsFollowsDive) {
+      _showComputedEvents = !_diveHasImportedEvents;
+    }
     _showMaxDepthMarkerLocal = legendState.showMaxDepthMarker;
     _showPressureMarkersLocal = legendState.showPressureMarkers;
     _showGasSwitchMarkers = legendState.showGasSwitchMarkers;
