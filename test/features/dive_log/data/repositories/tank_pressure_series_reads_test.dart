@@ -140,4 +140,67 @@ void main() {
     expect(await tanks.getTankPressuresForDive('dive-1'), isEmpty);
     expect(await tanks.hasTankPressures('dive-1'), isFalse);
   });
+
+  test('getTankPressuresForComputer keeps one computer per shared tank and '
+      'falls back for tanks it did not log', () async {
+    // Two computers on one transmitter (#543's tank-pressure twin): both
+    // series land on tank-a and alternate seconds because of the time
+    // offset between the computers.
+    for (final computer in ['dc-black', 'dc-bronze']) {
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: computer,
+              name: computer,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    }
+    await series.insertSeries(
+      diveId: 'dive-1',
+      tankId: 'tank-a',
+      computerId: 'dc-black',
+      samples: const [
+        TankPressureSample(timestamp: 2, pressure: 225.5),
+        TankPressureSample(timestamp: 4, pressure: 225.0),
+      ],
+      now: now,
+    );
+    await series.insertSeries(
+      diveId: 'dive-1',
+      tankId: 'tank-a',
+      computerId: 'dc-bronze',
+      samples: const [
+        TankPressureSample(timestamp: 3, pressure: 223.5),
+        TankPressureSample(timestamp: 5, pressure: 223.3),
+      ],
+      now: now,
+    );
+    await series.insertSeries(
+      diveId: 'dive-1',
+      tankId: 'tank-b',
+      computerId: 'dc-black',
+      samples: const [TankPressureSample(timestamp: 0, pressure: 200.0)],
+      now: now,
+    );
+
+    final forBronze = await tanks.getTankPressuresForComputer(
+      'dive-1',
+      'dc-bronze',
+    );
+    expect(forBronze['tank-a']!.map((p) => p.pressure), [223.5, 223.3]);
+    expect(forBronze['tank-b']!.map((p) => p.pressure), [200.0]);
+
+    final forBlack = await tanks.getTankPressuresForComputer(
+      'dive-1',
+      'dc-black',
+    );
+    expect(forBlack['tank-a']!.map((p) => p.timestamp), [2, 4]);
+
+    // The unscoped read is unchanged: the interleaved union.
+    final union = await tanks.getTankPressuresForDive('dive-1');
+    expect(union['tank-a']!.map((p) => p.timestamp), [2, 3, 4, 5]);
+  });
 }
