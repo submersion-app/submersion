@@ -858,12 +858,27 @@ class PaginatedDiveListNotifier
       _currentOffset = dives.length;
 
       if (mounted) {
+        // Read at apply time, not before the await: loadNextPage flips
+        // isLoadingMore synchronously and queues its body behind this reload,
+        // so the flags can change while this query is running.
+        //
+        // Both are carried over rather than reset. isLoadingMore still marks a
+        // page load queued behind this one -- dropping it blinks the spinner
+        // off and lets the stranded-loader kick queue a second load for a page
+        // already coming. loadMoreFailed still marks a next page that could not
+        // be fetched, which refreshing the rows already loaded says nothing
+        // about -- dropping it swaps the retry row back for a spinner the kick
+        // then declines to touch, which is the dead end this all started from
+        // (#1610).
+        final flags = state.valueOrNull;
         state = AsyncValue.data(
           PaginatedDiveListState(
             dives: dives,
             hasMore: hasMore,
             nextCursor: _isDateSort ? _cursorFromLastDive(dives) : null,
             totalCount: totalCount,
+            isLoadingMore: flags?.isLoadingMore ?? false,
+            loadMoreFailed: flags?.loadMoreFailed ?? false,
           ),
         );
       }

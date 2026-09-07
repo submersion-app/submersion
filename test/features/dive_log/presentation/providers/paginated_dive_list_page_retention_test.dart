@@ -23,15 +23,16 @@ import '../../../../helpers/test_database.dart';
 /// first page. Mirrors `PaginatedDiveListNotifier._pageSize`.
 const _pageSize = 50;
 
-/// Serves the first page from the real database, then fails every later one,
-/// standing in for a transient read error while paging.
+/// Fails the [failCall]th `getDiveSummaries` call and serves every other one
+/// from the real database, standing in for a transient read error while paging.
 ///
 /// [DiveRepository]'s only public constructor is a factory, so this delegates
 /// rather than extends, forwarding the handful of methods the notifier calls.
-class _FailsAfterFirstPageRepository implements DiveRepository {
-  _FailsAfterFirstPageRepository(this._inner);
+class _FailsOnCallRepository implements DiveRepository {
+  _FailsOnCallRepository(this._inner, {required this.failCall});
 
   final DiveRepository _inner;
+  final int failCall;
   int _calls = 0;
 
   @override
@@ -45,7 +46,7 @@ class _FailsAfterFirstPageRepository implements DiveRepository {
     Set<String> disabledSafetyRules = const {},
   }) async {
     _calls++;
-    if (_calls > 1) throw StateError('page load failed');
+    if (_calls == failCall) throw StateError('page load failed');
     return _inner.getDiveSummaries(
       diverId: diverId,
       filter: filter,
@@ -300,7 +301,8 @@ void main() {
       final diver = await setUpCurrentDiver();
       await seedDives(diver.id, _pageSize * 2);
 
-      final failing = _FailsAfterFirstPageRepository(diveRepo);
+      // Call 1 is the initial first page; call 2 is the page load that fails.
+      final failing = _FailsOnCallRepository(diveRepo, failCall: 2);
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
@@ -399,5 +401,130 @@ void main() {
         reason: 'no row may appear twice after the two operations interleave',
       );
     });
+  });
+
+  group('PaginatedDiveListNotifier reload keeps transient paging flags', () {
+    test(
+      'a reload landing while a page load is queued keeps the spinner on',
+      () async {
+        final diver = await setUpCurrentDiver();
+        await seedDives(diver.id, _pageSize * 2);
+
+        // Call 1 is the initial first page; call 2 is the reload this test holds
+        // open while a page load queues up behind it.
+        final gated = _GatedRepository(diveRepo, gateCall: 2);
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            diveRepositoryProvider.overrideWithValue(gated),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final seen = <PaginatedDiveListState>[];
+        final sub = container.listen(paginatedDiveListProvider, (_, next) {
+          final value = next.value;
+          if (value != null) seen.add(value);
+        });
+        addTearDown(sub.close);
+
+        while (container.read(paginatedDiveListProvider).isLoading) {
+          await Future<void>.delayed(Duration.zero);
+        }
+
+        // A sync ticks the dives table, parking the reload inside the repository.
+        await diveRepo.createDive(
+          Dive(
+            id: '',
+            diverId: diver.id,
+            diveNumber: 999,
+            dateTime: DateTime(2030),
+            name: 'Synced dive',
+          ),
+        );
+        await gated.gateReached.future;
+
+        // The diver reaches the bottom of the list while that reload is parked.
+        seen.clear();
+        final pageLoad = container
+            .read(paginatedDiveListProvider.notifier)
+            .loadNextPage();
+        gated.release.complete();
+        await pageLoad;
+
+        expect(seen, isNotEmpty);
+        final beforeThePageLanded = seen
+            .takeWhile((s) => s.dives.length <= _pageSize)
+            .toList();
+        expect(
+          beforeThePageLanded.every((s) => s.isLoadingMore),
+          isTrue,
+          reason:
+              'the reload must not blink the spinner off while the page load it '
+              'is queued ahead of is still pending (#1610)',
+        );
+      },
+    );
+
+    test(
+      'a reload does not clear the retry state of a failed page load',
+      () async {
+        final diver = await setUpCurrentDiver();
+        final dives = await seedDives(diver.id, _pageSize * 2);
+
+        // Call 1 is the initial first page, call 2 the page load that fails;
+        // the reload that follows the write below must succeed.
+        final failing = _FailsOnCallRepository(diveRepo, failCall: 2);
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            diveRepositoryProvider.overrideWithValue(failing),
+          ],
+        );
+        addTearDown(container.dispose);
+        final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+        addTearDown(sub.close);
+
+        while (container.read(paginatedDiveListProvider).isLoading) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        await container.read(paginatedDiveListProvider.notifier).loadNextPage();
+        expect(
+          container.read(paginatedDiveListProvider).value!.loadMoreFailed,
+          isTrue,
+        );
+
+        // A sync refreshes the rows already loaded. That says nothing about
+        // whether the NEXT page can be fetched, so the retry row must survive.
+        await diveRepo.updateDive(dives.first.copyWith(name: 'Refreshed name'));
+
+        var names = <String?>[];
+        for (var i = 0; i < 100; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+          names =
+              container
+                  .read(paginatedDiveListProvider)
+                  .value
+                  ?.dives
+                  .map((d) => d.name)
+                  .toList() ??
+              <String?>[];
+          if (names.contains('Refreshed name')) break;
+        }
+        expect(
+          names,
+          contains('Refreshed name'),
+          reason: 'reload should have run',
+        );
+
+        expect(
+          container.read(paginatedDiveListProvider).value!.loadMoreFailed,
+          isTrue,
+          reason:
+              'clearing this swaps the retry row back for a spinner the stranded '
+              'loader kick then declines to touch (#1610)',
+        );
+      },
+    );
   });
 }
