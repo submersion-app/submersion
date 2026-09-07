@@ -19,6 +19,18 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
+class _RecordingDiveRepository extends Fake implements DiveRepository {
+  final setPrimaryCalls = <(String, String)>[];
+
+  @override
+  Future<void> setPrimaryDataSource({
+    required String diveId,
+    required String computerReadingId,
+  }) async {
+    setPrimaryCalls.add((diveId, computerReadingId));
+  }
+}
+
 class _RecordingSplitService extends DiveSplitService {
   _RecordingSplitService() : super(DiveRepository());
 
@@ -71,6 +83,7 @@ void main() {
   late List<DiveDataSource> sources;
   late Map<String, SourceProfile> profiles;
   late _RecordingSplitService splitService;
+  late _RecordingDiveRepository repository;
 
   setUp(() {
     dive = createTestDiveWithBottomTime().copyWith(profile: _points(6));
@@ -103,6 +116,7 @@ void main() {
       ),
     };
     splitService = _RecordingSplitService();
+    repository = _RecordingDiveRepository();
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
@@ -126,6 +140,7 @@ void main() {
             dive.id,
           ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
           diveSplitServiceProvider.overrideWithValue(splitService),
+          diveRepositoryProvider.overrideWithValue(repository),
           computersForDiveProvider(dive.id).overrideWith(
             (ref) async => [
               DiveComputer(
@@ -144,6 +159,10 @@ void main() {
           ),
         ],
         child: MaterialApp(
+          // flutter_test forwards the host machine's locale list, so an
+          // unpinned MaterialApp renders a translated UI on a non-English
+          // machine and every English literal below stops matching.
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: DiveDetailPage(diveId: dive.id, embedded: true)),
@@ -243,6 +262,22 @@ void main() {
 
     expect(find.text('Set as primary'), findsOneWidget);
     expect(find.text('Split into separate dive'), findsNothing);
+  });
+
+  testWidgets('the sources bar chip menu promotes a source to primary', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+
+    await tester.ensureVisible(inSourceBar(find.byIcon(Icons.more_vert)).last);
+    await tester.pump();
+    await tester.tap(inSourceBar(find.byIcon(Icons.more_vert)).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Set as primary'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(repository.setPrimaryCalls, [(dive.id, 'src-b')]);
   });
 
   testWidgets(

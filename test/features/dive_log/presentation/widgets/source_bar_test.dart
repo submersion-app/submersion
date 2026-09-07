@@ -6,6 +6,10 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 Widget _harness(Widget child) {
   return MaterialApp(
+    // flutter_test forwards the host machine's locale list, so an unpinned
+    // MaterialApp renders a translated UI on a non-English machine and every
+    // English literal below stops matching.
+    locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: child),
