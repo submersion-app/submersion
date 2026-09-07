@@ -756,11 +756,25 @@ class PaginatedDiveListNotifier
     await loadFirstPage();
   }
 
-  /// Reload the first page without flashing a loading spinner. Mirrors
-  /// [loadFirstPage] (resetting to page 1 with the same diver/filter/sort
-  /// params) but never sets `state = AsyncValue.loading()`, so table-change
-  /// ticks from a sync update the data in place instead of flickering the UI.
+  /// Reload the pages already on screen without flashing a loading spinner.
+  ///
+  /// Mirrors [loadFirstPage] (same diver/filter/sort params, re-read from the
+  /// top) but never sets `state = AsyncValue.loading()`, so table-change ticks
+  /// from a sync update the data in place instead of flickering the UI.
+  ///
+  /// The reload refetches as many rows as are currently loaded, not a single
+  /// page. Shrinking back to page one drops every row the diver scrolled past,
+  /// puts the trailing "loading more" row back under their cursor with nothing
+  /// below it to scroll toward, and throws the scroll offset away -- which is
+  /// what made the list appear to hang after an edit was saved (#1610), since
+  /// the notifier's own writes tick this stream too.
+  ///
+  /// One row beyond the loaded count is fetched purely to decide [hasMore], so
+  /// a fully loaded list does not sprout a spinner row that no further page
+  /// could ever clear.
   Future<void> _silentReloadFirstPage() async {
+    final loadedCount = state.valueOrNull?.dives.length ?? 0;
+    final limit = loadedCount > _pageSize ? loadedCount : _pageSize;
     _currentOffset = 0;
     try {
       final filter = _ref.read(diveFilterProvider);
@@ -770,20 +784,22 @@ class PaginatedDiveListNotifier
           diverId: _currentDiverId,
           filter: filter,
           sort: sort,
-          limit: _pageSize,
+          limit: limit + 1,
           disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
         ),
         _repository.getDiveCount(diverId: _currentDiverId, filter: filter),
       ]);
-      final dives = results[0] as List<DiveSummary>;
+      final fetched = results[0] as List<DiveSummary>;
       final totalCount = results[1] as int;
+      final hasMore = fetched.length > limit;
+      final dives = hasMore ? fetched.sublist(0, limit) : fetched;
       _currentOffset = dives.length;
 
       if (mounted) {
         state = AsyncValue.data(
           PaginatedDiveListState(
             dives: dives,
-            hasMore: dives.length >= _pageSize,
+            hasMore: hasMore,
             nextCursor: _isDateSort ? _cursorFromLastDive(dives) : null,
             totalCount: totalCount,
           ),

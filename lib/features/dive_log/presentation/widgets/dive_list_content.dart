@@ -133,6 +133,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   DiveMergeOutcome? _lastMergeOutcome;
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
+
+  /// Row count the trailing loader row last kicked a page load at.
+  ///
+  /// Keeps [_loadNextPageIfStranded] from retrying every frame when a load
+  /// fails: the next kick waits for the loaded count to actually change.
+  int? _autoLoadKickedAtCount;
   bool _selectionFromList =
       false; // Track if selection originated from list tap
 
@@ -175,6 +181,25 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     if (maxScroll - currentScroll <= 200) {
       ref.read(paginatedDiveListProvider.notifier).loadNextPage();
     }
+  }
+
+  /// Load the next page when the trailing loader row is built with nothing in
+  /// flight to resolve it.
+  ///
+  /// [_onScroll] only fires on scroll activity, and when the list shrinks under
+  /// a position that is already at the bottom -- a reload, a bulk delete --
+  /// Flutter clamps the offset during layout without notifying scroll
+  /// listeners. The spinner then sits there until the diver scrolls by hand
+  /// (#1610). Building the row is itself the signal that it is on screen, so
+  /// that is where the load gets kicked.
+  void _loadNextPageIfStranded(PaginatedDiveListState paginatedState) {
+    if (!paginatedState.hasMore || paginatedState.isLoadingMore) return;
+    if (_autoLoadKickedAtCount == paginatedState.dives.length) return;
+    _autoLoadKickedAtCount = paginatedState.dives.length;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(paginatedDiveListProvider.notifier).loadNextPage();
+    });
   }
 
   @override
@@ -1494,6 +1519,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               itemBuilder: (context, index) {
                 // Loading indicator at the end
                 if (index >= dives.length) {
+                  _loadNextPageIfStranded(paginatedState);
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Center(child: CircularProgressIndicator()),
