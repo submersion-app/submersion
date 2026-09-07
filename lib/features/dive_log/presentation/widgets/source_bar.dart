@@ -21,9 +21,6 @@ Color sourceColorAt(int index) {
   return baseColor;
 }
 
-/// Management actions available from a source chip's overflow menu.
-enum SourceMenuAction { setPrimary, split }
-
 /// One data source entry in the [SourceBar].
 class SourceBarItem {
   const SourceBarItem({
@@ -56,7 +53,9 @@ class SourceBarItem {
 /// A row of source chips below the profile chart. Tapping a chip makes that
 /// source active (driving every line on the chart and every derived card on
 /// the page); the eye on non-active chips overlays that source's data in its
-/// color; the overflow menu carries per-source management actions.
+/// color; the overflow menu carries Set as primary. Split lives only in the
+/// Data Sources section, which is the one place that owns destructive
+/// per-source management (data_sources_section.dart).
 ///
 /// Renders nothing when the dive has fewer than two sources.
 class SourceBar extends StatelessWidget {
@@ -65,17 +64,17 @@ class SourceBar extends StatelessWidget {
     required this.sources,
     required this.onActivate,
     required this.onToggleOverlay,
-    this.onMenuAction,
+    this.onSetPrimary,
   });
 
   final List<SourceBarItem> sources;
   final void Function(String sourceId) onActivate;
   final void Function(String sourceId, bool overlaid) onToggleOverlay;
 
-  /// Per-source management actions. Null hides the chips' overflow menu
-  /// (e.g. the fullscreen chart, where management lives on the detail
-  /// page).
-  final void Function(String sourceId, SourceMenuAction action)? onMenuAction;
+  /// Promotes a source to the dive's primary. Null hides the chips'
+  /// overflow menu (e.g. the fullscreen chart, where management lives on
+  /// the detail page).
+  final void Function(String sourceId)? onSetPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -109,9 +108,9 @@ class SourceBar extends StatelessWidget {
                     onActivate: () => onActivate(item.sourceId),
                     onToggleOverlay: () =>
                         onToggleOverlay(item.sourceId, !item.isOverlaid),
-                    onMenuAction: onMenuAction == null
+                    onSetPrimary: onSetPrimary == null
                         ? null
-                        : (action) => onMenuAction!(item.sourceId, action),
+                        : () => onSetPrimary!(item.sourceId),
                   ),
               ],
             ),
@@ -127,18 +126,22 @@ class _SourceChip extends StatelessWidget {
     required this.item,
     required this.onActivate,
     required this.onToggleOverlay,
-    required this.onMenuAction,
+    required this.onSetPrimary,
   });
 
   final SourceBarItem item;
   final VoidCallback onActivate;
   final VoidCallback onToggleOverlay;
-  final void Function(SourceMenuAction action)? onMenuAction;
+  final VoidCallback? onSetPrimary;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
+
+    // Set as primary is the chip menu's only entry, so the primary chip has
+    // nothing to show: without this the button would open an empty menu.
+    final showMenu = onSetPrimary != null && !item.isPrimary;
 
     // The whole pill activates the source; the eye and menu buttons sit
     // inside it and win their own taps. Icon buttons are tightly
@@ -159,10 +162,7 @@ class _SourceChip extends StatelessWidget {
         child: SizedBox(
           height: 28,
           child: Padding(
-            padding: EdgeInsets.only(
-              left: 10,
-              right: onMenuAction == null ? 10 : 2,
-            ),
+            padding: EdgeInsets.only(left: 10, right: showMenu ? 2 : 10),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -208,24 +208,14 @@ class _SourceChip extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     onPressed: item.hasProfile ? onToggleOverlay : null,
                   ),
-                if (onMenuAction != null)
-                  PopupMenuButton<SourceMenuAction>(
-                    onSelected: onMenuAction,
+                if (showMenu)
+                  PopupMenuButton<void>(
                     itemBuilder: (context) => [
-                      if (!item.isPrimary)
-                        PopupMenuItem(
-                          value: SourceMenuAction.setPrimary,
-                          child: ListTile(
-                            leading: const Icon(Icons.star_outline),
-                            title: Text(l10n.diveLog_sources_menu_setPrimary),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
                       PopupMenuItem(
-                        value: SourceMenuAction.split,
+                        onTap: onSetPrimary,
                         child: ListTile(
-                          leading: const Icon(Icons.call_split),
-                          title: Text(l10n.diveLog_sources_menu_split),
+                          leading: const Icon(Icons.star_outline),
+                          title: Text(l10n.diveLog_sources_menu_setPrimary),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),

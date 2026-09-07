@@ -48,6 +48,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
@@ -1878,7 +1879,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final gasSwitchesAsync = ref.watch(gasSwitchesProvider(dive.id));
 
     // Get per-tank pressure data for multi-tank visualization
-    final tankPressuresAsync = ref.watch(tankPressuresProvider(dive.id));
+    final tankPressuresAsync = ref.watch(
+      activeSourceTankPressuresProvider(dive.id),
+    );
     final tankPressures = tankPressuresAsync.value;
     // Chart-only: real pressures augmented with linear estimates (#197).
     final estimatedTankPressures = ref
@@ -2353,9 +2356,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             // follows usesPerSourceRendering rather than the source count:
             // on a dive whose sources are consecutive halves there is no
             // "other source" to switch to or overlay, only the rest of the
-            // same dive. Set primary and Split do not disappear with it --
-            // the Data Sources section carries its own copy of both, gated
-            // on the source count alone (data_sources_section.dart).
+            // same dive. Set primary does not disappear with it: the Data
+            // Sources section carries its own copy, gated on the source
+            // count alone. Split lives only there (data_sources_section.dart).
             if (isMultiSource)
               SourceBar(
                 sources: [
@@ -2390,8 +2393,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ref.read(overlaySourcesProvider(dive.id).notifier).state =
                       overlaid ? {...current, id} : ({...current}..remove(id));
                 },
-                onMenuAction: (id, action) =>
-                    _handleSourceMenuAction(dive, id, action),
+                onSetPrimary: (id) => _onSetPrimaryDataSource(
+                  context,
+                  ref,
+                  diveId: dive.id,
+                  readingId: id,
+                ),
               ),
             // O2 toxicity section moved to _buildDecoO2Panel (side by side)
             // Playback controls and stats (when playback mode is active)
@@ -5567,24 +5574,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         }
       },
     );
-  }
-
-  void _handleSourceMenuAction(
-    Dive dive,
-    String sourceId,
-    SourceMenuAction action,
-  ) {
-    switch (action) {
-      case SourceMenuAction.setPrimary:
-        _onSetPrimaryDataSource(
-          context,
-          ref,
-          diveId: dive.id,
-          readingId: sourceId,
-        );
-      case SourceMenuAction.split:
-        _confirmAndSplit(dive, sourceId);
-    }
   }
 
   Future<void> _confirmAndSplit(Dive dive, String sourceId) async {
