@@ -134,11 +134,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
 
-  /// Row count the trailing loader row last kicked a page load at.
+  /// True while a kick from the loader row is waiting for the frame to end.
   ///
-  /// Keeps [_loadNextPageIfStranded] from retrying every frame when a load
-  /// fails: the next kick waits for the loaded count to actually change.
-  int? _autoLoadKickedAtCount;
+  /// Several builds can ask before the callback runs, since a scroll pass
+  /// rebuilds the row each time it re-enters the viewport. One pending kick is
+  /// enough.
+  bool _autoLoadKickScheduled = false;
   bool _selectionFromList =
       false; // Track if selection originated from list tap
 
@@ -195,12 +196,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   ///
   /// A page load that failed is left alone: the row shows a retry affordance
   /// instead of a spinner, so there is nothing stranded to rescue.
+  ///
+  /// This cannot become a retry storm. A kick flips `isLoadingMore` on the
+  /// spot, a load that fails raises `loadMoreFailed`, and a load with nothing
+  /// left to fetch drops `hasMore`, so every outcome closes the door behind it.
+  /// Deliberately no "already kicked at this row count" guard: the count comes
+  /// back to a value it has held before whenever the list shrinks -- a bulk
+  /// delete, a narrower reload -- and remembering it would decline the kick
+  /// exactly when the row is stranded again.
   void _loadNextPageIfStranded(PaginatedDiveListState paginatedState) {
     if (!paginatedState.hasMore || paginatedState.isLoadingMore) return;
-    if (paginatedState.loadMoreFailed) return;
-    if (_autoLoadKickedAtCount == paginatedState.dives.length) return;
-    _autoLoadKickedAtCount = paginatedState.dives.length;
+    if (paginatedState.loadMoreFailed || _autoLoadKickScheduled) return;
+    _autoLoadKickScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoLoadKickScheduled = false;
       if (!mounted) return;
       ref.read(paginatedDiveListProvider.notifier).loadNextPage();
     });

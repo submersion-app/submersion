@@ -201,4 +201,57 @@ void main() {
       reason: 'the retry affordance must actually ask for the page again',
     );
   });
+
+  testWidgets('a second shrink to a row count already seen still loads', (
+    tester,
+  ) async {
+    final summaries = [for (var i = 110; i >= 1; i--) _summary(i)];
+    final notifier = _FakePaginatedNotifier(summaries);
+    final base = await getBaseOverrides();
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          diveListViewModeProvider.overrideWith((ref) => ListViewMode.compact),
+          highlightedDiveIdProvider.overrideWith((ref) => null),
+          paginatedDiveListProvider.overrideWith((ref) => notifier),
+        ],
+        child: const DiveListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final listFinder = find.byType(Scrollable).last;
+    for (var i = 0; i < 12; i++) {
+      await tester.drag(listFinder, const Offset(0, -500));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> shrinkAndPump() async {
+      notifier.shrinkToFirstPage(summaries.take(50).toList());
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+    }
+
+    notifier.loadNextPageCalls = 0;
+    await shrinkAndPump();
+    expect(notifier.loadNextPageCalls, greaterThan(0));
+
+    // The pages come back, then the list shrinks to that same count again --
+    // a bulk delete, or a narrower reload. The row is stranded exactly as
+    // before, so remembering the count it was last kicked at would refuse the
+    // one kick that is needed (#1610).
+    notifier.reloadInPlace(summaries);
+    await tester.pumpAndSettle();
+
+    notifier.loadNextPageCalls = 0;
+    await shrinkAndPump();
+    expect(
+      notifier.loadNextPageCalls,
+      greaterThan(0),
+      reason: 'the kick must not be suppressed by a row count seen before',
+    );
+  });
 }

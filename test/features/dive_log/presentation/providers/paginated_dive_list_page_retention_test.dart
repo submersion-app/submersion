@@ -527,4 +527,42 @@ void main() {
       },
     );
   });
+
+  group('PaginatedDiveListNotifier disposal', () {
+    test('a page load finishing after disposal writes nothing', () async {
+      final diver = await setUpCurrentDiver();
+      await seedDives(diver.id, _pageSize * 2);
+
+      // Call 1 is the initial first page; call 2 is the page load held open
+      // while the provider is invalidated out from under it.
+      final gated = _GatedRepository(diveRepo, gateCall: 2);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diveRepositoryProvider.overrideWithValue(gated),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      while (container.read(paginatedDiveListProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      final pageLoad = container
+          .read(paginatedDiveListProvider.notifier)
+          .loadNextPage();
+      await gated.gateReached.future;
+
+      // An import or a merge invalidates the provider, disposing the notifier
+      // while its query is still running.
+      container.invalidate(paginatedDiveListProvider);
+      gated.release.complete();
+
+      // Writing state on a disposed StateNotifier throws, so this must
+      // complete without error rather than surfacing an unhandled exception.
+      await expectLater(pageLoad, completes);
+    });
+  });
 }

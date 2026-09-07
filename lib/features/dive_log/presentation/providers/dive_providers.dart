@@ -691,6 +691,10 @@ class PaginatedDiveListNotifier
   Future<void> loadFirstPage() => _enqueuePaging(_loadFirstPage);
 
   Future<void> _loadFirstPage() async {
+    // Queued work can reach its turn after the notifier is gone: this provider
+    // is invalidated from half a dozen places (imports, merges, renumbering),
+    // and writing state on a disposed StateNotifier throws.
+    if (!mounted) return;
     state = const AsyncValue.loading();
     _currentOffset = 0;
     try {
@@ -710,6 +714,7 @@ class PaginatedDiveListNotifier
       final totalCount = results[1] as int;
       _currentOffset = dives.length;
 
+      if (!mounted) return;
       state = AsyncValue.data(
         PaginatedDiveListState(
           dives: dives,
@@ -721,7 +726,7 @@ class PaginatedDiveListNotifier
       // Pre-load downsampled profiles for mini charts (fire and forget)
       _loadBatchProfiles(dives.map((d) => d.id).toList());
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      if (mounted) state = AsyncValue.error(e, st);
     }
   }
 
@@ -742,6 +747,7 @@ class PaginatedDiveListNotifier
   }
 
   Future<void> _loadNextPage() async {
+    if (!mounted) return;
     final current = state.valueOrNull;
     if (current == null) return;
     if (!current.hasMore) {
@@ -772,6 +778,7 @@ class PaginatedDiveListNotifier
           .where((d) => !loadedIds.contains(d.id))
           .toList(growable: false);
 
+      if (!mounted) return;
       state = AsyncValue.data(
         current.copyWith(
           dives: [...current.dives, ...added],
@@ -786,9 +793,11 @@ class PaginatedDiveListNotifier
     } catch (_) {
       // Record the failure rather than silently going idle: the trailing row
       // must be able to offer a retry instead of spinning on nothing (#1610).
-      state = AsyncValue.data(
-        current.copyWith(isLoadingMore: false, loadMoreFailed: true),
-      );
+      if (mounted) {
+        state = AsyncValue.data(
+          current.copyWith(isLoadingMore: false, loadMoreFailed: true),
+        );
+      }
     }
   }
 
@@ -835,6 +844,7 @@ class PaginatedDiveListNotifier
       _enqueuePaging(_silentReloadLoadedPagesNow);
 
   Future<void> _silentReloadLoadedPagesNow() async {
+    if (!mounted) return;
     final loadedCount = state.valueOrNull?.dives.length ?? 0;
     final limit = loadedCount > _pageSize ? loadedCount : _pageSize;
     _currentOffset = 0;
