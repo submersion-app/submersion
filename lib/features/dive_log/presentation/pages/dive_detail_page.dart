@@ -48,6 +48,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
@@ -1878,7 +1879,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final gasSwitchesAsync = ref.watch(gasSwitchesProvider(dive.id));
 
     // Get per-tank pressure data for multi-tank visualization
-    final tankPressuresAsync = ref.watch(tankPressuresProvider(dive.id));
+    final tankPressuresAsync = ref.watch(
+      activeSourceTankPressuresProvider(dive.id),
+    );
     final tankPressures = tankPressuresAsync.value;
     // Chart-only: real pressures augmented with linear estimates (#197).
     final estimatedTankPressures = ref
