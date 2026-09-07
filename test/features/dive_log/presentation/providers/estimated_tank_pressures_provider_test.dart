@@ -290,4 +290,33 @@ void main() {
     expect(result.estimatedTankIds, isEmpty);
     expect(result.pressures['t1']!.map((p) => p.timestamp), [2, 4]);
   });
+
+  test('passes the real map through when the dive no longer exists', () async {
+    // A deleted dive mid-navigation: nothing to estimate against, so the
+    // measured series (if any) are returned unchanged and nothing is marked
+    // as an estimate.
+    const real = <String, List<TankPressurePoint>>{
+      't1': [TankPressurePoint(tankId: 't1', timestamp: 0, pressure: 200)],
+    };
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        activeSourceTankPressuresProvider(
+          'd1',
+        ).overrideWith((ref) async => real),
+        diveProvider('d1').overrideWith((ref) async => null),
+        gasSwitchesProvider(
+          'd1',
+        ).overrideWith((ref) async => <GasSwitchWithTank>[]),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final result = await container.read(
+      estimatedTankPressuresProvider('d1').future,
+    );
+
+    expect(result.estimatedTankIds, isEmpty);
+    expect(result.pressures, same(real));
+  });
 }
