@@ -10,14 +10,15 @@ import '../../../../helpers/l10n_test_helpers.dart';
 void main() {
   const units = UnitFormatter(AppSettings());
 
-  Widget buildCard(O2Exposure exposure, {Locale? locale}) => localizedMaterialApp(
-    locale: locale,
-    home: Scaffold(
-      body: SingleChildScrollView(
-        child: O2ToxicityCard(exposure: exposure, units: units),
-      ),
-    ),
-  );
+  Widget buildCard(O2Exposure exposure, {Locale? locale}) =>
+      localizedMaterialApp(
+        locale: locale,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: O2ToxicityCard(exposure: exposure, units: units),
+          ),
+        ),
+      );
 
   group('O2ToxicityCard "time above ppO2 limit" detail rows', () {
     testWidgets('shows both rows when the dive spent time above each ceiling', (
