@@ -408,7 +408,9 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
 
     // Reload silently when the `dives` table is written directly (e.g. a sync
     // applies remote changes) without going through this notifier's mutation
-    // methods. Silent so a multi-write sync doesn't flash a loading spinner.
+    // methods. Silent so a multi-write sync doesn't flash a loading spinner,
+    // and page-preserving so a local edit-save doesn't shrink the list out
+    // from under the diver (#1610).
     final divesChangeSub = _repository.watchDivesChanges().listen(
       (_) => _silentReload(),
     );
@@ -648,7 +650,7 @@ class PaginatedDiveListNotifier
       next,
     ) {
       if (previous != next) {
-        _silentReloadFirstPage();
+        _silentReloadLoadedPages();
       }
     });
     loadFirstPage();
@@ -657,7 +659,7 @@ class PaginatedDiveListNotifier
     // applies remote changes) without going through this notifier's mutation
     // methods. Silent so a multi-write sync doesn't flash a loading spinner.
     final divesChangeSub = _repository.watchDivesChanges().listen(
-      (_) => _silentReloadFirstPage(),
+      (_) => _silentReloadLoadedPages(),
     );
     _ref.onDispose(divesChangeSub.cancel);
   }
@@ -756,14 +758,13 @@ class PaginatedDiveListNotifier
     await loadFirstPage();
   }
 
-  /// Reload the pages already on screen without flashing a loading spinner.
+  /// Reload every page already loaded, without flashing a loading spinner.
   ///
   /// Mirrors [loadFirstPage] (same diver/filter/sort params, re-read from the
   /// top) but never sets `state = AsyncValue.loading()`, so table-change ticks
   /// from a sync update the data in place instead of flickering the UI.
   ///
-  /// The reload refetches as many rows as are currently loaded, not a single
-  /// page. Shrinking back to page one drops every row the diver scrolled past,
+  /// It refetches as many rows as are currently loaded, not a single page. Shrinking back to page one drops every row the diver scrolled past,
   /// puts the trailing "loading more" row back under their cursor with nothing
   /// below it to scroll toward, and throws the scroll offset away -- which is
   /// what made the list appear to hang after an edit was saved (#1610), since
@@ -772,7 +773,7 @@ class PaginatedDiveListNotifier
   /// One row beyond the loaded count is fetched purely to decide [hasMore], so
   /// a fully loaded list does not sprout a spinner row that no further page
   /// could ever clear.
-  Future<void> _silentReloadFirstPage() async {
+  Future<void> _silentReloadLoadedPages() async {
     final loadedCount = state.valueOrNull?.dives.length ?? 0;
     final limit = loadedCount > _pageSize ? loadedCount : _pageSize;
     _currentOffset = 0;
