@@ -68,6 +68,16 @@ void main() {
     });
   });
 
+  group('visibilityName (coarse pre-v144 bucket, issue #1608)', () {
+    test('names every bucket', () {
+      for (final v in Visibility.values) {
+        expect(visibilityName(v, en), isNotEmpty, reason: v.name);
+      }
+      expect(visibilityName(Visibility.excellent, en), contains('Excellent'));
+      expect(visibilityName(Visibility.poor, en), contains('Poor'));
+    });
+  });
+
   group('formatMeasuredVisibility', () {
     test('shows the distance and the calibrated adjective', () {
       final text = formatMeasuredVisibility(
