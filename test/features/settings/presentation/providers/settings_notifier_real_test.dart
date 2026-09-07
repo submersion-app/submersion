@@ -420,6 +420,31 @@ void main() {
       expect(container.read(settingsProvider).ppO2MaxDeco, 1.5);
     });
 
+    test('the individual ppO2 setters hold deco >= working', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+
+      // Raising working past deco carries deco up with it.
+      await notifier.setPpO2Limits(1.2, 1.4);
+      await notifier.setPpO2MaxWorking(1.6);
+      expect(container.read(settingsProvider).ppO2MaxWorking, 1.6);
+      expect(container.read(settingsProvider).ppO2MaxDeco, 1.6);
+
+      // Lowering deco below working pulls working down with it.
+      await notifier.setPpO2Limits(1.5, 1.6);
+      await notifier.setPpO2MaxDeco(1.4);
+      expect(container.read(settingsProvider).ppO2MaxDeco, 1.4);
+      expect(container.read(settingsProvider).ppO2MaxWorking, 1.4);
+
+      // A setter that does not cross the other bound leaves it untouched.
+      await notifier.setPpO2Limits(1.3, 1.6);
+      await notifier.setPpO2MaxWorking(1.4);
+      expect(container.read(settingsProvider).ppO2MaxWorking, 1.4);
+      expect(container.read(settingsProvider).ppO2MaxDeco, 1.6);
+    });
+
     test('setDefaultShowAscentRateLine persists the new default', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

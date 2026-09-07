@@ -3892,8 +3892,22 @@ class _PpO2LimitDialog extends StatefulWidget {
 }
 
 class _PpO2LimitDialogState extends State<_PpO2LimitDialog> {
-  static const _workingOptions = [1.2, 1.3, 1.4, 1.5, 1.6];
-  static const _maxOptions = [1.4, 1.5, 1.6];
+  // Generated from the notifier's own bounds so the offered options can never
+  // drift from what setPpO2Limits will accept (0.1-bar grid).
+  static final List<double> _workingOptions = _tenths(
+    SettingsNotifier.ppO2WorkingMin,
+    SettingsNotifier.ppO2Ceiling,
+  );
+  static final List<double> _maxOptions = _tenths(
+    SettingsNotifier.ppO2MaxMin,
+    SettingsNotifier.ppO2Ceiling,
+  );
+
+  static List<double> _tenths(double min, double max) {
+    final lo = (min * 10).round();
+    final hi = (max * 10).round();
+    return [for (var i = lo; i <= hi; i++) i / 10.0];
+  }
 
   late double _working;
   late double _max;
