@@ -93,7 +93,15 @@ class SafetyReviewSweep {
         );
       }
       try {
-        // Invalidate first. safetyReviewProvider is not autoDispose, so any
+        // Drop the stored review first. safetyReviewProvider hands a
+        // still-current-engine-version review straight back from the DB
+        // without recomputing, so after the first sweep every dive would
+        // short-circuit and "Analyze all dives" would refresh nothing --
+        // exactly the bulk recompute the user reached for after fixing input
+        // data (a corrected re-parse, an edited profile) (#1643). With the
+        // marker gone the provider's compute branch runs.
+        await _ref.read(safetyFindingsRepositoryProvider).clearReview(diveId);
+        // Then invalidate. safetyReviewProvider is not autoDispose, so any
         // dive whose detail page was opened this session holds a cached
         // AsyncValue -- including a cached null from a dive opened mid-sync
         // before its profile arrived. A bare read would return that cached

@@ -263,6 +263,14 @@ class SafetyFindingsRepository {
     }
   }
 
+  /// Instance wrapper over [clearReviewForDive], for a caller that holds a
+  /// repository rather than a `(db, sync)` pair -- the "Analyze all dives"
+  /// sweep, which drops each stored review so the recompute actually runs
+  /// instead of the compute-through-cache handing back the current one
+  /// unchanged (#1643).
+  Future<void> clearReview(String diveId) =>
+      clearReviewForDive(_db, _syncRepository, diveId);
+
   /// Maps a stored finding row to its domain entity, or null when the row's
   /// rule_id does not correspond to a known [SafetyRuleId]. Callers drop null
   /// rows rather than surface a coerced (misleading) rule.

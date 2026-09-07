@@ -523,6 +523,122 @@ void main() {
       },
     );
 
+    /// Seeds a stored safety review (marker + one finding) at the current
+    /// engine version for [diveId], so a stale review is distinguishable
+    /// from a missing one.
+    Future<void> seedStoredReview(String diveId) async {
+      await db
+          .into(db.diveSafetyReviews)
+          .insert(
+            DiveSafetyReviewsCompanion.insert(
+              diveId: diveId,
+              engineVersion: 999,
+              reviewedAt: nowMs,
+            ),
+          );
+      await db
+          .into(db.diveSafetyFindings)
+          .insert(
+            DiveSafetyFindingsCompanion.insert(
+              id: 'finding-$diveId',
+              diveId: diveId,
+              ruleId: 'ascent_rate',
+              severity: 'warning',
+              engineVersion: 999,
+              createdAt: nowMs,
+            ),
+          );
+    }
+
+    Future<bool> hasStoredReview(String diveId) async {
+      final marker = await (db.select(
+        db.diveSafetyReviews,
+      )..where((t) => t.diveId.equals(diveId))).getSingleOrNull();
+      return marker != null;
+    }
+
+    test('reparseDive drops the stale safety review (#1641)', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: const Value('src-1'),
+              diveId: const Value('dive-1'),
+              computerId: const Value('comp-1'),
+              isPrimary: const Value(true),
+              sourceFormat: const Value('dive_computer'),
+              rawData: Value(Uint8List.fromList(List.filled(64, 0xAB))),
+              descriptorVendor: const Value('Shearwater'),
+              descriptorProduct: const Value('Perdix'),
+              descriptorModel: const Value(5),
+              libdivecomputerVersion: const Value('0.9.0'),
+              importedAt: Value(now),
+              createdAt: Value(now),
+            ),
+          );
+      await seedStoredReview('dive-1');
+      expect(await hasStoredReview('dive-1'), isTrue);
+
+      final errors = (await service.reparseDive(
+        'dive-1',
+        parseFn: (v, p, m, raw) async => makeParsedDive(maxDepthMeters: 30.0),
+      )).errors;
+
+      expect(errors, isEmpty);
+      expect(
+        await hasStoredReview('dive-1'),
+        isFalse,
+        reason: 'a landed re-parse must invalidate the stored review',
+      );
+      final findings = await (db.select(
+        db.diveSafetyFindings,
+      )..where((t) => t.diveId.equals('dive-1'))).get();
+      expect(findings, isEmpty);
+    });
+
+    test(
+      'reparseDive leaves the review alone when every source fails (#1641)',
+      () async {
+        await insertDive('dive-1');
+        await insertComputer('comp-1');
+        final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
+        await db
+            .into(db.diveDataSources)
+            .insert(
+              DiveDataSourcesCompanion(
+                id: const Value('src-1'),
+                diveId: const Value('dive-1'),
+                computerId: const Value('comp-1'),
+                isPrimary: const Value(true),
+                sourceFormat: const Value('dive_computer'),
+                rawData: Value(Uint8List.fromList(List.filled(64, 0xAB))),
+                descriptorVendor: const Value('Shearwater'),
+                descriptorProduct: const Value('Perdix'),
+                descriptorModel: const Value(5),
+                libdivecomputerVersion: const Value('0.9.0'),
+                importedAt: Value(now),
+                createdAt: Value(now),
+              ),
+            );
+        await seedStoredReview('dive-1');
+
+        final result = await service.reparseDive(
+          'dive-1',
+          parseFn: (v, p, m, raw) async => throw StateError('parser blew up'),
+        );
+
+        expect(result.errors, isNotEmpty);
+        expect(
+          await hasStoredReview('dive-1'),
+          isTrue,
+          reason: 'nothing changed, so the review must not be dropped',
+        );
+      },
+    );
+
     test(
       'reparseDive silently skips sources missing descriptor info',
       () async {

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_sweep.dart';
@@ -20,6 +21,32 @@ class _RecordingRepo extends SafetyFindingsRepository {
 
   @override
   Future<SafetyReview?> getReview(String diveId) async => null;
+
+  @override
+  Future<void> saveReview(SafetyReview review) async =>
+      saved.add(review.diveId);
+}
+
+/// Serves a stored review at the CURRENT engine version for every dive --
+/// exactly the state after one sweep -- so `safetyReviewProvider` would
+/// short-circuit and recompute nothing. `clearReview` flips that per dive.
+class _StaleReviewRepo extends SafetyFindingsRepository {
+  final Set<String> cleared = {};
+  final saved = <String>[];
+
+  @override
+  Future<SafetyReview?> getReview(String diveId) async {
+    if (cleared.contains(diveId)) return null;
+    return SafetyReview(
+      diveId: diveId,
+      engineVersion: SafetyReviewService.engineVersion,
+      reviewedAt: DateTime.utc(2026),
+      findings: const [],
+    );
+  }
+
+  @override
+  Future<void> clearReview(String diveId) async => cleared.add(diveId);
 
   @override
   Future<void> saveReview(SafetyReview review) async =>
@@ -76,7 +103,7 @@ void main() {
 
   /// A container whose analysis always yields a rapid-ascent fixture, so every
   /// dive produces a persistable review.
-  ProviderContainer makeContainer(_RecordingRepo repo) {
+  ProviderContainer makeContainer(SafetyFindingsRepository repo) {
     final profile = rapidAscentProfile();
     final analysis = analyzeFixture(
       depths: profile.depths,
@@ -96,6 +123,29 @@ void main() {
     addTearDown(container.dispose);
     return container;
   }
+
+  test('forces a recompute even when every dive already has a current review '
+      '(#1643)', () async {
+    final repo = _StaleReviewRepo();
+    final result = await makeContainer(
+      repo,
+    ).read(safetyReviewSweepProvider).run();
+
+    // Without the clearReview call the provider's compute-through-cache
+    // hands each current review straight back and saveReview never fires.
+    expect(
+      repo.cleared,
+      containsAll(<String>['d1', 'd2']),
+      reason: 'the sweep drops each stored review before re-reading',
+    );
+    expect(
+      repo.saved,
+      containsAll(<String>['d1', 'd2']),
+      reason: 'so every dive is genuinely recomputed and re-saved',
+    );
+    expect(result.swept, 2);
+    expect(result.failed, 0);
+  });
 
   test('sweeps every diver when diverId is null', () async {
     final repo = _RecordingRepo();

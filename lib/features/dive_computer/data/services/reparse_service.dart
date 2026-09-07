@@ -6,6 +6,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
@@ -369,6 +370,7 @@ class ReparseService {
     final sources = await getSourcesForDiveReparse(diveId);
     final errors = <String>[];
     var profilesPreserved = 0;
+    var appliedAny = false;
 
     for (final source in sources) {
       if (source.descriptorVendor == null ||
@@ -392,10 +394,25 @@ class ReparseService {
           descriptorModel: source.descriptorModel,
           libdivecomputerVersion: source.libdivecomputerVersion,
         );
+        appliedAny = true;
         if (outcome.profilePreserved) profilesPreserved++;
       } catch (e) {
         errors.add(e.toString());
       }
+    }
+
+    // A re-parse that landed rewrites the profile and/or the dive's
+    // computer-authored fields (gradient factors, ppO2, deco algorithm) the
+    // stored safety review was computed against, but never touched the review
+    // itself -- so it kept showing findings from the old data. Drop it here,
+    // once, the same as editProfile and the live-download path do (#1641).
+    // Left alone when every source failed: nothing changed, nothing to redo.
+    if (appliedAny) {
+      await SafetyFindingsRepository.clearReviewForDive(
+        db,
+        SyncRepository(database: db),
+        diveId,
+      );
     }
 
     return (errors: errors, profilesPreserved: profilesPreserved);
