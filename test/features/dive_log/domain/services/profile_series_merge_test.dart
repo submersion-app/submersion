@@ -302,4 +302,61 @@ void main() {
       expect(mergeTankSeriesPoints(const []), isEmpty);
     });
   });
+
+  group('selectTankSeriesForComputer', () {
+    // Two computers paired to one transmitter each log the same cylinder,
+    // and consolidation files both series under one tank. Interleaving them
+    // alternates between the two computers' readings sample by sample.
+    final black = tankSeries(
+      'black',
+      computerId: 'dc-black',
+      samples: const [
+        TankPressureSample(timestamp: 2, pressure: 225.5),
+        TankPressureSample(timestamp: 4, pressure: 225.5),
+      ],
+    );
+    final bronze = tankSeries(
+      'bronze',
+      computerId: 'dc-bronze',
+      samples: const [
+        TankPressureSample(timestamp: 3, pressure: 223.5),
+        TankPressureSample(timestamp: 5, pressure: 223.5),
+      ],
+    );
+
+    test('keeps only the requested computer\'s series on a shared tank', () {
+      final kept = selectTankSeriesForComputer([black, bronze], 'dc-bronze');
+      expect(kept.map((s) => s.id), ['bronze']);
+    });
+
+    test('falls back to every series of a tank the computer did not log', () {
+      final stage = tankSeries(
+        'stage',
+        tankId: 'tank-stage',
+        computerId: 'dc-black',
+        samples: const [TankPressureSample(timestamp: 0, pressure: 200.0)],
+      );
+      final kept = selectTankSeriesForComputer([
+        black,
+        bronze,
+        stage,
+      ], 'dc-bronze');
+      expect(kept.map((s) => s.id), ['bronze', 'stage']);
+    });
+
+    test('a null computer prefers series with no computer', () {
+      final manual = tankSeries(
+        'manual',
+        samples: const [TankPressureSample(timestamp: 0, pressure: 210.0)],
+      );
+      final kept = selectTankSeriesForComputer([black, manual], null);
+      expect(kept.map((s) => s.id), ['manual']);
+    });
+
+    test('preserves input order within the kept series', () {
+      final kept = selectTankSeriesForComputer([bronze, black], 'dc-black');
+      expect(kept.map((s) => s.id), ['black']);
+      expect(selectTankSeriesForComputer(const [], 'dc-black'), isEmpty);
+    });
+  });
 }
