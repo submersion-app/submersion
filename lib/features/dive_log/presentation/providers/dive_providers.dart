@@ -708,7 +708,9 @@ class PaginatedDiveListNotifier
     final current = state.valueOrNull;
     if (current == null || current.isLoadingMore || !current.hasMore) return;
 
-    state = AsyncValue.data(current.copyWith(isLoadingMore: true));
+    state = AsyncValue.data(
+      current.copyWith(isLoadingMore: true, loadMoreFailed: false),
+    );
     try {
       final filter = _ref.read(diveFilterProvider);
       final sort = _ref.read(diveSortProvider);
@@ -729,12 +731,17 @@ class PaginatedDiveListNotifier
           isLoadingMore: false,
           hasMore: newDives.length >= _pageSize,
           nextCursor: _isDateSort ? _cursorFromLastDive(newDives) : null,
+          loadMoreFailed: false,
         ),
       );
       // Pre-load downsampled profiles for the new page
       _loadBatchProfiles(newDives.map((d) => d.id).toList());
     } catch (_) {
-      state = AsyncValue.data(current.copyWith(isLoadingMore: false));
+      // Record the failure rather than silently going idle: the trailing row
+      // must be able to offer a retry instead of spinning on nothing (#1610).
+      state = AsyncValue.data(
+        current.copyWith(isLoadingMore: false, loadMoreFailed: true),
+      );
     }
   }
 

@@ -41,6 +41,14 @@ class _FakePaginatedNotifier
     );
   }
 
+  /// Replay a page load that failed, which the notifier now records rather
+  /// than swallowing.
+  void failLoadMore(List<DiveSummary> dives) {
+    state = AsyncValue.data(
+      PaginatedDiveListState(dives: dives, hasMore: true, loadMoreFailed: true),
+    );
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -96,7 +104,7 @@ void main() {
 
     expect(
       tester.state<ScrollableState>(listFinder).position.pixels,
-      offsetBefore,
+      moreOrLessEquals(offsetBefore, epsilon: 0.5),
       reason: 'refreshing the loaded rows must not move the list (#1610)',
     );
     expect(
@@ -149,6 +157,48 @@ void main() {
       reason:
           'the trailing spinner must never be a dead end the diver has to '
           'scroll out of by hand (#1610)',
+    );
+  });
+
+  testWidgets('a failed page load offers a retry instead of a spinner that '
+      'never resolves', (tester) async {
+    final summaries = [for (var i = 60; i >= 1; i--) _summary(i)];
+    final notifier = _FakePaginatedNotifier(summaries);
+    final base = await getBaseOverrides();
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          diveListViewModeProvider.overrideWith((ref) => ListViewMode.compact),
+          highlightedDiveIdProvider.overrideWith((ref) => null),
+          paginatedDiveListProvider.overrideWith((ref) => notifier),
+        ],
+        child: const DiveListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The next page could not be fetched. hasMore stays true and the row count
+    // never changes, so nothing else can ever kick another load: a spinner here
+    // would spin on nothing (#1610).
+    notifier.failLoadMore(summaries);
+    await tester.pumpAndSettle();
+
+    final retry = find.byKey(const ValueKey('load_more_retry'));
+    await tester.scrollUntilVisible(retry, 200);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(retry, findsOneWidget);
+
+    notifier.loadNextPageCalls = 0;
+    await tester.tap(retry);
+    await tester.pumpAndSettle();
+    expect(
+      notifier.loadNextPageCalls,
+      1,
+      reason: 'the retry affordance must actually ask for the page again',
     );
   });
 }

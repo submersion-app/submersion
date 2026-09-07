@@ -192,8 +192,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// listeners. The spinner then sits there until the diver scrolls by hand
   /// (#1610). Building the row is itself the signal that it is on screen, so
   /// that is where the load gets kicked.
+  ///
+  /// A page load that failed is left alone: the row shows a retry affordance
+  /// instead of a spinner, so there is nothing stranded to rescue.
   void _loadNextPageIfStranded(PaginatedDiveListState paginatedState) {
     if (!paginatedState.hasMore || paginatedState.isLoadingMore) return;
+    if (paginatedState.loadMoreFailed) return;
     if (_autoLoadKickedAtCount == paginatedState.dives.length) return;
     _autoLoadKickedAtCount = paginatedState.dives.length;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1519,6 +1523,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               itemBuilder: (context, index) {
                 // Loading indicator at the end
                 if (index >= dives.length) {
+                  if (paginatedState.loadMoreFailed) {
+                    return _buildLoadMoreFailedRow(context);
+                  }
                   _loadNextPageIfStranded(paginatedState);
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -1858,6 +1865,35 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             label: Text(context.l10n.diveLog_empty_logFirstDive),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Trailing row shown when loading another page failed.
+  ///
+  /// A spinner here would claim work is happening when nothing is, and the
+  /// diver would have no way to ask again except by scrolling (#1610).
+  Widget _buildLoadMoreFailedRow(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              context.l10n.diveLog_error_loadingDives,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              key: const ValueKey('load_more_retry'),
+              onPressed: () =>
+                  ref.read(paginatedDiveListProvider.notifier).loadNextPage(),
+              icon: const Icon(Icons.refresh),
+              label: Text(context.l10n.diveLog_error_retry),
+            ),
+          ],
+        ),
       ),
     );
   }

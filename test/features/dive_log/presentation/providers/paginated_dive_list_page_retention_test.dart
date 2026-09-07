@@ -5,6 +5,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -16,6 +18,59 @@ import '../../../../helpers/test_database.dart';
 /// Pages the notifier keeps in memory once the user has scrolled past the
 /// first page. Mirrors `PaginatedDiveListNotifier._pageSize`.
 const _pageSize = 50;
+
+/// Serves the first page from the real database, then fails every later one,
+/// standing in for a transient read error while paging.
+///
+/// [DiveRepository]'s only public constructor is a factory, so this delegates
+/// rather than extends, forwarding the handful of methods the notifier calls.
+class _FailsAfterFirstPageRepository implements DiveRepository {
+  _FailsAfterFirstPageRepository(this._inner);
+
+  final DiveRepository _inner;
+  int _calls = 0;
+
+  @override
+  Future<List<DiveSummary>> getDiveSummaries({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+    DiveSummaryCursor? cursor,
+    int? offset,
+    int limit = 50,
+    SortState<DiveSortField>? sort,
+    Set<String> disabledSafetyRules = const {},
+  }) async {
+    _calls++;
+    if (_calls > 1) throw StateError('page load failed');
+    return _inner.getDiveSummaries(
+      diverId: diverId,
+      filter: filter,
+      cursor: cursor,
+      offset: offset,
+      limit: limit,
+      sort: sort,
+      disabledSafetyRules: disabledSafetyRules,
+    );
+  }
+
+  @override
+  Future<int> getDiveCount({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) => _inner.getDiveCount(diverId: diverId, filter: filter);
+
+  @override
+  Stream<void> watchDivesChanges() => _inner.watchDivesChanges();
+
+  @override
+  Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(
+    List<String> diveIds, {
+    int maxSamples = 120,
+  }) => _inner.getBatchProfileSummaries(diveIds, maxSamples: maxSamples);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   late SharedPreferences prefs;
@@ -175,5 +230,43 @@ void main() {
         );
       },
     );
+  });
+
+  group('PaginatedDiveListNotifier load-more failures', () {
+    test('records the failure instead of going quietly idle', () async {
+      final diver = await setUpCurrentDiver();
+      await seedDives(diver.id, _pageSize * 2);
+
+      final failing = _FailsAfterFirstPageRepository(diveRepo);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diveRepositoryProvider.overrideWithValue(failing),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      while (container.read(paginatedDiveListProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(
+        container.read(paginatedDiveListProvider).value?.dives,
+        hasLength(_pageSize),
+      );
+
+      await container.read(paginatedDiveListProvider.notifier).loadNextPage();
+
+      final state = container.read(paginatedDiveListProvider).value!;
+      expect(state.isLoadingMore, isFalse);
+      expect(
+        state.loadMoreFailed,
+        isTrue,
+        reason:
+            'a swallowed failure leaves the trailing spinner spinning on '
+            'nothing, with no way back except a manual scroll (#1610)',
+      );
+    });
   });
 }
