@@ -399,6 +399,30 @@ void main() {
       },
     );
 
+    test(
+      'the individual ppO2 setters clamp to the same picker grid',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        final notifier = container.read(settingsProvider.notifier);
+
+        await notifier.setPpO2MaxWorking(0.8);
+        expect(container.read(settingsProvider).ppO2MaxWorking, 1.2);
+        await notifier.setPpO2MaxWorking(2.0);
+        expect(container.read(settingsProvider).ppO2MaxWorking, 1.6);
+        await notifier.setPpO2MaxWorking(1.4);
+        expect(container.read(settingsProvider).ppO2MaxWorking, 1.4);
+
+        await notifier.setPpO2MaxDeco(1.0);
+        expect(container.read(settingsProvider).ppO2MaxDeco, 1.4);
+        await notifier.setPpO2MaxDeco(2.0);
+        expect(container.read(settingsProvider).ppO2MaxDeco, 1.6);
+        await notifier.setPpO2MaxDeco(1.5);
+        expect(container.read(settingsProvider).ppO2MaxDeco, 1.5);
+      },
+    );
+
     test('setDefaultShowAscentRateLine persists the new default', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

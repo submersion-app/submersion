@@ -2024,6 +2024,56 @@ void main() {
 
       expect(find.text('Working 1.4 bar · Max 1.5 bar'), findsOneWidget);
     });
+
+    testWidgets('raising the working ceiling above the max pulls the max up', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 6000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('ppO2 limits'));
+      await tester.pumpAndSettle();
+
+      // Working starts at 1.4; raise it to 1.6, above the 1.4/1.5/1.6 max.
+      await tester.tap(find.text('1.4 bar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('1.6 bar').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Working 1.6 bar · Max 1.6 bar'), findsOneWidget);
+    });
+
+    testWidgets('an off-grid stored value snaps to the nearest option', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 6000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      // A ceiling persisted from an earlier clamp can carry float noise.
+      await tester.pumpWidget(
+        buildDecompressionWidget(
+          getOverrides(
+            const AppSettings(
+              ppO2MaxWorking: 1.4399999,
+              ppO2MaxDeco: 1.5100001,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('ppO2 limits'));
+      await tester.pumpAndSettle();
+
+      // Snapped to the grid: 1.4 working, 1.5 max.
+      expect(find.widgetWithText(DropdownButton<double>, '1.4 bar'), findsOne);
+      expect(find.widgetWithText(DropdownButton<double>, '1.5 bar'), findsOne);
+    });
   });
 
   group('UnitsSectionContent place name language', () {
