@@ -623,6 +623,15 @@ class PaginatedDiveListNotifier
   int _currentOffset = 0;
   static const _pageSize = 50;
 
+  /// Serializes every operation that rewrites the loaded rows.
+  ///
+  /// A reload and a page load each snapshot the list before awaiting their
+  /// query, so interleaving them lets whichever lands last overwrite the
+  /// other's work: the reload truncates the page just appended, or the page
+  /// append reinstates the rows the reload just refreshed. Running them one at
+  /// a time means each reads a snapshot that is still current when it writes.
+  Future<void> _pagingQueue = Future<void>.value();
+
   PaginatedDiveListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
     _currentDiverId = _ref.read(currentDiverIdProvider);
@@ -669,7 +678,19 @@ class PaginatedDiveListNotifier
     return sort.field == DiveSortField.date;
   }
 
-  Future<void> loadFirstPage() async {
+  /// Runs [op] after every paging operation queued before it.
+  ///
+  /// The returned future carries [op]'s own error; the queue keeps a swallowed
+  /// copy so one failed load cannot wedge every load after it.
+  Future<void> _enqueuePaging(Future<void> Function() op) {
+    final next = _pagingQueue.then((_) => op());
+    _pagingQueue = next.catchError((_) {});
+    return next;
+  }
+
+  Future<void> loadFirstPage() => _enqueuePaging(_loadFirstPage);
+
+  Future<void> _loadFirstPage() async {
     state = const AsyncValue.loading();
     _currentOffset = 0;
     try {
@@ -704,13 +725,32 @@ class PaginatedDiveListNotifier
     }
   }
 
-  Future<void> loadNextPage() async {
+  Future<void> loadNextPage() {
     final current = state.valueOrNull;
-    if (current == null || current.isLoadingMore || !current.hasMore) return;
-
+    // Cheap pre-check so a burst of scroll notifications cannot queue the same
+    // page a hundred times. The queued body re-reads the state and decides for
+    // real, since anything ahead of it in the queue may have changed the list.
+    if (current == null || current.isLoadingMore || !current.hasMore) {
+      return Future<void>.value();
+    }
+    // Flip the spinner on now rather than when the queue reaches this load, so
+    // the trailing row reflects the request the diver just made.
     state = AsyncValue.data(
       current.copyWith(isLoadingMore: true, loadMoreFailed: false),
     );
+    return _enqueuePaging(_loadNextPage);
+  }
+
+  Future<void> _loadNextPage() async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    if (!current.hasMore) {
+      // A reload ahead of this one reached the end of the list.
+      if (current.isLoadingMore) {
+        state = AsyncValue.data(current.copyWith(isLoadingMore: false));
+      }
+      return;
+    }
     try {
       final filter = _ref.read(diveFilterProvider);
       final sort = _ref.read(diveSortProvider);
@@ -725,9 +765,16 @@ class PaginatedDiveListNotifier
       );
       _currentOffset += newDives.length;
 
+      // A reload that ran while this page was queued may already hold some of
+      // these rows; appending by id keeps the list from showing them twice.
+      final loadedIds = current.dives.map((d) => d.id).toSet();
+      final added = newDives
+          .where((d) => !loadedIds.contains(d.id))
+          .toList(growable: false);
+
       state = AsyncValue.data(
         current.copyWith(
-          dives: [...current.dives, ...newDives],
+          dives: [...current.dives, ...added],
           isLoadingMore: false,
           hasMore: newDives.length >= _pageSize,
           nextCursor: _isDateSort ? _cursorFromLastDive(newDives) : null,
@@ -735,7 +782,7 @@ class PaginatedDiveListNotifier
         ),
       );
       // Pre-load downsampled profiles for the new page
-      _loadBatchProfiles(newDives.map((d) => d.id).toList());
+      _loadBatchProfiles(added.map((d) => d.id).toList());
     } catch (_) {
       // Record the failure rather than silently going idle: the trailing row
       // must be able to offer a retry instead of spinning on nothing (#1610).
@@ -771,8 +818,9 @@ class PaginatedDiveListNotifier
   /// top) but never sets `state = AsyncValue.loading()`, so table-change ticks
   /// from a sync update the data in place instead of flickering the UI.
   ///
-  /// It refetches as many rows as are currently loaded, not a single page. Shrinking back to page one drops every row the diver scrolled past,
-  /// puts the trailing "loading more" row back under their cursor with nothing
+  /// It refetches as many rows as are currently loaded, not a single page.
+  /// Shrinking back to page one drops every row the diver scrolled past, puts
+  /// the trailing "loading more" row back under their cursor with nothing
   /// below it to scroll toward, and throws the scroll offset away -- which is
   /// what made the list appear to hang after an edit was saved (#1610), since
   /// the notifier's own writes tick this stream too.
@@ -780,7 +828,13 @@ class PaginatedDiveListNotifier
   /// One row beyond the loaded count is fetched purely to decide [hasMore], so
   /// a fully loaded list does not sprout a spinner row that no further page
   /// could ever clear.
-  Future<void> _silentReloadLoadedPages() async {
+  ///
+  /// Queued behind any page load already running, so the two cannot overwrite
+  /// each other's rows.
+  Future<void> _silentReloadLoadedPages() =>
+      _enqueuePaging(_silentReloadLoadedPagesNow);
+
+  Future<void> _silentReloadLoadedPagesNow() async {
     final loadedCount = state.valueOrNull?.dives.length ?? 0;
     final limit = loadedCount > _pageSize ? loadedCount : _pageSize;
     _currentOffset = 0;

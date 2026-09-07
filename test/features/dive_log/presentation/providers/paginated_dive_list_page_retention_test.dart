@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain_dive;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
@@ -67,6 +71,65 @@ class _FailsAfterFirstPageRepository implements DiveRepository {
     List<String> diveIds, {
     int maxSamples = 120,
   }) => _inner.getBatchProfileSummaries(diveIds, maxSamples: maxSamples);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Holds the Nth `getDiveSummaries` call open until the test releases it, so a
+/// change tick can be made to land while a page load is genuinely in flight.
+class _GatedRepository implements DiveRepository {
+  _GatedRepository(this._inner, {required this.gateCall});
+
+  final DiveRepository _inner;
+  final int gateCall;
+  final Completer<void> gateReached = Completer<void>();
+  final Completer<void> release = Completer<void>();
+  int _calls = 0;
+
+  @override
+  Future<List<DiveSummary>> getDiveSummaries({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+    DiveSummaryCursor? cursor,
+    int? offset,
+    int limit = 50,
+    SortState<DiveSortField>? sort,
+    Set<String> disabledSafetyRules = const {},
+  }) async {
+    _calls++;
+    if (_calls == gateCall) {
+      if (!gateReached.isCompleted) gateReached.complete();
+      await release.future;
+    }
+    return _inner.getDiveSummaries(
+      diverId: diverId,
+      filter: filter,
+      cursor: cursor,
+      offset: offset,
+      limit: limit,
+      sort: sort,
+      disabledSafetyRules: disabledSafetyRules,
+    );
+  }
+
+  @override
+  Future<int> getDiveCount({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) => _inner.getDiveCount(diverId: diverId, filter: filter);
+
+  @override
+  Stream<void> watchDivesChanges() => _inner.watchDivesChanges();
+
+  @override
+  Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(
+    List<String> diveIds, {
+    int maxSamples = 120,
+  }) => _inner.getBatchProfileSummaries(diveIds, maxSamples: maxSamples);
+
+  @override
+  Future<domain_dive.Dive?> getDiveById(String id) => _inner.getDiveById(id);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -266,6 +329,74 @@ void main() {
         reason:
             'a swallowed failure leaves the trailing spinner spinning on '
             'nothing, with no way back except a manual scroll (#1610)',
+      );
+    });
+  });
+
+  group('PaginatedDiveListNotifier paging is serialized', () {
+    test('a change tick landing mid page-load keeps both the new page and the '
+        'refreshed rows', () async {
+      final diver = await setUpCurrentDiver();
+      final dives = await seedDives(diver.id, _pageSize * 2);
+
+      // Call 1 is the initial first page; call 2 is the page load this test
+      // holds open while a change tick arrives.
+      final gated = _GatedRepository(diveRepo, gateCall: 2);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diveRepositoryProvider.overrideWithValue(gated),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      while (container.read(paginatedDiveListProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      // Page two is now in flight and parked inside the repository.
+      final pageLoad = container
+          .read(paginatedDiveListProvider.notifier)
+          .loadNextPage();
+      await gated.gateReached.future;
+
+      // A sync rewrites a row on page one while that load is parked.
+      await diveRepo.updateDive(dives.first.copyWith(name: 'Refreshed name'));
+      await Future<void>.delayed(
+        DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
+      );
+
+      gated.release.complete();
+      await pageLoad;
+
+      var names = <String?>[];
+      var length = 0;
+      for (var i = 0; i < 100; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        final state = container.read(paginatedDiveListProvider).value;
+        names = state?.dives.map((d) => d.name).toList() ?? <String?>[];
+        length = state?.dives.length ?? 0;
+        if (names.contains('Refreshed name') && length == _pageSize * 2) break;
+      }
+
+      expect(
+        length,
+        _pageSize * 2,
+        reason: 'the reload must not truncate the page that just landed',
+      );
+      expect(
+        names,
+        contains('Refreshed name'),
+        reason:
+            'the page append must not reinstate rows the reload refreshed '
+            '(#1610)',
+      );
+      expect(
+        names.toSet(),
+        hasLength(names.length),
+        reason: 'no row may appear twice after the two operations interleave',
       );
     });
   });
