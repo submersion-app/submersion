@@ -20,7 +20,11 @@ void main() {
   test('every AltitudeGroup resolves to a non-empty name and range', () {
     for (final group in AltitudeGroup.values) {
       expect(group.localizedName(en), isNotEmpty, reason: '${group.name} name');
-      expect(group.localizedRange(en), isNotEmpty, reason: '${group.name} range');
+      expect(
+        group.localizedRange(en),
+        isNotEmpty,
+        reason: '${group.name} range',
+      );
       expect(group.localizedName(fr), isNotEmpty);
       expect(group.localizedRange(fr), isNotEmpty);
     }

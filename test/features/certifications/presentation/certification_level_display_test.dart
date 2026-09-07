@@ -17,12 +17,23 @@ void main() {
     fr = lookupAppLocalizations(const Locale('fr'));
   });
 
-  test('every CertificationLevel resolves to a non-empty label in en and fr', () {
-    for (final level in CertificationLevel.values) {
-      expect(level.localizedName(en), isNotEmpty, reason: '${level.name} (en)');
-      expect(level.localizedName(fr), isNotEmpty, reason: '${level.name} (fr)');
-    }
-  });
+  test(
+    'every CertificationLevel resolves to a non-empty label in en and fr',
+    () {
+      for (final level in CertificationLevel.values) {
+        expect(
+          level.localizedName(en),
+          isNotEmpty,
+          reason: '${level.name} (en)',
+        );
+        expect(
+          level.localizedName(fr),
+          isNotEmpty,
+          reason: '${level.name} (fr)',
+        );
+      }
+    },
+  );
 
   test('a generic ladder grade is translated between locales', () {
     expect(
