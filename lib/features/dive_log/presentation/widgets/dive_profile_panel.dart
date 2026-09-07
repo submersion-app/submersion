@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
@@ -271,7 +272,9 @@ class _DiveProfilePanelContentState
         )
         .value;
     final gasSwitches = ref.watch(gasSwitchesProvider(widget.diveId)).value;
-    final tankPressures = ref.watch(tankPressuresProvider(widget.diveId)).value;
+    final tankPressures = ref
+        .watch(activeSourceTankPressuresProvider(widget.diveId))
+        .value;
     // Chart-only: real pressures augmented with linear estimates (#197).
     final estimatedTankPressures = ref
         .watch(estimatedTankPressuresProvider(widget.diveId))
