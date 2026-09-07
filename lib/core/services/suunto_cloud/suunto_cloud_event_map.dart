@@ -20,13 +20,14 @@ library;
 
 /// The libdivecomputer event-type string and native code for one cloud event.
 class SuuntoCloudEvent {
-  const SuuntoCloudEvent(this.downloadedType, this.nativeCode);
+  const SuuntoCloudEvent(this.downloadedType, [this.nativeCode]);
 
   /// A value `_mapEventTypeString` understands.
   final String downloadedType;
 
-  /// `(sub-group << 8) | type`.
-  final int nativeCode;
+  /// `(sub-group << 8) | type` for the sub-group it was found under, or null
+  /// for a legacy string that has no place in the Nautic descriptor.
+  final int? nativeCode;
 }
 
 const int _alarm = 0x18;
@@ -72,8 +73,10 @@ const Map<String, Map<String, SuuntoCloudEvent>> _table = {
     'Gas Switch': SuuntoCloudEvent('gaschange', (_notify << 8) | 11),
     'User Tank Pressure': SuuntoCloudEvent('airtime', (_notify << 8) | 28),
     'User Gas Time': SuuntoCloudEvent('airtime', (_notify << 8) | 29),
-    // Some generations announce a safety stop through Notify rather than State.
-    'Safety Stop': SuuntoCloudEvent('safetystop', (_state << 8) | 37),
+    // An older, non-Nautic string (the Nautic descriptor announces the stop
+    // through State "At Safety Stop"); it has no Notify type number, so no
+    // native code.
+    'Safety Stop': SuuntoCloudEvent('safetystop'),
   },
   'Ooam': {'Ceiling broken': SuuntoCloudEvent('ceiling', (_ooam << 8) | 2)},
 };

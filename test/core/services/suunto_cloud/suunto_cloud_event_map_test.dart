@@ -33,16 +33,32 @@ void main() {
       );
     });
 
-    test('the native code is (sub-group << 8) | type', () {
-      expect(
-        suuntoCloudEvent('State', 'At Deco Stop')!.nativeCode,
-        (0x1B << 8) | 35,
-      );
-      expect(
-        suuntoCloudEvent('Ooam', 'Ceiling broken')!.nativeCode,
-        (0x1D << 8) | 2,
-      );
-    });
+    test(
+      'the native code is (sub-group << 8) | type, keyed to its sub-group',
+      () {
+        for (final entry in const [
+          ('Alarm', 'Ascent Speed', 0x18),
+          ('Warning', 'CNS80%', 0x19),
+          ('Notify', 'Gas Switch', 0x1A),
+          ('State', 'At Deco Stop', 0x1B),
+          ('Ooam', 'Ceiling broken', 0x1D),
+        ]) {
+          final code = suuntoCloudEvent(entry.$1, entry.$2)!.nativeCode!;
+          expect(code >> 8, entry.$3, reason: '${entry.$1}/${entry.$2}');
+        }
+      },
+    );
+
+    test(
+      'a legacy string with no Nautic type number carries no native code',
+      () {
+        // "Safety Stop" via Notify is a pre-Nautic string; the Nautic descriptor
+        // announces the stop through State "At Safety Stop".
+        final e = suuntoCloudEvent('Notify', 'Safety Stop')!;
+        expect(e.downloadedType, 'safetystop');
+        expect(e.nativeCode, isNull);
+      },
+    );
 
     test('returns null for an unknown or deliberately-dropped event', () {
       expect(suuntoCloudEvent('Alarm', 'Battery'), isNull);
