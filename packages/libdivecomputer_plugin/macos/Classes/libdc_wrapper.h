@@ -224,6 +224,7 @@ typedef struct {
     double beginpressure;      // bar
     double endpressure;        // bar
     unsigned int usage;        // dc_usage_t (0=none, 1=oxygen, 2=diluent, 3=sidemount)
+    unsigned int serial;       // air-integration transmitter serial, 0 when not reported
 } libdc_tank_t;
 
 // Name of a libdivecomputer sample event type (parser_sample_event_t), in

@@ -33,7 +33,9 @@ void main() {
     // Renumbered from v188 (itself renumbered from v185 and v184): main
     // landed the insurance-phone, media-equipment-link and raw-data
     // recompression rungs at 188-190 while this branch was open.
-    expect(AppDatabase.currentSchemaVersion, 191);
+    // Relaxed from an exact match when v194 landed: the exact assertion is
+    // the newest rung's job, and it moves with it.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(191));
     expect(AppDatabase.migrationVersions, contains(191));
   });
 

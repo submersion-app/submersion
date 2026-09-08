@@ -899,6 +899,7 @@ struct _LibdivecomputerPluginTankInfo {
   double* start_pressure_bar;
   double* end_pressure_bar;
   int64_t* usage;
+  int64_t* transmitter_serial;
 };
 
 G_DEFINE_TYPE(LibdivecomputerPluginTankInfo, libdivecomputer_plugin_tank_info, G_TYPE_OBJECT)
@@ -909,6 +910,7 @@ static void libdivecomputer_plugin_tank_info_dispose(GObject* object) {
   g_clear_pointer(&self->start_pressure_bar, g_free);
   g_clear_pointer(&self->end_pressure_bar, g_free);
   g_clear_pointer(&self->usage, g_free);
+  g_clear_pointer(&self->transmitter_serial, g_free);
   G_OBJECT_CLASS(libdivecomputer_plugin_tank_info_parent_class)->dispose(object);
 }
 
@@ -919,7 +921,7 @@ static void libdivecomputer_plugin_tank_info_class_init(LibdivecomputerPluginTan
   G_OBJECT_CLASS(klass)->dispose = libdivecomputer_plugin_tank_info_dispose;
 }
 
-LibdivecomputerPluginTankInfo* libdivecomputer_plugin_tank_info_new(int64_t index, int64_t gas_mix_index, double* volume_liters, double* start_pressure_bar, double* end_pressure_bar, int64_t* usage) {
+LibdivecomputerPluginTankInfo* libdivecomputer_plugin_tank_info_new(int64_t index, int64_t gas_mix_index, double* volume_liters, double* start_pressure_bar, double* end_pressure_bar, int64_t* usage, int64_t* transmitter_serial) {
   LibdivecomputerPluginTankInfo* self = LIBDIVECOMPUTER_PLUGIN_TANK_INFO(g_object_new(libdivecomputer_plugin_tank_info_get_type(), nullptr));
   self->index = index;
   self->gas_mix_index = gas_mix_index;
@@ -950,6 +952,13 @@ LibdivecomputerPluginTankInfo* libdivecomputer_plugin_tank_info_new(int64_t inde
   }
   else {
     self->usage = nullptr;
+  }
+  if (transmitter_serial != nullptr) {
+    self->transmitter_serial = static_cast<int64_t*>(malloc(sizeof(int64_t)));
+    *self->transmitter_serial = *transmitter_serial;
+  }
+  else {
+    self->transmitter_serial = nullptr;
   }
   return self;
 }
@@ -984,6 +993,11 @@ int64_t* libdivecomputer_plugin_tank_info_get_usage(LibdivecomputerPluginTankInf
   return self->usage;
 }
 
+int64_t* libdivecomputer_plugin_tank_info_get_transmitter_serial(LibdivecomputerPluginTankInfo* self) {
+  g_return_val_if_fail(LIBDIVECOMPUTER_PLUGIN_IS_TANK_INFO(self), nullptr);
+  return self->transmitter_serial;
+}
+
 static FlValue* libdivecomputer_plugin_tank_info_to_list(LibdivecomputerPluginTankInfo* self) {
   FlValue* values = fl_value_new_list();
   fl_value_append_take(values, fl_value_new_int(self->index));
@@ -992,6 +1006,7 @@ static FlValue* libdivecomputer_plugin_tank_info_to_list(LibdivecomputerPluginTa
   fl_value_append_take(values, self->start_pressure_bar != nullptr ? fl_value_new_float(*self->start_pressure_bar) : fl_value_new_null());
   fl_value_append_take(values, self->end_pressure_bar != nullptr ? fl_value_new_float(*self->end_pressure_bar) : fl_value_new_null());
   fl_value_append_take(values, self->usage != nullptr ? fl_value_new_int(*self->usage) : fl_value_new_null());
+  fl_value_append_take(values, self->transmitter_serial != nullptr ? fl_value_new_int(*self->transmitter_serial) : fl_value_new_null());
   return values;
 }
 
@@ -1028,7 +1043,14 @@ static LibdivecomputerPluginTankInfo* libdivecomputer_plugin_tank_info_new_from_
     usage_value = fl_value_get_int(value5);
     usage = &usage_value;
   }
-  return libdivecomputer_plugin_tank_info_new(index, gas_mix_index, volume_liters, start_pressure_bar, end_pressure_bar, usage);
+  FlValue* value6 = fl_value_get_list_value(values, 6);
+  int64_t* transmitter_serial = nullptr;
+  int64_t transmitter_serial_value;
+  if (fl_value_get_type(value6) != FL_VALUE_TYPE_NULL) {
+    transmitter_serial_value = fl_value_get_int(value6);
+    transmitter_serial = &transmitter_serial_value;
+  }
+  return libdivecomputer_plugin_tank_info_new(index, gas_mix_index, volume_liters, start_pressure_bar, end_pressure_bar, usage, transmitter_serial);
 }
 
 struct _LibdivecomputerPluginDiveEvent {

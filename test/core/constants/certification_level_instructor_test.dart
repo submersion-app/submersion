@@ -14,6 +14,8 @@ void main() {
       CertificationLevel.bsacOpenWaterInstructor,
       CertificationLevel.bsacAdvancedInstructor,
       CertificationLevel.bsacNationalInstructor,
+      CertificationLevel.ffessmMf1,
+      CertificationLevel.ffessmMf2,
     };
     for (final level in CertificationLevel.values) {
       expect(

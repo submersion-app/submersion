@@ -688,6 +688,40 @@ void main() {
       );
     });
 
+    // #1606: `ZSURFACEINTERVAL` holds minutes. Confirmed by joining a real
+    // MacDive.sqlite against the XML export of the same logbook: the column
+    // and `<surfaceInterval>` carry the identical number for all 381
+    // dives present in both, and MacDive's UDDF export of that number is
+    // `value * 60` seconds.
+    group('ZSURFACEINTERVAL', () {
+      test('maps to minutes, not seconds', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _surfaceIntervalLogbook(138),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['surfaceInterval'], const Duration(minutes: 138));
+      });
+
+      test('zero is omitted (MacDive uses it for no prior dive)', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _surfaceIntervalLogbook(0),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('surfaceInterval'), isFalse);
+      });
+
+      test('a fraction of a minute rounds away rather than to 0m', () async {
+        // The column is a float. Guarding on the raw value before rounding
+        // let anything under half a minute through as Duration.zero, which
+        // is the 0m interval this field is meant to never produce.
+        final payload = await MacDiveDiveMapper.toPayload(
+          _surfaceIntervalLogbook(0.4),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('surfaceInterval'), isFalse);
+      });
+    });
+
     group('ZSAMPLES', () {
       test('a dive with only ZSAMPLES gets its profile from them', () async {
         // The 83 "(no computer)" dives of the reference library, and every
@@ -1475,5 +1509,30 @@ pigeon.ParsedDive _parsedDive({required List<pigeon.ProfileSample> samples}) {
     tanks: [],
     gasMixes: [],
     events: [],
+  );
+}
+
+/// One dive whose only interesting column is `ZSURFACEINTERVAL`.
+MacDiveRawLogbook _surfaceIntervalLogbook(double surfaceInterval) {
+  return MacDiveRawLogbook(
+    dives: [
+      MacDiveRawDive(pk: 1, uuid: 'dive-1', surfaceInterval: surfaceInterval),
+    ],
+    sitesByPk: const {},
+    buddiesByPk: const {},
+    tagsByPk: const {},
+    gearByPk: const {},
+    tanksByPk: const {},
+    gasesByPk: const {},
+    tankAndGases: const [],
+    crittersByPk: const {},
+    certifications: const [],
+    serviceRecords: const [],
+    events: const [],
+    diveToBuddyPks: const {},
+    diveToTagPks: const {},
+    diveToGearPks: const {},
+    diveToCritterPks: const {},
+    unitsPreference: 'Metric',
   );
 }

@@ -3,6 +3,7 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// Handles simple UDDF dive import.
 ///
@@ -468,6 +469,15 @@ class UddfImportService {
       final tankOrder = _getElementText(tankDataElement, 'tankorder');
       if (tankOrder != null) {
         tankInfo['order'] = UddfImportParsers.parseUddfInt(tankOrder) ?? 0;
+      }
+
+      // Air-integration transmitter serial (app-specific, written by our
+      // own export)
+      final transmitterSerial = normalizeTransmitterSerial(
+        _getElementText(tankDataElement, 'transmitterserial'),
+      );
+      if (transmitterSerial != null) {
+        tankInfo['transmitterSerial'] = transmitterSerial;
       }
 
       // Validate tank data before adding

@@ -514,9 +514,11 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_apk_signing_cert_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_native_libs_present_test.py
           python3 -m coverage run --append --include="$guards" \

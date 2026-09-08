@@ -1411,6 +1411,7 @@ class DiveRepository {
                 tankName: Value(tank.name),
                 presetName: Value(tank.presetName),
                 computerId: Value(tank.computerId),
+                transmitterSerial: Value(tank.transmitterSerial),
               ),
             );
           }
@@ -1652,6 +1653,10 @@ class DiveRepository {
               tankMaterial: Value(tank.material?.name),
               tankName: Value(tank.name),
               presetName: Value(tank.presetName),
+              // computerId and transmitterSerial are computer-owned identity
+              // and deliberately not written here: edit flows rebuild the
+              // tank field by field, and a rebuild that forgot them must not
+              // wipe what the download recorded.
             ),
           );
           // Log as pending update (assuming sync handles updates)
@@ -1680,6 +1685,7 @@ class DiveRepository {
                   tankName: Value(tank.name),
                   presetName: Value(tank.presetName),
                   computerId: Value(tank.computerId),
+                  transmitterSerial: Value(tank.transmitterSerial),
                 ),
               );
           await _syncRepository.markRecordPending(
@@ -3545,6 +3551,7 @@ class DiveRepository {
               order: t.tankOrder,
               presetName: t.presetName,
               computerId: t.computerId,
+              transmitterSerial: t.transmitterSerial,
             ),
           )
           .toList(),
@@ -3939,6 +3946,7 @@ class DiveRepository {
           order: t.tankOrder,
           presetName: t.presetName,
           computerId: t.computerId,
+          transmitterSerial: t.transmitterSerial,
         );
       }).toList(),
       profile: seriesProfile,
@@ -5796,6 +5804,7 @@ class DiveRepository {
     tankName: Value(t.name),
     presetName: Value(t.presetName),
     computerId: Value(t.computerId),
+    transmitterSerial: Value(t.transmitterSerial),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).
