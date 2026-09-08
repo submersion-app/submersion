@@ -802,14 +802,26 @@ class PaginatedDiveListNotifier
   }
 
   /// Load downsampled profiles for a batch of dive IDs and merge into cache.
+  ///
+  /// Every caller starts this and walks away, so a throw here lands in the
+  /// zone with nobody to catch it. It holds its own [mounted] checks rather
+  /// than trusting the caller's, because the await is inside this method: the
+  /// notifier can go away after a caller has already checked.
+  ///
+  /// Measured, rather than assumed: what throws is the container going away
+  /// ("Cannot use the Ref of StateNotifierProvider<PaginatedDiveListNotifier,
+  /// ...> after it has been disposed"), which is app teardown. Invalidating
+  /// this provider on its own unmounts the notifier but leaves its Ref usable,
+  /// so that case is only wasted work. [mounted] is false in both.
   Future<void> _loadBatchProfiles(List<String> diveIds) async {
-    if (diveIds.isEmpty) return;
+    if (diveIds.isEmpty || !mounted) return;
     // Skip IDs already in cache
     final cache = _ref.read(batchProfileCacheProvider);
     final uncached = diveIds.where((id) => !cache.containsKey(id)).toList();
     if (uncached.isEmpty) return;
 
     final profiles = await _repository.getBatchProfileSummaries(uncached);
+    if (!mounted) return;
     // Merge into cache (immutable update)
     _ref.read(batchProfileCacheProvider.notifier).state = {
       ...cache,
@@ -867,31 +879,30 @@ class PaginatedDiveListNotifier
       final dives = hasMore ? fetched.sublist(0, limit) : fetched;
       _currentOffset = dives.length;
 
-      if (mounted) {
-        // Read at apply time, not before the await: loadNextPage flips
-        // isLoadingMore synchronously and queues its body behind this reload,
-        // so the flags can change while this query is running.
-        //
-        // Both are carried over rather than reset. isLoadingMore still marks a
-        // page load queued behind this one -- dropping it blinks the spinner
-        // off and lets the stranded-loader kick queue a second load for a page
-        // already coming. loadMoreFailed still marks a next page that could not
-        // be fetched, which refreshing the rows already loaded says nothing
-        // about -- dropping it swaps the retry row back for a spinner the kick
-        // then declines to touch, which is the dead end this all started from
-        // (#1610).
-        final flags = state.valueOrNull;
-        state = AsyncValue.data(
-          PaginatedDiveListState(
-            dives: dives,
-            hasMore: hasMore,
-            nextCursor: _isDateSort ? _cursorFromLastDive(dives) : null,
-            totalCount: totalCount,
-            isLoadingMore: flags?.isLoadingMore ?? false,
-            loadMoreFailed: flags?.loadMoreFailed ?? false,
-          ),
-        );
-      }
+      if (!mounted) return;
+      // Read at apply time, not before the await: loadNextPage flips
+      // isLoadingMore synchronously and queues its body behind this reload,
+      // so the flags can change while this query is running.
+      //
+      // Both are carried over rather than reset. isLoadingMore still marks a
+      // page load queued behind this one -- dropping it blinks the spinner
+      // off and lets the stranded-loader kick queue a second load for a page
+      // already coming. loadMoreFailed still marks a next page that could not
+      // be fetched, which refreshing the rows already loaded says nothing
+      // about -- dropping it swaps the retry row back for a spinner the kick
+      // then declines to touch, which is the dead end this all started from
+      // (#1610).
+      final flags = state.valueOrNull;
+      state = AsyncValue.data(
+        PaginatedDiveListState(
+          dives: dives,
+          hasMore: hasMore,
+          nextCursor: _isDateSort ? _cursorFromLastDive(dives) : null,
+          totalCount: totalCount,
+          isLoadingMore: flags?.isLoadingMore ?? false,
+          loadMoreFailed: flags?.loadMoreFailed ?? false,
+        ),
+      );
       // Pre-load downsampled profiles for mini charts (fire and forget)
       _loadBatchProfiles(dives.map((d) => d.id).toList());
     } catch (e, st) {

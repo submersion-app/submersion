@@ -123,11 +123,23 @@ class _GatedRepository implements DiveRepository {
   @override
   Stream<void> watchDivesChanges() => _inner.watchDivesChanges();
 
+  /// Set to park the first batch-profile fetch, the fire-and-forget tail of
+  /// every load, until [releaseProfiles] completes.
+  Completer<void>? profileGate;
+  final Completer<void> profileGateReached = Completer<void>();
+
   @override
   Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(
     List<String> diveIds, {
     int maxSamples = 120,
-  }) => _inner.getBatchProfileSummaries(diveIds, maxSamples: maxSamples);
+  }) async {
+    final gate = profileGate;
+    if (gate != null && !gate.isCompleted) {
+      if (!profileGateReached.isCompleted) profileGateReached.complete();
+      await gate.future;
+    }
+    return _inner.getBatchProfileSummaries(diveIds, maxSamples: maxSamples);
+  }
 
   @override
   Future<domain_dive.Dive?> getDiveById(String id) => _inner.getDiveById(id);
@@ -564,5 +576,42 @@ void main() {
       // complete without error rather than surfacing an unhandled exception.
       await expectLater(pageLoad, completes);
     });
+
+    test(
+      'the fire-and-forget profile preload survives the container going away',
+      () async {
+        final diver = await setUpCurrentDiver();
+        await seedDives(diver.id, 3);
+
+        // gateCall 0 never matches, so only the profile preload is parked.
+        final gated = _GatedRepository(diveRepo, gateCall: 0);
+        gated.profileGate = Completer<void>();
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            diveRepositoryProvider.overrideWithValue(gated),
+          ],
+        );
+        final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+
+        // The first page has landed and its profile preload is parked
+        // mid-fetch.
+        await gated.profileGateReached.future;
+
+        // The app shuts down while that fetch is parked. Reading a provider
+        // from a disposed container throws, and nobody awaits this preload, so
+        // the throw would escape into the zone and fail this test.
+        //
+        // Disposing the container, not just invalidating the provider:
+        // invalidation unmounts the notifier but leaves the container
+        // readable, so it never throws and cannot tell the guard from its
+        // absence.
+        sub.close();
+        container.dispose();
+        gated.profileGate!.complete();
+
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      },
+    );
   });
 }
