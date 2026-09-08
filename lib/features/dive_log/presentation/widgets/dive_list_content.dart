@@ -133,6 +133,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   DiveMergeOutcome? _lastMergeOutcome;
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
+
+  /// True while a kick from the loader row is waiting for the frame to end.
+  ///
+  /// Several builds can ask before the callback runs, since a scroll pass
+  /// rebuilds the row each time it re-enters the viewport. One pending kick is
+  /// enough.
+  bool _autoLoadKickScheduled = false;
   bool _selectionFromList =
       false; // Track if selection originated from list tap
 
@@ -169,12 +176,60 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
+    // Once a page load has failed, only the Retry button asks again, matching
+    // [_loadNextPageIfStranded]. Sitting at the bottom of the list produces a
+    // scroll notification on every settle and overscroll bounce, so retrying
+    // from here would swap the retry row back for a spinner under the diver's
+    // thumb again and again, and put a failing query behind each one.
+    final paginated = ref.read(paginatedDiveListProvider).value;
+    if (paginated?.loadMoreFailed ?? false) return;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
     // Load next page when within 200px of bottom
     if (maxScroll - currentScroll <= 200) {
       ref.read(paginatedDiveListProvider.notifier).loadNextPage();
     }
+  }
+
+  /// Load the next page when the trailing loader row is built with nothing in
+  /// flight to resolve it.
+  ///
+  /// [_onScroll] only fires on scroll activity, and when the list shrinks under
+  /// a position that is already at the bottom -- a reload, a bulk delete --
+  /// Flutter clamps the offset during layout without notifying scroll
+  /// listeners. The spinner then sits there until the diver scrolls by hand
+  /// (#1610). Building the row is itself the signal that it is on screen, so
+  /// that is where the load gets kicked.
+  ///
+  /// A page load that failed is left alone: the row shows a retry affordance
+  /// instead of a spinner, so there is nothing stranded to rescue. [_onScroll]
+  /// bows out of a failed state for the same reason, so the Retry button is
+  /// the only way back.
+  ///
+  /// This cannot become a retry storm. A kick flips `isLoadingMore` on the
+  /// spot, a load that fails raises `loadMoreFailed`, and a load with nothing
+  /// left to fetch drops `hasMore`, so every outcome closes the door behind it.
+  /// Deliberately no "already kicked at this row count" guard: the count comes
+  /// back to a value it has held before whenever the list shrinks -- a bulk
+  /// delete, a narrower reload -- and remembering it would decline the kick
+  /// exactly when the row is stranded again.
+  void _loadNextPageIfStranded(PaginatedDiveListState paginatedState) {
+    if (!paginatedState.hasMore || paginatedState.isLoadingMore) return;
+    if (paginatedState.loadMoreFailed || _autoLoadKickScheduled) return;
+    _autoLoadKickScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoLoadKickScheduled = false;
+      if (!mounted) return;
+      // Re-read rather than trusting the state this was scheduled from. A load
+      // can start and fail between that build and the end of the frame, and
+      // this kick must not be the thing that clears loadMoreFailed and retries
+      // behind the diver's back -- after a failure the Retry button is the
+      // only way back.
+      final latest = ref.read(paginatedDiveListProvider).value;
+      if (latest == null || !latest.hasMore) return;
+      if (latest.isLoadingMore || latest.loadMoreFailed) return;
+      ref.read(paginatedDiveListProvider.notifier).loadNextPage();
+    });
   }
 
   @override
@@ -1494,6 +1549,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               itemBuilder: (context, index) {
                 // Loading indicator at the end
                 if (index >= dives.length) {
+                  if (paginatedState.loadMoreFailed) {
+                    return _buildLoadMoreFailedRow(context);
+                  }
+                  _loadNextPageIfStranded(paginatedState);
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Center(child: CircularProgressIndicator()),
@@ -1832,6 +1891,35 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             label: Text(context.l10n.diveLog_empty_logFirstDive),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Trailing row shown when loading another page failed.
+  ///
+  /// A spinner here would claim work is happening when nothing is, and the
+  /// diver would have no way to ask again except by scrolling (#1610).
+  Widget _buildLoadMoreFailedRow(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              context.l10n.diveLog_error_loadingDives,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              key: const ValueKey('load_more_retry'),
+              onPressed: () =>
+                  ref.read(paginatedDiveListProvider.notifier).loadNextPage(),
+              icon: const Icon(Icons.refresh),
+              label: Text(context.l10n.diveLog_error_retry),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:submersion/core/services/suunto_cloud/suunto_cloud_event_map.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
 /// A dive parsed from a Suunto export, plus the device identity fields
@@ -248,6 +249,9 @@ class SuuntoDiveParser {
 
     var lastElapsedSecs = -1;
     var lastDepth = 0.0;
+    // Keys of dive-events currently in their active window, so a begin edge
+    // that the watch holds across several samples is imported once.
+    final activeEventKeys = <String>{};
 
     for (final sample in samples) {
       final sampleMs = _parseTimestampMs(sample);
@@ -314,6 +318,7 @@ class SuuntoDiveParser {
         lastDepth,
         gasSwitches,
         events,
+        activeEventKeys,
       );
     }
 
@@ -353,6 +358,15 @@ class SuuntoDiveParser {
     }
   }
 
+  /// The sub-group keys that carry a dive-event.
+  static const List<String> _eventSubgroups = [
+    'Alarm',
+    'Warning',
+    'Notify',
+    'State',
+    'Ooam',
+  ];
+
   static void _collectEvents(
     Map<String, dynamic> sample,
     int gasOffset,
@@ -360,10 +374,24 @@ class SuuntoDiveParser {
     double currentDepth,
     List<GasSwitchEvent> gasSwitches,
     List<DownloadedEvent> events,
+    Set<String> activeEventKeys,
   ) {
-    final diveEvents = sample['DiveEvents'] as Map<String, dynamic>?;
-    if (diveEvents != null) {
-      final gasSwitch = diveEvents['GasSwitch'] as Map<String, dynamic>?;
+    // Two container shapes: older computers put one event under a `DiveEvents`
+    // object, the "Seal" generation an `Events[]` array of them.
+    final containers = <Map<String, dynamic>>[
+      if (sample['DiveEvents'] is Map)
+        sample['DiveEvents'] as Map<String, dynamic>,
+      for (final e in (sample['Events'] as List<dynamic>? ?? const []))
+        if (e is Map<String, dynamic>) e,
+    ];
+
+    // Which (subgroup, type) events are asserted on *this* sample.
+    final nowActive = <String>{};
+
+    for (final container in containers) {
+      // Gas switch: also drives tank assignment, so it keeps its own path.
+      // A switch is instantaneous -- emit it every time it appears.
+      final gasSwitch = container['GasSwitch'] as Map<String, dynamic>?;
       final gasNumber = (gasSwitch?['GasNumber'] as num?)?.toInt();
       if (gasNumber != null) {
         gasSwitches.add(
@@ -374,51 +402,46 @@ class SuuntoDiveParser {
           ),
         );
         events.add(
-          DownloadedEvent(timeSeconds: elapsedSecs, type: 'gaschange'),
+          DownloadedEvent(
+            timeSeconds: elapsedSecs,
+            type: 'gaschange',
+            value: (0x1A << 8) | 11,
+          ),
         );
       }
 
-      final state = diveEvents['State'] as Map<String, dynamic>?;
-      if (state?['Type'] == 'At Safety Stop') {
-        events.add(
-          DownloadedEvent(timeSeconds: elapsedSecs, type: 'safetystop'),
-        );
+      for (final subgroup in _eventSubgroups) {
+        final block = container[subgroup] as Map<String, dynamic>?;
+        if (block == null) continue;
+        // Begin edge only. `Active` is present on the array shape (true on
+        // begin, false on end); the object shape omits it (always a begin).
+        if (block['Active'] == false) continue;
+        nowActive.add('$subgroup/${block['Type']}');
       }
     }
 
-    final eventsArray = sample['Events'] as List<dynamic>?;
-    if (eventsArray != null) {
-      for (final entry in eventsArray) {
-        final eo = entry as Map<String, dynamic>;
-
-        final gasSwitch = eo['GasSwitch'] as Map<String, dynamic>?;
-        final gasNumber = (gasSwitch?['GasNumber'] as num?)?.toInt();
-        if (gasNumber != null) {
-          gasSwitches.add(
-            GasSwitchEvent(
-              timeSeconds: elapsedSecs,
-              depth: currentDepth,
-              toTankIndex: gasNumber - gasOffset,
-            ),
-          );
-          events.add(
-            DownloadedEvent(timeSeconds: elapsedSecs, type: 'gaschange'),
-          );
-        }
-
-        final notify = eo['Notify'] as Map<String, dynamic>?;
-        if (notify?['Active'] == true && notify?['Type'] == 'Safety Stop') {
-          events.add(
-            DownloadedEvent(timeSeconds: elapsedSecs, type: 'safetystop'),
-          );
-        }
-
-        final alarm = eo['Alarm'] as Map<String, dynamic>?;
-        if (alarm?['Active'] == true && alarm?['Type'] == 'Ascent Speed') {
-          events.add(DownloadedEvent(timeSeconds: elapsedSecs, type: 'ascent'));
-        }
-      }
+    // Rising edge = active now, wasn't on the previous sample. A begin the
+    // watch holds across several samples is imported once; a condition that
+    // clears and re-triggers later is imported again.
+    for (final key in nowActive.difference(activeEventKeys)) {
+      final slash = key.indexOf('/');
+      final mapped = suuntoCloudEvent(
+        key.substring(0, slash),
+        key.substring(slash + 1),
+      );
+      if (mapped == null) continue;
+      events.add(
+        DownloadedEvent(
+          timeSeconds: elapsedSecs,
+          type: mapped.downloadedType,
+          value: mapped.nativeCode,
+        ),
+      );
     }
+
+    activeEventKeys
+      ..clear()
+      ..addAll(nowActive);
   }
 
   /// Reads every "Pressure"/"Pressure2"/"Pressure3"... transmitter reading

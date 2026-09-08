@@ -111,24 +111,70 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
       _log.info('Authenticated with Google Drive as ${account.email}');
     } on GoogleSignInException catch (e, stackTrace) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
+        if (_isPlatformRefusal(e.description)) {
+          _log.error(
+            'Google Play services refused to authorize the account',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          throw CloudStorageException(
+            // Deliberately platform-neutral about where to look: this
+            // authenticator also serves iOS and macOS, so naming Android's
+            // settings would misdirect users there.
+            'Google Sign-In was refused by the device. Check that the Google '
+            'account on this device is signed in and up to date in the system '
+            'settings, then try again.',
+            // The plain status, never the exception. displayMessage appends
+            // the cause and the Cloud Sync snackbar renders displayMessage,
+            // so passing `e` here would print its toString on screen: the
+            // word "canceled" back in front of a user who cancelled nothing,
+            // plus a second copy of the status. The exception itself is
+            // already in the log line above, which is where it belongs.
+            e.description,
+            stackTrace,
+          );
+        }
         _log.info('Google Sign-In was cancelled by the user');
         throw CloudStorageException(
           'Google Sign-In was cancelled',
-          e,
+          // No cause: a dismissal has no detail worth showing, and the
+          // exception's toString would only leak plugin internals.
+          null,
           stackTrace,
         );
       }
       _log.error('Google Sign-In failed', error: e, stackTrace: stackTrace);
       throw CloudStorageException(
-        'Google Sign-In failed: ${e.description ?? e.code.name}',
-        e,
+        'Google Sign-In failed',
+        e.description ?? e.code.name,
         stackTrace,
       );
     } catch (e, stackTrace) {
       _log.error('Google Sign-In failed', error: e, stackTrace: stackTrace);
-      throw CloudStorageException('Google Sign-In failed: $e', e, stackTrace);
+      throw CloudStorageException('Google Sign-In failed', e, stackTrace);
     }
   }
+
+  /// Whether a `canceled` code actually describes a refusal by Google Play
+  /// services rather than a dialog the user dismissed.
+  ///
+  /// Android routes both through `GetCredentialCancellationException`, so the
+  /// SDK reports them under one code. Play services prefixes its own
+  /// refusals with the numeric status it failed on, as in
+  /// `[16] Account reauth failed.`; a dismissal carries prose with no such
+  /// prefix. Matching the bracketed status rather than the wording keeps this
+  /// working when Google rewords a message, and it is the only structure the
+  /// two cases do not share.
+  ///
+  /// The distinction matters because the two need opposite responses: a
+  /// dismissal is a decision to leave alone, while a refusal is a fault the
+  /// user cannot act on without being told what it was. Reporting a refusal
+  /// as "cancelled" is what left Google Drive users on an unregistered build
+  /// retrying a dialog they had never dismissed.
+  static bool _isPlatformRefusal(String? description) =>
+      description != null && _platformStatusPrefix.hasMatch(description);
+
+  static final _platformStatusPrefix = RegExp(r'^\s*\[\d+\]');
 
   void _installClient(
     GoogleSignInAccount account,
