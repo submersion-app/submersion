@@ -173,15 +173,14 @@ def sha1_fingerprint(certificate):
     Nothing secret is hashed: a signing certificate is public and ships inside
     every copy of the APK. No integrity decision rests on the digest either.
     Android verifies the signature itself, and this guard only compares
-    identifiers. Hence the `usedforsecurity=False` declaration, and the
-    suppression of CodeQL's name-based "sensitive data" heuristic, which fires
-    on the word "certificate" rather than on how the digest is used.
+    identifiers. Hence the `usedforsecurity=False` declaration.
 
-    The call is kept on one line deliberately: CodeQL anchors this alert to
-    the argument rather than to the call, so a suppression comment on a split
-    call sits one line above the alert and does not apply.
+    CodeQL's py/weak-sensitive-data-hashing fires here on a name-based
+    heuristic, and is excluded in .github/codeql/codeql-config.yml, which
+    carries the full reasoning. Inline suppression comments do not work:
+    GitHub code scanning does not honour them.
     """
-    return hashlib.sha1(certificate, usedforsecurity=False).hexdigest()  # codeql[py/weak-sensitive-data-hashing]
+    return hashlib.sha1(certificate, usedforsecurity=False).hexdigest()
 
 
 def signer_sha1(path):

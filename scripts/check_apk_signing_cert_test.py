@@ -18,11 +18,10 @@ import check_apk_signing_cert as guard  # noqa: E402
 def _sha1(data):
     """SHA-1 of test bytes, matching the guard's own fingerprint helper.
 
-    See check_apk_signing_cert.sha1_fingerprint for why SHA-1 is fixed here,
-    why the CodeQL sensitive-data heuristic does not apply, and why the call
-    stays on one line.
+    See check_apk_signing_cert.sha1_fingerprint for why SHA-1 is fixed here
+    and why the CodeQL sensitive-data heuristic does not apply.
     """
-    return hashlib.sha1(data, usedforsecurity=False).hexdigest()  # codeql[py/weak-sensitive-data-hashing]
+    return hashlib.sha1(data, usedforsecurity=False).hexdigest()
 
 
 def _length_prefixed(payload):
