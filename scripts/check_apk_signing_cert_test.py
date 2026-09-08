@@ -148,6 +148,54 @@ class SignerCertificateTest(unittest.TestCase):
         with self.assertRaises(guard.SigningBlockError):
             guard.signer_sha1(path)
 
+    def test_zip_with_no_signing_block_raises(self):
+        """An empty ZIP puts the central directory at offset 0.
+
+        That is the shape of an APK signed with v1 only, or not at all: there
+        is no room before the central directory for a signing block.
+        """
+        raw = io.BytesIO()
+        with zipfile.ZipFile(raw, "w"):
+            pass
+        path = _write_temp(raw.getvalue())
+        self._paths.append(path)
+        with self.assertRaises(guard.SigningBlockError):
+            guard.signer_sha1(path)
+
+    def test_disagreeing_size_fields_raise(self):
+        """The block is framed by a size field at each end; they must match."""
+        data = bytearray(_apk_with_signing_block(self.cert))
+        magic_start = data.index(guard.APK_SIG_BLOCK_MAGIC)
+        size = struct.unpack_from("<Q", data, magic_start - 8)[0]
+        block_start = (magic_start + 16) - size
+
+        # Corrupt the leading size only, so the two disagree.
+        struct.pack_into("<Q", data, block_start - 8, size + 8)
+
+        path = _write_temp(bytes(data))
+        self._paths.append(path)
+        with self.assertRaises(guard.SigningBlockError):
+            guard.signer_sha1(path)
+
+    def test_truncated_scheme_block_raises(self):
+        """A scheme block too short for its nested lengths must not crash.
+
+        struct.error escaping _first_certificate would surface as a traceback
+        rather than a guard failure.
+        """
+        path = self._apk(self.cert, pairs={guard.V2_BLOCK_ID: b"\x00" * 8})
+        with self.assertRaises(guard.SigningBlockError):
+            guard.signer_sha1(path)
+
+    def test_scheme_block_with_an_empty_certificate_raises(self):
+        """A zero-length certificate would otherwise hash to a real digest."""
+        path = self._apk(
+            self.cert,
+            pairs={guard.V2_BLOCK_ID: _length_prefixed(_signer_block(b""))},
+        )
+        with self.assertRaises(guard.SigningBlockError):
+            guard.signer_sha1(path)
+
     def test_signing_block_without_a_known_scheme_raises(self):
         path = self._apk(self.cert, pairs={0x12345678: b"\x00" * 8})
         with self.assertRaises(guard.SigningBlockError):

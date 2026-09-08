@@ -141,7 +141,7 @@ def _unchecked_signing_block_pairs(data):
     # Redundant while the per-pair bound above is correct, and kept precisely
     # because that bound was once wrong: it allowed a pair to finish 8 bytes
     # past `end`, which this check would have caught independently.
-    if offset != end:
+    if offset != end:  # pragma: no cover - unreachable while the bound holds
         raise SigningBlockError("APK Signing Block pairs do not fill the block")
     return pairs
 
@@ -261,5 +261,5 @@ def main(argv, registered=None):
     return 1 if failed else 0
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     sys.exit(main(sys.argv[1:]))
