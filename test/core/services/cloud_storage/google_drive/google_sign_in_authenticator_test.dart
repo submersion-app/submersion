@@ -234,10 +234,61 @@ void main() {
           isA<CloudStorageException>()
               .having((e) => e.message, 'message', isNot(contains('cancelled')))
               .having(
-                (e) => e.message,
-                'message',
+                (e) => e.displayMessage,
+                'displayMessage',
                 contains('Account reauth failed'),
               ),
+        ),
+      );
+    });
+
+    test('a refusal shows the status once, with no plugin internals', () async {
+      // displayMessage appends the cause, and the Cloud Sync snackbar renders
+      // displayMessage. Passing the GoogleSignInException itself as the cause
+      // therefore put its toString -- including the word "canceled" -- back on
+      // screen, and repeated the status the message already carried.
+      platform.authenticateError = const GoogleSignInException(
+        code: GoogleSignInExceptionCode.canceled,
+        description: '[16] Account reauth failed.',
+      );
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>()
+              .having(
+                (e) => e.displayMessage,
+                'displayMessage',
+                isNot(contains('GoogleSignInException')),
+              )
+              .having(
+                (e) => e.displayMessage.toLowerCase(),
+                'displayMessage',
+                isNot(contains('cancel')),
+              )
+              .having(
+                (e) => '[16]'.allMatches(e.displayMessage).length,
+                'occurrences of the status',
+                1,
+              ),
+        ),
+      );
+    });
+
+    test('a dismissal shows no plugin internals either', () async {
+      platform.authenticateError = const GoogleSignInException(
+        code: GoogleSignInExceptionCode.canceled,
+        description: 'activity is cancelled by the user.',
+      );
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.displayMessage,
+            'displayMessage',
+            isNot(contains('GoogleSignInException')),
+          ),
         ),
       );
     });
@@ -269,11 +320,17 @@ void main() {
       await expectLater(
         auth.authenticate(),
         throwsA(
-          isA<CloudStorageException>().having(
-            (e) => e.message,
-            'message',
-            contains('network unreachable'),
-          ),
+          isA<CloudStorageException>()
+              .having(
+                (e) => e.displayMessage,
+                'displayMessage',
+                contains('network unreachable'),
+              )
+              .having(
+                (e) => e.displayMessage,
+                'displayMessage',
+                isNot(contains('GoogleSignInException')),
+              ),
         ),
       );
     });

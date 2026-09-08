@@ -121,29 +121,37 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
             // Deliberately platform-neutral about where to look: this
             // authenticator also serves iOS and macOS, so naming Android's
             // settings would misdirect users there.
-            'Google Sign-In was refused by the device (${e.description}). '
-            'Check that the Google account on this device is signed in and '
-            'up to date in the system settings, then try again.',
-            e,
+            'Google Sign-In was refused by the device. Check that the Google '
+            'account on this device is signed in and up to date in the system '
+            'settings, then try again.',
+            // The plain status, never the exception. displayMessage appends
+            // the cause and the Cloud Sync snackbar renders displayMessage,
+            // so passing `e` here would print its toString on screen: the
+            // word "canceled" back in front of a user who cancelled nothing,
+            // plus a second copy of the status. The exception itself is
+            // already in the log line above, which is where it belongs.
+            e.description,
             stackTrace,
           );
         }
         _log.info('Google Sign-In was cancelled by the user');
         throw CloudStorageException(
           'Google Sign-In was cancelled',
-          e,
+          // No cause: a dismissal has no detail worth showing, and the
+          // exception's toString would only leak plugin internals.
+          null,
           stackTrace,
         );
       }
       _log.error('Google Sign-In failed', error: e, stackTrace: stackTrace);
       throw CloudStorageException(
-        'Google Sign-In failed: ${e.description ?? e.code.name}',
-        e,
+        'Google Sign-In failed',
+        e.description ?? e.code.name,
         stackTrace,
       );
     } catch (e, stackTrace) {
       _log.error('Google Sign-In failed', error: e, stackTrace: stackTrace);
-      throw CloudStorageException('Google Sign-In failed: $e', e, stackTrace);
+      throw CloudStorageException('Google Sign-In failed', e, stackTrace);
     }
   }
 
