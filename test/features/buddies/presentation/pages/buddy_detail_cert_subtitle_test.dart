@@ -35,7 +35,13 @@ Certification _makeCert({
   );
 }
 
-Future<void> _pump(WidgetTester tester, Certification cert) async {
+Future<void> _pump(
+  WidgetTester tester,
+  Certification cert, {
+  Buddy? buddy,
+  bool embedded = false,
+}) async {
+  final theBuddy = buddy ?? _buddy;
   final overrides = await getBaseOverrides();
 
   final router = GoRouter(
@@ -43,8 +49,10 @@ Future<void> _pump(WidgetTester tester, Certification cert) async {
     routes: [
       GoRoute(
         path: '/buddies/:id',
-        builder: (context, state) =>
-            BuddyDetailPage(buddyId: state.pathParameters['id']!),
+        builder: (context, state) => BuddyDetailPage(
+          buddyId: state.pathParameters['id']!,
+          embedded: embedded,
+        ),
       ),
     ],
   );
@@ -54,9 +62,9 @@ Future<void> _pump(WidgetTester tester, Certification cert) async {
     ProviderScope(
       overrides: [
         ...overrides,
-        buddyByIdProvider(_buddy.id).overrideWith((ref) async => _buddy),
+        buddyByIdProvider(theBuddy.id).overrideWith((ref) async => theBuddy),
         buddyCertificationsProvider(
-          _buddy.id,
+          theBuddy.id,
         ).overrideWith((ref) async => [cert]),
       ],
       child: MaterialApp.router(
@@ -108,6 +116,27 @@ void main() {
 
       expect(find.text('Divemaster'), findsOneWidget);
       expect(_certSubtitle(tester), 'PADI');
+    });
+
+    testWidgets('the embedded header shows the buddy certification line', (
+      tester,
+    ) async {
+      // The embedded header reads the hydrated buddy entity's own
+      // `certificationLine` (issue #1303), distinct from the cert list tile.
+      final certified = _buddy.copyWith(
+        certificationLevel: CertificationLevel.rescue,
+        certificationAgency: CertificationAgency.padi,
+        certificationTitle: 'Rescue Diver',
+      );
+
+      await _pump(
+        tester,
+        _makeCert(name: 'Rescue Diver', level: CertificationLevel.rescue),
+        buddy: certified,
+        embedded: true,
+      );
+
+      expect(find.text('Rescue Diver · PADI'), findsOneWidget);
     });
   });
 }

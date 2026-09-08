@@ -183,8 +183,8 @@ class BuddySummaryWidget extends ConsumerWidget {
                   ).colorScheme.primaryContainer,
                 ),
                 title: Text(buddy.name),
-                subtitle: buddy.certificationLevel != null
-                    ? Text(buddy.certificationLevel!.displayName)
+                subtitle: buddy.certificationLine != null
+                    ? Text(buddy.certificationLine!)
                     : null,
                 trailing: const ExcludeSemantics(
                   child: Icon(Icons.chevron_right),

@@ -543,6 +543,15 @@ static void test_parse_divesoft_liberty_depth_gap(void) {
     /* ...but is not invented before the computer first reports one. */
     assert(result.samples[0].deco_type == DC_DECO_NDL);
 
+    /* Water temperature is logged on POINT records (misc bits 20-29 hold
+       200 = 20.0 C) but not on the battery-measurement records, so seconds 11
+       and 13 reach the wrapper as DC_SAMPLE_TIME with no temperature behind
+       them. It must carry forward from the last reading, not revert to NAN
+       (issue #1524). */
+    assert(fabs(result.samples[1].temperature - 20.0) < 1e-6);
+    assert(fabs(result.samples[2].temperature - 20.0) < 1e-6);
+    assert(fabs(result.samples[4].temperature - 20.0) < 1e-6);
+
     printf("PASS: test_parse_divesoft_liberty_depth_gap\n");
 
     free(result.samples);

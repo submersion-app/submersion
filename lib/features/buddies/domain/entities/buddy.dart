@@ -14,6 +14,12 @@ class Buddy extends Equatable {
   final String? phone;
   final CertificationLevel? certificationLevel;
   final CertificationAgency? certificationAgency;
+
+  /// The primary certification's on-screen title -- its "Name on the card"
+  /// when that says more than the agency/level pair, otherwise the derived
+  /// title. Derived at hydration alongside [certificationLevel] (issue #1303);
+  /// null on the raw row and whenever the buddy has no certification.
+  final String? certificationTitle;
   final String? photoPath;
 
   /// Profile photo: a 512x512 square JPEG. Supersedes [photoPath].
@@ -31,6 +37,7 @@ class Buddy extends Equatable {
     this.phone,
     this.certificationLevel,
     this.certificationAgency,
+    this.certificationTitle,
     this.photoPath,
     this.photo,
     this.notes = '',
@@ -41,10 +48,34 @@ class Buddy extends Equatable {
 
   /// Display name with certification info
   String get displayName {
-    if (certificationLevel != null) {
-      return '$name (${certificationLevel!.displayName})';
+    final cert = certificationTitle ?? certificationLevel?.displayName;
+    return cert == null ? name : '$name ($cert)';
+  }
+
+  /// The certification line for list tiles: the title, followed by the agency
+  /// unless the agency is [CertificationAgency.other] (whose "Other" says
+  /// nothing) or already part of the title. Null when the buddy has no
+  /// certification. Issue #1303.
+  String? get certificationLine {
+    final title = certificationTitle ?? certificationLevel?.displayName;
+    final agency = certificationAgency;
+    if (title == null) {
+      return agency == null || agency == CertificationAgency.other
+          ? null
+          : agency.displayName;
     }
-    return name;
+    if (agency == null || agency == CertificationAgency.other) {
+      return title;
+    }
+    // A stored "Name on the card" often already spells out the agency in its
+    // own casing/spacing ("Padi Rescue Diver", "PADI - Rescue Diver"), so
+    // compare loosely to avoid appending the agency a second time.
+    String loose(String s) =>
+        s.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
+    if (loose(title).contains(loose(agency.displayName))) {
+      return title;
+    }
+    return '$title · ${agency.displayName}';
   }
 
   /// Get initials for avatar
@@ -71,6 +102,7 @@ class Buddy extends Equatable {
     String? phone,
     CertificationLevel? certificationLevel,
     CertificationAgency? certificationAgency,
+    String? certificationTitle,
     String? photoPath,
     Uint8List? photo,
     String? notes,
@@ -86,6 +118,7 @@ class Buddy extends Equatable {
       phone: phone ?? this.phone,
       certificationLevel: certificationLevel ?? this.certificationLevel,
       certificationAgency: certificationAgency ?? this.certificationAgency,
+      certificationTitle: certificationTitle ?? this.certificationTitle,
       photoPath: photoPath ?? this.photoPath,
       photo: photo ?? this.photo,
       notes: notes ?? this.notes,
@@ -110,6 +143,7 @@ class Buddy extends Equatable {
       phone: phone,
       certificationLevel: certificationLevel,
       certificationAgency: certificationAgency,
+      certificationTitle: certificationTitle,
       photoPath: photoPath,
       photo: null,
       notes: notes,
@@ -128,6 +162,7 @@ class Buddy extends Equatable {
     phone,
     certificationLevel,
     certificationAgency,
+    certificationTitle,
     photoPath,
     photo,
     notes,
