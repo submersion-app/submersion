@@ -108,6 +108,36 @@ void main() {
     expect(ScreenAwake.debugHolders, 0);
   });
 
+  test('holds the lock until the platform cancel call completes', () async {
+    final cancelDone = Completer<void>();
+    when(mockService.cancelDownload()).thenAnswer((_) => cancelDone.future);
+
+    final notifier = makeNotifier();
+    await notifier.startDownload(device);
+
+    final cancelling = notifier.cancelDownload();
+    await Future<void>.delayed(Duration.zero);
+    expect(
+      ScreenAwake.debugHolders,
+      1,
+      reason: 'the UI is still on the download screen during the round trip',
+    );
+
+    cancelDone.complete();
+    await cancelling;
+    expect(ScreenAwake.debugHolders, 0);
+  });
+
+  test('releases the lock even if the platform cancel throws', () async {
+    when(mockService.cancelDownload()).thenThrow(StateError('boom'));
+
+    final notifier = makeNotifier();
+    await notifier.startDownload(device);
+
+    await expectLater(notifier.cancelDownload(), throwsStateError);
+    expect(ScreenAwake.debugHolders, 0);
+  });
+
   test('holds the lock through a PIN prompt', () async {
     final notifier = makeNotifier();
     await notifier.startDownload(device);

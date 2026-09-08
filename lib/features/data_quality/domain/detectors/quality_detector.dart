@@ -4,7 +4,8 @@ import 'package:submersion/features/data_quality/domain/entities/dive_quality_co
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 
 /// A pure, synchronous quality check. Implementations must not do IO and
-/// must read every threshold from QualityThresholds.
+/// must read every fixed threshold from QualityThresholds. Diver-specific
+/// inputs (such as the configured ppO2 ceiling) travel on the context.
 abstract class QualityDetector {
   const QualityDetector();
 

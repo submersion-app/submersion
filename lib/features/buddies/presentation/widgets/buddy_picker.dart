@@ -10,6 +10,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
@@ -644,9 +645,9 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                   ).colorScheme.onSurfaceVariant,
                 ),
           title: Text(buddy.name),
-          subtitle: buddy.certificationLine == null
+          subtitle: buddyCertificationLineL10n(buddy, context.l10n) == null
               ? null
-              : Text(buddy.certificationLine!),
+              : Text(buddyCertificationLineL10n(buddy, context.l10n)!),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

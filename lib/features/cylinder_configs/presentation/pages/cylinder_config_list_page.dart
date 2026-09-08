@@ -12,6 +12,7 @@ import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
 /// Lists every configuration, grouped by owning rebreather with generic gas
 /// plans last.
@@ -261,7 +262,9 @@ class _ConfigTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final roles = config.items.map((i) => i.tankRole.displayName).join(', ');
+    final roles = config.items
+        .map((i) => i.tankRole.localizedName(context.l10n))
+        .join(', ');
     return ListTile(
       // ListTile reserves leading width for any non-null child, however wide
       // that child actually draws, so a zero-width slot would still indent the

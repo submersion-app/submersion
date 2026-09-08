@@ -5965,6 +5965,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_legend_label_events => 'Ereignisse';
 
   @override
+  String get diveLog_legend_label_computedEvents => 'Berechnete Ereignisse';
+
+  @override
   String get diveLog_legend_label_gasDensity => 'Gasdichte';
 
   @override
@@ -6977,10 +6980,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => 'Tiefe bei max. ppO2';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => 'Zeit über 1,4 bar';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => 'Zeit über 1,6 bar';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return 'Zeit über $limit bar';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => 'des Tageslimits';
@@ -9982,6 +9984,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_certificationAgency_cmas => 'CMAS';
 
   @override
+  String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
   String get enum_certificationAgency_gue => 'GÜ';
 
   @override
@@ -10067,6 +10072,102 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_wreck => 'Wracktauchen';
+
+  @override
+  String get enum_certificationLevel_masterDiver => 'Master Diver';
+
+  @override
+  String get enum_certificationLevel_assistantInstructor =>
+      'Assistenztauchlehrer';
+
+  @override
+  String get enum_certificationLevel_extendedRange => 'Extended Range';
+
+  @override
+  String get enum_certificationLevel_advancedTrimix => 'Advanced Trimix';
+
+  @override
+  String get enum_certificationLevel_cmas1StarDiver => '1★ Taucher';
+
+  @override
+  String get enum_certificationLevel_cmas2StarDiver => '2★ Taucher';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiver => '3★ Taucher';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiver => '4★ Taucher';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor =>
+      '3★ Taucher - Assistenztauchlehrer';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor =>
+      '4★ Taucher - Assistenztauchlehrer';
+
+  @override
+  String get enum_certificationLevel_cmas1StarInstructor => '1★ Tauchlehrer';
+
+  @override
+  String get enum_certificationLevel_cmas2StarInstructor => '2★ Tauchlehrer';
+
+  @override
+  String get enum_certificationLevel_cmas3StarInstructor => '3★ Tauchlehrer';
+
+  @override
+  String get enum_certificationLevel_bsacOceanDiver => 'Ocean Diver';
+
+  @override
+  String get enum_certificationLevel_bsacSportsDiver => 'Sports Diver';
+
+  @override
+  String get enum_certificationLevel_bsacDiveLeader => 'Dive Leader';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedDiver => 'Advanced Diver';
+
+  @override
+  String get enum_certificationLevel_bsacFirstClassDiver => 'First Class Diver';
+
+  @override
+  String get enum_certificationLevel_bsacOpenWaterInstructor =>
+      'Open Water Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedInstructor =>
+      'Advanced Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacNationalInstructor =>
+      'National Instructor';
+
+  @override
+  String get enum_certificationLevel_gueFundamentals => 'Fundamentals';
+
+  @override
+  String get enum_certificationLevel_gueRec1 => 'Rec 1';
+
+  @override
+  String get enum_certificationLevel_gueRec2 => 'Rec 2';
+
+  @override
+  String get enum_certificationLevel_gueRec3 => 'Rec 3';
+
+  @override
+  String get enum_certificationLevel_gueTech1 => 'Tech 1';
+
+  @override
+  String get enum_certificationLevel_gueTech2 => 'Tech 2';
+
+  @override
+  String get enum_certificationLevel_gueCave1 => 'Cave 1';
+
+  @override
+  String get enum_certificationLevel_gueCave2 => 'Cave 2';
+
+  @override
+  String get enum_certificationLevel_gueDpv => 'DPV';
 
   @override
   String get enum_currentDirection_east => 'Ost';
@@ -10271,6 +10372,27 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_wetsuit => 'Neoprenanzug';
+
+  @override
+  String get enum_equipmentType_snorkel => 'Schnorchel';
+
+  @override
+  String get enum_equipmentType_transmitter => 'Sender';
+
+  @override
+  String get enum_equipmentType_instrument => 'Instrument / Finimeter';
+
+  @override
+  String get enum_equipmentType_compass => 'Kompass';
+
+  @override
+  String get enum_equipmentType_rebreather => 'Kreislaufgerät';
+
+  @override
+  String get enum_equipmentType_tool => 'Werkzeug';
+
+  @override
+  String get enum_equipmentType_rashGuard => 'Rashguard';
 
   @override
   String get enum_eventSeverity_alert => 'Alarm';
@@ -10661,6 +10783,54 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stageflasche';
+
+  @override
+  String get enum_tideState_rising => 'Auflaufend';
+
+  @override
+  String get enum_tideState_falling => 'Ablaufend';
+
+  @override
+  String get enum_tideState_slackHigh => 'Hochwasser (Stillwasser)';
+
+  @override
+  String get enum_tideState_slackLow => 'Niedrigwasser (Stillwasser)';
+
+  @override
+  String get enum_timeFormat_twelveHour => '12-Stunden';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24-Stunden';
+
+  @override
+  String get enum_matchConfidence_exact => 'Exakt';
+
+  @override
+  String get enum_matchConfidence_interpolated => 'Interpoliert';
+
+  @override
+  String get enum_matchConfidence_estimated => 'Geschätzt';
+
+  @override
+  String get enum_matchConfidence_noProfile => 'Kein Profil';
+
+  @override
+  String get enum_matchConfidence_manual => 'Manuell';
+
+  @override
+  String get enum_logCategory_app => 'App';
+
+  @override
+  String get enum_logCategory_bluetooth => 'Bluetooth';
+
+  @override
+  String get enum_logCategory_serial => 'Seriell';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => 'Datenbank';
 
   @override
   String get enum_visibility_excellent => 'Ausgezeichnet (>30m / >100ft)';
@@ -16772,6 +16942,35 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_decompression_header_oxygenToxicity =>
       'Sauerstofftoxizität';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle => 'ppO2-Grenzwerte';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return 'Arbeit $working bar · Max. $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title => 'ppO2-Grenzwerte';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      'Die ppO2-Obergrenzen für MOD, Gasplanung und Sauerstofftoxizitäts-Warnungen. Stelle sie passend zu den Grenzwerten deines Tauchcomputers ein.';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working => 'Arbeits-ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint =>
+      'Bodengas, aktiver Teil des Tauchgangs';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max => 'Maximale ppO2';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint =>
+      'Dekompression und Reserve';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {
@@ -26216,6 +26415,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dataQuality_inbox_title => 'Datenqualität';
+
+  @override
+  String get dataQuality_dive_unknown => 'Tauchgangsdetails nicht verfügbar';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return 'Verknüpft mit $dive';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return 'Aufgezeichnet von $computer';
+  }
 
   @override
   String get dataQuality_badge_tooltip => 'Datenqualitätsprüfung';

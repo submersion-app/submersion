@@ -15,6 +15,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
 /// Callback when tank data changes
 typedef TankChangeCallback = void Function(DiveTank tank);
@@ -510,7 +511,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 .map(
                   (role) => DropdownMenuItem(
                     value: role,
-                    child: Text(role.displayName),
+                    child: Text(role.localizedName(context.l10n)),
                   ),
                 )
                 .toList(),
@@ -562,8 +563,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 child: Text(context.l10n.diveLog_edit_notSpecified),
               ),
               ...TankMaterial.values.map(
-                (mat) =>
-                    DropdownMenuItem(value: mat, child: Text(mat.displayName)),
+                (mat) => DropdownMenuItem(
+                  value: mat,
+                  child: Text(mat.localizedName(context.l10n)),
+                ),
               ),
             ],
             onChanged: (value) {

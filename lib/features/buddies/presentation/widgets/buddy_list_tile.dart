@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_roles/presentation/dive_role_display.da
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_extra_fields.dart';
@@ -104,7 +105,7 @@ class BuddyListTile extends ConsumerWidget {
         ? null
         : (roleMap?[usualRoleId] ?? DiveRole.synthetic(usualRoleId));
 
-    final certLine = buddy.certificationLine;
+    final certLine = buddyCertificationLineL10n(buddy, context.l10n);
 
     final trailer = <Widget>[
       if (certLine != null)

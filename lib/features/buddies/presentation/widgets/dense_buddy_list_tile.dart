@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 
 /// Single-row flat tile for the buddy list (maximum density).
 ///
@@ -76,11 +78,11 @@ class DenseBuddyListTile extends StatelessWidget {
                 // Cert line (~100px) -- issue #1303: the "Name on the card",
                 // plus the agency unless it is "Other" or already in the
                 // name, so the pair alone never just reads "Other".
-                if (buddy.certificationLine != null)
+                if (buddyCertificationLineL10n(buddy, context.l10n) != null)
                   SizedBox(
                     width: 100,
                     child: Text(
-                      buddy.certificationLine!,
+                      buddyCertificationLineL10n(buddy, context.l10n)!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: secondaryTextColor,
                       ),

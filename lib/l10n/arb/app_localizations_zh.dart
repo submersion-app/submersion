@@ -5667,6 +5667,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_events => '事件';
 
   @override
+  String get diveLog_legend_label_computedEvents => '计算的事件';
+
+  @override
   String get diveLog_legend_label_gasDensity => '气体密度';
 
   @override
@@ -6622,10 +6625,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2Depth => '最大氧分压深度';
 
   @override
-  String get diveLog_o2tox_label_timeAbove14 => '超过 1.4 bar 的时间';
-
-  @override
-  String get diveLog_o2tox_label_timeAbove16 => '超过 1.6 bar 的时间';
+  String diveLog_o2tox_label_timeAboveLimit(String limit) {
+    return '高于 $limit bar 的时间';
+  }
 
   @override
   String get diveLog_o2tox_ofDailyLimit => '占每日限制';
@@ -9502,6 +9504,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_certificationAgency_cmas => 'CMAS';
 
   @override
+  String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
   String get enum_certificationAgency_gue => 'GUE';
 
   @override
@@ -9587,6 +9592,101 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_certificationLevel_wreck => '沉船';
+
+  @override
+  String get enum_certificationLevel_masterDiver => '潜水大师';
+
+  @override
+  String get enum_certificationLevel_assistantInstructor => '助理教练';
+
+  @override
+  String get enum_certificationLevel_extendedRange => 'Extended Range';
+
+  @override
+  String get enum_certificationLevel_advancedTrimix => '高级三混气';
+
+  @override
+  String get enum_certificationLevel_cmas1StarDiver => '一星潜水员';
+
+  @override
+  String get enum_certificationLevel_cmas2StarDiver => '二星潜水员';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiver => '三星潜水员';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiver => '四星潜水员';
+
+  @override
+  String get enum_certificationLevel_cmas3StarDiverAssistantInstructor =>
+      '三星潜水员 - 助理教练';
+
+  @override
+  String get enum_certificationLevel_cmas4StarDiverAssistantInstructor =>
+      '四星潜水员 - 助理教练';
+
+  @override
+  String get enum_certificationLevel_cmas1StarInstructor => '一星教练';
+
+  @override
+  String get enum_certificationLevel_cmas2StarInstructor => '二星教练';
+
+  @override
+  String get enum_certificationLevel_cmas3StarInstructor => '三星教练';
+
+  @override
+  String get enum_certificationLevel_bsacOceanDiver => 'Ocean Diver';
+
+  @override
+  String get enum_certificationLevel_bsacSportsDiver => 'Sports Diver';
+
+  @override
+  String get enum_certificationLevel_bsacDiveLeader => 'Dive Leader';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedDiver => 'Advanced Diver';
+
+  @override
+  String get enum_certificationLevel_bsacFirstClassDiver => 'First Class Diver';
+
+  @override
+  String get enum_certificationLevel_bsacOpenWaterInstructor =>
+      'Open Water Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacAdvancedInstructor =>
+      'Advanced Instructor';
+
+  @override
+  String get enum_certificationLevel_bsacNationalInstructor =>
+      'National Instructor';
+
+  @override
+  String get enum_certificationLevel_gueFundamentals => 'Fundamentals';
+
+  @override
+  String get enum_certificationLevel_gueRec1 => 'Rec 1';
+
+  @override
+  String get enum_certificationLevel_gueRec2 => 'Rec 2';
+
+  @override
+  String get enum_certificationLevel_gueRec3 => 'Rec 3';
+
+  @override
+  String get enum_certificationLevel_gueTech1 => 'Tech 1';
+
+  @override
+  String get enum_certificationLevel_gueTech2 => 'Tech 2';
+
+  @override
+  String get enum_certificationLevel_gueCave1 => 'Cave 1';
+
+  @override
+  String get enum_certificationLevel_gueCave2 => 'Cave 2';
+
+  @override
+  String get enum_certificationLevel_gueDpv => 'DPV';
 
   @override
   String get enum_currentDirection_east => '东';
@@ -9791,6 +9891,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_wetsuit => '湿衣';
+
+  @override
+  String get enum_equipmentType_snorkel => '呼吸管';
+
+  @override
+  String get enum_equipmentType_transmitter => '无线发射器';
+
+  @override
+  String get enum_equipmentType_instrument => '仪表';
+
+  @override
+  String get enum_equipmentType_compass => '指南针';
+
+  @override
+  String get enum_equipmentType_rebreather => '循环呼吸器';
+
+  @override
+  String get enum_equipmentType_tool => '工具';
+
+  @override
+  String get enum_equipmentType_rashGuard => '防磨衣';
 
   @override
   String get enum_eventSeverity_alert => '警报';
@@ -10175,6 +10296,54 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => '阶段';
+
+  @override
+  String get enum_tideState_rising => '涨潮';
+
+  @override
+  String get enum_tideState_falling => '落潮';
+
+  @override
+  String get enum_tideState_slackHigh => '高潮平潮';
+
+  @override
+  String get enum_tideState_slackLow => '低潮平潮';
+
+  @override
+  String get enum_timeFormat_twelveHour => '12 小时制';
+
+  @override
+  String get enum_timeFormat_twentyFourHour => '24 小时制';
+
+  @override
+  String get enum_matchConfidence_exact => '精确';
+
+  @override
+  String get enum_matchConfidence_interpolated => '插值';
+
+  @override
+  String get enum_matchConfidence_estimated => '估计';
+
+  @override
+  String get enum_matchConfidence_noProfile => '无剖面';
+
+  @override
+  String get enum_matchConfidence_manual => '手动';
+
+  @override
+  String get enum_logCategory_app => '应用';
+
+  @override
+  String get enum_logCategory_bluetooth => '蓝牙';
+
+  @override
+  String get enum_logCategory_serial => '串口';
+
+  @override
+  String get enum_logCategory_libdc => 'libdc';
+
+  @override
+  String get enum_logCategory_database => '数据库';
 
   @override
   String get enum_visibility_excellent => '极好 (>30m / >100ft)';
@@ -15957,6 +16126,33 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_decompression_header_oxygenToxicity => '氧中毒';
+
+  @override
+  String get settings_decompression_ppO2LimitsTitle => '氧分压上限';
+
+  @override
+  String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
+    return '工作 $working bar · 最大 $max bar';
+  }
+
+  @override
+  String get settings_decompression_ppO2Dialog_title => '氧分压上限';
+
+  @override
+  String get settings_decompression_ppO2Dialog_info =>
+      '用于计算最大工作深度、气体规划和氧中毒警告的氧分压上限。请将其设置为与你的潜水电脑上配置的限值一致。';
+
+  @override
+  String get settings_decompression_ppO2Dialog_working => '工作氧分压';
+
+  @override
+  String get settings_decompression_ppO2Dialog_workingHint => '底部气体，潜水的活动阶段';
+
+  @override
+  String get settings_decompression_ppO2Dialog_max => '最大氧分压';
+
+  @override
+  String get settings_decompression_ppO2Dialog_maxHint => '减压和应急';
 
   @override
   String settings_decompression_preset_selectLabel(Object presetName) {
@@ -24902,6 +25098,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_inbox_title => '数据质量';
+
+  @override
+  String get dataQuality_dive_unknown => '无法获取潜水详情';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return '与 $dive 配对';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return '由 $computer 记录';
+  }
 
   @override
   String get dataQuality_badge_tooltip => '数据质量审查';

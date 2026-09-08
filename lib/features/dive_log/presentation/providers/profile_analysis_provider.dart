@@ -19,6 +19,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
@@ -1232,7 +1233,25 @@ final sourceProfileAnalysisProvider =
         final sources = await ref.watch(
           diveDataSourcesProvider(key.diveId).future,
         );
+        // One source can never render per-source, so answer it without
+        // reading the buckets at all: this is the common case, and
+        // sourceProfilesProvider is a database round trip.
         if (sources.length < 2) {
+          return await ref.watch(profileAnalysisProvider(key.diveId).future);
+        }
+        final profiles = await ref.watch(
+          sourceProfilesProvider(key.diveId).future,
+        );
+        // Two or more sources is necessary but not sufficient, so gate on
+        // usesPerSourceRendering, the same rule the chart picks its series
+        // with. The sequential halves of a Combine are two sources that every
+        // profile surface still draws as the merged dive.profile, because
+        // drawing one half would hide the rest of the dive (#1451). A count
+        // alone does not see that, and analysing one half while the chart
+        // shows the whole dive pairs half-length curves with a full-length
+        // series: they run out midway and the samples they do cover are the
+        // wrong ones.
+        if (!usesPerSourceRendering(sources, profiles.values)) {
           return await ref.watch(profileAnalysisProvider(key.diveId).future);
         }
         final primaryId =
@@ -1251,9 +1270,6 @@ final sourceProfileAnalysisProvider =
             : primaryId;
         final dive = await ref.watch(analysisDiveProvider(key.diveId).future);
         if (dive == null) return null;
-        final profiles = await ref.watch(
-          sourceProfilesProvider(key.diveId).future,
-        );
         final sourceProfile = profiles[effectiveSourceId];
         if (sourceProfile == null) {
           // Bucket unavailable (still loading, or stale id): fall back to

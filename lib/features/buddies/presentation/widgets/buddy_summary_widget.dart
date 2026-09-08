@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 
 /// Summary widget shown in the detail pane when no buddy is selected.
 ///
@@ -70,7 +72,11 @@ class BuddySummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, WidgetRef ref, List buddies) {
+  Widget _buildOverview(
+    BuildContext context,
+    WidgetRef ref,
+    List<Buddy> buddies,
+  ) {
     // Group by certification level
     final certifiedCount = buddies
         .where((b) => b.certificationLevel != null)
@@ -158,7 +164,7 @@ class BuddySummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildBuddyListPreview(BuildContext context, List buddies) {
+  Widget _buildBuddyListPreview(BuildContext context, List<Buddy> buddies) {
     final previewBuddies = buddies.take(3).toList();
 
     return Column(
@@ -183,8 +189,9 @@ class BuddySummaryWidget extends ConsumerWidget {
                   ).colorScheme.primaryContainer,
                 ),
                 title: Text(buddy.name),
-                subtitle: buddy.certificationLine != null
-                    ? Text(buddy.certificationLine!)
+                subtitle:
+                    buddyCertificationLineL10n(buddy, context.l10n) != null
+                    ? Text(buddyCertificationLineL10n(buddy, context.l10n)!)
                     : null,
                 trailing: const ExcludeSemantics(
                   child: Icon(Icons.chevron_right),

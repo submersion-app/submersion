@@ -113,6 +113,9 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
 const _createNewSiteSentinel = '__create_new__';
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
@@ -3324,7 +3327,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       ),
                     ),
                     title: Text(item.name),
-                    subtitle: Text(item.type.displayName),
+                    subtitle: Text(item.type.localizedName(context.l10n)),
                     trailing: IconButton(
                       icon: const Icon(Icons.close, size: 18),
                       tooltip:
@@ -3900,7 +3903,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   String _conditionsSummary(UnitFormatter units) {
     return [
-      if (_waterType != null) _waterType!.displayName,
+      if (_waterType != null) _waterType!.localizedName(context.l10n),
       if (_waterTempController.text.isNotEmpty)
         '${_waterTempController.text} ${units.temperatureSymbol}',
       // Through the formatter rather than hand-concatenated, so the summary
@@ -4424,7 +4427,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               items: WeightType.values.map((type) {
                 return DropdownMenuItem(
                   value: type,
-                  child: Text(type.displayName),
+                  child: Text(type.localizedName(context.l10n)),
                 );
               }).toList(),
               onChanged: (value) {
@@ -5225,7 +5228,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final group = AltitudeGroup.fromAltitude(altitudeMeters);
 
     if (group == AltitudeGroup.seaLevel) return null;
-    return '${group.displayName} - ${group.rangeDescription}';
+    return '${group.localizedName(context.l10n)} - ${group.localizedRange(context.l10n)}';
   }
 
   /// Get warning color for altitude dives based on altitude group.

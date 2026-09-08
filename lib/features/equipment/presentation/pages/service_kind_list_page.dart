@@ -14,6 +14,7 @@ import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
 /// Catalog management for service kinds: built-ins are read-only reference
 /// data; custom kinds support full CRUD.
@@ -496,7 +497,7 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                   children: [
                     for (final type in EquipmentType.values)
                       FilterChip(
-                        label: Text(type.displayName),
+                        label: Text(type.localizedName(l10n)),
                         selected: _types.contains(type),
                         onSelected: (selected) => setState(() {
                           if (selected) {

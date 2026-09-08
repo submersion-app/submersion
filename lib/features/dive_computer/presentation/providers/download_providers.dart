@@ -415,9 +415,15 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   Future<void> cancelDownload() async {
     _downloadSubscription?.cancel();
     _downloadSubscription = null;
-    _releaseScreenAwake();
-    await _service.cancelDownload();
-    state = state.copyWith(phase: DownloadPhase.cancelled);
+    // Keep the screen-awake hold through the platform round trip -- the UI is
+    // still on the download screen until it returns -- but release it in a
+    // finally so a throwing cancel can't strand the hold.
+    try {
+      await _service.cancelDownload();
+      state = state.copyWith(phase: DownloadPhase.cancelled);
+    } finally {
+      _releaseScreenAwake();
+    }
   }
 
   /// Reset the download state.

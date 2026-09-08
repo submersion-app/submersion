@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 /// Summary widget shown when no course is selected in master-detail layout.
 class CourseSummaryWidget extends ConsumerWidget {
@@ -217,7 +218,7 @@ class CourseSummaryWidget extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                subtitle: Text(course.agency.displayName),
+                subtitle: Text(course.agency.localizedName(context.l10n)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   final state = GoRouterState.of(context);

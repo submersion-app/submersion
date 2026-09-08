@@ -1472,15 +1472,55 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Selectable range for the working ppO2, matching the settings picker.
+  static const double ppO2WorkingMin = 1.2;
+
+  /// Selectable range for the maximum (deco/contingency) ppO2, matching the
+  /// settings picker. Both ceilings share the same upper bound.
+  static const double ppO2MaxMin = 1.4;
+  static const double ppO2Ceiling = 1.6;
+
   Future<void> setPpO2MaxWorking(double value) async {
-    final clamped = value.clamp(1.0, 1.6);
-    state = state.copyWith(ppO2MaxWorking: clamped);
+    final clampedWorking = value.clamp(ppO2WorkingMin, ppO2Ceiling);
+    // Hold deco >= working, the same invariant [setPpO2Limits] keeps: a
+    // working ceiling raised past the current deco ceiling carries deco up
+    // with it, so the pair can never express "critical below warning".
+    final clampedDeco = state.ppO2MaxDeco < clampedWorking
+        ? clampedWorking
+        : state.ppO2MaxDeco;
+    state = state.copyWith(
+      ppO2MaxWorking: clampedWorking,
+      ppO2MaxDeco: clampedDeco,
+    );
     await _saveSettings();
   }
 
   Future<void> setPpO2MaxDeco(double value) async {
-    final clamped = value.clamp(1.2, 1.6);
-    state = state.copyWith(ppO2MaxDeco: clamped);
+    final clampedDeco = value.clamp(ppO2MaxMin, ppO2Ceiling);
+    // Hold working <= deco: a deco ceiling lowered below the current working
+    // ceiling pulls working down with it. clampedDeco is >= ppO2MaxMin (1.4),
+    // itself above ppO2WorkingMin (1.2), so working stays on the grid.
+    final clampedWorking = state.ppO2MaxWorking > clampedDeco
+        ? clampedDeco
+        : state.ppO2MaxWorking;
+    state = state.copyWith(
+      ppO2MaxWorking: clampedWorking,
+      ppO2MaxDeco: clampedDeco,
+    );
+    await _saveSettings();
+  }
+
+  /// Set both ppO2 ceilings at once, holding deco >= working, in a single
+  /// persisted write. Both are clamped to the picker's selectable range.
+  Future<void> setPpO2Limits(double working, double max) async {
+    final clampedWorking = working.clamp(ppO2WorkingMin, ppO2Ceiling);
+    final clampedMax = max
+        .clamp(ppO2MaxMin, ppO2Ceiling)
+        .clamp(clampedWorking, ppO2Ceiling);
+    state = state.copyWith(
+      ppO2MaxWorking: clampedWorking,
+      ppO2MaxDeco: clampedMax,
+    );
     await _saveSettings();
   }
 

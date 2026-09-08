@@ -169,6 +169,8 @@ class O2ToxicityCalculator {
       maxPpO2Depth: depthAtMaxPpO2,
       timeAboveWarning: timeAboveWarning,
       timeAboveCritical: timeAboveCritical,
+      warningThreshold: ppO2WarningThreshold,
+      criticalThreshold: ppO2CriticalThreshold,
     );
   }
 
@@ -233,6 +235,8 @@ class O2ToxicityCalculator {
       maxPpO2Depth: depthAtMaxPpO2,
       timeAboveWarning: timeAboveWarning,
       timeAboveCritical: timeAboveCritical,
+      warningThreshold: ppO2WarningThreshold,
+      criticalThreshold: ppO2CriticalThreshold,
     );
   }
 

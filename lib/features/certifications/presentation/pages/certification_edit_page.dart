@@ -18,6 +18,9 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -427,7 +430,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     DropdownMenuItem<CertificationOption> item(CertificationLevel value) =>
         DropdownMenuItem<CertificationOption>(
           value: CertificationOption.value(value),
-          child: Text(value.displayName),
+          child: Text(value.localizedName(context.l10n)),
         );
 
     return [
@@ -467,7 +470,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                     items: CertificationAgency.values.map((agency) {
                       return DropdownMenuItem(
                         value: agency,
-                        child: Text(agency.displayName),
+                        child: Text(agency.localizedName(context.l10n)),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -520,7 +523,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                       labelText:
                           context.l10n.certifications_edit_label_nameOnCard,
                       prefixIcon: const Icon(Icons.card_membership),
-                      hintText: derivedCertificationTitle(_agency, _level),
+                      hintText: derivedCertificationTitleL10n(
+                        _agency,
+                        _level,
+                        context.l10n,
+                      ),
                       helperText:
                           context.l10n.certifications_edit_helper_nameOnCard,
                     ),

@@ -180,6 +180,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setPpO2MaxDeco(double value) async =>
       state = state.copyWith(ppO2MaxDeco: value);
   @override
+  Future<void> setPpO2Limits(double working, double max) async =>
+      state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
+  @override
   Future<void> setCnsWarningThreshold(int value) async =>
       state = state.copyWith(cnsWarningThreshold: value);
   @override

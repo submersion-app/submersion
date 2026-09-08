@@ -10,11 +10,13 @@ enum HomeCardType {
   recentDives,
   quickActions,
   milestones,
-  photoRibbon,
-  onThisDay,
   yearInReview,
-  activeCourses,
+  // photoRibbon and recentSitesMap are declared adjacent so the default
+  // layout pairs them side by side at desktop widths (see home_layout.dart).
+  photoRibbon,
   recentSitesMap,
+  onThisDay,
+  activeCourses,
 }
 
 /// Turns a stored order (HomeCardType.name strings from SharedPreferences)

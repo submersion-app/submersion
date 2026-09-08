@@ -47,6 +47,7 @@ import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_event_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_highlight_range.dart';
 import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/profile_event_label.dart';
 
 /// Opacity of the shaded region between the ceiling and the surface.
 ///
@@ -633,6 +634,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showAscentRateColors = false;
   bool _showAscentRateLine = false;
   bool _showEvents = true;
+
+  /// Whether the app's own computed events are drawn (issue #1523). Synced
+  /// from the legend provider in [build]; seeded off for dives that carry the
+  /// computer's own events.
+  bool _showComputedEvents = true;
 
   // Profile marker toggles
   bool _showMaxDepthMarkerLocal = true;
@@ -1248,6 +1254,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
     _scheduleTankPressureVisibilityInitialization();
+    _scheduleComputedEventsSeed();
   }
 
   @override
@@ -1260,6 +1267,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (oldWidget.tankPressures != widget.tankPressures) {
       _scheduleTankPressureVisibilityInitialization();
     }
+    if (oldWidget.events != widget.events) {
+      _scheduleComputedEventsSeed();
+    }
   }
 
   void _scheduleTankPressureVisibilityInitialization() {
@@ -1268,6 +1278,26 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || tankIds.isEmpty) return;
       ref.read(profileLegendProvider.notifier).initializeTankPressures(tankIds);
+    });
+  }
+
+  /// Whether this dive carries the computer's own (imported) events.
+  bool get _diveHasImportedEvents =>
+      widget.events?.any((e) => e.source == EventSource.imported) ?? false;
+
+  /// Seed the legend's "Computed events" toggle from this dive: hidden when the
+  /// dive carries the computer's own events, shown otherwise (issue #1523). The
+  /// chart's own first paint already reflects this (see [build]); the post-frame
+  /// hop keeps the shared provider -- and the legend checkbox -- in step.
+  void _scheduleComputedEventsSeed() {
+    final events = widget.events;
+    if (events == null || events.isEmpty) return;
+    final hasImported = _diveHasImportedEvents;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref
+          .read(profileLegendProvider.notifier)
+          .seedComputedEventsVisibility(diveHasImportedEvents: hasImported);
     });
   }
 
@@ -2079,6 +2109,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAscentRateColors = legendState.showAscentRateColors;
     _showAscentRateLine = legendState.showAscentRateLine;
     _showEvents = legendState.showEvents;
+    _showComputedEvents = legendState.showComputedEvents;
+    // Issue #1523: the provider default is `true`, and for a dive that carries
+    // the computer's own events the post-frame seed only flips it to `false`
+    // after the first frame -- long enough to flash the computed markers. Until
+    // the user takes over the toggle, mirror the seed's decision here so the
+    // first paint is already right (and stays right when switching dives).
+    if (ref.read(profileLegendProvider.notifier).computedEventsFollowsDive) {
+      _showComputedEvents = !_diveHasImportedEvents;
+    }
     _showMaxDepthMarkerLocal = legendState.showMaxDepthMarker;
     _showPressureMarkersLocal = legendState.showPressureMarkers;
     _showGasSwitchMarkers = legendState.showGasSwitchMarkers;
@@ -2211,6 +2250,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           widget.decoStopCurve != null && widget.decoStopCurve!.isNotEmpty,
       hasAscentRates: widget.ascentRates != null,
       hasEvents: widget.events != null && widget.events!.isNotEmpty,
+      hasComputedEvents:
+          widget.events?.any((e) => e.source == EventSource.computed) ?? false,
+      hasImportedEvents:
+          widget.events?.any((e) => e.source == EventSource.imported) ?? false,
       hasMaxDepthMarker: widget.showMaxDepthMarker && _hasMaxDepthMarker,
       hasPressureMarkers:
           widget.showPressureThresholdMarkers && _hasPressureMarkers,
@@ -6735,11 +6778,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final events = widget.events;
     if (events == null || events.isEmpty) return [];
 
-    // Drop events attributed to a computer that's been toggled off. A null
-    // computerId is treated as belonging to the primary computer (see
-    // _isComputerVisible).
+    // Drop events attributed to a computer that's been toggled off (a null
+    // computerId is treated as the primary computer, see _isComputerVisible),
+    // and the app's own computed events when that legend toggle is off
+    // (issue #1523).
     final visibleEvents = events
-        .where((e) => _isComputerVisible(e.computerId))
+        .where(
+          (e) =>
+              _isComputerVisible(e.computerId) &&
+              (_showComputedEvents || e.source != EventSource.computed),
+        )
         .toList();
     if (visibleEvents.isEmpty) return [];
 
@@ -6797,7 +6845,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final t = kept[i].timestamp.toDouble();
       if (t < visibleMinX || t > visibleMaxX) continue;
       final painter = TextPainter(
-        text: TextSpan(text: kept[i].displayName, style: labelStyle),
+        text: TextSpan(
+          text: kept[i].eventType.localizedName(context.l10n),
+          style: labelStyle,
+        ),
         // Deliberately LTR regardless of locale: fl_chart's painter lays
         // vertical-line labels out with TextDirection.ltr
         // (axis_chart_painter.dart), and this measurement must match the
@@ -6873,7 +6924,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           fontSize: 9,
           backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
         ),
-        labelResolver: (line) => event.displayName,
+        labelResolver: (line) => event.eventType.localizedName(context.l10n),
       ),
     );
   }

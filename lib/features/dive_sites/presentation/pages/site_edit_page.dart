@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/access_safety_section.dart';
@@ -915,8 +916,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         _maxDepthController.text.isNotEmpty)
       '${_minDepthController.text.isEmpty ? '?' : _minDepthController.text}'
           '-${_maxDepthController.text.isEmpty ? '?' : _maxDepthController.text}',
-    if (_difficulty != null) _difficulty!.displayName,
-    if (_waterType != null) _waterType!.displayName,
+    if (_difficulty != null) _difficulty!.localizedName(context.l10n),
+    if (_waterType != null) _waterType!.localizedName(context.l10n),
     if (_rating > 0) '★' * _rating.round(),
   ].join(' · ');
 

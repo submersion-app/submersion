@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
 /// Summary widget shown when no equipment is selected.
 class EquipmentSummaryWidget extends ConsumerWidget {
@@ -79,8 +81,8 @@ class EquipmentSummaryWidget extends ConsumerWidget {
   Widget _buildOverview(
     BuildContext context,
     WidgetRef ref,
-    List equipment,
-    List serviceDue,
+    List<EquipmentItem> equipment,
+    List<EquipmentItem> serviceDue,
   ) {
     // Calculate stats
     int activeCount = 0;
@@ -211,7 +213,10 @@ class EquipmentSummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildServiceDueSection(BuildContext context, List serviceDue) {
+  Widget _buildServiceDueSection(
+    BuildContext context,
+    List<EquipmentItem> serviceDue,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -236,7 +241,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                 button: true,
                 label: context.l10n.equipment_summary_serviceDueSemanticLabel(
                   item.name,
-                  item.type.displayName,
+                  item.type.localizedName(context.l10n),
                 ),
                 child: ListTile(
                   leading: CircleAvatar(
@@ -254,7 +259,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                     ),
                   ),
                   subtitle: Text(
-                    item.type.displayName,
+                    item.type.localizedName(context.l10n),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onErrorContainer,
                     ),
@@ -279,7 +284,10 @@ class EquipmentSummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildEquipmentListPreview(BuildContext context, List equipment) {
+  Widget _buildEquipmentListPreview(
+    BuildContext context,
+    List<EquipmentItem> equipment,
+  ) {
     final previewItems = equipment.take(3).toList();
 
     return Column(
@@ -299,7 +307,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                 button: true,
                 label: context.l10n.equipment_summary_recentSemanticLabel(
                   item.name,
-                  item.type.displayName,
+                  item.type.localizedName(context.l10n),
                 ),
                 child: ListTile(
                   leading: CircleAvatar(
@@ -312,7 +320,7 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                     ),
                   ),
                   title: Text(item.name),
-                  subtitle: Text(item.type.displayName),
+                  subtitle: Text(item.type.localizedName(context.l10n)),
                   trailing: const ExcludeSemantics(
                     child: Icon(Icons.chevron_right),
                   ),

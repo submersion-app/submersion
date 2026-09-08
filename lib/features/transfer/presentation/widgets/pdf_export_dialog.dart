@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/transfer/presentation/pdf_page_size_display.dart';
 
 /// Dialog for selecting PDF export options.
 ///
@@ -112,8 +113,8 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                           .map(
                             (size) => ButtonSegment(
                               value: size,
-                              label: Text(size.displayName),
-                              tooltip: size.description,
+                              label: Text(size.localizedName(context.l10n)),
+                              tooltip: size.localizedDescription(context.l10n),
                             ),
                           )
                           .toList(),

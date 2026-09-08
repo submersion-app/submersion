@@ -1,6 +1,17 @@
 {
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
   "equipment_documents_removeError": "Could not remove the document: {error}",
+  "@diveLog_o2tox_label_timeAboveLimit": {
+    "placeholders": {
+      "limit": { "type": "String" }
+    }
+  },
+  "@settings_decompression_ppO2LimitsSubtitle": {
+    "placeholders": {
+      "working": { "type": "String" },
+      "max": { "type": "String" }
+    }
+  },
   "@equipment_documents_removeError": { "placeholders": { "error": { "type": "String" } } },
   "settings_oauth_connect_copyFailed": "Could not copy the link.",
   "settings_oauth_connect_copyLink": "Copy link",
@@ -3278,6 +3289,7 @@
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Depth",
   "diveLog_legend_label_events": "Events",
+  "diveLog_legend_label_computedEvents": "Computed events",
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_gasSwitches": "Gas Switches",
   "diveLog_legend_label_gfPercent": "GF%",
@@ -3839,8 +3851,7 @@
   "diveLog_o2tox_details": "Details",
   "diveLog_o2tox_label_maxPpO2": "Max ppO2",
   "diveLog_o2tox_label_maxPpO2Depth": "Max ppO2 Depth",
-  "diveLog_o2tox_label_timeAbove14": "Time above 1.4 bar",
-  "diveLog_o2tox_label_timeAbove16": "Time above 1.6 bar",
+  "diveLog_o2tox_label_timeAboveLimit": "Time above {limit} bar",
   "diveLog_o2tox_ofDailyLimit": "of daily limit",
   "diveLog_o2tox_oxygenToleranceUnits": "Oxygen Tolerance Units",
   "diveLog_o2tox_semantics_cnsBadge": "CNS oxygen toxicity {value}",
@@ -5889,6 +5900,7 @@
   "enum_ascentRate_warning": "Warning",
   "enum_certificationAgency_bsac": "BSAC",
   "enum_certificationAgency_cmas": "CMAS",
+  "enum_certificationAgency_ffessm": "FFESSM",
   "enum_certificationAgency_gue": "GUE",
   "enum_certificationAgency_iantd": "IANTD",
   "enum_certificationAgency_naui": "NAUI",
@@ -5918,6 +5930,36 @@
   "enum_certificationLevel_techDiver": "Tech Diver",
   "enum_certificationLevel_trimix": "Trimix",
   "enum_certificationLevel_wreck": "Wreck",
+  "enum_certificationLevel_masterDiver": "Master Diver",
+  "enum_certificationLevel_assistantInstructor": "Assistant Instructor",
+  "enum_certificationLevel_extendedRange": "Extended Range",
+  "enum_certificationLevel_advancedTrimix": "Advanced Trimix",
+  "enum_certificationLevel_cmas1StarDiver": "1★ Diver",
+  "enum_certificationLevel_cmas2StarDiver": "2★ Diver",
+  "enum_certificationLevel_cmas3StarDiver": "3★ Diver",
+  "enum_certificationLevel_cmas4StarDiver": "4★ Diver",
+  "enum_certificationLevel_cmas3StarDiverAssistantInstructor": "3★ Diver - Assistant Instructor",
+  "enum_certificationLevel_cmas4StarDiverAssistantInstructor": "4★ Diver - Assistant Instructor",
+  "enum_certificationLevel_cmas1StarInstructor": "1★ Instructor",
+  "enum_certificationLevel_cmas2StarInstructor": "2★ Instructor",
+  "enum_certificationLevel_cmas3StarInstructor": "3★ Instructor",
+  "enum_certificationLevel_bsacOceanDiver": "Ocean Diver",
+  "enum_certificationLevel_bsacSportsDiver": "Sports Diver",
+  "enum_certificationLevel_bsacDiveLeader": "Dive Leader",
+  "enum_certificationLevel_bsacAdvancedDiver": "Advanced Diver",
+  "enum_certificationLevel_bsacFirstClassDiver": "First Class Diver",
+  "enum_certificationLevel_bsacOpenWaterInstructor": "Open Water Instructor",
+  "enum_certificationLevel_bsacAdvancedInstructor": "Advanced Instructor",
+  "enum_certificationLevel_bsacNationalInstructor": "National Instructor",
+  "enum_certificationLevel_gueFundamentals": "Fundamentals",
+  "enum_certificationLevel_gueRec1": "Rec 1",
+  "enum_certificationLevel_gueRec2": "Rec 2",
+  "enum_certificationLevel_gueRec3": "Rec 3",
+  "enum_certificationLevel_gueTech1": "Tech 1",
+  "enum_certificationLevel_gueTech2": "Tech 2",
+  "enum_certificationLevel_gueCave1": "Cave 1",
+  "enum_certificationLevel_gueCave2": "Cave 2",
+  "enum_certificationLevel_gueDpv": "DPV",
   "enum_currentDirection_east": "East",
   "enum_currentDirection_none": "None",
   "enum_currentDirection_north": "North",
@@ -5986,6 +6028,13 @@
   "enum_equipmentType_tank": "Tank",
   "enum_equipmentType_weights": "Weights",
   "enum_equipmentType_wetsuit": "Wetsuit",
+  "enum_equipmentType_snorkel": "Snorkel",
+  "enum_equipmentType_transmitter": "Transmitter",
+  "enum_equipmentType_instrument": "Instrument / Gauge",
+  "enum_equipmentType_compass": "Compass",
+  "enum_equipmentType_rebreather": "Rebreather",
+  "enum_equipmentType_tool": "Tool",
+  "enum_equipmentType_rashGuard": "Rash Guard",
   "enum_eventSeverity_alert": "Alert",
   "enum_eventSeverity_info": "Info",
   "enum_eventSeverity_warning": "Warning",
@@ -6114,6 +6163,22 @@
   "enum_tankRole_sidemountLeft": "Sidemount Left",
   "enum_tankRole_sidemountRight": "Sidemount Right",
   "enum_tankRole_stage": "Stage",
+  "enum_tideState_rising": "Rising",
+  "enum_tideState_falling": "Falling",
+  "enum_tideState_slackHigh": "High Tide (Slack)",
+  "enum_tideState_slackLow": "Low Tide (Slack)",
+  "enum_timeFormat_twelveHour": "12-hour",
+  "enum_timeFormat_twentyFourHour": "24-hour",
+  "enum_matchConfidence_exact": "Exact",
+  "enum_matchConfidence_interpolated": "Interpolated",
+  "enum_matchConfidence_estimated": "Estimated",
+  "enum_matchConfidence_noProfile": "No Profile",
+  "enum_matchConfidence_manual": "Manual",
+  "enum_logCategory_app": "App",
+  "enum_logCategory_bluetooth": "Bluetooth",
+  "enum_logCategory_serial": "Serial",
+  "enum_logCategory_libdc": "libdc",
+  "enum_logCategory_database": "Database",
   "enum_visibility_excellent": "Excellent (>30m / >100ft)",
   "enum_visibility_good": "Good (15-30m / 50-100ft)",
   "enum_visibility_moderate": "Moderate (5-15m / 15-50ft)",
@@ -9946,6 +10011,14 @@
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "Gradient Factors",
   "settings_decompression_header_oxygenToxicity": "Oxygen Toxicity",
+  "settings_decompression_ppO2LimitsTitle": "ppO2 limits",
+  "settings_decompression_ppO2LimitsSubtitle": "Working {working} bar · Max {max} bar",
+  "settings_decompression_ppO2Dialog_title": "ppO2 limits",
+  "settings_decompression_ppO2Dialog_info": "The ppO2 ceilings used for MOD, gas planning and oxygen toxicity warnings. Set these to match the limits configured on your dive computer.",
+  "settings_decompression_ppO2Dialog_working": "Working ppO2",
+  "settings_decompression_ppO2Dialog_workingHint": "Bottom gas, active part of the dive",
+  "settings_decompression_ppO2Dialog_max": "Maximum ppO2",
+  "settings_decompression_ppO2Dialog_maxHint": "Decompression and contingency",
   "settings_decompression_preset_selectLabel": "Select {presetName} conservatism preset",
   "settings_decompression_header_narcosis": "Narcosis",
   "settings_decompression_o2Narcotic": "O2 is narcotic",
@@ -16778,6 +16851,37 @@
   "settings_security_done": "Done",
   "settings_security_turnOff": "Turn off",
   "dataQuality_inbox_title": "Data quality",
+  "dataQuality_dive_unknown": "Dive details unavailable",
+  "@dataQuality_dive_unknown": {
+    "description": "Stands in for a dive identity the inbox cannot resolve, either because the dive was deleted or folded into another by a merge, or because the lookup failed. Deliberately neutral: it must not assert that the dive was deleted, because that is only one of the two cases."
+  },
+  "dataQuality_dive_number": "#{number}",
+  "@dataQuality_dive_number": {
+    "description": "Dive number segment of the identity line on a data quality group header.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_dive_pairedWith": "Paired with {dive}",
+  "@dataQuality_dive_pairedWith": {
+    "description": "Names the second dive of a cross-dive finding (a likely duplicate or an accidental split), so the diver can see which dive would be merged.",
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_dive_recordedBy": "Recorded by {computer}",
+  "@dataQuality_dive_recordedBy": {
+    "description": "Names the dive computer that produced the data a finding is about.",
+    "placeholders": {
+      "computer": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_badge_tooltip": "Data quality review",
   "dataQuality_scan_start": "Scan library",
   "dataQuality_scan_progress": "Checked {done} of {total} dives",

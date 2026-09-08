@@ -113,6 +113,15 @@ List<ActiveLegendEntry> activeLegendEntries(
     l10n.diveLog_legend_label_events,
     ProfileMetricColors.events,
   );
+  // Only meaningful when the dive carries both the computer's own events and
+  // the app's auto-detected ones; otherwise the plain "Events" toggle covers
+  // everything (issue #1523).
+  add(
+    config.hasSplitEvents,
+    state.showComputedEvents,
+    l10n.diveLog_legend_label_computedEvents,
+    Colors.amber.shade200,
+  );
   add(
     config.hasHeartRateData,
     state.showHeartRate,

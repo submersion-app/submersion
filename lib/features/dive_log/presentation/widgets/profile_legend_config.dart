@@ -68,6 +68,13 @@ class ProfileLegendConfig {
   final bool hasDecoStopCurve;
   final bool hasAscentRates;
   final bool hasEvents;
+
+  /// Whether the event set mixes the computer's own events with the app's
+  /// auto-detected ones. When both are true the legend shows a separate
+  /// "Computed events" toggle so the two can be hidden independently
+  /// (issue #1523).
+  final bool hasComputedEvents;
+  final bool hasImportedEvents;
   final bool hasMaxDepthMarker;
   final bool hasPressureMarkers;
   final bool hasGasSwitches;
@@ -118,6 +125,8 @@ class ProfileLegendConfig {
     this.hasDecoStopCurve = false,
     this.hasAscentRates = false,
     this.hasEvents = false,
+    this.hasComputedEvents = false,
+    this.hasImportedEvents = false,
     this.hasMaxDepthMarker = false,
     this.hasPressureMarkers = false,
     this.hasGasSwitches = false,
@@ -146,6 +155,10 @@ class ProfileLegendConfig {
 
   bool get hasTankListSection =>
       hasGasSwitches && !hasMultiTankPressure && (tanks?.length ?? 0) > 1;
+
+  /// The "Computed events" legend row is only meaningful when both kinds of
+  /// event are present — otherwise the plain "Events" toggle covers everything.
+  bool get hasSplitEvents => hasComputedEvents && hasImportedEvents;
 
   /// Whether any secondary toggles should be shown
   bool get hasSecondaryToggles =>

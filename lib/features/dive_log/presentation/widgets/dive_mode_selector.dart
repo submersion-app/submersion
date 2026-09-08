@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
 /// A segmented button for selecting the dive mode (OC, CCR, SCR).
 ///
@@ -59,7 +60,7 @@ class DiveModeSelector extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(mode.name.toUpperCase(), maxLines: 1),
           ),
-          tooltip: mode.displayName,
+          tooltip: mode.localizedName(context.l10n),
         );
       }).toList(),
       selected: {selectedMode},

@@ -14,6 +14,7 @@ import 'package:submersion/features/data_quality/domain/repairs/quality_repair_a
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
+import 'package:submersion/features/data_quality/presentation/widgets/dive_identity_label.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_unit_formatters.dart';
@@ -340,15 +341,53 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
               (widget.filterDiveId == null || widget.filterDiveId!.isEmpty)
               ? null
               : widget.filterDiveId!.split(',').toSet();
-          final open = [
+          // Everything this page could ever show: open, and within the dive
+          // filter. The chip is applied separately below, deliberately -- it
+          // changes as the diver taps, while the dive filter is fixed for the
+          // life of the page.
+          final scoped = [
             for (final f in all)
               if (f.status == QualityStatus.open &&
-                  categoriesFor(chip).contains(f.category) &&
                   (filterIds == null ||
                       filterIds.contains(f.diveId) ||
                       filterIds.contains(f.relatedDiveId)))
                 f,
           ];
+          final open = [
+            for (final f in scoped)
+              if (categoriesFor(chip).contains(f.category)) f,
+          ];
+          // Keyed off the scoped set, not the visible one: narrowing by the
+          // fixed dive filter keeps a deep link (from the import summary, say)
+          // from loading identities for the whole library, while keeping the
+          // chip out of the key so switching chips reuses one cached lookup.
+          final divesAsync = ref.watch(
+            qualityFindingDivesProvider(qualityFindingDivesKey(scoped)),
+          );
+          // `.value` rather than the `valueOrNull` extension: both keep the
+          // previous map across a self-invalidate (a refresh skips the loading
+          // branch), but only `.value` keeps it across a genuine reload or a
+          // failed read. The names map has a dependency that really does
+          // change -- switching the active diver reloads the saved-computer
+          // list -- and blinking the identities out is worse than showing the
+          // last good ones for a frame.
+          final dives = divesAsync.value;
+          // Reading the names costs a diver lookup plus a computers-table
+          // read, so only pay it when some finding actually names a computer.
+          final computerNames = scoped.any((f) => f.computerId != null)
+              ? ref.watch(qualityComputerNamesProvider).value ?? const {}
+              : const <String, String>{};
+          // Only the identity lines wait on that lookup; the findings
+          // themselves render immediately from the stream that already
+          // resolved.
+          DiveIdentityLabel? identity(String? diveId) =>
+              (dives == null || diveId == null)
+              ? null
+              : buildDiveIdentityLabel(
+                  summary: dives[diveId],
+                  l10n: l10n,
+                  formatters: formatters,
+                );
           return Column(
             children: [
               if (_scanProgress != null)
@@ -376,11 +415,18 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                     : ListView(
                         children: [
                           for (final group in _groupByDive(open)) ...[
-                            _DiveGroupHeader(diveId: group.diveId),
+                            _DiveGroupHeader(
+                              label: identity(group.diveId),
+                              loading: divesAsync.isLoading,
+                              onTap: () =>
+                                  context.push('/dives/${group.diveId}'),
+                            ),
                             for (final f in group.findings)
                               QualityFindingCard(
                                 finding: f,
                                 formatters: formatters,
+                                relatedDive: identity(f.relatedDiveId),
+                                computerName: computerNames[f.computerId],
                                 onRepair: (a) => _runAction(f, a),
                                 onDismiss: () => ref
                                     .read(qualityFindingsRepositoryProvider)
@@ -548,20 +594,58 @@ class _EmptyState extends ConsumerWidget {
   }
 }
 
-class _DiveGroupHeader extends ConsumerWidget {
-  const _DiveGroupHeader({required this.diveId});
-  final String diveId;
+/// Names the dive a group of findings belongs to.
+///
+/// Reads as a dive the diver can recognize (number, site, when, how deep and
+/// how long) rather than as the dive's uuid, which is what it showed before:
+/// the old fallback chain ended at the raw id, and a downloaded dive with no
+/// custom name and no assigned site reached that end every time.
+class _DiveGroupHeader extends StatelessWidget {
+  const _DiveGroupHeader({
+    required this.label,
+    required this.loading,
+    required this.onTap,
+  });
+
+  /// Null while the identities are still being read. Rendering the "dive is
+  /// gone" copy in that gap would accuse the log of losing a dive that is
+  /// merely a frame away.
+  final DiveIdentityLabel? label;
+  final bool loading;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final dive = ref.watch(diveProvider(diveId)).value;
-    final title = dive?.effectiveName ?? dive?.site?.name ?? diveId;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final stats = label?.stats;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label?.headline ??
+                  (loading
+                      ? context.l10n.common_label_loading
+                      // Not loading and still no identity means the lookup
+                      // itself failed. Say we cannot name the dive rather
+                      // than leaving a blank line above its findings.
+                      : context.l10n.dataQuality_dive_unknown),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: scheme.primary,
+              ),
+            ),
+            if (stats != null)
+              Text(
+                stats,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+          ],
         ),
       ),
     );

@@ -2698,6 +2698,30 @@ class DiveRepository {
     }
   }
 
+  /// Loads [DiveSummary] rows for an arbitrary set of dive ids.
+  ///
+  /// One batched slim SELECT, for callers that hold ids and need only to name
+  /// and describe those dives. Prefer this over a [getDiveById] per id: that
+  /// hydrates tanks, tank pressures, the profile, and equipment, which is far
+  /// more than a display label needs.
+  ///
+  /// Ids that no longer exist are simply absent from the result, so callers
+  /// must handle a missing dive rather than assuming a row per id.
+  // stats-scope-exempt: hydrates rows for an already-chosen id set.
+  Future<List<DiveSummary>> getSummariesByIds(List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    try {
+      return await _summariesForIds(ids);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load dive summaries by id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Loads [DiveSummary] rows for [ids] (slim SELECT plus batched tags and
   /// dive types), ordered most recent first.
   // stats-scope-exempt: hydrates rows for an already-chosen id set. It

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
-import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_card_photo.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 /// The front face of the certification card.
 ///
@@ -30,7 +32,7 @@ class CertificationEcardFront extends StatelessWidget {
       return CertificationCardPhoto(
         bytes: photo,
         badge: _buildStatusBadge(context),
-        infoLines: _buildInfoLines(),
+        infoLines: _buildInfoLines(context.l10n),
       );
     }
     return _buildGeneratedFront(context);
@@ -41,14 +43,14 @@ class CertificationEcardFront extends StatelessWidget {
   /// The scrim covers the part of a physical card that prints the holder's name
   /// and number, so repeating them here loses nothing and keeps the text legible
   /// when the photo is dim or blurry.
-  List<String> _buildInfoLines() {
+  List<String> _buildInfoLines(AppLocalizations l10n) {
     final cardNumber = certification.cardNumber;
 
     // certificationTitle, not the raw name: a stored name that merely repeats
     // agency and level would otherwise render as "PADI - PADI : Open Water".
     final headline = [
-      certification.agency.displayName,
-      certificationTitle(certification),
+      certification.agency.localizedName(l10n),
+      certificationTitleL10n(certification, l10n),
     ].where((value) => value.isNotEmpty).join('  -  ');
 
     final detail = [
@@ -103,7 +105,7 @@ class CertificationEcardFront extends StatelessWidget {
                 // level and a full field grid all compete for a CR80 card on a
                 // narrow phone. The header and grid are the facts a dive
                 // operator reads, so they keep their intrinsic height.
-                Flexible(child: _buildHero()),
+                Flexible(child: _buildHero(context.l10n)),
                 _buildFieldGrid(context),
               ],
             ),
@@ -120,7 +122,7 @@ class CertificationEcardFront extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            certification.agency.displayName,
+            certification.agency.localizedName(context.l10n),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -134,8 +136,8 @@ class CertificationEcardFront extends StatelessWidget {
     );
   }
 
-  Widget _buildHero() {
-    final subtitle = certificationSubtitle(certification);
+  Widget _buildHero(AppLocalizations l10n) {
+    final subtitle = certificationSubtitleL10n(certification, l10n);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,7 +145,7 @@ class CertificationEcardFront extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            certificationTitle(certification),
+            certificationTitleL10n(certification, l10n),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,

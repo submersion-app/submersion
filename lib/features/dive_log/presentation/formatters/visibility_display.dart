@@ -32,6 +32,18 @@ double? parseVisibilityInput(String text, UnitFormatter units) {
   return units.depthToMeters(parsed);
 }
 
+/// Localized name for a coarse pre-v144 visibility bucket, e.g.
+/// "Moderate (5-15m / 15-50ft)". Mirrors [Visibility.displayName] but honours
+/// the active locale.
+String visibilityName(Visibility visibility, AppLocalizations l10n) =>
+    switch (visibility) {
+      Visibility.excellent => l10n.enum_visibility_excellent,
+      Visibility.good => l10n.enum_visibility_good,
+      Visibility.moderate => l10n.enum_visibility_moderate,
+      Visibility.poor => l10n.enum_visibility_poor,
+      Visibility.unknown => l10n.enum_visibility_unknown,
+    };
+
 /// Localized name for a calibrated band.
 String visibilityBandName(VisibilityBand band, AppLocalizations l10n) =>
     switch (band) {

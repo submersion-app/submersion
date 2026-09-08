@@ -7,6 +7,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
 class EquipmentSetDetailPage extends ConsumerWidget {
   final String setId;
@@ -265,7 +266,9 @@ class EquipmentSetDetailPage extends ConsumerWidget {
         ),
         title: Text(item.name),
         subtitle: Text(
-          item.fullName != item.name ? item.fullName : item.type.displayName,
+          item.fullName != item.name
+              ? item.fullName
+              : item.type.localizedName(context.l10n),
         ),
         trailing: const Icon(Icons.chevron_right),
       ),

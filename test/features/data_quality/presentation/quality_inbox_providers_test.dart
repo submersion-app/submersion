@@ -5,7 +5,10 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_serv
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -37,6 +40,91 @@ void main() {
 
     test('an empty id set yields the empty key', () {
       expect(importedDivesFindingsKey(const []), '');
+    });
+  });
+
+  group('qualityFindingDivesProvider', () {
+    // Review asked for `.value` over the house `valueOrNull` extension, on the
+    // grounds that a watchDivesChanges() invalidation drops the loaded map and
+    // flashes the fallback. It does not: a self-invalidate is a REFRESH, and
+    // AsyncValue.when skips the loading branch on a refresh
+    // (skipLoadingOnRefresh defaults to true), so the previous map is handed
+    // to the data branch instead. This pins that, because the difference is
+    // invisible until someone changes the extension.
+    test(
+      'an invalidation keeps the loaded identities, it does not flash',
+      () async {
+        await diveRepo.createDive(
+          domain.Dive(
+            id: 'd1',
+            name: 'Reef wall',
+            dateTime: DateTime.utc(2026, 6, 14, 9, 12),
+          ),
+        );
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final provider = qualityFindingDivesProvider('d1');
+        final loaded = await container.read(provider.future);
+        expect(loaded['d1']?.effectiveName, 'Reef wall');
+
+        container.invalidate(provider);
+        final refreshing = container.read(provider);
+
+        expect(refreshing.isLoading, isTrue, reason: 'a refresh is in flight');
+        expect(
+          refreshing.valueOrNull?['d1']?.effectiveName,
+          'Reef wall',
+          reason: 'the previous identities survive the refresh',
+        );
+      },
+    );
+
+    test('a dive id with no row is simply absent from the map', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final map = await container.read(
+        qualityFindingDivesProvider('missing').future,
+      );
+      expect(map, isEmpty);
+    });
+  });
+
+  group('qualityComputerNamesProvider', () {
+    // The page tests override this provider, so without a test here the real
+    // mapping (the part that decides what "Recorded by ..." actually says)
+    // would never run.
+    test('maps saved computer ids to their display names', () async {
+      final container = ProviderContainer(
+        overrides: [
+          allDiveComputersProvider.overrideWith(
+            (ref) async => [
+              DiveComputer(
+                id: 'c1',
+                name: 'Perdix AI',
+                createdAt: DateTime.utc(2026, 7, 17),
+                updatedAt: DateTime.utc(2026, 7, 17),
+              ),
+              DiveComputer(
+                id: 'c2',
+                name: '',
+                manufacturer: 'Shearwater',
+                model: 'Teric',
+                createdAt: DateTime.utc(2026, 7, 17),
+                updatedAt: DateTime.utc(2026, 7, 17),
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final names = await container.read(qualityComputerNamesProvider.future);
+      expect(names['c1'], 'Perdix AI');
+      // An unnamed computer falls back to DiveComputer.displayName rather than
+      // rendering an empty label.
+      expect(names['c2'], isNotEmpty);
     });
   });
 

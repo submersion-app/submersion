@@ -20,10 +20,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// plus the gap before the split is allowed.
 const double _splitMinWidth = kMasterPaneWidth + 12 + 320;
 
-/// Height of the profile preview. Roughly the height of three detailed dive
-/// cards, so the two halves of the split read as one block at the default
-/// three recent dives.
-const double _previewHeight = 300;
+/// Height of the profile preview.
+///
+/// Roughly the height of three detailed dive cards, so the two halves of the
+/// split read as one block at the default three recent dives, plus the room
+/// the full chart's legend row and gas timeline strip take above the plot.
+const double _previewHeight = 380;
 
 /// A section showing recent dives with the same tile format as the dive list
 class RecentDivesCard extends ConsumerWidget {

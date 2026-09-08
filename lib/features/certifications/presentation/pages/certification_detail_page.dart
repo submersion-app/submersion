@@ -15,6 +15,9 @@ import 'package:submersion/features/certifications/domain/certification_title.da
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;
@@ -177,7 +180,7 @@ class _CertificationDetailContent extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(certificationTitle(certification)),
+        title: Text(certificationTitleL10n(certification, context.l10n)),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -237,7 +240,9 @@ class _CertificationDetailContent extends ConsumerWidget {
             ),
             child: Center(
               child: Text(
-                _abbreviateAgency(certification.agency.displayName),
+                _abbreviateAgency(
+                  certification.agency.localizedName(context.l10n),
+                ),
                 style: TextStyle(
                   color: colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.bold,
@@ -253,13 +258,13 @@ class _CertificationDetailContent extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  certificationTitle(certification),
+                  certificationTitleL10n(certification, context.l10n),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  certification.agency.displayName,
+                  certification.agency.localizedName(context.l10n),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -436,12 +441,17 @@ class _CertificationDetailContent extends ConsumerWidget {
             ),
             child: Center(
               child: Text(
-                certification.agency.displayName.substring(
-                  0,
-                  certification.agency.displayName.length > 4
-                      ? 4
-                      : certification.agency.displayName.length,
-                ),
+                certification.agency
+                    .localizedName(context.l10n)
+                    .substring(
+                      0,
+                      certification.agency.localizedName(context.l10n).length >
+                              4
+                          ? 4
+                          : certification.agency
+                                .localizedName(context.l10n)
+                                .length,
+                    ),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.bold,
@@ -452,13 +462,13 @@ class _CertificationDetailContent extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            certificationTitle(certification),
+            certificationTitleL10n(certification, context.l10n),
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
-            certification.agency.displayName,
+            certification.agency.localizedName(context.l10n),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -493,13 +503,13 @@ class _CertificationDetailContent extends ConsumerWidget {
             _InfoRow(
               icon: Icons.business,
               label: context.l10n.certifications_detail_label_agency,
-              value: certification.agency.displayName,
+              value: certification.agency.localizedName(context.l10n),
             ),
             if (certification.level != null)
               _InfoRow(
                 icon: Icons.workspace_premium,
                 label: context.l10n.certifications_detail_label_certification,
-                value: certification.level!.displayName,
+                value: certification.level!.localizedName(context.l10n),
               ),
             if (certification.cardNumber != null)
               _InfoRow(
@@ -680,7 +690,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       subtitle: Text(
-                        '${course.agency.displayName} - ${course.isCompleted ? context.l10n.certifications_detail_courseCompleted : context.l10n.certifications_detail_courseInProgress}',
+                        '${course.agency.localizedName(context.l10n)} - ${course.isCompleted ? context.l10n.certifications_detail_courseCompleted : context.l10n.certifications_detail_courseInProgress}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -771,7 +781,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           label: context.l10n
               .certifications_detail_semanticLabel_photoTapToView(
                 label,
-                certificationTitle(certification),
+                certificationTitleL10n(certification, context.l10n),
               ),
           child: GestureDetector(
             onTap: () => _showFullscreenPhoto(context, imageData, label),
@@ -840,7 +850,7 @@ class _CertificationDetailContent extends ConsumerWidget {
             title: Text(
               context.l10n.certifications_detail_photo_fullscreenTitle(
                 label,
-                certificationTitle(certification),
+                certificationTitleL10n(certification, context.l10n),
               ),
             ),
           ),
@@ -906,7 +916,7 @@ class _CertificationDetailContent extends ConsumerWidget {
             title: Text(context.l10n.certifications_detail_dialog_deleteTitle),
             content: Text(
               context.l10n.certifications_detail_dialog_deleteContent(
-                certificationTitle(certification),
+                certificationTitleL10n(certification, context.l10n),
               ),
             ),
             actions: [

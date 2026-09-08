@@ -6,8 +6,8 @@ import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
-import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -21,6 +21,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
@@ -256,9 +257,9 @@ class _BuddyDetailContent extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (buddy.certificationLine != null)
+                if (buddyCertificationLineL10n(buddy, context.l10n) != null)
                   Text(
-                    buddy.certificationLine!,
+                    buddyCertificationLineL10n(buddy, context.l10n)!,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -517,8 +518,15 @@ class _BuddyDetailContent extends ConsumerWidget {
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.card_membership),
-                            title: Text(certificationTitle(cert)),
-                            subtitle: Text(certificationAgencyAndLevel(cert)),
+                            title: Text(
+                              certificationTitleL10n(cert, context.l10n),
+                            ),
+                            subtitle: Text(
+                              certificationAgencyAndLevelL10n(
+                                cert,
+                                context.l10n,
+                              ),
+                            ),
                           ),
                       ],
                     ),

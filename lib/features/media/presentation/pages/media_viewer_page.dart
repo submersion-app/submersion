@@ -44,6 +44,7 @@ import 'package:submersion/features/media/presentation/widgets/set_media_time_di
 import 'package:submersion/features/media_store/presentation/widgets/media_reupload_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/presentation/match_confidence_display.dart';
 
 /// Full-screen media viewer with pinch-to-zoom and swipe navigation over an
 /// arbitrary media list (a dive's media, a trip's flat list, or a library
@@ -1643,7 +1644,9 @@ class _BottomMetadataOverlay extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          enrichment.matchConfidence.displayName,
+                          enrichment.matchConfidence.localizedName(
+                            context.l10n,
+                          ),
                           style: const TextStyle(
                             color: Colors.orange,
                             fontSize: 10,

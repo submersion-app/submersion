@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 
 /// Shows a modal bottom sheet to edit an itinerary day's type, port name,
 /// and notes. Persists changes via ItineraryDayRepository and invalidates
@@ -137,7 +138,7 @@ class _ItineraryDayEditSheetState
                   .map(
                     (type) => DropdownMenuItem<DayType>(
                       value: type,
-                      child: Text(type.displayName),
+                      child: Text(type.localizedName(context)),
                     ),
                   )
                   .toList(),

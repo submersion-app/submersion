@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 
 /// Panel for configuring SCR (Semi-Closed Rebreather) dive settings.
 ///
@@ -249,8 +250,8 @@ class _ScrSettingsPanelState extends State<ScrSettingsPanel> {
               segments: ScrType.values.map((type) {
                 return ButtonSegment<ScrType>(
                   value: type,
-                  label: Text(type.shortName),
-                  tooltip: type.displayName,
+                  label: Text(type.localizedShortName(context.l10n)),
+                  tooltip: type.localizedName(context.l10n),
                 );
               }).toList(),
               selected: {_selectedType},

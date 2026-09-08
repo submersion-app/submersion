@@ -17,4 +17,5 @@ QualityUnitFormatters qualityUnitFormattersFor(
   sac: (lpm) =>
       '${units.convertVolume(lpm).toStringAsFixed(1)} ${units.volumeSymbol}/min',
   date: (d) => units.formatDate(d),
+  dateTime: (d) => '${units.formatDate(d)} ${units.formatTime(d)}',
 );

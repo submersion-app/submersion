@@ -13,27 +13,52 @@ import 'package:submersion/features/dive_log/domain/entities/profile_series.dart
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 class QualityContextBuilder {
-  QualityContextBuilder({DiveRepository? diveRepository})
-    : _diveRepo = diveRepository ?? DiveRepository();
+  QualityContextBuilder({
+    DiveRepository? diveRepository,
+    DiverSettingsRepository? settingsRepository,
+  }) : _diveRepo = diveRepository ?? DiveRepository(),
+       _settingsRepo = settingsRepository ?? DiverSettingsRepository();
 
   final DiveRepository _diveRepo;
+  final DiverSettingsRepository _settingsRepo;
   final _profileSeries = ProfileSeriesRepository();
   final _tankSeries = TankPressureSeriesRepository();
   AppDatabase get _db => DatabaseService.instance.database;
+
+  /// ppO2 ceiling per diver id, resolved once per [buildAll] batch. The key
+  /// '' stands for the implicit default diver (a null diver_id).
+  final Map<String, double> _ppO2MaxByDiver = {};
 
   Future<List<DiveQualityContext>> buildAll(
     List<String> diveIds, {
     DateTime? now,
   }) async {
     final effectiveNow = now ?? DateTime.now();
+    _ppO2MaxByDiver.clear();
     final dives = await _diveRepo.getDivesByIds(diveIds);
     final out = <DiveQualityContext>[];
     for (final dive in dives) {
       out.add(await _build(dive, effectiveNow));
     }
     return out;
+  }
+
+  /// The diver's configured maximum ppO2, or the default ceiling when the
+  /// dive has no diver or no stored settings. Cached for the batch.
+  Future<double> _ppO2Max(String? diverId) async {
+    final key = diverId ?? '';
+    final cached = _ppO2MaxByDiver[key];
+    if (cached != null) return cached;
+    var value = QualityThresholds.ppO2WarnBar;
+    if (diverId != null) {
+      final settings = await _settingsRepo.getSettingsForDiver(diverId);
+      if (settings != null) value = settings.ppO2MaxDeco;
+    }
+    _ppO2MaxByDiver[key] = value;
+    return value;
   }
 
   Future<DiveQualityContext> _build(domain.Dive dive, DateTime now) async {
@@ -92,6 +117,7 @@ class QualityContextBuilder {
       pressuresByTankId: pressures,
       gasSwitches: switches,
       neighbors: neighbors,
+      ppO2MaxBar: await _ppO2Max(dive.diverId),
     );
   }
 

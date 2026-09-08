@@ -254,6 +254,26 @@ void main() {
         expect(exposure.maxPpO2, lessThanOrEqualTo(0.63)); // ~3 bar * 0.21
       });
 
+      test('stamps the calculator thresholds onto the exposure', () {
+        const custom = O2ToxicityCalculator(
+          ppO2WarningThreshold: 1.5,
+          ppO2CriticalThreshold: 1.6,
+        );
+        // EAN32 to 40 m: ppO2 = 0.32 * 5 = 1.6.
+        final exposure = custom.calculateDiveExposure(
+          depths: [0.0, 40.0, 40.0, 0.0],
+          timestamps: [0, 120, 900, 1020],
+          o2Fraction: 0.32,
+        );
+        expect(exposure.warningThreshold, 1.5);
+        expect(exposure.criticalThreshold, 1.6);
+        // The 1.6 bar peak exceeds both the default (1.4) and this raised
+        // (1.5) warning threshold, but it only equals the raised critical
+        // limit, so it stays out of the red.
+        expect(exposure.ppO2Warning, isTrue); // 1.6 > 1.5
+        expect(exposure.ppO2Critical, isFalse); // not > 1.6
+      });
+
       test('should track max ppO2 at max depth', () {
         final depths = [0.0, 10.0, 30.0, 30.0, 10.0, 0.0];
         final timestamps = [0, 60, 180, 1800, 1920, 2040];

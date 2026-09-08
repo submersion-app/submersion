@@ -124,5 +124,37 @@ void main() {
       // Start = 0, so footer shows "Start: 0 OTU"
       expect(find.text('Start: 0 OTU'), findsOneWidget);
     });
+
+    testWidgets('renders the "time above ppO2 limit" lines when set', (
+      tester,
+    ) async {
+      const overLimit = O2Exposure(
+        cnsStart: 0,
+        cnsEnd: 10,
+        otu: 43,
+        otuStart: 0,
+        maxPpO2: 1.7,
+        maxPpO2Depth: 42,
+        timeAboveWarning: 150,
+        timeAboveCritical: 40,
+        warningThreshold: 1.4,
+        criticalThreshold: 1.6,
+      );
+
+      await tester.pumpWidget(buildPanel(exp: overLimit));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Time above 1.4 bar'), findsOneWidget);
+      expect(find.textContaining('Time above 1.6 bar'), findsOneWidget);
+    });
+
+    testWidgets('omits the "time above" lines when the dive stayed in range', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildPanel()); // shared exposure, maxPpO2 1.3
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Time above'), findsNothing);
+    });
   });
 }
