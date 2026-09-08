@@ -312,6 +312,76 @@ void main() {
     );
   });
 
+  testWidgets('a terminal run with no finish stamp still shows its status', (
+    tester,
+  ) async {
+    // Legacy or sync-applied rows can reach the list terminal but unstamped.
+    // Folding the status into the timestamp phrase must not drop it: before
+    // this branch the subtitle always carried a separate status label, and a
+    // completed run reading only "Started ..." hides what actually happened.
+    final unstamped = PreDiveSession(
+      id: 'legacy',
+      templateName: 'Old Record',
+      status: PreDiveSessionStatus.completed,
+      startedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await pumpPage(
+      tester,
+      sessions: [unstamped],
+      items: {
+        'legacy': [item('legacy', 0, PreDiveItemState.done)],
+      },
+    );
+
+    expect(unstamped.completedAt, isNull);
+    expect(find.textContaining('Completed'), findsOneWidget);
+    // The start is the one time that is certainly true, so it is still shown.
+    expect(find.textContaining('Started'), findsOneWidget);
+  });
+
+  testWidgets('an unstamped aborted run reports Aborted, not Started only', (
+    tester,
+  ) async {
+    final unstamped = PreDiveSession(
+      id: 'legacy2',
+      templateName: 'Bailed Record',
+      status: PreDiveSessionStatus.aborted,
+      startedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await pumpPage(
+      tester,
+      sessions: [unstamped],
+      items: {
+        'legacy2': [item('legacy2', 0, PreDiveItemState.skipped)],
+      },
+    );
+
+    expect(find.textContaining('Aborted'), findsOneWidget);
+  });
+
+  testWidgets('a running run is not given a redundant status suffix', (
+    tester,
+  ) async {
+    // "Started ... - In progress" would say the same thing twice; only a
+    // terminal row needs the status spelled out beside its start.
+    await pumpPage(
+      tester,
+      sessions: [
+        session('ip2', name: 'Solo', status: PreDiveSessionStatus.inProgress),
+      ],
+      items: {
+        'ip2': [item('ip2', 0, PreDiveItemState.pending)],
+      },
+    );
+
+    expect(find.textContaining('Started'), findsOneWidget);
+    expect(find.textContaining('In progress'), findsNothing);
+  });
+
   testWidgets('in-progress history tile shows pending icon and status', (
     tester,
   ) async {
