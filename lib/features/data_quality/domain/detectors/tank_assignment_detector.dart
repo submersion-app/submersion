@@ -116,6 +116,20 @@ class TankAssignmentDetector extends QualityDetector {
   static String? _serial(DiveTank tank) =>
       normalizeTransmitterSerial(tank.transmitterSerial);
 
+  /// The series in ascending time order. Stored series already are, so the
+  /// common case returns the input itself rather than cloning and sorting
+  /// it for every tank pair of every dive in a library scan.
+  static List<QualityPressureSample> _inTimeOrder(
+    List<QualityPressureSample> series,
+  ) {
+    for (var i = 1; i < series.length; i++) {
+      if (series[i].t < series[i - 1].t) {
+        return [...series]..sort((x, y) => x.t.compareTo(y.t));
+      }
+    }
+    return series;
+  }
+
   /// Mean absolute pressure difference between two series at their nearest
   /// samples, or null when they never come within the gap tolerance of each
   /// other. Both series are compared in time order with a single walk.
@@ -124,8 +138,8 @@ class TankAssignmentDetector extends QualityDetector {
     List<QualityPressureSample> b,
   ) {
     if (a.isEmpty || b.isEmpty) return null;
-    final sortedA = [...a]..sort((x, y) => x.t.compareTo(y.t));
-    final sortedB = [...b]..sort((x, y) => x.t.compareTo(y.t));
+    final sortedA = _inTimeOrder(a);
+    final sortedB = _inTimeOrder(b);
     const gap = QualityThresholds.twinSeriesMaxTimeGapSeconds;
     var n = 0;
     var sum = 0.0;

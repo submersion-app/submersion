@@ -275,6 +275,28 @@ void main() {
       expect(det.detect(ctx), isEmpty);
     });
 
+    test('twin series are matched even when a series arrives out of order', () {
+      // Sorting is skipped for already-ordered input; this pins that an
+      // unordered series is still put in time order before the walk.
+      final a = [
+        for (var t = 0; t <= 1200; t += 60)
+          QualityPressureSample(t: t, bar: 200 - t * 0.05),
+      ];
+      final b = a.reversed.toList();
+      final ctx = makeContext(
+        dive: makeTestDive(
+          tanks: [
+            tank(id: 'a'),
+            tank(id: 'b', order: 1),
+          ],
+        ),
+        pressures: {'a': a, 'b': b},
+      );
+      final out = det.detect(ctx);
+      expect(out, hasLength(1));
+      expect(out.single.params['meanDiffBar'], 0.0);
+    });
+
     test('single-tank dives are skipped', () {
       final ctx = makeContext(
         dive: makeTestDive(tanks: [tank()]),
