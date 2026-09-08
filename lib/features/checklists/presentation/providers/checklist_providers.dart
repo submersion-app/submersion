@@ -78,17 +78,24 @@ final tripChecklistProgressProvider =
 /// A trip already under way wins over one still ahead, since that is the
 /// checklist being worked through today. Trips with nothing on their list are
 /// skipped: an empty row would be a permanent no-op on the home screen.
+///
+/// Both tests read the one captured [now] through the entity's own date-only
+/// helpers. `Trip.isInProgress` would re-read `DateTime.now()` per trip, and
+/// pairing it with an instant comparison on `startDate` mixed two clocks and
+/// two granularities in a single pass: a trip starting today read as under
+/// way to one branch and already past to the other, and a pass spanning
+/// midnight could classify two trips against different days.
 final homeTripChecklistProvider =
     FutureProvider<({Trip trip, int done, int total})?>((ref) async {
       final trips = await ref.watch(allTripsProvider.future);
       final now = DateTime.now();
       Trip? candidate;
       for (final trip in trips) {
-        if (trip.isInProgress) {
+        if (trip.containsDate(now)) {
           candidate = trip;
           break;
         }
-        if (!trip.startDate.isAfter(now)) continue;
+        if (!trip.startsAfter(now)) continue;
         if (candidate == null || trip.startDate.isBefore(candidate.startDate)) {
           candidate = trip;
         }

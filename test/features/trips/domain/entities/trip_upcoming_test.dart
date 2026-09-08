@@ -69,4 +69,44 @@ void main() {
       expect(t.isInProgress, isFalse);
     });
   });
+
+  group('Trip.startsAfter', () {
+    // The clock-free counterpart to isUpcoming/isInProgress: a caller sorting
+    // several trips in one pass measures all of them against one instant
+    // instead of each predicate re-reading DateTime.now().
+    test('a trip starting tomorrow starts after today', () {
+      final t = _trip(
+        start: today.add(const Duration(days: 1)),
+        end: today.add(const Duration(days: 8)),
+      );
+      expect(t.startsAfter(today), isTrue);
+    });
+
+    test('a trip starting today does not start after today', () {
+      // Date-only, so a start of 00:00 today is not "ahead" at 09:00 today.
+      // The instant comparison this replaced said the opposite, and disagreed
+      // with containsDate on the very same trip.
+      final t = _trip(start: today, end: today.add(const Duration(days: 3)));
+      expect(t.startsAfter(today), isFalse);
+      expect(t.containsDate(today), isTrue);
+    });
+
+    test('a trip that started yesterday does not start after today', () {
+      final t = _trip(
+        start: today.subtract(const Duration(days: 1)),
+        end: today.add(const Duration(days: 3)),
+      );
+      expect(t.startsAfter(today), isFalse);
+    });
+
+    test('the reference time of day is ignored, only its date counts', () {
+      final t = _trip(start: today, end: today.add(const Duration(days: 3)));
+      expect(t.startsAfter(today.add(const Duration(hours: 23))), isFalse);
+      expect(
+        t.startsAfter(today.subtract(const Duration(hours: 1))),
+        isTrue,
+        reason: 'an hour before midnight is the previous calendar day',
+      );
+    });
+  });
 }
