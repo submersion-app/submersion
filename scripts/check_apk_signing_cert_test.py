@@ -130,6 +130,27 @@ class SignerCertificateTest(unittest.TestCase):
         with self.assertRaises(guard.SigningBlockError):
             guard.signer_sha1(path)
 
+    def test_pair_running_into_the_trailing_size_field_raises(self):
+        """Pairs must fit inside [block_start, end), not overlap the framing.
+
+        The pairs section ends where the trailing size field begins. A pair
+        whose declared length reaches into that field is malformed, and
+        accepting it would hand the scheme-block parser eight bytes of framing
+        as though they were signature data.
+        """
+        data = bytearray(_apk_with_signing_block(self.cert))
+        magic_start = data.index(guard.APK_SIG_BLOCK_MAGIC)
+        size = struct.unpack_from("<Q", data, magic_start - 8)[0]
+        block_start = (magic_start + 16) - size
+
+        pair_length = struct.unpack_from("<Q", data, block_start)[0]
+        struct.pack_into("<Q", data, block_start, pair_length + 8)
+
+        path = _write_temp(bytes(data))
+        self._paths.append(path)
+        with self.assertRaises(guard.SigningBlockError):
+            guard.signer_sha1(path)
+
     def test_signing_block_without_a_known_scheme_raises(self):
         path = self._apk(self.cert, pairs={0x12345678: b"\x00" * 8})
         with self.assertRaises(guard.SigningBlockError):

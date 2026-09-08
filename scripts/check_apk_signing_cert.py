@@ -114,7 +114,12 @@ def _signing_block_pairs(data):
     end = magic_start - 8
     while offset < end:
         pair_length = _read_u64(data, offset)
-        if pair_length < 4 or offset + 8 + pair_length > end + 8:
+        # A pair spans [offset, offset + 8 + pair_length) and must stay inside
+        # the pairs section, which ends where the trailing size field begins.
+        # Allowing it to reach into that field would feed eight bytes of
+        # framing to the scheme-block parser as though they were signature
+        # data.
+        if pair_length < 4 or offset + 8 + pair_length > end:
             raise SigningBlockError("APK Signing Block is truncated")
         block_id = _read_u32(data, offset + 8)
         pairs[block_id] = data[offset + 12 : offset + 8 + pair_length]
