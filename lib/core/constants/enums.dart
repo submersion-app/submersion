@@ -251,9 +251,9 @@ enum CertificationLevel {
   ffessmPlongeurArgent('Plongeur d\'Argent'),
   ffessmPlongeurOr('Plongeur d\'Or'),
   // Niveaux (N4 and N5 also belong to the cadre cursus)
-  ffessmN1('Plongeur Niveau 1'),
-  ffessmN2('Plongeur Niveau 2'),
-  ffessmN3('Plongeur Niveau 3'),
+  ffessmN1('N1 - Plongeur Niveau 1'),
+  ffessmN2('N2 - Plongeur Niveau 2'),
+  ffessmN3('N3 - Plongeur Niveau 3'),
   ffessmN4('N4 - Guide de Palanquée'),
   ffessmN5('N5 - Directeur de Plongée'),
   // Teaching ladder
