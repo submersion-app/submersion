@@ -244,9 +244,19 @@ class DiveProfileChartHost extends ConsumerWidget {
     // computed against it can report a depth the drawn curve never reaches
     // and a range extent that runs past its end (#1167).
     final resolvedActive = ref.watch(activeSourceProfileProvider(diveId));
+    // Attribution follows the drawn series, because activeComputerId is what
+    // gates every per-computer layer (tank pressure traces, events).
+    //
+    // A non-null resolvedActive means one source's bucket is drawn, so that
+    // source owns the series. Null means the merged dive.profile is drawn,
+    // and then it depends on how many sources went into the union: on a
+    // single-source dive the union IS that source, so it still owns it, but
+    // on a Combine's sequential halves the union spans several computers and
+    // none of them owns it (#1451). Naming one there hid the other half's
+    // tank pressures and events while its depth samples stayed on the chart.
     final activeProfile =
         resolvedActive ??
-        (activeSource == null ? null : sourceProfiles[activeSource.id]);
+        (dataSources.length == 1 ? sourceProfiles[dataSources.first.id] : null);
     final chartProfile = resolvedActive?.points ?? dive.profile;
 
     _keepExtentsOnDrawnSeries(

@@ -1233,17 +1233,24 @@ final sourceProfileAnalysisProvider =
         final sources = await ref.watch(
           diveDataSourcesProvider(key.diveId).future,
         );
+        // One source can never render per-source, so answer it without
+        // reading the buckets at all: this is the common case, and
+        // sourceProfilesProvider is a database round trip.
+        if (sources.length < 2) {
+          return await ref.watch(profileAnalysisProvider(key.diveId).future);
+        }
         final profiles = await ref.watch(
           sourceProfilesProvider(key.diveId).future,
         );
+        // Two or more sources is necessary but not sufficient, so gate on
         // usesPerSourceRendering, the same rule the chart picks its series
-        // with, and deliberately not a source count. The sequential halves of
-        // a Combine are two sources that every profile surface still draws as
-        // the merged dive.profile, because drawing one half would hide the
-        // rest of the dive (#1451). A count does not see that, and analysing
-        // one half while the chart shows the whole dive pairs half-length
-        // curves with a full-length series: the curves run out midway and the
-        // samples they do cover are the wrong ones.
+        // with. The sequential halves of a Combine are two sources that every
+        // profile surface still draws as the merged dive.profile, because
+        // drawing one half would hide the rest of the dive (#1451). A count
+        // alone does not see that, and analysing one half while the chart
+        // shows the whole dive pairs half-length curves with a full-length
+        // series: they run out midway and the samples they do cover are the
+        // wrong ones.
         if (!usesPerSourceRendering(sources, profiles.values)) {
           return await ref.watch(profileAnalysisProvider(key.diveId).future);
         }
