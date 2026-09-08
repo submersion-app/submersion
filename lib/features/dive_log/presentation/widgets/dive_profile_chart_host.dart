@@ -249,7 +249,13 @@ class DiveProfileChartHost extends ConsumerWidget {
         (activeSource == null ? null : sourceProfiles[activeSource.id]);
     final chartProfile = resolvedActive?.points ?? dive.profile;
 
-    _keepExtentsOnDrawnSeries(ref, chartProfile, playbackState, rangeState);
+    _keepExtentsOnDrawnSeries(
+      context,
+      ref,
+      chartProfile,
+      playbackState,
+      rangeState,
+    );
 
     final markers = profileChartMarkers(
       profile: chartProfile,
@@ -301,7 +307,7 @@ class DiveProfileChartHost extends ConsumerWidget {
                 .watch(
                   sourceProfileAnalysisProvider((diveId: diveId, sourceId: id)),
                 )
-                .valueOrNull,
+                .value,
           ),
       ?plannedOverlay,
     ];
@@ -443,6 +449,7 @@ class DiveProfileChartHost extends ConsumerWidget {
   /// second while a profile plays: the playback timer ticks every 25ms and
   /// this widget watches its state.
   void _keepExtentsOnDrawnSeries(
+    BuildContext context,
     WidgetRef ref,
     List<DiveProfilePoint> chartProfile,
     PlaybackState playbackState,
@@ -455,6 +462,14 @@ class DiveProfileChartHost extends ConsumerWidget {
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // riverpod's own liveness check: a ConsumerWidget's ref throws a
+      // StateError, in release as well as debug, once its element is gone.
+      // Scheduled from build, this callback drains at the end of that same
+      // frame and so has never yet outlived the widget (probed against a
+      // LayoutBuilder that drops the chart on resize: still mounted). The
+      // guard is here so that stays a scheduling detail rather than a
+      // precondition, for whoever next moves the call off the build path.
+      if (!context.mounted) return;
       // Re-read rather than trusting the build-time snapshot: the rest of the
       // frame may have moved either extent already.
       if (ref.read(playbackProvider(dive.id)).maxTimestamp != maxTimestamp) {
