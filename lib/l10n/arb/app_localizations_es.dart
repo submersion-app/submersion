@@ -5642,7 +5642,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String diveLog_edit_weightPreset_saved(Object name) {
-    return 'Preajuste de lastre «$name»';
+    return 'Preajuste de lastre «$name» guardado';
   }
 
   @override

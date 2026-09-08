@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -100,4 +105,58 @@ void main() {
         .getSingle();
     expect(tombstones.read<int>('n'), 3);
   });
+  test(
+    'deletePreset tombstones its entries inside the delete transaction',
+    () async {
+      // Atomicity is a claim about the SQL that reaches SQLite, so read it off
+      // the statement log rather than the repository's Dart control flow.
+      await tearDownTestDatabase();
+      DatabaseService.instance.setTestDatabase(
+        AppDatabase(NativeDatabase.memory(logStatements: true)),
+      );
+      final divers = DiverRepository();
+      final now = DateTime.now();
+      final loggedDiverId = (await divers.createDiver(
+        Diver(id: '', name: 'A', createdAt: now, updatedAt: now),
+      )).id;
+      repo = WeightPresetRepository();
+      final preset = await repo.createFromWeights(
+        diverId: loggedDiverId,
+        displayName: 'Atomic',
+        weights: [_w(WeightType.belt, 2.0), _w(WeightType.ankleWeights, 0.5)],
+      );
+
+      final logged = <String>[];
+      await runZoned(
+        () => repo.deletePreset(preset.id),
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) => logged.add(line),
+        ),
+      );
+
+      final deleteAt = logged.indexWhere(
+        (l) => l.contains('DELETE FROM "weight_presets"'),
+      );
+      final lastTombstoneAt = logged.lastIndexWhere(
+        (l) => l.contains('INSERT INTO "deletion_log"'),
+      );
+      expect(
+        deleteAt,
+        isNonNegative,
+        reason: 'the preset delete should be logged',
+      );
+      expect(lastTombstoneAt, greaterThan(deleteAt));
+      // A COMMIT in between means the preset row is already gone for good while
+      // some of its entry tombstones are not yet written. A failure at that point
+      // leaves a peer holding entries nothing tells it to delete, and the next
+      // sync resurrects them.
+      expect(
+        logged
+            .sublist(deleteAt, lastTombstoneAt)
+            .where((l) => l.toUpperCase().contains('COMMIT')),
+        isEmpty,
+        reason: 'the delete and every tombstone must share one transaction',
+      );
+    },
+  );
 }

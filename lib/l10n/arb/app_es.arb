@@ -2092,7 +2092,7 @@
   "diveLog_edit_weightPreset_applied": "Preajuste de lastre aplicado. Ajusta las entradas si es necesario.",
   "diveLog_edit_weightPreset_saveTitle": "Guardar el lastre como preajuste",
   "diveLog_edit_weightPreset_nameLabel": "Nombre del preajuste",
-  "diveLog_edit_weightPreset_saved": "Preajuste de lastre «{name}»",
+  "diveLog_edit_weightPreset_saved": "Preajuste de lastre «{name}» guardado",
   "diveLog_edit_weightTotal": "Total: {total}",
   "diveLog_emptyFiltered_clearFilters": "Borrar filtros",
   "diveLog_emptyFiltered_subtitle": "Intenta ajustar o borrar tus filtros",

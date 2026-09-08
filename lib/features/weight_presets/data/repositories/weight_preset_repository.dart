@@ -156,25 +156,33 @@ class WeightPresetRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Delete a preset and its entries.
+  ///
+  /// Entries are a first-class synced child cascade-deleted by SQLite, but
+  /// cascades emit no deletion-log entries, so each entry must be tombstoned
+  /// explicitly or a peer will resurrect it. Done in one transaction with the
+  /// preset deletion (mirrors EquipmentSetRepository.deleteSet): a failure
+  /// part-way through would otherwise drop the preset locally while leaving
+  /// some of its tombstones unwritten.
   Future<void> deletePreset(String id) async {
-    final entryRows = await (_db.select(
-      _db.weightPresetEntries,
-    )..where((t) => t.presetId.equals(id))).get();
+    await _db.transaction(() async {
+      final entryRows = await (_db.select(
+        _db.weightPresetEntries,
+      )..where((t) => t.presetId.equals(id))).get();
 
-    await (_db.delete(_db.weightPresets)..where((t) => t.id.equals(id))).go();
+      await (_db.delete(_db.weightPresets)..where((t) => t.id.equals(id))).go();
 
-    await _syncRepository.logDeletion(
-      entityType: 'weightPresets',
-      recordId: id,
-    );
-    // Cascades emit no deletion-log entries, so each entry is tombstoned
-    // explicitly or a peer resurrects it (same as EquipmentSet geofences).
-    for (final e in entryRows) {
       await _syncRepository.logDeletion(
-        entityType: 'weightPresetEntries',
-        recordId: e.id,
+        entityType: 'weightPresets',
+        recordId: id,
       );
-    }
+      for (final e in entryRows) {
+        await _syncRepository.logDeletion(
+          entityType: 'weightPresetEntries',
+          recordId: e.id,
+        );
+      }
+    });
     SyncEventBus.notifyLocalChange();
   }
 
