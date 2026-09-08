@@ -42,6 +42,41 @@ void main() {
           gasMixIndex: gasMixIndex,
         );
 
+    test('carries the transmitter serial the computer reported', () {
+      // Two computers paired to one transmitter log the same cylinder; the
+      // serial is what lets consolidation tell that apart from two tanks.
+      final parsed = makeParsedDive(
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 32.0, hePercent: 0.0)],
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: unknownGasMixIndex,
+            startPressureBar: 200.0,
+            endPressureBar: 60.0,
+            transmitterSerial: 180777,
+          ),
+        ],
+      );
+      final tanks = resolveParsedTanks(parsed);
+      expect(tanks, hasLength(1));
+      expect(tanks.single.transmitterSerial, '180777');
+    });
+
+    test('a tank without a transmitter serial resolves to null, not "0"', () {
+      final parsed = makeParsedDive(
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 32.0, hePercent: 0.0)],
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: unknownGasMixIndex,
+            startPressureBar: 200.0,
+            endPressureBar: 60.0,
+          ),
+        ],
+      );
+      expect(resolveParsedTanks(parsed).single.transmitterSerial, isNull);
+    });
+
     test('gauge-mode parsed dive yields no synthesized tanks or switches', () {
       // Gauge dives log depth+time only. Even when the computer reports a gas
       // mix (which would otherwise synthesize a pressureless air cylinder),

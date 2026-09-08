@@ -1462,6 +1462,77 @@ void main() {
       expect(await service.hasRawData('dive-nonexistent'), isFalse);
     });
 
+    test('DiveTanks carry-over: writes the transmitter serial on both an '
+        'existing tank and a new one', () async {
+      // Tanks downloaded before v194 have no serial; a re-parse of the stored
+      // raw data is how they gain one, so the existing-tank branch must write
+      // it alongside the other computer-owned fields.
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(
+              id: Value('tank-0'),
+              diveId: Value('dive-1'),
+              startPressure: Value(200.0),
+              endPressure: Value(50.0),
+              o2Percent: Value(32.0),
+              hePercent: Value(0.0),
+              tankOrder: Value(0),
+              tankName: Value('My Primary AL80'),
+            ),
+          );
+
+      final parsed = makeParsedDive(
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: 0,
+            startPressureBar: 210.0,
+            endPressureBar: 40.0,
+            transmitterSerial: 180777,
+          ),
+          pigeon.TankInfo(
+            index: 1,
+            gasMixIndex: 1,
+            startPressureBar: 200.0,
+            endPressureBar: 100.0,
+            transmitterSerial: 109623,
+          ),
+        ],
+        gasMixes: [
+          pigeon.GasMix(index: 0, o2Percent: 32.0, hePercent: 0.0),
+          pigeon.GasMix(index: 1, o2Percent: 100.0, hePercent: 0.0),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final tanks =
+          await (db.select(db.diveTanks)
+                ..where((t) => t.diveId.equals('dive-1'))
+                ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+              .get();
+      expect(tanks.map((t) => t.transmitterSerial), ['180777', '109623']);
+      // The user-authored name survives the update as before.
+      expect(tanks.first.tankName, 'My Primary AL80');
+    });
+
     test('DiveTanks carry-over: overwrites computer fields, preserves user '
         'fields, handles new/removed tanks', () async {
       await insertDive('dive-1');

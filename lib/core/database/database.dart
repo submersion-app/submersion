@@ -961,6 +961,11 @@ class DiveTanks extends Table {
       text().nullable()(); // user-friendly name like "Primary AL80"
   TextColumn get presetName =>
       text().nullable()(); // preset name (e.g., 'al80', 'hp100')
+  // Serial of the air-integration transmitter that reported this tank, as the
+  // computer logged it (v194). Null for manual tanks and computers that report
+  // none. Two computers paired to one transmitter logged the same cylinder,
+  // so consolidation matches tanks on this before falling back to gas mix.
+  TextColumn get transmitterSerial => text().nullable()();
   // Which computer contributed this tank (null = primary source / manual).
   // Same null-means-primary semantics as dive_profiles.computerId; deletes
   // set null.
@@ -3410,7 +3415,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 191;
+  static const int currentSchemaVersion = 194;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3896,6 +3901,7 @@ class AppDatabase extends _$AppDatabase {
     // recompression rungs (188-190) while this branch was open, and a rung
     // at or below the shipped version never runs its onUpgrade step.
     191,
+    194,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6098,6 +6104,19 @@ class AppDatabase extends _$AppDatabase {
   /// moment an item leaves pending and cleared on reset. Self-guards on the
   /// table existing. Same dual-call contract (onUpgrade + beforeOpen
   /// backstop) as the other column-assert helpers.
+  /// Idempotent DDL for the v194 dive_tanks.transmitter_serial column. Called
+  /// from the v194 rung and re-asserted in beforeOpen (parallel-branch
+  /// version-collision backstop) like the other column-assert helpers.
+  Future<void> _assertTankTransmitterSerialColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('transmitter_serial')) return;
+    await customStatement(
+      'ALTER TABLE dive_tanks ADD COLUMN transmitter_serial TEXT',
+    );
+  }
+
   Future<void> _assertSessionItemOverdueServicesColumn() async {
     final cols = await customSelect(
       "PRAGMA table_info('pre_dive_session_items')",
@@ -10300,6 +10319,15 @@ class AppDatabase extends _$AppDatabase {
           await _assertPlanAscentRateColumns();
         }
         if (from < 191) await reportProgress();
+        // v194: dive_tanks.transmitter_serial, the air-integration
+        // transmitter each downloaded tank was read from. Nullable, no
+        // backfill: the serial is only known from a fresh download or
+        // re-parse of the stored raw data. 192 and 193 are held by other
+        // open branches.
+        if (from < 194) {
+          await _assertTankTransmitterSerialColumn();
+        }
+        if (from < 194) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -10678,6 +10706,12 @@ class AppDatabase extends _$AppDatabase {
         // every open: column-and-index only, no backfill, so it cannot
         // resurrect or overwrite diver data.
         await _assertMediaEquipmentIdColumn();
+
+        // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
+        // read selects the whole row, so a database that arrives by restore
+        // or sync-adopt without the rung would throw on the first read.
+        // Column only, no backfill, so it cannot touch diver data.
+        await _assertTankTransmitterSerialColumn();
 
         // v145 backstop: re-assert the gps_tracks provenance and trim columns.
         await _assertGpsTrackColumns();

@@ -240,12 +240,19 @@ class PaginatedDiveListState extends Equatable {
   final DiveSummaryCursor? nextCursor;
   final int totalCount;
 
+  /// The last attempt to load another page failed.
+  ///
+  /// Distinguishes "still fetching" from "gave up", so the list can offer a
+  /// retry instead of a spinner that will never resolve on its own (#1610).
+  final bool loadMoreFailed;
+
   const PaginatedDiveListState({
     this.dives = const [],
     this.isLoadingMore = false,
     this.hasMore = true,
     this.nextCursor,
     this.totalCount = 0,
+    this.loadMoreFailed = false,
   });
 
   PaginatedDiveListState copyWith({
@@ -255,6 +262,7 @@ class PaginatedDiveListState extends Equatable {
     DiveSummaryCursor? nextCursor,
     int? totalCount,
     bool clearNextCursor = false,
+    bool? loadMoreFailed,
   }) {
     return PaginatedDiveListState(
       dives: dives ?? this.dives,
@@ -262,6 +270,7 @@ class PaginatedDiveListState extends Equatable {
       hasMore: hasMore ?? this.hasMore,
       nextCursor: clearNextCursor ? null : (nextCursor ?? this.nextCursor),
       totalCount: totalCount ?? this.totalCount,
+      loadMoreFailed: loadMoreFailed ?? this.loadMoreFailed,
     );
   }
 
@@ -272,5 +281,6 @@ class PaginatedDiveListState extends Equatable {
     hasMore,
     nextCursor,
     totalCount,
+    loadMoreFailed,
   ];
 }
