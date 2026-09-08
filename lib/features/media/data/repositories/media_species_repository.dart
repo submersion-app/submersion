@@ -17,8 +17,10 @@ import 'package:submersion/features/media/domain/entities/species_tag_chip.dart'
 ///
 /// A tag sits on a photo that already belongs to a dive or a site; this
 /// repository never creates media rows. The row is write-once but carries
-/// its own `hlc` (v195): add marks the row pending, which stamps the clock
-/// the incremental export filters on, and remove tombstones it by id.
+/// its own `hlc` (v195). Adding a tag marks the row pending, and that is
+/// what stamps the clock; the incremental export then filters on it.
+/// Removing a tag tombstones the row by id.
+///
 /// Riding the parent `media.hlc` instead, as this table did until v195,
 /// published nothing, because tagging a photo never edits the photo
 /// (issue #1638).
