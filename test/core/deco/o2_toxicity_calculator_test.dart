@@ -267,8 +267,9 @@ void main() {
         );
         expect(exposure.warningThreshold, 1.5);
         expect(exposure.criticalThreshold, 1.6);
-        // The 1.6 bar peak clears neither the default nor this raised limit for
-        // a warning, but a raised critical limit keeps it out of the red.
+        // The 1.6 bar peak exceeds both the default (1.4) and this raised
+        // (1.5) warning threshold, but it only equals the raised critical
+        // limit, so it stays out of the red.
         expect(exposure.ppO2Warning, isTrue); // 1.6 > 1.5
         expect(exposure.ppO2Critical, isFalse); // not > 1.6
       });

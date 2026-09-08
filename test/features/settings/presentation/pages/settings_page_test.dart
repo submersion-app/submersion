@@ -2071,8 +2071,14 @@ void main() {
       await tester.pumpAndSettle();
 
       // Snapped to the grid: 1.4 working, 1.5 max.
-      expect(find.widgetWithText(DropdownButton<double>, '1.4 bar'), findsOne);
-      expect(find.widgetWithText(DropdownButton<double>, '1.5 bar'), findsOne);
+      expect(
+        find.widgetWithText(DropdownButton<double>, '1.4 bar'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(DropdownButton<double>, '1.5 bar'),
+        findsOneWidget,
+      );
     });
   });
 
