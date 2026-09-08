@@ -37,6 +37,12 @@ class RecentDiveProfilePreview extends ConsumerWidget {
     // reparse or a sync pull rewriting the samples in place would leave this
     // chart showing the pre-reparse shape.
     final diveAsync = ref.watch(diveProvider(newest.id));
+    // A loaded null is "no such dive", the way the detail page reads it: the
+    // newest dive was deleted between the list read and this one, and the
+    // list is about to drop it too. Collapse the slot, as this widget already
+    // does when there is no dive at all. Falling through to "no profile data"
+    // would state a different, and untrue, fact about a dive that is gone.
+    if (diveAsync case AsyncData(value: null)) return const SizedBox.shrink();
 
     return Card(
       margin: EdgeInsets.zero,
@@ -49,6 +55,9 @@ class RecentDiveProfilePreview extends ConsumerWidget {
             const SizedBox(height: 8),
             Expanded(
               child: diveAsync.when(
+                // The null arm is unreachable, and present only to satisfy
+                // the provider's nullable type: AsyncData(value: null)
+                // returned above.
                 data: (dive) => dive == null || dive.profile.isEmpty
                     ? _Placeholder(
                         icon: Icons.show_chart,

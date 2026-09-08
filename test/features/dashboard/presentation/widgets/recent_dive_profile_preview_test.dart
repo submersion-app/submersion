@@ -31,7 +31,18 @@ Future<void> _pump(
   WidgetTester tester, {
   List<DiveProfilePoint>? profile,
   Object? error,
+  bool notFound = false,
 }) async {
+  // A host locale the app actually translates into, so the English finders
+  // below pass only because the MaterialApp pins `en`. Drop the pin and every
+  // test in this file fails, which is the point: unpinned, they would pass on
+  // en_US CI and fail on a translator's machine.
+  tester.platformDispatcher.localesTestValue = const [
+    Locale('fr'),
+    Locale('en'),
+  ];
+  addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
   final settings = MockSettingsNotifier(const AppSettings());
   final overrides = await getBaseOverrides(settingsNotifier: settings);
   final listCopy = createTestDiveWithBottomTime(id: 'd1');
@@ -43,10 +54,15 @@ Future<void> _pump(
         recentDivesProvider.overrideWith((ref) async => [listCopy]),
         diveProvider('d1').overrideWith((ref) async {
           if (error != null) throw error;
+          if (notFound) return null;
           return listCopy.copyWith(profile: profile ?? const []);
         }),
       ].cast(),
       child: MaterialApp.router(
+        // Pinned: every finder below matches an English literal, and an
+        // unpinned MaterialApp resolves against the HOST's locale list, so
+        // these pass on en_US CI and fail on a translator's machine.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: GoRouter(
@@ -107,6 +123,19 @@ void main() {
     expect(find.byType(DiveProfileChart), findsNothing);
     expect(find.text('No profile data for this dive'), findsNothing);
     expect(find.text("Couldn't load the dive profile"), findsOneWidget);
+  });
+
+  // "The dive is gone" and "the dive has no samples" are different facts, the
+  // same way a load failure is. The newest dive can be deleted between the
+  // recent-dives read and this one, and the list is about to drop it too, so
+  // the slot collapses rather than describing a dive that no longer exists.
+  testWidgets('collapses when the dive is not found, rather than claiming '
+      'it has no profile', (tester) async {
+    await _pump(tester, notFound: true);
+
+    expect(find.byType(Card), findsNothing);
+    expect(find.text('Latest dive profile'), findsNothing);
+    expect(find.text('No profile data for this dive'), findsNothing);
   });
 
   // The home slot is a fixed-height box, and the full chart carries a legend
