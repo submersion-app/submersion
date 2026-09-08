@@ -15,6 +15,18 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import check_apk_signing_cert as guard  # noqa: E402
 
 
+def _sha1(data):
+    """SHA-1 of test bytes, matching the guard's own fingerprint helper.
+
+    See check_apk_signing_cert.sha1_fingerprint for why SHA-1 is fixed here
+    and why the CodeQL sensitive-data heuristic does not apply.
+    """
+    digest = hashlib.sha1(  # codeql[py/weak-sensitive-data-hashing]
+        data, usedforsecurity=False
+    )
+    return digest.hexdigest()
+
+
 def _length_prefixed(payload):
     """u32 length prefix, the encoding used throughout the v2/v3 schemes."""
     return struct.pack("<I", len(payload)) + payload
@@ -77,7 +89,7 @@ def _write_temp(data, suffix=".apk"):
 class SignerCertificateTest(unittest.TestCase):
     def setUp(self):
         self.cert = b"pretend-x509-der-bytes"
-        self.fingerprint = hashlib.sha1(self.cert).hexdigest()
+        self.fingerprint = _sha1(self.cert)
         self._paths = []
 
     def tearDown(self):
@@ -107,7 +119,7 @@ class SignerCertificateTest(unittest.TestCase):
                 guard.V3_BLOCK_ID: _length_prefixed(_signer_block(v3_cert)),
             },
         )
-        self.assertEqual(guard.signer_sha1(path), hashlib.sha1(v3_cert).hexdigest())
+        self.assertEqual(guard.signer_sha1(path), _sha1(v3_cert))
 
     def test_unsigned_apk_raises(self):
         raw = io.BytesIO()
@@ -163,12 +175,12 @@ class MainTest(unittest.TestCase):
 
     def test_accepts_a_registered_certificate(self):
         cert = b"registered-cert"
-        registered = {hashlib.sha1(cert).hexdigest(): "test keystore"}
+        registered = {_sha1(cert): "test keystore"}
         self.assertEqual(guard.main([self._apk(cert)], registered=registered), 0)
 
     def test_rejects_an_unregistered_certificate(self):
         cert = b"some-other-cert"
-        registered = {hashlib.sha1(b"registered-cert").hexdigest(): "test keystore"}
+        registered = {_sha1(b"registered-cert"): "test keystore"}
         self.assertEqual(guard.main([self._apk(cert)], registered=registered), 1)
 
     def test_rejects_an_unparseable_apk(self):

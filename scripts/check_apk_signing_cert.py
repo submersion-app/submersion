@@ -155,6 +155,28 @@ def _first_certificate(scheme_block):
     return certificate
 
 
+def sha1_fingerprint(certificate):
+    """Return a DER certificate's SHA-1 digest, as Google's console shows it.
+
+    SHA-1 is not a security choice here and cannot be exchanged for a stronger
+    digest. An Android OAuth client is registered against the SHA-1
+    fingerprint of the signing certificate, so this value is only meaningful
+    when computed the way Google computes it; a SHA-256 digest would match
+    nothing the console exposes.
+
+    Nothing secret is hashed: a signing certificate is public and ships inside
+    every copy of the APK. No integrity decision rests on the digest either.
+    Android verifies the signature itself, and this guard only compares
+    identifiers. Hence the `usedforsecurity=False` declaration, and the
+    suppression of CodeQL's name-based "sensitive data" heuristic, which fires
+    on the word "certificate" rather than on how the digest is used.
+    """
+    digest = hashlib.sha1(  # codeql[py/weak-sensitive-data-hashing]
+        certificate, usedforsecurity=False
+    )
+    return digest.hexdigest()
+
+
 def signer_sha1(path):
     """Return the lowercase SHA-1 hex digest of the APK's signer certificate."""
     with open(path, "rb") as apk:
@@ -163,8 +185,7 @@ def signer_sha1(path):
     pairs = _signing_block_pairs(data)
     for block_id in SCHEME_BLOCK_IDS:
         if block_id in pairs:
-            certificate = _first_certificate(pairs[block_id])
-            return hashlib.sha1(certificate).hexdigest()
+            return sha1_fingerprint(_first_certificate(pairs[block_id]))
     raise SigningBlockError(
         "APK Signing Block holds no v2, v3 or v3.1 signature scheme block"
     )
