@@ -73,6 +73,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     'RAID',
     'BSAC',
     'CMAS',
+    'FFESSM',
     'IANTD',
     'PSAI',
   ];
