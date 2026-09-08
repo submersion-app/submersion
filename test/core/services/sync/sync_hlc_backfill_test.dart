@@ -178,6 +178,32 @@ void main() {
     expect(await hlcOf('equipment_set_geofences', 'fence-1'), isNotNull);
   });
 
+  /// A species tag written before v195, when media_species had no clock of
+  /// its own. The photo and species it points at exist; only the tag's hlc
+  /// is missing, exactly as an affected build left it (issue #1638).
+  Future<void> seedLegacyMediaSpeciesTag() async {
+    await seedLegacyEnrichment('e-tag');
+    await db.customStatement(
+      "INSERT INTO species (id, common_name, category, is_built_in) "
+      "VALUES ('sp-1', 'Grouper', 'fish', 0)",
+    );
+    await db.customStatement(
+      'INSERT INTO media_species (id, media_id, species_id, created_at) '
+      "VALUES ('tag-1', 'm1', 'sp-1', 1000)",
+    );
+  }
+
+  test('stamps and publishes species tags written before v195', () async {
+    await seedLegacyMediaSpeciesTag();
+
+    await SyncRepository().backfillMissingHlc();
+
+    // Without this the diver's existing tags stay invisible to the
+    // incremental export until the tag is removed and re-added.
+    expect(await hlcOf('media_species', 'tag-1'), isNotNull);
+    expect(await pendingIdsFor('mediaSpecies'), contains('tag-1'));
+  });
+
   test('marks the backfilled rows pending so they publish', () async {
     await seedUnstampedEntities();
 

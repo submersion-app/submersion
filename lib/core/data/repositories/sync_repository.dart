@@ -105,6 +105,7 @@ class SyncRepository {
     'viewConfigs': (table: 'view_configs', pk: 'id'),
     'media': (table: 'media', pk: 'id'),
     'mediaEnrichment': (table: 'media_enrichment', pk: 'id'),
+    'mediaSpecies': (table: 'media_species', pk: 'id'),
     'species': (table: 'species', pk: 'id'),
     'fieldPresets': (table: 'field_presets', pk: 'id'),
     'qualityFindings': (table: 'quality_findings', pk: 'id'),
@@ -588,6 +589,18 @@ class SyncRepository {
       entityType: 'equipmentSetGeofences',
       table: 'equipment_set_geofences',
       timestamp: 'updated_at',
+      filter: null,
+    ),
+    // Species tags on photos, which gained the column in v195 (issue
+    // #1638). Every tag written before then is NULL here, so without this
+    // entry a diver's existing tags would stay invisible to the incremental
+    // export until the tag happened to be removed and re-added. The table
+    // has no updated_at; a tag is write-once, so created_at is the row's
+    // local update time.
+    (
+      entityType: 'mediaSpecies',
+      table: 'media_species',
+      timestamp: 'created_at',
       filter: null,
     ),
     // The packed sample series (schema v182). A row can reach these tables

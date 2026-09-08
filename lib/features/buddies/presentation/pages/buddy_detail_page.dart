@@ -256,9 +256,9 @@ class _BuddyDetailContent extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (buddy.certificationLevel != null)
+                if (buddy.certificationLine != null)
                   Text(
-                    buddy.certificationLevel!.displayName,
+                    buddy.certificationLine!,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
