@@ -313,4 +313,51 @@ void main() {
     await tester.pump();
     expect(notifier.loadNextPageCalls, 1);
   });
+
+  testWidgets('a kick scheduled before a load fails does not retry it', (
+    tester,
+  ) async {
+    // Short enough that the loader row is on screen from the first frame, so
+    // the kick is scheduled during that frame's layout.
+    final summaries = [for (var i = 3; i >= 1; i--) _summary(i)];
+    final notifier = _FakePaginatedNotifier(summaries)
+      ..shrinkToFirstPage(summaries);
+    final base = await getBaseOverrides();
+
+    // Post-frame callbacks run in registration order, and a parent builds
+    // before the child whose layout schedules the kick. So this lands first
+    // and stands in for a page load that started and failed inside the same
+    // frame the kick was scheduled in.
+    var flipped = false;
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          diveListViewModeProvider.overrideWith((ref) => ListViewMode.compact),
+          highlightedDiveIdProvider.overrideWith((ref) => null),
+          paginatedDiveListProvider.overrideWith((ref) => notifier),
+        ],
+        child: Builder(
+          builder: (context) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (flipped) return;
+              flipped = true;
+              notifier.failLoadMore(summaries);
+            });
+            return const DiveListContent(showAppBar: true);
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(flipped, isTrue, reason: 'the interleaving under test must happen');
+    expect(
+      notifier.loadNextPageCalls,
+      0,
+      reason:
+          'a kick scheduled before the failure must re-read the state, not '
+          'clear loadMoreFailed and retry behind the Retry button (#1610)',
+    );
+  });
 }

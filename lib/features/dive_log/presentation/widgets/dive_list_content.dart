@@ -220,6 +220,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _autoLoadKickScheduled = false;
       if (!mounted) return;
+      // Re-read rather than trusting the state this was scheduled from. A load
+      // can start and fail between that build and the end of the frame, and
+      // this kick must not be the thing that clears loadMoreFailed and retries
+      // behind the diver's back -- after a failure the Retry button is the
+      // only way back.
+      final latest = ref.read(paginatedDiveListProvider).value;
+      if (latest == null || !latest.hasMore) return;
+      if (latest.isLoadingMore || latest.loadMoreFailed) return;
       ref.read(paginatedDiveListProvider.notifier).loadNextPage();
     });
   }
