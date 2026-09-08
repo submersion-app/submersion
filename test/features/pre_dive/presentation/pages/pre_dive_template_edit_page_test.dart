@@ -516,6 +516,39 @@ void main() {
       expect(find.byIcon(Icons.delete_outline), findsNothing);
     });
 
+    testWidgets('item rows show nothing that reads as a control', (
+      tester,
+    ) async {
+      // An empty checkbox was standing in as an alignment spacer, but that
+      // glyph reads as "tap to toggle" on rows whose onTap is null. Nothing
+      // in this mode has a leading control to align with, so the column goes
+      // rather than being filled with a lookalike.
+      await pumpBuiltIn(tester);
+      expect(find.byIcon(Icons.check_box_outline_blank), findsNothing);
+      expect(find.byIcon(Icons.check_box), findsNothing);
+      expect(find.byType(Checkbox), findsNothing);
+
+      final tile = tester.widget<ListTile>(
+        find.widgetWithText(ListTile, 'Goal: agree the objective'),
+      );
+      expect(tile.leading, isNull);
+      expect(tile.onTap, isNull, reason: 'read-only rows are not tappable');
+    });
+
+    testWidgets('an editable template keeps its per-item delete', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        templateId: 'tpl-1',
+        repo: _FakeTemplateRepo(
+          template: templateFixture(),
+          items: [itemFixture('Mine')],
+        ),
+      );
+      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+    });
+
     testWidgets('a user template keeps its editor', (tester) async {
       await pumpPage(
         tester,

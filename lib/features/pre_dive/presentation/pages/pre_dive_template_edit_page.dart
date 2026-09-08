@@ -246,8 +246,16 @@ class _PreDiveTemplateEditPageState
                                 l10n.preDive_item_required,
                             ].join(' - '),
                           ),
+                          // No leading column at all in read-only mode. An
+                          // empty checkbox was standing in as a spacer, but
+                          // that glyph reads as "tap to toggle" on a row
+                          // whose onTap is null, and these template items
+                          // have no state to toggle. Nothing here needs
+                          // aligning either: every row in this mode lacks the
+                          // delete button, so reserving its column would hold
+                          // space for a control that never appears.
                           leading: _readOnly
-                              ? const Icon(Icons.check_box_outline_blank)
+                              ? null
                               : IconButton(
                                   icon: const Icon(Icons.delete_outline),
                                   onPressed: () => setState(
