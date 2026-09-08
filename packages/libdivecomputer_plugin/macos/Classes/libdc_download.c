@@ -60,6 +60,11 @@ typedef struct {
     unsigned int current_deco_time;
     double current_deco_depth;
     unsigned int current_deco_tts;
+    // Water temperature, carried the same way: a computer that logs depth (or,
+    // on the Suunto Nautic, high-rate IMU) far more often than temperature is
+    // not saying the water temperature is unknown between readings. Without
+    // this the temperature trace is mostly gaps on such computers.
+    double current_temp;
     libdc_sample_t current_sample;
     // GPS reported as profile samples (see DC_SAMPLE_LOCATION below). Fixes
     // are only collected here and resolved once the whole profile has been
@@ -255,7 +260,8 @@ static void sample_callback(dc_sample_type_t type,
         // the surface. fill_missing_depths() resolves the NANs once the whole
         // profile is known -- no NAN depth ever leaves this file.
         state->current_sample.depth = NAN;
-        state->current_sample.temperature = NAN;
+        // Carry temperature forward (NAN only until the first reading).
+        state->current_sample.temperature = state->current_temp;
         state->current_sample.pressure = NAN;
         state->current_sample.tank = UINT32_MAX;
         for (unsigned int t = 0; t < LIBDC_MAX_TANKS; t++) {
@@ -287,6 +293,7 @@ static void sample_callback(dc_sample_type_t type,
         state->current_sample.depth = value->depth;
         break;
     case DC_SAMPLE_TEMPERATURE:
+        state->current_temp = value->temperature;
         state->current_sample.temperature = value->temperature;
         break;
     case DC_SAMPLE_PRESSURE:
@@ -604,6 +611,7 @@ static int extract_dive_fields(dc_parser_t *parser, libdc_parsed_dive_t *dive) {
     sample_state.current_deco_type = UINT32_MAX;  // no obligation reported yet
     sample_state.current_deco_depth = NAN;
     sample_state.current_deco_tts = UINT32_MAX;
+    sample_state.current_temp = NAN;  // no reading yet
     sample_state.has_field_entry = has_field_entry;
     sample_state.has_field_exit = has_field_exit;
     dc_parser_samples_foreach(parser, sample_callback, &sample_state);

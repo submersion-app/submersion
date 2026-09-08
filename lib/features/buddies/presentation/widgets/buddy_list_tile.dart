@@ -12,13 +12,12 @@ import 'package:submersion/features/dive_roles/presentation/dive_role_display.da
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_extra_fields.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
-import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
 /// Detailed list card for one buddy.
 ///
@@ -106,18 +105,13 @@ class BuddyListTile extends ConsumerWidget {
         ? null
         : (roleMap?[usualRoleId] ?? DiveRole.synthetic(usualRoleId));
 
-    final certParts = <String>[
-      if (buddy.certificationLevel != null)
-        buddy.certificationLevel!.localizedName(context.l10n),
-      if (buddy.certificationAgency != null)
-        buddy.certificationAgency!.localizedName(context.l10n),
-    ];
+    final certLine = buddyCertificationLineL10n(buddy, context.l10n);
 
     final trailer = <Widget>[
-      if (certParts.isNotEmpty)
+      if (certLine != null)
         _BuddyChip(
           icon: Icons.card_membership,
-          label: certParts.join(' · '),
+          label: certLine,
           color: agencyColor ?? statColor,
         ),
       if (usualRole != null)

@@ -1451,6 +1451,15 @@ class MediaSpecies extends Table {
   TextColumn get notes => text().nullable()();
   IntColumn get createdAt => integer()();
 
+  /// Hybrid Logical Clock, added in v195 (issue #1638). The row is
+  /// write-once, so the clock is not here to resolve conflicts: it is what
+  /// makes the tag visible to the incremental export, which ships rows whose
+  /// `hlc` is above the peer watermark. Before v195 this table rode the
+  /// parent `media.hlc`, and since tagging a photo never edits the photo,
+  /// a tag reached peers only on a full base publish. Nullable: rows written
+  /// before v195 are stamped by `SyncRepository.backfillMissingHlc`.
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -3415,7 +3424,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 194;
+  static const int currentSchemaVersion = 195;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3902,6 +3911,15 @@ class AppDatabase extends _$AppDatabase {
     // at or below the shipped version never runs its onUpgrade step.
     191,
     194,
+    // v195: media_species.hlc, so a species tag on a photo publishes in an
+    // incremental changeset instead of waiting for a full base publish
+    // (issue #1638). Additive nullable column; the one-time stamp of the
+    // rows already on disk is SyncRepository.backfillMissingHlc, which runs
+    // at the start of every sync. Renumbered from 192: main landed the
+    // transmitter-serial rung at 194 while this branch was open, 192 and 193
+    // are held by other open branches, and a rung at or below the shipped
+    // version never runs its onUpgrade step.
+    195,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6486,6 +6504,19 @@ class AppDatabase extends _$AppDatabase {
         'REAL NOT NULL DEFAULT ${entry.value}',
       );
     }
+  }
+
+  /// The v195 media_species.hlc column (issue #1638): the tag's own clock,
+  /// which is what puts it in an incremental changeset. PRAGMA-guarded so a
+  /// healthy database no-ops and a partial schema does not throw. Called
+  /// from the v195 onUpgrade step and the beforeOpen backstop, matching the
+  /// other additive column helpers.
+  Future<void> _assertMediaSpeciesHlcColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media_species')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('hlc')) return;
+    await customStatement('ALTER TABLE media_species ADD COLUMN hlc TEXT');
   }
 
   /// Owning-source FK on dive_profiles (issue #1149). PRAGMA-guarded so a
@@ -10328,6 +10359,15 @@ class AppDatabase extends _$AppDatabase {
           await _assertTankTransmitterSerialColumn();
         }
         if (from < 194) await reportProgress();
+        // v195: media_species gains its own clock (issue #1638). Additive
+        // nullable column. The rows already on disk stay NULL here and are
+        // stamped by SyncRepository.backfillMissingHlc at the start of the
+        // next sync, which is also what publishes them to peers. Renumbered
+        // from 192, which is held by another open branch.
+        if (from < 195) {
+          await _assertMediaSpeciesHlcColumn();
+        }
+        if (from < 195) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -10502,6 +10542,11 @@ class AppDatabase extends _$AppDatabase {
         // columns. A database that arrives by restore or sync-adopt never
         // runs onUpgrade, and reading a plan without them throws.
         await _assertPlanAscentRateColumns();
+
+        // v195 backstop: re-assert media_species.hlc. A database that
+        // arrives by restore or sync-adopt never runs onUpgrade, and both
+        // reading a tag and stamping one throw without the column.
+        await _assertMediaSpeciesHlcColumn();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).

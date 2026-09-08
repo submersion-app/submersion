@@ -49,10 +49,11 @@ void main() {
     expect(row.data['transmitter_serial'], isNull);
   });
 
-  test('migration list includes v194 and schema is exactly 194', () {
-    // The newest rung owns the exact assertion; relax to
-    // greaterThanOrEqualTo when the next rung lands.
-    expect(AppDatabase.currentSchemaVersion, 194);
+  test('migration list includes v194', () {
+    // Relaxed as its own comment instructed when the next rung (v195,
+    // media_species.hlc) landed: the exact assertion is the newest rung's
+    // job and moves with it.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(194));
     expect(AppDatabase.migrationVersions, contains(194));
   });
 

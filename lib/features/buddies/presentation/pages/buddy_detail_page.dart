@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -20,7 +21,6 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
-import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
@@ -257,9 +257,9 @@ class _BuddyDetailContent extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (buddy.certificationLevel != null)
+                if (buddyCertificationLineL10n(buddy, context.l10n) != null)
                   Text(
-                    buddy.certificationLevel!.localizedName(context.l10n),
+                    buddyCertificationLineL10n(buddy, context.l10n)!,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),

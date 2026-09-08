@@ -1,4 +1,7 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
@@ -8,9 +11,10 @@ import '../../../helpers/test_database.dart';
 
 void main() {
   late SyncDataSerializer serializer;
+  late AppDatabase db;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     serializer = SyncDataSerializer();
     await insertTestDive(id: 'd1', at: DateTime(2024, 1, 10));
     await insertTestSpecies(id: 'c1', name: 'Grouper');
@@ -74,4 +78,58 @@ void main() {
       ('speciesId', 'species', false),
     });
   });
+
+  Future<String?> hlcOf(String table, String id) async {
+    final row = await db
+        .customSelect(
+          'SELECT hlc FROM "$table" WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingleOrNull();
+    return row?.read<String?>('hlc');
+  }
+
+  test('a tag written through the repository is stamped with an hlc', () async {
+    final tag = await MediaSpeciesRepository().addTag(
+      mediaId: 'p1',
+      speciesId: 'c1',
+    );
+
+    // A null hlc is invisible to the incremental export forever: the filter
+    // is `hlc > watermark` and SQL `NULL > x` is not true. Writing through
+    // the repository is the only way to catch it -- the remote apply path
+    // carries the peer's hlc in the payload and would mask the gap.
+    expect(await hlcOf('media_species', tag.id), isNotNull);
+  });
+
+  test(
+    'an incremental changeset carries a tag on an untouched photo',
+    () async {
+      // The photo was published on an earlier sync and tagging does not edit
+      // it, so its own clock never advances past the watermark (issue #1638).
+      await SyncRepository().markRecordPending(
+        entityType: 'media',
+        recordId: 'p1',
+        localUpdatedAt: 1000,
+      );
+      final watermark = await hlcOf('media', 'p1');
+      expect(watermark, isNotNull);
+
+      final tag = await MediaSpeciesRepository().addTag(
+        mediaId: 'p1',
+        speciesId: 'c1',
+      );
+      final payload = await serializer.exportChangeset(
+        deviceId: 'device-1',
+        hlcWatermark: watermark,
+        deletions: const [],
+      );
+
+      expect(
+        payload.data.mediaSpecies.map((r) => r['id']),
+        contains(tag.id),
+        reason: 'the tag is newer than the watermark and must publish',
+      );
+    },
+  );
 }
