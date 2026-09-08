@@ -65,9 +65,12 @@ class MacDiveXmlReader {
       cns: _double(_text(el, 'cns')),
       decoModel: _text(el, 'decoModel'),
       duration: _durationSeconds(_int(_text(el, 'duration'))),
-      // MacDive's real files emit surfaceInterval in seconds (observed in
-      // the Apr 4 Socorro sample: 142 between adjacent liveaboard dives).
-      surfaceInterval: _durationSeconds(_int(_text(el, 'surfaceInterval'))),
+      // MacDive's XML is mixed-unit: `duration` and `sampleInterval` are
+      // seconds, but `surfaceInterval` is minutes (#1606). MacDive's own UDDF
+      // exporter writes `passedtime` (seconds, per the UDDF spec) as this
+      // value times 60, for every dive in a real 540-dive logbook. Reading it
+      // as seconds showed a reported 2h18m interval as 2m.
+      surfaceInterval: _durationMinutes(_int(_text(el, 'surfaceInterval'))),
       sampleInterval: _durationSeconds(_int(_text(el, 'sampleInterval'))),
       gasModel: _text(el, 'gasModel'),
       airTempCelsius: c.tempToCelsius(_double(_text(el, 'tempAir'))),
@@ -277,6 +280,18 @@ class MacDiveXmlReader {
   static Duration? _durationSeconds(int? seconds) {
     if (seconds == null) return null;
     return Duration(seconds: seconds);
+  }
+
+  /// MacDive's surface interval, in minutes.
+  ///
+  /// Non-positive values mean "no prior dive" rather than a zero-length
+  /// interval. MacDive stores 0 for the first dive of a series, and did so
+  /// for 110 of the 540 dives in the reference logbook. Returning null keeps
+  /// those dives blank instead of stamping them with 0m, and matches how the
+  /// SQLite path and UDDF's `<infinity/>` are already handled.
+  static Duration? _durationMinutes(int? minutes) {
+    if (minutes == null || minutes <= 0) return null;
+    return Duration(minutes: minutes);
   }
 
   static List<String> _childList(

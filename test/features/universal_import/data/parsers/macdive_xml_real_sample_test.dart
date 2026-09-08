@@ -91,6 +91,37 @@ void main() {
       },
     );
 
+    // #1606: surface interval is minutes in MacDive's XML, and was being
+    // read as seconds. Rather than pin a personal logbook's exact values,
+    // this asserts the scale: 271 of these 540 dives carry a surface
+    // interval whose median raw value is 128. Read as minutes that is 2h08m;
+    // read as seconds it collapses to 2m08s, so a 30-minute median is a wide
+    // margin either side of the regression.
+    test('surface intervals are minute-scale, and no dive gets 0m', () async {
+      if (skipIfNoFixture()) return;
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final intervals = payload
+          .entitiesOf(ImportEntityType.dives)
+          .map((d) => d['surfaceInterval'])
+          .whereType<Duration>()
+          .toList(growable: false);
+
+      expect(intervals, isNotEmpty);
+      expect(
+        intervals.any((i) => i == Duration.zero),
+        isFalse,
+        reason: 'MacDive stores 0 for "no prior dive", not a 0m interval',
+      );
+
+      final sorted = [...intervals]..sort();
+      final median = sorted[sorted.length ~/ 2];
+      expect(
+        median,
+        greaterThan(const Duration(minutes: 30)),
+        reason: 'a seconds misread drops the median by a factor of 60',
+      );
+    });
+
     test('every dive has a sourceUuid from <identifier>', () async {
       if (skipIfNoFixture()) return;
       final payload = await const MacDiveXmlParser().parse(bytes);

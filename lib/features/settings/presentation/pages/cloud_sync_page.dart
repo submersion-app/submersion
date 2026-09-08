@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
@@ -59,6 +60,18 @@ String connectionErrorMessage(
   }
   return l10n.settings_cloudSync_provider_connectionFailed(providerName, error);
 }
+
+/// Snackbar-safe text for a connection failure.
+///
+/// [CloudStorageException.displayMessage] exists for this: its `toString`
+/// prefixes the class name, which reached users as "Google Drive connection
+/// failed: CloudStorageException: ...". The cause is kept either way, since
+/// that is where the actionable detail lives.
+///
+/// Pure (no `BuildContext`/`ref`) so it is unit-testable on any host.
+@visibleForTesting
+String errorDisplayText(Object error) =>
+    error is CloudStorageException ? error.displayMessage : error.toString();
 
 class CloudSyncPage extends ConsumerStatefulWidget {
   const CloudSyncPage({super.key});
@@ -920,7 +933,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
       provider,
       iCloudAvailability,
       providerName,
-      error.toString(),
+      errorDisplayText(error),
     );
   }
 

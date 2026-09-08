@@ -314,6 +314,7 @@ class TankInfo {
     this.startPressureBar,
     this.endPressureBar,
     this.usage,
+    this.transmitterSerial,
   });
 
   int index;
@@ -330,6 +331,12 @@ class TankInfo {
   /// 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
   int? usage;
 
+  /// Serial number of the air-integration transmitter that reported this
+  /// tank's pressures (`dc_tank_t.serial`, a fork extension); null when the
+  /// computer reported none. Identifies the physical cylinder across
+  /// computers paired to the same transmitter.
+  int? transmitterSerial;
+
   Object encode() {
     return <Object?>[
       index,
@@ -338,6 +345,7 @@ class TankInfo {
       startPressureBar,
       endPressureBar,
       usage,
+      transmitterSerial,
     ];
   }
 
@@ -350,6 +358,7 @@ class TankInfo {
       startPressureBar: result[3] as double?,
       endPressureBar: result[4] as double?,
       usage: result[5] as int?,
+      transmitterSerial: result[6] as int?,
     );
   }
 }

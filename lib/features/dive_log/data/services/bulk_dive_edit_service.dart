@@ -360,6 +360,8 @@ class BulkDiveEditService {
                 orElse: () => en.TankMaterial.aluminum,
               ),
         presetName: r.presetName,
+        computerId: r.computerId,
+        transmitterSerial: r.transmitterSerial,
       ),
   ];
 

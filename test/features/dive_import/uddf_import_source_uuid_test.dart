@@ -163,6 +163,26 @@ void main() {
       );
     });
 
+    test('persists the tankdata transmitterserial to dive_tanks', () async {
+      final diverId = await createTestDiver();
+      final uddf = buildMinimalUddf().replaceFirst(
+        '<tankvolume>12.0</tankvolume>',
+        '<tankvolume>12.0</tankvolume>\n'
+            '          <transmitterserial>180777</transmitterserial>',
+      );
+
+      final parsed = await exportService.importAllDataFromUddf(uddf);
+      await importer.import(
+        data: parsed,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: buildRepositories(),
+        diverId: diverId,
+      );
+
+      final tanks = await db.select(db.diveTanks).get();
+      expect(tanks.single.transmitterSerial, '180777');
+    });
+
     test(
       'writes null source_uuid when UDDF <dive> has no id attribute',
       () async {

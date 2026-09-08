@@ -188,7 +188,9 @@ class SerialDownloadRunner(private val context: Context) {
                 gasMixIndex = tk[0].toLong(),
                 volumeLiters = if (tk[1] > 0) tk[1] else null,
                 startPressureBar = if (tk[3] > 0) tk[3] else null,
-                endPressureBar = if (tk[4] > 0) tk[4] else null
+                endPressureBar = if (tk[4] > 0) tk[4] else null,
+                usage = if (tk[5].toLong() == 0L) null else tk[5].toLong(),
+                transmitterSerial = tk.getOrNull(6)?.toLong()?.takeIf { it != 0L },
             )
         }
 

@@ -8,6 +8,8 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
     show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 
 /// Repository for managing per-tank time-series pressure data
@@ -27,18 +29,34 @@ class TankPressureRepository {
   /// store: v183 dropped `tank_pressure_profiles`.
   Future<Map<String, List<TankPressurePoint>>> getTankPressuresForDive(
     String diveId,
-  ) async {
-    final series = await _tankSeries.getSeriesForDive(diveId);
+  ) async => _groupByTank(await _tankSeries.getSeriesForDive(diveId));
+
+  /// [getTankPressuresForDive] as one computer saw the dive: on a tank that
+  /// [computerId] logged, only its series; on any other tank, every series.
+  /// See [selectTankSeriesForComputer] for why a consolidated dive needs
+  /// this (two computers on one transmitter interleave on one tank).
+  Future<Map<String, List<TankPressurePoint>>> getTankPressuresForComputer(
+    String diveId,
+    String? computerId,
+  ) async => _groupByTank(
+    selectTankSeriesForComputer(
+      await _tankSeries.getSeriesForDive(diveId),
+      computerId,
+    ),
+  );
+
+  Map<String, List<TankPressurePoint>> _groupByTank(
+    List<domain.TankPressureSeries> series,
+  ) {
     if (series.isEmpty) return const <String, List<TankPressurePoint>>{};
-    final byTank = <String, List<dynamic>>{};
+    final byTank = <String, List<domain.TankPressureSeries>>{};
     for (final s in series) {
       byTank.putIfAbsent(s.tankId, () => []).add(s);
     }
-    final result = <String, List<TankPressurePoint>>{};
-    for (final entry in byTank.entries) {
-      result[entry.key] = mergeTankSeriesPoints(entry.value.cast());
-    }
-    return result;
+    return {
+      for (final entry in byTank.entries)
+        entry.key: mergeTankSeriesPoints(entry.value),
+    };
   }
 
   /// Get pressure data for a specific tank.

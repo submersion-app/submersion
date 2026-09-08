@@ -823,8 +823,16 @@ class MacDiveDiveMapper {
       map['runtime'] = runtime;
       map['duration'] = runtime;
     }
-    if (d.surfaceInterval != null && d.surfaceInterval! > 0) {
-      map['surfaceInterval'] = Duration(seconds: d.surfaceInterval!.round());
+    // `ZSURFACEINTERVAL` is minutes, not seconds (#1606). Joining a real
+    // MacDive.sqlite against the XML export of the same logbook shows the
+    // column and `<surfaceInterval>` carrying the identical number, and
+    // MacDive's UDDF export of that number is `value * 60` seconds. A 0
+    // means "no prior dive", so it stays unset.
+    // The column is a float, so round before the guard: testing the raw
+    // value would let a fraction of a minute through as Duration.zero.
+    final surfaceIntervalMinutes = d.surfaceInterval?.round();
+    if (surfaceIntervalMinutes != null && surfaceIntervalMinutes > 0) {
+      map['surfaceInterval'] = Duration(minutes: surfaceIntervalMinutes);
     }
 
     final waterTemp = c.tempToCelsius(d.tempLow);

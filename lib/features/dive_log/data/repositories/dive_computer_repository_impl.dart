@@ -1431,6 +1431,7 @@ class DiveComputerRepository {
                 hePercent: Value(tank.hePercent),
                 tankOrder: Value(tank.index),
                 tankRole: Value(tank.role ?? 'backGas'),
+                transmitterSerial: Value(tank.transmitterSerial),
               ),
             );
             _log.info(
@@ -2087,6 +2088,12 @@ class DiveComputerRepository {
         // Remaining bottom time (Uwatec) and air time (Suunto) alarms both
         // mean the gas supply is running short at the current rate.
         return 'lowGas';
+      // The Suunto Cloud parser (suunto_cloud_event_map) names these
+      // ProfileEventType values directly -- no libdivecomputer equivalent.
+      case 'cnsWarning':
+      case 'cnsCritical':
+      case 'missedStop':
+        return type;
       default:
         return null;
     }
@@ -2099,9 +2106,12 @@ class DiveComputerRepository {
     switch (eventType) {
       case 'decoViolation':
       case 'ppO2High':
+      case 'cnsCritical':
+      case 'missedStop':
         return 'alert';
       case 'ascentRateWarning':
       case 'lowGas':
+      case 'cnsWarning':
         return 'warning';
       case 'safetyStopStart':
       case 'decoStopStart':
@@ -2303,6 +2313,10 @@ class TankData {
   /// Inferred cylinder role (a [TankRole] name), or null for the default.
   final String? role;
 
+  /// Serial of the air-integration transmitter the computer read this tank
+  /// from, or null when it reported none.
+  final String? transmitterSerial;
+
   const TankData({
     required this.index,
     required this.o2Percent,
@@ -2314,6 +2328,7 @@ class TankData {
     this.material,
     this.presetName,
     this.role,
+    this.transmitterSerial,
   });
 }
 
