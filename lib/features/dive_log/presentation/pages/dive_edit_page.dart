@@ -4435,8 +4435,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   /// Save the current weighting as a named, reusable preset (issue #1609).
   Future<void> _saveWeightsAsPreset() async {
-    final diverId = ref.read(currentDiverIdProvider);
-    if (diverId == null) return;
+    // Resolve the diver the same way weightPresetsProvider does -- fall back to
+    // the default diver when the current-diver pref is unset, so "Save as
+    // preset" works wherever "Use preset" does.
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null || !mounted) return;
     final name = await NamePromptDialog.show(
       context,
       title: context.l10n.diveLog_edit_weightPreset_saveTitle,
