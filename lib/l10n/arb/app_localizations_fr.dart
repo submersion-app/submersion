@@ -10905,7 +10905,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_weightType_belt => 'Ceinture de lest';
 
   @override
-  String get enum_weightType_integrated => 'Lest largable';
+  String get enum_weightType_integrated => 'Poches intégrées largables';
 
   @override
   String get enum_weightType_mixed => 'Mixte/Combiné';
