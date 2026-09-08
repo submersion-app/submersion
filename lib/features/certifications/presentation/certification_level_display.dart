@@ -141,8 +141,7 @@ extension CertificationLevelDisplay on CertificationLevel {
     CertificationLevel.ffessmPhoto3 ||
     CertificationLevel.ffessmVideo1 ||
     CertificationLevel.ffessmVideo2 ||
-    CertificationLevel.ffessmVideo3 =>
-      displayName,
+    CertificationLevel.ffessmVideo3 => displayName,
     CertificationLevel.other => l10n.enum_certificationLevel_other,
   };
 }
