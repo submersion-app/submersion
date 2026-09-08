@@ -24,6 +24,7 @@ extension CertificationAgencyDisplay on CertificationAgency {
     CertificationAgency.cmas => l10n.enum_certificationAgency_cmas,
     CertificationAgency.iantd => l10n.enum_certificationAgency_iantd,
     CertificationAgency.psai => l10n.enum_certificationAgency_psai,
+    CertificationAgency.ffessm => l10n.enum_certificationAgency_ffessm,
     CertificationAgency.other => l10n.enum_certificationAgency_other,
   };
 }

@@ -52,4 +52,16 @@ void main() {
       expect(level.localizedName(fr), equals(level.localizedName(en)));
     }
   });
+
+  test('FFESSM cursus grades keep their French federation names', () {
+    for (final level in [
+      CertificationLevel.ffessmN2,
+      CertificationLevel.ffessmMf1,
+      CertificationLevel.ffessmPlongeurBronze,
+      CertificationLevel.ffessmRifap,
+    ]) {
+      expect(level.localizedName(en), equals(level.displayName));
+      expect(level.localizedName(fr), equals(level.displayName));
+    }
+  });
 }

@@ -3256,6 +3256,7 @@
   "enum_ascentRate_warning": "تحذير",
   "enum_certificationAgency_bsac": "BSAC",
   "enum_certificationAgency_cmas": "CMAS",
+  "enum_certificationAgency_ffessm": "FFESSM",
   "enum_certificationAgency_gue": "GUE",
   "enum_certificationAgency_iantd": "IANTD",
   "enum_certificationAgency_naui": "NAUI",

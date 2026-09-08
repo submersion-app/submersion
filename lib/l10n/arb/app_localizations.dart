@@ -16686,6 +16686,12 @@ abstract class AppLocalizations {
   /// **'CMAS'**
   String get enum_certificationAgency_cmas;
 
+  /// No description provided for @enum_certificationAgency_ffessm.
+  ///
+  /// In en, this message translates to:
+  /// **'FFESSM'**
+  String get enum_certificationAgency_ffessm;
+
   /// No description provided for @enum_certificationAgency_gue.
   ///
   /// In en, this message translates to:

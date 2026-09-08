@@ -9,11 +9,13 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// This getter drives on-screen UI so the same values honor the active locale
 /// (issue #1608).
 ///
-/// Agency-specific proprietary grade names (BSAC, GUE, TDI Extended Range) are
-/// kept in English in every locale, the same way the agency acronyms are.
+/// Agency-specific proprietary grade names (BSAC, GUE, TDI Extended Range, and
+/// the whole FFESSM federation cursus) keep their own-language names in every
+/// locale, the same way the agency acronyms are not translated.
 ///
 /// The switch is exhaustive by enum value, so adding a value is a compile error
-/// until its localization key is wired in.
+/// until it is wired to a localization key (or, for a proprietary grade name,
+/// to [displayName]).
 extension CertificationLevelDisplay on CertificationLevel {
   String localizedName(AppLocalizations l10n) => switch (this) {
     CertificationLevel.openWater => l10n.enum_certificationLevel_openWater,
@@ -90,6 +92,57 @@ extension CertificationLevelDisplay on CertificationLevel {
     CertificationLevel.gueCave1 => l10n.enum_certificationLevel_gueCave1,
     CertificationLevel.gueCave2 => l10n.enum_certificationLevel_gueCave2,
     CertificationLevel.gueDpv => l10n.enum_certificationLevel_gueDpv,
+    // The FFESSM cursus (issue #690 / #1607) is the French federation's own
+    // Manuel de Formation Technique; its grade names are French proper nouns
+    // and are not localized, the same as the BSAC / GUE proprietary names.
+    CertificationLevel.ffessmPlongeurBronze ||
+    CertificationLevel.ffessmPlongeurArgent ||
+    CertificationLevel.ffessmPlongeurOr ||
+    CertificationLevel.ffessmN1 ||
+    CertificationLevel.ffessmN2 ||
+    CertificationLevel.ffessmN3 ||
+    CertificationLevel.ffessmN4 ||
+    CertificationLevel.ffessmN5 ||
+    CertificationLevel.ffessmInitiateur ||
+    CertificationLevel.ffessmE2 ||
+    CertificationLevel.ffessmMf1 ||
+    CertificationLevel.ffessmMf2 ||
+    CertificationLevel.ffessmPe12 ||
+    CertificationLevel.ffessmPe40 ||
+    CertificationLevel.ffessmPe60 ||
+    CertificationLevel.ffessmPa12 ||
+    CertificationLevel.ffessmPa20 ||
+    CertificationLevel.ffessmPa40 ||
+    CertificationLevel.ffessmNitrox ||
+    CertificationLevel.ffessmNitroxConfirme ||
+    CertificationLevel.ffessmMoniteurNitroxConfirme ||
+    CertificationLevel.ffessmTrimixElementaire ||
+    CertificationLevel.ffessmTrimix ||
+    CertificationLevel.ffessmMoniteurTrimix ||
+    CertificationLevel.ffessmRecycleurScr ||
+    CertificationLevel.ffessmRecycleurCcr ||
+    CertificationLevel.ffessmMoniteurRecycleurCcr ||
+    CertificationLevel.ffessmRifap ||
+    CertificationLevel.ffessmAnteor ||
+    CertificationLevel.ffessmVetementEtanche ||
+    CertificationLevel.ffessmSidemount ||
+    CertificationLevel.ffessmTiv ||
+    CertificationLevel.ffessmFormateurTiv ||
+    CertificationLevel.ffessmBio1 ||
+    CertificationLevel.ffessmBio2 ||
+    CertificationLevel.ffessmFormateurBio1 ||
+    CertificationLevel.ffessmFormateurBio2 ||
+    CertificationLevel.ffessmFormateurBio3 ||
+    CertificationLevel.ffessmSouterrain1 ||
+    CertificationLevel.ffessmSouterrain2 ||
+    CertificationLevel.ffessmSouterrain3 ||
+    CertificationLevel.ffessmPhoto1 ||
+    CertificationLevel.ffessmPhoto2 ||
+    CertificationLevel.ffessmPhoto3 ||
+    CertificationLevel.ffessmVideo1 ||
+    CertificationLevel.ffessmVideo2 ||
+    CertificationLevel.ffessmVideo3 =>
+      displayName,
     CertificationLevel.other => l10n.enum_certificationLevel_other,
   };
 }

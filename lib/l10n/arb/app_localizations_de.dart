@@ -9985,6 +9985,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_certificationAgency_gue => 'GÜ';
 
   @override
+  String get enum_certificationAgency_ffessm => 'FFESSM';
+
+  @override
   String get enum_certificationAgency_iantd => 'IANTD';
 
   @override
