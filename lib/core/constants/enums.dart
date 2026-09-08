@@ -257,8 +257,8 @@ enum CertificationLevel {
   ffessmN4('N4 - Guide de Palanquée'),
   ffessmN5('N5 - Directeur de Plongée'),
   // Teaching ladder
-  ffessmInitiateur('Initiateur'),
-  ffessmE2('Encadrant E2'),
+  ffessmInitiateur('E1 - Initiateur'),
+  ffessmE2('E2 - Encadrant'),
   ffessmMf1('MF1 - Moniteur Fédéral 1er degré'),
   ffessmMf2('MF2 - Moniteur Fédéral 2e degré'),
   // Modular aptitudes — PE = Plongeur Encadré (supervised), PA = Plongeur
