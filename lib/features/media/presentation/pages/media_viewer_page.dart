@@ -17,6 +17,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -382,7 +383,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage> {
             final gasSwitches =
                 ref.watch(gasSwitchesProvider(currentDiveId)).value ?? const [];
             final tankPressures = ref
-                .watch(tankPressuresProvider(currentDiveId))
+                .watch(activeSourceTankPressuresProvider(currentDiveId))
                 .value;
             final primarySource =
                 dataSources.where((s) => s.isPrimary).firstOrNull ??

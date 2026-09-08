@@ -116,6 +116,70 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.cmas3StarInstructor,
   ];
 
+  /// FFESSM progression ladder (issue #690): the youth cursus, then the
+  /// Niveaux, then the E1-E4 teaching track. The modular PE/PA aptitudes and
+  /// the Tek / safety qualifications are NOT rungs — a diver validates them
+  /// alongside a Niveau, not in place of one — so they live in
+  /// [_ffessmSpecialties]. CMAS-affiliated but distinctly named, so it does
+  /// not reuse [_cmasLadder].
+  static const List<CertificationLevel> _ffessmLadder = [
+    CertificationLevel.ffessmPlongeurBronze,
+    CertificationLevel.ffessmPlongeurArgent,
+    CertificationLevel.ffessmPlongeurOr,
+    CertificationLevel.ffessmN1,
+    CertificationLevel.ffessmN2,
+    CertificationLevel.ffessmN3,
+    CertificationLevel.ffessmN4,
+    CertificationLevel.ffessmN5,
+    CertificationLevel.ffessmInitiateur,
+    CertificationLevel.ffessmE2,
+    CertificationLevel.ffessmMf1,
+    CertificationLevel.ffessmMf2,
+  ];
+
+  /// FFESSM's modular qualifications, offered instead of the shared
+  /// [specialties] for this agency: the PE/PA aptitudes (validated on their
+  /// own, e.g. N1 + PA-20 + PE-40), the Tek mixed-gas / rebreather brevets,
+  /// the safety and the technical qualifications. FFESSM names its own, the
+  /// same way the CMAS/BSAC/GUE ratings are their own values.
+  static const List<CertificationLevel> _ffessmSpecialties = [
+    CertificationLevel.ffessmPe12,
+    CertificationLevel.ffessmPe40,
+    CertificationLevel.ffessmPe60,
+    CertificationLevel.ffessmPa12,
+    CertificationLevel.ffessmPa20,
+    CertificationLevel.ffessmPa40,
+    CertificationLevel.ffessmNitrox,
+    CertificationLevel.ffessmNitroxConfirme,
+    CertificationLevel.ffessmMoniteurNitroxConfirme,
+    CertificationLevel.ffessmTrimixElementaire,
+    CertificationLevel.ffessmTrimix,
+    CertificationLevel.ffessmMoniteurTrimix,
+    CertificationLevel.ffessmRecycleurScr,
+    CertificationLevel.ffessmRecycleurCcr,
+    CertificationLevel.ffessmMoniteurRecycleurCcr,
+    CertificationLevel.ffessmRifap,
+    CertificationLevel.ffessmAnteor,
+    CertificationLevel.ffessmVetementEtanche,
+    CertificationLevel.ffessmSidemount,
+    CertificationLevel.ffessmTiv,
+    CertificationLevel.ffessmFormateurTiv,
+    CertificationLevel.ffessmBio1,
+    CertificationLevel.ffessmBio2,
+    CertificationLevel.ffessmFormateurBio1,
+    CertificationLevel.ffessmFormateurBio2,
+    CertificationLevel.ffessmFormateurBio3,
+    CertificationLevel.ffessmSouterrain1,
+    CertificationLevel.ffessmSouterrain2,
+    CertificationLevel.ffessmSouterrain3,
+    CertificationLevel.ffessmPhoto1,
+    CertificationLevel.ffessmPhoto2,
+    CertificationLevel.ffessmPhoto3,
+    CertificationLevel.ffessmVideo1,
+    CertificationLevel.ffessmVideo2,
+    CertificationLevel.ffessmVideo3,
+  ];
+
   /// Core progression ladder for an agency, in rank order. A null agency
   /// (possible on buddies) behaves like [CertificationAgency.other].
   static List<CertificationLevel> ladderFor(CertificationAgency? agency) =>
@@ -130,6 +194,7 @@ abstract final class CertificationLevelCatalog {
         CertificationAgency.gue => _gueLadder,
         CertificationAgency.bsac => _bsacLadder,
         CertificationAgency.cmas => _cmasLadder,
+        CertificationAgency.ffessm => _ffessmLadder,
         CertificationAgency.other || null => _genericLadder,
       };
 
@@ -138,7 +203,10 @@ abstract final class CertificationLevelCatalog {
   /// level that the ladder already lists.
   static List<CertificationLevel> specialtiesFor(CertificationAgency? agency) {
     final ladder = ladderFor(agency);
-    return specialties.where((s) => !ladder.contains(s)).toList();
+    final pool = agency == CertificationAgency.ffessm
+        ? _ffessmSpecialties
+        : specialties;
+    return pool.where((s) => !ladder.contains(s)).toList();
   }
 
   /// Full dropdown list for an agency: ladder, then specialties not already
