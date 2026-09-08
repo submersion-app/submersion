@@ -259,8 +259,8 @@ enum CertificationLevel {
   // Teaching ladder
   ffessmInitiateur('E1 - Initiateur'),
   ffessmE2('E2 - Encadrant'),
-  ffessmMf1('MF1 - Moniteur Fédéral 1er degré'),
-  ffessmMf2('MF2 - Moniteur Fédéral 2e degré'),
+  ffessmMf1('MF1 - Moniteur Fédéral 1er degré (E3)'),
+  ffessmMf2('MF2 - Moniteur Fédéral 2e degré (E4)'),
   // Modular aptitudes — PE = Plongeur Encadré (supervised), PA = Plongeur
   // Autonome (autonomous). PE-20 is N1 and PA-60 is N3, so those two are not
   // separately issued. The six below are (MFT Généralités p.3).
