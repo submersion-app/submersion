@@ -1,0 +1,79 @@
+diff --git a/doc/man/dc_parser_get_field.3 b/doc/man/dc_parser_get_field.3
+index 0f6455d..bf1937a 100644
+--- a/doc/man/dc_parser_get_field.3
++++ b/doc/man/dc_parser_get_field.3
+@@ -159,7 +159,10 @@ and maybe zero if
+ .Va beginpressure
+ and
+ .Va endpressure
+-being the pressures at start and finish in bar.
++being the pressures at start and finish in bar;
++.Va serial ,
++the serial number of the air-integration transmitter that reported the
++pressures, or zero if the device does not report one.
+ The
+ .Fa flags
+ value is the tank index.
+diff --git a/include/libdivecomputer/parser.h b/include/libdivecomputer/parser.h
+index c51907a..9e1ac2a 100644
+--- a/include/libdivecomputer/parser.h
++++ b/include/libdivecomputer/parser.h
+@@ -197,6 +197,12 @@ typedef struct dc_tank_t {
+     double beginpressure; /* Begin pressure (bar) */
+     double endpressure;   /* End pressure (bar) */
+     dc_usage_t usage;
++    /* Submersion patch (tank transmitter serial): serial number of the
++     * air-integration transmitter that reported this tank's pressures, or
++     * zero when the device does not report one. Two dive computers paired to
++     * the same transmitter log the same cylinder, so this identifies the tank
++     * across computers regardless of the gas mix each had programmed. */
++    unsigned int serial;
+ } dc_tank_t;
+ 
+ typedef enum dc_decomodel_type_t {
+diff --git a/src/halcyon_symbios_parser.c b/src/halcyon_symbios_parser.c
+index f87cd89..8066e2b 100644
+--- a/src/halcyon_symbios_parser.c
++++ b/src/halcyon_symbios_parser.c
+@@ -278,6 +278,11 @@ halcyon_symbios_parser_get_field (dc_parser_t *abstract, dc_field_type_t type, u
+ 			tank->endpressure   = parser->tank[flags].endpressure   / 10.0;
+ 			tank->gasmix        = parser->tank[flags].gasmix;
+ 			tank->usage         = parser->tank[flags].usage;
++			// A tank found through an ID_TANK_TRANSMITTER record carries a
++			// one-byte slot id tagged with TRANSMITTER_ID, not a serial;
++			// only the sensor record's 16-bit serial identifies the transmitter.
++			tank->serial        = (parser->tank[flags].id & TRANSMITTER_ID)
++				? 0 : parser->tank[flags].id;
+ 			break;
+ 		case DC_FIELD_DECOMODEL:
+ 			if (parser->gf_lo == UNDEFINED || parser->gf_hi == UNDEFINED)
+diff --git a/src/parser.c b/src/parser.c
+index 9a114bd..dcdc9bf 100644
+--- a/src/parser.c
++++ b/src/parser.c
+@@ -381,6 +381,13 @@ dc_parser_get_field (dc_parser_t *parser, dc_field_type_t type, unsigned int fla
+ 	if (parser->vtable->field == NULL)
+ 		return DC_STATUS_UNSUPPORTED;
+ 
++	// Submersion patch (tank transmitter serial): only the parsers that know
++	// a transmitter serial assign dc_tank_t.serial, so define it here for
++	// every other backend rather than leaving it to the caller's
++	// initialisation.
++	if (type == DC_FIELD_TANK && value != NULL)
++		((dc_tank_t *) value)->serial = 0;
++
+ 	return parser->vtable->field (parser, type, flags, value);
+ }
+ 
+diff --git a/src/shearwater_predator_parser.c b/src/shearwater_predator_parser.c
+index ab0f6d1..458e215 100644
+--- a/src/shearwater_predator_parser.c
++++ b/src/shearwater_predator_parser.c
+@@ -819,6 +819,7 @@ shearwater_predator_parser_get_field (dc_parser_t *abstract, dc_field_type_t typ
+ 			tank->workpressure = 0.0;
+ 			tank->beginpressure = parser->tank[flags].beginpressure * 2 * PSI / BAR;
+ 			tank->endpressure   = parser->tank[flags].endpressure   * 2 * PSI / BAR;
++			tank->serial = parser->tank[flags].serial;
+ 			tank->gasmix = DC_GASMIX_UNKNOWN;
+ 			if (shearwater_predator_is_ccr (parser->divemode) && !parser->hpccr) {
+ 				switch (parser->tank[flags].name[0]) {

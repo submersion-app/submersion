@@ -205,6 +205,44 @@ void main() {
       expect(site['waterType'], 'salt');
     });
 
+    // #1606: MacDive writes surfaceInterval in minutes even though the
+    // neighbouring duration/sampleInterval fields are seconds. Reading it as
+    // seconds landed a reported 2h18m interval in the log as 2m.
+    test('surfaceInterval reaches the payload as minutes', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <surfaceInterval>138</surfaceInterval>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['surfaceInterval'], const Duration(minutes: 138));
+    });
+
+    test('surfaceInterval of 0 is omitted from the payload', () async {
+      const xml = '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 09:00:00</date><identifier>d1</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <surfaceInterval>0</surfaceInterval>
+    <samples/>
+  </dive>
+</dives>''';
+      final bytes = Uint8List.fromList(utf8.encode(xml));
+      final payload = await const MacDiveXmlParser().parse(bytes);
+      final dive = payload.entitiesOf(ImportEntityType.dives).first;
+      // MacDive stores 0 for "no prior dive"; the SQLite path already skips
+      // it, and the importer should leave the field unset rather than write
+      // a 0m interval.
+      expect(dive.containsKey('surfaceInterval'), isFalse);
+    });
+
     test('maps MacDive entryType "Boat" to EntryMethod.boat.name', () async {
       const xml = '''<?xml version="1.0"?>
 <dives><units>Metric</units><schema>2.2.0</schema>

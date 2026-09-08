@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -236,5 +237,86 @@ void main() {
 
   test('estimates pressures by default', () async {
     expect(const AppSettings().defaultShowEstimatedTankPressure, isTrue);
+  });
+
+  test('builds on the active source\'s pressures, not the union', () async {
+    // Two computers on one transmitter (#543's pressure twin): the union
+    // interleaves both computers' readings on t1, the active-source read
+    // keeps one. The chart draws this provider, so it must start from the
+    // scoped map or the fuzzy union comes straight back.
+    const scoped = <String, List<TankPressurePoint>>{
+      't1': [
+        TankPressurePoint(tankId: 't1', timestamp: 2, pressure: 225.5),
+        TankPressurePoint(tankId: 't1', timestamp: 4, pressure: 225.0),
+      ],
+    };
+    const union = <String, List<TankPressurePoint>>{
+      't1': [
+        TankPressurePoint(tankId: 't1', timestamp: 2, pressure: 225.5),
+        TankPressurePoint(tankId: 't1', timestamp: 3, pressure: 223.5),
+        TankPressurePoint(tankId: 't1', timestamp: 4, pressure: 225.0),
+        TankPressurePoint(tankId: 't1', timestamp: 5, pressure: 223.3),
+      ],
+    };
+    final dive = Dive(
+      id: 'd1',
+      dateTime: DateTime(2026, 5, 6),
+      tanks: const [DiveTank(id: 't1', gasMix: GasMix(o2: 32))],
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 6, depth: 0),
+      ],
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        tankPressuresProvider('d1').overrideWith((ref) async => union),
+        activeSourceTankPressuresProvider(
+          'd1',
+        ).overrideWith((ref) async => scoped),
+        diveProvider('d1').overrideWith((ref) async => dive),
+        gasSwitchesProvider(
+          'd1',
+        ).overrideWith((ref) async => <GasSwitchWithTank>[]),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final result = await container.read(
+      estimatedTankPressuresProvider('d1').future,
+    );
+
+    expect(result.estimatedTankIds, isEmpty);
+    expect(result.pressures['t1']!.map((p) => p.timestamp), [2, 4]);
+  });
+
+  test('passes the real map through when the dive no longer exists', () async {
+    // A deleted dive mid-navigation: nothing to estimate against, so the
+    // measured series (if any) are returned unchanged and nothing is marked
+    // as an estimate.
+    const real = <String, List<TankPressurePoint>>{
+      't1': [TankPressurePoint(tankId: 't1', timestamp: 0, pressure: 200)],
+    };
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        activeSourceTankPressuresProvider(
+          'd1',
+        ).overrideWith((ref) async => real),
+        diveProvider('d1').overrideWith((ref) async => null),
+        gasSwitchesProvider(
+          'd1',
+        ).overrideWith((ref) async => <GasSwitchWithTank>[]),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final result = await container.read(
+      estimatedTankPressuresProvider('d1').future,
+    );
+
+    expect(result.estimatedTankIds, isEmpty);
+    expect(result.pressures, same(real));
   });
 }

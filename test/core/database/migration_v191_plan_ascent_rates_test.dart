@@ -32,8 +32,10 @@ void main() {
   test('v191 is in the ladder', () {
     // Renumbered from v188 (itself renumbered from v185 and v184): main
     // landed the insurance-phone, media-equipment-link and raw-data
-    // recompression rungs at 188-190 while this branch was open. No longer
-    // pinned as the current version: v192 (weight presets) sits above it.
+    // recompression rungs at 188-190 while this branch was open.
+    // Relaxed from an exact match when v194 landed: the exact assertion is
+    // the newest rung's job, and it moves with it (v195 = weight presets
+    // now sits above this one).
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(191));
     expect(AppDatabase.migrationVersions, contains(191));
   });

@@ -186,8 +186,10 @@ static void test_tank_fields(void) {
     tank.volume = 12.0;
     tank.beginpressure = 200.0;
     tank.endpressure = 50.0;
+    tank.serial = 180777;
 
     assert(tank.gasmix == 0);
+    assert(tank.serial == 180777);
     assert(tank.volume == 12.0);
     assert(tank.beginpressure == 200.0);
     assert(tank.endpressure == 50.0);

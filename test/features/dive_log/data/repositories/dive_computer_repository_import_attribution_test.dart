@@ -47,6 +47,34 @@ void main() {
     return id;
   }
 
+  test('importProfile stores the transmitter serial on the tank row', () async {
+    // The serial is the cylinder's identity across computers; a download
+    // that drops it leaves consolidation with only the gas-mix heuristic.
+    final computerId = await insertComputer();
+
+    final diveId = await repository.importProfile(
+      computerId: computerId,
+      profileStartTime: DateTime(2026, 6, 1, 9, 0),
+      points: const [
+        ProfilePointData(timestamp: 0, depth: 0.0, pressure: 200.0),
+        ProfilePointData(timestamp: 600, depth: 20.0, pressure: 150.0),
+      ],
+      durationSeconds: 1800,
+      maxDepth: 25.0,
+      tanks: const [
+        TankData(index: 0, o2Percent: 32.0, transmitterSerial: '180777'),
+        TankData(index: 1, o2Percent: 50.0),
+      ],
+    );
+
+    final tanks =
+        await (db.select(db.diveTanks)
+              ..where((t) => t.diveId.equals(diveId))
+              ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+            .get();
+    expect(tanks.map((t) => t.transmitterSerial), ['180777', null]);
+  });
+
   test(
     'importProfile stamps computerId on tanks, pressures, and events',
     () async {

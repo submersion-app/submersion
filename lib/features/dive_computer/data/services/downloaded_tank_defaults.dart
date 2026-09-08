@@ -43,6 +43,7 @@ List<TankData> applyDefaultPresetToTanks(
       material: tank.material ?? preset.material.name,
       presetName: tank.presetName ?? preset.name,
       role: tank.role,
+      transmitterSerial: tank.transmitterSerial,
     );
   }).toList();
 }

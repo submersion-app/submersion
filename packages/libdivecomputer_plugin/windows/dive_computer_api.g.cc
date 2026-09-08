@@ -862,13 +862,15 @@ TankInfo::TankInfo(
   const double* volume_liters,
   const double* start_pressure_bar,
   const double* end_pressure_bar,
-  const int64_t* usage)
+  const int64_t* usage,
+  const int64_t* transmitter_serial)
  : index_(index),
     gas_mix_index_(gas_mix_index),
     volume_liters_(volume_liters ? std::optional<double>(*volume_liters) : std::nullopt),
     start_pressure_bar_(start_pressure_bar ? std::optional<double>(*start_pressure_bar) : std::nullopt),
     end_pressure_bar_(end_pressure_bar ? std::optional<double>(*end_pressure_bar) : std::nullopt),
-    usage_(usage ? std::optional<int64_t>(*usage) : std::nullopt) {}
+    usage_(usage ? std::optional<int64_t>(*usage) : std::nullopt),
+    transmitter_serial_(transmitter_serial ? std::optional<int64_t>(*transmitter_serial) : std::nullopt) {}
 
 int64_t TankInfo::index() const {
   return index_;
@@ -940,15 +942,29 @@ void TankInfo::set_usage(int64_t value_arg) {
 }
 
 
+const int64_t* TankInfo::transmitter_serial() const {
+  return transmitter_serial_ ? &(*transmitter_serial_) : nullptr;
+}
+
+void TankInfo::set_transmitter_serial(const int64_t* value_arg) {
+  transmitter_serial_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void TankInfo::set_transmitter_serial(int64_t value_arg) {
+  transmitter_serial_ = value_arg;
+}
+
+
 EncodableList TankInfo::ToEncodableList() const {
   EncodableList list;
-  list.reserve(6);
+  list.reserve(7);
   list.push_back(EncodableValue(index_));
   list.push_back(EncodableValue(gas_mix_index_));
   list.push_back(volume_liters_ ? EncodableValue(*volume_liters_) : EncodableValue());
   list.push_back(start_pressure_bar_ ? EncodableValue(*start_pressure_bar_) : EncodableValue());
   list.push_back(end_pressure_bar_ ? EncodableValue(*end_pressure_bar_) : EncodableValue());
   list.push_back(usage_ ? EncodableValue(*usage_) : EncodableValue());
+  list.push_back(transmitter_serial_ ? EncodableValue(*transmitter_serial_) : EncodableValue());
   return list;
 }
 
@@ -971,6 +987,10 @@ TankInfo TankInfo::FromEncodableList(const EncodableList& list) {
   auto& encodable_usage = list[5];
   if (!encodable_usage.IsNull()) {
     decoded.set_usage(std::get<int64_t>(encodable_usage));
+  }
+  auto& encodable_transmitter_serial = list[6];
+  if (!encodable_transmitter_serial.IsNull()) {
+    decoded.set_transmitter_serial(std::get<int64_t>(encodable_transmitter_serial));
   }
   return decoded;
 }

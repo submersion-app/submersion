@@ -1089,17 +1089,19 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveTank(
     if (index < 0 || static_cast<unsigned int>(index) >= dive->tank_count) return nullptr;
 
     const libdc_tank_t *tk = &dive->tanks[index];
-    // Return [gasmix, volume, workpressure, beginpressure, endpressure, usage]
-    jdouble values[6] = {
+    // Return [gasmix, volume, workpressure, beginpressure, endpressure, usage,
+    //         transmitter serial]. Positional: the Kotlin readers index it.
+    jdouble values[7] = {
         static_cast<jdouble>(tk->gasmix),
         tk->volume,
         tk->workpressure,
         tk->beginpressure,
         tk->endpressure,
-        static_cast<jdouble>(tk->usage)
+        static_cast<jdouble>(tk->usage),
+        static_cast<jdouble>(tk->serial)
     };
-    jdoubleArray result = env->NewDoubleArray(6);
-    env->SetDoubleArrayRegion(result, 0, 6, values);
+    jdoubleArray result = env->NewDoubleArray(7);
+    env->SetDoubleArrayRegion(result, 0, 7, values);
     return result;
 }
 
