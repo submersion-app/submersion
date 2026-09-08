@@ -101,6 +101,9 @@ class _StubSessionRepository implements PreDiveSessionRepository {
 void main() {
   final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
 
+  // A finished run always carries the stamp the repository writes when it is
+  // completed or aborted, so the fixture mirrors that rather than leaving
+  // completedAt null on a locked session.
   PreDiveSession session(
     String id, {
     String name = 'CCR Build',
@@ -112,6 +115,9 @@ void main() {
     status: status,
     diveId: diveId,
     startedAt: now,
+    completedAt: status == PreDiveSessionStatus.inProgress
+        ? null
+        : now.add(const Duration(minutes: 12)),
     createdAt: now,
     updatedAt: now,
   );
@@ -273,7 +279,7 @@ void main() {
     );
 
     expect(find.text('Solo Check'), findsOneWidget);
-    expect(find.textContaining('In progress'), findsOneWidget);
+    expect(find.textContaining('Started'), findsOneWidget);
     expect(find.byIcon(Icons.pending_outlined), findsOneWidget);
   });
 

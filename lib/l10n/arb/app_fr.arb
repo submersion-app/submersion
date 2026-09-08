@@ -1077,6 +1077,43 @@
     }
   },
   "preDive_dashboard_start": "Démarrer la vérification pré-plongée",
+  "preDive_templates_view": "Afficher",
+  "preDive_edit_titleView": "Afficher la checklist pré-plongée",
+  "preDive_edit_builtInNotice": "Checklist intégrée. Dupliquez-la pour obtenir une copie modifiable.",
+  "dashboard_checklists_title": "Checklists",
+  "dashboard_checklists_preDiveLabel": "Pré-plongée",
+  "dashboard_checklists_tripLabel": "Voyage : {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Commencée {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Terminée {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Interrompue {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Checklist pré-plongée",
   "settings_manage_preDiveChecklists": "Checklists pré-plongée",
   "settings_manage_preDiveChecklists_subtitle": "Vérifications entre binômes, listes de montage CCR, préparation du matériel",
@@ -6570,7 +6607,7 @@
   "settings_homeCards_resetDialog_confirm": "Réinitialiser",
   "settings_homeCards_card_hero": "En-tête de bienvenue",
   "settings_homeCards_card_gaugeStrip": "Pastilles d'état",
-  "settings_homeCards_card_preDive": "Check-list pré-plongée",
+  "settings_homeCards_card_preDive": "Checklists",
   "settings_homeCards_card_recentDives": "Plongées récentes",
   "settings_homeCards_card_quickActions": "Actions rapides",
   "settings_homeCards_card_milestones": "Jalons",

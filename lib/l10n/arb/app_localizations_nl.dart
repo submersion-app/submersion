@@ -2631,6 +2631,42 @@ class AppLocalizationsNl extends AppLocalizations {
   String get preDive_dashboard_start => 'Pre-dive check starten';
 
   @override
+  String get preDive_templates_view => 'Bekijken';
+
+  @override
+  String get preDive_edit_titleView => 'Pre-dive checklist bekijken';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Ingebouwde checklist. Dupliceer deze voor een bewerkbare kopie.';
+
+  @override
+  String get dashboard_checklists_title => 'Checklists';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Pre-dive';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Reis: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Gestart $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Voltooid $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Afgebroken $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Pre-dive checklist';
 
   @override
@@ -3327,7 +3363,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Statuschips';
 
   @override
-  String get settings_homeCards_card_preDive => 'Pre-dive checklist';
+  String get settings_homeCards_card_preDive => 'Checklists';
 
   @override
   String get settings_homeCards_card_recentDives => 'Recente duiken';

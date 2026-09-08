@@ -288,7 +288,7 @@ void main() {
     expect(find.text('EDIT My CCR List'), findsOneWidget);
   });
 
-  testWidgets('tapping a built-in template does not navigate', (tester) async {
+  testWidgets('tapping a built-in template opens it read-only', (tester) async {
     final router = GoRouter(
       routes: [
         GoRoute(path: '/', builder: (_, _) => const PreDiveTemplatesPage()),
@@ -314,8 +314,8 @@ void main() {
     await tester.tap(find.text('BWRAF Buddy Check'));
     await tester.pumpAndSettle();
 
-    // onTap is null for built-ins, so we stay on the list.
-    expect(find.text('BWRAF Buddy Check'), findsOneWidget);
-    expect(find.textContaining('EDIT'), findsNothing);
+    // Built-ins open: the destination renders them read-only, so a diver can
+    // read what a default checks before deciding to clone it.
+    expect(find.textContaining('EDIT'), findsOneWidget);
   });
 }

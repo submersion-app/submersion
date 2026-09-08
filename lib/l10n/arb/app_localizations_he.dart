@@ -2575,6 +2575,42 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_dashboard_start => 'התחל בדיקה לפני צלילה';
 
   @override
+  String get preDive_templates_view => 'הצגה';
+
+  @override
+  String get preDive_edit_titleView => 'הצגת רשימת בדיקה לפני צלילה';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'רשימת בדיקה מובנית. שכפלו אותה כדי ליצור עותק הניתן לעריכה.';
+
+  @override
+  String get dashboard_checklists_title => 'רשימות בדיקה';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'לפני צלילה';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'טיול: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'התחילה $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'הושלמה $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'בוטלה $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'רשימת בדיקה לפני צלילה';
 
   @override
@@ -3259,7 +3295,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'שבבי מצב';
 
   @override
-  String get settings_homeCards_card_preDive => 'רשימת בדיקה לפני צלילה';
+  String get settings_homeCards_card_preDive => 'רשימות בדיקה';
 
   @override
   String get settings_homeCards_card_recentDives => 'צלילות אחרונות';

@@ -2649,6 +2649,42 @@ class AppLocalizationsIt extends AppLocalizations {
   String get preDive_dashboard_start => 'Avvia controllo pre-immersione';
 
   @override
+  String get preDive_templates_view => 'Visualizza';
+
+  @override
+  String get preDive_edit_titleView => 'Visualizza checklist pre-immersione';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Checklist predefinita. Duplicala per ottenere una copia modificabile.';
+
+  @override
+  String get dashboard_checklists_title => 'Checklist';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Pre-immersione';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Viaggio: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Iniziata $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Completata $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Interrotta $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Checklist pre-immersione';
 
   @override
@@ -3350,7 +3386,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Chip di stato';
 
   @override
-  String get settings_homeCards_card_preDive => 'Checklist pre-immersione';
+  String get settings_homeCards_card_preDive => 'Checklist';
 
   @override
   String get settings_homeCards_card_recentDives => 'Immersioni recenti';

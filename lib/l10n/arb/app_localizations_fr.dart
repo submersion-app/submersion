@@ -2656,6 +2656,42 @@ class AppLocalizationsFr extends AppLocalizations {
   String get preDive_dashboard_start => 'Démarrer la vérification pré-plongée';
 
   @override
+  String get preDive_templates_view => 'Afficher';
+
+  @override
+  String get preDive_edit_titleView => 'Afficher la checklist pré-plongée';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Checklist intégrée. Dupliquez-la pour obtenir une copie modifiable.';
+
+  @override
+  String get dashboard_checklists_title => 'Checklists';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Pré-plongée';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Voyage : $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Commencée $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Terminée $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Interrompue $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Checklist pré-plongée';
 
   @override
@@ -3361,7 +3397,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Pastilles d\'état';
 
   @override
-  String get settings_homeCards_card_preDive => 'Check-list pré-plongée';
+  String get settings_homeCards_card_preDive => 'Checklists';
 
   @override
   String get settings_homeCards_card_recentDives => 'Plongées récentes';

@@ -344,14 +344,25 @@ class _SessionTile extends ConsumerWidget {
 
   const _SessionTile({required this.session});
 
-  String _statusLabel(BuildContext context) {
+  /// Status and its timestamp in one phrase.
+  ///
+  /// A finished run is stamped the moment it is completed or aborted, and
+  /// that stamp is what decides which dive the run auto-links to, so it is
+  /// the timestamp worth showing -- with the time of day, not just the date.
+  /// Only a run still going has nothing to report but its start.
+  String _whenLabel(BuildContext context, UnitFormatter units) {
+    final l10n = context.l10n;
+    final finishedAt = session.completedAt;
+    if (finishedAt == null) {
+      return l10n.preDive_sessions_startedAt(
+        units.formatDateTime(session.startedAt),
+      );
+    }
+    final when = units.formatDateTime(finishedAt);
     return switch (session.status) {
-      PreDiveSessionStatus.inProgress =>
-        context.l10n.preDive_sessions_statusInProgress,
-      PreDiveSessionStatus.completed =>
-        context.l10n.preDive_sessions_statusCompleted,
-      PreDiveSessionStatus.aborted =>
-        context.l10n.preDive_sessions_statusAborted,
+      PreDiveSessionStatus.inProgress => l10n.preDive_sessions_startedAt(when),
+      PreDiveSessionStatus.completed => l10n.preDive_sessions_completedAt(when),
+      PreDiveSessionStatus.aborted => l10n.preDive_sessions_abortedAt(when),
     };
   }
 
@@ -401,9 +412,7 @@ class _SessionTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final flagged =
         ref.watch(preDiveSessionStatsProvider).value?[session.id]?.flagged ?? 0;
-    final startedDate = UnitFormatter(
-      ref.watch(settingsProvider),
-    ).formatDate(session.startedAt);
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     final hasLinkedDive = session.diveId != null;
 
@@ -429,8 +438,7 @@ class _SessionTile extends ConsumerWidget {
         children: [
           Text(
             [
-              startedDate,
-              _statusLabel(context),
+              _whenLabel(context, units),
               if (flagged > 0) l10n.preDive_runner_flaggedBadge(flagged),
             ].join(' - '),
           ),

@@ -1636,6 +1636,43 @@
     }
   },
   "preDive_dashboard_start": "Start pre-dive check",
+  "preDive_templates_view": "View",
+  "preDive_edit_titleView": "View Pre-Dive Checklist",
+  "preDive_edit_builtInNotice": "Built-in checklist. Clone it to make an editable copy.",
+  "dashboard_checklists_title": "Checklists",
+  "dashboard_checklists_preDiveLabel": "Pre-dive",
+  "dashboard_checklists_tripLabel": "Trip: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Started {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Completed {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Aborted {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Pre-dive checklist",
   "settings_manage_preDiveChecklists": "Pre-Dive Checklists",
   "settings_manage_preDiveChecklists_subtitle": "Buddy checks, CCR build lists, gear packing",
@@ -2054,7 +2091,7 @@
   "settings_homeCards_resetDialog_confirm": "Reset",
   "settings_homeCards_card_hero": "Welcome header",
   "settings_homeCards_card_gaugeStrip": "Status chips",
-  "settings_homeCards_card_preDive": "Pre-dive checklist",
+  "settings_homeCards_card_preDive": "Checklists",
   "settings_homeCards_card_recentDives": "Recent dives",
   "settings_homeCards_card_quickActions": "Quick actions",
   "settings_homeCards_card_milestones": "Milestones",

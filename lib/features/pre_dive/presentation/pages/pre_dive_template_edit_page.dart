@@ -32,7 +32,10 @@ class _PreDiveTemplateEditPageState
   PreDiveChecklistTemplate? _existing;
   bool _loading = false;
 
-  /// Built-ins never reach this page from the list UI, but guard anyway.
+  /// Built-ins reach this page as viewers: the list opens them so a diver
+  /// can read what a default checks before cloning it. Everything that would
+  /// mutate the template is withheld rather than merely disabled, so the page
+  /// reads as a viewer instead of a broken editor.
   bool get _readOnly => _existing?.isBuiltIn ?? false;
 
   @override
@@ -144,15 +147,18 @@ class _PreDiveTemplateEditPageState
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.isEditing
+          _readOnly
+              ? l10n.preDive_edit_titleView
+              : widget.isEditing
               ? l10n.preDive_edit_titleEdit
               : l10n.preDive_edit_titleNew,
         ),
         actions: [
-          TextButton(
-            onPressed: _loading || _readOnly ? null : _save,
-            child: Text(l10n.common_action_save),
-          ),
+          if (!_readOnly)
+            TextButton(
+              onPressed: _loading ? null : _save,
+              child: Text(l10n.common_action_save),
+            ),
         ],
       ),
       body: _loading
@@ -162,6 +168,16 @@ class _PreDiveTemplateEditPageState
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  if (_readOnly) ...[
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: ListTile(
+                        leading: const Icon(Icons.lock_outline),
+                        title: Text(l10n.preDive_edit_builtInNotice),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   TextFormField(
                     controller: _nameController,
                     enabled: !_readOnly,
@@ -230,25 +246,26 @@ class _PreDiveTemplateEditPageState
                                 l10n.preDive_item_required,
                             ].join(' - '),
                           ),
-                          leading: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: _readOnly
-                                ? null
-                                : () => setState(
+                          leading: _readOnly
+                              ? const Icon(Icons.check_box_outline_blank)
+                              : IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: () => setState(
                                     () => _items = [..._items]..removeAt(i),
                                   ),
-                          ),
+                                ),
                           onTap: _readOnly
                               ? null
                               : () => _addOrEditItem(item: _items[i]),
                         ),
                     ],
                   ),
-                  TextButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: Text(l10n.preDive_edit_addItem),
-                    onPressed: _readOnly ? null : () => _addOrEditItem(),
-                  ),
+                  if (!_readOnly)
+                    TextButton.icon(
+                      icon: const Icon(Icons.add),
+                      label: Text(l10n.preDive_edit_addItem),
+                      onPressed: () => _addOrEditItem(),
+                    ),
                 ],
               ),
             ),

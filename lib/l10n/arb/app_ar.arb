@@ -1077,6 +1077,43 @@
     }
   },
   "preDive_dashboard_start": "بدء فحص ما قبل الغوص",
+  "preDive_templates_view": "عرض",
+  "preDive_edit_titleView": "عرض قائمة تحقق ما قبل الغوص",
+  "preDive_edit_builtInNotice": "قائمة تحقق مدمجة. استنسخها للحصول على نسخة قابلة للتعديل.",
+  "dashboard_checklists_title": "قوائم التحقق",
+  "dashboard_checklists_preDiveLabel": "ما قبل الغوص",
+  "dashboard_checklists_tripLabel": "الرحلة: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "بدأت {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "اكتملت {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "أُلغيت {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "قائمة تحقق ما قبل الغوص",
   "settings_manage_preDiveChecklists": "قوائم تحقق ما قبل الغوص",
   "settings_manage_preDiveChecklists_subtitle": "فحوصات رفيق الغوص، قوائم تجهيز CCR، توضيب المعدات",
@@ -6570,7 +6607,7 @@
   "settings_homeCards_resetDialog_confirm": "إعادة تعيين",
   "settings_homeCards_card_hero": "ترويسة الترحيب",
   "settings_homeCards_card_gaugeStrip": "شرائح الحالة",
-  "settings_homeCards_card_preDive": "قائمة فحص ما قبل الغوص",
+  "settings_homeCards_card_preDive": "قوائم التحقق",
   "settings_homeCards_card_recentDives": "الغوصات الأخيرة",
   "settings_homeCards_card_quickActions": "إجراءات سريعة",
   "settings_homeCards_card_milestones": "الإنجازات",

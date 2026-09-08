@@ -6,6 +6,8 @@ import 'package:submersion/features/checklists/domain/entities/checklist_templat
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
     as domain;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 /// Repository singletons
 final checklistTemplateRepositoryProvider =
@@ -63,4 +65,38 @@ final tripChecklistProgressProvider =
       final repository = ref.watch(tripChecklistRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
       return repository.getProgress(tripId);
+    });
+
+/// The one trip checklist worth surfacing on the home screen, or null.
+///
+/// Home used to offer a single checklist button and it went to the pre-dive
+/// runs, so a trip's to-do list -- a different feature, a different table --
+/// was only ever reachable by opening the trip, and a diver following the
+/// home button landed on a page headed "Pre-Dive Checklists" instead. This
+/// gives the trip list its own home surface, under its own label.
+///
+/// A trip already under way wins over one still ahead, since that is the
+/// checklist being worked through today. Trips with nothing on their list are
+/// skipped: an empty row would be a permanent no-op on the home screen.
+final homeTripChecklistProvider =
+    FutureProvider<({Trip trip, int done, int total})?>((ref) async {
+      final trips = await ref.watch(allTripsProvider.future);
+      final now = DateTime.now();
+      Trip? candidate;
+      for (final trip in trips) {
+        if (trip.isInProgress) {
+          candidate = trip;
+          break;
+        }
+        if (!trip.startDate.isAfter(now)) continue;
+        if (candidate == null || trip.startDate.isBefore(candidate.startDate)) {
+          candidate = trip;
+        }
+      }
+      if (candidate == null) return null;
+      final progress = await ref.watch(
+        tripChecklistProgressProvider(candidate.id).future,
+      );
+      if (progress.total == 0) return null;
+      return (trip: candidate, done: progress.done, total: progress.total);
     });

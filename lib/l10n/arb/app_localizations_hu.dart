@@ -2638,6 +2638,43 @@ class AppLocalizationsHu extends AppLocalizations {
   String get preDive_dashboard_start => 'Merülés előtti ellenőrzés indítása';
 
   @override
+  String get preDive_templates_view => 'Megtekintés';
+
+  @override
+  String get preDive_edit_titleView =>
+      'Merülés előtti ellenőrzőlista megtekintése';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Beépített ellenőrzőlista. Duplikálja szerkeszthető másolat készítéséhez.';
+
+  @override
+  String get dashboard_checklists_title => 'Ellenőrzőlisták';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Merülés előtt';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Utazás: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Elkezdve: $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Befejezve: $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Megszakítva: $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Merülés előtti ellenőrzőlista';
 
   @override
@@ -3337,7 +3374,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Állapotjelzők';
 
   @override
-  String get settings_homeCards_card_preDive => 'Merülés előtti ellenőrzőlista';
+  String get settings_homeCards_card_preDive => 'Ellenőrzőlisták';
 
   @override
   String get settings_homeCards_card_recentDives => 'Legutóbbi merülések';

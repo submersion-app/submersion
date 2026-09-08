@@ -479,4 +479,55 @@ void main() {
     expect(repo.savedItems!.length, 1);
     expect(repo.savedItems!.first.title, 'Existing');
   });
+
+  group('a built-in opens as a viewer, not a locked editor', () {
+    Future<void> pumpBuiltIn(WidgetTester tester) => pumpPage(
+      tester,
+      templateId: 'tpl-1',
+      repo: _FakeTemplateRepo(
+        template: templateFixture(name: 'GUE EDGE', isBuiltIn: true),
+        items: [
+          itemFixture('Goal: agree the objective', sortOrder: 0),
+          itemFixture('Gas: analyze and label', sortOrder: 1),
+        ],
+      ),
+    );
+
+    testWidgets('shows the view title and the built-in notice', (tester) async {
+      await pumpBuiltIn(tester);
+      expect(find.text('View Pre-Dive Checklist'), findsOneWidget);
+      expect(
+        find.text('Built-in checklist. Clone it to make an editable copy.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('renders the items a diver came to read', (tester) async {
+      await pumpBuiltIn(tester);
+      expect(find.text('Goal: agree the objective'), findsOneWidget);
+      expect(find.text('Gas: analyze and label'), findsOneWidget);
+      expect(find.text('GUE EDGE'), findsOneWidget);
+    });
+
+    testWidgets('withholds every editing affordance', (tester) async {
+      await pumpBuiltIn(tester);
+      expect(find.text('Save'), findsNothing);
+      expect(find.text('Add item'), findsNothing);
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+    });
+
+    testWidgets('a user template keeps its editor', (tester) async {
+      await pumpPage(
+        tester,
+        templateId: 'tpl-1',
+        repo: _FakeTemplateRepo(
+          template: templateFixture(),
+          items: [itemFixture('Mine')],
+        ),
+      );
+      expect(find.text('Edit Pre-Dive Checklist'), findsOneWidget);
+      expect(find.text('Save'), findsOneWidget);
+      expect(find.text('Add item'), findsOneWidget);
+    });
+  });
 }

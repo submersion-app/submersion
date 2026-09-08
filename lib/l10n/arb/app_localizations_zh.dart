@@ -2498,6 +2498,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_dashboard_start => '开始潜前检查';
 
   @override
+  String get preDive_templates_view => '查看';
+
+  @override
+  String get preDive_edit_titleView => '查看潜前检查清单';
+
+  @override
+  String get preDive_edit_builtInNotice => '内置检查清单。复制后即可编辑。';
+
+  @override
+  String get dashboard_checklists_title => '检查清单';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => '潜前';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return '行程：$name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return '开始于 $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return '完成于 $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return '中止于 $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => '潜前检查清单';
 
   @override
@@ -3173,7 +3208,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => '状态标签';
 
   @override
-  String get settings_homeCards_card_preDive => '潜水前检查清单';
+  String get settings_homeCards_card_preDive => '检查清单';
 
   @override
   String get settings_homeCards_card_recentDives => '最近潜水';

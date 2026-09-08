@@ -2649,6 +2649,42 @@ class AppLocalizationsPt extends AppLocalizations {
   String get preDive_dashboard_start => 'Iniciar verificação pré-mergulho';
 
   @override
+  String get preDive_templates_view => 'Ver';
+
+  @override
+  String get preDive_edit_titleView => 'Ver Lista de Verificação Pré-Mergulho';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Lista integrada. Duplique-a para obter uma cópia editável.';
+
+  @override
+  String get dashboard_checklists_title => 'Listas de verificação';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Pré-mergulho';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Viagem: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Iniciada $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Concluída $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Cancelada $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Lista de verificação pré-mergulho';
 
   @override
@@ -3351,7 +3387,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Chips de estado';
 
   @override
-  String get settings_homeCards_card_preDive => 'Checklist pré-mergulho';
+  String get settings_homeCards_card_preDive => 'Listas de verificação';
 
   @override
   String get settings_homeCards_card_recentDives => 'Mergulhos recentes';

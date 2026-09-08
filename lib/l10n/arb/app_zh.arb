@@ -1171,6 +1171,43 @@
     }
   },
   "preDive_dashboard_start": "开始潜前检查",
+  "preDive_templates_view": "查看",
+  "preDive_edit_titleView": "查看潜前检查清单",
+  "preDive_edit_builtInNotice": "内置检查清单。复制后即可编辑。",
+  "dashboard_checklists_title": "检查清单",
+  "dashboard_checklists_preDiveLabel": "潜前",
+  "dashboard_checklists_tripLabel": "行程：{name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "开始于 {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "完成于 {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "中止于 {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "潜前检查清单",
   "settings_manage_preDiveChecklists": "潜前检查清单",
   "settings_manage_preDiveChecklists_subtitle": "潜伴检查、CCR 组装清单、装备打包",
@@ -6570,7 +6607,7 @@
   "settings_homeCards_resetDialog_confirm": "重置",
   "settings_homeCards_card_hero": "欢迎页眉",
   "settings_homeCards_card_gaugeStrip": "状态标签",
-  "settings_homeCards_card_preDive": "潜水前检查清单",
+  "settings_homeCards_card_preDive": "检查清单",
   "settings_homeCards_card_recentDives": "最近潜水",
   "settings_homeCards_card_quickActions": "快捷操作",
   "settings_homeCards_card_milestones": "里程碑",
