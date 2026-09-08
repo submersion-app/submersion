@@ -165,7 +165,7 @@ void main() {
             recentDivesProvider.overrideWith((ref) async => dives),
             // Keep the preview off the database; the split itself is what
             // this group is about.
-            latestDiveProfileProvider.overrideWith((ref) async => null),
+            diveProvider(dives.first.id).overrideWith((ref) async => null),
           ].cast(),
           child: MaterialApp.router(
             localizationsDelegates: AppLocalizations.localizationsDelegates,

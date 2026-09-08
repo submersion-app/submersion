@@ -39,16 +39,13 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
-import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
-import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
@@ -56,13 +53,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badg
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/link_session_picker.dart';
@@ -74,9 +69,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_trac
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
-import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
@@ -91,10 +84,9 @@ import 'package:submersion/features/dive_log/presentation/providers/active_sourc
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_controls.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
@@ -603,7 +595,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         final attribution = FieldAttributionService.computeAttribution(
           dataSources,
           viewedSourceId: viewedSourceId,
-          nameOf: (s) => resolveSourceName(s, _sourceNameLabels(context)),
+          nameOf: (s) => resolveSourceName(s, sourceNameLabelsFor(context)),
         );
         final showBadges =
             settings.showDataSourceBadges && attribution.isNotEmpty;
@@ -643,7 +635,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         final attribution = FieldAttributionService.computeAttribution(
           dataSources,
           viewedSourceId: viewedSourceId,
-          nameOf: (s) => resolveSourceName(s, _sourceNameLabels(context)),
+          nameOf: (s) => resolveSourceName(s, sourceNameLabelsFor(context)),
         );
         final showBadges =
             settings.showDataSourceBadges && attribution.isNotEmpty;
@@ -1826,30 +1818,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Localized fallback labels for [resolveSourceName], the shared
   /// name-resolution path for every attribution surface on this page.
-  SourceNameLabels _sourceNameLabels(BuildContext context) {
-    return SourceNameLabels(
-      unknownComputer: context.l10n.diveLog_sources_unknownComputer,
-      manualEntry: context.l10n.diveLog_sources_manualEntry,
-      importedFile: context.l10n.diveLog_sources_importedFile,
-      editedSuffix: context.l10n.diveLog_sources_editedSuffix,
-    );
-  }
-
-  /// Resolves computerId -> display name for a dive's data sources via the
-  /// shared [resolveSourceName] fallback chain. Sources without a computerId
-  /// (manual entries, edited profiles) are skipped — callers key off
-  /// computerId, so there's nothing to attach the name to.
-  Map<String, String> _computerDisplayNames(
-    BuildContext context,
-    List<DiveDataSource> dataSources,
-  ) {
-    final labels = _sourceNameLabels(context);
-    return {
-      for (final source in dataSources)
-        if (source.computerId != null)
-          source.computerId!: resolveSourceName(source, labels),
-    };
-  }
 
   Widget _buildProfileSection(BuildContext context, WidgetRef ref, Dive dive) {
     // Every async chart input below is read through the built-in
@@ -1869,25 +1837,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         )
         .value;
 
-    // Get marker settings
-    final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
-    final showPressureThresholdMarkers = ref.watch(
-      showPressureThresholdMarkersProvider,
-    );
-
-    // Get gas switches for segment coloring
-    final gasSwitchesAsync = ref.watch(gasSwitchesProvider(dive.id));
-
-    // Get per-tank pressure data for multi-tank visualization
-    final tankPressuresAsync = ref.watch(
-      activeSourceTankPressuresProvider(dive.id),
-    );
-    final tankPressures = tankPressuresAsync.value;
-    // Chart-only: real pressures augmented with linear estimates (#197).
-    final estimatedTankPressures = ref
-        .watch(estimatedTankPressuresProvider(dive.id))
-        .value;
-
     // Get playback state
     final playbackState = ref.watch(playbackProvider(dive.id));
 
@@ -1901,8 +1850,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         const <String, SourceProfile>{};
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).value ?? const [];
-    final computerNames = _computerDisplayNames(context, dataSources);
-    final labels = _sourceNameLabels(context);
+    final labels = sourceNameLabelsFor(context);
     // Per-source rendering exists because two computers recording one dive
     // disagree sample by sample (#543); the halves of a split dive a Combine
     // stitched together are not that, and drawing one of those would hide the
@@ -1930,140 +1878,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       for (final (index, s) in dataSources.indexed) s.id: sourceColorAt(index),
     };
 
-    // Per-computer color, so the Cylinders / Tank Pressures rows can mark
-    // which computer a tank belongs to when two computers logged tanks
-    // sharing the same gas mix (otherwise identical swatches).
-    final computerColorById = <String, Color>{
-      for (final (index, s) in dataSources.indexed)
-        if (s.computerId != null) s.computerId!: sourceColorAt(index),
-    };
-    final tankSourceColors = isMultiSource
-        ? <String, Color>{
-            for (final t in dive.tanks)
-              if (t.computerId != null &&
-                  computerColorById[t.computerId] != null)
-                t.id: computerColorById[t.computerId]!,
-          }
-        : null;
-
-    // The chart's main series: the active source's own points on a
-    // multi-source dive; dive.profile otherwise (identical for the primary).
-    // activeSourceProfileProvider is the one rule for this, shared with the
-    // dive-list panel and the selected-point lookups further down (#543).
-    // Attribution (activeComputerId) reads the SAME result, so the drawn
-    // points and the computer they are credited to can never disagree; the
-    // direct lookup only serves single-source dives, where the provider
-    // yields null and dive.profile is drawn.
-    final resolvedActive = ref.watch(activeSourceProfileProvider(dive.id));
-    final activeProfile =
-        resolvedActive ??
-        (activeSource == null ? null : sourceProfiles[activeSource.id]);
-    // A metadata-only active source has an entry with no points; the chart
-    // then renders its empty-profile placeholder instead of silently
-    // falling back to the primary's profile (mixed attribution).
-    //
-    // Everything overlaid on the chart is derived from THIS series, never
-    // from dive.profile: the merged series spans every source, so markers
-    // computed against it can report a depth the drawn curve never reaches
-    // and a range extent that runs past its end (#1167).
-    final chartProfile = resolvedActive?.points ?? dive.profile;
-
-    // Keep the playback and range extents on the drawn series.
-    //
-    // Deliberately not a one-shot "initialize if still zero": the data
-    // sources load asynchronously, so the first build falls back to
-    // dive.profile and a zero-guard would freeze the merged series' extent
-    // in place forever. The active source can also change at any time. Both
-    // cases leave the range slider running past the end of the visible curve
-    // (#1167). Re-initializing resets playback position and range selection,
-    // which is the wanted behavior when the series underneath them changed.
-    //
-    // The comparison runs here in build, against state this method already
-    // watches, so a frame callback is only scheduled on the rare build that
-    // has work to do. Scheduling unconditionally would queue a no-op closure
-    // 40 times a second while a profile plays: the playback timer ticks every
-    // 25ms and this page watches its state.
-    if (chartProfile.isNotEmpty) {
-      final maxTimestamp = chartProfile.last.timestamp;
-      if (playbackState.maxTimestamp != maxTimestamp ||
-          rangeState.maxTimestamp != maxTimestamp) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          // Re-read rather than trusting the build-time snapshot: the rest of
-          // the frame may have moved either extent already.
-          if (ref.read(playbackProvider(dive.id)).maxTimestamp !=
-              maxTimestamp) {
-            ref
-                .read(playbackProvider(dive.id).notifier)
-                .initialize(maxTimestamp);
-          }
-          if (ref.read(rangeSelectionProvider(dive.id)).maxTimestamp !=
-              maxTimestamp) {
-            ref
-                .read(rangeSelectionProvider(dive.id).notifier)
-                .initialize(maxTimestamp);
-          }
-        });
-      }
-    }
-
-    // Calculate profile markers (with tank pressure data for accurate thresholds)
-    final markers = _calculateProfileMarkers(
-      profile: chartProfile,
-      tanks: dive.tanks,
-      analysis: analysis,
-      showMaxDepth: showMaxDepthMarker,
-      showPressureThresholds: showPressureThresholdMarkers,
-      tankPressures: tankPressures,
-    );
-
-    final photoMedia =
-        ref.watch(mediaForDiveProvider(dive.id)).value ?? const [];
-    final photoMarkers = chartProfile.isEmpty
-        ? const <PhotoChartMarker>[]
-        : photoMarkersFromMedia(
-            photoMedia,
-            maxProfileSeconds: chartProfile.last.timestamp,
-          );
-
-    // Overlay ids are session state and can briefly outlive their source
-    // rows (e.g. right after a split); skip any stale entries instead of
-    // crashing on the lookup.
-    final sourceById = {for (final s in dataSources) s.id: s};
-    // Plan-vs-actual: the planned profile this dive was converted from,
-    // ghosted next to the actual logged profile.
-    final plannedOverlay = ref
-        .watch(plannedProfileOverlayProvider(dive.id))
-        .value;
-    final overlays = <ChartSourceOverlay>[
-      for (final id in overlayIds)
-        if (id != activeSource?.id &&
-            sourceProfiles[id] != null &&
-            sourceById[id] != null)
-          ChartSourceOverlay(
-            sourceId: id,
-            name: resolveSourceName(
-              sourceById[id]!,
-              labels,
-              edited: sourceProfiles[id]!.isEdited,
-            ),
-            color: sourceColorById[id] ?? sourceColorAt(0),
-            computerId: sourceProfiles[id]!.computerId,
-            points: sourceProfiles[id]!.points,
-            // This source's own computed analysis, for overlay curves with
-            // no raw per-point device field (deco stops, and future
-            // metrics) to fall back on. Cached by the (diveId, sourceId)
-            // family key, so toggling the eye icon doesn't re-run Buhlmann.
-            analysis: ref
-                .watch(
-                  sourceProfileAnalysisProvider((
-                    diveId: dive.id,
-                    sourceId: id,
-                  )),
-                )
-                .valueOrNull,
-          ),
-      ?plannedOverlay,
-    ];
+    // The series the chart draws, resolved by the same one rule the chart
+    // itself uses (#543): the active source's own points on a multi-source
+    // dive, dive.profile otherwise. The point count, the playback stats and
+    // the range panel below all index it, so they must read the same series
+    // the curve was drawn from.
+    final chartProfile =
+        ref.watch(activeSourceProfileProvider(dive.id))?.points ?? dive.profile;
 
     // Get unit formatter
     final settings = ref.watch(settingsProvider);
@@ -2174,170 +1995,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             const SizedBox(height: 8),
             // Chart with optional range selection overlay
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final trackingIndex = ref.watch(
-                  profileTrackingIndexProvider(diveId),
-                );
-                final selectedFinding = ref.watch(
-                  selectedSafetyFindingProvider(diveId),
-                );
-                final safetyReview = ref
-                    .watch(safetyReviewProvider(diveId))
-                    .value;
-                final appSettings = ref.watch(settingsProvider);
-                final laneFindings = appSettings.safetyReviewEnabled
-                    ? chartSafetyFindings(
-                        safetyReview,
-                        appSettings.safetyReviewDisabledRules,
-                      )
-                    : const <SafetyFinding>[];
-                // Gate the highlight on lane membership: with safety review
-                // (or the finding's rule) disabled neither the lane nor the
-                // section renders, so an ungated highlight would be stuck on
-                // the chart with no UI to clear it.
-                final visibleSelectedFinding =
-                    selectedFinding != null &&
-                        laneFindings.any((f) => f.id == selectedFinding.id)
-                    ? selectedFinding
-                    : null;
-                return Stack(
-                  children: [
-                    MouseRegion(
-                      onExit: (_) {
-                        ref
-                                .read(
-                                  profileTrackingIndexProvider(diveId).notifier,
-                                )
-                                .state =
-                            null;
-                      },
-                      child: DiveProfileChart(
-                        exportKey: _profileChartExportKey,
-                        profile: chartProfile,
-                        overlays: overlays.isEmpty ? null : overlays,
-                        activeComputerId: activeProfile?.computerId,
-                        diveDuration: dive.effectiveRuntime,
-                        maxDepth: dive.maxDepth,
-                        ceilingCurve: analysis?.ceilingCurve,
-                        decoStopCurve: analysis?.decoStopCurve,
-                        ascentRates: analysis?.ascentRates,
-                        events: analysis?.events,
-                        ndlCurve: analysis?.ndlCurve,
-                        sacCurve: analysis?.smoothedSacCurve,
-                        ppO2Curve: analysis?.ppO2Curve,
-                        o2SensorCurves: analysis?.o2SensorCurves,
-                        o2CellMvCurves: analysis?.o2CellMvCurves,
-                        ppO2FromSensorAverage:
-                            analysis?.ppO2FromSensorAverage ?? false,
-                        ppN2Curve: analysis?.ppN2Curve,
-                        ppHeCurve: analysis?.ppHeCurve,
-                        modCurve: analysis?.modCurve,
-                        densityCurve: analysis?.densityCurve,
-                        gfCurve: analysis?.gfCurve,
-                        surfaceGfCurve: analysis?.surfaceGfCurve,
-                        meanDepthCurve: analysis?.meanDepthCurve,
-                        ttsCurve: analysis?.ttsCurve,
-                        gtrCurve: analysis?.gtrCurve,
-                        cnsCurve: analysis?.cnsCurve,
-                        otuCurve: analysis?.otuCurve,
-                        tankVolume: dive.tanks
-                            .where((t) => t.volume != null && t.volume! > 0)
-                            .map((t) => t.volume!)
-                            .firstOrNull,
-                        sacNormalizationFactor: calculateSacNormalizationFactor(
-                          dive,
-                          analysis,
-                        ),
-                        markers: markers,
-                        photoMarkers: photoMarkers.isEmpty
-                            ? null
-                            : photoMarkers,
-                        showMaxDepthMarker: showMaxDepthMarker,
-                        showPressureThresholdMarkers:
-                            showPressureThresholdMarkers,
-                        tanks: dive.tanks,
-                        tankPressures:
-                            estimatedTankPressures?.pressures ?? tankPressures,
-                        estimatedTankIds:
-                            estimatedTankPressures?.estimatedTankIds,
-                        tankSourceColors: tankSourceColors,
-                        gasSwitches: gasSwitchesAsync.value,
-                        gasSegments:
-                            (dive.tanks.isEmpty || chartProfile.isEmpty)
-                            ? null
-                            : buildGasUsageSegments(
-                                tanks: dive.tanks,
-                                gasSwitches: gasSwitchesAsync.value ?? const [],
-                                diveDurationSeconds:
-                                    chartProfile.last.timestamp,
-                                firstSampleSeconds:
-                                    chartProfile.first.timestamp,
-                              ),
-                        diveDurationSeconds: chartProfile.isEmpty
-                            ? null
-                            : chartProfile.last.timestamp,
-                        computerNames: computerNames,
-                        playbackTimestamp: playbackState.isActive
-                            ? playbackState.currentTimestamp
-                            : null,
-                        highlightedTimestamp:
-                            trackingIndex != null &&
-                                trackingIndex < chartProfile.length
-                            ? chartProfile[trackingIndex].timestamp
-                            : null,
-                        highlightRange: profileHighlightRangeFor(
-                          visibleSelectedFinding,
-                          Theme.of(context).colorScheme,
-                        ),
-                        safetyFindings: laneFindings.isEmpty
-                            ? null
-                            : laneFindings,
-                        selectedSafetyFindingId: visibleSelectedFinding?.id,
-                        onSafetyFindingTap: (finding) {
-                          final notifier = ref.read(
-                            selectedSafetyFindingProvider(diveId).notifier,
-                          );
-                          notifier.state = notifier.state?.id == finding.id
-                              ? null
-                              : finding;
-                        },
-                        onSafetyFindingDismiss: (finding) =>
-                            setSafetyFindingDismissed(
-                              ref,
-                              finding: finding,
-                              dismissed: true,
-                            ),
-                        onSafetyFindingDetails: (_) => _scrollToSafetySection(),
-                        // Range handles are drawn by the chart itself so they
-                        // land on the plot rect at any zoom (issue #1579).
-                        rangeSelection: rangeState.isEnabled
-                            ? (
-                                startSeconds: rangeState.startTimestamp ?? 0,
-                                endSeconds:
-                                    rangeState.endTimestamp ??
-                                    rangeState.maxTimestamp,
-                                maxSeconds: rangeState.maxTimestamp,
-                              )
-                            : null,
-                        onRangeChanged: (start, end) => ref
-                            .read(rangeSelectionProvider(dive.id).notifier)
-                            .setRange(start, end),
-                        onPointSelected: (index) {
-                          ref
-                                  .read(
-                                    profileTrackingIndexProvider(
-                                      diveId,
-                                    ).notifier,
-                                  )
-                                  .state =
-                              index;
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              },
+            DiveProfileChartHost(
+              dive: dive,
+              exportKey: _profileChartExportKey,
+              onSafetyFindingDetails: (_) => _scrollToSafetySection(),
             ),
             // Profile point count (bottom-right, inline with x-axis)
             Align(
@@ -3695,44 +3356,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// positioned from is the active source's, so indexing it into the merged
   /// series would place the max-depth flag at another computer's reading
   /// (#1167).
-  List<ProfileMarker> _calculateProfileMarkers({
-    required List<DiveProfilePoint> profile,
-    required List<DiveTank> tanks,
-    required ProfileAnalysis? analysis,
-    required bool showMaxDepth,
-    required bool showPressureThresholds,
-    Map<String, List<TankPressurePoint>>? tankPressures,
-  }) {
-    final markers = <ProfileMarker>[];
-
-    if (profile.isEmpty) return markers;
-
-    // Add max depth marker
-    if (showMaxDepth && analysis != null) {
-      final maxDepthMarker = ProfileMarkersService.getMaxDepthMarker(
-        profile: profile,
-        maxDepthTimestamp: analysis.maxDepthTimestamp,
-        maxDepth: analysis.maxDepth,
-      );
-      if (maxDepthMarker != null) {
-        markers.add(maxDepthMarker);
-      }
-    }
-
-    // Add pressure threshold markers (using per-tank data when available)
-    if (showPressureThresholds && tanks.isNotEmpty) {
-      markers.addAll(
-        ProfileMarkersService.getPressureThresholdMarkers(
-          profile: profile,
-          tanks: tanks,
-          tankPressures: tankPressures,
-        ),
-      );
-    }
-
-    return markers;
-  }
-
   Widget _buildEnvironmentSection(
     BuildContext context,
     Dive dive,

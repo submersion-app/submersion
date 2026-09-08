@@ -2,11 +2,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/recent_dive_profile_preview.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -29,21 +31,19 @@ Future<void> _pump(
   WidgetTester tester, {
   List<DiveProfilePoint>? profile,
   Object? error,
-  DepthUnit depthUnit = DepthUnit.meters,
 }) async {
-  final settings = MockSettingsNotifier(AppSettings(depthUnit: depthUnit));
+  final settings = MockSettingsNotifier(const AppSettings());
   final overrides = await getBaseOverrides(settingsNotifier: settings);
+  final listCopy = createTestDiveWithBottomTime(id: 'd1');
 
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         ...overrides,
-        recentDivesProvider.overrideWith(
-          (ref) async => [createTestDiveWithBottomTime(id: 'd1')],
-        ),
-        latestDiveProfileProvider.overrideWith((ref) async {
+        recentDivesProvider.overrideWith((ref) async => [listCopy]),
+        diveProvider('d1').overrideWith((ref) async {
           if (error != null) throw error;
-          return profile;
+          return listCopy.copyWith(profile: profile ?? const []);
         }),
       ].cast(),
       child: MaterialApp.router(
@@ -56,7 +56,7 @@ Future<void> _pump(
               builder: (context, state) => const Scaffold(
                 body: SizedBox(
                   width: 700,
-                  height: 300,
+                  height: 380,
                   child: RecentDiveProfilePreview(),
                 ),
               ),
@@ -74,10 +74,14 @@ Future<void> _pump(
 }
 
 void main() {
-  testWidgets('charts the profile of the newest dive', (tester) async {
+  // The whole point of the slot: the home tab draws the same chart the dive
+  // detail page draws, not a simplified rendition that drifts away from it.
+  testWidgets('charts the newest dive with the dive-detail chart', (
+    tester,
+  ) async {
     await _pump(tester, profile: _profile());
 
-    expect(find.byType(LineChart), findsOneWidget);
+    expect(find.byType(DiveProfileChart), findsOneWidget);
     expect(find.text('Latest dive profile'), findsOneWidget);
   });
 
@@ -88,7 +92,7 @@ void main() {
   ) async {
     await _pump(tester, profile: null);
 
-    expect(find.byType(LineChart), findsNothing);
+    expect(find.byType(DiveProfileChart), findsNothing);
     expect(find.text('No profile data for this dive'), findsOneWidget);
   });
 
@@ -100,27 +104,38 @@ void main() {
   ) async {
     await _pump(tester, error: Exception('db unavailable'));
 
-    expect(find.byType(LineChart), findsNothing);
+    expect(find.byType(DiveProfileChart), findsNothing);
     expect(find.text('No profile data for this dive'), findsNothing);
     expect(find.text("Couldn't load the dive profile"), findsOneWidget);
   });
 
-  testWidgets('plots depth in the diver\'s configured unit', (tester) async {
-    await _pump(tester, profile: _profile(), depthUnit: DepthUnit.feet);
-
-    final chart = tester.widget<LineChart>(find.byType(LineChart));
-    final deepest = chart.data.lineBarsData.single.spots
-        .map((s) => -s.y)
-        .reduce((a, b) => a > b ? a : b);
-
-    // 30 m is ~98.4 ft; in metres the deepest plotted value would be 30.
-    expect(deepest, greaterThan(90));
-  });
-
-  testWidgets('opens the dive when tapped', (tester) async {
+  // The home slot is a fixed-height box, and the full chart carries a legend
+  // row (and, on a dive with tanks, a gas timeline strip) above its plot. If
+  // that box is ever trimmed back to what the old static preview needed, the
+  // chart overflows it rather than shrinking the plot to nothing.
+  testWidgets('the full chart fits the height the home slot gives it', (
+    tester,
+  ) async {
     await _pump(tester, profile: _profile());
 
-    await tester.tap(find.byType(RecentDiveProfilePreview));
+    expect(tester.takeException(), isNull);
+    expect(find.byType(DiveProfileLegend), findsOneWidget);
+    // The plot must still be the bulk of the slot once the legend has taken
+    // its share, or the chart is there in name only.
+    expect(
+      tester.getSize(find.byType(LineChart).first).height,
+      greaterThan(200),
+    );
+  });
+
+  // The chart owns pan, zoom, tooltip and range gestures, so the card cannot
+  // be one big tap target the way a static preview could be. The header is.
+  testWidgets('opens the dive from the header, not from the chart', (
+    tester,
+  ) async {
+    await _pump(tester, profile: _profile());
+
+    await tester.tap(find.text('Latest dive profile'));
     await tester.pumpAndSettle();
 
     expect(find.text('detail'), findsOneWidget);
