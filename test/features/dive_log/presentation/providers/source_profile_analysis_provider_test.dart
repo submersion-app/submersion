@@ -229,6 +229,68 @@ void main() {
     expect(analysis!.ascentRates.length, primaryBucket.length);
   });
 
+  // usesPerSourceRendering, the rule every profile surface picks its series
+  // with, is false for the sequential halves of a Combine even though there
+  // are two sources (#1451): those surfaces draw the merged dive.profile,
+  // because drawing one half would hide the rest of the dive. A source count
+  // does not see that, so the analysis was computed over the primary half and
+  // index-paired against a chart showing the whole dive: every curve ran out
+  // halfway along, and the ones that did land were on the wrong samples.
+  test('a Combine\'s sequential halves analyse the merged dive.profile the '
+      'chart actually draws (#1451)', () async {
+    // Non-overlapping: the halves meet end to end, exactly what a Combine
+    // produces and what sourceProfilesAreSequential detects.
+    final firstHalf = _profile(100);
+    final secondHalf = _profile(100, startOffsetSeconds: 200);
+    final merged = [...firstHalf, ...secondHalf];
+
+    final dive = Dive(
+      id: 'dive-1',
+      dateTime: DateTime(2026, 5, 7),
+      profile: merged,
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(_prefs),
+        diverRepositoryProvider.overrideWithValue(_FakeDiverRepository()),
+        settingsProvider.overrideWith((ref) => _SettingsNotifier(ref)),
+        analysisDiveProvider('dive-1').overrideWith((ref) async => dive),
+        diveDataSourcesProvider('dive-1').overrideWith(
+          (ref) async => [
+            source('src-a', 'dc-a', true),
+            source('src-b', 'dc-b', false),
+          ],
+        ),
+        sourceProfilesProvider('dive-1').overrideWith(
+          (ref) async => {
+            'src-a': SourceProfile(
+              sourceId: 'src-a',
+              computerId: 'dc-a',
+              isEdited: false,
+              points: firstHalf,
+            ),
+            'src-b': SourceProfile(
+              sourceId: 'src-b',
+              computerId: 'dc-b',
+              isEdited: false,
+              points: secondHalf,
+            ),
+          },
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final analysis = await container.read(
+      sourceProfileAnalysisProvider((diveId: 'dive-1', sourceId: null)).future,
+    );
+
+    expect(analysis, isNotNull);
+    // The whole dive, not one half of it.
+    expect(analysis!.ascentRates.length, merged.length);
+  });
+
   test('single-source dives keep using dive.profile', () async {
     final profile = _profile(80);
     final dive = Dive(
