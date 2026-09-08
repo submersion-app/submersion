@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/data_quality/data/services/quality_repair_executor.dart';
@@ -365,11 +364,18 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           final divesAsync = ref.watch(
             qualityFindingDivesProvider(qualityFindingDivesKey(scoped)),
           );
-          final dives = divesAsync.valueOrNull;
+          // `.value` rather than the `valueOrNull` extension: both keep the
+          // previous map across a self-invalidate (a refresh skips the loading
+          // branch), but only `.value` keeps it across a genuine reload or a
+          // failed read. The names map has a dependency that really does
+          // change -- switching the active diver reloads the saved-computer
+          // list -- and blinking the identities out is worse than showing the
+          // last good ones for a frame.
+          final dives = divesAsync.value;
           // Reading the names costs a diver lookup plus a computers-table
           // read, so only pay it when some finding actually names a computer.
           final computerNames = scoped.any((f) => f.computerId != null)
-              ? ref.watch(qualityComputerNamesProvider).valueOrNull ?? const {}
+              ? ref.watch(qualityComputerNamesProvider).value ?? const {}
               : const <String, String>{};
           // Only the identity lines wait on that lookup; the findings
           // themselves render immediately from the stream that already
