@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+"""Tests for check_apk_signing_cert."""
+
+import hashlib
+import io
+import os
+import struct
+import sys
+import tempfile
+import unittest
+import zipfile
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import check_apk_signing_cert as guard  # noqa: E402
+
+
+def _length_prefixed(payload):
+    """u32 length prefix, the encoding used throughout the v2/v3 schemes."""
+    return struct.pack("<I", len(payload)) + payload
+
+
+def _signer_block(cert_der, extra_signed_data=b""):
+    """Build one signer entry holding ``cert_der``.
+
+    Mirrors the real layout: signed data is a length-prefixed record whose
+    first field is the digest sequence and whose second is the certificate
+    sequence.
+    """
+    digests = _length_prefixed(b"\x00" * 12)  # opaque to this guard
+    certificates = _length_prefixed(_length_prefixed(cert_der))
+    signed_data = _length_prefixed(digests + certificates + extra_signed_data)
+    return _length_prefixed(signed_data + b"\x00" * 8)
+
+
+def _signing_block(pairs):
+    """Assemble an APK Signing Block from ``{id: value}`` pairs."""
+    body = b""
+    for block_id, value in pairs.items():
+        body += struct.pack("<QI", len(value) + 4, block_id) + value
+    size = len(body) + 8 + 16
+    return (
+        struct.pack("<Q", size) + body + struct.pack("<Q", size) + guard.APK_SIG_BLOCK_MAGIC
+    )
+
+
+def _apk_with_signing_block(cert_der, block_id=guard.V2_BLOCK_ID, pairs=None):
+    """Write a ZIP and splice a signing block in ahead of its central directory.
+
+    The signing block sits between the last local file entry and the central
+    directory, so every central-directory offset shifts by its length.
+    """
+    raw = io.BytesIO()
+    with zipfile.ZipFile(raw, "w") as zf:
+        zf.writestr("AndroidManifest.xml", "placeholder")
+    data = raw.getvalue()
+
+    eocd = data.rindex(b"PK\x05\x06")
+    cd_offset = struct.unpack_from("<I", data, eocd + 16)[0]
+
+    if pairs is None:
+        pairs = {block_id: _length_prefixed(_signer_block(cert_der))}
+    block = _signing_block(pairs)
+
+    patched = bytearray(data[:cd_offset] + block + data[cd_offset:])
+    struct.pack_into("<I", patched, eocd + len(block) + 16, cd_offset + len(block))
+    return bytes(patched)
+
+
+def _write_temp(data, suffix=".apk"):
+    handle, path = tempfile.mkstemp(suffix=suffix)
+    with os.fdopen(handle, "wb") as f:
+        f.write(data)
+    return path
+
+
+class SignerCertificateTest(unittest.TestCase):
+    def setUp(self):
+        self.cert = b"pretend-x509-der-bytes"
+        self.fingerprint = hashlib.sha1(self.cert).hexdigest()
+        self._paths = []
+
+    def tearDown(self):
+        for path in self._paths:
+            os.unlink(path)
+
+    def _apk(self, *args, **kwargs):
+        path = _write_temp(_apk_with_signing_block(*args, **kwargs))
+        self._paths.append(path)
+        return path
+
+    def test_reads_fingerprint_from_v2_block(self):
+        path = self._apk(self.cert, block_id=guard.V2_BLOCK_ID)
+        self.assertEqual(guard.signer_sha1(path), self.fingerprint)
+
+    def test_reads_fingerprint_from_v3_block(self):
+        path = self._apk(self.cert, block_id=guard.V3_BLOCK_ID)
+        self.assertEqual(guard.signer_sha1(path), self.fingerprint)
+
+    def test_prefers_v3_over_v2_when_both_present(self):
+        """A v3 rotation block supersedes v2, so it decides the identity."""
+        v3_cert = b"the-v3-certificate"
+        path = self._apk(
+            self.cert,
+            pairs={
+                guard.V2_BLOCK_ID: _length_prefixed(_signer_block(self.cert)),
+                guard.V3_BLOCK_ID: _length_prefixed(_signer_block(v3_cert)),
+            },
+        )
+        self.assertEqual(guard.signer_sha1(path), hashlib.sha1(v3_cert).hexdigest())
+
+    def test_unsigned_apk_raises(self):
+        raw = io.BytesIO()
+        with zipfile.ZipFile(raw, "w") as zf:
+            zf.writestr("AndroidManifest.xml", "placeholder")
+        path = _write_temp(raw.getvalue())
+        self._paths.append(path)
+        with self.assertRaises(guard.SigningBlockError):
+            guard.signer_sha1(path)
+
+    def test_signing_block_without_a_known_scheme_raises(self):
+        path = self._apk(self.cert, pairs={0x12345678: b"\x00" * 8})
+        with self.assertRaises(guard.SigningBlockError):
+            guard.signer_sha1(path)
+
+
+class FingerprintNormalisationTest(unittest.TestCase):
+    def test_accepts_colon_separated_uppercase(self):
+        self.assertEqual(
+            guard.normalise("B3:25:29:FF"),
+            guard.normalise("b32529ff"),
+        )
+
+    def test_strips_whitespace(self):
+        self.assertEqual(guard.normalise("  ab cd  "), "abcd")
+
+
+class RegisteredCertsTest(unittest.TestCase):
+    def test_every_registered_fingerprint_is_a_sha1_hex_digest(self):
+        self.assertTrue(guard.REGISTERED_SIGNING_CERTS)
+        for fingerprint in guard.REGISTERED_SIGNING_CERTS:
+            self.assertEqual(len(fingerprint), 40, fingerprint)
+            self.assertEqual(fingerprint, fingerprint.lower(), fingerprint)
+            int(fingerprint, 16)  # raises if not hex
+
+    def test_every_registered_fingerprint_names_where_it_is_registered(self):
+        for description in guard.REGISTERED_SIGNING_CERTS.values():
+            self.assertTrue(description.strip())
+
+
+class MainTest(unittest.TestCase):
+    def setUp(self):
+        self._paths = []
+
+    def tearDown(self):
+        for path in self._paths:
+            os.unlink(path)
+
+    def _apk(self, cert):
+        path = _write_temp(_apk_with_signing_block(cert))
+        self._paths.append(path)
+        return path
+
+    def test_accepts_a_registered_certificate(self):
+        cert = b"registered-cert"
+        registered = {hashlib.sha1(cert).hexdigest(): "test keystore"}
+        self.assertEqual(guard.main([self._apk(cert)], registered=registered), 0)
+
+    def test_rejects_an_unregistered_certificate(self):
+        cert = b"some-other-cert"
+        registered = {hashlib.sha1(b"registered-cert").hexdigest(): "test keystore"}
+        self.assertEqual(guard.main([self._apk(cert)], registered=registered), 1)
+
+    def test_rejects_an_unparseable_apk(self):
+        path = _write_temp(b"not a zip at all")
+        self._paths.append(path)
+        self.assertEqual(guard.main([path], registered={"ab" * 20: "test"}), 1)
+
+    def test_requires_at_least_one_apk(self):
+        self.assertEqual(guard.main([]), 2)
+
+
+if __name__ == "__main__":
+    unittest.main()

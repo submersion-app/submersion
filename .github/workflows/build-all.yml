@@ -841,6 +841,21 @@ jobs:
             build/app/outputs/flutter-apk/app-release.apk \
             build/app/outputs/bundle/release/app-release.aab
 
+      # An Android app carries no OAuth client ID: Google matches it by package
+      # name plus signing-certificate SHA-1, so the signing key IS the Google
+      # Drive credential. The APK below keeps the CI keystore's certificate
+      # while the AAB is re-signed by Play, and registering only the Play
+      # fingerprint left every GitHub Releases install unable to sign in, with
+      # a message that read as a user cancellation. Fails the release if the
+      # APK is signed by a certificate that has no registered OAuth client.
+      # Runs here rather than in ci.yaml because a PR build has no
+      # key.properties and falls back to a per-runner debug keystore whose
+      # fingerprint is generated at random.
+      - name: Verify APK signing certificate is a registered OAuth client
+        run: |
+          python3 scripts/check_apk_signing_cert.py \
+            build/app/outputs/flutter-apk/app-release.apk
+
       # Guards against issue #433: sqlite3_flutter_libs 0.6.0+eol (an empty
       # tombstone release) silently dropped libsqlite3.so from the package, so
       # the app could not open its database on launch. Fail the release before

@@ -217,6 +217,49 @@ void main() {
       );
     });
 
+    test('does not call a Play services refusal a user cancellation', () async {
+      // google_sign_in reports a Google Play services refusal under the
+      // same `canceled` code as a real dismissal. Users on a build whose
+      // signing certificate has no registered Android OAuth client hit this
+      // on every attempt, and the old wording told them they had cancelled
+      // a dialog they never saw. See scripts/check_apk_signing_cert.py.
+      platform.authenticateError = const GoogleSignInException(
+        code: GoogleSignInExceptionCode.canceled,
+        description: '[16] Account reauth failed.',
+      );
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>()
+              .having((e) => e.message, 'message', isNot(contains('cancelled')))
+              .having(
+                (e) => e.message,
+                'message',
+                contains('Account reauth failed'),
+              ),
+        ),
+      );
+    });
+
+    test('still treats a dismissed sign-in dialog as a cancellation', () async {
+      platform.authenticateError = const GoogleSignInException(
+        code: GoogleSignInExceptionCode.canceled,
+        description: 'activity is cancelled by the user.',
+      );
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.message,
+            'message',
+            contains('cancelled'),
+          ),
+        ),
+      );
+    });
+
     test('maps other sign-in failures with their description', () async {
       platform.authenticateError = const GoogleSignInException(
         code: GoogleSignInExceptionCode.unknownError,

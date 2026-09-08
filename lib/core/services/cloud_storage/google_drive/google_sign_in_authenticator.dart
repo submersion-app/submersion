@@ -111,6 +111,23 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
       _log.info('Authenticated with Google Drive as ${account.email}');
     } on GoogleSignInException catch (e, stackTrace) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
+        if (_isPlatformRefusal(e.description)) {
+          _log.error(
+            'Google Play services refused to authorize the account',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          throw CloudStorageException(
+            // Deliberately platform-neutral about where to look: this
+            // authenticator also serves iOS and macOS, so naming Android's
+            // settings would misdirect users there.
+            'Google sign-in was refused by the device (${e.description}). '
+            'Check that the Google account on this device is signed in and '
+            'up to date in the system settings, then try again.',
+            e,
+            stackTrace,
+          );
+        }
         _log.info('Google Sign-In was cancelled by the user');
         throw CloudStorageException(
           'Google Sign-In was cancelled',
@@ -129,6 +146,27 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
       throw CloudStorageException('Google Sign-In failed: $e', e, stackTrace);
     }
   }
+
+  /// Whether a `canceled` code actually describes a refusal by Google Play
+  /// services rather than a dialog the user dismissed.
+  ///
+  /// Android routes both through `GetCredentialCancellationException`, so the
+  /// SDK reports them under one code. Play services prefixes its own
+  /// refusals with the numeric status it failed on, as in
+  /// `[16] Account reauth failed.`; a dismissal carries prose with no such
+  /// prefix. Matching the bracketed status rather than the wording keeps this
+  /// working when Google rewords a message, and it is the only structure the
+  /// two cases do not share.
+  ///
+  /// The distinction matters because the two need opposite responses: a
+  /// dismissal is a decision to leave alone, while a refusal is a fault the
+  /// user cannot act on without being told what it was. Reporting a refusal
+  /// as "cancelled" is what left Google Drive users on an unregistered build
+  /// retrying a dialog they had never dismissed.
+  static bool _isPlatformRefusal(String? description) =>
+      description != null && _platformStatusPrefix.hasMatch(description);
+
+  static final _platformStatusPrefix = RegExp(r'^\s*\[\d+\]');
 
   void _installClient(
     GoogleSignInAccount account,
