@@ -2658,6 +2658,42 @@ class AppLocalizationsIt extends AppLocalizations {
   String get preDive_dashboard_start => 'Avvia controllo pre-immersione';
 
   @override
+  String get preDive_templates_view => 'Visualizza';
+
+  @override
+  String get preDive_edit_titleView => 'Visualizza checklist pre-immersione';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Checklist predefinita. Duplicala per ottenere una copia modificabile.';
+
+  @override
+  String get dashboard_checklists_title => 'Checklist';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Pre-immersione';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Viaggio: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Iniziata $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Completata $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Interrotta $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Checklist pre-immersione';
 
   @override
@@ -3359,7 +3395,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Chip di stato';
 
   @override
-  String get settings_homeCards_card_preDive => 'Checklist pre-immersione';
+  String get settings_homeCards_card_preDive => 'Checklist';
 
   @override
   String get settings_homeCards_card_recentDives => 'Immersioni recenti';
@@ -23772,6 +23808,23 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rileva la pressione finale quando raggiungi la superficie, non a fine registrazione';
 
   @override
+  String get settings_cloudImportPageSize_title =>
+      'Dimensione pagina importazione cloud';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'Quante delle immersioni più recenti scaricare per volta da Suunto Cloud o Garmin Connect. «Carica altro» recupera il lotto successivo della stessa dimensione.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle =>
+      'Immersioni per pagina';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Tra $min e $max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'Rigoroso';
 
   @override
@@ -36713,6 +36766,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'Carica altro';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'Carica tutto';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

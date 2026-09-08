@@ -2507,6 +2507,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_dashboard_start => '开始潜前检查';
 
   @override
+  String get preDive_templates_view => '查看';
+
+  @override
+  String get preDive_edit_titleView => '查看潜前检查清单';
+
+  @override
+  String get preDive_edit_builtInNotice => '内置检查清单。复制后即可编辑。';
+
+  @override
+  String get dashboard_checklists_title => '检查清单';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => '潜前';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return '行程：$name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return '开始于 $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return '完成于 $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return '中止于 $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => '潜前检查清单';
 
   @override
@@ -3182,7 +3217,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => '状态标签';
 
   @override
-  String get settings_homeCards_card_preDive => '潜水前检查清单';
+  String get settings_homeCards_card_preDive => '检查清单';
 
   @override
   String get settings_homeCards_card_recentDives => '最近潜水';
@@ -22547,6 +22582,21 @@ class AppLocalizationsZh extends AppLocalizations {
       '以到达水面时的压力作为结束压力，而不是记录结束时的压力';
 
   @override
+  String get settings_cloudImportPageSize_title => '云导入分页大小';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      '每次从 Suunto Cloud 或 Garmin Connect 获取多少条最新潜水记录。「加载更多」会获取同样大小的下一批。';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => '每页潜水次数';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return '$min 到 $max 之间';
+  }
+
+  @override
   String get settings_siteMatch_strict => '严格';
 
   @override
@@ -34556,6 +34606,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => '加载更多';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => '加载全部';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

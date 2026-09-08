@@ -14,12 +14,33 @@ class ChecklistDiveLinker {
     : _sessions = sessions ?? PreDiveSessionRepository();
 
   /// A checklist run belongs to the dive that splashed within this window
-  /// after it started.
+  /// after the run finished.
   static const linkWindow = Duration(hours: 3);
 
   /// Absorbs dive-computer wall-clock skew relative to the phone: a session
-  /// "started" slightly after the recorded dive start still links.
+  /// timestamped slightly after the recorded dive start still links.
   static const forwardGrace = Duration(minutes: 15);
+
+  /// When a run counts as "done" for the purpose of matching it to a dive.
+  ///
+  /// Completion, not start, is the anchor: the diver finishes the checklist
+  /// and gets in the water, so the gap that matters is the one between the
+  /// last item ticked and the splash. Anchoring on [startedAt] instead
+  /// measured from the wrong end and dropped every run that took a while --
+  /// a CCR build or a gear-packing list worked through over an hour would
+  /// fall out of the window even when it ended minutes before the dive.
+  ///
+  /// A run still in progress anchors on its start. The status decides that,
+  /// not the presence of the stamp: `completedAt` is only written alongside a
+  /// terminal status, so a running row carrying one is contradictory data,
+  /// and trusting it would anchor the run on a time it never finished at and
+  /// hand it to the wrong dive -- or, if that time falls outside the window,
+  /// to none at all. Mirrors the same defence in the sessions list's
+  /// `_whenLabel`.
+  static DateTime anchorOf(domain.PreDiveSession session) =>
+      session.status == domain.PreDiveSessionStatus.inProgress
+      ? session.startedAt
+      : session.completedAt ?? session.startedAt;
 
   Future<bool> autoLinkForDive({
     required String diveId,
@@ -37,7 +58,7 @@ class ChecklistDiveLinker {
       for (final s in candidates) {
         // getUnlinkedSessions filters exactly; belt-and-braces re-check.
         if (s.diverId != diverId) continue;
-        final delta = diveStart.difference(s.startedAt);
+        final delta = diveStart.difference(anchorOf(s));
         final inWindow = delta <= linkWindow && delta >= -forwardGrace;
         if (!inWindow) continue;
         final distance = delta.abs();

@@ -91,4 +91,73 @@ void main() {
       expect(all.first['n'], 4);
     },
   );
+
+  test('GUE EDGE seeds the canonical seven-point sequence in order', () async {
+    await rows('SELECT 1');
+    final items = await rows(
+      'SELECT id, title, sort_order FROM pre_dive_checklist_template_items '
+      "WHERE template_id = 'builtin-predive-gue-edge' ORDER BY sort_order",
+    );
+    expect(items.map((i) => i['id']).toList(), [
+      for (var i = 0; i < 7; i++) 'builtin-predive-gue-edge-$i',
+    ]);
+    // G-U-E E-D-G-E: the mnemonic is the sequence, so the first word of each
+    // title is the assertion.
+    expect(
+      items
+          .map((i) => (i['title']! as String).split(':').first.toLowerCase())
+          .toList(),
+      [
+        'goal',
+        'unified team',
+        'equipment',
+        'exposure',
+        'decompression',
+        'gas',
+        'environment',
+      ],
+    );
+    expect(items.map((i) => i['sort_order']).toList(), [0, 1, 2, 3, 4, 5, 6]);
+  });
+
+  test('re-seed retires the legacy four-item GUE EDGE list', () async {
+    final db = DatabaseService.instance.database;
+    // Recreate a pre-repair database: the canonical rows gone, the legacy
+    // ids present.
+    await db.customStatement(
+      "DELETE FROM pre_dive_checklist_template_items "
+      "WHERE template_id = 'builtin-predive-gue-edge'",
+    );
+    for (var i = 0; i < 4; i++) {
+      await db.customStatement(
+        'INSERT INTO pre_dive_checklist_template_items '
+        '(id, template_id, title, sort_order, item_type, is_required, '
+        'created_at, updated_at) VALUES '
+        "('builtin-predive-gue-$i', 'builtin-predive-gue-edge', "
+        "'Legacy $i', $i, 'check', 1, 0, 0)",
+      );
+    }
+    // Simulate the next open's beforeOpen re-seed.
+    await db.customStatement(kRetireLegacyGueEdgeItemsSql);
+    await db.customStatement(kSeedBuiltInPreDiveTemplateItemsSql);
+
+    final items = await rows(
+      'SELECT id FROM pre_dive_checklist_template_items '
+      "WHERE template_id = 'builtin-predive-gue-edge' ORDER BY sort_order",
+    );
+    expect(items, hasLength(7));
+    expect(
+      items.map((i) => i['id']).where((id) => id == 'builtin-predive-gue-0'),
+      isEmpty,
+    );
+
+    // Running the pair again is a no-op, not a duplication.
+    await db.customStatement(kRetireLegacyGueEdgeItemsSql);
+    await db.customStatement(kSeedBuiltInPreDiveTemplateItemsSql);
+    final again = await rows(
+      'SELECT COUNT(*) AS n FROM pre_dive_checklist_template_items '
+      "WHERE template_id = 'builtin-predive-gue-edge'",
+    );
+    expect(again.first['n'], 7);
+  });
 }

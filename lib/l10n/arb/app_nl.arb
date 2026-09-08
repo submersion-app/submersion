@@ -1080,6 +1080,43 @@
     }
   },
   "preDive_dashboard_start": "Pre-dive check starten",
+  "preDive_templates_view": "Bekijken",
+  "preDive_edit_titleView": "Pre-dive checklist bekijken",
+  "preDive_edit_builtInNotice": "Ingebouwde checklist. Dupliceer deze voor een bewerkbare kopie.",
+  "dashboard_checklists_title": "Checklists",
+  "dashboard_checklists_preDiveLabel": "Pre-dive",
+  "dashboard_checklists_tripLabel": "Reis: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Gestart {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Voltooid {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Afgebroken {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Pre-dive checklist",
   "settings_manage_preDiveChecklists": "Pre-dive checklists",
   "settings_manage_preDiveChecklists_subtitle": "Buddychecks, CCR-opbouwlijsten, uitrusting inpakken",
@@ -6525,6 +6562,10 @@
   "settings_siteMatch_subtitle": "Hoe agressief gedownloade duiken aan stekken worden gekoppeld",
   "settings_tankPressureAtSurfacing_title": "Flesdruk bij bovenkomen",
   "settings_tankPressureAtSurfacing_subtitle": "Neem de einddruk op het moment van bovenkomen, niet aan het einde van de opname",
+  "settings_cloudImportPageSize_title": "Paginagrootte voor cloudimport",
+  "settings_cloudImportPageSize_subtitle": "Hoeveel van de nieuwste duiken per keer op te halen van Suunto Cloud of Garmin Connect. „Meer laden” haalt de volgende batch van dezelfde grootte op.",
+  "settings_cloudImportPageSize_dialogTitle": "Duiken per pagina",
+  "settings_cloudImportPageSize_range": "Tussen {min} en {max}",
   "settings_siteMatch_strict": "Strikt",
   "settings_siteMatch_balanced": "Gebalanceerd",
   "settings_siteMatch_relaxed": "Soepel",
@@ -6652,7 +6693,7 @@
   "settings_homeCards_resetDialog_confirm": "Herstellen",
   "settings_homeCards_card_hero": "Welkomstkop",
   "settings_homeCards_card_gaugeStrip": "Statuschips",
-  "settings_homeCards_card_preDive": "Pre-dive checklist",
+  "settings_homeCards_card_preDive": "Checklists",
   "settings_homeCards_card_recentDives": "Recente duiken",
   "settings_homeCards_card_quickActions": "Snelle acties",
   "settings_homeCards_card_milestones": "Mijlpalen",
@@ -10763,6 +10804,7 @@
   "importWizard_review_sortByDuration": "Tijd",
   "suuntoCloud_fetch_retry": "Opnieuw proberen",
   "suuntoCloud_fetch_loadMore": "Meer laden",
+  "suuntoCloud_fetch_fetchAll": "Alles laden",
   "settings_storageUsage_appBar_title": "Opslaggebruik",
   "settings_storageUsage_tile_title": "Opslaggebruik",
   "settings_storageUsage_tile_subtitle": "Bekijk wat ruimte inneemt op dit apparaat",

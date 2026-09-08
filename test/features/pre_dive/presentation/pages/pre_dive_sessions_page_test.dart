@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/export/excel/pre_dive_excel_export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
@@ -101,6 +102,9 @@ class _StubSessionRepository implements PreDiveSessionRepository {
 void main() {
   final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
 
+  // A finished run always carries the stamp the repository writes when it is
+  // completed or aborted, so the fixture mirrors that rather than leaving
+  // completedAt null on a locked session.
   PreDiveSession session(
     String id, {
     String name = 'CCR Build',
@@ -112,6 +116,9 @@ void main() {
     status: status,
     diveId: diveId,
     startedAt: now,
+    completedAt: status == PreDiveSessionStatus.inProgress
+        ? null
+        : now.add(const Duration(minutes: 12)),
     createdAt: now,
     updatedAt: now,
   );
@@ -253,6 +260,128 @@ void main() {
     expect(find.byType(ListTile), findsNWidgets(2));
   });
 
+  testWidgets('the timestamp connector follows the locale', (tester) async {
+    // formatDateTime falls back to a hardcoded English "at" unless it is
+    // handed l10n, which would leave a German tile reading "... at 14:12".
+    await pumpPage(
+      tester,
+      sessions: [
+        session('done1', name: 'Riff', status: PreDiveSessionStatus.completed),
+      ],
+      items: {
+        'done1': [item('done1', 0, PreDiveItemState.done)],
+      },
+      locale: const Locale('de'),
+    );
+
+    expect(find.textContaining('bei'), findsOneWidget);
+    expect(find.textContaining(' at '), findsNothing);
+  });
+
+  testWidgets('a running row reports its start even with a finish stamp', (
+    tester,
+  ) async {
+    // Contradictory data: in-progress with a completion stamp. Deriving the
+    // displayed time from completedAt and only the label from the status
+    // printed the finish time under a "Started" label.
+    final contradictory = PreDiveSession(
+      id: 'weird',
+      templateName: 'Half-done Check',
+      status: PreDiveSessionStatus.inProgress,
+      startedAt: now,
+      completedAt: now.add(const Duration(hours: 5)),
+      createdAt: now,
+      updatedAt: now,
+    );
+    await pumpPage(
+      tester,
+      sessions: [contradictory],
+      items: {
+        'weird': [item('weird', 0, PreDiveItemState.pending)],
+      },
+    );
+
+    const units = UnitFormatter(AppSettings());
+    expect(
+      find.textContaining('Started ${units.formatDateTime(now)}'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(units.formatDateTime(contradictory.completedAt)),
+      findsNothing,
+    );
+  });
+
+  testWidgets('a terminal run with no finish stamp still shows its status', (
+    tester,
+  ) async {
+    // Legacy or sync-applied rows can reach the list terminal but unstamped.
+    // Folding the status into the timestamp phrase must not drop it: before
+    // this branch the subtitle always carried a separate status label, and a
+    // completed run reading only "Started ..." hides what actually happened.
+    final unstamped = PreDiveSession(
+      id: 'legacy',
+      templateName: 'Old Record',
+      status: PreDiveSessionStatus.completed,
+      startedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await pumpPage(
+      tester,
+      sessions: [unstamped],
+      items: {
+        'legacy': [item('legacy', 0, PreDiveItemState.done)],
+      },
+    );
+
+    expect(unstamped.completedAt, isNull);
+    expect(find.textContaining('Completed'), findsOneWidget);
+    // The start is the one time that is certainly true, so it is still shown.
+    expect(find.textContaining('Started'), findsOneWidget);
+  });
+
+  testWidgets('an unstamped aborted run reports Aborted, not Started only', (
+    tester,
+  ) async {
+    final unstamped = PreDiveSession(
+      id: 'legacy2',
+      templateName: 'Bailed Record',
+      status: PreDiveSessionStatus.aborted,
+      startedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await pumpPage(
+      tester,
+      sessions: [unstamped],
+      items: {
+        'legacy2': [item('legacy2', 0, PreDiveItemState.skipped)],
+      },
+    );
+
+    expect(find.textContaining('Aborted'), findsOneWidget);
+  });
+
+  testWidgets('a running run is not given a redundant status suffix', (
+    tester,
+  ) async {
+    // "Started ... - In progress" would say the same thing twice; only a
+    // terminal row needs the status spelled out beside its start.
+    await pumpPage(
+      tester,
+      sessions: [
+        session('ip2', name: 'Solo', status: PreDiveSessionStatus.inProgress),
+      ],
+      items: {
+        'ip2': [item('ip2', 0, PreDiveItemState.pending)],
+      },
+    );
+
+    expect(find.textContaining('Started'), findsOneWidget);
+    expect(find.textContaining('In progress'), findsNothing);
+  });
+
   testWidgets('in-progress history tile shows pending icon and status', (
     tester,
   ) async {
@@ -273,7 +402,7 @@ void main() {
     );
 
     expect(find.text('Solo Check'), findsOneWidget);
-    expect(find.textContaining('In progress'), findsOneWidget);
+    expect(find.textContaining('Started'), findsOneWidget);
     expect(find.byIcon(Icons.pending_outlined), findsOneWidget);
   });
 

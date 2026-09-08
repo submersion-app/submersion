@@ -1080,6 +1080,43 @@
     }
   },
   "preDive_dashboard_start": "התחל בדיקה לפני צלילה",
+  "preDive_templates_view": "הצגה",
+  "preDive_edit_titleView": "הצגת רשימת בדיקה לפני צלילה",
+  "preDive_edit_builtInNotice": "רשימת בדיקה מובנית. שכפלו אותה כדי ליצור עותק הניתן לעריכה.",
+  "dashboard_checklists_title": "רשימות בדיקה",
+  "dashboard_checklists_preDiveLabel": "לפני צלילה",
+  "dashboard_checklists_tripLabel": "טיול: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "התחילה {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "הושלמה {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "בוטלה {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "רשימת בדיקה לפני צלילה",
   "settings_manage_preDiveChecklists": "רשימות בדיקה לפני צלילה",
   "settings_manage_preDiveChecklists_subtitle": "בדיקות באדי, רשימות הרכבת CCR, אריזת ציוד",
@@ -6525,6 +6562,10 @@
   "settings_siteMatch_subtitle": "באיזו מידה צלילות שהורדו מותאמות לאתרים",
   "settings_tankPressureAtSurfacing_title": "לחץ המיכל בעלייה לפני השטח",
   "settings_tankPressureAtSurfacing_subtitle": "קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה",
+  "settings_cloudImportPageSize_title": "גודל עמוד בייבוא מהענן",
+  "settings_cloudImportPageSize_subtitle": "כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.",
+  "settings_cloudImportPageSize_dialogTitle": "צלילות לעמוד",
+  "settings_cloudImportPageSize_range": "בין {min} ל-{max}",
   "settings_siteMatch_strict": "קפדני",
   "settings_siteMatch_balanced": "מאוזן",
   "settings_siteMatch_relaxed": "גמיש",
@@ -6652,7 +6693,7 @@
   "settings_homeCards_resetDialog_confirm": "איפוס",
   "settings_homeCards_card_hero": "כותרת פתיחה",
   "settings_homeCards_card_gaugeStrip": "שבבי מצב",
-  "settings_homeCards_card_preDive": "רשימת בדיקה לפני צלילה",
+  "settings_homeCards_card_preDive": "רשימות בדיקה",
   "settings_homeCards_card_recentDives": "צלילות אחרונות",
   "settings_homeCards_card_quickActions": "פעולות מהירות",
   "settings_homeCards_card_milestones": "אבני דרך",
@@ -10763,6 +10804,7 @@
   "importWizard_review_sortByDuration": "זמן",
   "suuntoCloud_fetch_retry": "נסה שוב",
   "suuntoCloud_fetch_loadMore": "טען עוד",
+  "suuntoCloud_fetch_fetchAll": "טען הכול",
   "settings_storageUsage_appBar_title": "שימוש באחסון",
   "settings_storageUsage_tile_title": "שימוש באחסון",
   "settings_storageUsage_tile_subtitle": "ראה מה תופס מקום במכשיר הזה",

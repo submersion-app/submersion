@@ -2584,6 +2584,42 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_dashboard_start => 'התחל בדיקה לפני צלילה';
 
   @override
+  String get preDive_templates_view => 'הצגה';
+
+  @override
+  String get preDive_edit_titleView => 'הצגת רשימת בדיקה לפני צלילה';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'רשימת בדיקה מובנית. שכפלו אותה כדי ליצור עותק הניתן לעריכה.';
+
+  @override
+  String get dashboard_checklists_title => 'רשימות בדיקה';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'לפני צלילה';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'טיול: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'התחילה $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'הושלמה $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'בוטלה $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'רשימת בדיקה לפני צלילה';
 
   @override
@@ -3268,7 +3304,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'שבבי מצב';
 
   @override
-  String get settings_homeCards_card_preDive => 'רשימת בדיקה לפני צלילה';
+  String get settings_homeCards_card_preDive => 'רשימות בדיקה';
 
   @override
   String get settings_homeCards_card_recentDives => 'צלילות אחרונות';
@@ -23179,6 +23215,21 @@ class AppLocalizationsHe extends AppLocalizations {
       'קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה';
 
   @override
+  String get settings_cloudImportPageSize_title => 'גודל עמוד בייבוא מהענן';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'צלילות לעמוד';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'בין $min ל-$max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'קפדני';
 
   @override
@@ -35986,6 +36037,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'טען עוד';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'טען הכול';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

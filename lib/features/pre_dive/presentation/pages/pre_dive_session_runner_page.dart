@@ -297,7 +297,12 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
               child: Text(
                 '${l10n.preDive_runner_locked} - '
                 '${_statusLabel(context, session.status)}'
-                '${session.completedAt == null ? '' : ' - ${UnitFormatter(ref.watch(settingsProvider)).formatDate(session.completedAt)}'}',
+                // Time of day, not just the date: the gap between finishing
+                // the checklist and splashing is what the run is evidence of,
+                // and it is what auto-links this run to a dive. l10n is
+                // threaded through so the date/time connector is translated
+                // rather than falling back to a hardcoded English "at".
+                '${session.completedAt == null ? '' : ' - ${UnitFormatter(ref.watch(settingsProvider)).formatDateTime(session.completedAt, l10n: l10n)}'}',
                 style: theme.textTheme.bodyMedium,
               ),
             ),

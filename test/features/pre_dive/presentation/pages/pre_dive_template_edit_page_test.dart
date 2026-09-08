@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -11,10 +13,14 @@ import '../../../../helpers/test_app.dart';
 /// Fake repository that stubs the reads the page performs and captures the
 /// writes so save/create/update/saveItems can be asserted without a database.
 class _FakeTemplateRepo implements PreDiveTemplateRepository {
-  _FakeTemplateRepo({this.template, this.items = const []});
+  _FakeTemplateRepo({this.template, this.items = const [], this.gate});
 
   final PreDiveChecklistTemplate? template;
   final List<PreDiveChecklistTemplateItem> items;
+
+  /// When set, the reads block until it completes, so a test can inspect the
+  /// frame the page renders while the template is still in flight.
+  final Completer<void>? gate;
 
   PreDiveChecklistTemplate? createdTemplate;
   PreDiveChecklistTemplate? updatedTemplate;
@@ -22,13 +28,18 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   List<PreDiveChecklistTemplateItem>? savedItems;
 
   @override
-  Future<PreDiveChecklistTemplate?> getTemplateById(String id) async =>
-      template;
+  Future<PreDiveChecklistTemplate?> getTemplateById(String id) async {
+    if (gate != null) await gate!.future;
+    return template;
+  }
 
   @override
   Future<List<PreDiveChecklistTemplateItem>> getItemsForTemplate(
     String templateId,
-  ) async => items;
+  ) async {
+    if (gate != null) await gate!.future;
+    return items;
+  }
 
   @override
   Future<PreDiveChecklistTemplate> createTemplate(
@@ -478,5 +489,170 @@ void main() {
     expect(repo.savedTemplateId, 'tpl-1');
     expect(repo.savedItems!.length, 1);
     expect(repo.savedItems!.first.title, 'Existing');
+  });
+
+  group('a built-in opens as a viewer, not a locked editor', () {
+    Future<void> pumpBuiltIn(WidgetTester tester) => pumpPage(
+      tester,
+      templateId: 'tpl-1',
+      repo: _FakeTemplateRepo(
+        template: templateFixture(name: 'GUE EDGE', isBuiltIn: true),
+        items: [
+          itemFixture('Goal: agree the objective', sortOrder: 0),
+          itemFixture('Gas: analyze and label', sortOrder: 1),
+        ],
+      ),
+    );
+
+    testWidgets('shows the view title and the built-in notice', (tester) async {
+      await pumpBuiltIn(tester);
+      expect(find.text('View Pre-Dive Checklist'), findsOneWidget);
+      expect(
+        find.text('Built-in checklist. Clone it to make an editable copy.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('renders the items a diver came to read', (tester) async {
+      await pumpBuiltIn(tester);
+      expect(find.text('Goal: agree the objective'), findsOneWidget);
+      expect(find.text('Gas: analyze and label'), findsOneWidget);
+      expect(find.text('GUE EDGE'), findsOneWidget);
+    });
+
+    testWidgets('withholds every editing affordance', (tester) async {
+      await pumpBuiltIn(tester);
+      expect(find.text('Save'), findsNothing);
+      expect(find.text('Add item'), findsNothing);
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+    });
+
+    testWidgets('item rows show nothing that reads as a control', (
+      tester,
+    ) async {
+      // An empty checkbox was standing in as an alignment spacer, but that
+      // glyph reads as "tap to toggle" on rows whose onTap is null. Nothing
+      // in this mode has a leading control to align with, so the column goes
+      // rather than being filled with a lookalike.
+      await pumpBuiltIn(tester);
+      expect(find.byIcon(Icons.check_box_outline_blank), findsNothing);
+      expect(find.byIcon(Icons.check_box), findsNothing);
+      expect(find.byType(Checkbox), findsNothing);
+
+      final tile = tester.widget<ListTile>(
+        find.widgetWithText(ListTile, 'Goal: agree the objective'),
+      );
+      expect(tile.leading, isNull);
+      expect(tile.onTap, isNull, reason: 'read-only rows are not tappable');
+    });
+
+    testWidgets('an editable template keeps its per-item delete', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        templateId: 'tpl-1',
+        repo: _FakeTemplateRepo(
+          template: templateFixture(),
+          items: [itemFixture('Mine')],
+        ),
+      );
+      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+    });
+
+    testWidgets('a user template keeps its editor', (tester) async {
+      await pumpPage(
+        tester,
+        templateId: 'tpl-1',
+        repo: _FakeTemplateRepo(
+          template: templateFixture(),
+          items: [itemFixture('Mine')],
+        ),
+      );
+      expect(find.text('Edit Pre-Dive Checklist'), findsOneWidget);
+      expect(find.text('Save'), findsOneWidget);
+      expect(find.text('Add item'), findsOneWidget);
+    });
+  });
+
+  group('the loading frame claims no editing it might have to retract', () {
+    testWidgets('an in-flight template offers no Save and no edit title', (
+      tester,
+    ) async {
+      // _readOnly is derived from the fetched row, so on the first frame the
+      // mode is unknown. It must not render the edit chrome there: a built-in
+      // resolving a moment later would have to withdraw a Save button the
+      // diver has already seen.
+      final gate = Completer<void>();
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [itemFixture('Mine')],
+        gate: gate,
+      );
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            preDiveTemplateRepositoryProvider.overrideWithValue(repo),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (ref) async => 'diver-1',
+            ),
+          ],
+          child: const PreDiveTemplateEditPage(templateId: 'tpl-1'),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Save'), findsNothing);
+      expect(find.text('Edit Pre-Dive Checklist'), findsNothing);
+      expect(find.text('View Pre-Dive Checklist'), findsOneWidget);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      // A user template upgrades to the editing chrome once it is known.
+      expect(find.text('Edit Pre-Dive Checklist'), findsOneWidget);
+      expect(find.text('Save'), findsOneWidget);
+    });
+
+    testWidgets('a built-in never flashes the edit chrome on the way in', (
+      tester,
+    ) async {
+      final gate = Completer<void>();
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(name: 'GUE EDGE', isBuiltIn: true),
+        items: [itemFixture('Goal')],
+        gate: gate,
+      );
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            preDiveTemplateRepositoryProvider.overrideWithValue(repo),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (ref) async => 'diver-1',
+            ),
+          ],
+          child: const PreDiveTemplateEditPage(templateId: 'tpl-1'),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Save'), findsNothing);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('View Pre-Dive Checklist'), findsOneWidget);
+      expect(find.text('Save'), findsNothing);
+    });
+
+    testWidgets('a brand new template still gets Save immediately', (
+      tester,
+    ) async {
+      // No fetch happens without a templateId, so nothing should be deferred.
+      await pumpPage(tester);
+      expect(find.text('New Pre-Dive Checklist'), findsOneWidget);
+      expect(find.text('Save'), findsOneWidget);
+    });
   });
 }

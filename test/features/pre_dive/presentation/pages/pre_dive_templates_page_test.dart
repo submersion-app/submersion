@@ -288,7 +288,43 @@ void main() {
     expect(find.text('EDIT My CCR List'), findsOneWidget);
   });
 
-  testWidgets('tapping a built-in template does not navigate', (tester) async {
+  testWidgets('the built-in View menu entry navigates too', (tester) async {
+    // The tile tap and the menu entry are separate call sites; a diver who
+    // reaches for the overflow menu must get the same destination.
+    final router = GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const PreDiveTemplatesPage()),
+        GoRoute(
+          path: '/pre-dive-checklists/:id/edit',
+          builder: (_, state) =>
+              Scaffold(body: Text('EDIT ${state.pathParameters['id']}')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        locale: const Locale('en'),
+        overrides: [
+          preDiveTemplatesProvider.overrideWith(
+            (ref) async => [template('BWRAF Buddy Check', builtIn: true)],
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('View'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('EDIT BWRAF Buddy Check'), findsOneWidget);
+  });
+
+  testWidgets('tapping a built-in template navigates to the template page', (
+    tester,
+  ) async {
     final router = GoRouter(
       routes: [
         GoRoute(path: '/', builder: (_, _) => const PreDiveTemplatesPage()),
@@ -314,8 +350,9 @@ void main() {
     await tester.tap(find.text('BWRAF Buddy Check'));
     await tester.pumpAndSettle();
 
-    // onTap is null for built-ins, so we stay on the list.
-    expect(find.text('BWRAF Buddy Check'), findsOneWidget);
-    expect(find.textContaining('EDIT'), findsNothing);
+    // Built-ins are no longer a dead tap. The router stub here only proves
+    // navigation happened; that the destination renders them read-only is
+    // pre_dive_template_edit_page_test's job.
+    expect(find.textContaining('EDIT'), findsOneWidget);
   });
 }

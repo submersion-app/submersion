@@ -363,6 +363,51 @@ class TripChecklistRepository {
     }
   }
 
+  /// Done/total for several trips in one query, keyed by trip id.
+  ///
+  /// A trip with no items is absent from the result rather than present with
+  /// zeroes: GROUP BY only yields rows that exist. Callers ranking trips read
+  /// that absence as "nothing to show for this one".
+  ///
+  /// Batched deliberately. The caller (home screen) needs to look past a trip
+  /// whose list is empty, and doing that one `getProgress` at a time would
+  /// fan a per-trip query -- and, through the provider family, a per-trip
+  /// table subscription -- out of a widget that rebuilds on every dashboard
+  /// paint. Mirrors PreDiveSessionRepository.getItemsForSessions.
+  Future<Map<String, ({int done, int total})>> getProgressForTrips(
+    List<String> tripIds,
+  ) async {
+    if (tripIds.isEmpty) return {};
+    try {
+      // Only the placeholder count is interpolated; every id is bound.
+      final placeholders = List.filled(tripIds.length, '?').join(', ');
+      final rows = await _db
+          .customSelect(
+            'SELECT trip_id, COUNT(*) AS total, '
+            'SUM(CASE WHEN is_done THEN 1 ELSE 0 END) AS done '
+            'FROM trip_checklist_items WHERE trip_id IN ($placeholders) '
+            'GROUP BY trip_id',
+            variables: [for (final id in tripIds) Variable.withString(id)],
+            readsFrom: {_db.tripChecklistItems},
+          )
+          .get();
+      return {
+        for (final row in rows)
+          row.read<String>('trip_id'): (
+            done: row.read<int?>('done') ?? 0,
+            total: row.read<int>('total'),
+          ),
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get checklist progress in bulk',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   Future<int> _nextSortOrder(String tripId) async {
     final row = await _db
         .customSelect(

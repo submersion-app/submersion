@@ -1080,6 +1080,43 @@
     }
   },
   "preDive_dashboard_start": "Check vor dem Tauchgang starten",
+  "preDive_templates_view": "Ansehen",
+  "preDive_edit_titleView": "Checkliste vor dem Tauchgang ansehen",
+  "preDive_edit_builtInNotice": "Integrierte Checkliste. Duplizieren, um eine bearbeitbare Kopie zu erhalten.",
+  "dashboard_checklists_title": "Checklisten",
+  "dashboard_checklists_preDiveLabel": "Vor dem Tauchgang",
+  "dashboard_checklists_tripLabel": "Reise: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Begonnen {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Abgeschlossen {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Abgebrochen {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Checkliste vor dem Tauchgang",
   "settings_manage_preDiveChecklists": "Checklisten vor dem Tauchgang",
   "settings_manage_preDiveChecklists_subtitle": "Buddy-Checks, CCR-Aufbaulisten, Ausrüstungspacken",
@@ -6525,6 +6562,10 @@
   "settings_siteMatch_subtitle": "Wie aggressiv heruntergeladene Tauchgänge Tauchplätzen zugeordnet werden",
   "settings_tankPressureAtSurfacing_title": "Flaschendruck beim Auftauchen",
   "settings_tankPressureAtSurfacing_subtitle": "Enddruck beim Erreichen der Oberfläche übernehmen, nicht am Ende der Aufzeichnung",
+  "settings_cloudImportPageSize_title": "Seitengröße für Cloud-Import",
+  "settings_cloudImportPageSize_subtitle": "Wie viele der neuesten Tauchgänge jeweils von Suunto Cloud oder Garmin Connect geladen werden. „Mehr laden“ holt den nächsten Stapel derselben Größe.",
+  "settings_cloudImportPageSize_dialogTitle": "Tauchgänge pro Seite",
+  "settings_cloudImportPageSize_range": "Zwischen {min} und {max}",
   "settings_siteMatch_strict": "Streng",
   "settings_siteMatch_balanced": "Ausgewogen",
   "settings_siteMatch_relaxed": "Locker",
@@ -6652,7 +6693,7 @@
   "settings_homeCards_resetDialog_confirm": "Zurücksetzen",
   "settings_homeCards_card_hero": "Begrüßungsbereich",
   "settings_homeCards_card_gaugeStrip": "Status-Chips",
-  "settings_homeCards_card_preDive": "Pre-Dive-Checkliste",
+  "settings_homeCards_card_preDive": "Checklisten",
   "settings_homeCards_card_recentDives": "Letzte Tauchgänge",
   "settings_homeCards_card_quickActions": "Schnellaktionen",
   "settings_homeCards_card_milestones": "Meilensteine",
@@ -10763,6 +10804,7 @@
   "importWizard_review_sortByDuration": "Zeit",
   "suuntoCloud_fetch_retry": "Wiederholen",
   "suuntoCloud_fetch_loadMore": "Mehr laden",
+  "suuntoCloud_fetch_fetchAll": "Alle laden",
   "settings_storageUsage_appBar_title": "Speichernutzung",
   "settings_storageUsage_tile_title": "Speichernutzung",
   "settings_storageUsage_tile_subtitle": "Sehen Sie, was auf diesem Gerät Speicherplatz belegt",

@@ -2386,18 +2386,27 @@ const String kSeedBuiltInPreDiveTemplateItemsSql = '''
     ('builtin-predive-bwraf-4', 'builtin-predive-bwraf', NULL,
      'Final OK: mask, fins, computer set, buddy signal', '', 4, 'check',
      NULL, NULL, NULL, NULL, 1, 0, 0),
-    ('builtin-predive-gue-0', 'builtin-predive-gue-edge', NULL,
-     'Equipment: full gear check head to toe', '', 0, 'check',
+    ('builtin-predive-gue-edge-0', 'builtin-predive-gue-edge', NULL,
+     'Goal: agree the objective and what turns the dive', '', 0, 'check',
      NULL, NULL, NULL, NULL, 1, 0, 0),
-    ('builtin-predive-gue-1', 'builtin-predive-gue-edge', NULL,
-     'Descent: agree on descent method and reference', '', 1, 'check',
+    ('builtin-predive-gue-edge-1', 'builtin-predive-gue-edge', NULL,
+     'Unified team: roles, order, communication, lost-buddy plan', '',
+     1, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-edge-2', 'builtin-predive-gue-edge', NULL,
+     'Equipment: match and check the team head to toe', '', 2, 'check',
      NULL, NULL, NULL, NULL, 1, 0, 0),
-    ('builtin-predive-gue-2', 'builtin-predive-gue-edge', NULL,
-     'Gas: analyze, label, confirm MOD and turn pressure', '', 2, 'check',
+    ('builtin-predive-gue-edge-3', 'builtin-predive-gue-edge', NULL,
+     'Exposure: suit, thermal protection, planned time in the water', '',
+     3, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-edge-4', 'builtin-predive-gue-edge', NULL,
+     'Decompression: agree the ascent schedule and deco gases', '',
+     4, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-edge-5', 'builtin-predive-gue-edge', NULL,
+     'Gas: analyze, label, confirm MOD and turn pressure', '', 5, 'check',
      NULL, NULL, NULL, NULL, 1, 0, 0),
-    ('builtin-predive-gue-3', 'builtin-predive-gue-edge', NULL,
-     'Environment: conditions, entry/exit, hazards', '', 3, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-edge-6', 'builtin-predive-gue-edge', NULL,
+     'Environment: conditions, entry/exit, descent reference, hazards', '',
+     6, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
     ('builtin-predive-ccr-0', 'builtin-predive-ccr-build', 'Assembly',
      'Scrubber packed and within duration limits', '', 0, 'check',
      NULL, NULL, NULL, NULL, 1, 0, 0),
@@ -2440,6 +2449,27 @@ const String kSeedBuiltInPreDiveTemplateItemsSql = '''
     ('builtin-predive-pack-3', 'builtin-predive-gear-packing', NULL,
      'Water, sun protection, logbook', '', 3, 'check',
      NULL, NULL, NULL, NULL, 0, 0, 0)
+''';
+
+/// Retires the original four-item GUE EDGE list (ids `builtin-predive-gue-0`
+/// through `-3`), which implemented only the "EDGE" half of the mnemonic and
+/// read its D as "Descent". [kSeedBuiltInPreDiveTemplateItemsSql] seeds the
+/// canonical seven-point sequence under `builtin-predive-gue-edge-*` ids, so
+/// this DELETE is what lets a database seeded before the fix pick the new rows
+/// up: INSERT OR IGNORE adds the missing checks but can never rewrite or
+/// renumber the stale ones.
+///
+/// Safe to run on every open, and unconditionally: built-in items are
+/// read-only in the UI, excluded from sync export, and session items are
+/// independent snapshots taken at start time, so no diver-owned data hangs off
+/// these rows. Idempotent -- a no-op once the legacy ids are gone.
+const String kRetireLegacyGueEdgeItemsSql = '''
+  DELETE FROM pre_dive_checklist_template_items
+  WHERE template_id = 'builtin-predive-gue-edge'
+    AND id IN (
+      'builtin-predive-gue-0', 'builtin-predive-gue-1',
+      'builtin-predive-gue-2', 'builtin-predive-gue-3'
+    )
 ''';
 
 /// Seeds the nine built-in dive roles. Mirrors [kSeedBuiltInDiveTypesSql]:
@@ -4860,6 +4890,7 @@ class AppDatabase extends _$AppDatabase {
     ).get();
     if (diversTable.isEmpty) return;
     await customStatement(kSeedBuiltInPreDiveTemplatesSql);
+    await customStatement(kRetireLegacyGueEdgeItemsSql);
     await customStatement(kSeedBuiltInPreDiveTemplateItemsSql);
   }
 

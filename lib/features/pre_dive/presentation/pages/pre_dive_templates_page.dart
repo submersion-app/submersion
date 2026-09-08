@@ -7,8 +7,8 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Settings page listing pre-dive checklist templates: read-only built-ins
-/// (clonable) plus fully editable user templates.
+/// Settings page listing pre-dive checklist templates: built-ins, which
+/// open read-only and can be cloned, plus fully editable user templates.
 class PreDiveTemplatesPage extends ConsumerWidget {
   const PreDiveTemplatesPage({super.key});
 
@@ -124,6 +124,8 @@ class _TemplateTile extends ConsumerWidget {
       trailing: PopupMenuButton<String>(
         onSelected: (value) {
           switch (value) {
+            case 'open':
+              context.push('/pre-dive-checklists/${template.id}/edit');
             case 'clone':
               _clone(context, ref);
             case 'delete':
@@ -131,6 +133,11 @@ class _TemplateTile extends ConsumerWidget {
           }
         },
         itemBuilder: (context) => [
+          if (template.isBuiltIn)
+            PopupMenuItem(
+              value: 'open',
+              child: Text(l10n.preDive_templates_view),
+            ),
           PopupMenuItem(
             value: 'clone',
             child: Text(l10n.preDive_templates_clone),
@@ -142,9 +149,11 @@ class _TemplateTile extends ConsumerWidget {
             ),
         ],
       ),
-      onTap: template.isBuiltIn
-          ? null
-          : () => context.push('/pre-dive-checklists/${template.id}/edit'),
+      // Built-ins open too. The destination renders read-only for them
+      // (PreDiveTemplateEditPage._readOnly), so the diver can read what a
+      // default actually checks before deciding whether to clone it -- the
+      // old null tap made the defaults unreadable until cloned.
+      onTap: () => context.push('/pre-dive-checklists/${template.id}/edit'),
     );
   }
 }

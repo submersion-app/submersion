@@ -117,11 +117,12 @@ void main() {
     required PreDiveSession s,
     required List<PreDiveSessionItem> items,
     List<dynamic> extraOverrides = const [],
+    Locale locale = const Locale('en'),
   }) async {
     final repo = _FakeSessionRepo();
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: [
           preDiveSessionRepositoryProvider.overrideWithValue(repo),
           preDiveSessionProvider('s1').overrideWith((ref) async => s),
@@ -210,6 +211,25 @@ void main() {
     // (Date format is locale-dependent; assert the month/day are present.)
     expect(find.textContaining('Aborted'), findsOneWidget);
     expect(find.textContaining('Nov 14'), findsOneWidget);
+  });
+
+  testWidgets('the locked banner localizes its date/time connector', (
+    tester,
+  ) async {
+    // formatDateTime falls back to a hardcoded English "at" unless it is
+    // handed l10n, which left the banner mixing languages.
+    await pumpRunner(
+      tester,
+      s: session(
+        status: PreDiveSessionStatus.completed,
+        completedAt: DateTime(2023, 11, 14, 9, 12),
+      ),
+      items: [item(0, state: PreDiveItemState.done)],
+      locale: const Locale('de'),
+    );
+
+    expect(find.textContaining('bei'), findsOneWidget);
+    expect(find.textContaining(' at '), findsNothing);
   });
 
   testWidgets('locked session is read-only: tiles disabled, no item menu', (

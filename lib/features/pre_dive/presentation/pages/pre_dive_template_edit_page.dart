@@ -32,8 +32,25 @@ class _PreDiveTemplateEditPageState
   PreDiveChecklistTemplate? _existing;
   bool _loading = false;
 
-  /// Built-ins never reach this page from the list UI, but guard anyway.
+  /// Built-ins reach this page as viewers: the list opens them so a diver
+  /// can read what a default checks before cloning it. Everything that would
+  /// mutate the template is withheld rather than merely disabled, so the page
+  /// reads as a viewer instead of a broken editor.
+  ///
+  /// False until [_load] lands, so read [_editable] rather than `!_readOnly`
+  /// for anything that offers editing.
   bool get _readOnly => _existing?.isBuiltIn ?? false;
+
+  /// Whether the editing chrome may be shown yet.
+  ///
+  /// The built-in flag lives on the fetched row, so while a template is in
+  /// flight this page does not know which mode it is in. Treating "not known
+  /// to be read-only" as editable put the edit title and a Save button on the
+  /// first frame and then withdrew them the instant a built-in resolved.
+  /// Waiting is the claim that can only be upgraded, never retracted.
+  ///
+  /// A brand new template has nothing to fetch, so it is editable at once.
+  bool get _editable => !_loading && !_readOnly;
 
   @override
   void initState() {
@@ -144,15 +161,15 @@ class _PreDiveTemplateEditPageState
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.isEditing
+          !widget.isEditing
+              ? l10n.preDive_edit_titleNew
+              : _editable
               ? l10n.preDive_edit_titleEdit
-              : l10n.preDive_edit_titleNew,
+              : l10n.preDive_edit_titleView,
         ),
         actions: [
-          TextButton(
-            onPressed: _loading || _readOnly ? null : _save,
-            child: Text(l10n.common_action_save),
-          ),
+          if (_editable)
+            TextButton(onPressed: _save, child: Text(l10n.common_action_save)),
         ],
       ),
       body: _loading
@@ -162,6 +179,16 @@ class _PreDiveTemplateEditPageState
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  if (_readOnly) ...[
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: ListTile(
+                        leading: const Icon(Icons.lock_outline),
+                        title: Text(l10n.preDive_edit_builtInNotice),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   TextFormField(
                     controller: _nameController,
                     enabled: !_readOnly,
@@ -230,25 +257,34 @@ class _PreDiveTemplateEditPageState
                                 l10n.preDive_item_required,
                             ].join(' - '),
                           ),
-                          leading: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: _readOnly
-                                ? null
-                                : () => setState(
+                          // No leading column at all in read-only mode. An
+                          // empty checkbox was standing in as a spacer, but
+                          // that glyph reads as "tap to toggle" on a row
+                          // whose onTap is null, and these template items
+                          // have no state to toggle. Nothing here needs
+                          // aligning either: every row in this mode lacks the
+                          // delete button, so reserving its column would hold
+                          // space for a control that never appears.
+                          leading: _readOnly
+                              ? null
+                              : IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: () => setState(
                                     () => _items = [..._items]..removeAt(i),
                                   ),
-                          ),
+                                ),
                           onTap: _readOnly
                               ? null
                               : () => _addOrEditItem(item: _items[i]),
                         ),
                     ],
                   ),
-                  TextButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: Text(l10n.preDive_edit_addItem),
-                    onPressed: _readOnly ? null : () => _addOrEditItem(),
-                  ),
+                  if (!_readOnly)
+                    TextButton.icon(
+                      icon: const Icon(Icons.add),
+                      label: Text(l10n.preDive_edit_addItem),
+                      onPressed: () => _addOrEditItem(),
+                    ),
                 ],
               ),
             ),

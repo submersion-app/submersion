@@ -2665,6 +2665,42 @@ class AppLocalizationsDe extends AppLocalizations {
   String get preDive_dashboard_start => 'Check vor dem Tauchgang starten';
 
   @override
+  String get preDive_templates_view => 'Ansehen';
+
+  @override
+  String get preDive_edit_titleView => 'Checkliste vor dem Tauchgang ansehen';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Integrierte Checkliste. Duplizieren, um eine bearbeitbare Kopie zu erhalten.';
+
+  @override
+  String get dashboard_checklists_title => 'Checklisten';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Vor dem Tauchgang';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Reise: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Begonnen $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Abgeschlossen $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Abgebrochen $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Checkliste vor dem Tauchgang';
 
   @override
@@ -3370,7 +3406,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Status-Chips';
 
   @override
-  String get settings_homeCards_card_preDive => 'Pre-Dive-Checkliste';
+  String get settings_homeCards_card_preDive => 'Checklisten';
 
   @override
   String get settings_homeCards_card_recentDives => 'Letzte Tauchgänge';
@@ -23726,6 +23762,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Enddruck beim Erreichen der Oberfläche übernehmen, nicht am Ende der Aufzeichnung';
 
   @override
+  String get settings_cloudImportPageSize_title =>
+      'Seitengröße für Cloud-Import';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'Wie viele der neuesten Tauchgänge jeweils von Suunto Cloud oder Garmin Connect geladen werden. „Mehr laden“ holt den nächsten Stapel derselben Größe.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'Tauchgänge pro Seite';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Zwischen $min und $max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'Streng';
 
   @override
@@ -36641,6 +36693,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'Mehr laden';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'Alle laden';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

@@ -4475,6 +4475,60 @@ abstract class AppLocalizations {
   /// **'Start pre-dive check'**
   String get preDive_dashboard_start;
 
+  /// No description provided for @preDive_templates_view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get preDive_templates_view;
+
+  /// No description provided for @preDive_edit_titleView.
+  ///
+  /// In en, this message translates to:
+  /// **'View Pre-Dive Checklist'**
+  String get preDive_edit_titleView;
+
+  /// No description provided for @preDive_edit_builtInNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in checklist. Clone it to make an editable copy.'**
+  String get preDive_edit_builtInNotice;
+
+  /// No description provided for @dashboard_checklists_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklists'**
+  String get dashboard_checklists_title;
+
+  /// No description provided for @dashboard_checklists_preDiveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-dive'**
+  String get dashboard_checklists_preDiveLabel;
+
+  /// No description provided for @dashboard_checklists_tripLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip: {name}'**
+  String dashboard_checklists_tripLabel(String name);
+
+  /// No description provided for @preDive_sessions_startedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Started {when}'**
+  String preDive_sessions_startedAt(String when);
+
+  /// No description provided for @preDive_sessions_completedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed {when}'**
+  String preDive_sessions_completedAt(String when);
+
+  /// No description provided for @preDive_sessions_abortedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Aborted {when}'**
+  String preDive_sessions_abortedAt(String when);
+
   /// No description provided for @trips_detail_preDive_action.
   ///
   /// In en, this message translates to:
@@ -5684,7 +5738,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_homeCards_card_preDive.
   ///
   /// In en, this message translates to:
-  /// **'Pre-dive checklist'**
+  /// **'Checklists'**
   String get settings_homeCards_card_preDive;
 
   /// No description provided for @settings_homeCards_card_recentDives.
@@ -39059,6 +39113,30 @@ abstract class AppLocalizations {
   /// **'Read end pressure when you reached the surface, not when the computer stopped recording'**
   String get settings_tankPressureAtSurfacing_subtitle;
 
+  /// No description provided for @settings_cloudImportPageSize_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud import page size'**
+  String get settings_cloudImportPageSize_title;
+
+  /// No description provided for @settings_cloudImportPageSize_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.'**
+  String get settings_cloudImportPageSize_subtitle;
+
+  /// No description provided for @settings_cloudImportPageSize_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives per page'**
+  String get settings_cloudImportPageSize_dialogTitle;
+
+  /// Helper text under the cloud import page size field showing the allowed range
+  ///
+  /// In en, this message translates to:
+  /// **'Between {min} and {max}'**
+  String settings_cloudImportPageSize_range(Object min, Object max);
+
   /// No description provided for @settings_siteMatch_strict.
   ///
   /// In en, this message translates to:
@@ -60333,6 +60411,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Load More'**
   String get suuntoCloud_fetch_loadMore;
+
+  /// Button on the Suunto cloud fetch step that fetches every remaining page of dives instead of one page at a time.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch All'**
+  String get suuntoCloud_fetch_fetchAll;
 
   /// Result headline after fetching dives from the Suunto cloud.
   ///

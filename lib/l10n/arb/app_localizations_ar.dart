@@ -2606,6 +2606,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_dashboard_start => 'بدء فحص ما قبل الغوص';
 
   @override
+  String get preDive_templates_view => 'عرض';
+
+  @override
+  String get preDive_edit_titleView => 'عرض قائمة تحقق ما قبل الغوص';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'قائمة تحقق مدمجة. استنسخها للحصول على نسخة قابلة للتعديل.';
+
+  @override
+  String get dashboard_checklists_title => 'قوائم التحقق';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'ما قبل الغوص';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'الرحلة: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'بدأت $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'اكتملت $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'أُلغيت $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'قائمة تحقق ما قبل الغوص';
 
   @override
@@ -3293,7 +3329,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'شرائح الحالة';
 
   @override
-  String get settings_homeCards_card_preDive => 'قائمة فحص ما قبل الغوص';
+  String get settings_homeCards_card_preDive => 'قوائم التحقق';
 
   @override
   String get settings_homeCards_card_recentDives => 'الغوصات الأخيرة';
@@ -23348,6 +23384,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل';
 
   @override
+  String get settings_cloudImportPageSize_title => 'حجم صفحة الاستيراد السحابي';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'عدد أحدث الغوصات التي يتم جلبها في كل مرة من Suunto Cloud أو Garmin Connect. «تحميل المزيد» يجلب الدفعة التالية بنفس الحجم.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'غوصات لكل صفحة';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'بين $min و$max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'صارم';
 
   @override
@@ -36348,6 +36399,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'تحميل المزيد';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'تحميل الكل';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

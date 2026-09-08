@@ -1650,6 +1650,43 @@
     }
   },
   "preDive_dashboard_start": "Start pre-dive check",
+  "preDive_templates_view": "View",
+  "preDive_edit_titleView": "View Pre-Dive Checklist",
+  "preDive_edit_builtInNotice": "Built-in checklist. Clone it to make an editable copy.",
+  "dashboard_checklists_title": "Checklists",
+  "dashboard_checklists_preDiveLabel": "Pre-dive",
+  "dashboard_checklists_tripLabel": "Trip: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Started {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Completed {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Aborted {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Pre-dive checklist",
   "settings_manage_preDiveChecklists": "Pre-Dive Checklists",
   "settings_manage_preDiveChecklists_subtitle": "Buddy checks, CCR build lists, gear packing",
@@ -2068,7 +2105,7 @@
   "settings_homeCards_resetDialog_confirm": "Reset",
   "settings_homeCards_card_hero": "Welcome header",
   "settings_homeCards_card_gaugeStrip": "Status chips",
-  "settings_homeCards_card_preDive": "Pre-dive checklist",
+  "settings_homeCards_card_preDive": "Checklists",
   "settings_homeCards_card_recentDives": "Recent dives",
   "settings_homeCards_card_quickActions": "Quick actions",
   "settings_homeCards_card_milestones": "Milestones",
@@ -15277,6 +15314,23 @@
   "settings_siteMatch_subtitle": "How aggressively downloaded dives are matched to sites",
   "settings_tankPressureAtSurfacing_title": "Tank pressure at surfacing",
   "settings_tankPressureAtSurfacing_subtitle": "Read end pressure when you reached the surface, not when the computer stopped recording",
+  "settings_cloudImportPageSize_title": "Cloud import page size",
+  "settings_cloudImportPageSize_subtitle": "How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.",
+  "settings_cloudImportPageSize_dialogTitle": "Dives per page",
+  "settings_cloudImportPageSize_range": "Between {min} and {max}",
+  "@settings_cloudImportPageSize_range": {
+    "description": "Helper text under the cloud import page size field showing the allowed range",
+    "placeholders": {
+      "min": {
+        "type": "Object",
+        "example": "1"
+      },
+      "max": {
+        "type": "Object",
+        "example": "100"
+      }
+    }
+  },
   "settings_siteMatch_strict": "Strict",
   "settings_siteMatch_balanced": "Balanced",
   "settings_siteMatch_relaxed": "Relaxed",
@@ -22196,6 +22250,10 @@
   "suuntoCloud_fetch_failedTitle": "Could not fetch dives",
   "suuntoCloud_fetch_retry": "Try Again",
   "suuntoCloud_fetch_loadMore": "Load More",
+  "suuntoCloud_fetch_fetchAll": "Fetch All",
+  "@suuntoCloud_fetch_fetchAll": {
+    "description": "Button on the Suunto cloud fetch step that fetches every remaining page of dives instead of one page at a time."
+  },
   "suuntoCloud_fetch_foundDives": "{count, plural, =0{No dives found} =1{Found 1 dive} other{Found {count} dives}}",
   "suuntoCloud_fetch_someFailed": "{count, plural, =1{1 dive could not be converted and was skipped.} other{{count} dives could not be converted and were skipped.}}",
   "@suuntoCloud_signIn_signedInAs": {

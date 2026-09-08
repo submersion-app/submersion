@@ -66,6 +66,20 @@ class Trip extends Equatable {
     return !dateOnly.isBefore(start) && !dateOnly.isAfter(end);
   }
 
+  /// Whether the trip's first day is still ahead of [date] (date-only, same
+  /// normalization as [containsDate]).
+  ///
+  /// Takes its reference date rather than reading the clock, so a caller
+  /// classifying several trips in one pass can measure every one of them
+  /// against a single captured instant. [isInProgress] and [isUpcoming] each
+  /// call `DateTime.now()` themselves, so combining them with a locally
+  /// captured "now" mixes clock reads that can straddle midnight.
+  bool startsAfter(DateTime date) {
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+    return start.isAfter(dateOnly);
+  }
+
   /// Whether this trip is upcoming or currently underway (date-only
   /// comparison, same normalization as [containsDate]).
   bool get isUpcoming {

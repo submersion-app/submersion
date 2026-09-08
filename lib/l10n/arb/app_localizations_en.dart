@@ -2608,6 +2608,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preDive_dashboard_start => 'Start pre-dive check';
 
   @override
+  String get preDive_templates_view => 'View';
+
+  @override
+  String get preDive_edit_titleView => 'View Pre-Dive Checklist';
+
+  @override
+  String get preDive_edit_builtInNotice =>
+      'Built-in checklist. Clone it to make an editable copy.';
+
+  @override
+  String get dashboard_checklists_title => 'Checklists';
+
+  @override
+  String get dashboard_checklists_preDiveLabel => 'Pre-dive';
+
+  @override
+  String dashboard_checklists_tripLabel(String name) {
+    return 'Trip: $name';
+  }
+
+  @override
+  String preDive_sessions_startedAt(String when) {
+    return 'Started $when';
+  }
+
+  @override
+  String preDive_sessions_completedAt(String when) {
+    return 'Completed $when';
+  }
+
+  @override
+  String preDive_sessions_abortedAt(String when) {
+    return 'Aborted $when';
+  }
+
+  @override
   String get trips_detail_preDive_action => 'Pre-dive checklist';
 
   @override
@@ -3297,7 +3333,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_homeCards_card_gaugeStrip => 'Status chips';
 
   @override
-  String get settings_homeCards_card_preDive => 'Pre-dive checklist';
+  String get settings_homeCards_card_preDive => 'Checklists';
 
   @override
   String get settings_homeCards_card_recentDives => 'Recent dives';
@@ -23369,6 +23405,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Read end pressure when you reached the surface, not when the computer stopped recording';
 
   @override
+  String get settings_cloudImportPageSize_title => 'Cloud import page size';
+
+  @override
+  String get settings_cloudImportPageSize_subtitle =>
+      'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.';
+
+  @override
+  String get settings_cloudImportPageSize_dialogTitle => 'Dives per page';
+
+  @override
+  String settings_cloudImportPageSize_range(Object min, Object max) {
+    return 'Between $min and $max';
+  }
+
+  @override
   String get settings_siteMatch_strict => 'Strict';
 
   @override
@@ -36154,6 +36205,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get suuntoCloud_fetch_loadMore => 'Load More';
+
+  @override
+  String get suuntoCloud_fetch_fetchAll => 'Fetch All';
 
   @override
   String suuntoCloud_fetch_foundDives(int count) {

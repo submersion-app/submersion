@@ -1080,6 +1080,43 @@
     }
   },
   "preDive_dashboard_start": "Merülés előtti ellenőrzés indítása",
+  "preDive_templates_view": "Megtekintés",
+  "preDive_edit_titleView": "Merülés előtti ellenőrzőlista megtekintése",
+  "preDive_edit_builtInNotice": "Beépített ellenőrzőlista. Duplikálja szerkeszthető másolat készítéséhez.",
+  "dashboard_checklists_title": "Ellenőrzőlisták",
+  "dashboard_checklists_preDiveLabel": "Merülés előtt",
+  "dashboard_checklists_tripLabel": "Utazás: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Elkezdve: {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Befejezve: {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Megszakítva: {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Merülés előtti ellenőrzőlista",
   "settings_manage_preDiveChecklists": "Merülés előtti ellenőrzőlisták",
   "settings_manage_preDiveChecklists_subtitle": "Társellenőrzések, CCR összeszerelési listák, felszereléscsomagolás",
@@ -6441,6 +6478,10 @@
   "settings_siteMatch_subtitle": "Mennyire agresszíven rendelődnek a letöltött merülések a helyekhez",
   "settings_tankPressureAtSurfacing_title": "Palacknyomás felbukkanáskor",
   "settings_tankPressureAtSurfacing_subtitle": "A végnyomás a felszínre érkezéskor legyen leolvasva, ne a rögzítés végén",
+  "settings_cloudImportPageSize_title": "Felhőimport oldalmérete",
+  "settings_cloudImportPageSize_subtitle": "Hány legutóbbi merülést töltsön le egyszerre a Suunto Cloudból vagy a Garmin Connectből. A „Továbbiak betöltése” ugyanekkora következő köteget kér.",
+  "settings_cloudImportPageSize_dialogTitle": "Merülések oldalanként",
+  "settings_cloudImportPageSize_range": "{min} és {max} között",
   "settings_siteMatch_strict": "Szigorú",
   "settings_siteMatch_balanced": "Kiegyensúlyozott",
   "settings_siteMatch_relaxed": "Laza",
@@ -6652,7 +6693,7 @@
   "settings_homeCards_resetDialog_confirm": "Visszaállítás",
   "settings_homeCards_card_hero": "Üdvözlő fejléc",
   "settings_homeCards_card_gaugeStrip": "Állapotjelzők",
-  "settings_homeCards_card_preDive": "Merülés előtti ellenőrzőlista",
+  "settings_homeCards_card_preDive": "Ellenőrzőlisták",
   "settings_homeCards_card_recentDives": "Legutóbbi merülések",
   "settings_homeCards_card_quickActions": "Gyorsműveletek",
   "settings_homeCards_card_milestones": "Mérföldkövek",
@@ -10763,6 +10804,7 @@
   "importWizard_review_sortByDuration": "Idő",
   "suuntoCloud_fetch_retry": "Újra",
   "suuntoCloud_fetch_loadMore": "Továbbiak betöltése",
+  "suuntoCloud_fetch_fetchAll": "Összes betöltése",
   "settings_storageUsage_appBar_title": "Tárhelyhasználat",
   "settings_storageUsage_tile_title": "Tárhelyhasználat",
   "settings_storageUsage_tile_subtitle": "Nézze meg, mi foglal helyet ezen az eszközön",

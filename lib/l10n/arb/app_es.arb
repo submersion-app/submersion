@@ -1080,6 +1080,43 @@
     }
   },
   "preDive_dashboard_start": "Iniciar comprobación previa a la inmersión",
+  "preDive_templates_view": "Ver",
+  "preDive_edit_titleView": "Ver lista previa a la inmersión",
+  "preDive_edit_builtInNotice": "Lista integrada. Duplícala para obtener una copia editable.",
+  "dashboard_checklists_title": "Listas de verificación",
+  "dashboard_checklists_preDiveLabel": "Previa a la inmersión",
+  "dashboard_checklists_tripLabel": "Viaje: {name}",
+  "@dashboard_checklists_tripLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_startedAt": "Iniciada {when}",
+  "@preDive_sessions_startedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_completedAt": "Completada {when}",
+  "@preDive_sessions_completedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_sessions_abortedAt": "Cancelada {when}",
+  "@preDive_sessions_abortedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "trips_detail_preDive_action": "Lista previa a la inmersión",
   "settings_manage_preDiveChecklists": "Listas previas a la inmersión",
   "settings_manage_preDiveChecklists_subtitle": "Comprobaciones en pareja, listas de montaje CCR, preparación del equipo",
@@ -6525,6 +6562,10 @@
   "settings_siteMatch_subtitle": "Con qué intensidad se asocian a puntos de buceo las inmersiones descargadas",
   "settings_tankPressureAtSurfacing_title": "Presión de la botella al salir a superficie",
   "settings_tankPressureAtSurfacing_subtitle": "Tomar la presión final al llegar a la superficie, no al terminar el registro",
+  "settings_cloudImportPageSize_title": "Tamaño de página de importación en la nube",
+  "settings_cloudImportPageSize_subtitle": "Cuántas de las inmersiones más recientes se obtienen cada vez desde Suunto Cloud o Garmin Connect. «Cargar más» obtiene el siguiente lote del mismo tamaño.",
+  "settings_cloudImportPageSize_dialogTitle": "Inmersiones por página",
+  "settings_cloudImportPageSize_range": "Entre {min} y {max}",
   "settings_siteMatch_strict": "Estricto",
   "settings_siteMatch_balanced": "Equilibrado",
   "settings_siteMatch_relaxed": "Relajado",
@@ -6652,7 +6693,7 @@
   "settings_homeCards_resetDialog_confirm": "Restablecer",
   "settings_homeCards_card_hero": "Cabecera de bienvenida",
   "settings_homeCards_card_gaugeStrip": "Chips de estado",
-  "settings_homeCards_card_preDive": "Lista previa a la inmersión",
+  "settings_homeCards_card_preDive": "Listas de verificación",
   "settings_homeCards_card_recentDives": "Inmersiones recientes",
   "settings_homeCards_card_quickActions": "Acciones rápidas",
   "settings_homeCards_card_milestones": "Hitos",
@@ -10763,6 +10804,7 @@
   "importWizard_review_sortByDuration": "Tiempo",
   "suuntoCloud_fetch_retry": "Reintentar",
   "suuntoCloud_fetch_loadMore": "Cargar más",
+  "suuntoCloud_fetch_fetchAll": "Cargar todo",
   "settings_storageUsage_appBar_title": "Uso de almacenamiento",
   "settings_storageUsage_tile_title": "Uso de almacenamiento",
   "settings_storageUsage_tile_subtitle": "Vea qué ocupa espacio en este dispositivo",
