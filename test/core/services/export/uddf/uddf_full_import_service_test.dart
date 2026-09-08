@@ -53,6 +53,32 @@ void main() {
       service = UddfFullImportService();
     });
 
+    test('reads the app-specific transmitterserial tankdata child', () async {
+      final uddf = _uddfEan29.replaceFirst(
+        '<tankvolume>24.0</tankvolume>',
+        '<tankvolume>24.0</tankvolume>\n'
+            '          <transmitterserial>180777</transmitterserial>',
+      );
+
+      final result = await service.importAllDataFromUddf(uddf);
+      final tanks = result.dives.first['tanks'] as List<Map<String, dynamic>>;
+
+      expect(tanks.single['transmitterSerial'], '180777');
+    });
+
+    test('treats a zero transmitterserial as absent', () async {
+      final uddf = _uddfEan29.replaceFirst(
+        '<tankvolume>24.0</tankvolume>',
+        '<tankvolume>24.0</tankvolume>\n'
+            '          <transmitterserial> 0 </transmitterserial>',
+      );
+
+      final result = await service.importAllDataFromUddf(uddf);
+      final tanks = result.dives.first['tanks'] as List<Map<String, dynamic>>;
+
+      expect(tanks.single.containsKey('transmitterSerial'), isFalse);
+    });
+
     test('keeps a 0.29 UDDF mix labeled as EAN29', () async {
       final result = await service.importAllDataFromUddf(_uddfEan29);
       final dive = result.dives.first;

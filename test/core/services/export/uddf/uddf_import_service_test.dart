@@ -4,6 +4,46 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 void main() {
   group('UddfImportService', () {
+    test('reads the app-specific transmitterserial tankdata child', () async {
+      const uddfContent = '''
+<uddf version="3.2.3">
+  <profiledata>
+    <repetitiongroup>
+      <dive id="dive-1">
+        <informationbeforedive>
+          <datetime>2025-09-01T14:18:24Z</datetime>
+        </informationbeforedive>
+        <tankdata>
+          <tankpressurebegin>20049962</tankpressurebegin>
+          <tankpressureend>12879411</tankpressureend>
+          <transmitterserial>180777</transmitterserial>
+        </tankdata>
+        <tankdata>
+          <tankpressurebegin>21952916</tankpressurebegin>
+          <tankpressureend>14244574</tankpressureend>
+          <transmitterserial>0</transmitterserial>
+        </tankdata>
+        <samples>
+          <waypoint>
+            <depth>1</depth>
+            <divetime>0</divetime>
+          </waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>
+''';
+
+      final result = await UddfImportService().importDivesFromUddf(uddfContent);
+      final tanks =
+          result['dives']!.single['tanks'] as List<Map<String, dynamic>>;
+
+      expect(tanks[0]['transmitterSerial'], '180777');
+      // "0" is the no-transmitter sentinel, never an identity.
+      expect(tanks[1].containsKey('transmitterSerial'), isFalse);
+    });
+
     test(
       'maps T1/T2 refs to tanks by order when tankdata entries omit ids',
       () async {

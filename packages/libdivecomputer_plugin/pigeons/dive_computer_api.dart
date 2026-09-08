@@ -154,6 +154,7 @@ class TankInfo {
     this.startPressureBar,
     this.endPressureBar,
     this.usage,
+    this.transmitterSerial,
   });
   final int index;
   final int gasMixIndex;
@@ -164,6 +165,12 @@ class TankInfo {
   /// Tank usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
   /// 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
   final int? usage;
+
+  /// Serial number of the air-integration transmitter that reported this
+  /// tank's pressures (`dc_tank_t.serial`, a fork extension); null when the
+  /// computer reported none. Identifies the physical cylinder across
+  /// computers paired to the same transmitter.
+  final int? transmitterSerial;
 }
 
 class DiveEvent {

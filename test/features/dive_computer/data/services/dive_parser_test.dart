@@ -162,6 +162,24 @@ void main() {
       expect(tanks[1].hePercent, 35.0);
     });
 
+    test('carries the transmitter serial into TankData', () {
+      final dive = diveWith(
+        tanks: const [
+          DownloadedTank(
+            index: 0,
+            o2Percent: 32.0,
+            transmitterSerial: '180777',
+          ),
+          DownloadedTank(index: 1, o2Percent: 21.0),
+        ],
+      );
+
+      final tanks = parser.parseTanks(dive);
+
+      expect(tanks[0].transmitterSerial, '180777');
+      expect(tanks[1].transmitterSerial, isNull);
+    });
+
     test('returns an empty list for a dive without tanks', () {
       expect(parser.parseTanks(diveWith()), isEmpty);
     });

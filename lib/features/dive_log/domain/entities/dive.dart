@@ -1059,6 +1059,15 @@ class DiveTank extends Equatable {
   /// entered/edited tank not tied to a specific computer).
   final String? computerId;
 
+  /// Serial number of the air-integration transmitter that reported this
+  /// tank's pressures, as the dive computer logged it. Null for manually
+  /// entered tanks and for computers that do not report one.
+  ///
+  /// This is the cylinder's physical identity across computers: two logs of
+  /// the same dive whose tanks carry the same serial were read from the same
+  /// transmitter, whatever gas mix each computer had programmed.
+  final String? transmitterSerial;
+
   /// Deco gas-switch depth override in meters (planning only); null = auto
   /// (MOD at the deco pO2). Subsurface per-cylinder "Deco switch at", v120.
   /// Unused for logged-dive tanks.
@@ -1085,6 +1094,7 @@ class DiveTank extends Equatable {
     this.order = 0,
     this.presetName,
     this.computerId,
+    this.transmitterSerial,
     this.decoSwitchDepth,
     this.isTravelGas = false,
   });
@@ -1111,6 +1121,8 @@ class DiveTank extends Equatable {
     String? presetName,
     bool clearPresetName = false,
     String? computerId,
+    String? transmitterSerial,
+    bool clearTransmitterSerial = false,
     double? decoSwitchDepth,
     bool clearDecoSwitchDepth = false,
     bool? isTravelGas,
@@ -1128,6 +1140,9 @@ class DiveTank extends Equatable {
       order: order ?? this.order,
       presetName: clearPresetName ? null : (presetName ?? this.presetName),
       computerId: computerId ?? this.computerId,
+      transmitterSerial: clearTransmitterSerial
+          ? null
+          : (transmitterSerial ?? this.transmitterSerial),
       decoSwitchDepth: clearDecoSwitchDepth
           ? null
           : (decoSwitchDepth ?? this.decoSwitchDepth),
@@ -1149,6 +1164,7 @@ class DiveTank extends Equatable {
     order,
     presetName,
     computerId,
+    transmitterSerial,
     decoSwitchDepth,
     isTravelGas,
   ];

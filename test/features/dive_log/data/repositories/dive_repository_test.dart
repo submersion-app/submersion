@@ -179,6 +179,27 @@ void main() {
         expect(fetchedDive.tanks[0].gasMix.o2, equals(32.0));
       });
 
+      test(
+        'should keep a tank transmitter serial through create and read',
+        () async {
+          final dive = createTestDive(
+            tanks: [
+              const DiveTank(
+                id: '',
+                gasMix: GasMix(o2: 32.0),
+                order: 0,
+                transmitterSerial: '180777',
+              ),
+            ],
+          );
+
+          final createdDive = await repository.createDive(dive);
+          final fetchedDive = await repository.getDiveById(createdDive.id);
+
+          expect(fetchedDive!.tanks.single.transmitterSerial, '180777');
+        },
+      );
+
       test('should create a dive with site', () async {
         final site = await siteRepository.createSite(
           const DiveSite(id: '', name: 'Test Site'),
@@ -331,6 +352,65 @@ void main() {
     });
 
     group('updateDive', () {
+      test(
+        'keeps a stored transmitter serial when the edited tank omits it',
+        () async {
+          // The serial is computer-owned, like computerId: an edit flow that
+          // rebuilds the tank without it must not wipe what the download wrote.
+          final created = await repository.createDive(
+            createTestDive(
+              tanks: [
+                const DiveTank(
+                  id: '',
+                  gasMix: GasMix(o2: 32.0),
+                  order: 0,
+                  transmitterSerial: '180777',
+                ),
+              ],
+            ),
+          );
+          final loaded = (await repository.getDiveById(created.id))!;
+          final edited = loaded.copyWith(
+            tanks: [
+              loaded.tanks.single.copyWith(
+                startPressure: 210.0,
+                clearTransmitterSerial: true,
+              ),
+            ],
+          );
+
+          await repository.updateDive(edited);
+          final result = (await repository.getDiveById(created.id))!;
+
+          expect(result.tanks.single.startPressure, 210.0);
+          expect(result.tanks.single.transmitterSerial, '180777');
+        },
+      );
+
+      test(
+        'stores the transmitter serial on a tank added by an update',
+        () async {
+          final created = await repository.createDive(createTestDive());
+          final loaded = (await repository.getDiveById(created.id))!;
+
+          await repository.updateDive(
+            loaded.copyWith(
+              tanks: [
+                const DiveTank(
+                  id: 'added-tank',
+                  gasMix: GasMix(o2: 32.0),
+                  order: 0,
+                  transmitterSerial: '180777',
+                ),
+              ],
+            ),
+          );
+          final result = (await repository.getDiveById(created.id))!;
+
+          expect(result.tanks.single.transmitterSerial, '180777');
+        },
+      );
+
       test('should update dive fields', () async {
         final dive = await repository.createDive(
           createTestDive(

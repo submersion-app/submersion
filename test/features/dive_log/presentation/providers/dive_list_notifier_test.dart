@@ -114,7 +114,7 @@ void main() {
       }
       expect(container.read(paginatedDiveListProvider).value?.dives, isEmpty);
 
-      // Remote dive applied straight to the DB; _silentReloadFirstPage must
+      // Remote dive applied straight to the DB; _silentReloadLoadedPages must
       // refresh the first page in place.
       await diveRepo.createDive(
         _makeDive(diverId: diver.id, notes: 'Synced Summary'),

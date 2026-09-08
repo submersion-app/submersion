@@ -2363,6 +2363,7 @@ class UddfEntityImporter {
           material: material,
           role: role,
           order: t['order'] as int? ?? 0,
+          transmitterSerial: t['transmitterSerial'] as String?,
         );
       }).toList();
     }
