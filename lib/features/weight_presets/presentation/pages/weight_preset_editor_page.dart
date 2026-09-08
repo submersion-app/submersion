@@ -60,11 +60,26 @@ class _WeightPresetEditorPageState
         .read(weightPresetRepositoryProvider)
         .getPresetById(widget.presetId!);
     if (!mounted) return;
+
+    // A stale deep link or a preset deleted on another device: there is
+    // nothing to edit, so bounce back to the list rather than sit in a
+    // broken "edit" state whose Save would fail.
+    if (preset == null) {
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.weightPresets_editor_notFound)),
+      );
+      if (context.canPop()) context.pop();
+      return;
+    }
+
     final units = UnitFormatter(ref.read(settingsProvider));
     setState(() {
       _loading = false;
-      if (preset == null) return;
       _nameController.text = preset.displayName;
+      for (final r in _rows) {
+        r.amount.dispose();
+      }
       _rows
         ..clear()
         ..addAll(

@@ -5093,6 +5093,7 @@
   "weightPresets_editor_addWeight": "Ajouter un lest",
   "weightPresets_editor_needName": "Donnez un nom à la présélection",
   "weightPresets_editor_needWeight": "Ajoutez au moins un lest",
+  "weightPresets_editor_notFound": "Cette présélection de lestage n'existe plus.",
   "weightPresets_rename_title": "Renommer la présélection",
   "weightPresets_delete_title": "Supprimer cette présélection ?",
   "weightPresets_delete_body": "« {name} » sera supprimé. Les plongées qui l'ont utilisé gardent leurs propres plombs.",

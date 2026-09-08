@@ -17115,7 +17115,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Save a weighting from the dive editor, or tap + to build one here.';
+      'احفظ أوزانًا من محرر الغطسة وستظهر هنا لإعادة الاستخدام.';
 
   @override
   String get weightPresets_action_rename => 'إعادة تسمية';
@@ -17140,6 +17140,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get weightPresets_editor_needWeight => 'Add at least one weight';
+
+  @override
+  String get weightPresets_editor_notFound =>
+      'This weighting rig no longer exists.';
 
   @override
   String get weightPresets_rename_title => 'إعادة تسمية الإعداد';

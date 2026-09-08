@@ -17435,7 +17435,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Save a weighting from the dive editor, or tap + to build one here.';
+      'Guarde um lastro no editor de mergulho e ele aparecerá aqui para reutilizar.';
 
   @override
   String get weightPresets_action_rename => 'Renomear';
@@ -17460,6 +17460,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get weightPresets_editor_needWeight => 'Add at least one weight';
+
+  @override
+  String get weightPresets_editor_notFound =>
+      'This weighting rig no longer exists.';
 
   @override
   String get weightPresets_rename_title => 'Renomear predefinição';

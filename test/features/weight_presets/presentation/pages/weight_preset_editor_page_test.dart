@@ -194,4 +194,16 @@ void main() {
     expect(repo.updated.single.entries, hasLength(1));
     expect(repo.created, isEmpty);
   });
+
+  testWidgets('edit: a preset that no longer exists shows an error and pops', (
+    tester,
+  ) async {
+    repo.loadReturns = null; // stale deep link / deleted on another device
+
+    await pump(tester, presetId: 'gone');
+
+    expect(find.text('This weighting rig no longer exists.'), findsOneWidget);
+    expect(find.text('list'), findsOneWidget); // popped back to the list route
+    expect(find.byType(WeightPresetEditorPage), findsNothing);
+  });
 }

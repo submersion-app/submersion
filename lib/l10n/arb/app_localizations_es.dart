@@ -17437,7 +17437,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Save a weighting from the dive editor, or tap + to build one here.';
+      'Guarda un lastre desde el editor de inmersiones y aparecerá aquí para reutilizarlo.';
 
   @override
   String get weightPresets_action_rename => 'Renombrar';
@@ -17462,6 +17462,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get weightPresets_editor_needWeight => 'Add at least one weight';
+
+  @override
+  String get weightPresets_editor_notFound =>
+      'This weighting rig no longer exists.';
 
   @override
   String get weightPresets_rename_title => 'Renombrar preajuste';

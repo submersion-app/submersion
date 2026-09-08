@@ -16552,8 +16552,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get weightPresets_page_title => '配重预设';
 
   @override
-  String get weightPresets_page_empty =>
-      'Save a weighting from the dive editor, or tap + to build one here.';
+  String get weightPresets_page_empty => '在潜水编辑器中保存一份配重，它就会出现在这里供重复使用。';
 
   @override
   String get weightPresets_action_rename => '重命名';
@@ -16578,6 +16577,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get weightPresets_editor_needWeight => 'Add at least one weight';
+
+  @override
+  String get weightPresets_editor_notFound =>
+      'This weighting rig no longer exists.';
 
   @override
   String get weightPresets_rename_title => '重命名预设';

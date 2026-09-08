@@ -28873,6 +28873,12 @@ abstract class AppLocalizations {
   /// **'Add at least one weight'**
   String get weightPresets_editor_needWeight;
 
+  /// No description provided for @weightPresets_editor_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This weighting rig no longer exists.'**
+  String get weightPresets_editor_notFound;
+
   /// No description provided for @weightPresets_rename_title.
   ///
   /// In en, this message translates to:

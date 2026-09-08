@@ -17293,7 +17293,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Save a weighting from the dive editor, or tap + to build one here.';
+      'Sla een loodhoeveelheid op vanuit de duikeditor, dan verschijnt die hier om te hergebruiken.';
 
   @override
   String get weightPresets_action_rename => 'Naam wijzigen';
@@ -17318,6 +17318,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get weightPresets_editor_needWeight => 'Add at least one weight';
+
+  @override
+  String get weightPresets_editor_notFound =>
+      'This weighting rig no longer exists.';
 
   @override
   String get weightPresets_rename_title => 'Voorinstelling hernoemen';

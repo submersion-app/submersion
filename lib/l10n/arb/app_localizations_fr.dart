@@ -17521,6 +17521,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get weightPresets_editor_needWeight => 'Ajoutez au moins un lest';
 
   @override
+  String get weightPresets_editor_notFound =>
+      'Cette présélection de lestage n\'existe plus.';
+
+  @override
   String get weightPresets_rename_title => 'Renommer la présélection';
 
   @override
