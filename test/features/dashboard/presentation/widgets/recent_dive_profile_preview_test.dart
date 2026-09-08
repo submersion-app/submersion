@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/recent_dive_profile_preview.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
@@ -136,6 +137,21 @@ void main() {
     expect(find.byType(Card), findsNothing);
     expect(find.text('Latest dive profile'), findsNothing);
     expect(find.text('No profile data for this dive'), findsNothing);
+  });
+
+  // The button this slot gained with the full chart: the plot is small here,
+  // so "give it the whole window" is the affordance that makes the slot
+  // usable rather than merely accurate.
+  testWidgets('opens the fullscreen profile from the header button', (
+    tester,
+  ) async {
+    await _pump(tester, profile: _profile());
+
+    expect(find.byIcon(Icons.fullscreen), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.fullscreen));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FullscreenProfilePage), findsOneWidget);
   });
 
   // The home slot is a fixed-height box, and the full chart carries a legend
