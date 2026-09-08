@@ -175,11 +175,12 @@ def sha1_fingerprint(certificate):
     identifiers. Hence the `usedforsecurity=False` declaration, and the
     suppression of CodeQL's name-based "sensitive data" heuristic, which fires
     on the word "certificate" rather than on how the digest is used.
+
+    The call is kept on one line deliberately: CodeQL anchors this alert to
+    the argument rather than to the call, so a suppression comment on a split
+    call sits one line above the alert and does not apply.
     """
-    digest = hashlib.sha1(  # codeql[py/weak-sensitive-data-hashing]
-        certificate, usedforsecurity=False
-    )
-    return digest.hexdigest()
+    return hashlib.sha1(certificate, usedforsecurity=False).hexdigest()  # codeql[py/weak-sensitive-data-hashing]
 
 
 def signer_sha1(path):
