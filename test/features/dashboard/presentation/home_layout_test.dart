@@ -72,7 +72,7 @@ void main() {
       expect((block.child as MediaRibbonCard).rows, 1);
     });
 
-    test('yearInReview is absorbed only after milestones fills a slot', () {
+    test('yearInReview is side-capable on its own, without milestones', () {
       final entries = buildDashboardEntries(const [
         HomeCardType.recentDives,
         HomeCardType.yearInReview,
