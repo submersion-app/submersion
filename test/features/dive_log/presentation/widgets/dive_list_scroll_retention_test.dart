@@ -254,4 +254,63 @@ void main() {
       reason: 'the kick must not be suppressed by a row count seen before',
     );
   });
+
+  testWidgets('scrolling at the bottom does not retry a failed page load', (
+    tester,
+  ) async {
+    final summaries = [for (var i = 60; i >= 1; i--) _summary(i)];
+    final notifier = _FakePaginatedNotifier(summaries);
+    final base = await getBaseOverrides();
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          diveListViewModeProvider.overrideWith((ref) => ListViewMode.compact),
+          highlightedDiveIdProvider.overrideWith((ref) => null),
+          paginatedDiveListProvider.overrideWith((ref) => notifier),
+        ],
+        child: const DiveListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    notifier.failLoadMore(summaries);
+    await tester.pump();
+
+    // Park at the bottom of the list, where the retry row is.
+    final listFinder = find.byType(Scrollable).last;
+    final retry = find.byKey(const ValueKey('load_more_retry'));
+    await tester.scrollUntilVisible(retry, 200);
+    await tester.pumpAndSettle();
+    expect(
+      tester.state<ScrollableState>(listFinder).position.pixels,
+      greaterThan(0),
+    );
+
+    // Jitter within the bottom 200px, which is what riding the end of the list
+    // looks like: every one of these is a scroll notification inside the
+    // threshold that would normally ask for the next page.
+    notifier.loadNextPageCalls = 0;
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(listFinder, const Offset(0, 60));
+      await tester.pumpAndSettle();
+      await tester.drag(listFinder, const Offset(0, -60));
+      await tester.pumpAndSettle();
+    }
+
+    expect(
+      notifier.loadNextPageCalls,
+      0,
+      reason:
+          'scrolling must not bypass the Retry button and put a failing query '
+          'behind every settle (#1610)',
+    );
+
+    // The button is still the way forward.
+    notifier.loadNextPageCalls = 0;
+    await tester.tap(retry);
+    await tester.pump();
+    expect(notifier.loadNextPageCalls, 1);
+  });
 }

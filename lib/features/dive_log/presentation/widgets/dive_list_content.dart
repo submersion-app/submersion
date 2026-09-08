@@ -176,6 +176,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
+    // Once a page load has failed, only the Retry button asks again, matching
+    // [_loadNextPageIfStranded]. Sitting at the bottom of the list produces a
+    // scroll notification on every settle and overscroll bounce, so retrying
+    // from here would swap the retry row back for a spinner under the diver's
+    // thumb again and again, and put a failing query behind each one.
+    final paginated = ref.read(paginatedDiveListProvider).value;
+    if (paginated?.loadMoreFailed ?? false) return;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
     // Load next page when within 200px of bottom
@@ -195,7 +202,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// that is where the load gets kicked.
   ///
   /// A page load that failed is left alone: the row shows a retry affordance
-  /// instead of a spinner, so there is nothing stranded to rescue.
+  /// instead of a spinner, so there is nothing stranded to rescue. [_onScroll]
+  /// bows out of a failed state for the same reason, so the Retry button is
+  /// the only way back.
   ///
   /// This cannot become a retry storm. A kick flips `isLoadingMore` on the
   /// spot, a load that fails raises `loadMoreFailed`, and a load with nothing
