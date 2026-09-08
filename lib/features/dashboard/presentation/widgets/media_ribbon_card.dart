@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/recent_sites_map_card.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
@@ -15,12 +16,6 @@ const double _tileHeight = 96;
 /// Gap between tiles, along the ribbon and between its rows.
 const double _tileSpacing = 8;
 
-/// Tile area of a ribbon paired beside the recent-sites map. Matches that
-/// card's fixed 220 pt map so the two cards end at roughly the same place;
-/// the grid top-aligns them rather than stretching, so the ribbon has to
-/// reach that height itself.
-const double mediaRibbonPairedHeight = 220;
-
 /// Horizontal ribbon of the newest dive photos and videos.
 class MediaRibbonCard extends ConsumerWidget {
   /// How many rows of tiles to stack, for filling the height of a taller
@@ -29,7 +24,8 @@ class MediaRibbonCard extends ConsumerWidget {
   /// extra rows would just make a taller card for nothing.
   final int rows;
 
-  const MediaRibbonCard({this.rows = 1, super.key});
+  const MediaRibbonCard({this.rows = 1, super.key})
+    : assert(rows >= 1, 'a ribbon needs at least one row of tiles');
 
   /// Opens the full-screen viewer on the item itself, with the rest of its
   /// dive's gallery swipeable alongside it. Pushed on the root navigator
@@ -64,7 +60,9 @@ class MediaRibbonCard extends ConsumerWidget {
     // A pairing only exists at desktop widths; below the breakpoint the card
     // stands alone in a single column and stays the compact one-row ribbon.
     final stacked = rows > 1 && ResponsiveBreakpoints.isDesktop(context);
-    final contentHeight = stacked ? mediaRibbonPairedHeight : _tileHeight;
+    // Sized from the map's own constant, so the pair stays aligned if that
+    // height ever moves rather than silently drifting apart.
+    final contentHeight = stacked ? recentSitesMapHeight : _tileHeight;
 
     Widget tile(MediaItem item) {
       final diveId = item.diveId;

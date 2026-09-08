@@ -12,6 +12,12 @@ import 'package:submersion/features/maps/presentation/widgets/map_interaction_op
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Height of the map itself, exported because a card paired beside this one
+/// has to match it: the dashboard grid top-aligns cards at their natural
+/// heights rather than stretching them, so the partner sizes itself from
+/// this value instead of repeating the number.
+const double recentSitesMapHeight = 220;
+
 /// Mini map with pins for the sites of the most recent dives.
 class RecentSitesMapCard extends ConsumerStatefulWidget {
   const RecentSitesMapCard({super.key});
@@ -66,7 +72,7 @@ class _RecentSitesMapCardState extends ConsumerState<RecentSitesMapCard> {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: SizedBox(
-                height: 220,
+                height: recentSitesMapHeight,
                 child: TrackpadZoomMap(
                   controller: _controller,
                   child: FlutterMap(

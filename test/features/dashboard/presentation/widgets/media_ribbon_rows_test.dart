@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/media_ribbon_card.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/recent_sites_map_card.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -96,6 +97,11 @@ void main() {
     expect(tileRows(tester), hasLength(1));
   });
 
+  test('a row count below one is rejected rather than silently ignored', () {
+    expect(() => MediaRibbonCard(rows: 0), throwsAssertionError);
+    expect(() => MediaRibbonCard(rows: -1), throwsAssertionError);
+  });
+
   testWidgets('two rows fill the height of the recent-sites map beside it', (
     tester,
   ) async {
@@ -106,6 +112,6 @@ void main() {
     ];
     final top = rects.map((r) => r.top).reduce((a, b) => a < b ? a : b);
     final bottom = rects.map((r) => r.bottom).reduce((a, b) => a > b ? a : b);
-    expect(bottom - top, closeTo(mediaRibbonPairedHeight, 0.01));
+    expect(bottom - top, closeTo(recentSitesMapHeight, 0.01));
   });
 }
