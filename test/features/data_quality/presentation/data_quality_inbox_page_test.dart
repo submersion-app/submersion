@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -14,6 +15,8 @@ import 'package:submersion/features/data_quality/presentation/providers/data_qua
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
@@ -22,6 +25,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../helpers/l10n_test_helpers.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/test_app.dart';
 
 /// Findings repository stub whose `watchFindings` emits a single, timer-free
 /// value. The inbox's stream provider is autoDispose over a Drift query stream
@@ -179,6 +183,35 @@ Future<SharedPreferences> _prefs() async {
 /// Builds the inbox page over a fake findings stream (the given [findings]),
 /// with optional scan-service / scan-state-store fakes. Repairs still dispatch
 /// to the real [QualityRepairExecutor] against the test database.
+List<dynamic> _overrides(
+  SharedPreferences prefs, {
+  List<QualityFinding> findings = const [],
+  QualityScanService? scanService,
+  QualityScanStateStore? store,
+  Map<String, String>? computerNames,
+  VoidCallback? onComputerNamesRead,
+  DiveRepository? diveRepository,
+}) => [
+  qualityFindingsRepositoryProvider.overrideWithValue(
+    _FakeFindingsRepository(List.of(findings)),
+  ),
+  sharedPreferencesProvider.overrideWithValue(prefs),
+  settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+  if (scanService != null)
+    qualityScanServiceProvider.overrideWithValue(scanService),
+  if (store != null) qualityScanStateStoreProvider.overrideWithValue(store),
+  if (diveRepository != null)
+    diveRepositoryProvider.overrideWithValue(diveRepository),
+  // The name map is built from the saved-computers list, which needs a
+  // diver and a computers table this page test has no reason to stand up.
+  // Overriding it keeps the assertion on what the page does with the names.
+  if (computerNames != null || onComputerNamesRead != null)
+    qualityComputerNamesProvider.overrideWith((ref) async {
+      onComputerNamesRead?.call();
+      return computerNames ?? const {};
+    }),
+];
+
 Widget _scope(
   SharedPreferences prefs, {
   List<QualityFinding> findings = const [],
@@ -187,29 +220,34 @@ Widget _scope(
   String? filterDiveId,
   Map<String, String>? computerNames,
   VoidCallback? onComputerNamesRead,
+  DiveRepository? diveRepository,
 }) => ProviderScope(
-  overrides: [
-    qualityFindingsRepositoryProvider.overrideWithValue(
-      _FakeFindingsRepository(List.of(findings)),
-    ),
-    sharedPreferencesProvider.overrideWithValue(prefs),
-    settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-    if (scanService != null)
-      qualityScanServiceProvider.overrideWithValue(scanService),
-    if (store != null) qualityScanStateStoreProvider.overrideWithValue(store),
-    // The name map is built from the saved-computers list, which needs a
-    // diver and a computers table this page test has no reason to stand up.
-    // Overriding it keeps the assertion on what the page does with the names.
-    if (computerNames != null || onComputerNamesRead != null)
-      qualityComputerNamesProvider.overrideWith((ref) async {
-        onComputerNamesRead?.call();
-        return computerNames ?? const {};
-      }),
-  ],
+  overrides: _overrides(
+    prefs,
+    findings: findings,
+    scanService: scanService,
+    store: store,
+    computerNames: computerNames,
+    onComputerNamesRead: onComputerNamesRead,
+    diveRepository: diveRepository,
+  ).cast(),
   child: localizedMaterialApp(
     home: DataQualityInboxPage(filterDiveId: filterDiveId),
   ),
 );
+
+/// A repository whose identity lookup fails, for the branch where the header
+/// cannot name a dive because the read itself broke (as opposed to the dive
+/// simply being absent from an otherwise successful read).
+class _FailingDiveRepository implements DiveRepository {
+  @override
+  Future<List<DiveSummary>> getSummariesByIds(List<String> ids) async {
+    throw StateError('identity lookup unavailable');
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   setUp(() async {
@@ -642,6 +680,59 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(read, isTrue);
+  });
+
+  testWidgets('tapping a dive header opens that dive', (tester) async {
+    await _seedDive('d1', name: 'Reef wall');
+    final prefs = await _prefs();
+    final router = GoRouter(
+      initialLocation: '/quality',
+      routes: [
+        GoRoute(
+          path: '/quality',
+          builder: (_, _) => const DataQualityInboxPage(),
+        ),
+        GoRoute(
+          path: '/dives/:id',
+          builder: (_, state) =>
+              Scaffold(body: Text('opened ${state.pathParameters['id']}')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: _overrides(prefs, findings: [finding()]),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.textContaining('Reef wall'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('opened d1'), findsOneWidget);
+  });
+
+  testWidgets('a failed identity lookup says so rather than showing an id', (
+    tester,
+  ) async {
+    // Distinct from the dive simply being absent: here the read itself broke,
+    // so there is no map at all. The header must still name the state instead
+    // of leaving a blank line above the findings.
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [finding()],
+        diveRepository: _FailingDiveRepository(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dive details unavailable'), findsOneWidget);
+    expect(find.text('d1'), findsNothing);
+    // The finding itself still renders; only its identity is unknown.
+    expect(find.text('Sample gaps'), findsOneWidget);
   });
 
   // --- Empty state variants + library scan flow ----------------------------
