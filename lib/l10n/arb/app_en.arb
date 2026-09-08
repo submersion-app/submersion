@@ -1117,6 +1117,7 @@
   "certifications_detail_tooltip_moreOptions": "More options",
   "certifications_ecardStack_empty_subtitle": "Add your first certification to see it here",
   "certifications_ecardStack_empty_title": "No certifications yet",
+  "certifications_ecard_alsoRecognized": "Also: {recognitions}",
   "certifications_ecard_label_cardNumber": "CARD NO.",
   "certifications_ecard_label_certifiedBy": "Certified by {agency}",
   "certifications_ecard_label_diver": "DIVER",
@@ -1279,6 +1280,14 @@
     "placeholders": {
       "date": {
         "type": "Object"
+      }
+    }
+  },
+  "@certifications_ecard_alsoRecognized": {
+    "description": "Secondary line on the generated wallet card listing the other agency recognitions the same card grants, all at equal rank",
+    "placeholders": {
+      "recognitions": {
+        "type": "String"
       }
     }
   },

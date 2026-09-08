@@ -774,6 +774,7 @@
   "certifications_detail_tooltip_moreOptions": "Altre opzioni",
   "certifications_ecardStack_empty_subtitle": "Aggiungi la tua prima certificazione per vederla qui",
   "certifications_ecardStack_empty_title": "Nessuna certificazione ancora",
+  "certifications_ecard_alsoRecognized": "Also: {recognitions}",
   "certifications_ecard_label_cardNumber": "N. TESSERA",
   "certifications_ecard_label_certifiedBy": "Certificato da {agency}",
   "certifications_ecard_label_diver": "SUBACQUEO",

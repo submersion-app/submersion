@@ -774,6 +774,7 @@
   "certifications_detail_tooltip_moreOptions": "Mais opcoes",
   "certifications_ecardStack_empty_subtitle": "Adicione sua primeira certificacao para ve-la aqui",
   "certifications_ecardStack_empty_title": "Nenhuma certificacao ainda",
+  "certifications_ecard_alsoRecognized": "Also: {recognitions}",
   "certifications_ecard_label_cardNumber": "N.º DO CARTÃO",
   "certifications_ecard_label_certifiedBy": "Certificado por {agency}",
   "certifications_ecard_label_diver": "MERGULHADOR",

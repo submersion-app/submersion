@@ -774,6 +774,7 @@
   "certifications_detail_tooltip_moreOptions": "Weitere Optionen",
   "certifications_ecardStack_empty_subtitle": "Fügen Sie Ihre erste Zertifizierung hinzu, um sie hier zu sehen",
   "certifications_ecardStack_empty_title": "Noch keine Zertifizierungen",
+  "certifications_ecard_alsoRecognized": "Also: {recognitions}",
   "certifications_ecard_label_cardNumber": "KARTEN-NR.",
   "certifications_ecard_label_certifiedBy": "Zertifiziert von {agency}",
   "certifications_ecard_label_diver": "TAUCHER",

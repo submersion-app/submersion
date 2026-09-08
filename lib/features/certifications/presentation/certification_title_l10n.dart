@@ -60,3 +60,21 @@ String certificationCredentialsLineL10n(
       })
       .join(' · ');
 }
+
+/// Just the *extra* recognitions on a multi-credential card ("Agency Level"
+/// joined with " · "), or null for a single-agency card. The first credential
+/// is already the card's title, so surfaces that show a headline plus a
+/// secondary line use this for the line.
+String? additionalCredentialsLineL10n(
+  Certification cert,
+  AppLocalizations l10n,
+) {
+  if (!cert.hasMultipleCredentials) return null;
+  return cert.additionalCredentials
+      .map((c) {
+        final agency = c.agency.localizedName(l10n);
+        final level = c.level?.localizedName(l10n);
+        return level == null ? agency : '$agency $level';
+      })
+      .join(' · ');
+}

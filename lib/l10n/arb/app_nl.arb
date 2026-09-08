@@ -774,6 +774,7 @@
   "certifications_detail_tooltip_moreOptions": "Meer opties",
   "certifications_ecardStack_empty_subtitle": "Voeg je eerste certificering toe om deze hier te zien",
   "certifications_ecardStack_empty_title": "Nog geen certificeringen",
+  "certifications_ecard_alsoRecognized": "Also: {recognitions}",
   "certifications_ecard_label_cardNumber": "KAARTNR.",
   "certifications_ecard_label_certifiedBy": "Gecertificeerd door {agency}",
   "certifications_ecard_label_diver": "DUIKER",

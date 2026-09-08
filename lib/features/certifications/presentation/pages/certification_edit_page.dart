@@ -469,6 +469,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
               DropdownButtonFormField<CertificationAgency>(
                 key: ValueKey('cred-agency-$i'),
                 initialValue: agency,
+                isExpanded: true,
                 decoration: InputDecoration(
                   labelText: context.l10n.certifications_edit_label_agency,
                   prefixIcon: const Icon(Icons.business),
@@ -492,6 +493,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                 // level is reset externally, so initialValue is re-read.
                 key: ValueKey('cred-level-$i-${agency.name}-${level?.name}'),
                 initialValue: CertificationOption.value(level),
+                isExpanded: true,
                 decoration: InputDecoration(
                   labelText:
                       context.l10n.certifications_edit_label_certification,

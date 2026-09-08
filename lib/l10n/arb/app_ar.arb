@@ -774,6 +774,7 @@
   "certifications_detail_tooltip_moreOptions": "خيارات إضافية",
   "certifications_ecardStack_empty_subtitle": "أضف شهادتك الأولى لرؤيتها هنا",
   "certifications_ecardStack_empty_title": "لا توجد شهادات بعد",
+  "certifications_ecard_alsoRecognized": "Also: {recognitions}",
   "certifications_ecard_label_cardNumber": "رقم البطاقة",
   "certifications_ecard_label_certifiedBy": "معتمد من {agency}",
   "certifications_ecard_label_diver": "الغواص",

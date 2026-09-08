@@ -1783,6 +1783,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_ecardStack_empty_title => 'Aucune certification';
 
   @override
+  String certifications_ecard_alsoRecognized(String recognitions) {
+    return 'Aussi : $recognitions';
+  }
+
+  @override
   String get certifications_ecard_label_cardNumber => 'N° DE CARTE';
 
   @override

@@ -774,6 +774,7 @@
   "certifications_detail_tooltip_moreOptions": "Mas opciones",
   "certifications_ecardStack_empty_subtitle": "Agrega tu primera certificacion para verla aqui",
   "certifications_ecardStack_empty_title": "Aun no hay certificaciones",
+  "certifications_ecard_alsoRecognized": "Also: {recognitions}",
   "certifications_ecard_label_cardNumber": "N.º DE TARJETA",
   "certifications_ecard_label_certifiedBy": "Certificado por {agency}",
   "certifications_ecard_label_diver": "BUCEADOR",

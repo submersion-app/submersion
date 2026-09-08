@@ -774,6 +774,7 @@
   "certifications_detail_tooltip_moreOptions": "Plus d'options",
   "certifications_ecardStack_empty_subtitle": "Ajoute ta première certification pour la voir ici",
   "certifications_ecardStack_empty_title": "Aucune certification",
+  "certifications_ecard_alsoRecognized": "Aussi : {recognitions}",
   "certifications_ecard_label_cardNumber": "N° DE CARTE",
   "certifications_ecard_label_certifiedBy": "Certifie par {agency}",
   "certifications_ecard_label_diver": "PLONGEUR",

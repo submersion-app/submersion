@@ -774,6 +774,7 @@
   "certifications_detail_tooltip_moreOptions": "אפשרויות נוספות",
   "certifications_ecardStack_empty_subtitle": "הוסף את ההסמכה הראשונה שלך כדי לראות אותה כאן",
   "certifications_ecardStack_empty_title": "אין עדיין הסמכות",
+  "certifications_ecard_alsoRecognized": "Also: {recognitions}",
   "certifications_ecard_label_cardNumber": "מספר כרטיס",
   "certifications_ecard_label_certifiedBy": "הוסמך על ידי {agency}",
   "certifications_ecard_label_diver": "צוללן",

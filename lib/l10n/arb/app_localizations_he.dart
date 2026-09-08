@@ -1731,6 +1731,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_ecardStack_empty_title => 'אין עדיין הסמכות';
 
   @override
+  String certifications_ecard_alsoRecognized(String recognitions) {
+    return 'Also: $recognitions';
+  }
+
+  @override
   String get certifications_ecard_label_cardNumber => 'מספר כרטיס';
 
   @override
