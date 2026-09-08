@@ -21,9 +21,9 @@ void main() {
   test('v196 is the current schema version and is in the ladder', () {
     // Renumbered from 192 then 195: main landed the transmitter-serial rung
     // (194) and the media-species-clock rung (195) while this branch was
-    // open. As the newest rung this holds the exact assertion; older rung
-    // tests relax to greaterThanOrEqualTo.
-    expect(AppDatabase.currentSchemaVersion, 196);
+    // open. Relaxed to greaterThanOrEqualTo once v197 (certification dual
+    // credentials) landed on top; the newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(196));
     expect(AppDatabase.migrationVersions, contains(196));
   });
 

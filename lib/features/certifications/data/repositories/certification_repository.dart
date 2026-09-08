@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -200,6 +202,9 @@ class CertificationRepository {
               name: Value(cert.name),
               agency: Value(cert.agency.name),
               level: Value(cert.level?.name),
+              additionalCredentials: Value(
+                _encodeCredentials(cert.additionalCredentials),
+              ),
               cardNumber: Value(cert.cardNumber),
               issueDate: Value(cert.issueDate?.millisecondsSinceEpoch),
               expiryDate: Value(cert.expiryDate?.millisecondsSinceEpoch),
@@ -249,6 +254,9 @@ class CertificationRepository {
           name: Value(cert.name),
           agency: Value(cert.agency.name),
           level: Value(cert.level?.name),
+          additionalCredentials: Value(
+            _encodeCredentials(cert.additionalCredentials),
+          ),
           cardNumber: Value(cert.cardNumber),
           issueDate: Value(cert.issueDate?.millisecondsSinceEpoch),
           expiryDate: Value(cert.expiryDate?.millisecondsSinceEpoch),
@@ -376,6 +384,9 @@ class CertificationRepository {
       name: row.data['name'] as String,
       agency: _parseCertificationAgency(row.data['agency'] as String),
       level: _parseCertificationLevel(row.data['level'] as String?),
+      additionalCredentials: _decodeCredentials(
+        row.data['additional_credentials'] as String?,
+      ),
       cardNumber: row.data['card_number'] as String?,
       issueDate: _parseDateTime(row.data['issue_date'] as int?),
       expiryDate: _parseDateTime(row.data['expiry_date'] as int?),
@@ -402,6 +413,7 @@ class CertificationRepository {
       name: row.name,
       agency: _parseCertificationAgency(row.agency),
       level: _parseCertificationLevel(row.level),
+      additionalCredentials: _decodeCredentials(row.additionalCredentials),
       cardNumber: row.cardNumber,
       issueDate: _parseDateTime(row.issueDate),
       expiryDate: _parseDateTime(row.expiryDate),
@@ -435,5 +447,26 @@ class CertificationRepository {
       (l) => l.name == value,
       orElse: () => CertificationLevel.other,
     );
+  }
+
+  /// Decode the `additional_credentials` JSON column. Tolerant of null, an
+  /// empty string, and malformed rows (falls back to no extra credentials).
+  List<domain.CertificationCredential> _decodeCredentials(String? json) {
+    if (json == null || json.trim().isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(json);
+      if (decoded is! List) return const [];
+      return decoded
+          .whereType<Map<String, dynamic>>()
+          .map(domain.CertificationCredential.fromJson)
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  String? _encodeCredentials(List<domain.CertificationCredential> creds) {
+    if (creds.isEmpty) return null;
+    return jsonEncode(creds.map((c) => c.toJson()).toList());
   }
 }

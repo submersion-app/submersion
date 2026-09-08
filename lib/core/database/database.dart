@@ -2090,6 +2090,12 @@ class Certifications extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Extra (agency, level) pairs the same physical card grants, as a JSON
+  /// array like `[{"agency":"cmas","level":"cmas1StarDiver"}]` (issue: dual
+  /// credentials). The row's own [agency]/[level] are the first credential;
+  /// this holds the rest. Null / "[]" means a single-agency card.
+  TextColumn get additionalCredentials => text().nullable()();
+
   /// Hybrid Logical Clock for cross-device conflict resolution
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
@@ -3465,7 +3471,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 196;
+  static const int currentSchemaVersion = 197;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -3965,6 +3971,11 @@ class AppDatabase extends _$AppDatabase {
     // from 192 then 195 -- main also landed the media-species-clock rung (195)
     // while this branch was open (192 and 193 are held by other branches).
     196,
+    // v197: certifications.additional_credentials -- extra (agency, level)
+    // pairs the same physical card grants (e.g. an FFESSM N1 that is also a
+    // CMAS 1-star). Additive nullable TEXT (a JSON array); no backfill, a
+    // null reads back as "just the primary agency/level".
+    197,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4045,6 +4056,24 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'ALTER TABLE certifications ADD COLUMN buddy_id TEXT '
         'REFERENCES buddies (id) ON DELETE CASCADE',
+      );
+    }
+  }
+
+  /// v197: certifications.additional_credentials (JSON array of extra
+  /// agency/level pairs). PRAGMA-guarded, idempotent -- called from the v197
+  /// onUpgrade step and the beforeOpen backstop.
+  Future<void> _assertCertificationCredentialsColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('certifications')",
+    ).get();
+    if (cols.isEmpty) return;
+    final has = cols.any(
+      (c) => c.read<String>('name') == 'additional_credentials',
+    );
+    if (!has) {
+      await customStatement(
+        'ALTER TABLE certifications ADD COLUMN additional_credentials TEXT',
       );
     }
   }
@@ -10454,6 +10483,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertWeightPresetTables();
         }
         if (from < 196) await reportProgress();
+        // v197: certifications.additional_credentials (dual credentials).
+        // Column-only rung, no backfill.
+        if (from < 197) {
+          await _assertCertificationCredentialsColumn();
+        }
+        if (from < 197) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -10505,6 +10540,7 @@ class AppDatabase extends _$AppDatabase {
         // resurrect a user-deleted buddy cert from the still-present inline
         // column (dropped in v110).
         await _assertCertificationBuddyOwnerColumn();
+        await _assertCertificationCredentialsColumn();
 
         // v111 backstop: re-assert equipment_sets.is_default + the
         // equipment_set_geofences table (parallel-branch collision self-heal).
