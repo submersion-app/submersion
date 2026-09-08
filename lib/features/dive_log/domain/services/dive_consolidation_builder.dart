@@ -198,13 +198,18 @@ class DiveConsolidationBuilder {
             .inSeconds,
     };
 
-    // Two passes: transmitter serials first, so a tank whose serial names a
-    // specific primary tank claims that one before a serial-less primary
-    // tank on the same mix can take it; then the gas-mix heuristic for what
-    // is left.
+    // Each secondary claims primary tanks independently: three computers on
+    // one transmitter all merge into the same primary tank. Within a single
+    // secondary a claim is exclusive, so two of its tanks on the same mix
+    // stay two cylinders.
+    //
+    // Two passes per secondary: transmitter serials first, so a tank whose
+    // serial names a specific primary tank claims that one before a
+    // serial-less primary tank on the same mix can take it; then the gas-mix
+    // heuristic for what is left.
     final tankMerges = <String, String>{};
-    final claimedPrimaryTanks = <String>{};
     for (final s in secondaries) {
+      final claimedPrimaryTanks = <String>{};
       for (final tank in s.tanks) {
         for (final pTank in primary.tanks) {
           if (claimedPrimaryTanks.contains(pTank.id)) continue;
@@ -215,8 +220,6 @@ class DiveConsolidationBuilder {
           }
         }
       }
-    }
-    for (final s in secondaries) {
       for (final tank in s.tanks) {
         if (tankMerges.containsKey(tank.id)) continue;
         for (final pTank in primary.tanks) {

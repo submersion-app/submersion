@@ -303,6 +303,82 @@ void main() {
       expect(builder.build([primary, secondary]).tankMerges, isEmpty);
     });
 
+    test('every secondary on the same transmitter merges into one primary '
+        'tank', () {
+      // Three computers paired to one transmitter: the primary tank must
+      // absorb BOTH secondaries' tanks, not just the first one's.
+      const primaryTank = DiveTank(
+        id: 'p1',
+        gasMix: GasMix(o2: 32.0, he: 0.0),
+        transmitterSerial: '180777',
+      );
+      const secondaryTank1 = DiveTank(
+        id: 's1',
+        gasMix: GasMix(o2: 31.0, he: 0.0),
+        transmitterSerial: '180777',
+      );
+      const secondaryTank2 = DiveTank(
+        id: 's2',
+        gasMix: GasMix(o2: 32.0, he: 0.0),
+        transmitterSerial: '180777',
+      );
+      final primary = makeDive(
+        'p',
+        entry: t,
+        runtimeMin: 40,
+        tanks: [primaryTank],
+      );
+      final secondary1 = makeDive(
+        's-one',
+        entry: t.add(const Duration(minutes: 5)),
+        runtimeMin: 30,
+        tanks: [secondaryTank1],
+      );
+      final secondary2 = makeDive(
+        's-two',
+        entry: t.add(const Duration(minutes: 10)),
+        runtimeMin: 30,
+        tanks: [secondaryTank2],
+      );
+      final plan = builder.build([primary, secondary1, secondary2]);
+      expect(plan.tankMerges, {'s1': 'p1', 's2': 'p1'});
+    });
+
+    test(
+      'two tanks of one secondary never both claim the same primary tank',
+      () {
+        // Within a single secondary the claim is exclusive: its second tank on
+        // the same mix is a second cylinder, not a second reading of the first.
+        const primaryTank = DiveTank(
+          id: 'p1',
+          gasMix: GasMix(o2: 32.0, he: 0.0),
+        );
+        const secondaryTank1 = DiveTank(
+          id: 's1',
+          gasMix: GasMix(o2: 32.0, he: 0.0),
+        );
+        const secondaryTank2 = DiveTank(
+          id: 's2',
+          gasMix: GasMix(o2: 32.0, he: 0.0),
+          order: 1,
+        );
+        final primary = makeDive(
+          'p',
+          entry: t,
+          runtimeMin: 40,
+          tanks: [primaryTank],
+        );
+        final secondary = makeDive(
+          's',
+          entry: t.add(const Duration(minutes: 10)),
+          runtimeMin: 30,
+          tanks: [secondaryTank1, secondaryTank2],
+        );
+        final plan = builder.build([primary, secondary]);
+        expect(plan.tankMerges, {'s1': 'p1'});
+      },
+    );
+
     test('a serial on only one side falls back to the gas-mix rule', () {
       const primaryTank = DiveTank(
         id: 'p1',
