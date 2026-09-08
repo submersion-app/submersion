@@ -803,6 +803,8 @@
   "certifications_edit_hint_instructorNumber": "Oktato kepesitesi szama",
   "certifications_edit_hint_notes": "Barmilyen tovabbi megjegyzes",
   "certifications_edit_label_agency": "Szervezet *",
+  "certifications_edit_addRecognition": "Add another recognition",
+  "certifications_edit_removeRecognition": "Remove this recognition",
   "certifications_edit_label_cardNumber": "Kartyaszam",
   "certifications_edit_label_certification": "Képesítés",
   "certifications_edit_label_expiryDate": "Lejarat datuma",

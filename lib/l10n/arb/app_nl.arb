@@ -803,6 +803,8 @@
   "certifications_edit_hint_instructorNumber": "Certificeringsnummer instructeur",
   "certifications_edit_hint_notes": "Eventuele extra notities",
   "certifications_edit_label_agency": "Organisatie *",
+  "certifications_edit_addRecognition": "Add another recognition",
+  "certifications_edit_removeRecognition": "Remove this recognition",
   "certifications_edit_label_cardNumber": "Kaartnummer",
   "certifications_edit_label_certification": "Certificering",
   "certifications_edit_label_expiryDate": "Vervaldatum",

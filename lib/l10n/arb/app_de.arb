@@ -803,6 +803,8 @@
   "certifications_edit_hint_instructorNumber": "Instructor-Zertifizierungsnummer",
   "certifications_edit_hint_notes": "Zusätzliche Notizen",
   "certifications_edit_label_agency": "Verband *",
+  "certifications_edit_addRecognition": "Add another recognition",
+  "certifications_edit_removeRecognition": "Remove this recognition",
   "certifications_edit_label_cardNumber": "Kartennummer",
   "certifications_edit_label_certification": "Zertifizierung",
   "certifications_edit_label_expiryDate": "Ablaufdatum",

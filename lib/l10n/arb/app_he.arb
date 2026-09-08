@@ -803,6 +803,8 @@
   "certifications_edit_hint_instructorNumber": "מספר הסמכת המדריך",
   "certifications_edit_hint_notes": "הערות נוספות",
   "certifications_edit_label_agency": "סוכנות *",
+  "certifications_edit_addRecognition": "Add another recognition",
+  "certifications_edit_removeRecognition": "Remove this recognition",
   "certifications_edit_label_cardNumber": "מספר כרטיס",
   "certifications_edit_label_certification": "הסמכה",
   "certifications_edit_label_expiryDate": "תאריך תפוגה",

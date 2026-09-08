@@ -803,6 +803,8 @@
   "certifications_edit_hint_instructorNumber": "Numéro de certification du moniteur",
   "certifications_edit_hint_notes": "Notes supplementaires",
   "certifications_edit_label_agency": "Organisme *",
+  "certifications_edit_addRecognition": "Ajouter une autre reconnaissance",
+  "certifications_edit_removeRecognition": "Retirer cette reconnaissance",
   "certifications_edit_label_cardNumber": "Numéro de carte",
   "certifications_edit_label_certification": "Certification",
   "certifications_edit_label_expiryDate": "Date d'expiration",

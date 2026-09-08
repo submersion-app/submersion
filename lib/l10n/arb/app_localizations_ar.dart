@@ -1842,6 +1842,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_label_agency => 'الجهة المانحة *';
 
   @override
+  String get certifications_edit_addRecognition => 'Add another recognition';
+
+  @override
+  String get certifications_edit_removeRecognition => 'Remove this recognition';
+
+  @override
   String get certifications_edit_label_cardNumber => 'رقم البطاقة';
 
   @override

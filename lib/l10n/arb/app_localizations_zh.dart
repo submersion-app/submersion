@@ -1764,6 +1764,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_label_agency => '机构 *';
 
   @override
+  String get certifications_edit_addRecognition => 'Add another recognition';
+
+  @override
+  String get certifications_edit_removeRecognition => 'Remove this recognition';
+
+  @override
   String get certifications_edit_label_cardNumber => '卡号';
 
   @override

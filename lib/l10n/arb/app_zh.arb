@@ -897,6 +897,8 @@
   "certifications_edit_hint_instructorNumber": "教练认证编号",
   "certifications_edit_hint_notes": "其他备注",
   "certifications_edit_label_agency": "机构 *",
+  "certifications_edit_addRecognition": "Add another recognition",
+  "certifications_edit_removeRecognition": "Remove this recognition",
   "certifications_edit_label_cardNumber": "卡号",
   "certifications_edit_label_certification": "证书",
   "certifications_edit_label_expiryDate": "到期日期",

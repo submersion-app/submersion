@@ -1871,6 +1871,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_edit_label_agency => 'Agencia *';
 
   @override
+  String get certifications_edit_addRecognition => 'Add another recognition';
+
+  @override
+  String get certifications_edit_removeRecognition => 'Remove this recognition';
+
+  @override
   String get certifications_edit_label_cardNumber => 'Numero do Cartao';
 
   @override

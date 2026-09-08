@@ -1881,6 +1881,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_edit_label_agency => 'Organisme *';
 
   @override
+  String get certifications_edit_addRecognition =>
+      'Ajouter une autre reconnaissance';
+
+  @override
+  String get certifications_edit_removeRecognition =>
+      'Retirer cette reconnaissance';
+
+  @override
   String get certifications_edit_label_cardNumber => 'Numéro de carte';
 
   @override

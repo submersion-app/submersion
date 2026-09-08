@@ -803,6 +803,8 @@
   "certifications_edit_hint_instructorNumber": "Numero di certificazione dell'istruttore",
   "certifications_edit_hint_notes": "Eventuali note aggiuntive",
   "certifications_edit_label_agency": "Ente *",
+  "certifications_edit_addRecognition": "Add another recognition",
+  "certifications_edit_removeRecognition": "Remove this recognition",
   "certifications_edit_label_cardNumber": "Numero tessera",
   "certifications_edit_label_certification": "Certificazione",
   "certifications_edit_label_expiryDate": "Data di scadenza",

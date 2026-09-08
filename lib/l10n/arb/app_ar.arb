@@ -803,6 +803,8 @@
   "certifications_edit_hint_instructorNumber": "رقم شهادة المدرب",
   "certifications_edit_hint_notes": "أي ملاحظات إضافية",
   "certifications_edit_label_agency": "الجهة المانحة *",
+  "certifications_edit_addRecognition": "Add another recognition",
+  "certifications_edit_removeRecognition": "Remove this recognition",
   "certifications_edit_label_cardNumber": "رقم البطاقة",
   "certifications_edit_label_certification": "الشهادة",
   "certifications_edit_label_expiryDate": "تاريخ الانتهاء",
