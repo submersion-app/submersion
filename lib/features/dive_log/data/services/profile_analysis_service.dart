@@ -1720,6 +1720,8 @@ class ProfileAnalysisService {
       maxPpO2Depth: depthAtMaxPpO2,
       timeAboveWarning: timeAboveWarning,
       timeAboveCritical: timeAboveCritical,
+      warningThreshold: _o2ToxicityCalculator.ppO2WarningThreshold,
+      criticalThreshold: _o2ToxicityCalculator.ppO2CriticalThreshold,
     );
   }
 
@@ -1855,6 +1857,8 @@ class ProfileAnalysisService {
         maxPpO2Depth: depthAtMaxPpO2,
         timeAboveWarning: timeAboveWarning,
         timeAboveCritical: timeAboveCritical,
+        warningThreshold: _o2ToxicityCalculator.ppO2WarningThreshold,
+        criticalThreshold: _o2ToxicityCalculator.ppO2CriticalThreshold,
       ),
       cnsCurve: cnsCurve,
       otuCurve: otuCurve,

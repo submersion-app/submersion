@@ -112,6 +112,56 @@ void main() {
       expect(out.single.params['peakPpO2'], closeTo(1.7, 1e-9));
     });
 
+    test('honours a lowered diver ppO2 ceiling for the sustained run', () {
+      // EAN32 at 35 m: ppO2 = 0.32 * 4.5 = 1.44. Clean on the default 1.6
+      // ceiling, a warning for a diver who set their max to 1.4.
+      final dive = makeTestDive(tanks: [tank(o2: 32)]);
+      final samples = flatProfile(depth: 35);
+      expect(det.detect(makeContext(dive: dive, samples: samples)), isEmpty);
+
+      final out = det.detect(
+        makeContext(dive: dive, samples: samples, ppO2MaxBar: 1.4),
+      );
+      expect(out, hasLength(1));
+      expect(out.single.severity, QualitySeverity.warning);
+      expect(out.single.params['peakPpO2'], closeTo(1.44, 1e-9));
+    });
+
+    test('honours a lowered diver ppO2 ceiling for the switch MOD', () {
+      // MOD(1.4, 0.50) = 18 m; a switch at 22 m is past it only once the
+      // diver's ceiling drops from the default 1.6 (MOD 22 m) to 1.4.
+      final tanks = [
+        tank(id: 'back', o2: 21),
+        tank(id: 'deco', o2: 50, order: 1),
+      ];
+      final dive = makeTestDive(tanks: tanks);
+      final switches = [sw(id: 'gs1', t: 1200, tankId: 'deco', depth: 22)];
+
+      expect(
+        det.detect(
+          makeContext(
+            dive: dive,
+            samples: flatProfile(depth: 18),
+            gasSwitches: switches,
+          ),
+        ),
+        isEmpty,
+      );
+
+      final out = det.detect(
+        makeContext(
+          dive: dive,
+          samples: flatProfile(depth: 18),
+          gasSwitches: switches,
+          ppO2MaxBar: 1.4,
+        ),
+      );
+      final modFinding = out.singleWhere(
+        (f) => f.params.containsKey('modMeters'),
+      );
+      expect(modFinding.params['modMeters'], closeTo(18.0, 1e-9));
+    });
+
     test('a brief ppO2 excursion under the sustain window is not flagged', () {
       // One 1.7-bar sample, then shallow: the run is 0 s < ppO2SustainSeconds.
       final ctx = makeContext(

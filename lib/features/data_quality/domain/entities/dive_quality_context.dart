@@ -1,3 +1,4 @@
+import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -53,6 +54,7 @@ class DiveQualityContext {
     this.pressuresByTankId = const {},
     this.gasSwitches = const [],
     this.neighbors = const [],
+    this.ppO2MaxBar = QualityThresholds.ppO2WarnBar,
   });
 
   final domain.Dive dive;
@@ -63,4 +65,10 @@ class DiveQualityContext {
   final Map<String, List<QualityPressureSample>> pressuresByTankId;
   final List<GasSwitch> gasSwitches;
   final List<QualityNeighbor> neighbors;
+
+  /// The diver's maximum (deco / contingency) ppO2 ceiling in bar, from
+  /// decompression settings. Detectors treat a recorded gas/depth combination
+  /// as suspect above this, and genuinely wrong further above it. Defaults to
+  /// [QualityThresholds.ppO2WarnBar] (1.6) when settings are unavailable.
+  final double ppO2MaxBar;
 }

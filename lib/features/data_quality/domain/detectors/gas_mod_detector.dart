@@ -18,7 +18,7 @@ class GasModDetector extends QualityDetector {
   @override
   String get id => 'gas_mod';
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   QualityCategory get category => QualityCategory.gas;
 
@@ -28,6 +28,15 @@ class GasModDetector extends QualityDetector {
     final tanks = ctx.tanks;
     if (tanks.isEmpty) return const [];
     final out = <QualityFinding>[];
+
+    // Bars relative to the diver's own maximum ppO2: warn once the recorded
+    // gas/depth passes their ceiling, critical when it is well past it. The
+    // margin is the constants' own gap (0.2), so a diver on the default 1.6
+    // ceiling keeps exactly the historical 1.6 / 1.8 behaviour.
+    final ppO2WarnBar = ctx.ppO2MaxBar;
+    final ppO2CriticalBar =
+        ppO2WarnBar +
+        (QualityThresholds.ppO2CriticalBar - QualityThresholds.ppO2WarnBar);
     final ordered = [...tanks]..sort((a, b) => a.order.compareTo(b.order));
 
     domain.DiveTank? tankById(String tid) =>
@@ -58,7 +67,7 @@ class GasModDetector extends QualityDetector {
           make(
             ctx,
             discriminator: 'ppo2:${runStart! ~/ 60}',
-            severity: peak >= QualityThresholds.ppO2CriticalBar
+            severity: peak >= ppO2CriticalBar
                 ? QualitySeverity.critical
                 : QualitySeverity.warning,
             params: {
@@ -78,7 +87,7 @@ class GasModDetector extends QualityDetector {
     for (final p in ctx.primarySamples) {
       final fo2 = fo2At(p.t);
       final ppo2 = fo2 * (p.depth / 10 + 1);
-      if (ppo2 > QualityThresholds.ppO2WarnBar) {
+      if (ppo2 > ppO2WarnBar) {
         runStart ??= p.t;
         if (ppo2 > peak) {
           peak = ppo2;
@@ -135,7 +144,7 @@ class GasModDetector extends QualityDetector {
       if (tank == null || d == null) continue;
       final fo2 = tank.gasMix.o2 / 100.0;
       if (fo2 <= 0) continue;
-      final mod = ((QualityThresholds.ppO2WarnBar / fo2) - 1) * 10;
+      final mod = ((ppO2WarnBar / fo2) - 1) * 10;
       if (d > mod + QualityThresholds.modToleranceMeters) {
         out.add(
           make(

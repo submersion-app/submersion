@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -33,6 +35,7 @@ void main() {
     required DateTime entry,
     Duration runtime = const Duration(minutes: 40),
     String? serial,
+    String? diverId,
     List<domain.DiveProfilePoint> profile = const [],
   }) async {
     final dive = domain.Dive(
@@ -42,6 +45,7 @@ void main() {
       runtime: runtime,
       maxDepth: 30.0,
       diveComputerSerial: serial,
+      diverId: diverId,
       profile: profile,
     );
     await diveRepo.createDive(dive);
@@ -67,6 +71,38 @@ void main() {
     final ctx = (await builder.buildAll(['d1'])).single;
     expect(ctx.primarySamples.map((s) => s.t), [0, 10]); // sorted, bad dropped
     expect(ctx.dive.id, 'd1');
+  });
+
+  group('ppO2MaxBar', () {
+    test('defaults to the fixed ceiling with no diver settings', () async {
+      await seedDive(id: 'd1', entry: DateTime.utc(2026, 7, 1, 10));
+      final ctx = (await builder.buildAll(['d1'])).single;
+      expect(ctx.ppO2MaxBar, 1.6);
+    });
+
+    test("uses the diver's configured maximum ppO2", () async {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: 'diver-1',
+              name: 'Alex Diver',
+              createdAt: 1000,
+              updatedAt: 1000,
+            ),
+          );
+      await DiverSettingsRepository().createSettingsForDiver(
+        'diver-1',
+        settings: const AppSettings(ppO2MaxDeco: 1.4),
+      );
+      await seedDive(
+        id: 'd1',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        diverId: 'diver-1',
+      );
+      final ctx = (await builder.buildAll(['d1'])).single;
+      expect(ctx.ppO2MaxBar, 1.4);
+    });
   });
 
   test(
