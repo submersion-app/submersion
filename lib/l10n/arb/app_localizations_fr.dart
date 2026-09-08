@@ -8207,7 +8207,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_detail_deleteMenu_label => 'Supprimer';
 
   @override
-  String get diveSites_detail_deleteSnackbar => 'Site supprime';
+  String get diveSites_detail_deleteSnackbar => 'Site supprimé';
 
   @override
   String get diveSites_detail_depth_maximum => 'Maximum';
@@ -8356,13 +8356,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_detail_siteNotFound_title => 'Site introuvable';
 
   @override
-  String get diveSites_difficulty_advanced => 'Avance';
+  String get diveSites_difficulty_advanced => 'Avancé';
 
   @override
-  String get diveSites_difficulty_beginner => 'Debutant';
+  String get diveSites_difficulty_beginner => 'Débutant';
 
   @override
-  String get diveSites_difficulty_intermediate => 'Intermediaire';
+  String get diveSites_difficulty_intermediate => 'Intermédiaire';
 
   @override
   String get diveSites_difficulty_technical => 'Technique';
@@ -9680,7 +9680,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divers_detail_deleteMenuItem => 'Supprimer';
 
   @override
-  String get divers_detail_deletedSnackbar => 'Plongeur supprime';
+  String get divers_detail_deletedSnackbar => 'Plongeur supprimé';
 
   @override
   String get divers_detail_diveInsuranceTitle => 'Assurance plongée';
@@ -10055,11 +10055,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_certificationAgency_tdi => 'TDI';
 
   @override
-  String get enum_certificationLevel_advancedNitrox => 'Nitrox avance';
+  String get enum_certificationLevel_advancedNitrox => 'Nitrox avancé';
 
   @override
   String get enum_certificationLevel_advancedOpenWater =>
-      'Plongeur autonome avance';
+      'Plongeur autonome avancé';
 
   @override
   String get enum_certificationLevel_cave => 'Plongée souterraine';
@@ -10278,7 +10278,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_diveType_drift => 'Derivante';
 
   @override
-  String get enum_diveType_freedive => 'Apnee';
+  String get enum_diveType_freedive => 'Apnée';
 
   @override
   String get enum_diveType_ice => 'Sous glace';
@@ -10338,7 +10338,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentStatus_inService => 'En révision';
 
   @override
-  String get enum_equipmentStatus_loaned => 'Prete';
+  String get enum_equipmentStatus_loaned => 'Prêté';
 
   @override
   String get enum_equipmentStatus_lost => 'Perdu';
@@ -10347,7 +10347,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentStatus_needsService => 'Révision nécessaire';
 
   @override
-  String get enum_equipmentStatus_retired => 'Reforme';
+  String get enum_equipmentStatus_retired => 'Réforme';
 
   @override
   String get enum_equipmentType_bcd => 'Gilet stabilisateur';
@@ -10889,13 +10889,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_visibility_unknown => 'Inconnue';
 
   @override
-  String get enum_waterType_brackish => 'Saumatre';
+  String get enum_waterType_brackish => 'Saumâtre';
 
   @override
   String get enum_waterType_fresh => 'Eau douce';
 
   @override
-  String get enum_waterType_salt => 'Eau salee';
+  String get enum_waterType_salt => 'Eau salée';
 
   @override
   String get enum_weightType_ankleWeights => 'Lest de chevilles';
@@ -12010,7 +12010,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_service_snackbar_deleted =>
-      'Enregistrement de révision supprime';
+      'Enregistrement de révision supprimé';
 
   @override
   String equipment_service_totalCostLabel(String currency) {
@@ -12068,7 +12068,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_setDetail_snackbar_deleted =>
-      'Ensemble d\'équipement supprime';
+      'Ensemble d\'équipement supprimé';
 
   @override
   String get equipment_setEdit_addEquipmentFirst =>
@@ -12199,7 +12199,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_sets_retryButton => 'Réessayer';
 
   @override
-  String get equipment_snackbar_deleted => 'Équipement supprime';
+  String get equipment_snackbar_deleted => 'Équipement supprimé';
 
   @override
   String get equipment_snackbar_markedAsServiced => 'Marqué comme révisé';
@@ -16358,7 +16358,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_cloudSync_cleanup_keep => 'Conserver';
 
   @override
-  String get settings_cloudSync_header_advanced => 'Avance';
+  String get settings_cloudSync_header_advanced => 'Avancé';
 
   @override
   String get settings_cloudSync_signOut_backupWarning =>
@@ -17461,7 +17461,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_migration_cloudSyncWarning =>
-      'La synchronisation cloud geree par l\'application sera désactivée. Le service de synchronisation de votre dossier gerera la synchronisation.';
+      'La synchronisation cloud gérée par l\'application sera désactivée. Le service de synchronisation de votre dossier gérera la synchronisation.';
 
   @override
   String get settings_migration_dialog_message =>
@@ -17599,7 +17599,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_profileHub_deleteDiver => 'Supprimer le plongeur';
 
   @override
-  String get settings_profileHub_deleted => 'Plongeur supprime';
+  String get settings_profileHub_deleted => 'Plongeur supprimé';
 
   @override
   String get settings_profileHub_emergencyContacts => 'Contacts d\'urgence';
@@ -17854,7 +17854,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_storage_info_customActive =>
-      'La synchronisation cloud geree par l\'application est désactivée. Le service de synchronisation de votre dossier (Dropbox, Google Drive, etc.) gere la synchronisation.';
+      'La synchronisation cloud gérée par l\'application est désactivée. Le service de synchronisation de votre dossier (Dropbox, Google Drive, etc.) gère la synchronisation.';
 
   @override
   String get settings_storage_info_customAvailable =>
@@ -18525,7 +18525,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statistics_conditions_waterType_subtitle =>
-      'Plongées en eau salee vs eau douce';
+      'Plongées en eau salée vs eau douce';
 
   @override
   String get statistics_conditions_waterType_title => 'Type d\'eau';
@@ -20457,7 +20457,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String trips_detail_dialog_deleteContent(Object name) {
-    return 'Voulez-vous vraiment supprimer \"$name\" ? Le voyage sera supprime mais les plongées seront conservées.';
+    return 'Voulez-vous vraiment supprimer \"$name\" ? Le voyage sera supprimé mais les plongées seront conservées.';
   }
 
   @override
@@ -20553,7 +20553,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_detail_sectionTitle_statistics => 'Statistiques du voyage';
 
   @override
-  String get trips_detail_snackBar_deleted => 'Voyage supprime';
+  String get trips_detail_snackBar_deleted => 'Voyage supprimé';
 
   @override
   String get trips_detail_stat_avgDepth => 'Profondeur moy.';
@@ -23547,7 +23547,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String tankPresets_deleted(Object name) {
-    return '\"$name\" supprime';
+    return '\"$name\" supprimé';
   }
 
   @override
