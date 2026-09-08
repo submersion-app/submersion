@@ -3461,7 +3461,7 @@
   "enum_weightType_ankleWeights": "Lest de chevilles",
   "enum_weightType_backplate": "Lest de plaque dorsale",
   "enum_weightType_belt": "Ceinture de lest",
-  "enum_weightType_integrated": "Lest intégré",
+  "enum_weightType_integrated": "Lest largable",
   "enum_weightType_mixed": "Mixte/Combiné",
   "enum_weightType_trimWeights": "Lest de trim",
   "equipment_appBar_title": "Équipement",
