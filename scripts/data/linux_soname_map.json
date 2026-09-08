@@ -1,0 +1,209 @@
+{
+  "_comment": "soname to dependency token, per consumer. 'rpm' holds soname provides for fpm: every RPM distro exposes them identically, so one .rpm installs on Fedora, openSUSE, and RHEL alike (Fedora names the package gtk3, openSUSE names it libgtk-3-0, and both provide libgtk-3.so.0()(64bit)). 'apt' holds Debian package names, used both by fpm and by the tarball preflight. 'dnf', 'pacman', and 'zypper' hold human-readable package names and are used only by the tarball's install.sh, which prints a command for the user to run. An entry may instead carry 'exclude' with a reason, meaning the soname is known and deliberately not a package dependency; an entry that is absent altogether still fails the build.",
+  "libgtk-3.so.0": {
+    "apt": "libgtk-3-0",
+    "rpm": "libgtk-3.so.0()(64bit)",
+    "dnf": "gtk3",
+    "pacman": "gtk3",
+    "zypper": "libgtk-3-0"
+  },
+  "libgdk-3.so.0": {
+    "apt": "libgtk-3-0",
+    "rpm": "libgdk-3.so.0()(64bit)",
+    "dnf": "gtk3",
+    "pacman": "gtk3",
+    "zypper": "libgtk-3-0"
+  },
+  "libwebkit2gtk-4.1.so.0": {
+    "apt": "libwebkit2gtk-4.1-0",
+    "rpm": "libwebkit2gtk-4.1.so.0()(64bit)",
+    "dnf": "webkit2gtk4.1",
+    "pacman": "webkit2gtk-4.1",
+    "zypper": "libwebkit2gtk-4_1-0"
+  },
+  "libjavascriptcoregtk-4.1.so.0": {
+    "apt": "libjavascriptcoregtk-4.1-0",
+    "rpm": "libjavascriptcoregtk-4.1.so.0()(64bit)",
+    "dnf": "javascriptcoregtk4.1",
+    "pacman": "webkit2gtk-4.1",
+    "zypper": "libjavascriptcoregtk-4_1-0"
+  },
+  "libsoup-3.0.so.0": {
+    "apt": "libsoup-3.0-0",
+    "rpm": "libsoup-3.0.so.0()(64bit)",
+    "dnf": "libsoup3",
+    "pacman": "libsoup3",
+    "zypper": "libsoup-3_0-0"
+  },
+  "libsecret-1.so.0": {
+    "apt": "libsecret-1-0",
+    "rpm": "libsecret-1.so.0()(64bit)",
+    "dnf": "libsecret",
+    "pacman": "libsecret",
+    "zypper": "libsecret-1-0"
+  },
+  "libglib-2.0.so.0": {
+    "apt": "libglib2.0-0",
+    "rpm": "libglib-2.0.so.0()(64bit)",
+    "dnf": "glib2",
+    "pacman": "glib2",
+    "zypper": "libglib-2_0-0"
+  },
+  "libgobject-2.0.so.0": {
+    "apt": "libglib2.0-0",
+    "rpm": "libgobject-2.0.so.0()(64bit)",
+    "dnf": "glib2",
+    "pacman": "glib2",
+    "zypper": "libgobject-2_0-0"
+  },
+  "libgio-2.0.so.0": {
+    "apt": "libglib2.0-0",
+    "rpm": "libgio-2.0.so.0()(64bit)",
+    "dnf": "glib2",
+    "pacman": "glib2",
+    "zypper": "libgio-2_0-0"
+  },
+  "libgmodule-2.0.so.0": {
+    "apt": "libglib2.0-0",
+    "rpm": "libgmodule-2.0.so.0()(64bit)",
+    "dnf": "glib2",
+    "pacman": "glib2",
+    "zypper": "libgmodule-2_0-0"
+  },
+  "libcairo.so.2": {
+    "apt": "libcairo2",
+    "rpm": "libcairo.so.2()(64bit)",
+    "dnf": "cairo",
+    "pacman": "cairo",
+    "zypper": "libcairo2"
+  },
+  "libcairo-gobject.so.2": {
+    "apt": "libcairo-gobject2",
+    "rpm": "libcairo-gobject.so.2()(64bit)",
+    "dnf": "cairo-gobject",
+    "pacman": "cairo",
+    "zypper": "libcairo-gobject2"
+  },
+  "libpango-1.0.so.0": {
+    "apt": "libpango-1.0-0",
+    "rpm": "libpango-1.0.so.0()(64bit)",
+    "dnf": "pango",
+    "pacman": "pango",
+    "zypper": "libpango-1_0-0"
+  },
+  "libpangocairo-1.0.so.0": {
+    "apt": "libpangocairo-1.0-0",
+    "rpm": "libpangocairo-1.0.so.0()(64bit)",
+    "dnf": "pango",
+    "pacman": "pango",
+    "zypper": "libpangocairo-1_0-0"
+  },
+  "libharfbuzz.so.0": {
+    "apt": "libharfbuzz0b",
+    "rpm": "libharfbuzz.so.0()(64bit)",
+    "dnf": "harfbuzz",
+    "pacman": "harfbuzz",
+    "zypper": "libharfbuzz0"
+  },
+  "libgdk_pixbuf-2.0.so.0": {
+    "apt": "libgdk-pixbuf-2.0-0",
+    "rpm": "libgdk_pixbuf-2.0.so.0()(64bit)",
+    "dnf": "gdk-pixbuf2",
+    "pacman": "gdk-pixbuf2",
+    "zypper": "libgdk_pixbuf-2_0-0"
+  },
+  "libatk-1.0.so.0": {
+    "apt": "libatk1.0-0",
+    "rpm": "libatk-1.0.so.0()(64bit)",
+    "dnf": "atk",
+    "pacman": "atk",
+    "zypper": "libatk-1_0-0"
+  },
+  "liblzma.so.5": {
+    "apt": "liblzma5",
+    "rpm": "liblzma.so.5()(64bit)",
+    "dnf": "xz-libs",
+    "pacman": "xz",
+    "zypper": "liblzma5"
+  },
+  "libz.so.1": {
+    "apt": "zlib1g",
+    "rpm": "libz.so.1()(64bit)",
+    "dnf": "zlib",
+    "pacman": "zlib",
+    "zypper": "libz1"
+  },
+  "libstdc++.so.6": {
+    "apt": "libstdc++6",
+    "rpm": "libstdc++.so.6()(64bit)",
+    "dnf": "libstdc++",
+    "pacman": "gcc-libs",
+    "zypper": "libstdc++6"
+  },
+  "libgcc_s.so.1": {
+    "apt": "libgcc-s1",
+    "rpm": "libgcc_s.so.1()(64bit)",
+    "dnf": "libgcc",
+    "pacman": "gcc-libs",
+    "zypper": "libgcc_s1"
+  },
+  "libm.so.6": {
+    "apt": "libc6",
+    "rpm": "libm.so.6()(64bit)",
+    "dnf": "glibc",
+    "pacman": "glibc",
+    "zypper": "glibc"
+  },
+  "libc.so.6": {
+    "apt": "libc6",
+    "rpm": "libc.so.6()(64bit)",
+    "dnf": "glibc",
+    "pacman": "glibc",
+    "zypper": "glibc"
+  },
+  "libpthread.so.0": {
+    "apt": "libc6",
+    "rpm": "libpthread.so.0()(64bit)",
+    "dnf": "glibc",
+    "pacman": "glibc",
+    "zypper": "glibc"
+  },
+  "libdl.so.2": {
+    "apt": "libc6",
+    "rpm": "libdl.so.2()(64bit)",
+    "dnf": "glibc",
+    "pacman": "glibc",
+    "zypper": "glibc"
+  },
+  "librt.so.1": {
+    "apt": "libc6",
+    "rpm": "librt.so.1()(64bit)",
+    "dnf": "glibc",
+    "pacman": "glibc",
+    "zypper": "glibc"
+  },
+  "ld-linux-x86-64.so.2": {
+    "apt": "libc6",
+    "rpm": "ld-linux-x86-64.so.2()(64bit)",
+    "dnf": "glibc",
+    "pacman": "glibc",
+    "zypper": "glibc"
+  },
+  "libepoxy.so.0": {
+    "apt": "libepoxy0",
+    "rpm": "libepoxy.so.0()(64bit)",
+    "dnf": "libepoxy",
+    "pacman": "libepoxy",
+    "zypper": "libepoxy0"
+  },
+  "libfontconfig.so.1": {
+    "apt": "libfontconfig1",
+    "rpm": "libfontconfig.so.1()(64bit)",
+    "dnf": "fontconfig",
+    "pacman": "fontconfig",
+    "zypper": "libfontconfig1"
+  },
+  "libjvm.so": {
+    "exclude": "Not a dependency. libjni.so links libjvm because jni/src/CMakeLists.txt does find_package(JNI REQUIRED COMPONENTS JVM) on non-Android hosts, but jni arrives transitively through path_provider_android and Flutter bundles FFI plugins without linking them to the runner, so libjni.so is only loaded if Dart dlopens it. On Linux path_provider_linux serves that role and it never loads. Declaring this would put a full JRE on every user's machine for a library that is never opened."
+  }
+}

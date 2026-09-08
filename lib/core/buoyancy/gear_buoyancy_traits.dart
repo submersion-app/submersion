@@ -14,6 +14,7 @@ class GearBuoyancyTraits extends Equatable {
   final String? bcdStyle;
   final double? liftCapacityKg;
   final String? gloveType;
+  final String? insulationLevel;
 
   const GearBuoyancyTraits({
     this.primaryThicknessMm,
@@ -23,6 +24,7 @@ class GearBuoyancyTraits extends Equatable {
     this.bcdStyle,
     this.liftCapacityKg,
     this.gloveType,
+    this.insulationLevel,
   });
 
   static final RegExp _panelSeparators = RegExp(r'[/,\-]');
@@ -53,5 +55,6 @@ class GearBuoyancyTraits extends Equatable {
     bcdStyle,
     liftCapacityKg,
     gloveType,
+    insulationLevel,
   ];
 }

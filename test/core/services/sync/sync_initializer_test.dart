@@ -249,6 +249,127 @@ void main() {
     });
   });
 
+  group('firstContactLibraryState', () {
+    // An install can end up owning the cloud files some earlier install on the
+    // same machine published, most routinely on macOS, where replacing the
+    // .app leaves ~/Library/Preferences (and with it the device-id anchor)
+    // in place. Every one of those files then classifies as "ours" rather than
+    // a peer's, so the account lists as empty and the setup wizard offers
+    // Start Fresh over a live library.
+    test(
+      'adopts a fresh identity so a self-owned library is pullable',
+      () async {
+        final inheritedId = await repository.getDeviceId();
+        await provider.uploadFile(_payload, peerFileName(inheritedId));
+        await provider.uploadFile(
+          _payload,
+          ChangesetLogLayout.basePartName(inheritedId, 1, 0),
+        );
+
+        // The plain classification cannot see it: it is all "ours".
+        expect(
+          await initializer.peerLibraryState(provider),
+          PeerLibraryState.none,
+        );
+
+        final state = await initializer.firstContactLibraryState(
+          provider,
+          localLibraryIsEmpty: true,
+        );
+
+        expect(state, PeerLibraryState.pullable);
+        expect(
+          await repository.getDeviceId(),
+          isNot(inheritedId),
+          reason:
+              'the files can only be pulled as a peer\'s, so this install has '
+              'to stop claiming the retired identity',
+        );
+      },
+    );
+
+    test(
+      'leaves the identity alone when this device holds a library',
+      () async {
+        final ownId = await repository.getDeviceId();
+        await provider.uploadFile(_payload, peerFileName(ownId));
+
+        final state = await initializer.firstContactLibraryState(
+          provider,
+          localLibraryIsEmpty: false,
+        );
+
+        expect(
+          state,
+          PeerLibraryState.none,
+          reason: 'our own manifest beside our own library is the normal case',
+        );
+        expect(
+          await repository.getDeviceId(),
+          ownId,
+          reason:
+              'a device that still holds its library must keep the identity '
+              'that published it, or its own log is orphaned',
+        );
+      },
+    );
+
+    test('lists the account exactly once, recovery included', () async {
+      // The Connect step waits on this, and listFiles is a network round trip
+      // on every real provider, so the recovery must not cost extra listings.
+      final inheritedId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName(inheritedId));
+      provider.operationLog.clear();
+
+      await initializer.firstContactLibraryState(
+        provider,
+        localLibraryIsEmpty: true,
+      );
+
+      expect(provider.operationLog.where((op) => op == 'list').length, 1);
+    });
+
+    test('lists the account exactly once for an empty account', () async {
+      provider.operationLog.clear();
+
+      await initializer.firstContactLibraryState(
+        provider,
+        localLibraryIsEmpty: true,
+      );
+
+      expect(provider.operationLog.where((op) => op == 'list').length, 1);
+    });
+
+    test('leaves a real peer library untouched', () async {
+      final ownId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName('deviceB'));
+
+      final state = await initializer.firstContactLibraryState(
+        provider,
+        localLibraryIsEmpty: true,
+      );
+
+      expect(state, PeerLibraryState.pullable);
+      expect(
+        await repository.getDeviceId(),
+        ownId,
+        reason: 'a pullable peer needs no identity surgery',
+      );
+    });
+
+    test('leaves a genuinely empty account empty', () async {
+      final ownId = await repository.getDeviceId();
+
+      final state = await initializer.firstContactLibraryState(
+        provider,
+        localLibraryIsEmpty: true,
+      );
+
+      expect(state, PeerLibraryState.none);
+      expect(await repository.getDeviceId(), ownId);
+    });
+  });
+
   group('checkSyncOnLaunch provider persistence', () {
     test('saveProvider then getLastProvider round-trips', () async {
       expect(initializer.getLastProvider(), isNull);

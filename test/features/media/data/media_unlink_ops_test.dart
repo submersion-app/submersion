@@ -89,14 +89,14 @@ void main() {
 
       final split = await repo.partitionForSiteUnlink(['both', 'site-only']);
 
-      expect(split.diveLinked, ['both']);
+      expect(split.keptIds, ['both']);
       expect(split.deletable, ['site-only']);
     },
   );
 
   test('partitionForSiteUnlink short-circuits an empty list', () async {
     final split = await repo.partitionForSiteUnlink(const []);
-    expect(split.diveLinked, isEmpty);
+    expect(split.keptIds, isEmpty);
     expect(split.deletable, isEmpty);
   });
 

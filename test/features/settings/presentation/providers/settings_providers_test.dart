@@ -94,7 +94,7 @@ void main() {
           visible: true,
         ),
         const DiveDetailSectionConfig(
-          id: DiveDetailSectionId.decoO2,
+          id: DiveDetailSectionId.decoStatus,
           visible: false,
         ),
       ];

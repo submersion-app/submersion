@@ -19,7 +19,7 @@ class _RecordingUnlinkService implements MediaUnlinkService {
   @override
   Future<SiteUnlinkOutcome> unlinkFromSite(List<String> mediaIds) async {
     siteUnlinks.add(List.of(mediaIds));
-    return SiteUnlinkOutcome(deleted: mediaIds.length, keptAsDiveMedia: 0);
+    return SiteUnlinkOutcome(deleted: mediaIds.length, keptLinked: 0);
   }
 
   @override
@@ -46,6 +46,6 @@ void main() {
       ['m1', 'm2'],
     ]);
     expect(outcome.deleted, 2);
-    expect(outcome.keptAsDiveMedia, 0);
+    expect(outcome.keptLinked, 0);
   });
 }

@@ -166,6 +166,75 @@ class PlanTankUsage extends Equatable {
   ];
 }
 
+/// What a line of the dive plan table describes.
+enum PlanScheduleRowKind {
+  /// Going deeper: an authored descent.
+  descent,
+
+  /// Holding depth while the dive is still working: the bottom.
+  level,
+
+  /// Going shallower: an authored ascent, a computed travel leg between
+  /// stops, or the final leg to the surface.
+  ascent,
+
+  /// Holding depth on the way up: an authored or computed stop.
+  stop,
+}
+
+/// One line of the dive plan table, the way a slate reads it: every travel
+/// leg is a line and every stop is a line, so a diver can follow the plan
+/// against a watch - leave the bottom, reach 21 m by minute 38, hold until
+/// 39, and so on. Authored legs come first, then the computed ascent.
+class PlanScheduleRow extends Equatable {
+  final PlanScheduleRowKind kind;
+
+  /// Depth at the END of the line: where a travel leg arrives, or the depth
+  /// a stop or level holds.
+  final double depthMeters;
+  final int durationSeconds;
+
+  /// Elapsed dive time at the END of the line, in seconds.
+  final int runtimeSeconds;
+  final double gasFO2;
+  final double gasFHe;
+  final String? tankId;
+
+  /// True on the first line and wherever the breathed gas differs from the
+  /// line before, which is what the table highlights: a diver scans for the
+  /// switches, not for the gas repeated on every line.
+  final bool gasSwitch;
+  final int airBreakSeconds;
+
+  const PlanScheduleRow({
+    required this.kind,
+    required this.depthMeters,
+    required this.durationSeconds,
+    required this.runtimeSeconds,
+    required this.gasFO2,
+    required this.gasFHe,
+    this.tankId,
+    this.gasSwitch = false,
+    this.airBreakSeconds = 0,
+  });
+
+  /// Elapsed dive time when this line BEGINS, in seconds.
+  int get startRuntimeSeconds => runtimeSeconds - durationSeconds;
+
+  @override
+  List<Object?> get props => [
+    kind,
+    depthMeters,
+    durationSeconds,
+    runtimeSeconds,
+    gasFO2,
+    gasFHe,
+    tankId,
+    gasSwitch,
+    airBreakSeconds,
+  ];
+}
+
 /// Everything the PlanEngine computes from a DivePlan.
 class PlanOutcome {
   /// Total runtime: user segments + travel + stops.
@@ -177,6 +246,11 @@ class PlanOutcome {
   final int ttsAtBottom;
 
   final List<PlanStop> stops;
+
+  /// The whole dive as table lines: authored legs, then every computed
+  /// travel leg and stop, ending with the leg to the surface. Empty when the
+  /// plan has no segments.
+  final List<PlanScheduleRow> schedule;
   final List<SegmentOutcome> segmentOutcomes;
   final List<PlanTankUsage> tankUsages;
   final double cnsEnd;
@@ -207,6 +281,7 @@ class PlanOutcome {
     required this.ndlAtBottom,
     required this.ttsAtBottom,
     required this.stops,
+    this.schedule = const [],
     required this.segmentOutcomes,
     required this.tankUsages,
     required this.cnsEnd,

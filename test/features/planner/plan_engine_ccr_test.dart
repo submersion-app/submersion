@@ -31,14 +31,16 @@ const _bailoutTank = DiveTank(
 );
 
 List<PlanSegment> _segments({double depth = 60.0, int minutes = 25}) => [
-  PlanSegment.descent(
+  PlanSegment.travel(
     id: 'seg-1',
+    fromDepth: 0,
     targetDepth: depth,
     tankId: 'dil',
     gasMix: _diluent,
     order: 0,
+    ratePerMinute: 18.0,
   ),
-  PlanSegment.bottom(
+  PlanSegment.hold(
     id: 'seg-2',
     depth: depth,
     durationMinutes: minutes,

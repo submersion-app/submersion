@@ -112,8 +112,11 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
     if (picked == null) return;
     setState(() {
       _rangeStart = DateTime.utc(picked.year, picked.month, picked.day);
-      _rangeStartController.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      // Read-only display of the picked bound: the real value lives in
+      // _rangeStart, so this follows Manage - Units (#1512).
+      _rangeStartController.text = UnitFormatter(
+        ref.read(settingsProvider),
+      ).formatDate(picked);
     });
     await _loadDives();
   }
@@ -136,8 +139,9 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
         59,
         59,
       );
-      _rangeEndController.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      _rangeEndController.text = UnitFormatter(
+        ref.read(settingsProvider),
+      ).formatDate(picked);
     });
     await _loadDives();
   }

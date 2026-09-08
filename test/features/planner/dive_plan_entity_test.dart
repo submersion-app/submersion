@@ -43,13 +43,15 @@ void main() {
       const gas = GasMix(o2: 21);
       final plan = _plan(
         segments: [
-          PlanSegment.descent(
+          PlanSegment.travel(
             id: 's1',
+            fromDepth: 0,
             targetDepth: 42.0,
             tankId: 't1',
             gasMix: gas,
+            ratePerMinute: 18.0,
           ),
-          PlanSegment.bottom(
+          PlanSegment.hold(
             id: 's2',
             depth: 42.0,
             durationMinutes: 20,
@@ -85,7 +87,7 @@ void main() {
     test('copyWith carries every field through', () {
       const gas = GasMix(o2: 32);
       const tank = DiveTank(id: 't1', volume: 11.1, gasMix: gas);
-      final segment = PlanSegment.bottom(
+      final segment = PlanSegment.hold(
         id: 's1',
         depth: 30,
         durationMinutes: 20,

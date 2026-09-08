@@ -10,6 +10,7 @@ import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
+import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -210,6 +211,7 @@ class DiverSettingsRepository {
               diveDetailSections: Value(
                 DiveDetailSectionConfig.sectionsToJson(s.diveDetailSections),
               ),
+              diveDetailLayout: Value(s.diveDetailLayout.name),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -388,6 +390,7 @@ class DiverSettingsRepository {
           diveDetailSections: Value(
             DiveDetailSectionConfig.sectionsToJson(settings.diveDetailSections),
           ),
+          diveDetailLayout: Value(settings.diveDetailLayout.name),
           updatedAt: Value(now),
         ),
       );
@@ -590,6 +593,7 @@ class DiverSettingsRepository {
       diveDetailSections: DiveDetailSectionConfig.sectionsFromJson(
         row.diveDetailSections,
       ),
+      diveDetailLayout: DiveDetailLayout.fromName(row.diveDetailLayout),
     );
   }
 

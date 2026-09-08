@@ -46,7 +46,7 @@ class _CapturingMediaListNotifier
   @override
   Future<UnlinkOutcome> unlinkMultipleMedia(List<String> ids) async {
     unlinkedIds = List<String>.from(ids);
-    return UnlinkOutcome(deleted: ids.length, keptAsSiteMedia: 0);
+    return UnlinkOutcome(deleted: ids.length, keptLinked: 0);
   }
 
   @override

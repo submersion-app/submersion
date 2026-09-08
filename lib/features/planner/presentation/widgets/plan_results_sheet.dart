@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
+import 'package:submersion/features/planner/domain/services/schedule_lines.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
@@ -325,48 +326,70 @@ class _RuntimeTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    if (outcome.stops.isEmpty) {
-      return Text(
-        l10n.plannerCanvas_results_noDeco,
-        style: theme.textTheme.bodyMedium,
-      );
-    }
-
-    Widget cell(String text, {bool header = false, int flex = 1}) => Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: header
-            ? theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.outline,
-              )
-            : theme.textTheme.bodyMedium,
-      ),
+    final lines = scheduleLines(outcome.schedule);
+    final noDeco = Text(
+      l10n.plannerCanvas_results_noDeco,
+      style: theme.textTheme.bodyMedium,
     );
+    if (lines.isEmpty) return noDeco;
+
+    final headerStyle = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.outline,
+    );
+    final glyphStyle = theme.textTheme.bodyMedium?.copyWith(
+      color: theme.colorScheme.outline,
+    );
+    // A diver scans the gas column for the switches, so only those print,
+    // and print so they stand out.
+    final switchStyle = theme.textTheme.bodyMedium?.copyWith(
+      color: theme.colorScheme.primary,
+      fontWeight: FontWeight.w600,
+    );
+
+    Widget cell(String text, {TextStyle? style, int flex = 1}) => Expanded(
+      flex: flex,
+      child: Text(text, style: style ?? theme.textTheme.bodyMedium),
+    );
+    Widget glyph(String text) =>
+        SizedBox(width: 20, child: Text(text, style: glyphStyle));
 
     return Column(
       children: [
+        if (outcome.stops.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: noDeco,
+            ),
+          ),
         Row(
           children: [
-            cell(l10n.plannerCanvas_table_depth, header: true),
-            cell(l10n.plannerCanvas_table_stop, header: true),
-            cell(l10n.plannerCanvas_table_runtime, header: true),
-            cell(l10n.plannerCanvas_table_gas, header: true, flex: 2),
+            glyph(''),
+            cell(l10n.plannerCanvas_table_depth, style: headerStyle),
+            cell(l10n.plannerCanvas_table_duration, style: headerStyle),
+            cell(l10n.plannerCanvas_table_runtime, style: headerStyle),
+            cell(l10n.plannerCanvas_table_gas, style: headerStyle, flex: 2),
           ],
         ),
         const Divider(height: 12),
-        for (final stop in outcome.stops)
+        for (final line in lines)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 3),
             child: Row(
               children: [
-                cell(units.formatDepth(stop.depthMeters, decimals: 0)),
-                cell(_stopText(stop)),
+                glyph(scheduleRowGlyph(line.row.kind)),
+                cell(units.formatDepth(line.row.depthMeters, decimals: 0)),
+                cell(_durationText(line)),
+                cell('${line.runtimeMinutes}′'),
                 cell(
-                  '${((stop.arrivalRuntimeSeconds + stop.durationSeconds) / 60).ceil()}′',
-                ),
-                cell(
-                  GasMix(o2: stop.gasFO2 * 100, he: stop.gasFHe * 100).name,
+                  line.row.gasSwitch
+                      ? GasMix(
+                          o2: line.row.gasFO2 * 100,
+                          he: line.row.gasFHe * 100,
+                        ).name
+                      : '',
+                  style: switchStyle,
                   flex: 2,
                 ),
               ],
@@ -376,12 +399,13 @@ class _RuntimeTable extends StatelessWidget {
     );
   }
 
-  String _stopText(PlanStop stop) {
-    final minutes = (stop.durationSeconds / 60).ceil();
-    if (stop.airBreakSeconds > 0) {
-      return "$minutes′ (+${(stop.airBreakSeconds / 60).ceil()}′)";
+  /// Whole minutes, so the column adds up to the runtime beside it.
+  String _durationText(ScheduleLine line) {
+    final base = '${line.durationMinutes}′';
+    if (line.row.airBreakSeconds > 0) {
+      return "$base (+${(line.row.airBreakSeconds / 60).ceil()}′)";
     }
-    return '$minutes′';
+    return base;
   }
 }
 

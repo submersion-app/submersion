@@ -332,6 +332,72 @@ The built app will be at `build\windows\x64\runner\Release\`.
 </details>
 
 <details>
+<summary><b>Linux: installing</b></summary>
+
+> **Distro requirement:** Submersion needs glibc 2.38 or newer, which means
+> Ubuntu 24.04+, Debian 13+, Fedora 39+, Linux Mint 22+, Arch, or openSUSE
+> Tumbleweed. Debian 12, Ubuntu 22.04, and RHEL 9 cannot run any current
+> Submersion build. The packages install but the app will not start, and the
+> tarball fails the same way, because three bundled libraries require
+> GLIBC_2.38. Upgrading the distribution is the only path.
+
+> **Where the packages are today:** the `.deb` and `.rpm` ship with every beta
+> build at
+> [submersion-app/beta-builds](https://github.com/submersion-app/beta-builds/releases).
+> They reach the stable
+> [Releases page](https://github.com/submersion-app/submersion/releases) with
+> the next stable release; that page currently carries the tarball only.
+
+**Debian, Ubuntu, Mint, and derivatives**
+
+Download `Submersion-v<version>-Linux-amd64.deb` from
+[beta releases](https://github.com/submersion-app/beta-builds/releases), then:
+
+```bash
+sudo apt install ./Submersion-*-Linux-amd64.deb
+```
+
+**Fedora and RHEL**
+
+Download `Submersion-v<version>-Linux-x86_64.rpm` from the
+[beta releases](https://github.com/submersion-app/beta-builds/releases), then:
+
+```bash
+sudo dnf install ./Submersion-*-Linux-x86_64.rpm
+```
+
+**openSUSE**
+
+The same `.rpm`, installed with zypper, which openSUSE ships instead of dnf:
+
+```bash
+sudo zypper install ./Submersion-*-Linux-x86_64.rpm
+```
+
+Both packages install a desktop entry, icons, and udev rules that let dive
+computers connected by USB be reached without any group membership or
+`usermod` step. Video compression is optional and needs `ffmpeg`, which the
+packages recommend but do not require.
+
+**Everything else (Arch, NixOS, and anyone who prefers not to install packages)**
+
+Download `Submersion-v<version>-Linux.tar.gz`, unpack it, and run the included
+installer:
+
+```bash
+tar xzf Submersion-*-Linux.tar.gz
+./install.sh
+```
+
+`install.sh` checks for missing shared libraries and prints the exact command
+to install them for your package manager, installs a desktop entry and icon
+into `~/.local/share`, and links the binary into `~/.local/bin`. It also
+prints the command to install the udev rules, which needs root.
+`./uninstall.sh` reverses all of it and never touches your dive log data.
+
+</details>
+
+<details>
 <summary><b>Linux: building from source (distro dependencies)</b></summary>
 
 Linux builds require GTK3 and several native development libraries. Install them first:

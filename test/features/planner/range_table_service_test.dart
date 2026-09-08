@@ -21,14 +21,16 @@ domain.DivePlan _plan({double depth = 40.0, int minutes = 20}) {
     gfLow: 40,
     gfHigh: 80,
     segments: [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'seg-1',
+        fromDepth: 0,
         targetDepth: depth,
         tankId: 'tank-1',
         gasMix: _air,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'seg-2',
         depth: depth,
         durationMinutes: minutes,

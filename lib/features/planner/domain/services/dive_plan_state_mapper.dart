@@ -1,4 +1,5 @@
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 
@@ -55,6 +56,10 @@ domain.DivePlan divePlanFromState(
     gfHigh: state.gfHigh,
     sacBottom: state.sacRate,
     ascentRate: state.ascentRate,
+    intermediateAscentRate: state.intermediateAscentRate,
+    shallowAscentRate: state.shallowAscentRate,
+    finalAscentRate: state.finalAscentRate,
+    lastStopDepth: state.lastStopDepth,
     descentRate: state.descentRate,
     reservePressure: state.reservePressure,
     surfaceInterval: state.surfaceInterval,
@@ -71,7 +76,16 @@ domain.DivePlan divePlanFromState(
 }
 
 /// Restores the legacy planner state from a persisted plan.
+///
+/// Segments are sorted by `order` on the way in. The state's list order is
+/// the planner's working order - the segment list renders it, the reorder
+/// handler indexes into it, and `SegmentChain` chains it - so a plan whose
+/// list arrives out of sequence (a `.subplan` file carries its own `order`
+/// values alongside the array) would otherwise show and edit a different
+/// profile from the one the engine computes, which sorts.
 DivePlanState stateFromDivePlan(domain.DivePlan plan) {
+  final segments = List<PlanSegment>.from(plan.segments)
+    ..sort((a, b) => a.order.compareTo(b.order));
   return DivePlanState(
     id: plan.id,
     name: plan.name,
@@ -93,10 +107,14 @@ DivePlanState stateFromDivePlan(domain.DivePlan plan) {
     gfHigh: plan.gfHigh,
     sacRate: plan.sacBottom,
     ascentRate: plan.ascentRate,
+    intermediateAscentRate: plan.intermediateAscentRate,
+    shallowAscentRate: plan.shallowAscentRate,
+    finalAscentRate: plan.finalAscentRate,
+    lastStopDepth: plan.lastStopDepth,
     descentRate: plan.descentRate,
     reservePressure: plan.reservePressure,
     surfaceInterval: plan.surfaceInterval,
-    segments: plan.segments,
+    segments: segments,
     tanks: plan.tanks,
     equipmentIds: plan.equipmentIds,
     plannedWeightKg: plan.plannedWeightKg,

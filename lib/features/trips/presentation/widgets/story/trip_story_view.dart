@@ -299,8 +299,17 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     final story = widget.story;
     final trip = story.trip;
     final todayIndex = story.todayIndex;
-    final showChecklistAtEnd =
-        !trip.isUpcoming && !trip.isLiveaboard && !story.checklist.isEmpty;
+    // Every non-liveaboard trip gets the closer, in every state. It is the
+    // only editable checklist surface such a trip has, so gating it on the
+    // checklist already holding items left no way to apply a template in the
+    // first place, and gating it on the trip being over hid it from exactly
+    // the trips a prep list is for (#1569). Liveaboards stay out: they get a
+    // dedicated Checklist tab, and a second copy here would be two editors
+    // for one list.
+    final showChecklistAtEnd = !trip.isLiveaboard;
+    // Open where the checklist is the point of the page: a trip still being
+    // planned, or one with nothing in it yet and so nothing to collapse.
+    final openChecklist = trip.isUpcoming || story.checklist.isEmpty;
 
     return [
       SliverPadding(
@@ -358,26 +367,33 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
           sliver: SliverToBoxAdapter(
             child: Card(
               clipBehavior: Clip.antiAlias,
-              child: ExpansionTile(
-                title: Text(
-                  context.l10n.trips_story_checklistProgress(
-                    story.checklist.done,
-                    story.checklist.total,
-                  ),
-                  // Match the notes card's section title so the two closers
-                  // read as one family (ListTile would otherwise swap in its
-                  // own font role).
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: TripChecklistSection(trip: trip),
-                  ),
-                ],
-              ),
+              // Open, the section wears its own header (title, progress and
+              // the apply/save/clear menu), so an ExpansionTile title would
+              // only repeat it. Collapsed, that title is the whole card.
+              child: openChecklist
+                  ? Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: TripChecklistSection(trip: trip),
+                    )
+                  : ExpansionTile(
+                      title: Text(
+                        context.l10n.trips_story_checklistProgress(
+                          story.checklist.done,
+                          story.checklist.total,
+                        ),
+                        // Match the notes card's section title so the two
+                        // closers read as one family (ListTile would
+                        // otherwise swap in its own font role).
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: TripChecklistSection(trip: trip),
+                        ),
+                      ],
+                    ),
             ),
           ),
         ),

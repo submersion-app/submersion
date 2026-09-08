@@ -17,7 +17,7 @@ void main() {
     gasMix: gas,
   );
   final segments = [
-    PlanSegment.bottom(
+    PlanSegment.hold(
       id: 's1',
       depth: 30.0,
       durationMinutes: 20,
@@ -168,6 +168,45 @@ void main() {
     expect(merged.altitude, isNull);
     expect(merged.siteId, isNull);
     expect(merged.surfaceInterval, isNull);
+  });
+
+  test('segments come back in order, whatever order the list was in', () {
+    // A .subplan file carries each segment's `order` alongside the array, so
+    // the two can disagree. The state's list order is the planner's working
+    // order - the segment list renders it, the reorder handler indexes into
+    // it, SegmentChain chains it - while the engine sorts by `order`. Left
+    // unsorted the two would show and compute different profiles.
+    final plan = domain.DivePlan(
+      id: 'p1',
+      name: 'Out of order',
+      gfLow: 30,
+      gfHigh: 70,
+      tanks: const [tank],
+      segments: [
+        PlanSegment.hold(
+          id: 'bottom',
+          depth: 30.0,
+          durationMinutes: 20,
+          tankId: 't1',
+          gasMix: gas,
+          order: 1,
+        ),
+        PlanSegment.travel(
+          id: 'descent',
+          fromDepth: 0,
+          targetDepth: 30.0,
+          ratePerMinute: 18,
+          tankId: 't1',
+          gasMix: gas,
+          order: 0,
+        ),
+      ],
+      createdAt: DateTime(2026, 9, 2),
+      updatedAt: DateTime(2026, 9, 2),
+    );
+
+    final restored = stateFromDivePlan(plan);
+    expect(restored.segments.map((s) => s.id), ['descent', 'bottom']);
   });
 
   test('contingency config round-trips through the state', () {

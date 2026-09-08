@@ -79,12 +79,15 @@ void main() {
     await sites.createSite(const DiveSite(id: 'nogps', name: 'No GPS'));
   }
 
-  SiteLocationBackfillService service(LocationService location) =>
-      SiteLocationBackfillService(
-        sites: sites,
-        location: location,
-        languageCode: 'en',
-      );
+  SiteLocationBackfillService service(
+    LocationService location, {
+    SiteLocationLookupMode mode = SiteLocationLookupMode.fillMissing,
+  }) => SiteLocationBackfillService(
+    sites: sites,
+    location: location,
+    languageCode: 'en',
+    mode: mode,
+  );
 
   test('needsLookup wants coordinates and at least one empty field', () {
     expect(
@@ -164,6 +167,20 @@ void main() {
     expect(empty!.bodyOfWater, 'Lake Lucerne');
   });
 
+  test('run uses the targets it is given instead of listing again', () async {
+    await seed();
+    final location = _MapLocationService({'47.2,8.6': weggis});
+    final full = (await sites.getSiteById('full'))!;
+
+    final summary = await service(
+      location,
+    ).run(targets: [full], onProgress: (_, _) {}, isCancelled: () => false);
+
+    expect(summary.total, 1);
+    // A candidate scan would have taken the two incomplete sites instead.
+    expect(location.asked, ['47.2,8.6']);
+  });
+
   test('a lookup that finds nothing counts as unchanged', () async {
     await seed();
     final summary = await service(
@@ -211,5 +228,68 @@ void main() {
     expect(summary.offline, isTrue);
     expect(summary.failed, 0);
     expect(location.asked, hasLength(1));
+  });
+
+  group('refreshAll', () {
+    test('wants every site with coordinates, however complete', () async {
+      await seed();
+      final found = await service(
+        _MapLocationService({}),
+        mode: SiteLocationLookupMode.refreshAll,
+      ).candidates();
+      expect(
+        found.map((s) => s.id),
+        unorderedEquals(['empty', 'partial', 'full']),
+        reason: 'only the site without coordinates is skipped',
+      );
+    });
+
+    test('rewrites values geocoded in another language', () async {
+      await sites.createSite(
+        const DiveSite(
+          id: 'de',
+          name: 'Hertenstein',
+          country: 'Schweiz',
+          region: 'Luzern',
+          city: 'Weggis',
+          bodyOfWater: 'Vierwaldstattersee',
+          location: GeoPoint(47.0, 8.4),
+        ),
+      );
+      final location = _MapLocationService({'47.0,8.4': weggis});
+
+      final summary = await service(
+        location,
+        mode: SiteLocationLookupMode.refreshAll,
+      ).run(onProgress: (_, _) {}, isCancelled: () => false);
+
+      expect(summary.updated, 1);
+      final stored = await sites.getSiteById('de');
+      expect(stored!.country, 'Switzerland');
+      expect(stored.region, 'Lucerne');
+      expect(stored.bodyOfWater, 'Lake Lucerne');
+    });
+
+    test('a site already in the language counts as unchanged', () async {
+      await sites.createSite(
+        const DiveSite(
+          id: 'en',
+          name: 'Hertenstein',
+          country: 'Switzerland',
+          region: 'Lucerne',
+          city: 'Weggis',
+          bodyOfWater: 'Lake Lucerne',
+          location: GeoPoint(47.0, 8.4),
+        ),
+      );
+
+      final summary = await service(
+        _MapLocationService({'47.0,8.4': weggis}),
+        mode: SiteLocationLookupMode.refreshAll,
+      ).run(onProgress: (_, _) {}, isCancelled: () => false);
+
+      expect(summary.updated, 0);
+      expect(summary.unchanged, 1);
+    });
   });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -456,6 +457,9 @@ class AppSettings {
   /// Ordered list of dive detail section visibility preferences
   final List<DiveDetailSectionConfig> diveDetailSections;
 
+  /// How the dive detail page arranges the sections it shows.
+  final DiveDetailLayout diveDetailLayout;
+
   /// Home dashboard gauge-strip chip types the user has hidden.
   /// Ids are [HomeChipType.name] values; empty means all chips shown.
   /// Device-local, not per-diver.
@@ -615,6 +619,7 @@ class AppSettings {
     this.showDetailsPaneCertifications = false,
     this.showDetailsPaneCourses = false,
     this.diveDetailSections = DiveDetailSectionConfig.defaultSections,
+    this.diveDetailLayout = DiveDetailLayout.detailed,
     this.hiddenHomeChips = const <String>{},
     this.homeCardOrder = const <String>[],
     this.hiddenHomeCards = const <String>{},
@@ -781,6 +786,7 @@ class AppSettings {
     bool? showDetailsPaneCourses,
     List<DiveDetailSectionConfig>? diveDetailSections,
     bool clearDiveDetailSections = false,
+    DiveDetailLayout? diveDetailLayout,
     Set<String>? hiddenHomeChips,
     List<String>? homeCardOrder,
     Set<String>? hiddenHomeCards,
@@ -948,6 +954,7 @@ class AppSettings {
       diveDetailSections: clearDiveDetailSections
           ? DiveDetailSectionConfig.defaultSections
           : (diveDetailSections ?? this.diveDetailSections),
+      diveDetailLayout: diveDetailLayout ?? this.diveDetailLayout,
       hiddenHomeChips: hiddenHomeChips ?? this.hiddenHomeChips,
       homeCardOrder: homeCardOrder ?? this.homeCardOrder,
       hiddenHomeCards: hiddenHomeCards ?? this.hiddenHomeCards,
@@ -1932,6 +1939,30 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> resetDiveDetailSections() async {
     state = state.copyWith(clearDiveDetailSections: true);
+    await _saveSettings();
+  }
+
+  Future<void> setDiveDetailLayout(DiveDetailLayout layout) async {
+    state = state.copyWith(diveDetailLayout: layout);
+    await _saveSettings();
+  }
+
+  /// Record whether [id] shows unfolded in the list layout.
+  ///
+  /// Fold state rides in the section list rather than a column of its own,
+  /// so this rewrites that list with the one entry changed.
+  Future<void> setDiveDetailSectionExpanded(
+    DiveDetailSectionId id,
+    bool expanded,
+  ) async {
+    final sections = state.diveDetailSections;
+    if (!sections.any((s) => s.id == id && s.expanded != expanded)) return;
+    state = state.copyWith(
+      diveDetailSections: [
+        for (final section in sections)
+          section.id == id ? section.copyWith(expanded: expanded) : section,
+      ],
+    );
     await _saveSettings();
   }
 

@@ -1,5 +1,7 @@
 {
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
+  "equipment_documents_removeError": "Could not remove the document: {error}",
+  "@equipment_documents_removeError": { "placeholders": { "error": { "type": "String" } } },
   "settings_oauth_connect_copyFailed": "Could not copy the link.",
   "settings_oauth_connect_copyLink": "Copy link",
   "settings_oauth_connect_linkCopied": "Link copied. Paste it into your browser to authorize.",
@@ -1431,6 +1433,25 @@
   "checklists_item_delete": "Delete item",
   "checklists_menu_applyTemplate": "Apply template...",
   "checklists_menu_saveAsTemplate": "Save as template...",
+  "checklists_menu_clearAll": "Clear checklist...",
+  "checklists_clear_title": "Clear checklist",
+  "checklists_clear_content": "{count, plural, =1{Delete the only item from this checklist? Templates are not affected.} other{Delete all {count} items from this checklist? Templates are not affected.}}",
+  "@checklists_clear_content": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checklists_clear_confirm": "Clear",
+  "checklists_clear_success": "{count, plural, =1{1 item removed} other{{count} items removed}}",
+  "@checklists_clear_success": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_applySheet_title": "Apply template",
   "checklists_applySheet_empty": "No templates yet. Create them in Settings.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 item} other{{count} items}}",
@@ -1505,6 +1526,7 @@
   "preDive_item_type_check": "Checkbox",
   "preDive_item_type_value": "Recorded value",
   "preDive_item_type_equipmentSet": "Equipment set items",
+  "preDive_item_type_equipment": "Equipment item",
   "preDive_item_valueLabel": "Value label",
   "preDive_item_valueUnit": "Unit",
   "preDive_item_valueMin": "Min (warning)",
@@ -1598,6 +1620,7 @@
   "preDive_start_template": "Checklist",
   "preDive_start_equipmentSet": "Equipment set",
   "preDive_start_noEquipmentSet": "None",
+  "preDive_start_noEquipment": "None",
   "preDive_start_begin": "Begin",
   "diveLog_listPage_bottomSheet_preDiveChecklist": "Start pre-dive checklist",
   "preDive_dashboard_title": "Pre-Dive Check",
@@ -1620,6 +1643,8 @@
   "common_action_cancel": "Cancel",
   "common_action_clearRating": "Clear rating",
   "common_action_close": "Close",
+  "common_action_copyLink": "Copy link",
+  "common_link_couldNotOpen": "Could not open the link",
   "common_action_continue": "Continue",
   "common_action_delete": "Delete",
   "common_action_edit": "Edit",
@@ -4686,14 +4711,29 @@
   "divePlanner_error_reserveExceedsTank": "Exceeds tank pressure",
   "divePlanner_error_reserveMustBePositive": "Must be greater than 0",
   "divePlanner_info_reserveDefault": "Not entered — assuming {value} {unit}",
+  "divePlanner_field_bailoutGas": "Bailout gas",
+  "divePlanner_field_bailoutGasHint": "Open-circuit gas carried in case the loop fails",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Name",
   "divePlanner_field_o2Percent": "O₂ %",
   "divePlanner_field_planName": "Plan Name",
-  "divePlanner_field_role": "Role",
   "divePlanner_field_startPressure": "Start ({pressureSymbol})",
+  "@divePlanner_field_startPressure": {
+    "placeholders": {
+      "pressureSymbol": {
+        "type": "Object"
+      }
+    }
+  },
   "divePlanner_field_travelGas": "Also used as travel gas",
   "divePlanner_field_volume": "Volume ({volumeSymbol})",
+  "@divePlanner_field_volume": {
+    "placeholders": {
+      "volumeSymbol": {
+        "type": "Object"
+      }
+    }
+  },
   "divePlanner_hint_tankName": "Enter tank name",
   "divePlanner_label_altitude": "Altitude:",
   "divePlanner_label_belowMinReserve": "Below Min Reserve",
@@ -4717,6 +4757,13 @@
   "divePlanner_label_sacRate": "RMV:",
   "divePlanner_label_status": "Status",
   "divePlanner_label_tanks": "Tanks",
+  "divePlanner_savedTanks_title": "Saved tanks",
+  "divePlanner_savedTanks_save": "Save a tank",
+  "divePlanner_savedTanks_saveTitle": "Save tank as",
+  "divePlanner_savedTanks_nameField": "Tank name",
+  "divePlanner_savedTanks_saved": "Tank saved",
+  "divePlanner_savedTanks_manage": "Manage",
+  "divePlanner_savedTanks_empty": "No saved tanks yet. Save a tank from this plan to reuse it in other plans.",
   "divePlanner_label_time": "Time",
   "divePlanner_label_timeAxis": "Time (min)",
   "divePlanner_label_tts": "TTS",
@@ -5116,6 +5163,24 @@
     }
   },
   "diveSites_backfill_offline": "Location lookup is unavailable. Check your connection and try again.",
+  "diveSites_list_menu_refreshPlaceNames": "Refresh place names",
+  "diveSites_refresh_confirm_title": "Refresh place names?",
+  "diveSites_refresh_confirm_body": "{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced wherever they differ from the place name language ({language}), including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",
+  "@diveSites_refresh_confirm_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "language": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_refresh_progress_title": "Refreshing place names",
+  "diveSites_refresh_nothing": "No site has coordinates to look up.",
   "diveSites_list_search_backTooltip": "Back",
   "diveSites_list_search_clearTooltip": "Clear Search",
   "diveSites_list_search_emptyHint": "Search by site name, country, or region",
@@ -5678,6 +5743,10 @@
   "divers_edit_errorSaving": "Error saving diver: {error}",
   "divers_edit_expiryDateNotSet": "Not set",
   "divers_edit_expiryDateTitle": "Expiry Date",
+  "divers_edit_insuranceEmergencyPhoneHelper": "Shown first on your emergency card.",
+  "divers_edit_insuranceEmergencyPhoneHint": "e.g., +1 919 684 9111",
+  "divers_edit_insuranceEmergencyPhoneLabel": "24h Emergency Assistance Number",
+  "divers_edit_insurancePhoneLabel": "Insurance Office Number",
   "divers_edit_insuranceProviderHint": "e.g., DAN, DiveAssure",
   "divers_edit_insuranceProviderLabel": "Insurance Provider",
   "divers_edit_insuranceSection": "Dive Insurance",
@@ -5902,6 +5971,8 @@
   "enum_equipmentType_dpv": "DPV",
   "enum_equipmentType_computer": "Dive Computer",
   "enum_equipmentType_drysuit": "Drysuit",
+  "enum_equipmentType_baselayer": "Base Layer",
+  "enum_equipmentType_undersuit": "Undersuit",
   "enum_equipmentType_fins": "Fins",
   "enum_equipmentType_gloves": "Gloves",
   "enum_equipmentType_hood": "Hood",
@@ -5928,8 +5999,6 @@
   "enum_pdfTemplate_nauiStyle_description": "Layout matching NAUI logbook format",
   "enum_pdfTemplate_padiStyle": "PADI Style",
   "enum_pdfTemplate_padiStyle_description": "Layout matching PADI logbook format",
-  "enum_pdfTemplate_professional": "Professional",
-  "enum_pdfTemplate_professional_description": "Signature and stamp areas for verification",
   "enum_pdfTemplate_simple": "Simple",
   "enum_pdfTemplate_simple_description": "Compact table format, many dives per page",
   "enum_profileEvent_alert": "Alert",
@@ -6381,6 +6450,7 @@
   "equipment_edit_snackbar_updated": "Equipment updated",
   "equipment_edit_statusLabel": "Status",
   "equipment_edit_thicknessDesignationHint": "e.g., 5, 5/4, 7/5/3",
+  "equipment_edit_webLinkHint": "e.g., shop.example.com/product",
   "equipment_edit_thicknessHint": "e.g., 5mm, 7mm",
   "equipment_edit_thicknessLabel": "Thickness",
   "equipment_edit_typeLabel": "Type *",
@@ -6500,6 +6570,13 @@
       }
     }
   },
+  "@equipment_service_totalCostLabel": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceKinds_defaultCategoryLabel": "Default category",
   "equipment_serviceKinds_defaultCategoryNone": "No default",
   "equipment_serviceKinds_defaultCostLabel": "Default price",
@@ -6515,7 +6592,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Use default currency",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Currency for this item",
   "equipment_service_snackbar_deleted": "Service record deleted",
-  "equipment_service_totalCostLabel": "Total Service Cost",
+  "equipment_service_totalCostLabel": "Total Service Cost ({currency})",
   "equipment_setDetail_addEquipmentButton": "Add Equipment",
   "equipment_setDetail_deleteDialog_cancel": "Cancel",
   "equipment_setDetail_deleteDialog_confirm": "Delete",
@@ -6582,7 +6659,7 @@
   "equipment_summary_serviceDueTitle": "Service Due",
   "equipment_summary_title": "Equipment",
   "equipment_summary_totalItems": "Total Items",
-  "equipment_summary_totalValue": "Total Value",
+  "equipment_summary_totalValue": "Total Value ({currency})",
   "equipment_tab_equipment": "Equipment",
   "equipment_tab_sets": "Sets",
   "@equipment_detail_daysOverdue": {
@@ -6869,6 +6946,13 @@
       }
     }
   },
+  "@equipment_summary_totalValue": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "formatter_approximate_prefix": "~",
   "formatter_connector_at": "at",
   "formatter_connector_from": "From",
@@ -6969,6 +7053,28 @@
   "gasCalculators_blender_he": "He",
   "gasCalculators_blender_air": "Air",
   "gasCalculators_blender_helium": "Helium",
+  "gasCalculators_blender_topup": "Topup",
+  "gasCalculators_blender_purity": "Purity",
+  "gasCalculators_blender_moveGasUp": "Move {gas} up",
+  "@gasCalculators_blender_moveGasUp": {
+    "description": "Accessibility label for the move-up button on a fill-gas role row.",
+    "placeholders": {
+      "gas": {
+        "type": "String",
+        "example": "Helium"
+      }
+    }
+  },
+  "gasCalculators_blender_moveGasDown": "Move {gas} down",
+  "@gasCalculators_blender_moveGasDown": {
+    "description": "Accessibility label for the move-down button on a fill-gas role row.",
+    "placeholders": {
+      "gas": {
+        "type": "String",
+        "example": "Helium"
+      }
+    }
+  },
   "gasCalculators_blender_procedure": "Fill procedure",
   "gasCalculators_blender_amounts": "Gas to add",
   "gasCalculators_blender_stepStart": "Start with {pressure} {gas}",
@@ -7042,30 +7148,85 @@
   "gasCalculators_blender_templateNone": "No templates yet. Save a target mix to reuse it here.",
   "gasCalculators_blender_templateDelete": "Delete {mix}",
   "gasCalculators_blender_templateAdd": "Add template",
+  "gasCalculators_blender_templateAdjust": "Adjust values",
   "gasCalculators_blender_billing": "Cost",
   "gasCalculators_blender_cylinderVolume": "Cylinder water capacity",
   "gasCalculators_blender_cylinderPresets": "Presets",
   "gasCalculators_blender_unitPrice": "Price per 100 {unit}",
   "gasCalculators_blender_currency": "Currency",
+  "gasCalculators_blender_currencyFollowsUnits": "Follows Settings > Units > Default currency",
+  "gasCalculators_blender_manageCylinderSizes": "Manage cylinder sizes",
   "gasCalculators_blender_costTotal": "Total",
   "gasCalculators_blender_costBasis": "Billed on the pressure delivered (cylinder water capacity × bar added), the way a fill station meters it.",
   "gasCalculators_blender_costMissingPrice": "Enter a price for every gas to see the total.",
   "gasCalculators_blender_saveFill": "Save this fill",
+  "gasCalculators_blender_flushFeeEnable": "Charge a fee to purge the fill hose",
+  "gasCalculators_blender_flushFeeModePerInvoice": "Once per bill",
+  "gasCalculators_blender_flushFeeModePerFill": "Once per fill",
+  "gasCalculators_blender_flushFeeVolume": "Purge volume",
+  "gasCalculators_blender_flushFeeLine": "{gas} hose purge",
+  "@gasCalculators_blender_flushFeeLine": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_blender_billed": "Billed",
+  "gasCalculators_blender_billedDate": "Invoice dated {date}",
+  "gasCalculators_blender_billedDateEdit": "Change invoice date",
+  "gasCalculators_blender_tariff": "Current tariff",
   "gasCalculators_blender_billedNone": "Nothing billed yet. Finish a fill and save it here.",
   "gasCalculators_blender_billedTo": "Billed to",
   "gasCalculators_blender_addManualLine": "Add a line",
   "gasCalculators_blender_lineDescription": "Description",
   "gasCalculators_blender_lineAmount": "Amount",
-  "gasCalculators_blender_clearBilled": "Clear",
-  "gasCalculators_blender_clearBilledTitle": "Clear the bill?",
-  "gasCalculators_blender_clearBilledBody": "This removes all {count} saved fills.",
+  "gasCalculators_blender_lineNeedsDescription": "Enter a description, or a cylinder and mix.",
+  "gasCalculators_blender_export": "Export",
+  "gasCalculators_blender_exportPdf": "Export as PDF",
+  "gasCalculators_blender_exportImage": "Export as Image",
+  "gasCalculators_blender_exportExcel": "Export as Excel",
+  "gasCalculators_blender_exportError": "Export failed: {error}",
+  "gasCalculators_blender_pay": "Pay",
+  "gasCalculators_blender_payTitle": "Mark the bill as paid?",
+  "gasCalculators_blender_payBody": "This archives all {count} saved fills and starts a new bill.",
   "gasCalculators_blender_editLine": "Edit {label}",
   "gasCalculators_blender_deleteLine": "Delete {label}",
   "gasCalculators_blender_fillAdded": "{mix} added to the bill",
   "gasCalculators_blender_billedIncomplete": "One or more lines have no price, so this total is incomplete.",
   "gasCalculators_blender_billedTotal": "Total",
-  "@gasCalculators_blender_clearBilledBody": {
+  "gasCalculators_blender_invoiceArchive": "Invoice archive",
+  "gasCalculators_blender_invoiceArchiveFilter": "Filter by date",
+  "gasCalculators_blender_invoiceArchiveAllYears": "All years",
+  "gasCalculators_blender_invoiceArchiveAllMonths": "All months",
+  "gasCalculators_blender_invoiceArchiveEmpty": "No paid invoices yet.",
+  "gasCalculators_blender_invoiceArchiveEmptyFiltered": "No invoices in this date range.",
+  "gasCalculators_blender_invoiceArchiveFillCount": "{count} fills",
+  "gasCalculators_blender_invoiceArchiveIncomplete": "Incomplete",
+  "gasCalculators_blender_invoiceArchiveUntitled": "Untitled",
+  "gasCalculators_blender_invoiceArchiveNotFound": "Invoice not found.",
+  "@gasCalculators_blender_invoiceArchiveFillCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@gasCalculators_blender_billedDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@gasCalculators_blender_exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@gasCalculators_blender_payBody": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -7138,6 +7299,7 @@
       }
     }
   },
+  "gasCalculators_blender_defaults": "Default settings and billing",
   "gasCalculators_tab_mod": "MOD",
   "gasCalculators_tab_rockBottom": "Rock Bottom",
   "gasCalculators_tankSize": "Tank Size",
@@ -8860,6 +9022,17 @@
   "plannerCanvas_tab_setup": "Setup",
   "plannerCanvas_o2Narcotic": "Treat O₂ as narcotic",
   "plannerCanvas_rates_ascent": "Ascent rate",
+  "plannerCanvas_rates_intermediateAscent": "Intermediate stop ascent rate",
+  "plannerCanvas_rates_lastStop": "Last stop",
+  "plannerCanvas_rates_shallowAscent": "Shallow stop ascent rate",
+  "plannerCanvas_rates_finalAscent": "Final ascent rate (last {depth})",
+  "@plannerCanvas_rates_finalAscent": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_rates_descent": "Descent rate",
   "plannerCanvas_rates_title": "Rates",
   "plannerCanvas_range_title": "Range table",
@@ -8921,7 +9094,7 @@
   "plannerCanvas_table_depth": "Depth",
   "plannerCanvas_table_gas": "Gas",
   "plannerCanvas_table_runtime": "RT",
-  "plannerCanvas_table_stop": "Stop",
+  "plannerCanvas_table_duration": "Duration",
   "plannerCanvas_turnRule_allUsable": "All usable",
   "plannerCanvas_turnRule_custom": "Custom",
   "plannerCanvas_turnRule_halves": "Halves",
@@ -9039,10 +9212,21 @@
   "settings_appearance_diveDetails_sectionOrderVisibility_subtitle": "Choose which sections appear and their order",
   "settings_diveDetailSections_title": "Section Order & Visibility",
   "settings_diveDetailSections_resetToDefault": "Reset to Default",
-  "settings_diveDetailSections_fixedSections": "Fixed sections: Header, Dive Profile Chart",
+  "settings_diveDetailSections_fixedSections": "Fixed section: Header",
   "settings_diveDetailSections_configurableSections": "Configurable sections (drag to reorder)",
-  "diveDetailSection_decoO2_name": "Deco Status / Tissue Loading",
-  "diveDetailSection_decoO2_description": "NDL, ceiling, tissue heat map, O2 toxicity",
+  "diveDetailSection_profile_name": "Dive Profile",
+  "diveDetailSection_profile_description": "Depth/time chart, playback, range selection",
+  "diveDetailSection_decoStatus_name": "Deco Status",
+  "diveDetailSection_decoStatus_description": "NDL, ceiling, stops, O2 toxicity",
+  "diveDetailSection_tissueLoading_name": "Tissue Loading",
+  "diveDetailSection_tissueLoading_description": "Per-compartment saturation and heat map",
+  "diveLog_detail_displayOptions_tooltip": "Display options",
+  "diveLog_detail_displayOptions_layout": "Layout",
+  "diveLog_detail_displayOptions_sections": "Sections",
+  "diveLog_detail_displayOptions_showAll": "Show all sections",
+  "diveLog_detail_displayOptions_reorder": "Reorder sections...",
+  "diveDetailLayout_detailed": "Detailed",
+  "diveDetailLayout_list": "List",
   "diveDetailSection_safetyReview_name": "Safety Review",
   "diveDetailSection_safetyReview_description": "Automatic post-dive profile observations",
   "safetyReview_sectionTitle": "Safety review",
@@ -9417,13 +9601,25 @@
   "settings_appearance_theme_dark": "Dark",
   "settings_appearance_theme_light": "Light",
   "settings_appearance_theme_system": "System default",
-  "settings_navCustomization_title": "Navigation bar",
+  "settings_navCustomization_title": "Navigation layout",
   "@settings_navCustomization_title": {
-    "description": "Title of the settings page for customizing bottom navigation primary slots."
+    "description": "Title of the settings page for arranging the phone bottom bar and the wide-screen navigation rail."
   },
   "settings_navCustomization_description": "Drag items to reorder. The top three appear in your bottom navigation bar.",
   "@settings_navCustomization_description": {
     "description": "Help text at the top of the navigation customization page."
+  },
+  "settings_navCustomization_descriptionDesktop": "Drag items to reorder the sidebar. Home always stays at the top.",
+  "@settings_navCustomization_descriptionDesktop": {
+    "description": "Help text shown when arranging the wide-screen navigation rail."
+  },
+  "settings_navCustomization_scopePhone": "Phone",
+  "@settings_navCustomization_scopePhone": {
+    "description": "Segmented-button label for editing the phone navigation order."
+  },
+  "settings_navCustomization_scopeDesktop": "Desktop",
+  "@settings_navCustomization_scopeDesktop": {
+    "description": "Segmented-button label for editing the desktop navigation rail order."
   },
   "settings_navCustomization_dividerLabel": "Items below appear in the More menu",
   "@settings_navCustomization_dividerLabel": {
@@ -11749,6 +11945,8 @@
   },
   "tags_manage_mergeAction": "Merge",
   "tags_title_manageTags": "Manage Tags",
+  "tank_al100_description": "Aluminum 100 cu ft",
+  "tank_al100_displayName": "AL100",
   "tank_al30Stage_description": "Aluminum 30 cu ft stage tank",
   "tank_al30Stage_displayName": "AL30 Stage",
   "tank_al40Stage_description": "Aluminum 40 cu ft stage tank",
@@ -11873,6 +12071,8 @@
   "transfer_export_kmlTitle": "Google Earth KML",
   "transfer_export_multiFormatHeader": "Multi-Format Export",
   "transfer_export_optionSaveSubtitle": "Choose where to save on your device",
+  "transfer_export_includeRawData": "Include raw dive computer data",
+  "transfer_export_includeRawDataSubtitle": "Keeps the original bytes from your dive computer so the file can be re-parsed later. Makes the file larger.",
   "transfer_export_optionSaveTitle": "Save to File",
   "transfer_export_optionShareSubtitle": "Send via email, messages, or other apps",
   "transfer_export_optionShareTitle": "Share",
@@ -11893,6 +12093,8 @@
   "transfer_pdfExport_exportButton": "Export PDF",
   "transfer_pdfExport_includeCertCards": "Include Certification Cards",
   "transfer_pdfExport_includeCertCardsSubtitle": "Add scanned certification card images to the PDF",
+  "transfer_pdfExport_includeVerificationAreas": "Include Verification Areas",
+  "transfer_pdfExport_includeVerificationAreasSubtitle": "Add stamp and signature boxes for agency verification",
   "transfer_pdfExport_pageSizeA4": "A4",
   "transfer_pdfExport_pageSizeA4Desc": "210 x 297 mm",
   "transfer_pdfExport_pageSizeHeader": "Page Size",
@@ -11905,8 +12107,6 @@
   "transfer_pdfExport_templateNauiStyleDesc": "Layout matching NAUI logbook format",
   "transfer_pdfExport_templatePadiStyle": "PADI Style",
   "transfer_pdfExport_templatePadiStyleDesc": "Layout matching PADI logbook format",
-  "transfer_pdfExport_templateProfessional": "Professional",
-  "transfer_pdfExport_templateProfessionalDesc": "Signature and stamp areas for verification",
   "transfer_pdfExport_templateSemanticLabel": "Select {templateName} template",
   "transfer_pdfExport_templateSimple": "Simple",
   "transfer_pdfExport_templateSimpleDesc": "Compact table format, many dives per page",
@@ -13300,20 +13500,6 @@
       }
     }
   },
-  "@divePlanner_field_startPressure": {
-    "placeholders": {
-      "pressureSymbol": {
-        "type": "Object"
-      }
-    }
-  },
-  "@divePlanner_field_volume": {
-    "placeholders": {
-      "volumeSymbol": {
-        "type": "Object"
-      }
-    }
-  },
   "@divePlanner_label_depthAxis": {
     "placeholders": {
       "depthSymbol": {
@@ -14201,42 +14387,74 @@
   },
   "diveImport_uddf_trips": "Trips",
   "divePlanner_segmentEditor_addTitle": "Add Segment",
-  "divePlanner_segmentEditor_ascentRate": "Ascent Rate ({unit}/min)",
-  "@divePlanner_segmentEditor_ascentRate": {
+  "divePlanner_segmentEditor_depth": "Depth ({unit})",
+  "@divePlanner_segmentEditor_depth": {
     "placeholders": {
       "unit": {
         "type": "Object"
       }
     }
   },
-  "divePlanner_segmentEditor_descentRate": "Descent Rate ({unit}/min)",
-  "@divePlanner_segmentEditor_descentRate": {
+  "divePlanner_segmentEditor_derivedAscent": "Ascent {from} → {to} at {rate}/min",
+  "@divePlanner_segmentEditor_derivedAscent": {
     "placeholders": {
-      "unit": {
+      "from": {
+        "type": "Object"
+      },
+      "to": {
+        "type": "Object"
+      },
+      "rate": {
+        "type": "Object"
+      }
+    }
+  },
+  "divePlanner_segmentEditor_derivedAscentNoRate": "Ascent {from} → {to}",
+  "@divePlanner_segmentEditor_derivedAscentNoRate": {
+    "placeholders": {
+      "from": {
+        "type": "Object"
+      },
+      "to": {
+        "type": "Object"
+      }
+    }
+  },
+  "divePlanner_segmentEditor_derivedDescent": "Descent {from} → {to} at {rate}/min",
+  "@divePlanner_segmentEditor_derivedDescent": {
+    "placeholders": {
+      "from": {
+        "type": "Object"
+      },
+      "to": {
+        "type": "Object"
+      },
+      "rate": {
+        "type": "Object"
+      }
+    }
+  },
+  "divePlanner_segmentEditor_derivedDescentNoRate": "Descent {from} → {to}",
+  "@divePlanner_segmentEditor_derivedDescentNoRate": {
+    "placeholders": {
+      "from": {
+        "type": "Object"
+      },
+      "to": {
+        "type": "Object"
+      }
+    }
+  },
+  "divePlanner_segmentEditor_derivedLevel": "Level at {depth}",
+  "@divePlanner_segmentEditor_derivedLevel": {
+    "placeholders": {
+      "depth": {
         "type": "Object"
       }
     }
   },
   "divePlanner_segmentEditor_duration": "Duration (min)",
   "divePlanner_segmentEditor_editTitle": "Edit Segment",
-  "divePlanner_segmentEditor_endDepth": "End Depth ({unit})",
-  "@divePlanner_segmentEditor_endDepth": {
-    "placeholders": {
-      "unit": {
-        "type": "Object"
-      }
-    }
-  },
-  "divePlanner_segmentEditor_gasSwitchTime": "Gas switch time",
-  "divePlanner_segmentEditor_segmentType": "Segment Type",
-  "divePlanner_segmentEditor_startDepth": "Start Depth ({unit})",
-  "@divePlanner_segmentEditor_startDepth": {
-    "placeholders": {
-      "unit": {
-        "type": "Object"
-      }
-    }
-  },
   "divePlanner_segmentEditor_tankGas": "Tank / Gas",
   "divePlanner_segmentList_addSegment": "Add Segment",
   "divePlanner_segmentList_ascent": "Ascent {startDepth} → {endDepth}",
@@ -14296,24 +14514,7 @@
     }
   },
   "divePlanner_segmentList_quickPlan": "Quick Plan",
-  "divePlanner_segmentList_safetyStop": "Safety stop {depth} for {minutes} min",
-  "@divePlanner_segmentList_safetyStop": {
-    "placeholders": {
-      "depth": {
-        "type": "Object"
-      },
-      "minutes": {
-        "type": "Object"
-      }
-    }
-  },
   "divePlanner_segmentList_title": "Dive Segments",
-  "divePlanner_segmentType_ascent": "Ascent",
-  "divePlanner_segmentType_bottomTime": "Bottom Time",
-  "divePlanner_segmentType_decoStop": "Deco Stop",
-  "divePlanner_segmentType_descent": "Descent",
-  "divePlanner_segmentType_gasSwitch": "Gas Switch",
-  "divePlanner_segmentType_safetyStop": "Safety Stop",
   "divePlanner_undo": "Undo",
   "gasCalculators_rockBottom_aboutDescription": "Rock bottom is the minimum gas reserve for an emergency ascent while sharing air with your buddy.\n\n• Uses a stressed RMV (2-3x normal)\n• Assumes both divers on one tank\n• Includes safety stop when enabled\n\nAlways turn the dive BEFORE reaching rock bottom!",
   "gasCalculators_rockBottom_aboutTitle": "About Rock Bottom",
@@ -15859,7 +16060,7 @@
       }
     }
   },
-  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022",
+  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM",
   "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Depth",
   "@dive3d_metric_depth": {},
@@ -16115,6 +16316,8 @@
   "attrLabel_blade_material": "Blade material",
   "attrLabel_tip_type": "Tip",
   "attrLabel_glove_type": "Type",
+  "attrLabel_insulation_level": "Insulation level",
+  "attrLabel_fill_material": "Material",
   "attrLabel_sole_type": "Sole",
   "attrLabel_buoyancy_kg": "Buoyancy",
   "attrLabel_dry_weight_kg": "Dry weight",
@@ -16131,6 +16334,19 @@
   "attrLabel_battery_capacity_wh": "Battery capacity (Wh)",
   "attrLabel_motor_type": "Motor",
   "attrLabel_speed_mps": "Top speed",
+  "attrLabel_sku": "SKU",
+  "attrLabel_retailer": "Retailer",
+  "attrLabel_product_url": "Web link",
+  "attrLabel_sleeve_length": "Sleeves",
+  "attrLabel_upf_rating": "UPF rating",
+  "attrLabel_snorkel_type": "Type",
+  "attrLabel_purge_valve": "Purge valve",
+  "attrLabel_instrument_type": "Instrument",
+  "attrLabel_gauge_max_pressure_bar": "Gauge range",
+  "attrLabel_compass_type": "Type",
+  "attrLabel_balance_zone": "Balance zone",
+  "attrLabel_tilt_tolerance_deg": "Tilt tolerance (°)",
+  "attrLabel_tool_type": "Tool type",
   "attrChoice_unit_type_eccr": "Electronic CCR (eCCR)",
   "attrChoice_unit_type_mccr": "Manual CCR (mCCR)",
   "attrChoice_unit_type_hccr": "Hybrid CCR (hCCR)",
@@ -16153,6 +16369,16 @@
   "attrChoice_seal_type_latex": "Latex",
   "attrChoice_seal_type_silicone": "Silicone",
   "attrChoice_seal_type_neoprene": "Neoprene",
+  "attrChoice_insulation_level_light": "Light",
+  "attrChoice_insulation_level_mid": "Mid-weight",
+  "attrChoice_insulation_level_heavy": "Heavy",
+  "attrChoice_insulation_level_extreme": "Extreme",
+  "attrChoice_fill_material_thinsulate": "Thinsulate",
+  "attrChoice_fill_material_primaloft": "PrimaLoft",
+  "attrChoice_fill_material_hollowfibre": "Hollowfibre",
+  "attrChoice_fill_material_fleece": "Fleece",
+  "attrChoice_fill_material_merino": "Merino wool",
+  "attrChoice_fill_material_polypropylene": "Polypropylene",
   "attrChoice_tank_material_aluminum": "Aluminum",
   "attrChoice_tank_material_steel": "Steel",
   "attrChoice_tank_material_carbon_composite": "Carbon composite",
@@ -16197,8 +16423,11 @@
   "attrChoice_tip_type_blunt": "Blunt",
   "attrChoice_tip_type_line_cutter": "Line cutter",
   "attrChoice_glove_type_five_finger": "Five-finger",
+  "attrChoice_glove_type_three_finger": "Three-finger",
   "attrChoice_glove_type_mitt": "Mitt",
   "attrChoice_glove_type_dry": "Dry",
+  "attrChoice_glove_type_dry_liner": "Dry glove liner",
+  "attrChoice_glove_type_utility": "Utility",
   "attrChoice_sole_type_hard": "Hard sole",
   "attrChoice_sole_type_soft": "Soft sole",
   "attrChoice_dpv_style_tow_behind": "Tow-behind",
@@ -16209,11 +16438,35 @@
   "attrChoice_battery_type_lead_acid": "Lead-acid",
   "attrChoice_motor_type_brushless": "Brushless",
   "attrChoice_motor_type_brushed": "Brushed",
+  "attrChoice_sleeve_length_short": "Short",
+  "attrChoice_sleeve_length_long": "Long",
+  "attrChoice_sleeve_length_sleeveless": "Sleeveless",
+  "attrChoice_snorkel_type_classic": "Classic",
+  "attrChoice_snorkel_type_semi_dry": "Semi-dry",
+  "attrChoice_snorkel_type_dry": "Dry",
+  "attrChoice_snorkel_type_foldable": "Foldable",
+  "attrChoice_instrument_type_spg": "Pressure gauge (SPG)",
+  "attrChoice_instrument_type_depth_gauge": "Depth gauge",
+  "attrChoice_instrument_type_bottom_timer": "Bottom timer",
+  "attrChoice_instrument_type_console": "Console",
+  "attrChoice_instrument_type_gas_analyzer": "Gas analyzer",
+  "attrChoice_instrument_type_thermometer": "Thermometer",
+  "attrChoice_compass_type_analog": "Analog",
+  "attrChoice_compass_type_digital": "Digital",
+  "attrChoice_balance_zone_northern": "Northern hemisphere",
+  "attrChoice_balance_zone_southern": "Southern hemisphere",
+  "attrChoice_balance_zone_global": "Global",
+  "attrChoice_tool_type_hand_tool": "Hand tool",
+  "attrChoice_tool_type_o_ring_kit": "O-ring kit",
+  "attrChoice_tool_type_save_a_dive_kit": "Save-a-dive kit",
+  "attrChoice_tool_type_torque_wrench": "Torque wrench",
+  "attrChoice_tool_type_spares_kit": "Spares kit",
   "equipment_edit_customFieldsTitle": "Custom fields",
   "equipment_edit_addCustomField": "Add custom field",
   "attr_flagYes": "Yes",
   "attr_flagNo": "No",
   "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
+  "equipment_edit_invalidWebLink": "Enter a web address, e.g. shop.example.com",
   "statistics_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
   "statistics_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
   "statistics_progression_divesBySuitThickness_empty": "No dives with a suit thickness recorded",
@@ -16315,6 +16568,11 @@
     }
   },
   "emergencyCard_callDan_subtitle": "Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.",
+  "emergencyCard_callInsurer_subtitle": "Your dive insurance emergency line. Call first: your insurer authorizes the evacuation and coordinates the chamber referral.",
+  "emergencyCard_hotlineSecondary_subtitle": "Regional diver emergency hotline. Call this if your insurer's line does not answer.",
+  "emergencyCard_insuranceEmergencyLine": "24h emergency line",
+  "emergencyCard_insuranceOfficeLine": "Office line",
+  "emergencyCard_insuranceNoPhone": "No insurer emergency number saved. Add it in Diver Profile settings so this card can lead with it.",
   "emergencyCard_ems": "Local emergency services: {number}",
   "@emergencyCard_ems": {
     "placeholders": {
@@ -16471,6 +16729,8 @@
   "settings_section_safety_subtitle": "Review rules & flying after diving",
   "settings_section_security_title": "App Security",
   "settings_section_security_subtitle": "App lock & database encryption",
+  "settings_section_trimixMixer_title": "Trimix Mixer",
+  "settings_section_trimixMixer_subtitle": "Fill gases, conditions & billing defaults",
   "settings_security_appLock": "App Lock",
   "settings_security_appLock_subtitle": "Require your password or biometrics to open the app",
   "settings_security_biometrics": "Unlock with biometrics",
@@ -19522,6 +19782,15 @@
   "common_action_add": "Add",
   "common_action_pin": "Pin",
   "common_action_remove": "Remove",
+  "equipment_documents_title": "Documents",
+  "equipment_documents_subtitle": "Invoices, receipts and warranty paperwork",
+  "equipment_documents_attachButton": "Attach",
+  "equipment_documents_empty": "No documents attached yet",
+  "equipment_documents_removeTitle": "Remove document?",
+  "equipment_documents_removeContent": "It stops being attached to this item. Your original file is never touched.",
+  "equipment_documents_removed": "Document removed",
+  "equipment_documents_loadError": "Could not load documents: {error}",
+  "@equipment_documents_loadError": { "placeholders": { "error": { "type": "String" } } },
   "common_action_unpin": "Unpin",
   "diveLog_filterChip_dateRange": "{start} - {end}",
   "diveLog_filterChip_equipmentCount": "{count} Equipment",
@@ -20058,6 +20327,16 @@
   "divePlanner_semantics_altitudeGroup": "Altitude group: {group}",
   "diveSites_import_detail_maxDepth": "Max {depth}",
   "autoUpdate_banner_download": "Download",
+  "autoUpdate_banner_packageManagerHint": "Update with: {command}",
+  "@autoUpdate_banner_packageManagerHint": {
+    "description": "Shown instead of a Download button when Submersion was installed from a .deb or .rpm, since the system package manager owns the upgrade.",
+    "placeholders": {
+      "command": {
+        "type": "String",
+        "example": "sudo apt upgrade submersion"
+      }
+    }
+  },
   "settings_cloudSync_provider_icloud_subtitle": "Sync via Apple iCloud",
   "settings_debugLog_search_hint": "Search logs...",
   "settings_debugLog_appBar_title": "Debug Logs",
@@ -20636,12 +20915,15 @@
   "startup_backupFailed_quit": "Quit",
   "startup_backupFailed_technicalDetails": "Technical details",
   "common_action_retry": "Retry",
-  "startup_versionMismatch_title": "Update Required",
+  "startup_versionMismatch_title": "Your Data Is Newer Than This App",
   "startup_versionMismatch_body": "Your dive data was saved by a newer version of Submersion (schema v{databaseVersion}). This version only supports up to schema v{appVersion}.",
-  "startup_versionMismatch_instructions": "Please update Submersion to the latest version. Your data is safe and has not been modified. If a backup was taken before the upgrade, it is in your Backups folder and can be restored after updating.",
+  "startup_versionMismatch_causes": "This usually means a beta build upgraded your data, a backup was restored from a newer build, or the file is shared with a device on a different update channel. A newer stable release may not exist yet.",
+  "startup_versionMismatch_instructions": "Your data is safe and has not been modified. Reopen it with the build that wrote it, or with any later build. If a backup was taken before the upgrade, it is in your Backups folder and can be restored once you are running a build that opens it.",
   "startup_versionMismatch_storeInstructions": "This app was installed from an app store and is older than the version that created your data. Your data is safe and has not been modified. Update Submersion when the new version appears in the store, then reopen it.",
-  "startup_versionMismatch_download": "Download Latest Version",
-  "startup_versionMismatch_manualLink": "If that does not open a browser, visit:",
+  "startup_versionMismatch_download": "Check for a Newer Stable Release",
+  "startup_versionMismatch_betaAction": "Get the Beta Build",
+  "startup_versionMismatch_betaNote": "Beta builds are pre-release. Choose this only if a beta build wrote your data.",
+  "startup_versionMismatch_manualLink": "If those buttons do not open a browser, visit:",
   "universalImport_compare_downloaded": "Downloaded",
   "universalImport_compare_errorLoading": "Error loading dive data",
   "universalImport_compare_diveNotFound": "Existing dive not found",
@@ -21044,6 +21326,7 @@
   "settings_export_progress_equipmentCsv": "Exporting equipment to CSV...",
   "settings_export_progress_pdf": "Generating PDF logbook...",
   "settings_export_progress_loadingSignatures": "Loading signatures...",
+  "settings_export_progress_loadingProfiles": "Loading dive profiles...",
   "settings_export_progress_loadingCertifications": "Loading certifications...",
   "settings_export_progress_loadingFonts": "Loading fonts...",
   "settings_export_progress_templatePdf": "Generating {template} PDF...",
@@ -21989,5 +22272,14 @@
       }
     }
   },
-  "diveComputer_detail_duplicateBannerAction": "Merge"
+  "diveComputer_detail_duplicateBannerAction": "Merge",
+  "startup_versionMismatch_restore_title": "Restore your pre-upgrade backup",
+  "startup_versionMismatch_restore_body": "A safety copy of your dive log, taken before the upgrade, is on this device and this version can open it.",
+  "startup_versionMismatch_restore_warning": "Anything you logged after the upgrade exists only in the newer file. That file is kept as a pinned backup, so installing the newer version again gets it back.",
+  "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
+  "@backup_history_preDowngradeSubtitle": { "placeholders": { "size": { "type": "String" } } },
+  "backup_history_manualSubtitle": "{diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} - {size}",
+  "@backup_history_manualSubtitle": {"placeholders": {"diveCount": {"type": "int"}, "siteCount": {"type": "int"}, "size": {"type": "String"}}},
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} - {size} (auto)",
+  "@backup_history_manualSubtitleAuto": {"placeholders": {"diveCount": {"type": "int"}, "siteCount": {"type": "int"}, "size": {"type": "String"}}}
 }

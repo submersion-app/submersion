@@ -134,6 +134,7 @@ class _PreDiveTemplateEditPageState
       PreDiveItemType.value => context.l10n.preDive_item_type_value,
       PreDiveItemType.equipmentSet =>
         context.l10n.preDive_item_type_equipmentSet,
+      PreDiveItemType.equipment => context.l10n.preDive_item_type_equipment,
     };
   }
 
@@ -334,6 +335,7 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
       PreDiveItemType.value => context.l10n.preDive_item_type_value,
       PreDiveItemType.equipmentSet =>
         context.l10n.preDive_item_type_equipmentSet,
+      PreDiveItemType.equipment => context.l10n.preDive_item_type_equipment,
     };
   }
 

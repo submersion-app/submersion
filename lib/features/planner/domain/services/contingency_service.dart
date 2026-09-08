@@ -5,6 +5,8 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 
 /// A "what if it goes deeper/longer" variant of the base plan.
 class DeviationOutcome {
@@ -74,6 +76,9 @@ class ContingencyService {
   /// cylinder, or any cylinder flagged as travel gas regardless of its role
   /// (a diluent, pony, or sidemount tank breathed on the descent is just as
   /// losable as a dedicated stage/deco bottle).
+  ///
+  /// Reads the *derived* role, so [tank] must come from a plan that has been
+  /// through [TankRoleResolver]. Both callers below resolve first.
   bool isLosable(DiveTank tank) =>
       tank.role == TankRole.deco ||
       tank.role == TankRole.stage ||
@@ -82,10 +87,13 @@ class ContingencyService {
   /// One outcome per losable cylinder (see [isLosable]). Empty for CCR plans
   /// (loop loss is the bailout solver's job) and when no such cylinder is
   /// carried.
-  List<LostGasOutcome> lostGas(domain.DivePlan plan) {
-    if (plan.mode == domain.PlanMode.ccr || plan.segments.isEmpty) {
+  List<LostGasOutcome> lostGas(domain.DivePlan inputPlan) {
+    if (inputPlan.mode == domain.PlanMode.ccr || inputPlan.segments.isEmpty) {
       return const [];
     }
+    // Losability is a question about derived roles (deco/stage), so resolve
+    // before asking it.
+    final plan = const TankRoleResolver().apply(inputPlan);
     final results = <LostGasOutcome>[];
     for (final tank in plan.tanks) {
       if (!isLosable(tank)) continue;
@@ -99,8 +107,11 @@ class ContingencyService {
   /// missing, not losable, the only cylinder carried, or the plan can't be
   /// varied (no segments, or CCR). Lets callers (the chart ghost, a tapped
   /// row) run just the one variant selected instead of the full set.
-  LostGasOutcome? lostGasFor(domain.DivePlan plan, String tankId) {
-    if (plan.mode == domain.PlanMode.ccr || plan.segments.isEmpty) return null;
+  LostGasOutcome? lostGasFor(domain.DivePlan inputPlan, String tankId) {
+    if (inputPlan.mode == domain.PlanMode.ccr || inputPlan.segments.isEmpty) {
+      return null;
+    }
+    final plan = const TankRoleResolver().apply(inputPlan);
     DiveTank? tank;
     for (final t in plan.tanks) {
       if (t.id == tankId) {
@@ -146,10 +157,11 @@ class ContingencyService {
 /// A [plan] variant deviated by [depthDelta] meters and/or
 /// [timeDeltaMinutes] minutes (either may be negative).
 ///
-/// Depths equal to the plan's max depth shift by the delta — the bottom
-/// moves and the descent that feeds it follows. Bottom segments grow (or
-/// shrink) by the time delta. Shared by the contingency trio and the range
-/// tables so every "what if" variant deviates the same way.
+/// Targets equal to the plan's max depth shift by the delta — the bottom
+/// moves, and the descent that feeds it follows because it targets the same
+/// depth. The bottom leg grows (or shrinks) by the time delta. Shared by the
+/// contingency trio and the range tables so every "what if" variant deviates
+/// the same way.
 domain.DivePlan deviatePlan(
   domain.DivePlan plan, {
   double depthDelta = 0,
@@ -159,30 +171,36 @@ domain.DivePlan deviatePlan(
 
   if (depthDelta != 0) {
     final maxDepth = plan.maxDepth;
-    PlanSegment shift(PlanSegment segment) {
-      var changed = segment;
-      if ((segment.startDepth - maxDepth).abs() < 0.01) {
-        changed = changed.copyWith(startDepth: segment.startDepth + depthDelta);
-      }
-      if ((segment.endDepth - maxDepth).abs() < 0.01) {
-        changed = changed.copyWith(endDepth: segment.endDepth + depthDelta);
-      }
-      return changed;
-    }
-
-    segments = segments.map(shift).toList();
+    // Only targets need shifting. The descent that feeds the bottom targets
+    // max depth as well, and every other leg starts wherever its predecessor
+    // now finishes.
+    segments = [
+      for (final segment in segments)
+        (segment.targetDepth - maxDepth).abs() < 0.01
+            ? segment.copyWith(targetDepth: segment.targetDepth + depthDelta)
+            : segment,
+    ];
   }
 
   if (timeDeltaMinutes != 0) {
-    final extraSeconds = timeDeltaMinutes * 60;
-    segments = [
-      for (final segment in segments)
-        segment.type == SegmentType.bottom
-            ? segment.copyWith(
-                durationSeconds: segment.durationSeconds + extraSeconds,
-              )
-            : segment,
-    ];
+    // The delta buys bottom time once, on the deepest level leg, rather than
+    // once per level leg as the old per-type loop did on a multi-level plan.
+    final ordered = List<PlanSegment>.from(segments)
+      ..sort((a, b) => a.order.compareTo(b.order));
+    const chain = SegmentChain();
+    final bottomIndex = chain.bottomLegIndex(chain.resolve(ordered));
+    if (bottomIndex != null) {
+      final bottomId = ordered[bottomIndex].id;
+      final extraSeconds = timeDeltaMinutes * 60;
+      segments = [
+        for (final segment in segments)
+          segment.id == bottomId
+              ? segment.copyWith(
+                  durationSeconds: segment.durationSeconds + extraSeconds,
+                )
+              : segment,
+      ];
+    }
   }
 
   return plan.copyWith(segments: segments);

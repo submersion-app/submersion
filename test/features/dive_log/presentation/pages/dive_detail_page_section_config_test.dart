@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -16,6 +17,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_section_fold.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -39,12 +42,30 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(mapStyle: style);
 
   @override
+  Future<void> setDiveDetailSections(
+    List<DiveDetailSectionConfig> sections,
+  ) async => state = state.copyWith(diveDetailSections: sections);
+
+  @override
+  Future<void> setDiveDetailSectionExpanded(
+    DiveDetailSectionId id,
+    bool expanded,
+  ) async {
+    state = state.copyWith(
+      diveDetailSections: [
+        for (final section in state.diveDetailSections)
+          section.id == id ? section.copyWith(expanded: expanded) : section,
+      ],
+    );
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Sections that return early with empty dive data (no extra providers needed).
 const _earlyReturnSections = [
-  DiveDetailSectionId.decoO2,
+  DiveDetailSectionId.decoStatus,
   DiveDetailSectionId.sacSegments,
   DiveDetailSectionId.environment,
   DiveDetailSectionId.altitude,
@@ -59,13 +80,21 @@ const _earlyReturnSections = [
 const _simpleRenderSections = [DiveDetailSectionId.notes];
 
 /// Build settings with only specified sections visible.
-AppSettings _settingsWithVisibleSections(List<DiveDetailSectionId> visible) {
+AppSettings _settingsWithVisibleSections(
+  List<DiveDetailSectionId> visible, {
+  DiveDetailLayout layout = DiveDetailLayout.detailed,
+  List<DiveDetailSectionId> expanded = const [],
+}) {
   final sections = DiveDetailSectionId.values
       .map(
-        (id) => DiveDetailSectionConfig(id: id, visible: visible.contains(id)),
+        (id) => DiveDetailSectionConfig(
+          id: id,
+          visible: visible.contains(id),
+          expanded: expanded.contains(id),
+        ),
       )
       .toList();
-  return AppSettings(diveDetailSections: sections);
+  return AppSettings(diveDetailSections: sections, diveDetailLayout: layout);
 }
 
 /// Build a minimal ProviderScope + MaterialApp for DiveDetailPage.
@@ -74,6 +103,7 @@ Widget _buildTestWidget({
   required AppSettings settings,
   List<Override> extraOverrides = const [],
   bool embedded = false,
+  _MockSettingsNotifier? notifier,
 }) {
   return ProviderScope(
     overrides: [
@@ -81,7 +111,9 @@ Widget _buildTestWidget({
       diveDataSourcesProvider(
         dive.id,
       ).overrideWith((ref) async => <DiveDataSource>[]),
-      settingsProvider.overrideWith((ref) => _MockSettingsNotifier(settings)),
+      settingsProvider.overrideWith(
+        (ref) => notifier ?? _MockSettingsNotifier(settings),
+      ),
       ...extraOverrides,
     ],
     child: MaterialApp(
@@ -166,6 +198,17 @@ final _richDive = Dive(
       status: EquipmentStatus.active,
     ),
   ],
+);
+
+/// A dive with a depth/time profile, so the chart section has something to
+/// draw.
+final _diveWithProfile = Dive(
+  id: 'test-dive-4',
+  dateTime: DateTime(2026, 3, 15, 10, 0),
+  profile: List.generate(
+    61,
+    (i) => DiveProfilePoint(timestamp: i * 10, depth: 10, temperature: 20),
+  ),
 );
 
 void main() {
@@ -727,6 +770,504 @@ void main() {
       final badge = find.text('#28466');
       expect(badge, findsOneWidget);
       expect(lineCountOf(tester, badge, '#28466'), 1);
+    });
+  });
+
+  group('DiveDetailPage layouts', () {
+    testWidgets('the detailed layout shows section content unfolded', (
+      tester,
+    ) async {
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.notes,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveSectionFold), findsNothing);
+      expect(find.text('Great dive, saw a lot of fish.'), findsOneWidget);
+    });
+
+    testWidgets('the list layout folds every visible section away', (
+      tester,
+    ) async {
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.notes,
+        DiveDetailSectionId.tags,
+      ], layout: DiveDetailLayout.list);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveSectionFold), findsNWidgets(2));
+      // Folded: the header row names the section, the content is not built.
+      expect(find.text('Notes'), findsOneWidget);
+      expect(find.text('Great dive, saw a lot of fish.'), findsNothing);
+      expect(find.text('Night Dive'), findsNothing);
+    });
+
+    testWidgets('tapping a folded header unfolds just that section', (
+      tester,
+    ) async {
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.notes,
+        DiveDetailSectionId.tags,
+      ], layout: DiveDetailLayout.list);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Notes'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Great dive, saw a lot of fish.'), findsOneWidget);
+      // The other section stays folded.
+      expect(find.text('Night Dive'), findsNothing);
+    });
+
+    testWidgets('tapping an unfolded header folds it back', (tester) async {
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.notes,
+      ], layout: DiveDetailLayout.list);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      // The fold's own chevron, not the title: once unfolded, the Notes card
+      // underneath carries a "Notes" heading of its own.
+      final chevron = find.descendant(
+        of: find.byType(DiveSectionFold),
+        matching: find.byIcon(Icons.expand_more),
+      );
+
+      await tester.tap(chevron);
+      await tester.pumpAndSettle();
+      expect(find.text('Great dive, saw a lot of fish.'), findsOneWidget);
+
+      await tester.tap(chevron);
+      await tester.pumpAndSettle();
+      expect(find.text('Great dive, saw a lot of fish.'), findsNothing);
+    });
+
+    testWidgets('a hidden section gets no fold in the list layout', (
+      tester,
+    ) async {
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.notes,
+      ], layout: DiveDetailLayout.list);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveSectionFold), findsOneWidget);
+      expect(find.text('Tags'), findsNothing);
+    });
+
+    testWidgets('a section with nothing to show gets no fold', (tester) async {
+      // The empty dive has no tags, so the Tags builder returns nothing --
+      // a fold here would open onto a blank.
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.tags,
+      ], layout: DiveDetailLayout.list);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _emptyDive, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveSectionFold), findsNothing);
+    });
+  });
+
+  // The chart used to render unconditionally, above the configurable
+  // sections. It is a section now, so it answers to the same visibility
+  // switch as the rest.
+  group('the dive profile chart as a section', () {
+    testWidgets('renders when the profile section is visible', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.profile,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithProfile, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+
+    testWidgets('is gone when the diver switches it off', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithProfile, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveProfileChart), findsNothing);
+      // The header is still fixed, so the page is not blank.
+      expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('folds away in the list layout', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.profile,
+      ], layout: DiveDetailLayout.list);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithProfile, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveSectionFold), findsOneWidget);
+      expect(find.byType(DiveProfileChart), findsNothing);
+
+      await tester.tap(find.text('Dive Profile'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+
+    testWidgets('a dive with no samples gets no chart section', (tester) async {
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.profile,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _emptyDive, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveProfileChart), findsNothing);
+    });
+  });
+
+  // Deco Status and Tissue Loading were one section. They are two now, and
+  // pair back into the two-column block they used to render as.
+  group('the deco/tissue split', () {
+    testWidgets('both halves visible renders without error', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(900, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.decoStatus,
+        DiveDetailSectionId.tissueLoading,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithProfile, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('#-'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('one half alone renders without error', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(900, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.decoStatus,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithProfile, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('#-'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a gauge dive is offered neither half', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(900, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final gauge = Dive(
+        id: 'gauge-dive',
+        dateTime: DateTime(2026, 3, 15, 10, 0),
+        diveMode: DiveMode.gauge,
+        profile: List.generate(
+          61,
+          (i) => DiveProfilePoint(timestamp: i * 10, depth: 10),
+        ),
+      );
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.decoStatus,
+        DiveDetailSectionId.tissueLoading,
+        DiveDetailSectionId.profile,
+      ], layout: DiveDetailLayout.list);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: gauge, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      // Only the profile chart folds in -- depth over time is what a gauge
+      // records, the deco math is not.
+      expect(find.byType(DiveSectionFold), findsOneWidget);
+      expect(find.text('Dive Profile'), findsOneWidget);
+    });
+  });
+
+  group('DiveDetailPage list layout fold persistence', () {
+    testWidgets('a section left unfolded opens without a tap', (tester) async {
+      final settings = _settingsWithVisibleSections(
+        [DiveDetailSectionId.notes, DiveDetailSectionId.tags],
+        layout: DiveDetailLayout.list,
+        expanded: [DiveDetailSectionId.notes],
+      );
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveSectionFold), findsNWidgets(2));
+      expect(find.text('Great dive, saw a lot of fish.'), findsOneWidget);
+      // The section the diver never opened stays folded.
+      expect(find.text('Night Dive'), findsNothing);
+    });
+
+    testWidgets('unfolding a section records it in settings', (tester) async {
+      final notifier = _MockSettingsNotifier(
+        _settingsWithVisibleSections([
+          DiveDetailSectionId.notes,
+        ], layout: DiveDetailLayout.list),
+      );
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _diveWithContent,
+          settings: notifier.state,
+          notifier: notifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Notes'));
+      await tester.pumpAndSettle();
+
+      final unfolded = notifier.state.diveDetailSections
+          .where((section) => section.expanded)
+          .map((section) => section.id)
+          .toList();
+      expect(unfolded, [DiveDetailSectionId.notes]);
+    });
+
+    testWidgets('folding a section clears it in settings', (tester) async {
+      final notifier = _MockSettingsNotifier(
+        _settingsWithVisibleSections(
+          [DiveDetailSectionId.notes],
+          layout: DiveDetailLayout.list,
+          expanded: [DiveDetailSectionId.notes],
+        ),
+      );
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _diveWithContent,
+          settings: notifier.state,
+          notifier: notifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The fold's own chevron, not the title: while unfolded, the Notes
+      // card underneath carries a "Notes" heading of its own.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(DiveSectionFold),
+          matching: find.byIcon(Icons.expand_more),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        notifier.state.diveDetailSections.every((section) => !section.expanded),
+        isTrue,
+      );
+    });
+
+    // Leaving the dive and coming back used to re-fold everything, because
+    // the open set lived in the page's own State.
+    testWidgets('an unfolded section is still open on a fresh page', (
+      tester,
+    ) async {
+      final notifier = _MockSettingsNotifier(
+        _settingsWithVisibleSections([
+          DiveDetailSectionId.notes,
+        ], layout: DiveDetailLayout.list),
+      );
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: _diveWithContent,
+          settings: notifier.state,
+          notifier: notifier,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Notes'));
+      await tester.pumpAndSettle();
+
+      // Read what was stored before the scope disposes the notifier, then
+      // build a fresh page over it the way reopening the dive would.
+      final saved = notifier.state;
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: saved),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Great dive, saw a lot of fish.'), findsOneWidget);
+    });
+  });
+
+  group('DiveDetailPage list layout rows', () {
+    // Reordering lives in the display-options menu, so the rows stay a single
+    // tap target each.
+    testWidgets('the folded rows carry no drag handles', (tester) async {
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.notes,
+        DiveDetailSectionId.tags,
+      ], layout: DiveDetailLayout.list);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveSectionFold), findsNWidgets(2));
+      expect(find.byType(ReorderableListView), findsNothing);
+      expect(find.byIcon(Icons.drag_handle), findsNothing);
+    });
+  });
+
+  group('DiveDetailPage section spacing', () {
+    Finder cardAround(String text) =>
+        find.ancestor(of: find.text(text), matching: find.byType(Card)).first;
+
+    // One gap, placed once: a section that also spaced itself used to sit
+    // twice as far from its neighbour as the sections that did not.
+    testWidgets('detailed sections sit exactly one section gap apart', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(600, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.tags,
+        DiveDetailSectionId.notes,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      final tags = cardAround('Night Dive');
+      final notes = cardAround('Great dive, saw a lot of fish.');
+      expect(
+        tester.getTopLeft(notes).dy - tester.getBottomLeft(tags).dy,
+        DiveDetailLayout.detailed.sectionGap,
+      );
+    });
+
+    testWidgets('list rows sit flush against each other', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.tags,
+        DiveDetailSectionId.notes,
+      ], layout: DiveDetailLayout.list);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      final folds = find.byType(DiveSectionFold);
+      expect(
+        tester.getTopLeft(folds.at(1)).dy,
+        tester.getBottomLeft(folds.at(0)).dy,
+      );
+    });
+  });
+
+  group('DiveDetailPage app bar actions', () {
+    // MediaQuery follows the view, not the test surface, so the window width
+    // the app bar reads has to be set on the view itself.
+    void setWindowWidth(WidgetTester tester, double width) {
+      tester.view.physicalSize = Size(width, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+    }
+
+    Finder favoriteInBar() => find.descendant(
+      of: find.byType(AppBar),
+      matching: find.byIcon(Icons.favorite_border),
+    );
+
+    // Six action icons leave a phone-width app bar no room for its title, so
+    // the favorite toggle moves into the overflow menu there.
+    testWidgets('on a phone-width window, favorite lives in the overflow', (
+      tester,
+    ) async {
+      setWindowWidth(tester, 560);
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.notes,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(favoriteInBar(), findsNothing);
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      expect(find.text('Add to favorites'), findsOneWidget);
+    });
+
+    testWidgets('on a wide window, favorite stays in the bar', (tester) async {
+      setWindowWidth(tester, 900);
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.notes,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithContent, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      expect(favoriteInBar(), findsOneWidget);
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      expect(find.text('Add to favorites'), findsNothing);
     });
   });
 }

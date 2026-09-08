@@ -493,8 +493,23 @@ class DivePlanState extends Equatable {
   /// Surface air consumption rate in L/min.
   final double sacRate;
 
-  /// Ascent rate in meters per minute (Subsurface parity, G7/G8).
+  /// Working ascent rate in meters per minute: off the bottom, up to the
+  /// first decompression stop.
   final double ascentRate;
+
+  /// Ascent rate in meters per minute between intermediate stops, deeper
+  /// than 9 m.
+  final double intermediateAscentRate;
+
+  /// Ascent rate in meters per minute between shallow stops, 9 m and above.
+  final double shallowAscentRate;
+
+  /// Ascent rate in meters per minute from the last stop to the surface.
+  final double finalAscentRate;
+
+  /// Shallowest decompression stop in meters (3 or 6), which is also where
+  /// [finalAscentRate] takes over from the other ascent rates.
+  final double lastStopDepth;
 
   /// Descent rate in meters per minute.
   final double descentRate;
@@ -570,6 +585,10 @@ class DivePlanState extends Equatable {
     this.gfHigh = kFallbackGfHigh,
     this.sacRate = 15.0,
     this.ascentRate = 9.0,
+    this.intermediateAscentRate = 6.0,
+    this.shallowAscentRate = 3.0,
+    this.finalAscentRate = 1.0,
+    this.lastStopDepth = 3.0,
     this.descentRate = 18.0,
     this.surfaceInterval,
     this.initialTissueState,
@@ -610,12 +629,14 @@ class DivePlanState extends Equatable {
   }
 
   /// Maximum depth in the plan.
+  ///
+  /// Only targets need checking: every leg starts where the previous one
+  /// finished, so a start depth is always some earlier segment's target.
   double get maxDepth {
     if (segments.isEmpty) return 0;
     double max = 0;
     for (final seg in segments) {
-      if (seg.startDepth > max) max = seg.startDepth;
-      if (seg.endDepth > max) max = seg.endDepth;
+      if (seg.targetDepth > max) max = seg.targetDepth;
     }
     return max;
   }
@@ -633,6 +654,10 @@ class DivePlanState extends Equatable {
     int? gfHigh,
     double? sacRate,
     double? ascentRate,
+    double? intermediateAscentRate,
+    double? shallowAscentRate,
+    double? finalAscentRate,
+    double? lastStopDepth,
     double? descentRate,
     Duration? surfaceInterval,
     List<TissueCompartment>? initialTissueState,
@@ -677,6 +702,11 @@ class DivePlanState extends Equatable {
       gfHigh: gfHigh ?? this.gfHigh,
       sacRate: sacRate ?? this.sacRate,
       ascentRate: ascentRate ?? this.ascentRate,
+      intermediateAscentRate:
+          intermediateAscentRate ?? this.intermediateAscentRate,
+      shallowAscentRate: shallowAscentRate ?? this.shallowAscentRate,
+      finalAscentRate: finalAscentRate ?? this.finalAscentRate,
+      lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       descentRate: descentRate ?? this.descentRate,
       surfaceInterval: clearSurfaceInterval
           ? null
@@ -734,6 +764,10 @@ class DivePlanState extends Equatable {
     gfHigh,
     sacRate,
     ascentRate,
+    intermediateAscentRate,
+    shallowAscentRate,
+    finalAscentRate,
+    lastStopDepth,
     descentRate,
     surfaceInterval,
     initialTissueState,

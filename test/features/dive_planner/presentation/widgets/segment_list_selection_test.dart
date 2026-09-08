@@ -32,6 +32,24 @@ void main() {
   ListTile tileAt(WidgetTester tester, int index) =>
       tester.widgetList<ListTile>(find.byType(ListTile)).elementAt(index);
 
+  testWidgets('each row shows the cumulative runtime at the end of the leg', (
+    tester,
+  ) async {
+    await tester.pumpWidget(harness());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SegmentList)),
+    );
+    // Quick plan: descend to 30 m at 18 m/min (1:40, ceils to 2') then 20 min
+    // on the bottom, so the rows read RT 2' and RT 22'.
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('RT 2\u2032'), findsOneWidget);
+    expect(find.textContaining('RT 22\u2032'), findsOneWidget);
+  });
+
   testWidgets('provider selection highlights the matching tile', (
     tester,
   ) async {
@@ -86,13 +104,13 @@ void main() {
           .read(divePlanNotifierProvider)
           .segments
           .last
-          .endDepth;
+          .targetDepth;
 
       await tester.tap(find.byTooltip('Add Segment'));
       await tester.pumpAndSettle();
 
       final editor = tester.widget<SegmentEditor>(find.byType(SegmentEditor));
-      expect(editor.initialStartDepth, expectedDepth);
+      expect(editor.startDepth, expectedDepth);
     },
   );
 
@@ -106,6 +124,6 @@ void main() {
     await tester.pumpAndSettle();
 
     final editor = tester.widget<SegmentEditor>(find.byType(SegmentEditor));
-    expect(editor.initialStartDepth, 0.0);
+    expect(editor.startDepth, 0.0);
   });
 }

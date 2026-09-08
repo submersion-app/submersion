@@ -56,6 +56,10 @@ class GoogleDriveStorageProvider
 
   final GoogleDriveAuthenticator _authenticator;
   drive.DriveApi? _driveApi;
+
+  /// The client [_driveApi] was built over, compared by identity so a client
+  /// swapped underneath us is never kept in use.
+  http.Client? _driveApiClient;
   drive.DriveApi? _injectedApi;
   String? _syncFolderId;
 
@@ -114,6 +118,13 @@ class GoogleDriveStorageProvider
   /// when not authenticated. Rebuilt lazily so a re-auth (new client)
   /// transparently produces a new API instance.
   ///
+  /// The cache is keyed on the client's IDENTITY, not merely on its
+  /// nullness. A re-auth closes the client it replaces, and an api cached
+  /// over that closed client kept sending through it -- "HTTP request
+  /// failed. Client is already closed." on every Drive call for the rest of
+  /// the process, while isAuthenticated() went on answering true because
+  /// authClient was non-null the whole time.
+  ///
   /// An api injected by [debugSetDriveApi] wins outright: tests exercise the
   /// transfer paths with no authenticator at all, so deriving from
   /// [GoogleDriveAuthenticator.authClient] would resolve to null and every
@@ -125,9 +136,14 @@ class GoogleDriveStorageProvider
     final client = _authenticator.authClient;
     if (client == null) {
       _driveApi = null;
+      _driveApiClient = null;
       return null;
     }
-    return _driveApi ??= drive.DriveApi(client);
+    if (_driveApi == null || !identical(client, _driveApiClient)) {
+      _driveApi = drive.DriveApi(client);
+      _driveApiClient = client;
+    }
+    return _driveApi;
   }
 
   drive.DriveApi get _requireApi {
@@ -407,13 +423,12 @@ class GoogleDriveStorageProvider
           query += " and name contains '$namePattern'";
         }
 
-        final fileList = await _requireApi.files.list(
-          spaces: 'appDataFolder',
-          q: query,
-          $fields: 'files(id,name,modifiedTime,size)',
+        final files = await _listAllFiles(
+          query: query,
+          fileFields: 'files(id,name,modifiedTime,size)',
         );
 
-        return (fileList.files ?? [])
+        return files
             .where((f) => f.id != null && f.name != null)
             .map(
               (f) => CloudFileInfo(
@@ -504,14 +519,13 @@ class GoogleDriveStorageProvider
             "and 'appDataFolder' in parents "
             "and trashed = false";
 
-        final fileList = await _requireApi.files.list(
-          spaces: 'appDataFolder',
-          q: query,
-          $fields: 'files(id,name)',
+        final folders = await _listAllFiles(
+          query: query,
+          fileFields: 'files(id,name)',
         );
 
-        if (fileList.files != null && fileList.files!.isNotEmpty) {
-          _syncFolderId = fileList.files!.first.id!;
+        if (folders.isNotEmpty) {
+          _syncFolderId = folders.first.id!;
           _log.info('Found existing sync folder: $_syncFolderId');
           return _syncFolderId!;
         }
@@ -535,6 +549,55 @@ class GoogleDriveStorageProvider
     }
   }
 
+  /// Drive's per-page cap, requested explicitly. `files.list` defaults to
+  /// 100 results per page; 1000 is the documented maximum, so a typical
+  /// sync folder is covered by a single round trip.
+  static const _listPageSize = 1000;
+
+  /// Every appDataFolder file matching [query], following `nextPageToken`
+  /// to exhaustion.
+  ///
+  /// A single `files.list` call returns at most one page and reports the
+  /// rest only through `nextPageToken`, so it silently truncated any sync
+  /// folder holding more than 100 artifacts. A base publish splits into
+  /// many `.pNNNN` parts and every device adds its own changeset log, so
+  /// real backends cross that line: peer discovery, manifest reads,
+  /// compaction pruning and wipe deletion all ran against a partial view,
+  /// with no error to say so.
+  ///
+  /// [fileFields] is the `files(...)` projection. `nextPageToken` is added
+  /// alongside it because Drive's `fields` filter applies to the whole
+  /// response, not just the file records: a projection that names only
+  /// `files(...)` strips the token, and the loop would stop after one page
+  /// exactly as before.
+  ///
+  /// Callers wrap this in [_run], so a 401 mid-listing restarts from the
+  /// first page rather than resuming with a token minted under the old
+  /// credentials -- which is what Drive asks for anyway ("if the token is
+  /// rejected, pagination should be restarted from the first page").
+  Future<List<drive.File>> _listAllFiles({
+    required String query,
+    required String fileFields,
+  }) async {
+    final files = <drive.File>[];
+    String? pageToken;
+    do {
+      final page = await _requireApi.files.list(
+        spaces: 'appDataFolder',
+        q: query,
+        pageSize: _listPageSize,
+        pageToken: pageToken,
+        $fields: 'nextPageToken,$fileFields',
+      );
+      files.addAll(page.files ?? const []);
+      // An empty token means the same thing as an absent one; treating it
+      // as a real token would re-issue the first page forever.
+      final next = page.nextPageToken;
+      pageToken = (next == null || next.isEmpty) ? null : next;
+    } while (pageToken != null);
+    return files;
+  }
+
   /// Find a file by name in a specific folder
   Future<drive.File?> _findFile(String filename, String folderId) async {
     try {
@@ -543,16 +606,12 @@ class GoogleDriveStorageProvider
           "and '$folderId' in parents "
           "and trashed = false";
 
-      final fileList = await _requireApi.files.list(
-        spaces: 'appDataFolder',
-        q: query,
-        $fields: 'files(id,name)',
+      final matches = await _listAllFiles(
+        query: query,
+        fileFields: 'files(id,name)',
       );
 
-      if (fileList.files != null && fileList.files!.isNotEmpty) {
-        return fileList.files!.first;
-      }
-      return null;
+      return matches.isNotEmpty ? matches.first : null;
     } on drive.DetailedApiRequestError {
       // Let auth errors reach _run's 401 handling instead of masking them
       // as "file not found" (which would create a duplicate).

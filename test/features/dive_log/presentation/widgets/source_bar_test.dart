@@ -6,6 +6,10 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 Widget _harness(Widget child) {
   return MaterialApp(
+    // flutter_test forwards the host machine's locale list, so an unpinned
+    // MaterialApp renders a translated UI on a non-English machine and every
+    // English literal below stops matching.
+    locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(body: child),
@@ -41,7 +45,7 @@ void main() {
           ],
           onActivate: (_) {},
           onToggleOverlay: (_, _) {},
-          onMenuAction: (_, _) {},
+          onSetPrimary: (_) {},
         ),
       ),
     );
@@ -66,7 +70,7 @@ void main() {
           ],
           onActivate: (_) {},
           onToggleOverlay: (_, _) {},
-          onMenuAction: (_, _) {},
+          onSetPrimary: (_) {},
         ),
       ),
     );
@@ -94,7 +98,7 @@ void main() {
           ],
           onActivate: activated.add,
           onToggleOverlay: (_, _) {},
-          onMenuAction: (_, _) {},
+          onSetPrimary: (_) {},
         ),
       ),
     );
@@ -121,7 +125,7 @@ void main() {
           ],
           onActivate: (_) {},
           onToggleOverlay: (id, overlaid) => toggles.add((id, overlaid)),
-          onMenuAction: (_, _) {},
+          onSetPrimary: (_) {},
         ),
       ),
     );
@@ -147,7 +151,7 @@ void main() {
           ],
           onActivate: (_) {},
           onToggleOverlay: (_, _) {},
-          onMenuAction: (_, _) {},
+          onSetPrimary: (_) {},
         ),
       ),
     );
@@ -155,8 +159,10 @@ void main() {
     expect(find.byIcon(Icons.star), findsOneWidget);
   });
 
-  testWidgets('menu offers set primary and split; split fires', (tester) async {
-    final actions = <(String, SourceMenuAction)>[];
+  testWidgets('menu offers set primary only; split is not offered', (
+    tester,
+  ) async {
+    final promoted = <String>[];
     await tester.pumpWidget(
       _harness(
         SourceBar(
@@ -171,25 +177,24 @@ void main() {
           ],
           onActivate: (_) {},
           onToggleOverlay: (_, _) {},
-          onMenuAction: (id, action) => actions.add((id, action)),
+          onSetPrimary: promoted.add,
         ),
       ),
     );
 
-    // Open the non-primary chip's menu (the second more_vert icon).
-    await tester.tap(find.byIcon(Icons.more_vert).last);
+    await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
 
     expect(find.text('Set as primary'), findsOneWidget);
-    expect(find.text('Split into separate dive'), findsOneWidget);
+    expect(find.text('Split into separate dive'), findsNothing);
 
-    await tester.tap(find.text('Split into separate dive'));
+    await tester.tap(find.text('Set as primary'));
     await tester.pumpAndSettle();
 
-    expect(actions, [('src-b', SourceMenuAction.split)]);
+    expect(promoted, ['src-b']);
   });
 
-  testWidgets('primary chip menu omits set primary', (tester) async {
+  testWidgets('the primary chip has no overflow menu at all', (tester) async {
     await tester.pumpWidget(
       _harness(
         SourceBar(
@@ -204,16 +209,13 @@ void main() {
           ],
           onActivate: (_) {},
           onToggleOverlay: (_, _) {},
-          onMenuAction: (_, _) {},
+          onSetPrimary: (_) {},
         ),
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.more_vert).first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Set as primary'), findsNothing);
-    expect(find.text('Split into separate dive'), findsOneWidget);
+    // Only the non-primary chip carries a menu button.
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
   });
 
   testWidgets('profile-less source has a disabled eye', (tester) async {
@@ -231,7 +233,7 @@ void main() {
           ],
           onActivate: (_) {},
           onToggleOverlay: (_, _) {},
-          onMenuAction: (_, _) {},
+          onSetPrimary: (_) {},
         ),
       ),
     );

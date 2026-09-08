@@ -374,11 +374,19 @@ class DatabaseService {
       // be the open that finally drops the tables. The background executor
       // reopens on a fresh connection that no longer sees them, so nothing
       // downstream would catch it.
-      final unplannedReclaim =
-          !willVacuum && migrator.droppedLegacySampleTables;
+      //
+      // v190 (issue #227) recompresses raw_data in place, which frees pages
+      // the same way the v183 drop did. A file upgrading from 184 or later
+      // has willVacuum false, so the recompression reaches the one VACUUM
+      // through this branch, unannounced as a progress step. The totals were
+      // fixed before the ladder started, and reporting an unplanned reclaim
+      // as a step would send the bar past its own total.
+      final unplannedReclaim = !willVacuum && migrator.hasUnreclaimedPages;
       if (vacuumPending() && (willVacuum || unplannedReclaim)) {
         // v183 dropped the row-per-sample tables, which on an older file are
-        // most of its pages. VACUUM here: outside any migration transaction,
+        // most of its pages, and v190 rewrites every raw_data blob smaller;
+        // both leave the freed pages on the freelist. VACUUM here: outside
+        // any migration transaction,
         // on the one exclusive main-isolate connection, and before the
         // background executor opens the file. Non-fatal: a busy lock or an
         // out-of-space temp store leaves a correct database that is merely
@@ -401,7 +409,8 @@ class DatabaseService {
         } catch (e, stackTrace) {
           _log.warning(
             'Post-migration VACUUM skipped; the database is correct but has '
-            'not reclaimed the dropped sample pages',
+            'not returned its free pages to the filesystem '
+            '(${migrator.unreclaimedPagesReason})',
             error: e,
             stackTrace: stackTrace,
           );
@@ -469,13 +478,19 @@ class DatabaseService {
     // awaited, so nothing queries a file mid-VACUUM. Non-fatal for the same
     // reason as the migration path's copy: a busy lock or a full temp store
     // leaves a correct database that is merely larger than it needs to be.
-    if (database.droppedLegacySampleTables) {
+    //
+    // The v190 recompression reaches this the same way if it ever runs on an
+    // open with no pending ladder. It cannot today, but the gate is one
+    // signal so a future rung that frees pages does not have to remember to
+    // add itself in two places.
+    if (database.hasUnreclaimedPages) {
       try {
         await database.customStatement('VACUUM');
       } catch (e, stackTrace) {
         _log.warning(
-          'VACUUM after the backstop dropped the legacy sample tables was '
-          'skipped; the database is correct but has not reclaimed their pages',
+          'VACUUM after an upgrade freed pages was skipped; the database is '
+          'correct but has not returned them to the filesystem '
+          '(${database.unreclaimedPagesReason})',
           error: e,
           stackTrace: stackTrace,
         );

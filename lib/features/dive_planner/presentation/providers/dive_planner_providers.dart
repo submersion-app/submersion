@@ -14,6 +14,7 @@ import 'package:submersion/features/planner/data/repositories/dive_plan_reposito
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 
 const _uuid = Uuid();
@@ -310,14 +311,19 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
     final tank = state.tanks.first;
     final segments = <PlanSegment>[
-      PlanSegment.descent(
+      // Descends at the plan's own rate. The old call used PlanSegment
+      // .descent without passing one, so the quick plan always dropped at
+      // the factory's hardcoded 18 m/min and ignored the rate slider.
+      PlanSegment.travel(
         id: _uuid.v4(),
+        fromDepth: 0,
         targetDepth: maxDepth,
+        ratePerMinute: state.descentRate,
         tankId: tank.id,
         gasMix: tank.gasMix,
         order: 0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: _uuid.v4(),
         depth: maxDepth,
         durationMinutes: bottomTimeMinutes,
@@ -437,11 +443,42 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
-  /// Update ascent and/or descent rate in meters per minute.
-  void updateRates({double? ascent, double? descent}) {
+  /// Update any of the four ascent rates, or the descent rate, in meters per
+  /// minute. [intermediate] applies between stops deeper than 9 m, [shallow]
+  /// between the 9 m and shallower stops, and [finalStretch] from the last
+  /// stop to the surface.
+  void updateRates({
+    double? ascent,
+    double? intermediate,
+    double? shallow,
+    double? finalStretch,
+    double? descent,
+  }) {
     state = state.copyWith(
       ascentRate: ascent,
+      intermediateAscentRate: intermediate,
+      shallowAscentRate: shallow,
+      finalAscentRate: finalStretch,
       descentRate: descent,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Shallowest metres allowed for the last deco stop.
+  static const double minLastStopDepth = 3.0;
+
+  /// Deepest metres allowed for the last deco stop.
+  static const double maxLastStopDepth = 6.0;
+
+  /// Set where the final decompression stop is held, 3 to 6 m. It need not
+  /// sit on the 3 m grid: the schedule follows the grid down to 6 m and then
+  /// holds this depth.
+  void updateLastStopDepth(double meters) {
+    final clamped = meters.clamp(minLastStopDepth, maxLastStopDepth);
+    if (clamped == state.lastStopDepth) return;
+    state = state.copyWith(
+      lastStopDepth: clamped,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -614,11 +651,10 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     double totalDepthTime = 0;
     int totalTime = 0;
 
-    for (final segment in state.segments) {
-      if (segment.startDepth > maxDepth) maxDepth = segment.startDepth;
-      if (segment.endDepth > maxDepth) maxDepth = segment.endDepth;
-      totalDepthTime += segment.avgDepth * segment.durationSeconds;
-      totalTime += segment.durationSeconds;
+    for (final leg in const SegmentChain().resolve(state.segments)) {
+      if (leg.endDepth > maxDepth) maxDepth = leg.endDepth;
+      totalDepthTime += leg.avgDepth * leg.durationSeconds;
+      totalTime += leg.durationSeconds;
     }
 
     final avgDepth = totalTime > 0 ? totalDepthTime / totalTime : 0.0;

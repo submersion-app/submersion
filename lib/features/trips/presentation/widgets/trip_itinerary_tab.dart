@@ -109,7 +109,6 @@ class _ItineraryDayCard extends ConsumerWidget {
     final units = UnitFormatter(settings);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final dateFormat = DateFormat.MMMEd();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -162,7 +161,7 @@ class _ItineraryDayCard extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            dateFormat.format(day.date),
+                            units.formatWeekdayMonthDay(day.date),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),

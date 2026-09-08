@@ -16,12 +16,16 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:collection/collection.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/unit_configurations_card.dart';
+import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
@@ -169,6 +173,17 @@ class _EquipmentDetailContent extends ConsumerWidget {
             const SizedBox(height: 24),
             UnitConfigurationsCard(equipmentId: equipmentId),
           ],
+          const SizedBox(height: 24),
+          EquipmentDocumentsSection(
+            equipmentId: equipmentId,
+            onAttachPressed: () => DocumentOpenHelper.pickAndAttach(
+              context: context,
+              ref: ref,
+              equipmentId: equipmentId,
+            ),
+            onOpenDocument: (item) =>
+                DocumentOpenHelper.open(context, ref, item),
+          ),
           const SizedBox(height: 24),
           ServiceHistorySection(equipmentId: equipmentId),
           if (equipment.notes.isNotEmpty) ...[
@@ -585,10 +600,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 context.l10n.equipment_detail_serialNumberLabel,
                 equipment.serialNumber!,
               ),
-            // Curated attributes in catalog order, then custom fields.
+            // Curated specs in catalog order, then custom fields. The
+            // purchase group is held back to the purchase block below.
             for (final def in EquipmentAttributeCatalog.attributesFor(
               equipment.type,
-            ))
+            ).where((d) => d.group == AttributeGroup.spec))
               if (equipment.attributes.firstWhereOrNull(
                     (a) => !a.isCustom && a.key == def.key,
                   )
@@ -618,6 +634,14 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   equipment.purchaseCurrency,
                 ),
               ),
+            // Purchase record (issue #1517): the receipt trail, shown with
+            // the date and price rather than among the physical specs.
+            for (final def in EquipmentAttributeCatalog.purchase)
+              if (equipment.attributes.firstWhereOrNull(
+                    (a) => !a.isCustom && a.key == def.key,
+                  )
+                  case final attr? when attr.hasValue)
+                _buildPurchaseAttributeRow(context, ref, def, attr, units),
             if (equipment.ownershipDuration != null)
               _buildDetailRow(
                 context,
@@ -679,6 +703,76 @@ class _EquipmentDetailContent extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// One purchase-record row. A `url` attribute whose stored text resolves
+  /// to an http(s) link becomes tappable; anything else (including a value
+  /// [parseWebLink] rejects) renders as plain text, so a garbled link is
+  /// still visible and editable rather than silently dropped.
+  Widget _buildPurchaseAttributeRow(
+    BuildContext context,
+    WidgetRef ref,
+    EquipmentAttributeDef def,
+    EquipmentAttribute attr,
+    UnitFormatter units,
+  ) {
+    final label = attributeLabel(context.l10n, def.key);
+    if (def.kind == AttributeKind.url) {
+      final link = parseWebLink(attr.valueText);
+      if (link != null) {
+        return _buildLinkRow(context, ref, label, attr.valueText!, link);
+      }
+    }
+    return _buildDetailRow(
+      context,
+      label,
+      formatAttributeValue(attr, def, units, context.l10n),
+    );
+  }
+
+  /// [_buildDetailRow] with the value rendered as a tappable link.
+  Widget _buildLinkRow(
+    BuildContext context,
+    WidgetRef ref,
+    String label,
+    String value,
+    Uri link,
+  ) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Flexible(
+            child: InkWell(
+              key: const ValueKey('equipment-detail-web-link'),
+              onTap: () => launchEquipmentWebLink(
+                context,
+                link,
+                launch: ref.read(equipmentWebLinkLaunchProvider),
+              ),
+              child: Text(
+                value,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                  decorationColor: theme.colorScheme.primary,
+                ),
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

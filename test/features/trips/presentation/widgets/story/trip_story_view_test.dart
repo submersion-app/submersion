@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
@@ -473,5 +474,151 @@ void main() {
 
     expect(calls, 0);
     expect(find.textContaining('°C'), findsNothing);
+  });
+
+  group('checklist closer reachability (#1569)', () {
+    // The checklist closer is the only editable checklist surface a
+    // non-liveaboard trip has. Hiding it while the trip is upcoming, or while
+    // the checklist is still empty, made it unreachable in every state: the
+    // section that applies a template was gated on a template already having
+    // been applied.
+    Trip relativeTrip({required bool upcoming}) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final start = upcoming
+          ? today.add(const Duration(days: 10))
+          : today.subtract(const Duration(days: 20));
+      return Trip(
+        id: 'trip-1',
+        name: 'Bonaire',
+        startDate: start,
+        endDate: start.add(const Duration(days: 2)),
+        tripType: TripType.resort,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+    }
+
+    TripStory relativeStory(Trip trip, List<TripChecklistItem> items) {
+      return buildTripStory(
+        trip: trip,
+        dives: [],
+        itineraryDays: [],
+        mediaByDiveId: {},
+        sightingsByDiveId: {},
+        checklistItems: items,
+        today: DateTime(
+          trip.startDate.year,
+          trip.startDate.month,
+          trip.startDate.day,
+        ),
+      );
+    }
+
+    testWidgets('upcoming trip with an empty checklist can still bootstrap '
+        'one', (tester) async {
+      final trip = relativeTrip(upcoming: true);
+      await pumpView(
+        tester,
+        relativeStory(trip, const []),
+        extra: [tripChecklistProvider(trip.id).overrideWith((ref) async => [])],
+      );
+
+      // Titled "Checklist" rather than "0 of 0 to-dos done", and expanded so
+      // the apply-template menu is reachable without a hunt.
+      expect(find.text('Checklist'), findsOneWidget);
+      expect(
+        find.text('Plan your trip - add to-dos or apply a template'),
+        findsOneWidget,
+      );
+      expect(find.text('Add item'), findsOneWidget);
+    });
+
+    testWidgets('upcoming trip with items opens expanded', (tester) async {
+      final trip = relativeTrip(upcoming: true);
+      final items = [
+        TripChecklistItem(
+          id: 'c1',
+          tripId: trip.id,
+          title: 'Service regulator',
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      ];
+      await pumpView(
+        tester,
+        relativeStory(trip, items),
+        extra: [
+          tripChecklistProvider(trip.id).overrideWith((ref) async => items),
+        ],
+      );
+
+      // Open, so the card wears the section's own header rather than an
+      // ExpansionTile title that would repeat it.
+      expect(find.text('Checklist'), findsOneWidget);
+      expect(find.text('0 of 1 to-dos done'), findsOneWidget);
+      // No tap needed: an upcoming trip's prep list is the point of the page.
+      expect(find.text('Service regulator'), findsOneWidget);
+    });
+
+    testWidgets('past trip with an empty checklist can still bootstrap one', (
+      tester,
+    ) async {
+      final trip = relativeTrip(upcoming: false);
+      await pumpView(
+        tester,
+        relativeStory(trip, const []),
+        extra: [tripChecklistProvider(trip.id).overrideWith((ref) async => [])],
+      );
+
+      expect(find.text('Checklist'), findsOneWidget);
+      expect(find.text('No checklist items'), findsOneWidget);
+    });
+
+    testWidgets('past trip with items stays collapsed', (tester) async {
+      final trip = relativeTrip(upcoming: false);
+      final items = [
+        TripChecklistItem(
+          id: 'c1',
+          tripId: trip.id,
+          title: 'Service regulator',
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      ];
+      await pumpView(
+        tester,
+        relativeStory(trip, items),
+        extra: [
+          tripChecklistProvider(trip.id).overrideWith((ref) async => items),
+        ],
+      );
+
+      expect(find.text('0 of 1 done'), findsOneWidget);
+      expect(find.text('Service regulator'), findsNothing);
+    });
+
+    testWidgets('liveaboard trips keep the closer out of the story', (
+      tester,
+    ) async {
+      final trip = Trip(
+        id: 'trip-1',
+        name: 'Bonaire',
+        startDate: DateTime.now().add(const Duration(days: 10)),
+        endDate: DateTime.now().add(const Duration(days: 12)),
+        tripType: TripType.liveaboard,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+      await pumpView(
+        tester,
+        relativeStory(trip, const []),
+        extra: [tripChecklistProvider(trip.id).overrideWith((ref) async => [])],
+      );
+
+      // Liveaboards get a dedicated Checklist tab; a second copy in the story
+      // would be two editors for one list.
+      expect(find.text('Checklist'), findsNothing);
+    });
   });
 }

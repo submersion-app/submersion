@@ -61,8 +61,17 @@ abstract class DecoModel {
     BreathingConfig breathing,
   );
 
-  /// Current ceiling in meters (0 = clear to surface).
-  double ceilingMeters(TissueState state, {double currentDepth = 0});
+  /// Current ceiling in meters: the shallowest depth the diver may ascend to
+  /// right now. A property of [state] alone - for a gradient-factor model the
+  /// GF that applies is a function of the ceiling's own depth, so the answer
+  /// does not depend on where the diver currently is.
+  double ceilingMeters(TissueState state);
+
+  /// Ceiling in meters against the surface target (GF-high for Buhlmann):
+  /// 0 means a direct ascent to the surface is allowed and no decompression
+  /// is owed. Distinct from [ceilingMeters], which can be non-zero mid-dive
+  /// on a profile that still owes nothing.
+  double surfaceCeilingMeters(TissueState state);
 
   /// No-deco limit in seconds at [depthMeters] on [breathing];
   /// -1 when already in deco.
@@ -118,6 +127,19 @@ class BuhlmannGf implements DecoModel {
     return _capture();
   }
 
+  /// Longest slice of a depth-changing segment loaded at a single depth.
+  ///
+  /// Gas loading approaches the inspired pressure exponentially, so holding
+  /// one mean depth across a long ramp is not the same as travelling it: a
+  /// 20-minute descent loaded as 20 minutes at its mean depth under-loads the
+  /// tissues noticeably. Ten seconds keeps the error negligible while staying
+  /// cheap enough for a half-hour leg (180 slices).
+  ///
+  /// Flat segments need no slicing - their mean depth *is* their depth - so
+  /// dive-log replay, which feeds sample-to-sample segments a few seconds
+  /// long, is unaffected either way.
+  static const int _maxRampSliceSeconds = 10;
+
   @override
   TissueState applySegment(
     TissueState state,
@@ -125,19 +147,48 @@ class BuhlmannGf implements DecoModel {
     BreathingConfig breathing,
   ) {
     _restore(state);
-    final avgDepth = (segment.startDepth + segment.endDepth) / 2.0;
-    _algorithm.calculateSegment(
-      depthMeters: avgDepth,
-      durationSeconds: segment.durationSeconds,
-      breathing: breathing,
-    );
+
+    final isRamp = segment.startDepth != segment.endDepth;
+    if (!isRamp || segment.durationSeconds <= _maxRampSliceSeconds) {
+      final avgDepth = (segment.startDepth + segment.endDepth) / 2.0;
+      _algorithm.calculateSegment(
+        depthMeters: avgDepth,
+        durationSeconds: segment.durationSeconds,
+        breathing: breathing,
+      );
+      return _capture();
+    }
+
+    final total = segment.durationSeconds;
+    final span = segment.endDepth - segment.startDepth;
+    var elapsed = 0;
+    while (elapsed < total) {
+      final remaining = total - elapsed;
+      final slice = remaining < _maxRampSliceSeconds
+          ? remaining
+          : _maxRampSliceSeconds;
+      final from = segment.startDepth + span * (elapsed / total);
+      final to = segment.startDepth + span * ((elapsed + slice) / total);
+      _algorithm.calculateSegment(
+        depthMeters: (from + to) / 2.0,
+        durationSeconds: slice,
+        breathing: breathing,
+      );
+      elapsed += slice;
+    }
     return _capture();
   }
 
   @override
-  double ceilingMeters(TissueState state, {double currentDepth = 0}) {
+  double ceilingMeters(TissueState state) {
     _restore(state);
-    return _algorithm.calculateCeiling(currentDepth: currentDepth);
+    return _algorithm.calculateCeiling();
+  }
+
+  @override
+  double surfaceCeilingMeters(TissueState state) {
+    _restore(state);
+    return _algorithm.surfaceTargetCeiling();
   }
 
   @override

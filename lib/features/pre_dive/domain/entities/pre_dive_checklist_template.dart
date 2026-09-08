@@ -4,7 +4,8 @@ import 'package:equatable/equatable.dart';
 enum PreDiveItemType {
   check,
   value,
-  equipmentSet;
+  equipmentSet,
+  equipment;
 
   static PreDiveItemType parse(String raw) => PreDiveItemType.values.firstWhere(
     (e) => e.name == raw,
@@ -95,6 +96,7 @@ class PreDiveChecklistTemplateItem extends Equatable {
   final double? valueMin;
   final double? valueMax;
   final bool isRequired;
+  final String? equipmentId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -111,6 +113,7 @@ class PreDiveChecklistTemplateItem extends Equatable {
     this.valueMin,
     this.valueMax,
     this.isRequired = false,
+    this.equipmentId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -128,6 +131,7 @@ class PreDiveChecklistTemplateItem extends Equatable {
     Object? valueMin = _undefined,
     Object? valueMax = _undefined,
     bool? isRequired,
+    Object? equipmentId = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -148,6 +152,9 @@ class PreDiveChecklistTemplateItem extends Equatable {
       valueMin: valueMin == _undefined ? this.valueMin : valueMin as double?,
       valueMax: valueMax == _undefined ? this.valueMax : valueMax as double?,
       isRequired: isRequired ?? this.isRequired,
+      equipmentId: equipmentId == _undefined
+          ? this.equipmentId
+          : equipmentId as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -167,6 +174,7 @@ class PreDiveChecklistTemplateItem extends Equatable {
     valueMin,
     valueMax,
     isRequired,
+    equipmentId,
     createdAt,
     updatedAt,
   ];

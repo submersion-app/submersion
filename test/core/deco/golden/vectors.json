@@ -1,6 +1,6 @@
 {
   "generator": "scripts/deco_golden/generate_vectors.py",
-  "semantics_version": 1,
+  "semantics_version": 3,
   "cases": [
     {
       "name": "air-30m-25min-gf5080",
@@ -37,6 +37,10 @@
       "expected": {
         "stops": [
           {
+            "depth_m": 9.0,
+            "seconds": 60
+          },
+          {
             "depth_m": 6.0,
             "seconds": 180
           },
@@ -45,7 +49,7 @@
             "seconds": 480
           }
         ],
-        "tts_seconds": 860,
+        "tts_seconds": 920,
         "tissues_p_n2_bar": [
           3.084014,
           2.857792,
@@ -120,7 +124,7 @@
         "stops": [
           {
             "depth_m": 15.0,
-            "seconds": 60
+            "seconds": 120
           },
           {
             "depth_m": 12.0,
@@ -136,10 +140,10 @@
           },
           {
             "depth_m": 3.0,
-            "seconds": 1140
+            "seconds": 1200
           }
         ],
-        "tts_seconds": 2247
+        "tts_seconds": 2367
       }
     },
     {
@@ -182,10 +186,10 @@
           },
           {
             "depth_m": 3.0,
-            "seconds": 600
+            "seconds": 660
           }
         ],
-        "tts_seconds": 1040
+        "tts_seconds": 1100
       }
     },
     {
@@ -233,6 +237,10 @@
       "expected": {
         "stops": [
           {
+            "depth_m": 27.0,
+            "seconds": 60
+          },
+          {
             "depth_m": 24.0,
             "seconds": 120
           },
@@ -250,11 +258,11 @@
           },
           {
             "depth_m": 12.0,
-            "seconds": 240
+            "seconds": 300
           },
           {
             "depth_m": 9.0,
-            "seconds": 480
+            "seconds": 420
           },
           {
             "depth_m": 6.0,
@@ -262,10 +270,10 @@
           },
           {
             "depth_m": 3.0,
-            "seconds": 960
+            "seconds": 1020
           }
         ],
-        "tts_seconds": 3100
+        "tts_seconds": 3220
       }
     },
     {
@@ -303,6 +311,10 @@
       "expected": {
         "stops": [
           {
+            "depth_m": 9.0,
+            "seconds": 60
+          },
+          {
             "depth_m": 6.0,
             "seconds": 180
           },
@@ -311,7 +323,7 @@
             "seconds": 360
           }
         ],
-        "tts_seconds": 740
+        "tts_seconds": 800
       }
     },
     {
@@ -349,6 +361,10 @@
       "expected": {
         "stops": [
           {
+            "depth_m": 9.0,
+            "seconds": 60
+          },
+          {
             "depth_m": 6.0,
             "seconds": 180
           },
@@ -357,7 +373,7 @@
             "seconds": 420
           }
         ],
-        "tts_seconds": 800
+        "tts_seconds": 860
       }
     },
     {

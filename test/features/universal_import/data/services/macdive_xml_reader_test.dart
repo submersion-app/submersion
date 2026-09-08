@@ -227,6 +227,52 @@ void main() {
     });
   });
 
+  // #1606: MacDive's XML is mixed-unit. `duration` and `sampleInterval` are
+  // seconds, but `surfaceInterval` is MINUTES. Verified two ways against a
+  // real 540-dive export: MacDive's own UDDF exporter writes
+  // `passedtime = surfaceInterval * 60` for all 256 comparable dives, and the
+  // Core Data column `ZSURFACEINTERVAL` holds the identical raw number.
+  // Reading it as seconds showed a 2h18m interval as 2m.
+  group('MacDiveXmlReader surfaceInterval', () {
+    String xmlWithSurfaceInterval(String value) =>
+        '''<?xml version="1.0"?>
+<dives>
+  <units>Metric</units>
+  <schema>2.2.0</schema>
+  <dive>
+    <date>2024-01-01 00:00:00</date>
+    <maxDepth>20</maxDepth>
+    <duration>1800</duration>
+    <surfaceInterval>$value</surfaceInterval>
+    <samples/>
+  </dive>
+</dives>''';
+
+    test('reads surfaceInterval as minutes, not seconds', () {
+      final dive = MacDiveXmlReader.parse(
+        xmlWithSurfaceInterval('138'),
+      ).dives.first;
+      expect(dive.surfaceInterval, const Duration(minutes: 138));
+    });
+
+    test('zero means no prior dive, not a zero-length interval', () {
+      // 110 of the 540 dives in the real export carry `0` here, which
+      // MacDive uses for "unknown / first dive of the series". Importing
+      // Duration.zero would stamp every one of them with a 0m interval.
+      final dive = MacDiveXmlReader.parse(
+        xmlWithSurfaceInterval('0'),
+      ).dives.first;
+      expect(dive.surfaceInterval, isNull);
+    });
+
+    test('empty surfaceInterval element produces null', () {
+      final dive = MacDiveXmlReader.parse(
+        xmlWithSurfaceInterval(''),
+      ).dives.first;
+      expect(dive.surfaceInterval, isNull);
+    });
+  });
+
   group('MacDiveXmlReader (imperial fixture)', () {
     late String content;
 

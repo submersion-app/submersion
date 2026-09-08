@@ -6,8 +6,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/auto_update/data/repositories/update_preferences.dart';
 import 'package:submersion/features/auto_update/data/services/github_update_service.dart';
+import 'package:submersion/features/auto_update/data/services/linux_install_method_reader.dart';
 import 'package:submersion/features/auto_update/data/services/sparkle_update_service.dart';
 import 'package:submersion/features/auto_update/data/services/update_service.dart';
+import 'package:submersion/features/auto_update/domain/entities/linux_install_method.dart';
+import 'package:submersion/features/auto_update/domain/linux_upgrade_command.dart';
 import 'package:submersion/features/auto_update/domain/entities/release_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
@@ -47,6 +50,28 @@ String get _platformSuffix {
 
 /// Whether the current platform uses the Sparkle/WinSparkle engine.
 bool get _useSparkleEngine => Platform.isMacOS || Platform.isWindows;
+
+/// How this Linux copy was installed.
+///
+/// A provider rather than an inline Platform check, matching
+/// isLinuxPlatformProvider in sync_providers.dart, so widget tests can simulate
+/// each install method on any CI host. Non-Linux platforms report tarball: they
+/// have their own update engines and never consult this.
+final linuxInstallMethodProvider = Provider<LinuxInstallMethod>((ref) {
+  if (!Platform.isLinux) return LinuxInstallMethod.tarball;
+  return LinuxInstallMethodReader(
+    executablePath: Platform.resolvedExecutable,
+  ).read();
+});
+
+/// The package-manager command that upgrades this install, or null when no
+/// package manager owns it (a tarball install, or any non-Linux platform).
+final linuxUpgradeCommandProvider = Provider<String?>((ref) {
+  return resolveUpgradeCommand(
+    ref.watch(linuxInstallMethodProvider),
+    exists: (path) => File(path).existsSync(),
+  );
+});
 
 /// Update preferences provider.
 final updatePreferencesProvider = Provider<UpdatePreferences>((ref) {

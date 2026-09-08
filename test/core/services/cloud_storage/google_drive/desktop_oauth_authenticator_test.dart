@@ -155,6 +155,34 @@ void main() {
     });
   });
 
+  group('silent sign-in', () {
+    test('two concurrent callers install one client and close none', () async {
+      // The `_authClient != null` guard is read BEFORE the token store await,
+      // so without single-flighting both callers get past it, both install,
+      // and the second install closes the client the first one already handed
+      // to GoogleDriveStorageProvider (and to the media store). Every later
+      // Drive call then fails with "Client is already closed" for the life of
+      // the process, because authClient is still non-null so nothing rebuilds.
+      //
+      // Two callers is the ordinary case, not a corner: the Cloud Sync page
+      // fires an unawaited refreshState() -> isAuthenticated() while a launch
+      // sync is already inside its own isAuthenticated().
+      store.stored = creds(refreshToken: 'rt-1');
+      final built = <_FakeRefreshingClient>[];
+      final auth = authenticator(builtClients: built);
+
+      final results = await Future.wait([
+        auth.attemptSilentAuth(),
+        auth.attemptSilentAuth(),
+      ]);
+
+      expect(results, [true, true]);
+      expect(built, hasLength(1), reason: 'the second caller must reuse');
+      expect(built.single.closed, isFalse);
+      expect(auth.authClient, same(built.single));
+    });
+  });
+
   group('client credentials', () {
     // Google rejects the token exchange for Desktop-app clients with
     // `invalid_request: client_secret is missing`, with or without PKCE and

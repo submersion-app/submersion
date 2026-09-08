@@ -4,7 +4,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
-import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
@@ -37,14 +36,16 @@ domain.DivePlan _plan({
     deviationTimeMinutes: 5,
     tanks: tanks,
     segments: [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'seg-1',
+        fromDepth: 0,
         targetDepth: 60.0,
         tankId: 'back',
         gasMix: _backGas,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'seg-2',
         depth: 60.0,
         durationMinutes: 25,
@@ -121,45 +122,69 @@ void main() {
   });
 
   test('losing a gas remaps user segments that breathed it onto back gas', () {
-    // A (contrived) plan whose bottom segment breathes the EAN50 deco tank.
-    // Losing EAN50 must remap that segment to back gas, so the contingency
-    // does not keep breathing 50% at 60 m (which would be ppO2-critical).
+    // A travel gas breathed down to 30 m, then back gas to 60 m. Losing the
+    // travel gas must remap its segment onto back gas rather than leave the
+    // contingency breathing a cylinder that is not there.
+    //
+    // This used to be written with the bottom segment breathing the EAN50
+    // deco bottle, which is no longer expressible: the cylinder the deepest
+    // leg breathes *is* the back gas by derivation, so that fixture asserted
+    // a contradiction.
+    const travel = DiveTank(
+      id: 'travel',
+      volume: 11.1,
+      startPressure: 200,
+      gasMix: GasMix(o2: 32),
+      isTravelGas: true,
+    );
     final plan = domain.DivePlan(
       id: 'plan-x',
-      name: 'Segment on deco gas',
+      name: 'Travel gas on the descent',
       gfLow: 50,
       gfHigh: 80,
-      tanks: const [_backTank, _ean50],
+      tanks: const [_backTank, travel],
       segments: [
-        PlanSegment.descent(
+        PlanSegment.travel(
           id: 'seg-1',
+          fromDepth: 0,
+          targetDepth: 30.0,
+          tankId: 'travel',
+          gasMix: const GasMix(o2: 32),
+          order: 0,
+          ratePerMinute: 18.0,
+        ),
+        PlanSegment.travel(
+          id: 'seg-2',
+          fromDepth: 30.0,
           targetDepth: 60.0,
           tankId: 'back',
           gasMix: _backGas,
-          order: 0,
+          order: 1,
+          ratePerMinute: 18.0,
         ),
-        PlanSegment.bottom(
-          id: 'seg-2',
+        PlanSegment.hold(
+          id: 'seg-3',
           depth: 60.0,
           durationMinutes: 20,
-          tankId: 'ean50',
-          gasMix: const GasMix(o2: 50),
-          order: 1,
+          tankId: 'back',
+          gasMix: _backGas,
+          order: 2,
         ),
       ],
       createdAt: DateTime(2026, 7, 5),
       updatedAt: DateTime(2026, 7, 5),
     );
 
-    final lost = service.lostGas(plan);
-    expect(lost, hasLength(1));
-    final outcome = lost.single.outcome;
-    // Back gas (18/45) at 60 m is safe; EAN50 at 60 m would be ppO2-critical.
+    final lost = service.lostGasFor(plan, 'travel');
+    expect(lost, isNotNull);
     expect(
-      outcome.issues.map((i) => i.type),
-      isNot(contains(PlanIssueType.ppO2Critical)),
-      reason: 'remapped segment should breathe back gas, not the lost EAN50',
+      lost!.plan.segments.every((seg) => seg.tankId == 'back'),
+      isTrue,
+      reason: 'the segment on the lost travel gas should fall back to back gas',
     );
+    // 32% at 30 m is fine, but the point is that nothing still breathes a
+    // cylinder the diver no longer has.
+    expect(lost.plan.tanks.map((t) => t.id), ['back']);
   });
 
   test('a travel-flagged tank gets a lost-gas outcome regardless of role', () {
@@ -180,23 +205,40 @@ void main() {
     expect(lost.map((l) => l.tank.id), containsAll(['ean50', 'pony']));
   });
 
-  test('a non-deco/stage tank without the travel flag is never lost', () {
+  test('every carried cylinder except the back gas is losable', () {
+    // Roles are derived now, so a cylinder cannot be declared "pony" to
+    // exempt it: a 32% bottle carried alongside an 18/45 bottom mix is a
+    // deco/stage bottle by the numbers, and losing it is worth planning for.
+    // This is a deliberate widening - the old declared-role version returned
+    // no contingency at all here.
     const pony = DiveTank(
       id: 'pony',
       volume: 3.0,
       startPressure: 200,
       gasMix: GasMix(o2: 32),
-      role: TankRole.pony,
     );
     final plan = _plan(tanks: const [_backTank, pony]);
 
-    expect(service.lostGas(plan), isEmpty);
+    expect(service.lostGas(plan).map((l) => l.tank.id), ['pony']);
   });
 
-  test('falls back to the first remaining tank when none is back gas', () {
-    // Both carried cylinders are lost-gas-eligible and neither is back gas
-    // (an all-travel/deco loadout); losing one must still remap onto
-    // whatever is left rather than finding no fallback at all.
+  test('the cylinder the bottom breathes is never offered as lost', () {
+    // It is the back gas by derivation, and it is the fallback everything
+    // else remaps onto, so losing it is not a contingency this models.
+    final plan = _plan(tanks: const [_backTank, _ean50]);
+
+    expect(service.lostGasFor(plan, 'back'), isNull);
+    expect(
+      service.lostGas(plan).map((l) => l.tank.id),
+      isNot(contains('back')),
+    );
+  });
+
+  test('a plan always has a back gas to fall back onto', () {
+    // This used to cover an "all-travel/deco loadout" with no back gas at
+    // all. Derivation makes that unreachable: whichever cylinder the deepest
+    // leg breathes is the back gas, so the fallback search always finds one
+    // and the old orElse-first-remaining path is now defensive only.
     const pony = DiveTank(
       id: 'pony',
       volume: 3.0,
@@ -212,14 +254,16 @@ void main() {
       gfHigh: 80,
       tanks: const [_ean50, pony],
       segments: [
-        PlanSegment.descent(
+        PlanSegment.travel(
           id: 'seg-1',
+          fromDepth: 0,
           targetDepth: 30.0,
           tankId: 'ean50',
           gasMix: const GasMix(o2: 50),
           order: 0,
+          ratePerMinute: 18.0,
         ),
-        PlanSegment.bottom(
+        PlanSegment.hold(
           id: 'seg-2',
           depth: 30.0,
           durationMinutes: 20,
@@ -232,9 +276,12 @@ void main() {
       updatedAt: DateTime(2026, 7, 5),
     );
 
-    final lost = service.lostGasFor(plan, 'ean50');
+    // The deepest leg breathes ean50, so ean50 is the back gas and is not
+    // itself losable; the pony is.
+    expect(service.lostGasFor(plan, 'ean50'), isNull);
+    final lost = service.lostGasFor(plan, 'pony');
     expect(lost, isNotNull);
-    expect(lost!.plan.segments.every((s) => s.tankId == 'pony'), isTrue);
+    expect(lost!.plan.segments.every((s) => s.tankId == 'ean50'), isTrue);
   });
 
   test('losing the only cylinder yields no lost-gas outcome', () {

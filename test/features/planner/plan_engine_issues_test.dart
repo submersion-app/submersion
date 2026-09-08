@@ -30,14 +30,16 @@ domain.DivePlan _airPlan({
     reservePressure: reservePressure,
     tanks: tankList,
     segments: [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'seg-1',
+        fromDepth: 0,
         targetDepth: depth,
         tankId: tankId,
         gasMix: _air,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'seg-2',
         depth: depth,
         durationMinutes: minutes,
@@ -79,12 +81,14 @@ void main() {
         gfHigh: 80,
         tanks: const [tank],
         segments: [
-          PlanSegment.descent(
+          PlanSegment.travel(
             id: 'seg-1',
+            fromDepth: 0,
             targetDepth: 60.0,
             tankId: 'back',
             gasMix: tx1070,
             order: 0,
+            ratePerMinute: 18.0,
           ),
         ],
         createdAt: DateTime(2026, 7, 5),

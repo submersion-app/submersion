@@ -940,6 +940,44 @@ void main() {
       expect(dive.diveType, 'recreational');
     });
 
+    test('the Suunto-cloud-only event strings pass through with their own '
+        'severity', () async {
+      // suunto_cloud_event_map names these ProfileEventType values directly;
+      // _mapEventTypeString returns them unchanged and _eventSeverity assigns
+      // the right band (no libdivecomputer download ever emits these strings).
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 4, 1, 12, 5);
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 1.0, ndl: 3600),
+          ProfilePointData(timestamp: 600, depth: 18.0, ndl: 1200),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 18.0,
+        events: const [
+          EventData(timestamp: 300, type: 'cnsWarning'),
+          EventData(timestamp: 600, type: 'cnsCritical'),
+          EventData(timestamp: 900, type: 'missedStop'),
+        ],
+        forceNew: true,
+      );
+
+      final events =
+          await (db.select(db.diveProfileEvents)
+                ..where((t) => t.diveId.equals(diveId))
+                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+              .get();
+      expect(events.map((e) => e.eventType), [
+        'cnsWarning',
+        'cnsCritical',
+        'missedStop',
+      ]);
+      expect(events.map((e) => e.severity), ['warning', 'alert', 'alert']);
+    });
+
     test('a no-deco profile defaults the dive type to recreational', () async {
       final computerId = await insertComputer();
       final entryTime = DateTime(2026, 4, 1, 12, 0);

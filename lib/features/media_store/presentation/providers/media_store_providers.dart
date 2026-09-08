@@ -442,6 +442,10 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         root: await mediaCacheRoot(),
       );
       final resolver = MediaStoreResolver(store: store, cache: cache);
+      // Same reason as worker.dispose below: a superseded runtime must not
+      // leave its resolver's budget timers armed behind the one that
+      // replaced it.
+      ref.onDispose(resolver.dispose);
 
       final mediaRepository = ref.watch(mediaRepositoryProvider);
       final policies = ref.watch(mediaStorePoliciesProvider);

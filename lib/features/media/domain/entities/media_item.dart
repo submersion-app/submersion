@@ -75,6 +75,10 @@ class MediaItem extends Equatable {
   final String id;
   final String? diveId;
   final String? siteId;
+
+  /// Equipment this item is attached to (issue #1517): invoices,
+  /// receipts and warranty paperwork filed against a piece of gear.
+  final String? equipmentId;
   final String? platformAssetId;
   final String? filePath;
   final String? originalFilename;
@@ -129,6 +133,7 @@ class MediaItem extends Equatable {
     required this.id,
     this.diveId,
     this.siteId,
+    this.equipmentId,
     this.platformAssetId,
     this.filePath,
     this.originalFilename,
@@ -276,6 +281,7 @@ class MediaItem extends Equatable {
     String? id,
     Object? diveId = _undefined,
     Object? siteId = _undefined,
+    Object? equipmentId = _undefined,
     Object? platformAssetId = _undefined,
     Object? filePath = _undefined,
     Object? originalFilename = _undefined,
@@ -321,6 +327,9 @@ class MediaItem extends Equatable {
       id: id ?? this.id,
       diveId: diveId == _undefined ? this.diveId : diveId as String?,
       siteId: siteId == _undefined ? this.siteId : siteId as String?,
+      equipmentId: equipmentId == _undefined
+          ? this.equipmentId
+          : equipmentId as String?,
       platformAssetId: platformAssetId == _undefined
           ? this.platformAssetId
           : platformAssetId as String?,
@@ -417,6 +426,7 @@ class MediaItem extends Equatable {
     id,
     diveId,
     siteId,
+    equipmentId,
     platformAssetId,
     filePath,
     originalFilename,

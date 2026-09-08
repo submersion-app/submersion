@@ -217,9 +217,7 @@ class _PlanTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final date = MaterialLocalizations.of(
-      context,
-    ).formatShortDate(summary.updatedAt);
+    final date = units.formatDate(summary.updatedAt);
     final subtitleParts = <String>[
       date,
       if (summary.maxDepth != null) units.formatDepth(summary.maxDepth!),

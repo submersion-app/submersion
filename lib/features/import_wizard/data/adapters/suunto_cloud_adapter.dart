@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
@@ -483,18 +482,15 @@ class SuuntoCloudAdapter implements ImportSourceAdapter {
   // Helpers -- entity item conversion
   // ---------------------------------------------------------------------------
 
-  static final _dateFormatter = DateFormat('MMM d, yyyy');
-  static final _timeFormatter = DateFormat('h:mm a');
-
   EntityItem _diveToEntityItem(SuuntoParsedDive parsed) {
     final dive = parsed.dive;
     final localStart = dive.startTime.toLocal();
-    final dateStr = _dateFormatter.format(localStart);
-    final timeStr = _timeFormatter.format(localStart);
-    final title = '$dateStr — $timeStr';
-
     final settings = _ref?.read(settingsProvider) ?? const AppSettings();
     final units = UnitFormatter(settings);
+
+    final dateStr = units.formatDate(localStart);
+    final timeStr = units.formatTime(localStart);
+    final title = '$dateStr — $timeStr';
     final durationMin = dive.duration.inMinutes;
     final tempStr = dive.minTemperature != null
         ? ' · ${units.formatTemperature(dive.minTemperature!, decimals: 1)}'

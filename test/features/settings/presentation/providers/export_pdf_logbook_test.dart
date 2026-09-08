@@ -261,11 +261,16 @@ void main() {
         final text = await textAt(state.filePath!);
         expect(text, contains('Nauticus Testerson'));
         expect(text, contains('2 dives'));
+        // Simple gained a summary page in #1017; what still distinguishes it
+        // from Detailed is the compact table and the absence of the per-dive
+        // field groups.
+        expect(text, contains('Site'));
         expect(
           text,
-          isNot(contains('Summary')),
-          reason: 'the simple template is a compact table with no summary page',
+          isNot(contains('CYLINDERS')),
+          reason: 'the simple template is a table, not per-dive pages',
         );
+        expect(text, isNot(contains('Depth Profile')));
       },
     );
 
@@ -370,10 +375,10 @@ void main() {
       expect(text, contains('2 dives'));
       expect(
         text,
-        isNot(contains('Summary')),
+        isNot(contains('CYLINDERS')),
         reason:
-            'the legacy single-layout builder always emitted a summary page; '
-            'saving must use the selected simple template instead (#644)',
+            'the legacy single-layout builder emitted per-dive cards; saving '
+            'must use the selected simple template instead (#644)',
       );
     });
 

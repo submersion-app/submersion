@@ -217,6 +217,7 @@ class StatisticsProgressionPage extends ConsumerWidget {
         // controls, because a mean of a running total says nothing.
         data: (data) => DiveTrendChart(
           points: data,
+          dateFormat: ref.watch(dateFormatProvider),
           pointColor: Colors.green,
           valueFormatter: (value) => value.toStringAsFixed(0),
         ),

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
@@ -18,6 +23,7 @@ class _FakeSessionRepo implements PreDiveSessionRepository {
           PreDiveItemState state,
           double? valueNumber,
           String? note,
+          List<OverdueServiceEntry>? overdueServices,
         })
       >[];
   final completed = <String>[];
@@ -31,12 +37,14 @@ class _FakeSessionRepo implements PreDiveSessionRepository {
     double? valueNumber,
     String? valueText,
     String? note,
+    List<OverdueServiceEntry>? overdueServices,
   }) async {
     calls.add((
       itemId: itemId,
       state: state,
       valueNumber: valueNumber,
       note: note,
+      overdueServices: overdueServices,
     ));
   }
 
@@ -80,6 +88,8 @@ void main() {
     double? valueMax,
     double? valueNumber,
     String note = '',
+    String? equipmentId,
+    List<OverdueServiceEntry>? overdueServices,
   }) => PreDiveSessionItem(
     id: 'i$order',
     sessionId: 's1',
@@ -96,6 +106,8 @@ void main() {
     valueNumber: valueNumber,
     note: note,
     completedAt: state == PreDiveItemState.pending ? null : now,
+    equipmentId: equipmentId,
+    overdueServices: overdueServices,
     createdAt: now,
     updatedAt: now,
   );
@@ -104,6 +116,7 @@ void main() {
     WidgetTester tester, {
     required PreDiveSession s,
     required List<PreDiveSessionItem> items,
+    List<dynamic> extraOverrides = const [],
   }) async {
     final repo = _FakeSessionRepo();
     await tester.pumpWidget(
@@ -113,6 +126,7 @@ void main() {
           preDiveSessionRepositoryProvider.overrideWithValue(repo),
           preDiveSessionProvider('s1').overrideWith((ref) async => s),
           preDiveSessionItemsProvider('s1').overrideWith((ref) async => items),
+          ...extraOverrides,
         ],
         child: const PreDiveSessionRunnerPage(sessionId: 's1'),
       ),
@@ -300,6 +314,90 @@ void main() {
 
     expect(repo.calls, isEmpty);
   });
+
+  testWidgets(
+    'marking an overdue equipment-linked item Done freezes its overdue list',
+    (tester) async {
+      final overdueStatus = ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 'sched1',
+          equipmentId: 'g1',
+          serviceKindId: 'vip',
+          createdAt: now,
+          updatedAt: now,
+        ),
+        kind: ServiceKind(
+          id: 'vip',
+          name: 'Visual inspection',
+          applicableTypes: const [],
+          createdAt: now,
+          updatedAt: now,
+        ),
+        anchor: now,
+        dueDate: DateTime(2020, 1, 1),
+        severity: ServiceClockSeverity.overdue,
+        now: DateTime(2026, 1, 1),
+      );
+      final repo = await pumpRunner(
+        tester,
+        s: session(),
+        items: [item(0, equipmentId: 'g1')],
+        extraOverrides: [
+          serviceClockStatusesProvider(
+            'g1',
+          ).overrideWith((ref) async => [overdueStatus]),
+        ],
+      );
+
+      await tester.tap(find.text('Item 0'));
+      await tester.pumpAndSettle();
+
+      final call = repo.calls.single;
+      expect(call.state, PreDiveItemState.done);
+      expect(call.overdueServices, hasLength(1));
+      expect(call.overdueServices!.single.kindName, 'Visual inspection');
+    },
+  );
+
+  testWidgets(
+    'resolving an item with no linked equipment writes a null snapshot, not '
+    'an empty one',
+    (tester) async {
+      // Null and empty are different: null means there was nothing to check,
+      // empty means the linked equipment was checked and came back clean.
+      // Freezing an empty list for every unlinked item would erase that.
+      final repo = await pumpRunner(tester, s: session(), items: [item(0)]);
+
+      await tester.tap(find.text('Item 0'));
+      await tester.pumpAndSettle();
+
+      final call = repo.calls.single;
+      expect(call.state, PreDiveItemState.done);
+      expect(call.overdueServices, isNull);
+    },
+  );
+
+  testWidgets(
+    'resolving an equipment-linked item with no overdue clocks writes an '
+    'empty snapshot, not null',
+    (tester) async {
+      final repo = await pumpRunner(
+        tester,
+        s: session(),
+        items: [item(0, equipmentId: 'g1')],
+        extraOverrides: [
+          serviceClockStatusesProvider('g1').overrideWith((ref) async => []),
+        ],
+      );
+
+      await tester.tap(find.text('Item 0'));
+      await tester.pumpAndSettle();
+
+      final call = repo.calls.single;
+      expect(call.state, PreDiveItemState.done);
+      expect(call.overdueServices, isEmpty);
+    },
+  );
 
   testWidgets('Skip menu action records a skipped state', (tester) async {
     final repo = await pumpRunner(

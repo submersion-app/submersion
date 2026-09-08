@@ -98,12 +98,28 @@ class BuhlmannAlgorithm {
   }
 
   /// Set compartments to a specific state (for loading from saved data).
+  ///
+  /// Treats [compartments] as the start of a new dive: the GF-low anchor is
+  /// re-derived from that loading via [deriveGfAnchorFromLoading].
   void setCompartments(List<TissueCompartment> compartments) {
     if (compartments.length == zhl16CompartmentCount) {
       _compartments = List.from(compartments);
-      _gfLowCeilingAnchor = 0.0;
-      _updateGfAnchor();
+      deriveGfAnchorFromLoading();
     }
+  }
+
+  /// Re-derive the GF-low anchor from the current loading, discarding any
+  /// previously recorded maximum.
+  ///
+  /// Only for starting a new dive from a seeded state, once that state is
+  /// final -- notably after off-gassing a surface interval, so the anchor
+  /// reflects the loading the dive actually begins with rather than the prior
+  /// dive's. Never call this mid-dive: within a dive the anchor is deliberately
+  /// a running maximum (see [_gfLowCeilingAnchor]), and resetting it would
+  /// collapse shallow stops toward GF-low.
+  void deriveGfAnchorFromLoading() {
+    _gfLowCeilingAnchor = 0.0;
+    _updateGfAnchor();
   }
 
   /// Deepest GF-low ceiling reached so far this dive (meters).
@@ -210,65 +226,93 @@ class BuhlmannAlgorithm {
         (initialPressure - inspiredPressure) * math.exp(-k * timeMinutes);
   }
 
-  /// Calculate the current decompression ceiling (minimum safe depth).
-  ///
-  /// Uses gradient factors to add conservatism.
-  /// [currentDepth] is used to interpolate the gradient factor.
-  /// Returns ceiling depth in meters.
-  double calculateCeiling({double currentDepth = 0}) {
+  /// Deepest compartment ceiling in meters at a single gradient factor.
+  double _ceilingAtGf(double gf) {
     double maxCeiling = 0;
-
-    // Calculate GF at current depth (linear interpolation between GF Low and GF High)
-    final gf = _interpolateGf(currentDepth);
-
     for (final comp in _compartments) {
       final ceiling = _ceilingMetersFor(comp, gf);
-      if (ceiling > maxCeiling) {
-        maxCeiling = ceiling;
-      }
+      if (ceiling > maxCeiling) maxCeiling = ceiling;
     }
-
     return maxCeiling;
   }
 
-  /// Interpolate gradient factor based on depth.
+  /// Iterations allowed when solving for the GF ceiling. Each step roughly
+  /// halves the residual, so single-centimetre agreement is reached in a
+  /// handful; the cap only bounds pathological input.
+  static const int _ceilingSolveIterations = 24;
+
+  /// Agreement required between successive ceiling estimates, in meters.
+  /// One millimetre is far below anything displayed or compared against a
+  /// 3 m stop grid.
+  static const double _ceilingSolveToleranceMeters = 0.001;
+
+  /// The current decompression ceiling in meters (0 = clear to the surface
+  /// at GF-high).
   ///
-  /// GF starts at gfLow at the first stop depth and increases
-  /// linearly to gfHigh at the surface.
-  double _interpolateGf(double currentDepth) {
-    if (currentDepth <= 0) return gfHigh;
+  /// The gradient factor is a function of depth - GF-low at the dive's
+  /// deepest ceiling, GF-high at the surface - so the ceiling is the depth
+  /// at which the tissues are tolerated *under the gradient factor that
+  /// applies at that same depth*. That is a fixed point, and it is what makes
+  /// the ceiling a property of the tissue state alone rather than of wherever
+  /// the diver happens to be floating.
+  ///
+  /// It used to evaluate the GF at the diver's current depth, which reported
+  /// the GF-low ceiling for anyone deeper than the anchor. That number is not
+  /// a ceiling the diver has to respect: it is the tolerance at a gradient
+  /// factor that only applies far shallower. The consequence was a ceiling
+  /// that contradicted the schedule computed from the same tissues - a plan
+  /// showing a 4.2 m ceiling whose only stop was at 3 m - because the trial
+  /// ascent in [_calculateStopTime] evaluated its GF at the shallower target
+  /// depth and so cleared stops the displayed ceiling said were needed.
+  ///
+  /// [_ceilingAtGf] is monotonically shallower as the GF rises, and
+  /// [_interpolateGf] rises as the depth shallows, so iterating from the
+  /// GF-low ceiling (the deepest the answer can be) descends monotonically
+  /// onto the fixed point.
+  double calculateCeiling() {
+    var ceiling = _ceilingAtGf(gfLow);
+    if (ceiling <= 0) return 0;
+
+    // No anchor yet means no ceiling has ever been owed, so the GF is
+    // GF-high everywhere; there is nothing to interpolate between.
+    if (_gfLowCeilingAnchor <= 0) return _ceilingAtGf(gfHigh);
+
+    for (var i = 0; i < _ceilingSolveIterations; i++) {
+      final next = _ceilingAtGf(_interpolateGf(ceiling));
+      final converged = (next - ceiling).abs() < _ceilingSolveToleranceMeters;
+      ceiling = next;
+      if (converged) break;
+    }
+    return ceiling;
+  }
+
+  /// Interpolate the gradient factor that applies at [depthMeters].
+  ///
+  /// GF-low at the first stop depth, rising linearly to GF-high at the
+  /// surface.
+  double _interpolateGf(double depthMeters) {
+    if (depthMeters <= 0) return gfHigh;
 
     // Anchor GF-low at the dive's deepest ceiling, fixed for the whole ascent
     // (Subsurface's gf_low_pressure_this_dive), not the current stop.
     final anchorDepth = _gfLowCeilingAnchor;
     if (anchorDepth <= 0) return gfHigh;
 
-    if (currentDepth >= anchorDepth) return gfLow;
+    if (depthMeters >= anchorDepth) return gfLow;
 
     // Linear interpolation from GF-low at the anchor to GF-high at the surface.
-    final ratio = currentDepth / anchorDepth;
+    final ratio = depthMeters / anchorDepth;
     return gfHigh - (gfHigh - gfLow) * ratio;
   }
 
-  /// Calculate ceiling using GF High only (for NDL/deco obligation checks).
+  /// Ceiling in meters using GF-high alone: the surface target.
   ///
-  /// This method determines if the diver can ascend directly to the surface.
-  /// GF High represents the surface target, which is the correct GF to use
-  /// when checking whether decompression stops are required.
-  ///
-  /// Note: GF Low and GF interpolation are used for calculating deep stop
-  /// depths during actual decompression ascent, not for determining if
-  /// deco is required in the first place.
-  double _calculateSurfaceTargetCeiling() {
-    double maxCeiling = 0;
-    for (final comp in _compartments) {
-      final ceiling = _ceilingMetersFor(comp, gfHigh);
-      if (ceiling > maxCeiling) {
-        maxCeiling = ceiling;
-      }
-    }
-    return maxCeiling;
-  }
+  /// Answers "may the diver ascend directly to the surface?" - zero means
+  /// yes. This is the correct GF for deciding whether decompression is owed
+  /// at all, which is a different question from [calculateCeiling]'s "how
+  /// shallow may the diver go right now". A dive can be mid-ascent with a
+  /// real GF ceiling and still owe nothing at the surface.
+  double surfaceTargetCeiling() => _ceilingAtGf(gfHigh);
 
   /// Calculate No-Decompression Limit (NDL) at current depth.
   ///
@@ -286,7 +330,7 @@ class BuhlmannAlgorithm {
   }) {
     // Check if already in deco using GF High (surface target).
     // NDL is about whether we can ascend directly to the surface.
-    if (_calculateSurfaceTargetCeiling() > 0) {
+    if (surfaceTargetCeiling() > 0) {
       return -1;
     }
 
@@ -314,7 +358,7 @@ class BuhlmannAlgorithm {
       );
 
       // Check if this creates a deco obligation using GF High
-      if (_calculateSurfaceTargetCeiling() > 0) {
+      if (surfaceTargetCeiling() > 0) {
         high = mid;
       } else {
         low = mid;
@@ -327,6 +371,17 @@ class BuhlmannAlgorithm {
 
     return low;
   }
+
+  /// The policy to use when a caller passes none: this algorithm's own stop
+  /// grid and ascent rate, with a single rate everywhere (SchedulePolicy
+  /// defaults the deco and final rates to it). Only the planner configures
+  /// the three rates separately, so every other consumer keeps its previous
+  /// behaviour.
+  SchedulePolicy _defaultPolicy() => SchedulePolicy(
+    stopIncrement: stopIncrement,
+    lastStopDepth: lastStopDepth,
+    ascentRate: ascentRate,
+  );
 
   /// Calculate complete decompression schedule.
   ///
@@ -343,40 +398,69 @@ class BuhlmannAlgorithm {
     SchedulePolicy? policy,
   }) {
     final plan = ascentGas ?? FixedAscentGas(fN2: fN2, fHe: fHe);
-    final p =
-        policy ??
-        SchedulePolicy(
-          stopIncrement: stopIncrement,
-          lastStopDepth: lastStopDepth,
-          ascentRate: ascentRate,
-        );
+    final p = policy ?? _defaultPolicy();
     final stops = <DecoStop>[];
 
     final savedCompartments = List<TissueCompartment>.from(_compartments);
     final savedAnchor = _gfLowCeilingAnchor;
 
-    final double ceiling = calculateCeiling(currentDepth: currentDepth);
+    final double ceiling = calculateCeiling();
     if (ceiling <= 0) {
       _compartments = savedCompartments;
       _gfLowCeilingAnchor = savedAnchor;
       return stops; // No deco required
     }
 
-    double currentStopDepth =
-        (ceiling / p.stopIncrement).ceil() * p.stopIncrement;
+    // The first stop is the grid level at or below the ceiling - but never
+    // shallower than the last stop, which is where a diver who owes anything
+    // at all has chosen to hold.
+    double currentStopDepth = math.max(
+      (ceiling / p.stopIncrement).ceil() * p.stopIncrement,
+      p.lastStopDepth,
+    );
 
     // Travel to first stop may cross a gas MOD: _simulateAscent splits it.
     _simulateAscent(currentDepth, currentStopDepth, plan, p);
 
+    // The ascent clock, counted the way its consumers count it: calculateTts
+    // and the planner both time the legs between the stops they are HANDED
+    // (SchedulePolicy.ascentTravelSeconds), so a grid level that clears on
+    // arrival contributes no leg of its own and no rate change of its own.
+    // The whole-minute snap has to run on that same clock, or the rows it
+    // exists to line up land on odd seconds anyway.
+    //
+    // [clockPhase] is the single source of truth for which ascent rate is in
+    // force, so the tissue simulation below reads it too. A diver who has not
+    // stopped yet is still on the working ascent off the bottom, however many
+    // grid levels they have passed through: loading those legs at the
+    // between-stops rate made the tissues fly an ascent minutes longer than
+    // the one the schedule printed.
+    var clockSeconds = 0;
+    var clockDepth = currentDepth;
+    var clockPhase = AscentPhase.toFirstStop;
+
     AscentGas previousGas = plan.gasForDepth(currentDepth);
-    while (currentStopDepth >= p.lastStopDepth) {
+    while (currentStopDepth > 0) {
       final stopGas = plan.gasForDepth(currentStopDepth);
       final switched =
           stopGas.fN2 != previousGas.fN2 || stopGas.fHe != previousGas.fHe;
 
-      int stopTime = _calculateStopTime(currentStopDepth, plan, p);
+      int stopTime = _calculateStopTime(currentStopDepth, plan, p, clockPhase);
       if (switched && p.gasSwitchStopSeconds > 0) {
         stopTime = math.max(stopTime, p.gasSwitchStopSeconds);
+      }
+      final arrivalSeconds =
+          clockSeconds +
+          p.ascentSeconds(
+            fromDepth: clockDepth,
+            toDepth: currentStopDepth,
+            phase: clockPhase,
+          );
+      if (p.snapStopsToWholeMinutes && stopTime > 0) {
+        // The stop absorbs the odd seconds of the leg that led to it, so it
+        // ends on a whole minute of the ascent clock. Only a stop that is
+        // actually held snaps: a level cleared on arrival is not a stop.
+        stopTime += (60 - (arrivalSeconds + stopTime) % 60) % 60;
       }
 
       if (stopTime > 0) {
@@ -399,12 +483,16 @@ class BuhlmannAlgorithm {
         );
 
         _loadStopMinutes(currentStopDepth, stopTime, plan, p);
+
+        clockSeconds = arrivalSeconds + stopTime;
+        clockDepth = currentStopDepth;
+        clockPhase = AscentPhase.betweenStops;
       }
       previousGas = stopGas;
 
-      final nextStop = currentStopDepth - p.stopIncrement;
-      if (nextStop >= p.lastStopDepth) {
-        _simulateAscent(currentStopDepth, nextStop, plan, p);
+      final nextStop = _nextLevel(currentStopDepth, p);
+      if (nextStop > 0) {
+        _simulateAscent(currentStopDepth, nextStop, plan, p, phase: clockPhase);
       }
       currentStopDepth = nextStop;
     }
@@ -414,6 +502,18 @@ class BuhlmannAlgorithm {
     _gfLowCeilingAnchor = savedAnchor;
 
     return stops;
+  }
+
+  /// The level the diver goes to after [stopDepth]: the next grid stop, the
+  /// last stop when the grid would step past it, or the surface (0) from the
+  /// last stop itself.
+  ///
+  /// The last stop need not sit on the grid. A diver who holds their final
+  /// stop at 4 or 5 m gets the 3 m grid down to 6 m and then that depth, so
+  /// the stop increment and the last stop are independent choices.
+  double _nextLevel(double stopDepth, SchedulePolicy p) {
+    if (stopDepth <= p.lastStopDepth) return 0;
+    return math.max(stopDepth - p.stopIncrement, p.lastStopDepth);
   }
 
   /// Gas to breathe during minute [minuteIndex] of a stop at [stopDepth]:
@@ -462,10 +562,9 @@ class BuhlmannAlgorithm {
     double stopDepth,
     AscentGasPlan ascentGas,
     SchedulePolicy policy,
+    AscentPhase walked,
   ) {
-    final nextStopDepth = stopDepth <= policy.lastStopDepth
-        ? 0.0
-        : stopDepth - policy.stopIncrement;
+    final nextStopDepth = _nextLevel(stopDepth, policy);
     int stopTime = 0;
     const maxStopTime = 120 * 60;
 
@@ -473,43 +572,38 @@ class BuhlmannAlgorithm {
     final entryAnchor = _gfLowCeilingAnchor;
 
     while (stopTime < maxStopTime) {
+      // Leave the stop once the diver could ascend to the NEXT (shallower)
+      // level without the ceiling ever rising above them: Subsurface's
+      // trial_ascent, simulated leg and all. At the last stop the next level
+      // is the surface, where the GF is GF-high -- the same criterion the
+      // deco-cleared check uses -- so TTS counts down to surfacing instead of
+      // collapsing in one sample.
+      //
+      // The test comes BEFORE the minute is loaded, and that ordering is the
+      // whole point: it asks whether the diver may leave with the time spent
+      // so far. Testing after a trial minute and then discarding the minute
+      // credited off-gassing the schedule never actually spends, which
+      // under-reported every stop by up to a minute and deleted outright any
+      // stop that cleared inside its first minute -- a plan whose ceiling was
+      // 6.6 m was told to ascend to 6 m.
+      //
+      // Leaving mid-break is fine: the cleared check is gas-independent.
+      if (_trialAscentClears(
+        stopDepth,
+        nextStopDepth,
+        ascentGas,
+        policy,
+        walked,
+      )) {
+        break;
+      }
+
       final minuteGas = _gasForStopMinute(
         stopDepth,
         stopTime ~/ 60,
         ascentGas,
         policy,
       );
-
-      final testCompartments = List<TissueCompartment>.from(_compartments);
-      final testAnchor = _gfLowCeilingAnchor;
-
-      calculateSegment(
-        depthMeters: stopDepth,
-        durationSeconds: 60,
-        fN2: minuteGas.fN2,
-        fHe: minuteGas.fHe,
-      );
-
-      // Leave the stop once the diver may ascend to the NEXT (shallower) stop:
-      // evaluate the ceiling at the gradient factor for that shallower depth,
-      // matching Subsurface's trial_ascent (tissue tolerance at the target
-      // stoplevel), with GF-low anchored at the dive's deepest ceiling. At the
-      // last stop the next level is the surface, where the GF is GF-high -- the
-      // same criterion the deco-cleared check uses -- so TTS counts down to
-      // surfacing instead of collapsing in one sample.
-      final ceiling = calculateCeiling(currentDepth: nextStopDepth);
-
-      // Restore for next iteration. The trial minute must not leak into
-      // persistent state: restore the anchor too, otherwise a trial minute that
-      // is never taken (the break below) could permanently grow the anchor.
-      _compartments = testCompartments;
-      _gfLowCeilingAnchor = testAnchor;
-
-      // Leaving mid-break is fine: the cleared check is gas-independent.
-      if (ceiling <= nextStopDepth) {
-        break;
-      }
-
       calculateSegment(
         depthMeters: stopDepth,
         durationSeconds: 60,
@@ -524,6 +618,82 @@ class BuhlmannAlgorithm {
     _gfLowCeilingAnchor = entryAnchor;
 
     return stopTime;
+  }
+
+  /// Longest slice of a trial ascent loaded as one segment. Matches the ramp
+  /// slicing in `BuhlmannGf.applySegment`, so the trial sees the leg at the
+  /// same resolution the profile is loaded at.
+  static const int _trialAscentSliceSeconds = 10;
+
+  /// May the diver leave [stopDepth] for [nextStopDepth] now?
+  ///
+  /// Simulates the travel leg itself - at the rate the policy gives that
+  /// phase, on the gas eligible at each depth - and requires the ceiling to
+  /// stay at or below the diver the whole way, including on arrival. The
+  /// leg's own off-gassing therefore counts toward clearing the stop being
+  /// left, because that is what happens to the tissues in the water: a diver
+  /// crawling off the last stop at 1 m/min spends three minutes shallower
+  /// than the stop, and a criterion that ignored those minutes held them at
+  /// the stop for a further four. This is Subsurface's `trial_ascent` for
+  /// Buhlmann. The tissue state is restored before returning, so the trial
+  /// leaves nothing behind whichever way it answers.
+  bool _trialAscentClears(
+    double stopDepth,
+    double nextStopDepth,
+    AscentGasPlan ascentGas,
+    SchedulePolicy policy,
+    AscentPhase walked,
+  ) {
+    // The rate the diver would leave at, which is the rate the leg they are
+    // being asked about is flown at: [walked] is still the working ascent
+    // until a stop has actually been held, so a level that clears on arrival
+    // is not credited with the slower between-stops off-gassing of a leg the
+    // diver never flies that slowly.
+    final phase = nextStopDepth > 0
+        ? walked
+        : AscentPhase.surfacingAfter(walked);
+    final legSeconds = policy.ascentSeconds(
+      fromDepth: stopDepth,
+      toDepth: nextStopDepth,
+      phase: phase,
+    );
+    // A leg with no duration (degenerate rate) has nothing to simulate: fall
+    // back to asking whether the ceiling is already above the next level.
+    if (legSeconds <= 0) return calculateCeiling() <= nextStopDepth;
+
+    final saved = List<TissueCompartment>.from(_compartments);
+    final savedAnchor = _gfLowCeilingAnchor;
+    try {
+      final span = stopDepth - nextStopDepth;
+      var elapsed = 0;
+      while (elapsed < legSeconds) {
+        final dt = math.min(_trialAscentSliceSeconds, legSeconds - elapsed);
+        final sliceStart = stopDepth - span * elapsed / legSeconds;
+        // The last slice lands exactly on the next level, so the arrival
+        // check below compares against it and not a rounding-error neighbour
+        // (a cleared ceiling of 0 must not fail against a surface at -1e-16).
+        final sliceEnd = elapsed + dt >= legSeconds
+            ? nextStopDepth
+            : stopDepth - span * (elapsed + dt) / legSeconds;
+        // Gas eligible at the slice's deeper end, as _ascendLeg charges it.
+        final gas = ascentGas.gasForDepth(sliceStart);
+        calculateSegment(
+          depthMeters: (sliceStart + sliceEnd) / 2.0,
+          durationSeconds: dt,
+          fN2: gas.fN2,
+          fHe: gas.fHe,
+        );
+        elapsed += dt;
+        // The diver is now at sliceEnd; the ceiling may not be above them.
+        // On the final slice sliceEnd is the next level itself, which is the
+        // arrival check the schedule's consistency tests rely on.
+        if (calculateCeiling() > sliceEnd) return false;
+      }
+      return true;
+    } finally {
+      _compartments = saved;
+      _gfLowCeilingAnchor = savedAnchor;
+    }
   }
 
   /// The gas breathed over a stop of [stopSeconds] at [stopDepth], as
@@ -612,22 +782,25 @@ class BuhlmannAlgorithm {
   /// (MOD) depth it crosses so each sub-leg breathes the gas eligible at that
   /// sub-leg's deeper end. For [FixedAscentGas] there are no switch depths, so
   /// this collapses to a single average-depth segment (legacy behavior).
+  /// [phase] picks the ascent rate: the leg down to the first stop is working
+  /// travel, every leg after it is climbing the stop grid.
   void _simulateAscent(
     double fromDepth,
     double toDepth,
     AscentGasPlan ascentGas,
-    SchedulePolicy policy,
-  ) {
+    SchedulePolicy policy, {
+    AscentPhase phase = AscentPhase.toFirstStop,
+  }) {
     if (fromDepth <= toDepth) return;
 
     final switches = ascentGas.switchDepthsBetween(fromDepth, toDepth);
     double segTop = fromDepth;
     for (final switchDepth in switches) {
       // switches is descending; each is strictly between toDepth and fromDepth.
-      _ascendLeg(segTop, switchDepth, ascentGas, policy);
+      _ascendLeg(segTop, switchDepth, ascentGas, policy, phase);
       segTop = switchDepth;
     }
-    _ascendLeg(segTop, toDepth, ascentGas, policy);
+    _ascendLeg(segTop, toDepth, ascentGas, policy, phase);
   }
 
   /// Load one un-split ascent sub-leg on the gas eligible at its deeper end.
@@ -636,11 +809,15 @@ class BuhlmannAlgorithm {
     double toDepth,
     AscentGasPlan ascentGas,
     SchedulePolicy policy,
+    AscentPhase phase,
   ) {
     if (fromDepth <= toDepth) return;
     final gas = ascentGas.gasForDepth(fromDepth);
-    final depthChange = fromDepth - toDepth;
-    final ascentTimeSeconds = (depthChange / policy.ascentRate * 60).round();
+    final ascentTimeSeconds = policy.ascentSeconds(
+      fromDepth: fromDepth,
+      toDepth: toDepth,
+      phase: phase,
+    );
     final avgDepth = (fromDepth + toDepth) / 2.0;
 
     calculateSegment(
@@ -666,7 +843,7 @@ class BuhlmannAlgorithm {
     SchedulePolicy? policy,
   }) {
     final plan = ascentGas ?? FixedAscentGas(fN2: fN2, fHe: fHe);
-    final rate = policy?.ascentRate ?? ascentRate;
+    final p = policy ?? _defaultPolicy();
     final stops = calculateDecoSchedule(
       currentDepth: currentDepth,
       ascentGas: plan,
@@ -677,17 +854,10 @@ class BuhlmannAlgorithm {
     for (final stop in stops) {
       tts += stop.durationSeconds;
     }
-
-    double depth = currentDepth;
-    for (final stop in stops) {
-      final ascentTime = ((depth - stop.depthMeters) / rate * 60).round();
-      tts += ascentTime;
-      depth = stop.depthMeters;
-    }
-
-    if (depth > 0) {
-      tts += (depth / rate * 60).round();
-    }
+    tts += p.ascentTravelSeconds(
+      fromDepth: currentDepth,
+      stopDepths: stops.map((s) => s.depthMeters),
+    );
 
     return tts;
   }
@@ -718,9 +888,7 @@ class BuhlmannAlgorithm {
     // Only calculate ceiling/stops when actually in deco (NDL < 0).
     // The GF-interpolated ceiling is for ascent planning during deco,
     // not for display when the diver can still ascend directly to surface.
-    final ceiling = ndl < 0
-        ? calculateCeiling(currentDepth: currentDepth)
-        : 0.0;
+    final ceiling = ndl < 0 ? calculateCeiling() : 0.0;
     final stops = ndl < 0
         ? calculateDecoSchedule(
             currentDepth: currentDepth,
@@ -747,8 +915,15 @@ class BuhlmannAlgorithm {
       );
       safetyStop = 0;
     } else {
-      // No deco obligation: TTS is just the direct ascent to the surface.
-      tts = (currentDepth / (policy?.ascentRate ?? ascentRate) * 60).round();
+      // No deco obligation: TTS is the direct ascent to the surface at the
+      // working rate, one AscentPhase.toFirstStop leg. The slower deco rates
+      // describe climbing the stop grid and leaving the last stop, and this
+      // diver does neither - see AscentPhase.surfacingAfter, which draws the
+      // same line for the surfacing leg of a schedule that held no stop.
+      tts = (policy ?? _defaultPolicy()).ascentSeconds(
+        fromDepth: currentDepth,
+        toDepth: 0,
+      );
 
       // Report the recommended safety stop separately: a 3-minute stop, minus
       // time already accumulated in the 3-6 m safety-stop zone during the ascent

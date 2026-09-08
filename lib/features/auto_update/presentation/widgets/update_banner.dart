@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
+import 'package:submersion/features/auto_update/presentation/widgets/update_banner_actions.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class UpdateBanner extends ConsumerStatefulWidget {
@@ -44,15 +45,11 @@ class _UpdateBannerState extends ConsumerState<UpdateBanner> {
         style: theme.textTheme.bodyMedium,
       ),
       actions: [
-        if (downloadUrl != null)
-          TextButton(
-            onPressed: () => _openDownload(downloadUrl),
-            child: Text(context.l10n.autoUpdate_banner_download),
-          ),
-        IconButton(
-          icon: const Icon(Icons.close, size: 18),
-          tooltip: context.l10n.common_action_dismiss,
-          onPressed: () => setState(() => _dismissed = true),
+        UpdateBannerActions(
+          upgradeCommand: ref.watch(linuxUpgradeCommandProvider),
+          downloadUrl: downloadUrl,
+          onDownload: _openDownload,
+          onDismiss: () => setState(() => _dismissed = true),
         ),
       ],
     );

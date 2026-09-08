@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -13,6 +14,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Page displaying details about a specific dive computer.
 class DeviceDetailPage extends ConsumerWidget {
@@ -57,6 +59,7 @@ class DeviceDetailPage extends ConsumerWidget {
     ThemeData theme,
   ) {
     final colorScheme = theme.colorScheme;
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Scaffold(
       appBar: AppBar(
@@ -114,7 +117,7 @@ class DeviceDetailPage extends ConsumerWidget {
             _buildDuplicateBanner(context, ref, computer),
             _buildInfoCard(context, computer, colorScheme),
             const SizedBox(height: 16),
-            _buildStatsCard(context, computer, colorScheme),
+            _buildStatsCard(context, computer, colorScheme, units),
             const SizedBox(height: 16),
             _buildActionsCard(context, ref, computer, colorScheme),
             if (computer.notes.isNotEmpty) ...[
@@ -289,6 +292,7 @@ class DeviceDetailPage extends ConsumerWidget {
     BuildContext context,
     DiveComputer computer,
     ColorScheme colorScheme,
+    UnitFormatter units,
   ) {
     final theme = Theme.of(context);
 
@@ -318,7 +322,11 @@ class DeviceDetailPage extends ConsumerWidget {
                   child: _buildStatItem(
                     context,
                     Icons.download,
-                    formatLastDownload(context, computer.lastDownload),
+                    formatLastDownload(
+                      context,
+                      computer.lastDownload,
+                      units: units,
+                    ),
                     context.l10n.diveComputer_detail_lastDownload,
                     colorScheme,
                   ),

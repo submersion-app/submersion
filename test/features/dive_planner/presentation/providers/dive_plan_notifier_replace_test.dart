@@ -11,9 +11,7 @@ const _gas = GasMix(o2: 21);
 
 PlanSegment _bottom(String id, int order) => PlanSegment(
   id: id,
-  type: SegmentType.bottom,
-  startDepth: 20,
-  endDepth: 20,
+  targetDepth: 20,
   durationSeconds: 600,
   tankId: 't1',
   gasMix: _gas,

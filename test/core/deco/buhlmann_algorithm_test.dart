@@ -232,7 +232,7 @@ void main() {
           fHe: 0.0,
         );
 
-        final ceiling = algorithm.calculateCeiling(currentDepth: 45);
+        final ceiling = algorithm.calculateCeiling();
         final status = algorithm.getDecoStatus(currentDepth: 45);
 
         // After 25 min at 45m, we should be in deco
@@ -264,12 +264,8 @@ void main() {
         doDive(liberalAlgorithm);
 
         // Conservative should have higher ceiling (deeper deco stop)
-        final conservativeCeiling = conservativeAlgorithm.calculateCeiling(
-          currentDepth: 40,
-        );
-        final liberalCeiling = liberalAlgorithm.calculateCeiling(
-          currentDepth: 40,
-        );
+        final conservativeCeiling = conservativeAlgorithm.calculateCeiling();
+        final liberalCeiling = liberalAlgorithm.calculateCeiling();
 
         expect(conservativeCeiling, greaterThanOrEqualTo(liberalCeiling));
       });

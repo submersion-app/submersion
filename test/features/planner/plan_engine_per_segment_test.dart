@@ -28,14 +28,16 @@ domain.DivePlan _plan(List<PlanSegment> segments, domain.PlanMode mode) =>
 
 List<PlanSegment> _segments({double? setpoint, domain.PlanMode? modeOverride}) {
   return [
-    PlanSegment.descent(
+    PlanSegment.travel(
       id: 'seg-1',
+      fromDepth: 0,
       targetDepth: 40,
       tankId: 'tank-1',
       gasMix: _air,
       order: 0,
+      ratePerMinute: 18.0,
     ),
-    PlanSegment.bottom(
+    PlanSegment.hold(
       id: 'seg-2',
       depth: 40,
       durationMinutes: 20,

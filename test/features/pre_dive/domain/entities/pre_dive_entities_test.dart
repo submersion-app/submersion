@@ -11,6 +11,7 @@ void main() {
         PreDiveItemType.parse('equipmentSet'),
         PreDiveItemType.equipmentSet,
       );
+      expect(PreDiveItemType.parse('equipment'), PreDiveItemType.equipment);
       expect(PreDiveItemType.parse('garbage'), PreDiveItemType.check);
       expect(
         PreDiveSessionStatus.parse('completed'),
@@ -179,6 +180,7 @@ void main() {
       valueMin: 8.5,
       valueMax: 13.0,
       isRequired: true,
+      equipmentId: 'g1',
       createdAt: now,
       updatedAt: now,
     );
@@ -195,12 +197,14 @@ void main() {
         valueUnit: null,
         valueMin: null,
         valueMax: null,
+        equipmentId: null,
       );
       expect(cleared.section, isNull);
       expect(cleared.valueLabel, isNull);
       expect(cleared.valueUnit, isNull);
       expect(cleared.valueMin, isNull);
       expect(cleared.valueMax, isNull);
+      expect(cleared.equipmentId, isNull);
       expect(tItem().copyWith(), tItem());
     });
 

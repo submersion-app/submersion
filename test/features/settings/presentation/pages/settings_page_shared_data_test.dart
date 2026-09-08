@@ -24,6 +24,7 @@ import 'package:submersion/features/settings/presentation/pages/settings_page.da
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
+import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
@@ -116,6 +117,12 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
 
   @override
   Future<void> setNavPrimaryIds(List<String> ids) async {}
+
+  @override
+  Future<List<String>?> getNavRailIdsRaw() async => null;
+
+  @override
+  Future<void> setNavRailIds(List<String> ids) async {}
 
   @override
   Future<String?> getRawSetting(String key) async => null;
@@ -565,6 +572,22 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> resetDiveDetailSections() async =>
       state = state.copyWith(clearDiveDetailSections: true);
+  @override
+  Future<void> setDiveDetailLayout(DiveDetailLayout layout) async =>
+      state = state.copyWith(diveDetailLayout: layout);
+
+  @override
+  Future<void> setDiveDetailSectionExpanded(
+    DiveDetailSectionId id,
+    bool expanded,
+  ) async {
+    state = state.copyWith(
+      diveDetailSections: [
+        for (final section in state.diveDetailSections)
+          section.id == id ? section.copyWith(expanded: expanded) : section,
+      ],
+    );
+  }
 
   @override
   Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>

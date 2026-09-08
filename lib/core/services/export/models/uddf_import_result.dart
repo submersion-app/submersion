@@ -29,6 +29,21 @@ class UddfImportResult {
   /// [UddfEntityImporter]) can record it on [DiveDataSource] records.
   final String? sourceFileName;
 
+  /// Per-source provenance records, keyed by the `<source diveref>` value
+  /// (for example `dive_7f3a...`), each list sorted by ordinal.
+  ///
+  /// Carries every `dive_data_sources` column the exporter wrote, plus
+  /// `rawData` where a `<divecomputerdump>` paired with the entry. Empty for
+  /// any file that was not written by Submersion with raw data enabled.
+  final Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef;
+
+  /// Dumps that could not be attached to a source record: no resolvable dive
+  /// link, an unreadable payload, or a payload over the size ceiling.
+  ///
+  /// Counted rather than thrown, because one bad dump in someone else's file
+  /// must not cost the user the rest of the import.
+  final int unpairedDumps;
+
   const UddfImportResult({
     this.dives = const [],
     this.sites = const [],
@@ -49,6 +64,8 @@ class UddfImportResult {
     this.equipmentSets = const [],
     this.courses = const [],
     this.sourceFileName,
+    this.dataSourcesByDiveRef = const {},
+    this.unpairedDumps = 0,
   });
 
   /// Check if any data was imported
@@ -148,6 +165,8 @@ class UddfImportResult {
       equipmentSets: equipmentSets,
       courses: courses,
       sourceFileName: sourceFileName,
+      dataSourcesByDiveRef: dataSourcesByDiveRef,
+      unpairedDumps: unpairedDumps,
     );
   }
 }

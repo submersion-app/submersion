@@ -6,6 +6,20 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Path the six calculators hang off, and the page that lists them.
 const String kGasCalculatorsRoutePrefix = '/planning/$kGasCalculatorsToolId';
 
+/// The blender's archive of paid invoices. A static sibling of the
+/// per-calculator routes generated from [kGasCalculatorIds] rather than a
+/// child of the blender's own route, since the blender route itself is
+/// generated from that loop and has no `routes:` of its own to hang a child
+/// off.
+const String kBlenderInvoiceArchiveRoute =
+    '$kGasCalculatorsRoutePrefix/blender/invoices';
+
+/// The Trimix Mixer's settings page, which lives under Settings rather than
+/// under the calculator: the gear on the calculator and the Settings >
+/// Manage > Data entry open the same route, so neither can drift into a
+/// second way of reaching the page.
+const String kTrimixMixerSettingsRoute = '/settings/trimix-mixer';
+
 /// Ids of the six calculators, in display order.
 ///
 /// Shared by the router, the detail page, and the tests so a new calculator

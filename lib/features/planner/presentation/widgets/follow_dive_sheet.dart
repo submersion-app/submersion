@@ -86,9 +86,7 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
   }
 
   Widget _diveTile(Dive dive, UnitFormatter units) {
-    final date = MaterialLocalizations.of(
-      context,
-    ).formatShortDate(dive.entryTime ?? dive.dateTime);
+    final date = units.formatDate(dive.entryTime ?? dive.dateTime);
     final subtitleParts = <String>[
       date,
       if (dive.maxDepth != null) units.formatDepth(dive.maxDepth!),

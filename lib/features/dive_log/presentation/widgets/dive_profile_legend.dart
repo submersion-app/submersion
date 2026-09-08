@@ -1,27 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:submersion/core/theme/app_colors.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/active_legend_entries.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_options_dialog.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_legend_config.dart';
 
 // Re-exported so consumers of the legend keep a single import for the widget
 // and its configuration.
 export 'package:submersion/features/dive_log/presentation/widgets/profile_legend_config.dart'
-    show ProfileLegendConfig;
+    show ProfileLegendConfig, LegendOverlaySource, LegendMetric;
 
-/// Legend widget for the dive profile chart.
+/// Legend row above the dive profile chart.
 ///
-/// Displays primary toggles inline and secondary toggles in a popover menu.
-/// Also includes zoom controls.
+/// Lists the metrics currently drawn on the chart as read-only entries (a
+/// circle in the line colour plus a small label). A button that opens the
+/// chart options dropdown is pinned to the legend's trailing edge, beside
+/// the zoom controls. Every toggle, with its
+/// checkbox, lives in that dropdown; the entries here only reflect it. Depth
+/// leads the row and is always listed.
+///
+/// Entries that do not fit are not rendered at all, and their number is
+/// badged on the options button, so the row truncates cleanly rather than
+/// clipping a label part-way through.
 class DiveProfileLegend extends ConsumerWidget {
   final ProfileLegendConfig config;
   final double zoomLevel;
@@ -58,74 +61,57 @@ class DiveProfileLegend extends ConsumerWidget {
       });
     }
 
-    final candidates = _buildCandidates(context, legendState, legendNotifier);
-    final showMoreButton = candidates.isNotEmpty || config.hasTankListSection;
+    final entries = activeLegendEntries(
+      context,
+      config: config,
+      state: legendState,
+    );
 
     return Padding(
-      padding: EdgeInsets.only(left: leftPadding, bottom: 8),
+      padding: EdgeInsets.only(left: leftPadding, bottom: 2),
       child: Row(
         children: [
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final depthLabel = context.l10n.diveLog_legend_label_depth;
-                final reserved =
-                    _depthChromeWidth +
-                    _labelWidth(context, depthLabel) +
-                    _itemSpacing +
-                    (showMoreButton ? _moreButtonWidth : 0) +
-                    _safetyMargin;
-                final admitted = selectInlineCandidates(
-                  candidates: candidates,
-                  availableWidth: constraints.maxWidth - reserved,
-                  itemWidth: (c) =>
-                      _toggleChromeWidth +
-                      _labelWidth(context, c.label) +
-                      _itemSpacing,
+                // Only entries that fit whole are rendered; the rest are
+                // reported as a count on the options button. Measuring here
+                // rather than letting the row overflow is what keeps a label
+                // from being sliced through the middle at the right edge.
+                final layout = _layoutRows(
+                  context,
+                  entries: entries,
+                  maxWidth: constraints.maxWidth,
                 );
-                final hiddenActiveCount =
-                    candidates.where((c) => c.isActive).length -
-                    admitted.where((c) => c.isActive).length;
-                // The admitted set is measured to fit, so this scroll view
-                // never actually scrolls; it exists to clip gracefully in
-                // degenerate over-constrained layouts instead of throwing
-                // RenderFlex overflow errors.
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const NeverScrollableScrollPhysics(),
-                  child: Row(
-                    children: [
-                      _buildLegendItem(
-                        context,
-                        color: AppColors.chartDepth,
-                        label: depthLabel,
+
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final row in layout.rows) _buildRow(row),
+                        ],
                       ),
-                      for (final candidate in admitted) ...[
-                        const SizedBox(width: _itemSpacing),
-                        _buildMetricToggle(
-                          context,
-                          color: candidate.color,
-                          label: candidate.label,
-                          isEnabled: candidate.isActive,
-                          onTap: candidate.onTap,
-                        ),
-                      ],
-                      if (showMoreButton) ...[
-                        const SizedBox(width: _itemSpacing),
-                        _MoreOptionsButton(
-                          config: config,
-                          hiddenActiveCount: hiddenActiveCount,
-                        ),
-                      ],
-                    ],
-                  ),
+                    ),
+                    // Anchored to the trailing edge of the legend, next to
+                    // the zoom controls, rather than trailing the last entry:
+                    // a button that moves whenever a metric is toggled is a
+                    // button the diver has to hunt for.
+                    if (_hasToggles)
+                      _MoreOptionsButton(
+                        config: config,
+                        hiddenCount: layout.hiddenCount,
+                      ),
+                  ],
                 );
               },
             ),
           ),
           const SizedBox(width: 4),
-          // Zoom controls
           ChartZoomControls(
+            dense: true,
             zoomLevel: zoomLevel,
             minZoom: minZoom,
             maxZoom: maxZoom,
@@ -138,48 +124,117 @@ class DiveProfileLegend extends ConsumerWidget {
     );
   }
 
-  Widget _buildLegendItem(
-    BuildContext context, {
-    required Color color,
-    required String label,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 10,
-          height: 3,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 3),
-        Text(label, style: Theme.of(context).textTheme.labelSmall),
-      ],
+  /// One rendered row of entries.
+  Widget _buildRow(List<ActiveLegendEntry> entries) {
+    // The admitted set is measured to fit, so this scroll view never actually
+    // scrolls; it exists to clip gracefully in degenerate over-constrained
+    // layouts instead of throwing RenderFlex overflow errors.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < entries.length; i++) ...[
+            if (i > 0) const SizedBox(width: _itemSpacing),
+            _LegendEntry(label: entries[i].label, color: entries[i].color),
+          ],
+        ],
+      ),
     );
   }
 
-  // Geometry of one inline toggle as built by _buildMetricToggle below:
-  // horizontal padding 2+2, checkbox icon 14, gap 2, swatch 10, gap 3,
-  // then the label text. _toggleChromeWidth MUST change in lockstep with
-  // any visual edit to _buildMetricToggle.
-  static const double _toggleChromeWidth = 2 + 2 + 14 + 2 + 10 + 3;
+  /// Lays [entries] out into at most [_maxRows] rows of [maxWidth].
+  ///
+  /// A single row is tried first, so a legend that fits on one line keeps the
+  /// options button immediately beside its entries. Only when something would
+  /// otherwise be dropped does the legend take a second line; the button then
+  /// trails that line, and its width is reserved there.
+  _LegendRowLayout _layoutRows(
+    BuildContext context, {
+    required List<ActiveLegendEntry> entries,
+    required double maxWidth,
+  }) {
+    final style = legendEntryLabelStyle(context);
+    final widths = [
+      for (final entry in entries)
+        _entryChromeWidth + _labelWidth(context, entry.label, style),
+    ];
+    // The button sits beside the rows, so every row loses the same width to
+    // it: its own, plus the gap before it.
+    final button = _hasToggles ? _moreButtonWidth + _itemSpacing : 0.0;
+    final rowWidth = maxWidth - _safetyMargin - button;
 
-  // Geometry of the always-shown depth legend item (_buildLegendItem):
-  // swatch 10, gap 3, label text.
-  static const double _depthChromeWidth = 10 + 3;
+    final single = _fillRows(entries, widths, [rowWidth]);
+    if (single.hiddenCount == 0) return single;
+    return _fillRows(entries, widths, [rowWidth, rowWidth]);
+  }
 
-  static const double _itemSpacing = 4;
-  static const double _moreButtonWidth = 32;
+  /// Greedily fills [rowWidths] in display order.
+  ///
+  /// An entry too wide for what is left of its row moves to the next row; on
+  /// the last row it is skipped and the shorter entries after it are still
+  /// considered. Stopping instead of skipping would let one long label
+  /// swallow everything behind it, so switching on a tank whose label carries
+  /// its gas mix would appear to remove the ceiling and NDL entries after it.
+  _LegendRowLayout _fillRows(
+    List<ActiveLegendEntry> entries,
+    List<double> widths,
+    List<double> rowWidths,
+  ) {
+    final rows = [
+      for (var i = 0; i < rowWidths.length; i++) <ActiveLegendEntry>[],
+    ];
+    final used = List<double>.filled(rowWidths.length, 0);
+    var row = 0;
+    var hidden = 0;
+
+    for (var i = 0; i < entries.length; i++) {
+      var placed = false;
+      while (true) {
+        final width = (rows[row].isEmpty ? 0.0 : _itemSpacing) + widths[i];
+        if (used[row] + width <= rowWidths[row]) {
+          used[row] += width;
+          rows[row].add(entries[i]);
+          placed = true;
+          break;
+        }
+        // Move down only if this row has something in it. An entry that will
+        // not fit an empty row will not fit the next one either (which is no
+        // wider), so skip it rather than stranding an empty row above it.
+        if (rows[row].isNotEmpty && row < rowWidths.length - 1) {
+          row++;
+          continue;
+        }
+        break;
+      }
+      if (!placed) hidden++;
+    }
+
+    while (rows.length > 1 && rows.last.isEmpty) {
+      rows.removeLast();
+    }
+    return _LegendRowLayout(rows, hidden);
+  }
+
+  // Geometry of one entry as built by _LegendEntry below: swatch 10, gap 3,
+  // then the label text. _entryChromeWidth MUST change in lockstep with any
+  // visual edit to _LegendEntry or LegendSwatch.
+  static const double _entryChromeWidth = LegendSwatch.size + 3;
+
+  static const double _itemSpacing = 10;
+
+  /// Side of the options button. The row reserves exactly this much for it,
+  /// so the button must render at this size - see the tapTargetSize note in
+  /// [_MoreOptionsButton].
+  static const double optionsButtonSize = 32;
+
+  static const double _moreButtonWidth = optionsButtonSize;
   static const double _safetyMargin = 8;
 
-  double _labelWidth(BuildContext context, String label) {
+  double _labelWidth(BuildContext context, String label, TextStyle? style) {
     final painter = TextPainter(
-      text: TextSpan(
-        text: label,
-        style: Theme.of(context).textTheme.labelSmall,
-      ),
+      text: TextSpan(text: label, style: style),
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
     )..layout();
@@ -188,348 +243,89 @@ class DiveProfileLegend extends ConsumerWidget {
     return width;
   }
 
-  /// Builds every toggle available for this dive, in canonical display order
-  /// (priority = list position). See the design spec for the ranking
-  /// rationale: profile essentials first, deco metrics next, per-gas
-  /// analysis and markers last.
-  List<LegendCandidate> _buildCandidates(
-    BuildContext context,
-    ProfileLegendState state,
-    ProfileLegend notifier,
-  ) {
-    final l10n = context.l10n;
-    final colorScheme = Theme.of(context).colorScheme;
-    final candidates = <LegendCandidate>[];
+  /// Whether this dive has anything to toggle at all; the options button is
+  /// omitted otherwise.
+  bool get _hasToggles =>
+      config.hasTemperatureData ||
+      config.hasPressureData ||
+      config.hasEvents ||
+      config.hasSecondaryToggles;
+}
 
-    void add({
-      required bool present,
-      required String id,
-      required String label,
-      required Color color,
-      required bool isActive,
-      required VoidCallback onTap,
-    }) {
-      if (!present) return;
-      candidates.add(
-        LegendCandidate(
-          id: id,
-          label: label,
-          color: color,
-          isActive: isActive,
-          priority: candidates.length,
-          onTap: onTap,
-        ),
-      );
-    }
+/// Entries laid out into rows, plus how many did not fit at all.
+@immutable
+class _LegendRowLayout {
+  final List<List<ActiveLegendEntry>> rows;
+  final int hiddenCount;
 
-    add(
-      present: config.hasTemperatureData,
-      id: 'temperature',
-      label: l10n.diveLog_legend_label_temp,
-      color: colorScheme.tertiary,
-      isActive: state.showTemperature,
-      onTap: notifier.toggleTemperature,
-    );
-    add(
-      present: config.hasPressureData && !config.hasMultiTankPressure,
-      id: 'pressure',
-      label: l10n.diveLog_legend_label_pressure,
-      color: Colors.orange,
-      isActive: state.showPressure,
-      onTap: notifier.togglePressure,
-    );
-    if (config.hasMultiTankPressure && config.tankPressures != null) {
-      final sortedIds = sortTankIdsByOrder(
-        config.tankPressures!.keys,
-        config.tanks,
-      );
-      for (var i = 0; i < sortedIds.length; i++) {
-        final tankId = sortedIds[i];
-        DiveTank? tank;
-        for (final t in config.tanks ?? const <DiveTank>[]) {
-          if (t.id == tankId) tank = t;
-        }
-        final baseLabel = tank != null
-            ? tankLegendLabel(context, tank, fallbackIndex: i + 1)
-            : l10n.diveLog_tank_title(i + 1);
-        add(
-          present: true,
-          id: 'tank:$tankId',
-          label: config.estimatedTankIds.contains(tankId)
-              ? '$baseLabel ${l10n.diveLog_pressure_estimatedSuffix}'
-              : baseLabel,
-          color: tank != null
-              ? GasColors.forGasMix(tank.gasMix)
-              : tankFallbackColor(i),
-          isActive: state.showTankPressure[tankId] ?? true,
-          onTap: () => notifier.toggleTankPressure(tankId),
-        );
-      }
-    }
-    add(
-      present: config.hasEvents,
-      id: 'events',
-      label: l10n.diveLog_legend_label_events,
-      color: Colors.amber,
-      isActive: state.showEvents,
-      onTap: notifier.toggleEvents,
-    );
-    add(
-      present: config.hasCeilingCurve,
-      id: 'ceiling',
-      label: l10n.diveLog_legend_label_ceiling,
-      color: const Color(0xFFD32F2F),
-      isActive: state.showCeiling,
-      onTap: notifier.toggleCeiling,
-    );
-    add(
-      present: config.hasDecoStopCurve,
-      id: 'decoStops',
-      label: l10n.diveLog_legend_label_decoStops,
-      color: decoStopBandColor,
-      isActive: state.showDecoStops,
-      onTap: notifier.toggleDecoStops,
-    );
-    add(
-      present: config.hasNdlData,
-      id: 'ndl',
-      label: l10n.diveLog_legend_label_ndl,
-      color: Colors.yellow.shade700,
-      isActive: state.showNdl,
-      onTap: notifier.toggleNdl,
-    );
-    add(
-      present: config.hasGasSwitches,
-      id: 'gasSwitches',
-      label: l10n.diveLog_legend_label_gasSwitches,
-      color: GasColors.nitrox,
-      isActive: state.showGasSwitchMarkers,
-      onTap: notifier.toggleGasSwitchMarkers,
-    );
-    add(
-      present: config.hasSacCurve,
-      id: 'sac',
-      label: l10n.diveLog_legend_label_sacRate,
-      color: Colors.teal,
-      isActive: state.showSac,
-      onTap: notifier.toggleSac,
-    );
-    add(
-      present: config.hasHeartRateData,
-      id: 'heartRate',
-      label: l10n.diveLog_legend_label_heartRate,
-      color: Colors.red,
-      isActive: state.showHeartRate,
-      onTap: notifier.toggleHeartRate,
-    );
-    add(
-      present: config.hasAscentRates,
-      id: 'ascentRateColors',
-      label: l10n.diveLog_legend_label_ascentRate,
-      color: Colors.lime.shade700,
-      isActive: state.showAscentRateColors,
-      onTap: notifier.toggleAscentRateColors,
-    );
-    add(
-      present: config.hasAscentRates,
-      id: 'ascentRateLine',
-      label: l10n.diveLog_legend_label_ascentRateLine,
-      color: Colors.lime,
-      isActive: state.showAscentRateLine,
-      onTap: notifier.toggleAscentRateLine,
-    );
-    add(
-      present: config.hasMaxDepthMarker,
-      id: 'maxDepth',
-      label: l10n.diveLog_legend_label_maxDepth,
-      color: Colors.red,
-      isActive: state.showMaxDepthMarker,
-      onTap: notifier.toggleMaxDepthMarker,
-    );
-    add(
-      present: config.hasTtsData,
-      id: 'tts',
-      label: l10n.diveLog_legend_label_tts,
-      color: const Color(0xFFAD1457),
-      isActive: state.showTts,
-      onTap: notifier.toggleTts,
-    );
-    add(
-      present: config.hasGtrData,
-      id: 'gtr',
-      label: l10n.diveLog_legend_label_gtr,
-      color: ProfileRightAxisMetric.gtr.color!,
-      isActive: state.showGtr,
-      onTap: notifier.toggleGtr,
-    );
-    add(
-      present: config.hasCnsData,
-      id: 'cns',
-      label: l10n.diveLog_legend_label_cns,
-      color: const Color(0xFFE65100),
-      isActive: state.showCns,
-      onTap: notifier.toggleCns,
-    );
-    add(
-      present: config.hasMeanDepthData,
-      id: 'meanDepth',
-      label: l10n.diveLog_legend_label_meanDepth,
-      color: Colors.blueGrey,
-      isActive: state.showMeanDepth,
-      onTap: notifier.toggleMeanDepth,
-    );
-    add(
-      present: config.hasGfData,
-      id: 'gf',
-      label: l10n.diveLog_legend_label_gfPercent,
-      color: Colors.deepPurple,
-      isActive: state.showGf,
-      onTap: notifier.toggleGf,
-    );
-    add(
-      present: config.hasSurfaceGfData,
-      id: 'surfaceGf',
-      label: l10n.diveLog_legend_label_surfaceGf,
-      color: Colors.purple.shade300,
-      isActive: state.showSurfaceGf,
-      onTap: notifier.toggleSurfaceGf,
-    );
-    add(
-      present: config.hasPpO2Data,
-      id: 'ppO2',
-      label: l10n.diveLog_legend_label_ppO2,
-      color: const Color(0xFF00ACC1),
-      isActive: state.showPpO2,
-      onTap: notifier.togglePpO2,
-    );
-    add(
-      present: config.hasPpN2Data,
-      id: 'ppN2',
-      label: l10n.diveLog_legend_label_ppN2,
-      color: Colors.indigo,
-      isActive: state.showPpN2,
-      onTap: notifier.togglePpN2,
-    );
-    add(
-      present: config.hasPpHeData,
-      id: 'ppHe',
-      label: l10n.diveLog_legend_label_ppHe,
-      color: Colors.pink.shade300,
-      isActive: state.showPpHe,
-      onTap: notifier.togglePpHe,
-    );
-    add(
-      present: config.hasModData,
-      id: 'mod',
-      label: l10n.diveLog_legend_label_mod,
-      color: Colors.deepOrange,
-      isActive: state.showMod,
-      onTap: notifier.toggleMod,
-    );
-    add(
-      present: config.hasDensityData,
-      id: 'density',
-      label: l10n.diveLog_legend_label_gasDensity,
-      color: Colors.brown,
-      isActive: state.showDensity,
-      onTap: notifier.toggleDensity,
-    );
-    add(
-      present: config.hasOtuData,
-      id: 'otu',
-      label: l10n.diveLog_legend_label_otu,
-      color: const Color(0xFF6D4C41),
-      isActive: state.showOtu,
-      onTap: notifier.toggleOtu,
-    );
-    add(
-      present: config.hasPressureMarkers,
-      id: 'pressureMarkers',
-      label: l10n.diveLog_legend_label_pressureThresholds,
-      color: Colors.orange,
-      isActive: state.showPressureMarkers,
-      onTap: notifier.togglePressureMarkers,
-    );
-    add(
-      present: config.hasPhotoMarkers,
-      id: 'photoMarkers',
-      label: l10n.diveLog_legend_label_photoMarkers,
-      color: Colors.cyan,
-      isActive: state.showPhotoMarkers,
-      onTap: notifier.togglePhotoMarkers,
-    );
-    add(
-      present: config.hasGasData,
-      id: 'gasTimeline',
-      label: l10n.diveLog_legend_label_showGas,
-      color: GasColors.nitrox,
-      isActive: state.showGas,
-      onTap: notifier.toggleGas,
-    );
-    return candidates;
-  }
+  const _LegendRowLayout(this.rows, this.hiddenCount);
+}
 
-  Widget _buildMetricToggle(
-    BuildContext context, {
-    required Color color,
-    required String label,
-    required bool isEnabled,
-    required VoidCallback onTap,
-  }) {
-    return Semantics(
-      toggled: isEnabled,
-      label: '$label ${isEnabled ? 'enabled' : 'disabled'}',
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(4),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-                size: 14,
-                color: isEnabled
-                    ? color
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 2),
-              Container(
-                width: 10,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: isEnabled ? color : color.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 3),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: isEnabled
-                      ? null
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+/// Text style for an inline legend label.
+///
+/// Shared with the legend's width measurement: measuring with a different
+/// style than the one rendered would hide entries that actually fit, or admit
+/// entries that then overflow.
+TextStyle? legendEntryLabelStyle(BuildContext context) {
+  final labelSmall = Theme.of(context).textTheme.labelSmall;
+  return labelSmall?.copyWith(fontSize: (labelSmall.fontSize ?? 11) - 1);
+}
+
+/// A read-only legend entry: a [LegendSwatch] in the line colour and the label.
+/// Deliberately not tappable; toggling happens in the options dropdown.
+class _LegendEntry extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _LegendEntry({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        LegendSwatch(color: color),
+        const SizedBox(width: 3),
+        Text(label, maxLines: 1, style: legendEntryLabelStyle(context)),
+      ],
     );
   }
 }
 
-/// Button that shows a badge counting active toggles hidden from the inline
-/// row, and opens the chart options dialog.
+/// The small dot that stands for a chart line in the legend, in that line's
+/// colour.
+///
+/// A filled circle rather than a dash: at legend size a 3px-tall dash carries
+/// too few pixels of colour to tell two similar hues apart at a glance, which
+/// is the one job this mark has.
+class LegendSwatch extends StatelessWidget {
+  final Color color;
+
+  const LegendSwatch({super.key, required this.color});
+
+  /// Diameter. [DiveProfileLegend._entryChromeWidth] is derived from this, so
+  /// the row measurement follows any change here.
+  static const double size = 8;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+}
+
+/// Opens the chart options dialog, where every metric toggle lives.
+///
+/// Carries a badge counting the drawn metrics that did not fit the inline
+/// row, so a truncated legend still says how much it is not showing.
 class _MoreOptionsButton extends ConsumerWidget {
   final ProfileLegendConfig config;
-  final int hiddenActiveCount;
+  final int hiddenCount;
 
-  const _MoreOptionsButton({
-    required this.config,
-    required this.hiddenActiveCount,
-  });
+  const _MoreOptionsButton({required this.config, required this.hiddenCount});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -538,18 +334,25 @@ class _MoreOptionsButton extends ConsumerWidget {
     return IconButton(
       onPressed: () => _showMoreOptions(context),
       icon: Badge(
-        isLabelVisible: hiddenActiveCount > 0,
+        isLabelVisible: hiddenCount > 0,
         label: Text(
-          hiddenActiveCount.toString(),
+          hiddenCount.toString(),
           style: const TextStyle(fontSize: 10),
         ),
-        child: const Icon(Icons.tune, size: 18),
+        child: const Icon(Icons.tune, size: 20),
       ),
       tooltip: context.l10n.diveLog_profile_tooltip_moreOptions,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      constraints: const BoxConstraints(
+        minWidth: DiveProfileLegend.optionsButtonSize,
+        minHeight: DiveProfileLegend.optionsButtonSize,
+      ),
       style: IconButton.styleFrom(
-        foregroundColor: hiddenActiveCount > 0
+        // Without this the button keeps Material's padded 48px tap target,
+        // renders 16px wider than the row reserved for it, and is sliced in
+        // half by the clip at the end of the row.
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        foregroundColor: hiddenCount > 0
             ? colorScheme.primary
             : colorScheme.onSurfaceVariant,
       ),

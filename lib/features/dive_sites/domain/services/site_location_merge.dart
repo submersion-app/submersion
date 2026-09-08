@@ -28,19 +28,31 @@ class SiteLocationDetails {
 
 bool _isBlank(String? value) => value == null || value.trim().isEmpty;
 
-/// The single home of the "only fill empty fields" rule (issue #1187).
+/// The single home of the rule that decides which of the four columns a
+/// reverse geocode may write (issue #1187).
 ///
 /// Returns the values to write, with null for every field that must not
-/// change, or null when nothing should change. A field is filled only when
-/// [current] is blank and [found] has a non-blank value for it; manual edits
-/// and deliberate clears are never overwritten here. The lookup's locality
-/// maps to the site's city column.
-SiteLocationDetails? mergeMissingLocationDetails({
+/// change, or null when nothing should change. The lookup's locality maps to
+/// the site's city column.
+///
+/// With [overwrite] false a field is filled only when [current] is blank, so
+/// manual edits and deliberate clears survive. With it true a found value
+/// also replaces a differing stored one, which is how a database geocoded in
+/// more than one language is brought back to a single language; a field the
+/// lookup did not resolve is still never cleared, and a value that already
+/// matches is reported as no change so the row is not written for nothing.
+SiteLocationDetails? mergeLocationDetails({
   required SiteLocationDetails current,
   required PlaceLookup found,
+  required bool overwrite,
 }) {
-  String? fill(String? existing, String? candidate) =>
-      _isBlank(existing) && !_isBlank(candidate) ? candidate!.trim() : null;
+  String? fill(String? existing, String? candidate) {
+    if (_isBlank(candidate)) return null;
+    final value = candidate!.trim();
+    if (_isBlank(existing)) return value;
+    if (!overwrite) return null;
+    return existing!.trim() == value ? null : value;
+  }
 
   final merged = SiteLocationDetails(
     country: fill(current.country, found.country),

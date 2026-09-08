@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/media_store/media_object_store.dart';
@@ -13,15 +14,40 @@ import 'package:submersion/core/services/media_store/media_object_store.dart';
 /// photos and videos - with resume via the `Content-Range: bytes */total`
 /// probe. [chunkSizeBytes] must be a multiple of 256 KiB (Drive rule).
 class GoogleDriveMediaObjectStore implements MediaObjectStore {
+  /// [clientSupplier] is asked for the authenticator's *current* client on
+  /// every request. It must not be replaced by a captured client: the
+  /// Google authenticators close and replace theirs on every re-auth
+  /// (GoogleSignInAuthenticator._installClient / signOut /
+  /// handleAuthFailure, DesktopOAuthAuthenticator._teardownClient), and
+  /// the runtime holding this store outlives all of them, so a captured
+  /// client goes dead at the first token refresh and every later transfer
+  /// throws "Client is already closed". Null means no Google session is
+  /// available right now.
   GoogleDriveMediaObjectStore({
-    required http.Client client,
+    required Future<http.Client?> Function() clientSupplier,
     this.folderName = 'submersion-media',
     this.chunkSizeBytes = 8 * 1024 * 1024,
     String apiBase = 'https://www.googleapis.com',
-  }) : _client = client,
+  }) : _clientSupplier = clientSupplier,
        _apiBase = apiBase;
 
-  final http.Client _client;
+  /// For tests and any caller that owns the client's lifetime outright.
+  /// Production callers must use the default constructor so the store
+  /// follows re-auth.
+  @visibleForTesting
+  GoogleDriveMediaObjectStore.withClient(
+    http.Client client, {
+    String folderName = 'submersion-media',
+    int chunkSizeBytes = 8 * 1024 * 1024,
+    String apiBase = 'https://www.googleapis.com',
+  }) : this(
+         clientSupplier: () async => client,
+         folderName: folderName,
+         chunkSizeBytes: chunkSizeBytes,
+         apiBase: apiBase,
+       );
+
+  final Future<http.Client?> Function() _clientSupplier;
   final String folderName;
   final int chunkSizeBytes;
   final String _apiBase;
@@ -307,34 +333,63 @@ class GoogleDriveMediaObjectStore implements MediaObjectStore {
     return files.isEmpty ? null : files.first;
   }
 
+  /// Drive's documented per-page maximum, requested explicitly so a large
+  /// media folder needs as few round trips as possible.
+  static const _queryPageSize = 1000;
+
+  /// Every file matching [q], following Drive's `nextPageToken` to
+  /// exhaustion.
+  ///
+  /// files.list serves one page at a time (100 results by default, 1000
+  /// max) and reports the rest only through `nextPageToken`. A single call
+  /// hid every media object past the cap from [list], and could return a
+  /// short or empty first page for a name lookup -- which [_findByKey]
+  /// would read as "absent" and re-upload.
+  ///
+  /// `nextPageToken` has to be named in `fields` alongside `files(...)`:
+  /// the projection applies to the whole response, so asking only for
+  /// `files(...)` strips the token and the loop would stop after one page.
   Future<List<_DriveFile>> _query(String q) async {
-    final uri = Uri.parse('$_apiBase/drive/v3/files').replace(
-      queryParameters: {
-        'spaces': 'appDataFolder',
-        'q': q,
-        'fields': 'files(id,name,modifiedTime,size)',
-      },
-    );
-    final response = await _send(http.Request('GET', uri));
-    if (response.statusCode != 200) {
-      throw _forStatus('query', q, response);
-    }
-    final decoded = jsonDecode(response.body) as Map<String, Object?>;
-    final files = decoded['files'] as List<Object?>? ?? const [];
-    return [
-      for (final raw in files.cast<Map<String, Object?>>())
-        _DriveFile(
-          id: raw['id'] as String,
-          name: raw['name'] as String,
-          size: int.tryParse(raw['size'] as String? ?? ''),
-          modified: DateTime.tryParse(raw['modifiedTime'] as String? ?? ''),
-        ),
-    ];
+    final results = <_DriveFile>[];
+    String? pageToken;
+    do {
+      final uri = Uri.parse('$_apiBase/drive/v3/files').replace(
+        queryParameters: {
+          'spaces': 'appDataFolder',
+          'q': q,
+          'pageSize': '$_queryPageSize',
+          'pageToken': ?pageToken,
+          'fields': 'nextPageToken,files(id,name,modifiedTime,size)',
+        },
+      );
+      final response = await _send(http.Request('GET', uri));
+      if (response.statusCode != 200) {
+        throw _forStatus('query', q, response);
+      }
+      final decoded = jsonDecode(response.body) as Map<String, Object?>;
+      final files = decoded['files'] as List<Object?>? ?? const [];
+      for (final raw in files.cast<Map<String, Object?>>()) {
+        results.add(
+          _DriveFile(
+            id: raw['id'] as String,
+            name: raw['name'] as String,
+            size: int.tryParse(raw['size'] as String? ?? ''),
+            modified: DateTime.tryParse(raw['modifiedTime'] as String? ?? ''),
+          ),
+        );
+      }
+      // An empty token means the same thing as an absent one; treating it
+      // as a real token would re-issue the first page forever.
+      final next = decoded['nextPageToken'] as String?;
+      pageToken = (next == null || next.isEmpty) ? null : next;
+    } while (pageToken != null);
+    return results;
   }
 
   Future<http.Response> _send(http.Request request) async {
+    final client = await _resolveClient();
     try {
-      return await http.Response.fromStream(await _client.send(request));
+      return await http.Response.fromStream(await client.send(request));
     } on Exception catch (e) {
       throw MediaStoreException(
         'Could not reach Google Drive',
@@ -342,6 +397,29 @@ class GoogleDriveMediaObjectStore implements MediaObjectStore {
         cause: e,
       );
     }
+  }
+
+  /// The authenticator's client as of right now. Resolved per request so a
+  /// re-auth that swapped the client is picked up transparently; see the
+  /// constructor.
+  Future<http.Client> _resolveClient() async {
+    final http.Client? client;
+    try {
+      client = await _clientSupplier();
+    } on Exception catch (e) {
+      throw MediaStoreException(
+        'Could not reach Google Drive',
+        kind: MediaStoreErrorKind.transient,
+        cause: e,
+      );
+    }
+    if (client == null) {
+      throw const MediaStoreException(
+        'No Google Drive session; sign in again',
+        kind: MediaStoreErrorKind.auth,
+      );
+    }
+    return client;
   }
 
   MediaStoreException _forStatus(

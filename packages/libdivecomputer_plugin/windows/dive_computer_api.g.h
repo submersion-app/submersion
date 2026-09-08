@@ -416,7 +416,8 @@ class TankInfo {
     const double* volume_liters,
     const double* start_pressure_bar,
     const double* end_pressure_bar,
-    const int64_t* usage);
+    const int64_t* usage,
+    const int64_t* transmitter_serial);
 
   int64_t index() const;
   void set_index(int64_t value_arg);
@@ -442,6 +443,14 @@ class TankInfo {
   void set_usage(const int64_t* value_arg);
   void set_usage(int64_t value_arg);
 
+  // Serial number of the air-integration transmitter that reported this
+  // tank's pressures (`dc_tank_t.serial`, a fork extension); null when the
+  // computer reported none. Identifies the physical cylinder across
+  // computers paired to the same transmitter.
+  const int64_t* transmitter_serial() const;
+  void set_transmitter_serial(const int64_t* value_arg);
+  void set_transmitter_serial(int64_t value_arg);
+
 
  private:
   static TankInfo FromEncodableList(const flutter::EncodableList& list);
@@ -455,6 +464,7 @@ class TankInfo {
   std::optional<double> start_pressure_bar_;
   std::optional<double> end_pressure_bar_;
   std::optional<int64_t> usage_;
+  std::optional<int64_t> transmitter_serial_;
 
 };
 

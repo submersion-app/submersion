@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 TripWithStats _makeTrip({
@@ -27,11 +29,20 @@ TripWithStats _makeTrip({
   );
 }
 
+// The tile watches settingsProvider for the diver's date format. The real
+// notifier reaches for DiverSettingsRepository and a DatabaseService this
+// harness never starts, and its constructor load is unlistened, so a failure
+// would escape to the zone and fail whichever test is running at the time.
+List<dynamic> _settingsOverrides() => [
+  settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+];
+
 void main() {
   group('CompactTripListTile', () {
     testWidgets('renders trip name and date range', (tester) async {
       await tester.pumpWidget(
         testApp(
+          overrides: _settingsOverrides(),
           child: CompactTripListTile(
             tripWithStats: _makeTrip(name: 'Palau Adventure'),
             onTap: () {},
@@ -47,6 +58,7 @@ void main() {
     testWidgets('renders dive count', (tester) async {
       await tester.pumpWidget(
         testApp(
+          overrides: _settingsOverrides(),
           child: CompactTripListTile(
             tripWithStats: _makeTrip(diveCount: 12),
             onTap: () {},
@@ -60,6 +72,7 @@ void main() {
     testWidgets('renders bottom time when non-zero', (tester) async {
       await tester.pumpWidget(
         testApp(
+          overrides: _settingsOverrides(),
           child: CompactTripListTile(
             // 3600 seconds = 1h 0m
             tripWithStats: _makeTrip(totalRuntime: 3600),
@@ -75,6 +88,7 @@ void main() {
     testWidgets('hides bottom time when zero', (tester) async {
       await tester.pumpWidget(
         testApp(
+          overrides: _settingsOverrides(),
           child: CompactTripListTile(
             tripWithStats: _makeTrip(totalRuntime: 0),
             onTap: () {},
@@ -88,6 +102,7 @@ void main() {
     testWidgets('shows selected color when isSelected is true', (tester) async {
       await tester.pumpWidget(
         testApp(
+          overrides: _settingsOverrides(),
           child: CompactTripListTile(
             tripWithStats: _makeTrip(),
             isSelected: true,
@@ -104,6 +119,7 @@ void main() {
       var tapped = false;
       await tester.pumpWidget(
         testApp(
+          overrides: _settingsOverrides(),
           child: CompactTripListTile(
             tripWithStats: _makeTrip(),
             onTap: () => tapped = true,

@@ -7,9 +7,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Dialog for selecting PDF export options.
 ///
 /// Allows users to choose:
-/// - Template style (Simple, Detailed, Professional, PADI, NAUI)
+/// - Template style (Simple, Detailed, PADI, NAUI)
 /// - Page size (A4, Letter)
 /// - Whether to include certification cards
+/// - Whether to include verification areas (stamp and signature blocks)
 class PdfExportDialog extends ConsumerStatefulWidget {
   const PdfExportDialog({super.key});
 
@@ -31,17 +32,20 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
   PdfTemplate _selectedTemplate = PdfTemplate.detailed;
   PdfPageSize _selectedPageSize = PdfPageSize.a4;
   bool _includeCertCards = false;
+  bool _includeVerificationAreas = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+    // Material rather than a plain Container: the sheet's own background
+    // would otherwise sit between the ListTiles and the nearest Material
+    // ancestor, swallowing their ink splashes.
+    return Material(
+      color: colorScheme.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      clipBehavior: Clip.antiAlias,
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -137,6 +141,26 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
                         contentPadding: EdgeInsets.zero,
                       ),
                     ],
+                    // Verification areas: only the detailed template renders
+                    // the stamp and large signature boxes.
+                    if (_selectedTemplate == PdfTemplate.detailed)
+                      SwitchListTile(
+                        title: Text(
+                          context
+                              .l10n
+                              .transfer_pdfExport_includeVerificationAreas,
+                        ),
+                        subtitle: Text(
+                          context
+                              .l10n
+                              .transfer_pdfExport_includeVerificationAreasSubtitle,
+                        ),
+                        value: _includeVerificationAreas,
+                        onChanged: (value) {
+                          setState(() => _includeVerificationAreas = value);
+                        },
+                        contentPadding: EdgeInsets.zero,
+                      ),
                   ],
                 ),
               ),
@@ -262,8 +286,6 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
         return context.l10n.transfer_pdfExport_templateSimple;
       case PdfTemplate.detailed:
         return context.l10n.transfer_pdfExport_templateDetailed;
-      case PdfTemplate.professional:
-        return context.l10n.transfer_pdfExport_templateProfessional;
       case PdfTemplate.padiStyle:
         return context.l10n.transfer_pdfExport_templatePadiStyle;
       case PdfTemplate.nauiStyle:
@@ -280,8 +302,6 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
         return context.l10n.transfer_pdfExport_templateSimpleDesc;
       case PdfTemplate.detailed:
         return context.l10n.transfer_pdfExport_templateDetailedDesc;
-      case PdfTemplate.professional:
-        return context.l10n.transfer_pdfExport_templateProfessionalDesc;
       case PdfTemplate.padiStyle:
         return context.l10n.transfer_pdfExport_templatePadiStyleDesc;
       case PdfTemplate.nauiStyle:
@@ -295,8 +315,6 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
         return Icons.table_rows;
       case PdfTemplate.detailed:
         return Icons.article;
-      case PdfTemplate.professional:
-        return Icons.verified;
       case PdfTemplate.padiStyle:
         return Icons.scuba_diving;
       case PdfTemplate.nauiStyle:
@@ -310,6 +328,9 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
       pageSize: _selectedPageSize,
       includeCertificationCards:
           _selectedTemplate.supportsCertificationCards && _includeCertCards,
+      includeVerificationAreas:
+          _selectedTemplate == PdfTemplate.detailed &&
+          _includeVerificationAreas,
     );
     Navigator.of(context).pop(options);
   }

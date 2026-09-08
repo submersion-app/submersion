@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_field.dart';
@@ -8,7 +12,15 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -121,6 +133,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   DiveMergeOutcome? _lastMergeOutcome;
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
+
+  /// True while a kick from the loader row is waiting for the frame to end.
+  ///
+  /// Several builds can ask before the callback runs, since a scroll pass
+  /// rebuilds the row each time it re-enters the viewport. One pending kick is
+  /// enough.
+  bool _autoLoadKickScheduled = false;
   bool _selectionFromList =
       false; // Track if selection originated from list tap
 
@@ -157,12 +176,60 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
+    // Once a page load has failed, only the Retry button asks again, matching
+    // [_loadNextPageIfStranded]. Sitting at the bottom of the list produces a
+    // scroll notification on every settle and overscroll bounce, so retrying
+    // from here would swap the retry row back for a spinner under the diver's
+    // thumb again and again, and put a failing query behind each one.
+    final paginated = ref.read(paginatedDiveListProvider).value;
+    if (paginated?.loadMoreFailed ?? false) return;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
     // Load next page when within 200px of bottom
     if (maxScroll - currentScroll <= 200) {
       ref.read(paginatedDiveListProvider.notifier).loadNextPage();
     }
+  }
+
+  /// Load the next page when the trailing loader row is built with nothing in
+  /// flight to resolve it.
+  ///
+  /// [_onScroll] only fires on scroll activity, and when the list shrinks under
+  /// a position that is already at the bottom -- a reload, a bulk delete --
+  /// Flutter clamps the offset during layout without notifying scroll
+  /// listeners. The spinner then sits there until the diver scrolls by hand
+  /// (#1610). Building the row is itself the signal that it is on screen, so
+  /// that is where the load gets kicked.
+  ///
+  /// A page load that failed is left alone: the row shows a retry affordance
+  /// instead of a spinner, so there is nothing stranded to rescue. [_onScroll]
+  /// bows out of a failed state for the same reason, so the Retry button is
+  /// the only way back.
+  ///
+  /// This cannot become a retry storm. A kick flips `isLoadingMore` on the
+  /// spot, a load that fails raises `loadMoreFailed`, and a load with nothing
+  /// left to fetch drops `hasMore`, so every outcome closes the door behind it.
+  /// Deliberately no "already kicked at this row count" guard: the count comes
+  /// back to a value it has held before whenever the list shrinks -- a bulk
+  /// delete, a narrower reload -- and remembering it would decline the kick
+  /// exactly when the row is stranded again.
+  void _loadNextPageIfStranded(PaginatedDiveListState paginatedState) {
+    if (!paginatedState.hasMore || paginatedState.isLoadingMore) return;
+    if (paginatedState.loadMoreFailed || _autoLoadKickScheduled) return;
+    _autoLoadKickScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoLoadKickScheduled = false;
+      if (!mounted) return;
+      // Re-read rather than trusting the state this was scheduled from. A load
+      // can start and fail between that build and the end of the frame, and
+      // this kick must not be the thing that clears loadMoreFailed and retries
+      // behind the diver's back -- after a failure the Retry button is the
+      // only way back.
+      final latest = ref.read(paginatedDiveListProvider).value;
+      if (latest == null || !latest.hasMore) return;
+      if (latest.isLoadingMore || latest.loadMoreFailed) return;
+      ref.read(paginatedDiveListProvider.notifier).loadNextPage();
+    });
   }
 
   @override
@@ -548,11 +615,27 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     _BulkExportFormat format,
     String formatLabel,
   ) async {
-    final destination = await showExportDestinationSheet(
+    // PDF gets the same template picker the Transfer page uses, so a bulk
+    // export is not silently a different document from a full-logbook one.
+    PdfExportOptions? pdfOptions;
+    if (format == _BulkExportFormat.pdf) {
+      pdfOptions = await PdfExportDialog.show(context);
+      // A null return means the diver cancelled, not that anything failed.
+      if (pdfOptions == null || !mounted) return;
+    }
+
+    // Only UDDF carries raw dive computer bytes, so only it offers the
+    // toggle; every other format has nothing to include or leave out.
+    final choice = await showExportDestinationSheetWithOptions(
       context,
       title: formatLabel,
+      showRawDataToggle: format == _BulkExportFormat.uddf,
     );
-    if (destination == null || !mounted) return;
+    if (choice == null || !mounted) return;
+    final destination = choice.destination;
+    final uddfOptions = UddfExportOptions(
+      includeRawData: choice.includeRawData,
+    );
 
     // Saving opens the native save panel, which must not be raised while a
     // modal route is up - so that path drops the progress dialog first.
@@ -581,9 +664,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     try {
       final repository = ref.read(diveRepositoryProvider);
-      final selectedDives = await repository.getDivesByIds(
-        _selectedIds.toList(),
-      );
+      var selectedDives = await repository.getDivesByIds(_selectedIds.toList());
+
+      // getDivesByIds hydrates profiles but not the buddy junction, which only
+      // getAllDives loads. #1017 asks for buddies in the detailed logbook, so
+      // attach them here rather than shipping an export that omits the team.
+      if (format == _BulkExportFormat.pdf) {
+        final buddiesByDive = await ref
+            .read(buddyRepositoryProvider)
+            .getBuddiesForDives(selectedDives.map((d) => d.id).toList());
+        if (buddiesByDive.isNotEmpty) {
+          selectedDives = selectedDives
+              .map((d) => d.copyWith(buddies: buddiesByDive[d.id] ?? const []))
+              .toList();
+        }
+      }
       final exportService = ref.read(exportServiceProvider);
       final settings = ref.read(settingsProvider);
       final pdfDates = PdfDateFormatter(
@@ -595,6 +690,32 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           .map((d) => d.site!)
           .toSet()
           .toList();
+
+      // The picker offers certification cards, so the bulk path has to supply
+      // the same context the settings export does or the option does nothing.
+      //
+      // Best-effort, like the buddy lookup above: this personalizes the
+      // document rather than defining it, so a failed read degrades to a
+      // plainer export instead of no export.
+      List<Certification>? certifications;
+      Diver? diver;
+      Uint8List? diverPhoto;
+      if (format == _BulkExportFormat.pdf) {
+        try {
+          if (pdfOptions?.includeCertificationCards == true) {
+            certifications = await ref.read(allCertificationsProvider.future);
+          }
+          diver = await ref.read(currentDiverProvider.future);
+          // The portrait travels with the diver: passing one without the
+          // other leaves the Detailed front matter on its placeholder frame.
+          diverPhoto = await ref.read(diverPhotoLoaderProvider)(
+            diver?.photoPath,
+          );
+        } catch (_) {
+          // Keep the export going without the personalization.
+        }
+      }
+      if (!mounted) return;
 
       if (!keepDialogForDelivery) {
         if (!mounted) return;
@@ -609,10 +730,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               ? await exportService.exportDivesToPdf(
                   selectedDives,
                   dates: pdfDates,
+                  units: UnitFormatter(settings),
+                  options: pdfOptions!,
+                  certifications: certifications,
+                  diver: diver,
+                  diverPhoto: diverPhoto,
                 )
               : await exportService.saveDivesToPdfFile(
                   selectedDives,
                   dates: pdfDates,
+                  units: UnitFormatter(settings),
+                  options: pdfOptions!,
+                  certifications: certifications,
+                  diver: diver,
+                  diverPhoto: diverPhoto,
                 ),
         _BulkExportFormat.csv =>
           sharing
@@ -623,10 +754,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               ? await exportService.exportDivesToUddf(
                   selectedDives,
                   sites: sites,
+                  options: uddfOptions,
+                  dataSources: await ref.read(uddfSourceFetchProvider)(
+                    selectedDives.map((d) => d.id).toList(growable: false),
+                    uddfOptions,
+                  ),
                 )
               : await exportService.saveDivesToUddfFile(
                   selectedDives,
                   sites: sites,
+                  options: uddfOptions,
+                  dataSources: await ref.read(uddfSourceFetchProvider)(
+                    selectedDives.map((d) => d.id).toList(growable: false),
+                    uddfOptions,
+                  ),
                 ),
       };
 
@@ -1408,6 +1549,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               itemBuilder: (context, index) {
                 // Loading indicator at the end
                 if (index >= dives.length) {
+                  if (paginatedState.loadMoreFailed) {
+                    return _buildLoadMoreFailedRow(context);
+                  }
+                  _loadNextPageIfStranded(paginatedState);
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Center(child: CircularProgressIndicator()),
@@ -1746,6 +1891,35 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             label: Text(context.l10n.diveLog_empty_logFirstDive),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Trailing row shown when loading another page failed.
+  ///
+  /// A spinner here would claim work is happening when nothing is, and the
+  /// diver would have no way to ask again except by scrolling (#1610).
+  Widget _buildLoadMoreFailedRow(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              context.l10n.diveLog_error_loadingDives,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              key: const ValueKey('load_more_retry'),
+              onPressed: () =>
+                  ref.read(paginatedDiveListProvider.notifier).loadNextPage(),
+              icon: const Icon(Icons.refresh),
+              label: Text(context.l10n.diveLog_error_retry),
+            ),
+          ],
+        ),
       ),
     );
   }

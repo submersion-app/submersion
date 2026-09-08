@@ -36,14 +36,16 @@ domain.DivePlan _plan({
     gfHigh: 80,
     tanks: tanks ?? [_diluentTank, _bailout()],
     segments: [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'seg-1',
+        fromDepth: 0,
         targetDepth: 60.0,
         tankId: 'dil',
         gasMix: _diluent,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'seg-2',
         depth: 60.0,
         durationMinutes: bottomMinutes,
@@ -76,18 +78,33 @@ void main() {
     expect(outcome.worstCase.depthMeters, closeTo(60.0, 0.1));
   });
 
-  test('required liters grow monotonically across the bottom phase', () {
+  test('required liters grow across the bottom phase', () {
     final outcome = solver.solve(_plan())!;
     final bottomPoints = outcome.points
         .where((p) => p.depthMeters > 59.0)
         .toList();
     expect(bottomPoints.length, greaterThan(2));
+
+    // Loading only ever grows on a square profile, so the demand grows with
+    // it - but not smoothly. The stop grid is discrete and the ascent rate
+    // depends on whether a stop is actually held: the minute a marginal deep
+    // stop first appears, every leg above it changes from the working ascent
+    // to the slower climb up the grid, and the minute it disappears again
+    // they change back. A step like that can shave a few seconds off the
+    // total ascent while the tissues are still loading, so allow a sample to
+    // give back a little rather than pinning an exactness the model does not
+    // promise. The trend is the real claim, and it is asserted below.
     for (var i = 1; i < bottomPoints.length; i++) {
       expect(
         bottomPoints[i].litersRequired,
-        greaterThanOrEqualTo(bottomPoints[i - 1].litersRequired - 1e-6),
+        greaterThanOrEqualTo(bottomPoints[i - 1].litersRequired * 0.98),
+        reason: 'sample $i fell more than one grid step below its predecessor',
       );
     }
+    expect(
+      bottomPoints.last.litersRequired,
+      greaterThan(bottomPoints.first.litersRequired * 2),
+    );
   });
 
   test('sufficiency flips with the carried bailout volume', () {

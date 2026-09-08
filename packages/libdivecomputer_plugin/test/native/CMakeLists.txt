@@ -276,6 +276,27 @@ if(WIN32)
     target_link_libraries(test_multi_transmitter_pressure PRIVATE SetupAPI.lib ws2_32.lib)
 endif()
 
+# The transmitter serial libdivecomputer's Shearwater parser decodes from the
+# opening records must reach the wrapper's tank summary, so the app can tell
+# two computers paired to one transmitter apart from two cylinders.
+add_executable(test_tank_transmitter_serial
+    test_tank_transmitter_serial.c
+    ${WRAPPER_DIR}/libdc_wrapper.c
+    ${WRAPPER_DIR}/libdc_download.c
+    ${LIBDC_ALL_SOURCES}
+)
+target_include_directories(test_tank_transmitter_serial PRIVATE
+    ${WRAPPER_DIR}
+    ${LIBDC_DIR}/include
+    ${LIBDC_DIR}/src
+    ${PLATFORM_CONFIG_DIR}
+)
+target_compile_definitions(test_tank_transmitter_serial PRIVATE HAVE_CONFIG_H)
+if(WIN32)
+    target_compile_definitions(test_tank_transmitter_serial PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_link_libraries(test_tank_transmitter_serial PRIVATE SetupAPI.lib ws2_32.lib)
+endif()
+
 # Regression test for issue #1481: since APOS5 firmware 5.2.11 the Ratio iX3M 2
 # packs tank data into the high bits of the sample record type, and the parser
 # skipped every record whose type was not literally 0, so dives imported as
@@ -298,6 +319,28 @@ if(WIN32)
     target_link_libraries(test_ratio_ix3m2_record_type PRIVATE SetupAPI.lib ws2_32.lib)
 endif()
 
+# PR #342: the Cressi Leonardo logs a deco obligation in bit 11 of each sample
+# word and grades its ascent rate 0-3, of which only level 3 sounds the alarm.
+# Goes through the wrapper, because what the parser may leave unreported
+# depends on the wrapper carrying deco state forward across samples.
+add_executable(test_cressi_leonardo_deco
+    test_cressi_leonardo_deco.c
+    ${WRAPPER_DIR}/libdc_wrapper.c
+    ${WRAPPER_DIR}/libdc_download.c
+    ${LIBDC_ALL_SOURCES}
+)
+target_include_directories(test_cressi_leonardo_deco PRIVATE
+    ${WRAPPER_DIR}
+    ${LIBDC_DIR}/include
+    ${LIBDC_DIR}/src
+    ${PLATFORM_CONFIG_DIR}
+)
+target_compile_definitions(test_cressi_leonardo_deco PRIVATE HAVE_CONFIG_H)
+if(WIN32)
+    target_compile_definitions(test_cressi_leonardo_deco PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_link_libraries(test_cressi_leonardo_deco PRIVATE SetupAPI.lib ws2_32.lib)
+endif()
+
 enable_testing()
 add_test(NAME test_dive_converter COMMAND test_dive_converter)
 add_test(NAME test_serial_callbacks COMMAND test_serial_callbacks)
@@ -318,4 +361,8 @@ add_test(NAME test_multi_transmitter_pressure COMMAND test_multi_transmitter_pre
 add_test(NAME test_shearwater_o2_millivolt COMMAND test_shearwater_o2_millivolt
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+add_test(NAME test_tank_transmitter_serial COMMAND test_tank_transmitter_serial
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 add_test(NAME test_ratio_ix3m2_record_type COMMAND test_ratio_ix3m2_record_type)
+add_test(NAME test_cressi_leonardo_deco COMMAND test_cressi_leonardo_deco)

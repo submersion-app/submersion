@@ -157,14 +157,16 @@ void main() {
     // Descent + bottom only, ending AT depth so calculatePlan builds the full
     // deco schedule from the bottom (createSimplePlan ends at the surface).
     List<PlanSegment> decoSegments() => [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'descent',
+        fromDepth: 0,
         targetDepth: 45,
         tankId: air.id,
         gasMix: air.gasMix,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'bottom',
         depth: 45,
         durationMinutes: 25,
@@ -207,6 +209,55 @@ void main() {
         orElse: () => result.decoSchedule.first,
       );
       expect(ean50Stop.gasMix.o2, closeTo(50, 1e-6));
+    });
+  });
+
+  group('PlanCalculatorService createSimplePlan', () {
+    final calculator = PlanCalculatorService();
+
+    const tank = DiveTank(
+      id: 'tank-1',
+      name: 'AL80',
+      volume: 11.1,
+      workingPressure: 207,
+      startPressure: 200,
+      gasMix: GasMix(o2: 21, he: 0),
+      order: 0,
+    );
+
+    test('shallow plan ascends straight to the surface, no safety stop', () {
+      final segments = calculator.createSimplePlan(
+        maxDepth: 8,
+        bottomTimeMinutes: 30,
+        tank: tank,
+      );
+
+      // Descent, bottom, one direct ascent - nothing at 5 m.
+      expect(segments, hasLength(3));
+      expect(segments.map((s) => s.order), [0, 1, 2]);
+      expect(segments.map((s) => s.targetDepth), [8.0, 8.0, 0.0]);
+      expect(segments.any((s) => s.targetDepth == 5.0), isFalse);
+
+      expect(segments[1].durationSeconds, 30 * 60);
+      // 8 m at the default ascent rate, expressed as a duration.
+      expect(
+        segments.last.durationSeconds,
+        closeTo(8 / calculator.defaultAscentRate * 60, 1),
+      );
+      expect(segments.every((s) => s.tankId == tank.id), isTrue);
+    });
+
+    test('plan deeper than 10 m inserts a 3 min safety stop at 5 m', () {
+      final segments = calculator.createSimplePlan(
+        maxDepth: 18,
+        bottomTimeMinutes: 40,
+        tank: tank,
+      );
+
+      expect(segments, hasLength(5));
+      expect(segments.map((s) => s.order), [0, 1, 2, 3, 4]);
+      expect(segments.map((s) => s.targetDepth), [18.0, 18.0, 5.0, 5.0, 0.0]);
+      expect(segments[3].durationSeconds, 3 * 60);
     });
   });
 }

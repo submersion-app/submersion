@@ -17,6 +17,7 @@ class ChartZoomControls extends StatelessWidget {
     required this.onZoomOut,
     required this.onResetZoom,
     this.keyPrefix,
+    this.dense = false,
   });
 
   final double zoomLevel;
@@ -29,6 +30,15 @@ class ChartZoomControls extends StatelessWidget {
   /// Distinguishes several control rows on one page, as the statistics pages
   /// stack a chart per card.
   final String? keyPrefix;
+
+  /// Drops the buttons' padded 48px tap targets to the 32px box they already
+  /// declare, making the row 32px tall instead of 48.
+  ///
+  /// For hosts where these controls share a line with dense content and the
+  /// spare height reads as a band of dead space - the dive profile legend
+  /// sits directly above its chart. Off by default: a padded tap target is
+  /// the better default on touch.
+  final bool dense;
 
   Key? _key(String name) =>
       keyPrefix == null ? null : ValueKey('$keyPrefix-$name');
@@ -53,6 +63,11 @@ class ChartZoomControls extends StatelessWidget {
             iconSize: 18,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            style: dense
+                ? IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  )
+                : null,
             tooltip: context.l10n.diveLog_profile_tooltip_resetZoom,
           ),
         IconButton(
@@ -62,6 +77,11 @@ class ChartZoomControls extends StatelessWidget {
           iconSize: 18,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          style: dense
+              ? IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                )
+              : null,
           tooltip: context.l10n.diveLog_profile_tooltip_zoomOut,
         ),
         Container(
@@ -83,6 +103,11 @@ class ChartZoomControls extends StatelessWidget {
           iconSize: 18,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          style: dense
+              ? IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                )
+              : null,
           tooltip: context.l10n.diveLog_profile_tooltip_zoomIn,
         ),
       ],

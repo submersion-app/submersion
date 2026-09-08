@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/presentation/widgets/pre_migration_badge.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Renders a single row in the backup history list.
 ///
-/// Pure presentation + callbacks; no Riverpod/provider coupling, so it
-/// can be tested in isolation.
-class BackupHistoryTile extends StatelessWidget {
+/// Presentation + callbacks only. It reads [settingsProvider] so the backup
+/// timestamp honours the diver's date and time format preferences, so a
+/// `ProviderScope` must be in the tree above it.
+class BackupHistoryTile extends ConsumerWidget {
   final BackupRecord record;
   final IconData leadingIcon;
   final VoidCallback onPinToggle;
@@ -27,9 +30,9 @@ class BackupHistoryTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.yMMMd().add_jm();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return ListTile(
       leading: Icon(leadingIcon),
@@ -38,7 +41,7 @@ class BackupHistoryTile extends StatelessWidget {
         children: [
           Flexible(
             child: Text(
-              dateFormat.format(record.timestamp),
+              units.formatDateTime(record.timestamp, l10n: context.l10n),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -53,15 +56,33 @@ class BackupHistoryTile extends StatelessWidget {
           ],
         ],
       ),
-      subtitle: Text(
-        record.type == BackupType.preMigration
-            ? context.l10n.backup_history_preMigrationSubtitle(
-                record.formattedSize,
-              )
-            : '${record.diveCount ?? 0} dives, '
-                  '${record.siteCount ?? 0} sites - ${record.formattedSize}'
-                  '${record.isAutomatic ? ' (auto)' : ''}',
-      ),
+      subtitle: Text(switch (record.type) {
+        BackupType.preMigration =>
+          context.l10n.backup_history_preMigrationSubtitle(
+            record.formattedSize,
+          ),
+        // Copied from a database this build had already left behind, so it
+        // carries no dive or site counts to report (issue #1589).
+        BackupType.preDowngrade =>
+          context.l10n.backup_history_preDowngradeSubtitle(
+            record.formattedSize,
+          ),
+        // Two messages rather than one plus an appended "(auto)": where the
+        // marker belongs in the sentence is the translator's call, not this
+        // widget's.
+        BackupType.manual =>
+          record.isAutomatic
+              ? context.l10n.backup_history_manualSubtitleAuto(
+                  record.diveCount ?? 0,
+                  record.siteCount ?? 0,
+                  record.formattedSize,
+                )
+              : context.l10n.backup_history_manualSubtitle(
+                  record.diveCount ?? 0,
+                  record.siteCount ?? 0,
+                  record.formattedSize,
+                ),
+      }),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

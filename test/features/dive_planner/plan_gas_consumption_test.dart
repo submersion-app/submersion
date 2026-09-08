@@ -15,14 +15,16 @@ void main() {
       gasMix: gas,
     );
     final segments = [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'seg-1',
+        fromDepth: 0,
         targetDepth: 30.0,
         tankId: 'tank-1',
         gasMix: gas,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'seg-2',
         depth: 30.0,
         durationMinutes: 25,
@@ -30,13 +32,14 @@ void main() {
         gasMix: gas,
         order: 1,
       ),
-      PlanSegment.ascent(
+      PlanSegment.travel(
         id: 'seg-3',
         fromDepth: 30.0,
-        toDepth: 0.0,
+        targetDepth: 0.0,
         tankId: 'tank-1',
         gasMix: gas,
         order: 2,
+        ratePerMinute: 9.0,
       ),
     ];
 

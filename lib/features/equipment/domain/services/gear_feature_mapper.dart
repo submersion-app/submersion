@@ -48,6 +48,7 @@ GearFeature? gearFeatureFromEquipment(EquipmentItem item) {
       bcdStyle: attrs[EquipmentAttrKeys.bcdStyle]?.valueText,
       liftCapacityKg: attrs[EquipmentAttrKeys.liftCapacityKg]?.valueNum,
       gloveType: attrs[EquipmentAttrKeys.gloveType]?.valueText,
+      insulationLevel: attrs[EquipmentAttrKeys.insulationLevel]?.valueText,
     ),
   );
 }

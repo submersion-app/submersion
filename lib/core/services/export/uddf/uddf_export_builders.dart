@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' hide Visibility;
@@ -10,6 +12,7 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -21,6 +24,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// Static XML builder methods for comprehensive UDDF export.
 ///
@@ -293,8 +297,10 @@ class UddfExportBuilders {
                   // Link to dive computer
                   if (dive.diveComputerModel != null &&
                       dive.diveComputerModel!.isNotEmpty) {
-                    final computerId =
-                        'dc_${dive.diveComputerModel!.replaceAll(' ', '_')}_${dive.diveComputerSerial ?? 'unknown'}';
+                    final computerId = computerRefId(
+                      dive.diveComputerModel!,
+                      dive.diveComputerSerial,
+                    );
                     builder.element('link', attributes: {'ref': computerId});
                   }
                 },
@@ -476,6 +482,15 @@ class UddfExportBuilders {
                 }
                 // Tank order (for multi-tank configurations)
                 builder.element('tankorder', nest: tank.order.toString());
+                // Air-integration transmitter serial (app-specific): UDDF
+                // has no element for it, and it is the cylinder's identity
+                // across computers, so our own round trip must keep it.
+                final transmitterSerial = normalizeTransmitterSerial(
+                  tank.transmitterSerial,
+                );
+                if (transmitterSerial != null) {
+                  builder.element('transmitterserial', nest: transmitterSerial);
+                }
               },
             );
           }
@@ -872,6 +887,8 @@ class UddfExportBuilders {
     List<EquipmentSet>? equipmentSets,
     List<Trip>? trips,
     List<Course>? courses,
+    List<DiveSourceExport>? dataSources,
+    Map<String, String?> dataSourceDumps = const {},
   }) {
     final hasData =
         (equipment?.isNotEmpty ?? false) ||
@@ -887,7 +904,11 @@ class UddfExportBuilders {
         (diveComputers?.isNotEmpty ?? false) ||
         (equipmentSets?.isNotEmpty ?? false) ||
         (trips?.isNotEmpty ?? false) ||
-        (courses?.isNotEmpty ?? false);
+        (courses?.isNotEmpty ?? false) ||
+        // Without this a logbook whose only extra payload is its data source
+        // records would write no <applicationdata> at all, and the dumps in
+        // <divecomputercontrol> would lose their descriptors.
+        (dataSources?.isNotEmpty ?? false);
 
     if (!hasData) return;
 
@@ -1489,24 +1510,41 @@ class UddfExportBuilders {
                       },
                     );
                   }
-                  if (owner.insurance.provider != null) {
+                  // Gated on any detail, not on the provider name: a policy
+                  // number or an assistance line saved without naming the
+                  // insurer would otherwise never reach the file.
+                  if (owner.insurance.hasAnyDetail) {
                     builder.element(
                       'insurance',
                       nest: () {
-                        builder.element(
-                          'provider',
-                          nest: owner.insurance.provider,
-                        );
-                        if (owner.insurance.policyNumber != null) {
+                        if (owner.insurance.providerLabel != null) {
+                          builder.element(
+                            'provider',
+                            nest: owner.insurance.providerLabel,
+                          );
+                        }
+                        if (owner.insurance.policyLabel != null) {
                           builder.element(
                             'policynumber',
-                            nest: owner.insurance.policyNumber,
+                            nest: owner.insurance.policyLabel,
                           );
                         }
                         if (owner.insurance.expiryDate != null) {
                           builder.element(
                             'expirydate',
                             nest: owner.insurance.expiryDate!.toIso8601String(),
+                          );
+                        }
+                        if (owner.insurance.assistanceLine != null) {
+                          builder.element(
+                            'emergencyphone',
+                            nest: owner.insurance.assistanceLine,
+                          );
+                        }
+                        if (owner.insurance.officeLine != null) {
+                          builder.element(
+                            'phone',
+                            nest: owner.insurance.officeLine,
                           );
                         }
                       },
@@ -1564,8 +1602,212 @@ class UddfExportBuilders {
                 );
               }
             }
+
+            // Per-source provenance for the dumps in <divecomputercontrol>.
+            buildDataSources(builder, dataSources ?? const [], dataSourceDumps);
           },
         );
+      },
+    );
+  }
+
+  /// The id a `<divecomputer>` is declared under in the UDDF standard
+  /// sections, and therefore the only id a `<link ref>` may point at.
+  ///
+  /// Built from model and serial rather than the `dive_computers` row id: the
+  /// standard `<divecomputer>` elements are minted from the dives' display
+  /// snapshots, and the row's UUID appears only inside
+  /// `<applicationdata><submersion><divecomputers>`, which is not a valid
+  /// IDREF target. Callers must still check the id is actually declared
+  /// before linking to it; see [buildDiveComputerControl].
+  static String computerRefId(String model, String? serial) =>
+      'dc_${model.replaceAll(' ', '_')}_${serial ?? 'unknown'}';
+
+  /// Hex encode, matching SQLite's `hex()` and the convention
+  /// `dive_repository_impl.dart` documents for raw fingerprints.
+  static String _hex(Uint8List bytes) => bytes
+      .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
+      .join();
+
+  /// The Submersion per-source provenance record.
+  ///
+  /// One `<source>` entry per `dive_data_sources` row, carrying every column
+  /// except the blob itself. This exists because UDDF has nowhere to put the
+  /// libdivecomputer descriptor triple, without which a restored dump can
+  /// never be re-parsed, and nowhere to put the per-source metric snapshot,
+  /// since a UDDF `<dive>` carries only the consolidated values.
+  ///
+  /// Entries are written for rows with no bytes as well. Omitting them would
+  /// restore a dive that had one plain source beside one carrying bytes with
+  /// fewer sources than it had.
+  ///
+  /// [encodedById] is the same map [buildDiveComputerControl] writes from, and
+  /// `hasdump` is derived from it rather than from the row's own bytes. The
+  /// two must agree: the importer pairs the nth dump with the nth entry
+  /// claiming one, so a row that claims a dump it did not get would shift
+  /// every later dump onto the wrong row, descriptor triple included. A row
+  /// can hold bytes and still get no dump when its encode failed.
+  static void buildDataSources(
+    XmlBuilder builder,
+    List<DiveSourceExport> sources,
+    Map<String, String?> encodedById,
+  ) {
+    if (sources.isEmpty) return;
+
+    builder.element(
+      'datasources',
+      nest: () {
+        for (final source in sources) {
+          builder.element(
+            'source',
+            attributes: {
+              'diveref': 'dive_${source.diveId}',
+              'ordinal': '${source.ordinal}',
+              'hasdump': '${encodedById[source.id] != null}',
+            },
+            nest: () {
+              if (source.descriptorVendor != null ||
+                  source.descriptorProduct != null ||
+                  source.descriptorModel != null) {
+                builder.element(
+                  'descriptor',
+                  attributes: {
+                    if (source.descriptorVendor != null)
+                      'vendor': source.descriptorVendor!,
+                    if (source.descriptorProduct != null)
+                      'product': source.descriptorProduct!,
+                    if (source.descriptorModel != null)
+                      'model': '${source.descriptorModel}',
+                  },
+                );
+              }
+              _dsText(
+                builder,
+                'libdivecomputerversion',
+                source.libdivecomputerVersion,
+              );
+              _dsText(builder, 'sourceuuid', source.sourceUuid);
+              if (source.rawFingerprint != null &&
+                  source.rawFingerprint!.isNotEmpty) {
+                builder.element(
+                  'fingerprint',
+                  nest: _hex(source.rawFingerprint!),
+                );
+              }
+              builder.element('primary', nest: '${source.isPrimary}');
+              _dsNumber(builder, 'mergesourceslot', source.mergeSourceSlot);
+              _dsNumber(builder, 'timeoffsetseconds', source.timeOffsetSeconds);
+              _dsText(builder, 'computermodel', source.computerModel);
+              _dsText(builder, 'computerserial', source.computerSerial);
+              _dsText(builder, 'sourceformat', source.sourceFormat);
+              _dsText(builder, 'sourcefilename', source.sourceFileName);
+              _dsText(builder, 'sourcefileformat', source.sourceFileFormat);
+              _dsDate(builder, 'importedat', source.importedAt);
+              _dsDate(builder, 'createdat', source.createdAt);
+              _dsDate(builder, 'lastparsedat', source.lastParsedAt);
+              _dsNumber(builder, 'maxdepth', source.maxDepth);
+              _dsNumber(builder, 'avgdepth', source.avgDepth);
+              _dsNumber(builder, 'duration', source.duration);
+              _dsNumber(builder, 'watertemp', source.waterTemp);
+              _dsNumber(builder, 'entrylatitude', source.entryLatitude);
+              _dsNumber(builder, 'entrylongitude', source.entryLongitude);
+              _dsNumber(builder, 'exitlatitude', source.exitLatitude);
+              _dsNumber(builder, 'exitlongitude', source.exitLongitude);
+              _dsDate(builder, 'entrytime', source.entryTime);
+              _dsDate(builder, 'exittime', source.exitTime);
+              _dsNumber(builder, 'maxascentrate', source.maxAscentRate);
+              _dsNumber(builder, 'maxdescentrate', source.maxDescentRate);
+              _dsNumber(builder, 'surfaceinterval', source.surfaceInterval);
+              _dsNumber(builder, 'cns', source.cns);
+              _dsNumber(builder, 'otu', source.otu);
+              _dsText(builder, 'decoalgorithm', source.decoAlgorithm);
+              _dsNumber(builder, 'gradientfactorlow', source.gradientFactorLow);
+              _dsNumber(
+                builder,
+                'gradientfactorhigh',
+                source.gradientFactorHigh,
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
+  static void _dsText(XmlBuilder builder, String name, String? value) {
+    if (value == null || value.isEmpty) return;
+    builder.element(name, nest: value);
+  }
+
+  static void _dsNumber(XmlBuilder builder, String name, num? value) {
+    if (value == null) return;
+    builder.element(name, nest: '$value');
+  }
+
+  static void _dsDate(XmlBuilder builder, String name, DateTime? value) {
+    if (value == null) return;
+    builder.element(name, nest: value.toIso8601String());
+  }
+
+  /// The UDDF standard `<divecomputercontrol>` section, which the
+  /// specification places last in the document.
+  ///
+  /// One `<divecomputerdump>` per source that has an encoded payload in
+  /// [encodedById], keyed by [DiveSourceExport.id]. A source mapped to null
+  /// failed to compress; its dump and nothing else is omitted, because this
+  /// is a backup path and a file missing one dump beats no file at all.
+  ///
+  /// [declaredComputerIds] is the set of ids the document actually declared
+  /// as `<divecomputer id=...>`. A computer link is written only for a source
+  /// whose [computerRefId] is in that set, because every ref written here has
+  /// to point at an id the standard itself declares or it dangles under IDREF
+  /// validation.
+  ///
+  /// Two cases make this a set rather than a boolean. The dives only export
+  /// declares no computers at all, so it passes an empty set. And in the full
+  /// export the declarations are minted from the dives' own model and serial
+  /// snapshots, so a multi-source dive's second computer is never declared
+  /// even though that source row names it.
+  static void buildDiveComputerControl(
+    XmlBuilder builder,
+    List<DiveSourceExport> sources,
+    Map<String, String?> encodedById, {
+    required Set<String> declaredComputerIds,
+  }) {
+    final withPayload = sources
+        .where((s) => encodedById[s.id] != null)
+        .toList(growable: false);
+    if (withPayload.isEmpty) return;
+
+    builder.element(
+      'divecomputercontrol',
+      nest: () {
+        for (final source in withPayload) {
+          builder.element(
+            'divecomputerdump',
+            nest: () {
+              builder.element(
+                'link',
+                attributes: {'ref': 'dive_${source.diveId}'},
+              );
+              final model = source.computerModel;
+              if (model != null && model.isNotEmpty) {
+                final ref = computerRefId(model, source.computerSerial);
+                if (declaredComputerIds.contains(ref)) {
+                  builder.element('link', attributes: {'ref': ref});
+                }
+              }
+              // The specification means "when the dump was captured", so this
+              // is the source row's importedAt, not the dive's own datetime.
+              // The dive link is what ties the dump back to its dive.
+              builder.element(
+                'datetime',
+                nest: source.importedAt.toIso8601String(),
+              );
+              builder.element('dcdump', nest: encodedById[source.id]!);
+            },
+          );
+        }
       },
     );
   }

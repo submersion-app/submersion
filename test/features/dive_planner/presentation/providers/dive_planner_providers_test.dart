@@ -86,9 +86,7 @@ void main() {
           segments: [
             PlanSegment(
               id: 'seg-1',
-              type: SegmentType.bottom,
-              startDepth: 20,
-              endDepth: 20,
+              targetDepth: 20,
               durationSeconds: 30 * 60,
               tankId: tank.id,
               gasMix: tank.gasMix,

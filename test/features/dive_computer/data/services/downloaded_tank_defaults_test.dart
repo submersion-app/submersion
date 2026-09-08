@@ -29,6 +29,18 @@ void main() {
     expect(result.first.presetName, 'al80');
   });
 
+  test('keeps the transmitter serial the computer reported', () {
+    const tank = TankData(
+      index: 0,
+      o2Percent: 21.0,
+      transmitterSerial: '180777',
+    );
+
+    final result = applyDefaultPresetToTanks([tank], al80);
+
+    expect(result.first.transmitterSerial, '180777');
+  });
+
   test('keeps a volume the computer reported', () {
     const tank = TankData(index: 0, o2Percent: 21.0, volumeLiters: 12.0);
 

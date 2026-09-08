@@ -10,10 +10,18 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 
 /// The `.subplan` file format: versioned JSON around the plan aggregate.
-/// Version 1 carries every engine-relevant input; schedules are never
+/// Every version carries the engine-relevant inputs; schedules are never
 /// exported — the importing install recomputes them.
+///
+/// Version 2 writes segments as waypoints: `targetDepth` and a duration. The
+/// version 1 fields `type`, `startDepth` and `rate` are gone, because the
+/// phase, the start depth and the rate are all derived from the chain.
+/// Version 1 files still import — their `endDepth` is the target depth and
+/// the retired fields are ignored — so a plan shared by an older install
+/// keeps opening.
 const subplanFormat = 'submersion-plan';
-const subplanVersion = 1;
+const subplanVersion = 2;
+const subplanMinReadableVersion = 1;
 const subplanExtension = 'subplan';
 
 const _uuid = Uuid();
@@ -33,6 +41,9 @@ String planToSubplanJson(domain.DivePlan plan) {
       'gfHigh': plan.gfHigh,
       'descentRate': plan.descentRate,
       'ascentRate': plan.ascentRate,
+      'intermediateAscentRate': plan.intermediateAscentRate,
+      'shallowAscentRate': plan.shallowAscentRate,
+      'finalAscentRate': plan.finalAscentRate,
       'lastStopDepth': plan.lastStopDepth,
       'gasSwitchStopSeconds': plan.gasSwitchStopSeconds,
       'airBreaks': plan.airBreaks == null
@@ -70,14 +81,13 @@ String planToSubplanJson(domain.DivePlan plan) {
       'segments': [
         for (final segment in plan.segments)
           {
-            'type': segment.type.name,
-            'startDepth': segment.startDepth,
-            'endDepth': segment.endDepth,
+            'targetDepth': segment.targetDepth,
             'durationSeconds': segment.durationSeconds,
             'tankKey': segment.tankId,
             'o2': segment.gasMix.o2,
             'he': segment.gasMix.he,
-            'rate': segment.rate,
+            'setpointBar': segment.setpointBar,
+            'diveModeOverride': segment.diveModeOverride?.name,
             'order': segment.order,
           },
       ],
@@ -102,9 +112,11 @@ domain.DivePlan subplanFromJson(String source, {DateTime? now}) {
     throw const FormatException('Not a Submersion plan file');
   }
   final version = decoded['version'];
-  if (version is! int || version > subplanVersion) {
+  if (version is! int ||
+      version > subplanVersion ||
+      version < subplanMinReadableVersion) {
     throw FormatException(
-      'Plan file version $version is newer than this app supports',
+      'Plan file version $version is not supported by this app',
     );
   }
   final plan = decoded['plan'];
@@ -161,21 +173,27 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
         'Segment references unknown tank "${segment['tankKey']}"',
       );
     }
+    // v2 writes `targetDepth`; v1 wrote `endDepth`, which meant the same
+    // thing. Its `type`, `startDepth` and `rate` are read and discarded.
+    final targetDepth = (segment['targetDepth'] ?? segment['endDepth']) as num?;
+    if (targetDepth == null) {
+      throw const FormatException('Segment carries no target depth');
+    }
+    final diveModeOverride = segment['diveModeOverride'];
     segments.add(
       PlanSegment(
         id: _uuid.v4(),
-        type:
-            SegmentType.values.asNameMap()[segment['type']] ??
-            SegmentType.bottom,
-        startDepth: (segment['startDepth'] as num).toDouble(),
-        endDepth: (segment['endDepth'] as num).toDouble(),
+        targetDepth: targetDepth.toDouble(),
         durationSeconds: (segment['durationSeconds'] as num).toInt(),
         tankId: tankId,
         gasMix: GasMix(
           o2: (segment['o2'] as num).toDouble(),
           he: (segment['he'] as num?)?.toDouble() ?? 0.0,
         ),
-        rate: (segment['rate'] as num?)?.toDouble(),
+        setpointBar: (segment['setpointBar'] as num?)?.toDouble(),
+        diveModeOverride: diveModeOverride is String
+            ? domain.PlanMode.values.asNameMap()[diveModeOverride]
+            : null,
         order: (segment['order'] as num?)?.toInt() ?? index,
       ),
     );
@@ -197,6 +215,10 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
     gfHigh: (plan['gfHigh'] as num).toInt(),
     descentRate: (plan['descentRate'] as num?)?.toDouble() ?? 18.0,
     ascentRate: (plan['ascentRate'] as num?)?.toDouble() ?? 9.0,
+    intermediateAscentRate:
+        (plan['intermediateAscentRate'] as num?)?.toDouble() ?? 6.0,
+    shallowAscentRate: (plan['shallowAscentRate'] as num?)?.toDouble() ?? 3.0,
+    finalAscentRate: (plan['finalAscentRate'] as num?)?.toDouble() ?? 1.0,
     lastStopDepth: (plan['lastStopDepth'] as num?)?.toDouble() ?? 3.0,
     gasSwitchStopSeconds: (plan['gasSwitchStopSeconds'] as num?)?.toInt() ?? 0,
     airBreaks: airBreaks is Map<String, dynamic>

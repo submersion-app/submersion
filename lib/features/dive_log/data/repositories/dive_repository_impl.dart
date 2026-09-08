@@ -12,6 +12,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.d
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_times.dart'
     as domain;
@@ -1409,6 +1411,7 @@ class DiveRepository {
                 tankName: Value(tank.name),
                 presetName: Value(tank.presetName),
                 computerId: Value(tank.computerId),
+                transmitterSerial: Value(tank.transmitterSerial),
               ),
             );
           }
@@ -1650,6 +1653,10 @@ class DiveRepository {
               tankMaterial: Value(tank.material?.name),
               tankName: Value(tank.name),
               presetName: Value(tank.presetName),
+              // computerId and transmitterSerial are computer-owned identity
+              // and deliberately not written here: edit flows rebuild the
+              // tank field by field, and a rebuild that forgot them must not
+              // wipe what the download recorded.
             ),
           );
           // Log as pending update (assuming sync handles updates)
@@ -1678,6 +1685,7 @@ class DiveRepository {
                   tankName: Value(tank.name),
                   presetName: Value(tank.presetName),
                   computerId: Value(tank.computerId),
+                  transmitterSerial: Value(tank.transmitterSerial),
                 ),
               );
           await _syncRepository.markRecordPending(
@@ -3543,6 +3551,7 @@ class DiveRepository {
               order: t.tankOrder,
               presetName: t.presetName,
               computerId: t.computerId,
+              transmitterSerial: t.transmitterSerial,
             ),
           )
           .toList(),
@@ -3937,6 +3946,7 @@ class DiveRepository {
           order: t.tankOrder,
           presetName: t.presetName,
           computerId: t.computerId,
+          transmitterSerial: t.transmitterSerial,
         );
       }).toList(),
       profile: seriesProfile,
@@ -4860,6 +4870,57 @@ class DiveRepository {
     return _mergedSeriesPoints(diveId);
   }
 
+  /// Merged profiles for many dives, keyed by dive id.
+  ///
+  /// The batch form of [getMergedProfile], for the PDF exporter: [getAllDives]
+  /// skips profile hydration for performance, so a logbook export has to load
+  /// profiles itself, and doing that one dive at a time is an N+1 query.
+  ///
+  /// Deliberately not the `primaryOnly` read. That keeps only `is_primary`
+  /// series, and per #623 a file-imported dive can end up with no primary
+  /// series at all, which would render a blank chart for exactly the dives
+  /// imported from another logbook. Sharing [_pointsForSeries] with
+  /// [getMergedProfile] is what keeps the export and the on-screen chart on
+  /// the same samples: every source, minus the originals a saved edit
+  /// superseded.
+  ///
+  /// Dives with no samples are absent from the result rather than mapped to an
+  /// empty list. [ProfileSeriesRepository.getSeriesForDives] chunks the id
+  /// list so the `IN` clause stays bounded, but the returned map still holds
+  /// every sample of every id passed in: a caller that cares about peak memory
+  /// should call this in batches and reduce each batch before requesting the
+  /// next (see `_buildLogbookPdfBytes`).
+  Future<Map<String, List<domain.DiveProfilePoint>>> getMergedProfilesForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+
+    final byDive = await _profileSeries.getSeriesForDives(diveIds);
+
+    // The primary-source read is the only SQL the per-dive merge performs, and
+    // only for mixed-source dives. Batching it here keeps the loop below free
+    // of round trips, so a bulk export costs two statements rather than one
+    // per dive.
+    final primaries = await _primarySourceComputers([
+      for (final entry in byDive.entries)
+        if (_needsPrimarySource(entry.value)) entry.key,
+    ]);
+
+    final result = <String, List<domain.DiveProfilePoint>>{};
+    for (final entry in byDive.entries) {
+      // Absent for a dive that never needed the lookup, which resolves the
+      // same way the single-dive path does when it skips the query.
+      final primary = primaries[entry.key];
+      final points = _mergePoints(
+        entry.value,
+        hasSources: primary?.hasSources ?? true,
+        primaryComputerId: primary?.computerId,
+      );
+      if (points.isNotEmpty) result[entry.key] = points;
+    }
+    return result;
+  }
+
   /// The merged profile from series rows; an empty list when [diveId] has
   /// none.
   ///
@@ -4871,42 +4932,122 @@ class DiveRepository {
   Future<List<domain.DiveProfilePoint>> _mergedSeriesPoints(
     String diveId,
   ) async {
-    final List<ProfileSeries> series = await _profileSeries.getSeriesForDive(
+    return _pointsForSeries(
       diveId,
+      await _profileSeries.getSeriesForDive(diveId),
     );
-    final needsPrimary =
-        series.any((s) => s.isPrimary) &&
-        series.any((s) => !s.isPrimary && s.computerId != null);
+  }
+
+  /// [series] reduced to the points a reader should see: the superseded
+  /// originals of a saved edit dropped, then every remaining source's samples
+  /// interleaved by timestamp.
+  ///
+  /// Takes the series rather than reading them so [getMergedProfilesForDives]
+  /// can batch the read and still land on the same points as the single-dive
+  /// path. The extra [_primarySourceComputer] query is skipped unless a
+  /// demoted series actually carries a computer id, which is the only case
+  /// where the primary computer decides family membership; a single-source
+  /// dive resolves with no further SQL.
+  Future<List<domain.DiveProfilePoint>> _pointsForSeries(
+    String diveId,
+    List<ProfileSeries> series,
+  ) async {
     var hasSources = true;
     String? primaryComputerId;
-    if (needsPrimary) {
+    if (_needsPrimarySource(series)) {
       final primary = await _primarySourceComputer(diveId);
       hasSources = primary.hasSources;
       primaryComputerId = primary.computerId;
     }
-    return mergeSeriesPointsCollapsingDuplicates(
-      dropSupersededSeries(
-        series,
-        hasSources: hasSources,
-        primaryComputerId: primaryComputerId,
-      ),
+    return _mergePoints(
+      series,
+      hasSources: hasSources,
+      primaryComputerId: primaryComputerId,
     );
   }
+
+  /// Whether [series] needs the primary `dive_data_sources` row to resolve.
+  ///
+  /// Only a promoted series alongside a demoted one that still names a
+  /// computer lets the primary computer decide family membership; a
+  /// single-source dive resolves with no further SQL. Shared by the
+  /// single-dive and batched paths so the condition cannot drift.
+  bool _needsPrimarySource(List<ProfileSeries> series) =>
+      series.any((s) => s.isPrimary) &&
+      series.any((s) => !s.isPrimary && s.computerId != null);
+
+  /// [series] reduced to displayable points. Pure: every read it depends on
+  /// has already happened.
+  List<domain.DiveProfilePoint> _mergePoints(
+    List<ProfileSeries> series, {
+    required bool hasSources,
+    required String? primaryComputerId,
+  }) => mergeSeriesPointsCollapsingDuplicates(
+    dropSupersededSeries(
+      series,
+      hasSources: hasSources,
+      primaryComputerId: primaryComputerId,
+    ),
+  );
 
   /// The computer owning [diveId]'s primary data source, and whether the dive
   /// has any `dive_data_sources` rows to read that from.
   Future<({bool hasSources, String? computerId})> _primarySourceComputer(
     String diveId,
   ) async {
-    final sourceRows = _canonicalDataSourceRows(
-      await (_db.select(_db.diveDataSources)
-            ..where((t) => t.diveId.equals(diveId))
-            ..orderBy([
-              (t) => OrderingTerm.desc(t.isPrimary),
-              (t) => OrderingTerm.asc(t.createdAt),
-            ]))
-          .get(),
+    return _primaryFromRows(
+      await (_db.select(
+        _db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).get(),
     );
+  }
+
+  /// [_primarySourceComputer] for many dives in one statement.
+  ///
+  /// The per-dive read is the only SQL [_pointsForSeries] performs, so
+  /// hoisting it out of [getMergedProfilesForDives] turns that loop into pure
+  /// computation instead of one round trip per dive.
+  ///
+  /// Every requested id gets an entry: a dive with no `dive_data_sources` rows
+  /// answers `hasSources: false`, which is what decides family membership, so
+  /// a missing key would silently read as "has sources".
+  Future<Map<String, ({bool hasSources, String? computerId})>>
+  _primarySourceComputers(List<String> diveIds) async {
+    if (diveIds.isEmpty) return const {};
+
+    final rows = <DiveDataSourcesData>[];
+    for (final chunk in seriesIdChunks(diveIds)) {
+      rows.addAll(
+        await (_db.select(
+          _db.diveDataSources,
+        )..where((t) => t.diveId.isIn(chunk))).get(),
+      );
+    }
+
+    final byDive = <String, List<DiveDataSourcesData>>{};
+    for (final row in rows) {
+      byDive.putIfAbsent(row.diveId, () => []).add(row);
+    }
+
+    return {
+      for (final id in diveIds) id: _primaryFromRows(byDive[id] ?? const []),
+    };
+  }
+
+  /// The primary-source answer for one dive's `dive_data_sources` [rows].
+  ///
+  /// Ordering happens here rather than in SQL so the batched read and the
+  /// single-dive read collapse duplicate computers in the same order, which is
+  /// what keeps the export and the on-screen chart on the same samples.
+  ({bool hasSources, String? computerId}) _primaryFromRows(
+    List<DiveDataSourcesData> rows,
+  ) {
+    final ordered = [...rows]
+      ..sort((a, b) {
+        if (a.isPrimary != b.isPrimary) return a.isPrimary ? -1 : 1;
+        return a.createdAt.compareTo(b.createdAt);
+      });
+    final sourceRows = _canonicalDataSourceRows(ordered);
     if (sourceRows.isEmpty) return (hasSources: false, computerId: null);
     return (hasSources: true, computerId: sourceRows.first.computerId);
   }
@@ -5663,6 +5804,7 @@ class DiveRepository {
     tankName: Value(t.name),
     presetName: Value(t.presetName),
     computerId: Value(t.computerId),
+    transmitterSerial: Value(t.transmitterSerial),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).
@@ -6080,6 +6222,123 @@ class DiveRepository {
     }
   }
 
+  /// Every `dive_data_sources` row for [diveIds], for UDDF export.
+  ///
+  /// Deliberately NOT built on [getDataSources]: that one runs rows through
+  /// `_canonicalDataSourceRows`, which collapses rows sharing a merge slot
+  /// into one display source. Each collapsed row is the sole surviving copy
+  /// of its half's `rawData`, so exporting through it would silently drop
+  /// half of a combined dive's bytes.
+  ///
+  /// Rows with no `rawData` are included too. The provenance record has to
+  /// cover them, or a dive with one plain source beside one carrying bytes
+  /// would restore with fewer sources than it had.
+  ///
+  /// This MUST stay a Drift typed select. Issue #227 puts a `TypeConverter`
+  /// on `raw_data`; typed selects run converters and `customSelect` does not,
+  /// so a raw SQL version would return `SRD1` framed zlib and the export
+  /// would write compressed bytes into `<dcdump>` with nothing to catch it.
+  /// `sources_for_export_test.dart` pins this with a byte-identity check.
+  ///
+  /// The ordering is part of the contract: it defines the ordinals that pair
+  /// a `<source>` entry with its `<divecomputerdump>`.
+  Future<List<DiveSourceExport>> getSourcesForExport(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const [];
+    try {
+      // Chunked because this binds one SQL variable per id and the full
+      // logbook export always passes every dive in the library, which is the
+      // case seriesIdChunks exists for.
+      //
+      // Chunking splits the dive ids, so every row of a given dive lands in
+      // exactly one chunk and its rows stay contiguous and correctly ordered.
+      // Only the order BETWEEN dives follows chunk order rather than dive id,
+      // which nothing depends on: the ordinals below are per dive, and
+      // consumers group by diveId.
+      //
+      // Deduplicated first. A single `IN` clause ignores a repeated id, but
+      // once the list is chunked the same id in two chunks fetches its rows
+      // twice, and the ordinals below would then count the duplicates,
+      // exporting a dive's sources more than once. LinkedHashSet keeps the
+      // caller's order.
+      final uniqueIds = diveIds.toSet().toList(growable: false);
+
+      final rows = <DiveDataSourcesData>[];
+      for (final chunk in seriesIdChunks(uniqueIds)) {
+        final query = _db.select(_db.diveDataSources)
+          ..where((t) => t.diveId.isIn(chunk))
+          ..orderBy([
+            (t) => OrderingTerm.asc(t.diveId),
+            (t) => OrderingTerm.desc(t.isPrimary),
+            (t) => OrderingTerm.asc(t.createdAt),
+            (t) => OrderingTerm.asc(t.id),
+          ]);
+        rows.addAll(await query.get());
+      }
+
+      final ordinalByDive = <String, int>{};
+      return rows
+          .map((row) {
+            final ordinal = ordinalByDive.update(
+              row.diveId,
+              (value) => value + 1,
+              ifAbsent: () => 0,
+            );
+            return DiveSourceExport(
+              id: row.id,
+              diveId: row.diveId,
+              ordinal: ordinal,
+              isPrimary: row.isPrimary,
+              importedAt: row.importedAt,
+              createdAt: row.createdAt,
+              rawData: row.rawData,
+              rawFingerprint: row.rawFingerprint,
+              computerId: row.computerId,
+              computerModel: row.computerModel,
+              computerSerial: row.computerSerial,
+              sourceFormat: row.sourceFormat,
+              sourceFileName: row.sourceFileName,
+              sourceFileFormat: row.sourceFileFormat,
+              sourceUuid: row.sourceUuid,
+              descriptorVendor: row.descriptorVendor,
+              descriptorProduct: row.descriptorProduct,
+              descriptorModel: row.descriptorModel,
+              libdivecomputerVersion: row.libdivecomputerVersion,
+              mergeSourceSlot: row.mergeSourceSlot,
+              timeOffsetSeconds: row.timeOffsetSeconds,
+              maxDepth: row.maxDepth,
+              avgDepth: row.avgDepth,
+              duration: row.duration,
+              waterTemp: row.waterTemp,
+              entryLatitude: row.entryLatitude,
+              entryLongitude: row.entryLongitude,
+              exitLatitude: row.exitLatitude,
+              exitLongitude: row.exitLongitude,
+              entryTime: row.entryTime,
+              exitTime: row.exitTime,
+              maxAscentRate: row.maxAscentRate,
+              maxDescentRate: row.maxDescentRate,
+              surfaceInterval: row.surfaceInterval,
+              cns: row.cns,
+              otu: row.otu,
+              decoAlgorithm: row.decoAlgorithm,
+              gradientFactorLow: row.gradientFactorLow,
+              gradientFactorHigh: row.gradientFactorHigh,
+              lastParsedAt: row.lastParsedAt,
+            );
+          })
+          .toList(growable: false);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load data sources for export',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get every non-empty `source_uuid` and hex-encoded `raw_fingerprint`
   /// across ALL of a dive's `dive_data_sources` rows (not just the primary),
   /// as a `{ diveId -> { key, key, ... } }` map.
@@ -6291,6 +6550,44 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to save computer reading',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Insert several `dive_data_sources` rows as one unit.
+  ///
+  /// Deliberately NOT a loop over [saveComputerReading]. That one adopts a
+  /// dive's unattributed profile rows for the row it just inserted, and only
+  /// when that row is the dive's sole source; the guard exists because with a
+  /// second source present the rows could belong to either. Inserting one at a
+  /// time would let the first row adopt everything before the second row
+  /// exists, so a restored two-computer dive would attribute the whole profile
+  /// to whichever source happened to go in first.
+  ///
+  /// Inserting the whole batch first and evaluating the rule once afterwards
+  /// is what keeps that guard meaning what it says.
+  Future<void> saveComputerReadings(
+    List<DiveDataSourcesCompanion> readings,
+  ) async {
+    if (readings.isEmpty) return;
+    try {
+      await _db.transaction(() async {
+        for (final reading in readings) {
+          await _db.into(_db.diveDataSources).insert(reading);
+        }
+      });
+      // Every row now exists, so the sole-source test below sees the batch's
+      // real outcome rather than a half-written dive.
+      for (final reading in readings) {
+        await _adoptUnattributedProfiles(reading);
+      }
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to save computer readings',
         error: e,
         stackTrace: stackTrace,
       );

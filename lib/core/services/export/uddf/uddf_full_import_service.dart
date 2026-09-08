@@ -1,11 +1,15 @@
+import 'dart:typed_data';
+
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// Handles comprehensive UDDF import including all application data.
 ///
@@ -451,7 +455,11 @@ class UddfFullImportService {
 
     _applyTripDateRanges(trips, dives);
 
+    final sources = _parseDataSources(uddfElement);
+
     return UddfImportResult(
+      dataSourcesByDiveRef: sources.byDiveRef,
+      unpairedDumps: sources.unpaired,
       dives: dives,
       sites: sites,
       equipment: equipment,
@@ -471,6 +479,266 @@ class UddfFullImportService {
       equipmentSets: equipmentSets,
       courses: courses,
     );
+  }
+
+  /// Parse `<applicationdata><submersion><datasources>` and
+  /// `<divecomputercontrol>`, joining them on (diveref, ordinal).
+  ///
+  /// Two passes rather than one: the standard section carries the bytes and
+  /// the Submersion section carries everything the standard cannot express,
+  /// most importantly the libdivecomputer descriptor triple. Without that
+  /// triple a restored blob can never be re-parsed, because
+  /// `ReparseService.reparseAllForComputer` skips any source missing it.
+  ///
+  /// A dump with no matching entry still yields its bytes, as a lone primary
+  /// source with a null descriptor: bytes from someone else's file are not
+  /// ours to discard, and re-parse already reports a source it cannot parse.
+  ({Map<String, List<Map<String, dynamic>>> byDiveRef, int unpaired})
+  _parseDataSources(XmlElement uddfElement) {
+    final entries = <String, List<Map<String, dynamic>>>{};
+
+    for (final appData in uddfElement.findElements('applicationdata')) {
+      for (final submersion in appData.findElements('submersion')) {
+        for (final block in submersion.findElements('datasources')) {
+          for (final source in block.findElements('source')) {
+            final diveRef = source.getAttribute('diveref');
+            if (diveRef == null || diveRef.isEmpty) continue;
+            entries
+                .putIfAbsent(diveRef, () => <Map<String, dynamic>>[])
+                .add(_parseSourceEntry(source));
+          }
+        }
+      }
+    }
+
+    for (final list in entries.values) {
+      list.sort((a, b) => (a['ordinal'] as int).compareTo(b['ordinal'] as int));
+    }
+
+    // The dump-carrying entries of each dive, in order, computed once. The
+    // pairing below indexes into these, and building them per dump would
+    // allocate a list for every <divecomputerdump> in the file.
+    //
+    // Entries appended below (a dump with no record beside it) are absent
+    // from these lists on purpose: a later dump for the same dive has already
+    // advanced past the claimant count, so it appends too, exactly as it
+    // would have when this was rebuilt each time.
+    final claimantsByRef = <String, List<Map<String, dynamic>>>{
+      for (final entry in entries.entries)
+        entry.key: entry.value
+            .where((e) => e['hasDump'] == true)
+            .toList(growable: false),
+    };
+
+    // Every dive id this document declares, so a dump's links can be matched
+    // against real dives rather than guessed at by shape.
+    final declaredDiveRefs = <String>{
+      ...entries.keys,
+      for (final profileData in uddfElement.findElements('profiledata'))
+        for (final group in profileData.findElements('repetitiongroup'))
+          for (final dive in group.findElements('dive'))
+            ?dive.getAttribute('id'),
+    };
+
+    var unpaired = 0;
+    final nextOrdinal = <String, int>{};
+
+    for (final control in uddfElement.findElements('divecomputercontrol')) {
+      for (final dump in control.findElements('divecomputerdump')) {
+        final diveRef = _resolveDumpDiveRef(dump, declaredDiveRefs);
+        if (diveRef == null) {
+          // Nothing to attribute it to, and no dive's counter to advance.
+          unpaired++;
+          continue;
+        }
+
+        // Dumps are written in the same order as the entries that have them,
+        // so the nth dump for a dive belongs to its nth dump-carrying entry.
+        //
+        // Advanced for EVERY dump carrying a resolvable dive ref, before the
+        // payload is even looked at. A dump that is empty or fails to decode
+        // still occupies its slot: skipping the increment would hand its
+        // claimant to the NEXT readable dump, restoring one source's bytes
+        // under another's descriptor triple. Decode failures are not
+        // hypothetical, since the codec verifies bzip2's CRCs.
+        final ordinal = nextOrdinal.update(
+          diveRef,
+          (v) => v + 1,
+          ifAbsent: () => 0,
+        );
+
+        final text = dump.findElements('dcdump').firstOrNull?.innerText;
+        if (text == null || text.trim().isEmpty) {
+          unpaired++;
+          continue;
+        }
+
+        final Uint8List bytes;
+        try {
+          bytes = UddfDumpCodec.decodeOne(text);
+        } catch (e) {
+          // Untrusted input: a decompression bomb, a truncated stream, a CRC
+          // mismatch, or something that is not bzip2 at all. Count it and
+          // keep importing; its claimant simply restores without bytes.
+          _logger.warning('Skipping unreadable <dcdump> for $diveRef: $e');
+          unpaired++;
+          continue;
+        }
+
+        final claimants =
+            claimantsByRef[diveRef] ?? const <Map<String, dynamic>>[];
+
+        if (ordinal < claimants.length) {
+          claimants[ordinal]['rawData'] = bytes;
+        } else {
+          // A spec-shaped dump from another application, with no Submersion
+          // record beside it. Keep the bytes as a bare primary source.
+          final list = entries.putIfAbsent(
+            diveRef,
+            () => <Map<String, dynamic>>[],
+          );
+          list.add({
+            'ordinal': list.length,
+            'hasDump': true,
+            'rawData': bytes,
+            'isPrimary': list.isEmpty,
+          });
+        }
+      }
+    }
+
+    return (byDiveRef: entries, unpaired: unpaired);
+  }
+
+  /// One `<source>` element as a map keyed by `dive_data_sources` field name.
+  Map<String, dynamic> _parseSourceEntry(XmlElement source) {
+    String? text(String name) {
+      final value = UddfImportParsers.getElementText(source, name);
+      return (value == null || value.isEmpty) ? null : value;
+    }
+
+    int? integer(String name) {
+      final value = text(name);
+      return value == null ? null : int.tryParse(value);
+    }
+
+    double? decimal(String name) {
+      final value = text(name);
+      return value == null ? null : double.tryParse(value);
+    }
+
+    DateTime? date(String name) {
+      final value = text(name);
+      return value == null ? null : DateTime.tryParse(value);
+    }
+
+    final descriptor = source.findElements('descriptor').firstOrNull;
+    final modelAttr = descriptor?.getAttribute('model');
+
+    return <String, dynamic>{
+      'ordinal': int.tryParse(source.getAttribute('ordinal') ?? '') ?? 0,
+      'hasDump': _parseUddfBool(source.getAttribute('hasdump')),
+      'rawData': null,
+      'isPrimary': _parseUddfBool(text('primary')),
+      'descriptorVendor': descriptor?.getAttribute('vendor'),
+      'descriptorProduct': descriptor?.getAttribute('product'),
+      'descriptorModel': modelAttr == null ? null : int.tryParse(modelAttr),
+      'libdivecomputerVersion': text('libdivecomputerversion'),
+      'sourceUuid': text('sourceuuid'),
+      'rawFingerprint': _decodeHex(text('fingerprint')),
+      'mergeSourceSlot': integer('mergesourceslot'),
+      'timeOffsetSeconds': integer('timeoffsetseconds'),
+      'computerModel': text('computermodel'),
+      'computerSerial': text('computerserial'),
+      'sourceFormat': text('sourceformat'),
+      'sourceFileName': text('sourcefilename'),
+      'sourceFileFormat': text('sourcefileformat'),
+      'importedAt': date('importedat'),
+      'createdAt': date('createdat'),
+      'lastParsedAt': date('lastparsedat'),
+      'maxDepth': decimal('maxdepth'),
+      'avgDepth': decimal('avgdepth'),
+      'duration': integer('duration'),
+      'waterTemp': decimal('watertemp'),
+      'entryLatitude': decimal('entrylatitude'),
+      'entryLongitude': decimal('entrylongitude'),
+      'exitLatitude': decimal('exitlatitude'),
+      'exitLongitude': decimal('exitlongitude'),
+      'entryTime': date('entrytime'),
+      'exitTime': date('exittime'),
+      'maxAscentRate': decimal('maxascentrate'),
+      'maxDescentRate': decimal('maxdescentrate'),
+      'surfaceInterval': integer('surfaceinterval'),
+      'cns': decimal('cns'),
+      'otu': decimal('otu'),
+      'decoAlgorithm': text('decoalgorithm'),
+      'gradientFactorLow': integer('gradientfactorlow'),
+      'gradientFactorHigh': integer('gradientfactorhigh'),
+    };
+  }
+
+  /// Which dive a `<divecomputerdump>` belongs to, or null if it names none.
+  ///
+  /// A dump may carry several `<link>` elements: Submersion's own writes the
+  /// dive and, when the document declares it, the computer. So the ref cannot
+  /// simply be the first one, or a dump whose dive link is missing would be
+  /// filed under a computer id that no dive will ever resolve to.
+  ///
+  /// Nor can it require the `dive_` prefix. That is Submersion's own id shape;
+  /// UDDF dive ids are arbitrary, and the restore side already accepts both
+  /// shapes. Requiring the prefix silently dropped another application's
+  /// dumps, whose bytes are not ours to discard.
+  ///
+  /// So a link is matched against the dives the document actually declares, in
+  /// either shape, and only then falls back to the prefix for a file that
+  /// declares no dives to match. A dump naming nothing recognisable is
+  /// reported as unpaired rather than filed under a guess.
+  static String? _resolveDumpDiveRef(
+    XmlElement dump,
+    Set<String> declaredDiveRefs,
+  ) {
+    final refs = dump
+        .findElements('link')
+        .map((link) => link.getAttribute('ref'))
+        .whereType<String>()
+        .where((ref) => ref.isNotEmpty)
+        .toList(growable: false);
+
+    for (final ref in refs) {
+      if (declaredDiveRefs.contains(ref)) return ref;
+      if (declaredDiveRefs.contains('dive_$ref')) return 'dive_$ref';
+    }
+    for (final ref in refs) {
+      if (ref.startsWith('dive_')) return ref;
+    }
+    return null;
+  }
+
+  /// A UDDF boolean, read leniently.
+  ///
+  /// Case-insensitive, matching how every other boolean flag in this file is
+  /// read, and accepting the `1` and `0` that `xs:boolean` also permits. Our
+  /// own exports only ever write lowercase `true`/`false`, so this matters for
+  /// hand-edited files and other applications' output.
+  ///
+  /// Getting it wrong is not cosmetic: a `hasdump` of `TRUE` would read as
+  /// false, drop that entry from the dump claimants, and let a dump pair with
+  /// the wrong source or be restored as a bare one.
+  static bool _parseUddfBool(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    return normalized == 'true' || normalized == '1';
+  }
+
+  /// Decode the hex a `<fingerprint>` carries, matching SQLite's `hex()`.
+  static Uint8List? _decodeHex(String? hex) {
+    if (hex == null || hex.isEmpty || hex.length.isOdd) return null;
+    final bytes = Uint8List(hex.length ~/ 2);
+    for (var i = 0; i < bytes.length; i++) {
+      final byte = int.tryParse(hex.substring(i * 2, i * 2 + 2), radix: 16);
+      if (byte == null) return null;
+      bytes[i] = byte;
+    }
+    return bytes;
   }
 
   /// Fills in a trip's date range from the dives that belong to it.
@@ -1619,6 +1887,15 @@ class UddfFullImportService {
         tankInfo['order'] = UddfImportParsers.parseUddfInt(tankOrder) ?? 0;
       }
 
+      // Air-integration transmitter serial (app-specific, written by our
+      // own export)
+      final transmitterSerial = normalizeTransmitterSerial(
+        UddfImportParsers.getElementText(tankDataElement, 'transmitterserial'),
+      );
+      if (transmitterSerial != null) {
+        tankInfo['transmitterSerial'] = transmitterSerial;
+      }
+
       // Validate tank data before adding
       final startPressure = (tankInfo['startPressure'] as num?)?.toDouble();
       final endPressure = (tankInfo['endPressure'] as num?)?.toDouble();
@@ -2356,7 +2633,7 @@ class UddfFullImportService {
     'bcd': (label: 'BCD', type: enums.EquipmentType.bcd),
     'boots': (label: 'Boots', type: enums.EquipmentType.boots),
     'fins': (label: 'Fins', type: enums.EquipmentType.fins),
-    'compass': (label: 'Compass', type: enums.EquipmentType.other),
+    'compass': (label: 'Compass', type: enums.EquipmentType.compass),
     'knife': (label: 'Knife', type: enums.EquipmentType.knife),
     'tankrelatedequipment': (label: 'Tank', type: enums.EquipmentType.tank),
   };

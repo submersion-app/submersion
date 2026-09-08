@@ -2,6 +2,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -20,6 +21,32 @@ String pdfDiveDurationMinutes(Dive dive) =>
 Duration pdfTotalRuntime(List<Dive> dives) => dives
     .where((d) => d.effectiveRuntime != null)
     .fold<Duration>(Duration.zero, (sum, d) => sum + d.effectiveRuntime!);
+
+/// Deepest recorded depth in meters, or 0 when no dive records one.
+///
+/// Shared so the summary page and the templates that print their own stat
+/// boxes cannot drift apart on what "max depth" means.
+double pdfMaxDepth(List<Dive> dives) => dives
+    .where((d) => d.maxDepth != null)
+    .map((d) => d.maxDepth!)
+    .fold<double>(0, (max, depth) => depth > max ? depth : max);
+
+/// A cylinder's start-to-end pressure range, with the unit printed once.
+///
+/// The range prints whatever the diver recorded, so one endpoint may be the
+/// formatter's `--` placeholder. Both endpoints are therefore rendered as
+/// bare values around a spaced separator: appending an already-united
+/// `formatPressure` to a bare `formatPressureValue` produced `200---` on a
+/// half-filled pair (the separator and the placeholder running together) and
+/// dropped the unit entirely, since the placeholder carries none.
+///
+/// Returns the plain placeholder when the cylinder records no pressure at
+/// all, rather than a unit with nothing in front of it.
+String pdfPressureRange(UnitFormatter units, double? start, double? end) {
+  if (start == null && end == null) return '--';
+  return '${units.formatPressureValue(start)} - '
+      '${units.formatPressureValue(end)} ${units.pressureSymbol}';
+}
 
 /// Shared PDF components used across multiple templates.
 ///
@@ -238,48 +265,51 @@ class PdfSharedComponents {
   /// Displays certifications with their scanned card images (if available).
   /// For agency-specific templates, certifications from that agency are
   /// highlighted.
-  static pw.Widget buildCertificationCardsPage({
+  /// Certification cards as a flat widget list for a [pw.MultiPage] body.
+  ///
+  /// Returns a list rather than a single column so the pdf package can break
+  /// between cards. Callers previously placed one `pw.Column` on a fixed
+  /// `pw.Page`, which cannot paginate: a diver with more certifications than
+  /// fit on one page silently lost the remainder (#1017).
+  static List<pw.Widget> buildCertificationCardsBody({
     required List<Certification> certifications,
     required PdfDateFormatter dates,
     Diver? diver,
     String? highlightAgency,
     PdfColor accentColor = PdfColors.blue800,
   }) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(
-          'Certifications',
-          style: pw.TextStyle(
-            fontSize: 24,
-            fontWeight: pw.FontWeight.bold,
-            color: accentColor,
-          ),
+    return [
+      pw.Text(
+        'Certifications',
+        style: pw.TextStyle(
+          fontSize: 24,
+          fontWeight: pw.FontWeight.bold,
+          color: accentColor,
         ),
-        if (diver != null) ...[
-          pw.SizedBox(height: 8),
-          pw.Text(
-            diver.name,
-            style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
-          ),
-        ],
-        pw.SizedBox(height: 16),
-        pw.Divider(color: PdfColors.grey300),
-        pw.SizedBox(height: 16),
-        ...certifications.map(
-          (cert) => _buildCertificationCard(
-            cert,
-            dates: dates,
-            isHighlighted:
-                highlightAgency != null &&
-                cert.agency.name.toLowerCase().contains(
-                  highlightAgency.toLowerCase(),
-                ),
-            accentColor: accentColor,
-          ),
+      ),
+      if (diver != null) ...[
+        pw.SizedBox(height: 8),
+        pw.Text(
+          diver.name,
+          style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
         ),
       ],
-    );
+      pw.SizedBox(height: 16),
+      pw.Divider(color: PdfColors.grey300),
+      pw.SizedBox(height: 16),
+      ...certifications.map(
+        (cert) => _buildCertificationCard(
+          cert,
+          dates: dates,
+          isHighlighted:
+              highlightAgency != null &&
+              cert.agency.name.toLowerCase().contains(
+                highlightAgency.toLowerCase(),
+              ),
+          accentColor: accentColor,
+        ),
+      ),
+    ];
   }
 
   static pw.Widget _buildCertificationCard(
@@ -394,6 +424,16 @@ class PdfSharedComponents {
                     color: PdfColors.grey600,
                   ),
                 ),
+              if (cert.expiryDate != null) ...[
+                pw.SizedBox(width: 16),
+                pw.Text(
+                  'Expires: ${dates.date(cert.expiryDate!)}',
+                  style: const pw.TextStyle(
+                    fontSize: 10,
+                    color: PdfColors.grey600,
+                  ),
+                ),
+              ],
             ],
           ),
           // Card images
@@ -476,6 +516,18 @@ class PdfSharedComponents {
     Diver? diver,
     PdfColor accentColor = PdfColors.blue800,
   }) {
+    // Callers pass dives newest-first (getAllDives) or oldest-first depending
+    // on the path, so order the pair here rather than trusting the caller.
+    // Otherwise the cover contradicts the summary page, which sorts. Ordering
+    // once here fixes every template at the same time, which is why it lives
+    // on the shared cover rather than at the call sites.
+    final reversed =
+        firstDiveDate != null &&
+        lastDiveDate != null &&
+        firstDiveDate.isAfter(lastDiveDate);
+    final rangeStart = reversed ? lastDiveDate : firstDiveDate;
+    final rangeEnd = reversed ? firstDiveDate : lastDiveDate;
+
     return pw.Center(
       child: pw.Column(
         mainAxisAlignment: pw.MainAxisAlignment.center,
@@ -498,9 +550,9 @@ class PdfSharedComponents {
           pw.SizedBox(height: 24),
           pw.Text('$diveCount Dives', style: const pw.TextStyle(fontSize: 24)),
           pw.SizedBox(height: 10),
-          if (firstDiveDate != null && lastDiveDate != null)
+          if (rangeStart != null && rangeEnd != null)
             pw.Text(
-              '${dates.date(firstDiveDate)} - ${dates.date(lastDiveDate)}',
+              '${dates.date(rangeStart)} - ${dates.date(rangeEnd)}',
               style: const pw.TextStyle(fontSize: 16),
             ),
           pw.SizedBox(height: 40),
@@ -516,17 +568,23 @@ class PdfSharedComponents {
   /// Build a summary page with dive statistics.
   static pw.Widget buildSummaryPage({
     required List<Dive> dives,
+    required PdfDateFormatter dates,
+    required UnitFormatter units,
     PdfColor accentColor = PdfColors.blue800,
   }) {
     if (dives.isEmpty) {
       return pw.Center(child: pw.Text('No dives to summarize'));
     }
 
+    // Sorted rather than taken from the ends of the list: callers pass dives
+    // newest-first (getAllDives) or oldest-first depending on the path, and
+    // the summary must report the true range either way.
+    final orderedDates = dives.map((d) => d.dateTime).toList()..sort();
+    final firstDive = orderedDates.first;
+    final lastDive = orderedDates.last;
+
     final totalDiveTime = pdfTotalRuntime(dives);
-    final maxDepth = dives
-        .where((d) => d.maxDepth != null)
-        .map((d) => d.maxDepth!)
-        .fold<double>(0, (max, depth) => depth > max ? depth : max);
+    final maxDepth = pdfMaxDepth(dives);
     final avgDepth = dives.where((d) => d.avgDepth != null).isEmpty
         ? 0.0
         : dives
@@ -550,12 +608,14 @@ class PdfSharedComponents {
         pw.Divider(),
         pw.SizedBox(height: 20),
         buildStatRow('Total Dives', '${dives.length}'),
+        buildStatRow('First Dive', dates.date(firstDive)),
+        buildStatRow('Last Dive', dates.date(lastDive)),
         buildStatRow(
           'Total Dive Time',
           '${totalDiveTime.inHours}h ${totalDiveTime.inMinutes % 60}m',
         ),
-        buildStatRow('Deepest Dive', '${maxDepth.toStringAsFixed(1)}m'),
-        buildStatRow('Average Depth', '${avgDepth.toStringAsFixed(1)}m'),
+        buildStatRow('Deepest Dive', units.formatDepth(maxDepth)),
+        buildStatRow('Average Depth', units.formatDepth(avgDepth)),
         buildStatRow(
           'Unique Sites',
           '${dives.map((d) => d.site?.id).where((id) => id != null).toSet().length}',

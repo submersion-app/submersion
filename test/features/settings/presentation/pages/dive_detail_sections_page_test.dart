@@ -281,21 +281,21 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Create a custom order: tanks first, then decoO2
+      // Create a custom order: tanks first, then decoStatus
       final customSections = [
         const DiveDetailSectionConfig(
           id: DiveDetailSectionId.tanks,
           visible: true,
         ),
         const DiveDetailSectionConfig(
-          id: DiveDetailSectionId.decoO2,
+          id: DiveDetailSectionId.decoStatus,
           visible: false,
         ),
         ...DiveDetailSectionId.values
             .where(
               (id) =>
                   id != DiveDetailSectionId.tanks &&
-                  id != DiveDetailSectionId.decoO2,
+                  id != DiveDetailSectionId.decoStatus,
             )
             .map((id) => DiveDetailSectionConfig(id: id, visible: true)),
       ];
@@ -330,6 +330,57 @@ void main() {
           )
           .toList();
       expect(displayNames.first, 'Cylinders');
+    });
+
+    // The dive page's display-options menu writes through the same saved
+    // order, so a reorder made there has to show up here.
+    testWidgets('lists the order a display-options drag produced', (
+      tester,
+    ) async {
+      const first = DiveDetailSectionId.profile;
+      const second = DiveDetailSectionId.decoStatus;
+      final reordered = DiveDetailSectionConfig.moveRenderedSection(
+        DiveDetailSectionConfig.defaultSections,
+        const [first, second],
+        0,
+        1,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _MockSettingsNotifierWithSections(reordered),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailSectionsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final displayNames = tester
+          .widgetList<Text>(
+            find.descendant(
+              of: find.byType(ListTile),
+              matching: find.byType(Text),
+            ),
+          )
+          .map((t) => t.data)
+          .where(
+            (d) => DiveDetailSectionId.values.any((id) => id.displayName == d),
+          )
+          .toList();
+
+      expect(displayNames, contains(first.displayName));
+      expect(displayNames, contains(second.displayName));
+      expect(
+        displayNames.indexOf(second.displayName),
+        lessThan(displayNames.indexOf(first.displayName)),
+      );
     });
 
     testWidgets('shows app bar title', (tester) async {

@@ -10,6 +10,7 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
+import 'package:submersion/features/planner/domain/services/schedule_lines.dart';
 
 /// Localized strings the slate needs (assembled from context.l10n at the
 /// call site so the service stays context-free).
@@ -20,7 +21,7 @@ class PlanSlateLabels {
   final String Function(String gas) lostGasLabel;
   final String rangeTable;
   final String bailout;
-  final String stop;
+  final String duration;
   final String depth;
   final String runtime;
   final String gas;
@@ -35,7 +36,7 @@ class PlanSlateLabels {
     required this.lostGasLabel,
     required this.rangeTable,
     required this.bailout,
-    required this.stop,
+    required this.duration,
     required this.depth,
     required this.runtime,
     required this.gas,
@@ -213,27 +214,42 @@ class PlanSlatePdfService {
         pw.TableRow(
           children: [
             cell(labels.depth, header: true),
-            cell(labels.stop, header: true),
+            cell(labels.duration, header: true),
             cell(labels.runtime, header: true),
             cell(labels.gas, header: true),
           ],
         ),
-        for (final stop in outcome.stops)
+        for (final line in scheduleLines(outcome.schedule))
           pw.TableRow(
             children: [
-              cell(units.formatDepth(stop.depthMeters, decimals: 0)),
-              cell('${(stop.durationSeconds / 60).ceil()}'),
               cell(
-                '${((stop.arrivalRuntimeSeconds + stop.durationSeconds) / 60).ceil()}',
+                '${_pdfGlyph(line.row.kind)} '
+                '${units.formatDepth(line.row.depthMeters, decimals: 0)}',
               ),
+              cell('${line.durationMinutes}'),
+              cell('${line.runtimeMinutes}'),
               cell(
-                GasMix(o2: stop.gasFO2 * 100.0, he: stop.gasFHe * 100.0).name,
+                line.row.gasSwitch
+                    ? GasMix(
+                        o2: line.row.gasFO2 * 100.0,
+                        he: line.row.gasFHe * 100.0,
+                      ).name
+                    : '',
               ),
             ],
           ),
       ],
     );
   }
+
+  /// ASCII stand-ins for the on-screen arrows: the slate's built-in font has
+  /// no arrow glyphs, and a missing glyph prints as a box.
+  static String _pdfGlyph(PlanScheduleRowKind kind) => switch (kind) {
+    PlanScheduleRowKind.descent => 'v',
+    PlanScheduleRowKind.level => '=',
+    PlanScheduleRowKind.ascent => '^',
+    PlanScheduleRowKind.stop => '-',
+  };
 
   pw.Widget _gasTable(
     domain.DivePlan plan,

@@ -7,6 +7,8 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_editor.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
+import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -20,6 +22,10 @@ class SegmentList extends ConsumerWidget {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    // Resolved once per build, not once per row. The state's list order is
+    // the authoring order (stateFromDivePlan sorts, and the notifier keeps
+    // `order` in step with the list), which is what SegmentChain chains.
+    final legs = const SegmentChain().resolve(planState.segments);
 
     return Card(
       child: Padding(
@@ -65,10 +71,15 @@ class SegmentList extends ConsumerWidget {
                       .reorderSegments(oldIndex, newIndex);
                 },
                 itemBuilder: (context, index) {
-                  final segment = planState.segments[index];
+                  final leg = legs[index];
+                  final segment = leg.segment;
                   return _SegmentTile(
                     key: ValueKey(segment.id),
-                    segment: segment,
+                    leg: leg,
+                    // A gas switch is not a segment: it is this leg
+                    // breathing a different tank than the one before it.
+                    switchedGas:
+                        index > 0 && legs[index - 1].tankId != leg.tankId,
                     units: units,
                     index: index,
                     selected:
@@ -91,14 +102,14 @@ class SegmentList extends ConsumerWidget {
 
   void _showAddSegmentDialog(BuildContext context, WidgetRef ref) {
     final planState = ref.read(divePlanNotifierProvider);
-    final initialStartDepth = planState.segments.isEmpty
+    final startDepth = planState.segments.isEmpty
         ? 0.0
-        : planState.segments.last.endDepth;
+        : planState.segments.last.targetDepth;
 
     showDialog(
       context: context,
       builder: (context) => SegmentEditor(
-        initialStartDepth: initialStartDepth,
+        startDepth: startDepth,
         availableTanks: planState.tanks,
         onSave: (segment) {
           ref.read(divePlanNotifierProvider.notifier).addSegment(segment);
@@ -113,11 +124,18 @@ class SegmentList extends ConsumerWidget {
     PlanSegment segment,
   ) {
     final planState = ref.read(divePlanNotifierProvider);
+    // The edit dialog needs the same resolved start depth the profile gives
+    // this segment; the old code passed none, so editing showed 0 m.
+    final index = planState.segments.indexWhere((s) => s.id == segment.id);
+    final startDepth = index > 0
+        ? planState.segments[index - 1].targetDepth
+        : 0.0;
 
     showDialog(
       context: context,
       builder: (context) => SegmentEditor(
         segment: segment,
+        startDepth: startDepth,
         availableTanks: planState.tanks,
         onSave: (updated) {
           ref
@@ -137,7 +155,8 @@ class SegmentList extends ConsumerWidget {
 }
 
 class _SegmentTile extends StatelessWidget {
-  final PlanSegment segment;
+  final ResolvedLeg leg;
+  final bool switchedGas;
   final UnitFormatter units;
   final int index;
   final bool selected;
@@ -147,7 +166,8 @@ class _SegmentTile extends StatelessWidget {
 
   const _SegmentTile({
     super.key,
-    required this.segment,
+    required this.leg,
+    required this.switchedGas,
     required this.units,
     required this.index,
     required this.selected,
@@ -156,124 +176,136 @@ class _SegmentTile extends StatelessWidget {
     required this.onDelete,
   });
 
+  PlanSegment get segment => leg.segment;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Compact trailing controls so the description keeps its width inside
-    // a 320px editor pane; tapping selects (mirrors the chart), the pencil
-    // edits.
-    const compactButton = BoxConstraints.tightFor(width: 32, height: 32);
-    return ListTile(
-      contentPadding: const EdgeInsets.only(left: 12, right: 8),
-      horizontalTitleGap: 10,
-      selected: selected,
-      selectedTileColor: theme.colorScheme.primaryContainer.withValues(
-        alpha: 0.35,
-      ),
-      onTap: onSelect,
-      leading: _SegmentIcon(type: segment.type),
-      title: Text(
-        _formatDescription(context.l10n),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        '${segment.durationFormatted} • ${segment.gasMix.name}',
-        style: theme.textTheme.bodySmall,
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit, size: 18),
-            padding: EdgeInsets.zero,
-            constraints: compactButton,
-            visualDensity: VisualDensity.compact,
-            tooltip: context.l10n.divePlanner_segmentList_editSegment,
-            onPressed: onEdit,
+    // Edit/delete are pinned to the tile's top-right corner with a Positioned
+    // overlay rather than laid out inside ListTile's title: ListTile centers
+    // a custom title widget as one block, so a Row placed there drifted away
+    // from the corner instead of landing flush against it. The overlay's
+    // right inset matches contentPadding's, so the buttons align with the
+    // trailing drag handle below them. The description reserves the same
+    // width so it wraps around the buttons instead of under them.
+    const compactButton = BoxConstraints.tightFor(width: 28, height: 28);
+    final actions = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.edit, size: 16),
+          padding: EdgeInsets.zero,
+          constraints: compactButton,
+          visualDensity: VisualDensity.compact,
+          tooltip: context.l10n.divePlanner_segmentList_editSegment,
+          onPressed: onEdit,
+        ),
+        IconButton(
+          icon: const Icon(Icons.delete, size: 16),
+          padding: EdgeInsets.zero,
+          constraints: compactButton,
+          visualDensity: VisualDensity.compact,
+          tooltip: context.l10n.divePlanner_segmentList_deleteSegment,
+          onPressed: onDelete,
+        ),
+      ],
+    );
+
+    return Stack(
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.only(left: 12, right: 8),
+          horizontalTitleGap: 10,
+          selected: selected,
+          selectedTileColor: theme.colorScheme.primaryContainer.withValues(
+            alpha: 0.35,
           ),
-          IconButton(
-            icon: const Icon(Icons.delete, size: 18),
-            padding: EdgeInsets.zero,
-            constraints: compactButton,
-            visualDensity: VisualDensity.compact,
-            tooltip: context.l10n.divePlanner_segmentList_deleteSegment,
-            onPressed: onDelete,
-          ),
-          ReorderableDragStartListener(
+          onTap: onSelect,
+          leading: _SegmentIcon(phase: leg.phase),
+          trailing: ReorderableDragStartListener(
             index: index,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4),
-              child: Icon(Icons.drag_handle, size: 20),
+            child: const Icon(Icons.drag_handle, size: 18),
+          ),
+          title: Padding(
+            padding: const EdgeInsets.only(right: 64),
+            child: Text(
+              _formatDescription(context.l10n),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-        ],
-      ),
+          subtitle: Text(
+            _formatSubtitle(context.l10n),
+            style: theme.textTheme.bodySmall,
+          ),
+        ),
+        Positioned(top: 6, right: 8, child: actions),
+      ],
     );
   }
 
-  /// Format the segment description with proper unit settings.
-  String _formatDescription(AppLocalizations l10n) {
-    final startDepth = units.formatDepth(segment.startDepth);
-    final endDepth = units.formatDepth(segment.endDepth);
-    final durationMin = segment.durationSeconds ~/ 60;
+  /// Duration, runtime and gas.
+  ///
+  /// Runtime is the slate's RT column: elapsed dive time at the end of this
+  /// leg, so the diver can read off when they leave each depth without adding
+  /// the durations up in their head. Ceiled to whole minutes to match the
+  /// computed deco schedule's RT column.
+  String _formatSubtitle(AppLocalizations l10n) {
+    final runtime = (leg.runtimeSeconds / 60).ceil();
+    final rt = '${l10n.plannerCanvas_table_runtime} $runtime\u2032';
+    final gas = switchedGas
+        ? l10n.divePlanner_segmentList_gasSwitch(segment.gasMix.name)
+        : segment.gasMix.name;
+    return '${segment.durationFormatted} • $rt • $gas';
+  }
 
-    switch (segment.type) {
-      case SegmentType.descent:
-        return l10n.divePlanner_segmentList_descent(startDepth, endDepth);
-      case SegmentType.bottom:
-        return l10n.divePlanner_segmentList_bottom(startDepth, durationMin);
-      case SegmentType.ascent:
-        return l10n.divePlanner_segmentList_ascent(startDepth, endDepth);
-      case SegmentType.decoStop:
-        return l10n.divePlanner_segmentList_deco(startDepth, durationMin);
-      case SegmentType.gasSwitch:
-        return l10n.divePlanner_segmentList_gasSwitch(segment.gasMix.name);
-      case SegmentType.safetyStop:
-        return l10n.divePlanner_segmentList_safetyStop(startDepth, durationMin);
-    }
+  /// Format the leg description with proper unit settings.
+  ///
+  /// Four cases, from the derived phase, where there used to be six from a
+  /// declared type. A flat leg reads as the bottom or as a stop depending on
+  /// where it sits in the profile, which is the chain's call.
+  String _formatDescription(AppLocalizations l10n) {
+    final startDepth = units.formatDepth(leg.startDepth);
+    final endDepth = units.formatDepth(leg.endDepth);
+    final durationMin = leg.durationSeconds ~/ 60;
+
+    return switch (leg.phase) {
+      SegmentPhase.descent => l10n.divePlanner_segmentList_descent(
+        startDepth,
+        endDepth,
+      ),
+      SegmentPhase.level => l10n.divePlanner_segmentList_bottom(
+        endDepth,
+        durationMin,
+      ),
+      SegmentPhase.ascent => l10n.divePlanner_segmentList_ascent(
+        startDepth,
+        endDepth,
+      ),
+      SegmentPhase.stop => l10n.divePlanner_segmentList_deco(
+        endDepth,
+        durationMin,
+      ),
+    };
   }
 }
 
 class _SegmentIcon extends StatelessWidget {
-  final SegmentType type;
+  final SegmentPhase phase;
 
-  const _SegmentIcon({required this.type});
+  const _SegmentIcon({required this.phase});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    IconData icon;
-    Color color;
-
-    switch (type) {
-      case SegmentType.descent:
-        icon = Icons.arrow_downward;
-        color = Colors.blue;
-        break;
-      case SegmentType.bottom:
-        icon = Icons.horizontal_rule;
-        color = theme.colorScheme.primary;
-        break;
-      case SegmentType.ascent:
-        icon = Icons.arrow_upward;
-        color = Colors.green;
-        break;
-      case SegmentType.decoStop:
-        icon = Icons.stop_circle;
-        color = Colors.orange;
-        break;
-      case SegmentType.gasSwitch:
-        icon = Icons.swap_horiz;
-        color = Colors.purple;
-        break;
-      case SegmentType.safetyStop:
-        icon = Icons.pause_circle;
-        color = Colors.teal;
-        break;
-    }
+    final (IconData icon, Color color) = switch (phase) {
+      SegmentPhase.descent => (Icons.arrow_downward, Colors.blue),
+      SegmentPhase.level => (Icons.horizontal_rule, theme.colorScheme.primary),
+      SegmentPhase.ascent => (Icons.arrow_upward, Colors.green),
+      SegmentPhase.stop => (Icons.stop_circle, Colors.orange),
+    };
 
     return CircleAvatar(
       backgroundColor: color.withValues(alpha: 0.2),

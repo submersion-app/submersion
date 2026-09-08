@@ -3,7 +3,6 @@ import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart
 import 'package:submersion/core/services/pdf_templates/pdf_template_detailed.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_naui.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_padi.dart';
-import 'package:submersion/core/services/pdf_templates/pdf_template_professional.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_simple.dart';
 
 /// Factory for creating PDF template builders.
@@ -34,8 +33,6 @@ class PdfTemplateFactory {
         return PdfTemplateSimple();
       case PdfTemplate.detailed:
         return PdfTemplateDetailed();
-      case PdfTemplate.professional:
-        return PdfTemplateProfessional();
       case PdfTemplate.padiStyle:
         return PdfTemplatePadi();
       case PdfTemplate.nauiStyle:

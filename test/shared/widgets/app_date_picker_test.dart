@@ -7,12 +7,17 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 void main() {
   Future<DateTime? Function()> pumpPickerButton(
     WidgetTester tester,
-    DateFormatPreference format,
-  ) async {
+    DateFormatPreference format, {
+    // Pinned: the assertions match English strings. Tests that care about
+    // another language pass it explicitly.
+    Locale locale = const Locale('en'),
+  }) async {
     DateTime? picked;
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: locale,
+        supportedLocales: const [Locale('en'), Locale('de')],
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -96,6 +101,67 @@ void main() {
     expect(picked(), DateTime(2026, 1, 31));
   });
 
+  testWidgets(
+    'dotted preference keeps the dialog in the app language (#1510)',
+    (tester) async {
+      final picked = await pumpPickerButton(
+        tester,
+        DateFormatPreference.ddmmyyyyDots,
+      );
+
+      await tester.tap(find.text('pick'));
+      await tester.pumpAndSettle();
+
+      // Chrome stays English: the dotted format used to force Locale('de'),
+      // which translated the whole dialog.
+      expect(find.text('Select date'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter Date'), findsOneWidget);
+      expect(find.text('dd.mm.yyyy'), findsOneWidget);
+
+      // The field is prefilled from the same pattern it parses.
+      expect(find.text('15.01.2026'), findsOneWidget);
+
+      // Dots still parse, which is what the locale override was there for.
+      await tester.enterText(find.byType(TextField), '31.01.2026');
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(picked(), DateTime(2026, 1, 31));
+    },
+  );
+
+  testWidgets('a non-English app keeps its own dialog chrome (#1510)', (
+    tester,
+  ) async {
+    final picked = await pumpPickerButton(
+      tester,
+      DateFormatPreference.mmddyyyy,
+      locale: const Locale('de'),
+    );
+
+    await tester.tap(find.text('pick'));
+    await tester.pumpAndSettle();
+
+    // A month-first preference used to force Locale('en', 'US') and hand a
+    // German diver an English dialog.
+    expect(find.text('Abbrechen'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.pumpAndSettle();
+
+    // Month-first entry still wins over the German locale's own dd.MM.yyyy.
+    await tester.enterText(find.byType(TextField), '01/31/2026');
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(picked(), DateTime(2026, 1, 31));
+  });
+
   Future<DateTimeRange? Function()> pumpRangePickerButton(
     WidgetTester tester,
     DateFormatPreference format,
@@ -104,6 +170,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        // Pinned: the assertions match English strings.
+        locale: const Locale('en'),
+        supportedLocales: const [Locale('en')],
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -196,11 +265,15 @@ void main() {
         usesOwnHint ? findsOneWidget : findsNothing,
       );
 
-      // The picker locale also localizes the dialog chrome, so the cancel
-      // label is not always English (de for the dotted preference).
+      // Dialog chrome follows the app language, never the date format
+      // (#1510). Read the label the dialog actually resolved rather than
+      // assuming Material's wording, then assert it is the pinned locale's:
+      // under the old locale override this said 'Abbrechen'.
       final cancelLabel = MaterialLocalizations.of(
         tester.element(find.byType(DatePickerDialog)),
       ).cancelButtonLabel;
+      expect(cancelLabel, 'Cancel');
+
       await tester.tap(find.text(cancelLabel));
       await tester.pumpAndSettle();
       expect(find.byType(DatePickerDialog), findsNothing);

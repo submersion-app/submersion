@@ -96,8 +96,20 @@ class MediaFetchGate {
   /// Callers parked waiting for a slot.
   final Queue<Completer<void>> _waiting = Queue<Completer<void>>();
 
+  /// Slot timers currently armed, so [dispose] can reach them.
+  final Set<Timer> _slotTimers = <Timer>{};
+
+  /// Caller deadlines currently armed, each with the caller it answers.
+  ///
+  /// A map rather than a set because [dispose] has to do more than cancel
+  /// these: the caller behind each one is still waiting, and dropping the
+  /// timer without answering would leave it waiting forever.
+  final Map<Timer, Completer<MediaSourceData?>> _deadlines =
+      <Timer, Completer<MediaSourceData?>>{};
+
   int _running = 0;
   int _detached = 0;
+  bool _disposed = false;
 
   /// Fetches holding a slot, for tests.
   int get runningCount => _running;
@@ -118,6 +130,10 @@ class MediaFetchGate {
     String key,
     Future<MediaSourceData?> Function() fetch,
   ) {
+    // A disposed gate arms no timers, so it cannot start work either: the
+    // budgets ARE the contract, and a fetch running without them is the
+    // unbounded wait this class exists to prevent.
+    if (_disposed) return Future<MediaSourceData?>.value(_givenUp);
     final pending = _inFlight[key];
     if (pending != null) return _bounded(pending);
 
@@ -134,24 +150,111 @@ class MediaFetchGate {
     return _bounded(future);
   }
 
+  /// The answer a caller gets when the gate stops waiting on its behalf.
+  static const MediaSourceData _givenUp = UnavailableData(
+    kind: UnavailableKind.stillFetching,
+  );
+
   /// One caller's bounded view of [future]. The fetch itself is untouched.
+  ///
+  /// Hand-rolled rather than `Future.timeout`, because the timer that call
+  /// arms belongs to the returned future and can never be reached again.
+  /// [dispose] has to be able to cancel it: a 30-second timer still armed
+  /// against a caller that no longer exists is dead weight in the app, and in
+  /// a widget test it trips the binding's pending-timer invariant, which is
+  /// how a media tile still resolving at teardown failed an unrelated test.
   Future<MediaSourceData?> _bounded(Future<MediaSourceData?> future) {
-    return future.timeout(
-      totalBudget,
-      onTimeout: () =>
-          const UnavailableData(kind: UnavailableKind.stillFetching),
+    final caller = Completer<MediaSourceData?>();
+    late final Timer deadline;
+    deadline = Timer(totalBudget, () {
+      _deadlines.remove(deadline);
+      if (!caller.isCompleted) caller.complete(_givenUp);
+    });
+    _deadlines[deadline] = caller;
+
+    void settle(void Function() complete) {
+      deadline.cancel();
+      _deadlines.remove(deadline);
+      // Already answered: the deadline fired first and the fetch has only
+      // now caught up. Its result belongs to whoever joins next, not to a
+      // caller that was told to stop waiting.
+      if (!caller.isCompleted) complete();
+    }
+
+    // Deliberately not .ignore()d, unlike the whenComplete in run(). That one
+    // has to be: whenComplete forwards the source's error, so an unlistened
+    // failure there would be an unhandled async error. This chain cannot carry
+    // the source's error at all, because the onError below consumes it, so the
+    // only way it completes with one is a callback throwing. Ignoring it would
+    // silence exactly that bug.
+    future.then(
+      (value) => settle(() => caller.complete(value)),
+      // Registered rather than left to propagate: without a handler here a
+      // fetch that fails after its caller gave up is an unhandled async
+      // error, which `Future.timeout` used to absorb for us.
+      onError: (Object error, StackTrace stack) =>
+          settle(() => caller.completeError(error, stack)),
     );
+    return caller.future;
+  }
+
+  /// Releases every timer this gate has armed and answers whoever is waiting.
+  ///
+  /// Cannot cancel the fetches themselves, since Dart has no way to, so it does
+  /// the next honest thing: outstanding callers get the same [_givenUp] answer
+  /// the total budget would have given them, just earlier, and any fetch that
+  /// settles afterwards is allowed to finish quietly with its bookkeeping
+  /// skipped. Parked waiters are dropped rather than admitted, because
+  /// admitting one would start a fresh fetch, and arm a fresh timer, on a gate
+  /// that is being torn down.
+  void dispose() {
+    if (_disposed) return;
+    _disposed = true;
+    for (final timer in _slotTimers) {
+      timer.cancel();
+    }
+    _slotTimers.clear();
+    final pending = List<MapEntry<Timer, Completer<MediaSourceData?>>>.of(
+      _deadlines.entries,
+    );
+    _deadlines.clear();
+    for (final entry in pending) {
+      entry.key.cancel();
+      if (!entry.value.isCompleted) entry.value.complete(_givenUp);
+    }
+    // Completed, not dropped. A waiter parked inside _acquire owns the only
+    // path back into its _withSlot body, so abandoning its completer leaves
+    // that future permanently incomplete. Nothing hangs on it today (the
+    // caller was already answered above, and the orphan is unreachable enough
+    // to collect), but a future that can never complete is a trap for the next
+    // caller who holds one. They resume into the _disposed guard in _withSlot,
+    // which returns without starting a fetch or arming a timer, so releasing
+    // them here does not put work back on a gate being torn down.
+    final parked = List<Completer<void>>.of(_waiting);
+    _waiting.clear();
+    for (final waiter in parked) {
+      if (!waiter.isCompleted) waiter.complete();
+    }
+    _inFlight.clear();
+    _running = 0;
+    _detached = 0;
   }
 
   Future<MediaSourceData?> _withSlot(
     Future<MediaSourceData?> Function() fetch,
   ) async {
     await _acquire();
+    // Torn down while this call was parked, or between the slot and here.
+    // Answer the way the total budget would have rather than starting a fetch
+    // the gate can no longer bound.
+    if (_disposed) return _givenUp;
     var holdsSlot = true;
     var detached = false;
 
+    late final Timer timer;
     void detach() {
-      if (!holdsSlot || _detached >= maxDetached) return;
+      _slotTimers.remove(timer);
+      if (_disposed || !holdsSlot || _detached >= maxDetached) return;
       holdsSlot = false;
       detached = true;
       _detached++;
@@ -161,16 +264,23 @@ class MediaFetchGate {
     // Cancelled in the finally block rather than left to fire harmlessly: a
     // stale firing would release a slot this fetch no longer holds, letting
     // the effective cap drift upward for the life of the process.
-    final timer = Timer(slotBudget, detach);
+    timer = Timer(slotBudget, detach);
+    _slotTimers.add(timer);
     try {
       return await fetch();
     } finally {
       timer.cancel();
-      if (detached) {
-        _detached--;
-      } else if (holdsSlot) {
-        holdsSlot = false;
-        _release();
+      _slotTimers.remove(timer);
+      // A gate torn down mid-fetch has already zeroed these counters, and
+      // decrementing them again would drive the cap negative for a gate that
+      // is only still here because Dart cannot cancel the fetch.
+      if (!_disposed) {
+        if (detached) {
+          _detached--;
+        } else if (holdsSlot) {
+          holdsSlot = false;
+          _release();
+        }
       }
     }
   }

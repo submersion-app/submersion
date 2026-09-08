@@ -408,6 +408,62 @@ void main() {
     });
   });
 
+  group('drysuit layers are their own lead term (issue #1537)', () {
+    EquipmentItem layer(String id, EquipmentType type, String insulation) =>
+        EquipmentItem(
+          id: id,
+          name: 'Undergarment',
+          type: type,
+          attributes: [
+            EquipmentAttribute(
+              id: 'a-$id',
+              equipmentId: id,
+              key: EquipmentAttrKeys.insulationLevel,
+              valueText: insulation,
+            ),
+          ],
+        );
+
+    test('the undersuit rides beside the drysuit, not instead of it', () {
+      // The point of the issue: logging the garment as `other` gave it a
+      // 0 kg prior, so swapping a light undersuit for a heavy one moved the
+      // diver's lead without moving the model.
+      final input = BuoyancyTwinAssembler.assemble(
+        dive: diveWith(
+          tanks: [tank('t1')],
+          equipment: [drysuit, layer('u1', EquipmentType.undersuit, 'heavy')],
+        ),
+        tankPressures: const {},
+        model: emptyModel(),
+        bodyWeightKg: 75,
+      )!;
+
+      // The drysuit still owns the suit slot.
+      expect(input.suit.kind, TwinSuitKind.drysuit);
+      final undergarment = input.staticTerms.firstWhere(
+        (t) => t.label == 'Undergarment',
+      );
+      expect(undergarment.kg, closeTo(2.5, 1e-9));
+    });
+
+    test('warmth moves the term', () {
+      double termFor(String insulation) => BuoyancyTwinAssembler.assemble(
+        dive: diveWith(
+          tanks: [tank('t1')],
+          equipment: [
+            drysuit,
+            layer('u1', EquipmentType.undersuit, insulation),
+          ],
+        ),
+        tankPressures: const {},
+        model: emptyModel(),
+        bodyWeightKg: 75,
+      )!.staticTerms.firstWhere((t) => t.label == 'Undergarment').kg;
+
+      expect(termFor('extreme') - termFor('light'), closeTo(2.8, 1e-9));
+    });
+  });
+
   group('BuoyancyTwinAssembler.composeRigTerms body composition', () {
     RigTerms compose(FittedWeightModel model, {double? heightCm}) =>
         BuoyancyTwinAssembler.composeRigTerms(

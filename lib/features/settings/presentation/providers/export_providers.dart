@@ -9,11 +9,16 @@ import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
+import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -319,6 +324,34 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
     // Get current diver for personalization
     final diver = await _ref.read(currentDiverProvider.future);
+    final diverPhoto = await _ref.read(diverPhotoLoaderProvider)(
+      diver?.photoPath,
+    );
+
+    // Depth profiles, for the templates that chart them. getAllDives skips
+    // profile hydration for performance, so they are loaded here, in one
+    // batched query, and thinned before any template sees them.
+    Map<String, PdfProfileSeries>? profiles;
+    if (exportOptions.template == PdfTemplate.detailed) {
+      state = state.copyWith(
+        message: _l10n.settings_export_progress_loadingProfiles,
+      );
+      // Chunked and thinned as we go. Loading every dive's raw samples first
+      // and downsampling afterwards would hold the whole logbook's sample set
+      // in memory at once, which is exactly what the thinning exists to avoid.
+      const chunkSize = 50;
+      final repository = _ref.read(diveRepositoryProvider);
+      final ids = dives.map((d) => d.id).toList();
+      final thinned = <String, PdfProfileSeries>{};
+
+      for (final chunk in seriesIdChunks(ids, size: chunkSize)) {
+        final raw = await repository.getMergedProfilesForDives(chunk);
+        for (final entry in raw.entries) {
+          thinned[entry.key] = PdfProfileSeries.downsampled(entry.value);
+        }
+      }
+      profiles = thinned;
+    }
 
     // Initialize fonts for proper Unicode support
     state = state.copyWith(
@@ -346,14 +379,19 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dateFormat: settings.dateFormat,
         timeFormat: settings.timeFormat,
       ),
+      units: UnitFormatter(settings),
       title: _l10n.settings_export_pdfDocumentTitle,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       certifications: certifications,
       diver: diver,
+      profiles: profiles,
+      diverPhoto: diverPhoto,
+      includeVerificationAreas: exportOptions.includeVerificationAreas,
     );
   }
 
-  Future<void> exportDivesToUddf() async {
+  Future<void> exportDivesToUddf([UddfExportOptions? options]) async {
+    final exportOptions = options ?? const UddfExportOptions();
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: _l10n.settings_export_progress_uddf,
@@ -484,6 +522,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveGasSwitches: diveGasSwitches,
         diveProfileEvents: diveProfileEvents,
         diveTankPressures: diveTankPressures,
+        dataSources: await _ref.read(uddfSourceFetchProvider)(
+          dives.map((d) => d.id).toList(growable: false),
+          exportOptions,
+        ),
+        options: exportOptions,
       );
       state = state.copyWith(
         status: ExportStatus.success,
@@ -963,7 +1006,8 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
   /// Save comprehensive UDDF to a user-selected location.
   /// Collects all data (same as share) so the export round-trips correctly.
-  Future<void> saveUddfToFile() async {
+  Future<void> saveUddfToFile([UddfExportOptions? options]) async {
+    final exportOptions = options ?? const UddfExportOptions();
     state = state.copyWith(
       status: ExportStatus.exporting,
       message: _l10n.settings_export_progress_preparingUddf,
@@ -1089,6 +1133,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveGasSwitches: diveGasSwitches,
         diveProfileEvents: diveProfileEvents,
         diveTankPressures: diveTankPressures,
+        dataSources: await _ref.read(uddfSourceFetchProvider)(
+          dives.map((d) => d.id).toList(growable: false),
+          exportOptions,
+        ),
+        options: exportOptions,
       );
 
       if (path == null) {

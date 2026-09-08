@@ -41,7 +41,23 @@ class DivePlan extends Equatable {
   final int gfLow;
   final int gfHigh;
   final double descentRate;
+
+  /// Working ascent rate in m/min: leaving the bottom for the first stop.
   final double ascentRate;
+
+  /// Ascent rate in m/min between intermediate (deeper than 9 m) stops -
+  /// slower than [ascentRate], because a diver climbing the stop grid is not
+  /// leaving the bottom.
+  final double intermediateAscentRate;
+
+  /// Ascent rate in m/min between shallow (9 m and above) stops.
+  final double shallowAscentRate;
+
+  /// Ascent rate in m/min from the last stop to the surface. The shallowest
+  /// part of the ascent is where a depth change costs the most pressure
+  /// change, so it is the slowest of the four.
+  final double finalAscentRate;
+
   final double lastStopDepth;
   final int gasSwitchStopSeconds;
   final AirBreakPolicy? airBreaks;
@@ -93,6 +109,9 @@ class DivePlan extends Equatable {
     required this.gfHigh,
     this.descentRate = 18.0,
     this.ascentRate = 9.0,
+    this.intermediateAscentRate = 6.0,
+    this.shallowAscentRate = 3.0,
+    this.finalAscentRate = 1.0,
     this.lastStopDepth = 3.0,
     this.gasSwitchStopSeconds = 0,
     this.airBreaks,
@@ -129,11 +148,13 @@ class DivePlan extends Equatable {
   double get sacStressedEffective => sacStressed ?? sacBottom * 2.5;
 
   /// Deepest point across the user-authored segments (0 if none).
+  ///
+  /// Only targets need checking: every leg starts where the previous one
+  /// finished, so a start depth is always some earlier segment's target.
   double get maxDepth {
     double deepest = 0;
     for (final segment in segments) {
-      if (segment.startDepth > deepest) deepest = segment.startDepth;
-      if (segment.endDepth > deepest) deepest = segment.endDepth;
+      if (segment.targetDepth > deepest) deepest = segment.targetDepth;
     }
     return deepest;
   }
@@ -157,6 +178,9 @@ class DivePlan extends Equatable {
     int? gfHigh,
     double? descentRate,
     double? ascentRate,
+    double? intermediateAscentRate,
+    double? shallowAscentRate,
+    double? finalAscentRate,
     double? lastStopDepth,
     int? gasSwitchStopSeconds,
     AirBreakPolicy? airBreaks,
@@ -209,6 +233,10 @@ class DivePlan extends Equatable {
       gfHigh: gfHigh ?? this.gfHigh,
       descentRate: descentRate ?? this.descentRate,
       ascentRate: ascentRate ?? this.ascentRate,
+      intermediateAscentRate:
+          intermediateAscentRate ?? this.intermediateAscentRate,
+      shallowAscentRate: shallowAscentRate ?? this.shallowAscentRate,
+      finalAscentRate: finalAscentRate ?? this.finalAscentRate,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
       airBreaks: clearAirBreaks ? null : (airBreaks ?? this.airBreaks),
@@ -268,6 +296,9 @@ class DivePlan extends Equatable {
     gfHigh,
     descentRate,
     ascentRate,
+    intermediateAscentRate,
+    shallowAscentRate,
+    finalAscentRate,
     lastStopDepth,
     gasSwitchStopSeconds,
     airBreaks?.o2Seconds,

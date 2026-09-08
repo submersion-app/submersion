@@ -42,6 +42,72 @@ void main() {
     expect(find.text('85%'), findsOneWidget);
   });
 
+  testWidgets('dragging the GF Low slider changes gfLow and leaves gfHigh', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness(const PlanDecoSection()));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanDecoSection)),
+    );
+    expect(container.read(divePlanNotifierProvider).gfLow, 50);
+    expect(container.read(divePlanNotifierProvider).gfHigh, 85);
+
+    await tester.drag(find.byType(Slider).first, const Offset(80, 0));
+    await tester.pumpAndSettle();
+
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.gfLow, greaterThan(50));
+    expect(state.gfLow, lessThanOrEqualTo(100));
+    expect(state.gfHigh, 85);
+    expect(find.text('${state.gfLow}%'), findsOneWidget);
+  });
+
+  testWidgets('dragging the GF High slider changes gfHigh and leaves gfLow', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness(const PlanDecoSection()));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanDecoSection)),
+    );
+
+    await tester.drag(find.byType(Slider).last, const Offset(-80, 0));
+    await tester.pumpAndSettle();
+
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.gfHigh, lessThan(85));
+    expect(state.gfHigh, greaterThanOrEqualTo(10));
+    expect(state.gfLow, 50);
+    expect(find.text('${state.gfHigh}%'), findsOneWidget);
+  });
+
+  testWidgets('deco section chooses the last stop from 3, 4, 5 or 6 m', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness(const PlanDecoSection()));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanDecoSection)),
+    );
+
+    expect(find.text('Last stop'), findsOneWidget);
+    // Labels come from UnitFormatter.formatDepth, which spells metres with no
+    // space ('3m'), as everywhere else in the app.
+    for (final choice in ['3m', '4m', '5m', '6m']) {
+      expect(find.text(choice), findsOneWidget, reason: choice);
+    }
+    expect(container.read(divePlanNotifierProvider).lastStopDepth, 3.0);
+
+    await tester.tap(find.text('6m'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).lastStopDepth, 6.0);
+
+    await tester.tap(find.text('4m'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).lastStopDepth, 4.0);
+  });
+
   testWidgets('gas section shows SAC slider and reserve field with unit', (
     tester,
   ) async {

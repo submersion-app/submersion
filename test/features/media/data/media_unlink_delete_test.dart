@@ -105,7 +105,7 @@ void main() {
     expect(built.deleted, [m.id]);
     expect(await repo.getMediaById(m.id), isNull);
     expect(outcome.deleted, 1);
-    expect(outcome.keptAsSiteMedia, 0);
+    expect(outcome.keptLinked, 0);
   });
 
   test(
@@ -124,7 +124,7 @@ void main() {
       expect(kept!.diveId, isNull);
       expect(kept.siteId, 's1');
       expect(outcome.deleted, 0);
-      expect(outcome.keptAsSiteMedia, 1);
+      expect(outcome.keptLinked, 1);
     },
   );
 
@@ -143,7 +143,7 @@ void main() {
     expect(await repo.getMediaById(plain.id), isNull);
     expect((await repo.getMediaById(onSite.id))!.siteId, 's1');
     expect(outcome.deleted, 1);
-    expect(outcome.keptAsSiteMedia, 1);
+    expect(outcome.keptLinked, 1);
   });
 
   // An enrichment is the join product of the media and ONE dive's profile.
@@ -230,7 +230,7 @@ void main() {
     final outcome = await built.service.unlinkFromDive(const []);
     expect(built.deleted, isEmpty);
     expect(outcome.deleted, 0);
-    expect(outcome.keptAsSiteMedia, 0);
+    expect(outcome.keptLinked, 0);
   });
 
   group('user metadata probe', () {
@@ -303,7 +303,7 @@ void main() {
       expect(built.deleted, [m.id]);
       expect(await repo.getMediaById(m.id), isNull);
       expect(outcome.deleted, 1);
-      expect(outcome.keptAsDiveMedia, 0);
+      expect(outcome.keptLinked, 0);
     });
 
     test(
@@ -323,7 +323,7 @@ void main() {
         expect(kept!.siteId, isNull);
         expect(kept.diveId, 'd1');
         expect(outcome.deleted, 0);
-        expect(outcome.keptAsDiveMedia, 1);
+        expect(outcome.keptLinked, 1);
         expect(outcome.total, 1);
       },
     );
@@ -354,8 +354,104 @@ void main() {
       final built = buildService();
       final outcome = await built.service.unlinkFromSite(const []);
       expect(outcome.deleted, 0);
-      expect(outcome.keptAsDiveMedia, 0);
+      expect(outcome.keptLinked, 0);
       expect(built.deleted, isEmpty);
+    });
+  });
+
+  Future<void> insertEquipment(String id) => db
+      .into(db.equipment)
+      .insert(
+        EquipmentCompanion(
+          id: Value(id),
+          name: const Value('MK25 EVO'),
+          type: const Value('regulator'),
+          createdAt: Value(epoch),
+          updatedAt: Value(epoch),
+        ),
+      );
+
+  /// The equipment path (issue #1517). Same contract as the dive and site
+  /// twins: the row leaves the library unless something else still needs it,
+  /// and the diver's original file is never touched.
+  group('unlinkFromEquipment', () {
+    test('an equipment-only invoice leaves the library', () async {
+      await insertEquipment('e1');
+      final m = await repo.createMedia(item('m1'));
+      await repo.linkMediaToEquipment([m.id], 'e1');
+      final built = buildService();
+
+      final outcome = await built.service.unlinkFromEquipment([m.id]);
+
+      expect(built.deleted, [m.id]);
+      expect(await repo.getMediaById(m.id), isNull);
+      expect(outcome.deleted, 1);
+      expect(outcome.keptLinked, 0);
+      expect(outcome.total, 1);
+    });
+
+    test(
+      'a dive-linked row survives with only the gear link cleared',
+      () async {
+        await insertDive('d1');
+        await insertEquipment('e1');
+        final m = await repo.createMedia(item('m1', diveId: 'd1'));
+        await repo.linkMediaToEquipment([m.id], 'e1');
+        final built = buildService();
+
+        final outcome = await built.service.unlinkFromEquipment([m.id]);
+
+        expect(built.deleted, isEmpty);
+        final reloaded = await repo.getMediaById(m.id);
+        expect(reloaded, isNotNull);
+        expect(reloaded!.equipmentId, isNull);
+        expect(reloaded.diveId, 'd1');
+        expect(outcome.deleted, 0);
+        expect(outcome.keptLinked, 1);
+      },
+    );
+
+    test('a site-linked row survives too', () async {
+      await insertSite('s1');
+      await insertEquipment('e1');
+      final m = await repo.createMedia(item('m1', siteId: 's1'));
+      await repo.linkMediaToEquipment([m.id], 'e1');
+      final built = buildService();
+
+      final outcome = await built.service.unlinkFromEquipment([m.id]);
+
+      expect(built.deleted, isEmpty);
+      expect((await repo.getMediaById(m.id))!.siteId, 's1');
+      expect(outcome.keptLinked, 1);
+    });
+
+    test('a mixed batch splits both ways in one call', () async {
+      await insertDive('d1');
+      await insertEquipment('e1');
+      final kept = await repo.createMedia(item('m1', diveId: 'd1'));
+      final doomed = await repo.createMedia(item('m2'));
+      await repo.linkMediaToEquipment([kept.id, doomed.id], 'e1');
+      final built = buildService();
+
+      final outcome = await built.service.unlinkFromEquipment([
+        kept.id,
+        doomed.id,
+      ]);
+
+      expect(built.deleted, [doomed.id]);
+      expect(outcome.deleted, 1);
+      expect(outcome.keptLinked, 1);
+      expect(outcome.total, 2);
+    });
+
+    test('an empty id list touches nothing', () async {
+      final built = buildService();
+
+      final outcome = await built.service.unlinkFromEquipment([]);
+
+      expect(built.deleted, isEmpty);
+      expect(outcome.deleted, 0);
+      expect(outcome.keptLinked, 0);
     });
   });
 }

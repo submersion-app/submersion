@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 
@@ -138,22 +140,20 @@ class _RecentDives extends ConsumerWidget {
   }
 }
 
-class _DiveList extends StatelessWidget {
+class _DiveList extends ConsumerWidget {
   final List<DiveSummary> dives;
 
   const _DiveList({required this.dives});
 
   @override
-  Widget build(BuildContext context) {
-    final materialL10n = MaterialLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return ListView.builder(
       itemCount: dives.length,
       itemBuilder: (context, index) {
         final dive = dives[index];
-        final date = materialL10n.formatMediumDate(
-          dive.entryTime ?? dive.dateTime,
-        );
+        final date = units.formatDate(dive.entryTime ?? dive.dateTime);
         // Number and site identify the dive; the date is the fallback identity
         // for a dive that has neither, so it must not also be the title then.
         final parts = [

@@ -45,12 +45,6 @@ double _maxCeiling(List<double> pn2, double gf) {
   return maxC;
 }
 
-double _firstStopDepth(List<double> pn2, double gfLow) {
-  final c = _maxCeiling(pn2, gfLow);
-  if (c <= 0) return 0;
-  return (c / _stopIncrement).ceil() * _stopIncrement;
-}
-
 /// Independent reference: optimal TTS (seconds) from [startDepth] given loaded
 /// N2 tensions, GF low/high, ascent rate 9 m/min, 3 m stops, and a best-gas
 /// [plan]. Reimplements the schedule from the published model (Schreiner
@@ -71,14 +65,34 @@ int referenceTts({
   // gf_low_pressure_this_dive). Fixed for the whole ascent: tissues only
   // offgas above the bottom, so this running-max never grows during ascent.
   final anchor = _maxCeiling(tensions, gfLow);
-  // First stop still snaps to the 3 m grid, as production does.
-  final firstStop = _firstStopDepth(tensions, gfLow);
   double gfAt(double depth) {
     if (depth <= 0) return gfHigh;
     if (anchor <= 0) return gfHigh;
     if (depth >= anchor) return gfLow;
     return gfHigh - (gfHigh - gfLow) * (depth / anchor);
   }
+
+  // The operative ceiling: the depth tolerated under the gradient factor
+  // that applies at that same depth, i.e. a fixed point of gfAt. Mirrors
+  // production's calculateCeiling. Evaluating the GF at the diver's current
+  // depth instead reports the GF-low ceiling to anyone below the anchor,
+  // which is a tolerance at a gradient factor that only applies far
+  // shallower -- not a depth the diver has to respect.
+  double gfCeiling() {
+    var c = _maxCeiling(tensions, gfLow);
+    if (c <= 0) return 0;
+    if (anchor <= 0) return _maxCeiling(tensions, gfHigh);
+    for (var i = 0; i < 24; i++) {
+      final next = _maxCeiling(tensions, gfAt(c));
+      final converged = (next - c).abs() < 0.001;
+      c = next;
+      if (converged) break;
+    }
+    return c;
+  }
+
+  // First stop snaps up to the 3 m grid, as production does.
+  final firstStop = (gfCeiling() / _stopIncrement).ceil() * _stopIncrement;
 
   // No deco required: a direct ascent to the surface.
   if (_maxCeiling(tensions, gfHigh) <= 0) {
@@ -129,25 +143,43 @@ int referenceTts({
   ) {
     final nextStop = stop <= _lastStop ? 0.0 : stop - _stopIncrement;
     final fN2 = gasForDepth(stop).fN2;
-    // Clear the stop against the ceiling at the NEXT (shallower) stop's GF,
-    // matching production's clear-to-next-stop (Subsurface trial_ascent). At
-    // the last stop the next level is the surface, where the GF is gfHigh.
-    final gf = gfAt(nextStop);
+
+    // Subsurface's trial_ascent: simulate the leg to the next level in 10 s
+    // slices (each at its mean depth, on the gas eligible at its deeper end)
+    // and require the ceiling to stay at or below the diver after every
+    // slice, the last of which lands exactly on the next level. The leg's own
+    // off-gassing therefore counts toward clearing the stop. Works on a copy
+    // of the tensions and puts them back.
+    bool trialClears() {
+      final seconds = ((stop - nextStop) / _ascentRate * 60).round();
+      if (seconds <= 0) return gfCeiling() <= nextStop;
+      final saved = List<double>.from(tensions);
+      try {
+        final span = stop - nextStop;
+        var elapsed = 0;
+        while (elapsed < seconds) {
+          final dt = elapsed + 10 > seconds ? seconds - elapsed : 10;
+          final start = stop - span * elapsed / seconds;
+          final end = elapsed + dt >= seconds
+              ? nextStop
+              : stop - span * (elapsed + dt) / seconds;
+          integrate((start + end) / 2.0, gasForDepth(start).fN2, dt);
+          elapsed += dt;
+          if (gfCeiling() > end) return false;
+        }
+        return true;
+      } finally {
+        tensions.setAll(0, saved);
+      }
+    }
 
     var stopSeconds = 0;
     const maxStop = 120 * 60;
     while (stopSeconds < maxStop) {
-      // Production evaluates the ceiling AFTER a trial minute, then either
-      // leaves (keeping the pre-minute state, minute not counted) or commits
-      // the minute. So it holds ~1 min less per stop than a check-first loop;
-      // replicate that trial-then-commit ordering to match the numbers.
-      final snapshot = List<double>.from(tensions);
-      integrate(stop, fN2, 60);
-      final ceiling = _maxCeiling(tensions, gf);
-      for (var i = 0; i < tensions.length; i++) {
-        tensions[i] = snapshot[i];
-      }
-      if (ceiling <= nextStop) break;
+      // Tested on arrival, BEFORE the minute is loaded: may the diver leave
+      // with the time spent so far? Testing after a trial minute and then
+      // discarding the minute credits off-gassing the schedule never spends.
+      if (trialClears()) break;
       integrate(stop, fN2, 60);
       stopSeconds += 60;
     }

@@ -15,13 +15,27 @@ void main() {
   EmodnetSource source(MockClientHandler handler) =>
       EmodnetSource(client: MockClient(handler));
 
-  test('covers Europe and the Caribbean tile, nothing else', () {
+  test('probes Europe and the Caribbean tile, nothing else', () async {
     final s = source((_) async => http.Response('', 500));
-    expect(s.covers(const GeoPoint(43.2, 4.5)), isTrue); // Mediterranean
-    expect(s.covers(const GeoPoint(12.16, -68.29)), isTrue); // Bonaire
-    expect(s.covers(const GeoPoint(36.6, -121.9)), isFalse); // Monterey
-    expect(s.covers(const GeoPoint(-8.5, 115.5)), isFalse); // Bali
+    // Mediterranean and Bonaire are inside the two boxes.
+    expect((await s.probe(const GeoPoint(43.2, 4.5)))?.cellSizeMeters, 115);
+    expect((await s.probe(const GeoPoint(12.16, -68.29)))?.cellSizeMeters, 115);
+    // Monterey and Bali are outside both.
+    expect(await s.probe(const GeoPoint(36.6, -121.9)), isNull);
+    expect(await s.probe(const GeoPoint(-8.5, 115.5)), isNull);
     expect(s.global, isFalse);
+  });
+
+  test('probe names the dataset it would query, for provenance', () async {
+    final s = source((_) async => http.Response('', 500));
+    expect(
+      (await s.probe(const GeoPoint(12.16, -68.29)))!.detail,
+      'bathymetry_dtm_carib_2024',
+    );
+    expect(
+      (await s.probe(const GeoPoint(42.048, 3.223)))!.detail,
+      'bathymetry_dtm_2024',
+    );
   });
 
   test('selects the Caribbean dataset for a Caribbean coordinate', () async {

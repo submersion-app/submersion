@@ -17,13 +17,29 @@ void main() {
   });
 
   group('kDiveDetailSectionPairs', () {
-    test('pairs the four card pairs, left half first', () {
+    test('pairs the five card pairs, left half first', () {
       expect(kDiveDetailSectionPairs.map((p) => (p.left, p.right)), [
+        (DiveDetailSectionId.decoStatus, DiveDetailSectionId.tissueLoading),
         (DiveDetailSectionId.details, DiveDetailSectionId.environment),
         (DiveDetailSectionId.surfaceGps, DiveDetailSectionId.tide),
         (DiveDetailSectionId.tanks, DiveDetailSectionId.weights),
         (DiveDetailSectionId.buddies, DiveDetailSectionId.signatures),
       ]);
+    });
+
+    // The deco column pads itself to the tissue card's height, so that pair
+    // stretches and pairs at the 600px the combined panel used; the rest keep
+    // their intrinsic heights and the default 700px threshold.
+    test('only the deco/tissue pair stretches, at its own threshold', () {
+      final stretching = kDiveDetailSectionPairs.where((p) => p.stretch);
+      expect(stretching.map((p) => p.left), [DiveDetailSectionId.decoStatus]);
+      expect(stretching.single.minRowWidth, 600);
+      expect(
+        kDiveDetailSectionPairs
+            .where((p) => !p.stretch)
+            .every((p) => p.minRowWidth == 700),
+        isTrue,
+      );
     });
 
     // diveDetailSectionPairFor returns the first match, so a section in two

@@ -33,10 +33,14 @@ const double _decoStopStrokeWidth = 0.0;
 /// painter draws the below-bar area and then erases the entire above-line
 /// region to clean up the cut-off overdraw, which wipes exactly the area the
 /// band needs.
+/// [fillColor] overrides [decoStopBandColor] for an overlaid source's own
+/// band, so two computers' deco-stop obligations read as distinct washes
+/// instead of stacking identically.
 LineChartBarData buildDecoStopBand({
   required List<double> decoStopCurve,
   required List<int> timestamps,
   required UnitFormatter units,
+  Color? fillColor,
 }) {
   final length = decoStopCurve.length < timestamps.length
       ? decoStopCurve.length
@@ -61,7 +65,9 @@ LineChartBarData buildDecoStopBand({
     dotData: const FlDotData(show: false),
     aboveBarData: BarAreaData(
       show: true,
-      color: decoStopBandColor.withValues(alpha: decoStopFillAlpha),
+      color: (fillColor ?? decoStopBandColor).withValues(
+        alpha: decoStopFillAlpha,
+      ),
       cutOffY: 0, // Fill from the stop depth up to the surface
       applyCutOffY: true,
     ),

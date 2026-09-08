@@ -136,6 +136,38 @@ The verification pass also corrected two rows that had shipped wrong:
 hyperbaric unit's own line, and `mt-gozo`'s number had changed. Neither error
 was detectable by schema validation, since both were well-formed numbers.
 
+### Benelux coverage, 2026-09-04
+
+Issue #1521 reported the obvious hole: one chamber for Belgium, one for the
+Netherlands, both city-centroid placed, in a region with a dense diving
+population. Two national registries the original research pass missed are
+reachable and current: ACHOBEL (`achobel.be/MemberList.htm`, dated Jan 2025,
+seven centres including Luxembourg) and the NVvHG member list
+(`nvvhg.nl/nvvhg/ledenlijst/`). Ambulancezorg Nederland also publishes a
+triage annex that classifies each Dutch facility as acute, consult-only, or
+non-acute, which maps directly onto the `capability` field rather than having
+to be inferred.
+
+Three things came out of verifying those leads against the facilities:
+
+- **CHU de Charleroi is on ACHOBEL and is not in the dataset.** HUmani
+  suspended the Hopital Andre Vesale caisson on 2026-06-25, the last multiplace
+  chamber in Wallonia, over the cost of a mandatory safety refit. This is the
+  `th-samui` case again and is guarded by its own test.
+- **ACHOBEL's number for Aalst is stale.** It lists `053 72 4248`; the
+  hospital's own emergency page lists `053 72 43 48`. The registry-as-lead rule
+  is what caught it.
+- **Two shipped rows were placed on a city centroid**, the AMC about 10 km out
+  and the Militair Hospitaal about 7 km, both far enough to reorder a
+  distance-sorted card. Their coordinates are now recorded per facility.
+
+Nominatim refused this network outright (HTTP 429 from the CDN edge on every
+request, regardless of rate), so the new coordinates were read from
+OpenStreetMap through Photon against each facility's published street address
+and recorded in `scripts/data/chamber_coordinates.json`. That file is the
+escape hatch the pipeline already documents for rows the geocoder cannot place;
+using it here keeps `chamber_geocode.py` pinned to one geocoder.
+
 ## Data model
 
 `assets/data/chambers.json` gains a metadata block and per-row provenance,

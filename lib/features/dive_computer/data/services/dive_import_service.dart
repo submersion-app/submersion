@@ -595,6 +595,11 @@ class DiveImportService {
       entryLongitude: dive.entryLongitude,
       exitLatitude: dive.exitLatitude,
       exitLongitude: dive.exitLongitude,
+      // Already resolved by parsed_dive_mapper: the dive header's minimum
+      // where the computer reports one, else the coldest sample. Computers
+      // that log temperature only in the header (the Cressi Leonardo) have no
+      // other route into the dive record.
+      minTemperature: dive.minTemperature,
     );
 
     return diveId;
@@ -682,6 +687,11 @@ class DiveImportService {
       entryLongitude: dive.entryLongitude,
       exitLatitude: dive.exitLatitude,
       exitLongitude: dive.exitLongitude,
+      // Already resolved by parsed_dive_mapper: the dive header's minimum
+      // where the computer reports one, else the coldest sample. Computers
+      // that log temperature only in the header (the Cressi Leonardo) have no
+      // other route into the dive record.
+      minTemperature: dive.minTemperature,
     );
   }
 

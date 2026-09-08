@@ -23,23 +23,23 @@ import '../../../../helpers/test_database.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  PlanSegment seg(SegmentType type, double start, double end, int dur) =>
-      PlanSegment(
-        id: '$type$start',
-        type: type,
-        startDepth: start,
-        endDepth: end,
-        durationSeconds: dur,
-        tankId: 't1',
-        gasMix: const GasMix(o2: 21),
-      );
+  var nextId = 0;
+  PlanSegment seg(double target, int dur) => PlanSegment(
+    id: 'seg-${nextId++}',
+    targetDepth: target,
+    durationSeconds: dur,
+    tankId: 't1',
+    gasMix: const GasMix(o2: 21),
+  );
 
+  // Waypoints only: each leg starts where the previous one ended, so the
+  // descent/bottom/ascent/stop shape is implied rather than declared.
   final plan = [
-    seg(SegmentType.descent, 0, 30, 60),
-    seg(SegmentType.bottom, 30, 30, 1200),
-    seg(SegmentType.ascent, 30, 5, 150),
-    seg(SegmentType.safetyStop, 5, 5, 180),
-    seg(SegmentType.ascent, 5, 0, 30),
+    seg(30, 60), // descend to 30 m
+    seg(30, 1200), // bottom
+    seg(5, 150), // ascend to 5 m
+    seg(5, 180), // safety stop
+    seg(0, 30), // surface
   ];
 
   test('synthesized profile has monotonic timestamps', () {
@@ -66,10 +66,10 @@ void main() {
     // The segment editor defaults a blank/invalid duration field to 0, so a
     // 0-minute leg is reachable. It must not emit a duplicate timestamp.
     final withZero = [
-      seg(SegmentType.descent, 0, 30, 60),
-      seg(SegmentType.bottom, 30, 30, 0), // blank duration field
-      seg(SegmentType.ascent, 30, 5, 150),
-      seg(SegmentType.safetyStop, 5, 5, 180),
+      seg(30, 60),
+      seg(30, 0), // blank duration field
+      seg(5, 150),
+      seg(5, 180),
     ];
     final profile = synthesizePlanProfile(withZero);
     for (var i = 1; i < profile.length; i++) {

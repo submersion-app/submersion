@@ -227,20 +227,21 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   }
 
   /// Writes [lookup] into the country, region, city and body of water
-  /// fields. With [overwrite] false only empty fields change (the rule lives
-  /// in [mergeMissingLocationDetails]); with it true every found value
-  /// replaces the current one. Returns whether any field changed. Callers
+  /// fields. With [overwrite] false only empty fields change; with it true a
+  /// found value replaces a differing one. The rule lives in
+  /// [mergeLocationDetails]. Returns whether any field changed. Callers
   /// decide whether that dirties the form.
   bool _applyPlaceLookup(PlaceLookup lookup, {required bool overwrite}) {
-    final current = overwrite
-        ? const SiteLocationDetails()
-        : SiteLocationDetails(
-            country: _countryController.text,
-            region: _regionController.text,
-            city: _cityController.text,
-            bodyOfWater: _bodyOfWaterController.text,
-          );
-    final merged = mergeMissingLocationDetails(current: current, found: lookup);
+    final merged = mergeLocationDetails(
+      current: SiteLocationDetails(
+        country: _countryController.text,
+        region: _regionController.text,
+        city: _cityController.text,
+        bodyOfWater: _bodyOfWaterController.text,
+      ),
+      found: lookup,
+      overwrite: overwrite,
+    );
     if (merged == null) return false;
 
     var changed = false;

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Summary widget shown when no trip is selected.
 class TripSummaryWidget extends ConsumerWidget {
@@ -23,7 +24,7 @@ class TripSummaryWidget extends ConsumerWidget {
             _buildHeader(context),
             const SizedBox(height: 24),
             tripsAsync.when(
-              data: (trips) => _buildOverview(context, trips),
+              data: (trips) => _buildOverview(context, ref, trips),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) =>
                   Center(child: Text('${context.l10n.common_label_error}: $e')),
@@ -68,7 +69,7 @@ class TripSummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, List trips) {
+  Widget _buildOverview(BuildContext context, WidgetRef ref, List trips) {
     // Calculate stats
     num totalDives = 0;
     num totalDays = 0;
@@ -139,11 +140,11 @@ class TripSummaryWidget extends ConsumerWidget {
         ),
         if (trips.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildTripListPreview(context, trips),
+          _buildTripListPreview(context, ref, trips),
         ],
         if (upcomingTrips.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildUpcomingTrips(context, upcomingTrips),
+          _buildUpcomingTrips(context, ref, upcomingTrips),
         ],
       ],
     );
@@ -198,12 +199,16 @@ class TripSummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildTripListPreview(BuildContext context, List trips) {
+  Widget _buildTripListPreview(
+    BuildContext context,
+    WidgetRef ref,
+    List trips,
+  ) {
     // Sort by start date descending and take recent 3
     final sortedTrips = List.from(trips)
       ..sort((a, b) => b.trip.startDate.compareTo(a.trip.startDate));
     final previewTrips = sortedTrips.take(3).toList();
-    final dateFormat = DateFormat.yMMMd();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,7 +236,7 @@ class TripSummaryWidget extends ConsumerWidget {
                 ),
                 title: Text(trip.name),
                 subtitle: Text(
-                  '${dateFormat.format(trip.startDate)} • ${tripWithStats.diveCount} dives',
+                  '${units.formatDate(trip.startDate)} • ${tripWithStats.diveCount} dives',
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
@@ -247,8 +252,12 @@ class TripSummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildUpcomingTrips(BuildContext context, List upcomingTrips) {
-    final dateFormat = DateFormat.yMMMd();
+  Widget _buildUpcomingTrips(
+    BuildContext context,
+    WidgetRef ref,
+    List upcomingTrips,
+  ) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final nextTrip = upcomingTrips.first;
     final daysUntil = nextTrip.trip.startDate.difference(DateTime.now()).inDays;
 
@@ -282,7 +291,7 @@ class TripSummaryWidget extends ConsumerWidget {
               ),
             ),
             subtitle: Text(
-              '${dateFormat.format(nextTrip.trip.startDate)} • In $daysUntil days',
+              '${units.formatDate(nextTrip.trip.startDate)} • In $daysUntil days',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),

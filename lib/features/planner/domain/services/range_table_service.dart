@@ -4,6 +4,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 
 /// One depth/time variant of the base plan in a range table.
 class RangeCell {
@@ -116,13 +117,15 @@ class RangeTableService {
     );
   }
 
+  /// Bottom time the table cannot shrink below, or null if the diver has
+  /// authored no level leg to shorten.
   int? _shortestBottomMinutes(domain.DivePlan plan) {
-    int? shortest;
-    for (final segment in plan.segments) {
-      if (segment.type != SegmentType.bottom) continue;
-      final minutes = segment.durationSeconds ~/ 60;
-      if (shortest == null || minutes < shortest) shortest = minutes;
-    }
-    return shortest;
+    final ordered = List<PlanSegment>.from(plan.segments)
+      ..sort((a, b) => a.order.compareTo(b.order));
+    const chain = SegmentChain();
+    final legs = chain.resolve(ordered);
+    final bottomIndex = chain.bottomLegIndex(legs);
+    if (bottomIndex == null) return null;
+    return legs[bottomIndex].durationSeconds ~/ 60;
   }
 }

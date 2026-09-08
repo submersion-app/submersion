@@ -23,42 +23,88 @@ enum ExportDestination {
 Future<ExportDestination?> showExportDestinationSheet(
   BuildContext context, {
   required String title,
+}) async {
+  final choice = await showExportDestinationSheetWithOptions(
+    context,
+    title: title,
+  );
+  return choice?.destination;
+}
+
+/// What the user chose in an export destination sheet.
+typedef ExportChoice = ({ExportDestination destination, bool includeRawData});
+
+/// The destination sheet, plus the raw dive computer data toggle.
+///
+/// [showRawDataToggle] is false for every export that has no raw bytes to
+/// carry, which is every format except UDDF. [initialIncludeRawData] is the
+/// checkbox's starting state; it defaults to on, matching
+/// `UddfExportOptions.includeRawData`, so the code level default and what the
+/// user sees never diverge.
+Future<ExportChoice?> showExportDestinationSheetWithOptions(
+  BuildContext context, {
+  required String title,
+  bool showRawDataToggle = false,
+  bool initialIncludeRawData = true,
 }) {
-  return showModalBottomSheet<ExportDestination>(
+  var includeRawData = initialIncludeRawData;
+
+  return showModalBottomSheet<ExportChoice>(
     context: context,
-    builder: (sheetContext) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                title,
-                style: Theme.of(sheetContext).textTheme.titleMedium,
+    builder: (sheetContext) => StatefulBuilder(
+      builder: (builderContext, setSheetState) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  title,
+                  style: Theme.of(sheetContext).textTheme.titleMedium,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.save_alt),
-              title: Text(sheetContext.l10n.transfer_export_optionSaveTitle),
-              subtitle: Text(
-                sheetContext.l10n.transfer_export_optionSaveSubtitle,
+              const SizedBox(height: 16),
+              if (showRawDataToggle) ...[
+                CheckboxListTile(
+                  value: includeRawData,
+                  onChanged: (value) => setSheetState(
+                    () => includeRawData = value ?? includeRawData,
+                  ),
+                  title: Text(sheetContext.l10n.transfer_export_includeRawData),
+                  subtitle: Text(
+                    sheetContext.l10n.transfer_export_includeRawDataSubtitle,
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+                const Divider(height: 1),
+              ],
+              ListTile(
+                leading: const Icon(Icons.save_alt),
+                title: Text(sheetContext.l10n.transfer_export_optionSaveTitle),
+                subtitle: Text(
+                  sheetContext.l10n.transfer_export_optionSaveSubtitle,
+                ),
+                onTap: () => Navigator.pop(sheetContext, (
+                  destination: ExportDestination.saveToFile,
+                  includeRawData: includeRawData,
+                )),
               ),
-              onTap: () =>
-                  Navigator.pop(sheetContext, ExportDestination.saveToFile),
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.share),
-              title: Text(sheetContext.l10n.transfer_export_optionShareTitle),
-              subtitle: Text(
-                sheetContext.l10n.transfer_export_optionShareSubtitle,
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.share),
+                title: Text(sheetContext.l10n.transfer_export_optionShareTitle),
+                subtitle: Text(
+                  sheetContext.l10n.transfer_export_optionShareSubtitle,
+                ),
+                onTap: () => Navigator.pop(sheetContext, (
+                  destination: ExportDestination.share,
+                  includeRawData: includeRawData,
+                )),
               ),
-              onTap: () => Navigator.pop(sheetContext, ExportDestination.share),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     ),

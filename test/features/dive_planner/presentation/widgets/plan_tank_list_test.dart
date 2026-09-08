@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_app.dart';
@@ -204,6 +208,118 @@ void main() {
         find.byType(CheckboxListTile),
       );
       expect(checkbox.value, isTrue);
+    });
+  });
+  group('PlanTankList bailout checkbox', () {
+    Future<ProviderContainer> pumpList(
+      WidgetTester tester, {
+      required PlanMode mode,
+    }) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      );
+      container.read(divePlanNotifierProvider.notifier).updateMode(mode);
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('is absent on open circuit, where nothing is bailout', (
+      tester,
+    ) async {
+      await pumpList(tester, mode: PlanMode.oc);
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bailout gas'), findsNothing);
+      expect(find.byType(CheckboxListTile), findsOneWidget);
+    });
+
+    testWidgets('on CCR, ticking it saves the tank with the bailout role', (
+      tester,
+    ) async {
+      final container = await pumpList(tester, mode: PlanMode.ccr);
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      final tile = find.widgetWithText(CheckboxListTile, 'Bailout gas');
+      expect(tile, findsOneWidget);
+      expect(
+        find.text('Open-circuit gas carried in case the loop fails'),
+        findsOneWidget,
+      );
+      expect(tester.widget<CheckboxListTile>(tile).value, isFalse);
+
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+      expect(tester.widget<CheckboxListTile>(tile).value, isTrue);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final addedTank = container.read(divePlanNotifierProvider).tanks.last;
+      expect(addedTank.role, TankRole.bailout);
+      expect(addedTank.isTravelGas, isFalse);
+    });
+
+    testWidgets('on SCR, an unticked tile leaves the role to be derived', (
+      tester,
+    ) async {
+      final container = await pumpList(tester, mode: PlanMode.scr);
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+      final tile = find.widgetWithText(CheckboxListTile, 'Bailout gas');
+      expect(tile, findsOneWidget);
+
+      // Tick and untick: the checkbox round-trips.
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+      expect(tester.widget<CheckboxListTile>(tile).value, isFalse);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final addedTank = container.read(divePlanNotifierProvider).tanks.last;
+      expect(addedTank.role, TankRole.backGas);
+    });
+
+    testWidgets('editing a bailout tank shows the tile already ticked', (
+      tester,
+    ) async {
+      final container = await pumpList(tester, mode: PlanMode.ccr);
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .addTank(
+            const DiveTank(
+              id: 'bo',
+              name: 'Bailout 50',
+              volume: 11.1,
+              startPressure: 200,
+              gasMix: GasMix(o2: 50, he: 0),
+              role: TankRole.bailout,
+              order: 1,
+            ),
+          );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(InputChip, 'Bailout 50'));
+      await tester.pumpAndSettle();
+
+      final tile = find.widgetWithText(CheckboxListTile, 'Bailout gas');
+      expect(tester.widget<CheckboxListTile>(tile).value, isTrue);
     });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 
 /// Lifecycle of a pre-dive checklist run.
@@ -167,6 +168,15 @@ class PreDiveSessionItem extends Equatable {
   final String note;
   final DateTime? completedAt;
   final String? equipmentId;
+
+  /// Snapshot of the linked equipment's overdue-service list, frozen the
+  /// moment the diver last moved this item away from pending (done, skipped
+  /// or flagged). Null while pending -- the runner UI computes the live
+  /// overdue list from [equipmentId] instead -- and cleared back to null on
+  /// reset. An empty (non-null) list means "resolved with nothing overdue at
+  /// the time", distinct from "never computed" (e.g. rows resolved before
+  /// this field existed).
+  final List<OverdueServiceEntry>? overdueServices;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -189,6 +199,7 @@ class PreDiveSessionItem extends Equatable {
     this.note = '',
     this.completedAt,
     this.equipmentId,
+    this.overdueServices,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -223,6 +234,7 @@ class PreDiveSessionItem extends Equatable {
     String? note,
     Object? completedAt = _undefined,
     Object? equipmentId = _undefined,
+    Object? overdueServices = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -257,6 +269,9 @@ class PreDiveSessionItem extends Equatable {
       equipmentId: equipmentId == _undefined
           ? this.equipmentId
           : equipmentId as String?,
+      overdueServices: overdueServices == _undefined
+          ? this.overdueServices
+          : overdueServices as List<OverdueServiceEntry>?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -282,6 +297,7 @@ class PreDiveSessionItem extends Equatable {
     note,
     completedAt,
     equipmentId,
+    overdueServices,
     createdAt,
     updatedAt,
   ];

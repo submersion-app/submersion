@@ -11,9 +11,9 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Full checklist UI for a trip: items grouped by category, add-item
-/// affordance, and an overflow menu with apply/save-as-template actions.
-/// Embedded both as the Checklist tab (liveaboards) and as a card section
-/// on the overview (simple trips).
+/// affordance, and an overflow menu with apply-template, save-as-template
+/// and clear-checklist actions. Embedded both as the Checklist tab
+/// (liveaboards) and as a card section on the overview (simple trips).
 class TripChecklistSection extends ConsumerWidget {
   final Trip trip;
 
@@ -115,6 +115,9 @@ class TripChecklistSection extends ConsumerWidget {
         if (value == 'save') {
           showSaveAsTemplateDialog(context: context, trip: trip);
         }
+        if (value == 'clear') {
+          _clearChecklist(context, ref, items.length);
+        }
       },
       itemBuilder: (context) => [
         PopupMenuItem(
@@ -126,7 +129,58 @@ class TripChecklistSection extends ConsumerWidget {
           enabled: items.isNotEmpty,
           child: Text(context.l10n.checklists_menu_saveAsTemplate),
         ),
+        PopupMenuItem(
+          value: 'clear',
+          enabled: items.isNotEmpty,
+          child: Text(context.l10n.checklists_menu_clearAll),
+        ),
       ],
+    );
+  }
+
+  /// Drops the trip's whole checklist after confirming. The count is taken
+  /// from the items already on screen so the dialog cannot promise a number
+  /// the user never saw; the repository re-reads the rows it deletes and logs
+  /// a tombstone per item, so a concurrent edit cannot slip through unsynced.
+  Future<void> _clearChecklist(
+    BuildContext context,
+    WidgetRef ref,
+    int count,
+  ) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final repository = ref.read(tripChecklistRepositoryProvider);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.checklists_clear_title),
+        content: Text(l10n.checklists_clear_content(count)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.checklists_clear_confirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    await repository.deleteByTripId(trip.id);
+    // The wipe stands either way, being the user's confirmed intent, but its
+    // confirmation belongs to a page that may be gone: the route can be
+    // popped while the dialog is open or while the delete is in flight.
+    if (!context.mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.checklists_clear_success(count)),
+        duration: const Duration(seconds: 4),
+        showCloseIcon: true,
+      ),
     );
   }
 

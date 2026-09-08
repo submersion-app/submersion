@@ -63,10 +63,17 @@ class _FakePlatform extends GoogleSignInPlatform
   @override
   bool authorizationRequiresUserInteraction() => false;
 
+  /// How many times a scope authorization was requested. One per installed
+  /// client, so it counts clients without reaching into the authenticator.
+  int authorizationCalls = 0;
+
   @override
   Future<ClientAuthorizationTokenData?> clientAuthorizationTokensForScopes(
     ClientAuthorizationTokensForScopesParameters params,
-  ) async => authorizationToken;
+  ) async {
+    authorizationCalls++;
+    return authorizationToken;
+  }
 
   @override
   Future<ServerAuthorizationTokenData?> serverAuthorizationTokensForScopes(
@@ -149,6 +156,30 @@ void main() {
       expect(auth.authClient, same(first));
     });
 
+    test(
+      'two concurrent callers authorize once and install one client',
+      () async {
+        // The reuse guard above is read BEFORE the SDK round trip, so without
+        // single-flighting both callers install and the second _installClient
+        // closes the client the first already handed to the provider and to the
+        // media store. Nothing rebuilds from a still-non-null authClient, so
+        // every later Drive call fails with "Client is already closed" for the
+        // rest of the process.
+        platform.lightweightResult = _FakePlatform.resultsFor(
+          'diver@example.com',
+        );
+
+        final results = await Future.wait([
+          auth.attemptSilentAuth(),
+          auth.attemptSilentAuth(),
+        ]);
+
+        expect(results, [true, true]);
+        expect(platform.authorizationCalls, 1);
+        expect(auth.authClient, isNotNull);
+      },
+    );
+
     test('swallows platform errors and reports failure', () async {
       GoogleSignInPlatform.instance = _ThrowingInitPlatform();
       final failing = GoogleSignInAuthenticator();
@@ -186,6 +217,100 @@ void main() {
       );
     });
 
+    test('does not call a Play services refusal a user cancellation', () async {
+      // google_sign_in reports a Google Play services refusal under the
+      // same `canceled` code as a real dismissal. Users on a build whose
+      // signing certificate has no registered Android OAuth client hit this
+      // on every attempt, and the old wording told them they had cancelled
+      // a dialog they never saw. See scripts/check_apk_signing_cert.py.
+      platform.authenticateError = const GoogleSignInException(
+        code: GoogleSignInExceptionCode.canceled,
+        description: '[16] Account reauth failed.',
+      );
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>()
+              .having((e) => e.message, 'message', isNot(contains('cancelled')))
+              .having(
+                (e) => e.displayMessage,
+                'displayMessage',
+                contains('Account reauth failed'),
+              ),
+        ),
+      );
+    });
+
+    test('a refusal shows the status once, with no plugin internals', () async {
+      // displayMessage appends the cause, and the Cloud Sync snackbar renders
+      // displayMessage. Passing the GoogleSignInException itself as the cause
+      // therefore put its toString -- including the word "canceled" -- back on
+      // screen, and repeated the status the message already carried.
+      platform.authenticateError = const GoogleSignInException(
+        code: GoogleSignInExceptionCode.canceled,
+        description: '[16] Account reauth failed.',
+      );
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>()
+              .having(
+                (e) => e.displayMessage,
+                'displayMessage',
+                isNot(contains('GoogleSignInException')),
+              )
+              .having(
+                (e) => e.displayMessage.toLowerCase(),
+                'displayMessage',
+                isNot(contains('cancel')),
+              )
+              .having(
+                (e) => '[16]'.allMatches(e.displayMessage).length,
+                'occurrences of the status',
+                1,
+              ),
+        ),
+      );
+    });
+
+    test('a dismissal shows no plugin internals either', () async {
+      platform.authenticateError = const GoogleSignInException(
+        code: GoogleSignInExceptionCode.canceled,
+        description: 'activity is cancelled by the user.',
+      );
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.displayMessage,
+            'displayMessage',
+            isNot(contains('GoogleSignInException')),
+          ),
+        ),
+      );
+    });
+
+    test('still treats a dismissed sign-in dialog as a cancellation', () async {
+      platform.authenticateError = const GoogleSignInException(
+        code: GoogleSignInExceptionCode.canceled,
+        description: 'activity is cancelled by the user.',
+      );
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.message,
+            'message',
+            contains('cancelled'),
+          ),
+        ),
+      );
+    });
+
     test('maps other sign-in failures with their description', () async {
       platform.authenticateError = const GoogleSignInException(
         code: GoogleSignInExceptionCode.unknownError,
@@ -195,11 +320,17 @@ void main() {
       await expectLater(
         auth.authenticate(),
         throwsA(
-          isA<CloudStorageException>().having(
-            (e) => e.message,
-            'message',
-            contains('network unreachable'),
-          ),
+          isA<CloudStorageException>()
+              .having(
+                (e) => e.displayMessage,
+                'displayMessage',
+                contains('network unreachable'),
+              )
+              .having(
+                (e) => e.displayMessage,
+                'displayMessage',
+                isNot(contains('GoogleSignInException')),
+              ),
         ),
       );
     });

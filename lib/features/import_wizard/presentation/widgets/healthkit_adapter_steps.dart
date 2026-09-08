@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Riverpod [StateProvider] signalling whether HealthKit permissions have been
@@ -318,7 +319,7 @@ class _HealthKitDateRangeStepState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat.yMMMd();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -344,7 +345,7 @@ class _HealthKitDateRangeStepState
                 child: DatePickerButton(
                   label: context.l10n.diveImport_healthkit_dateFrom,
                   date: _startDate,
-                  dateText: dateFormat.format(_startDate),
+                  dateText: units.formatDate(_startDate),
                   onTap: _selectStartDate,
                 ),
               ),
@@ -353,7 +354,7 @@ class _HealthKitDateRangeStepState
                 child: DatePickerButton(
                   label: context.l10n.diveImport_healthkit_dateTo,
                   date: _endDate,
-                  dateText: dateFormat.format(_endDate),
+                  dateText: units.formatDate(_endDate),
                   onTap: _selectEndDate,
                 ),
               ),

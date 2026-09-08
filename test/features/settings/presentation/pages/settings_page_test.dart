@@ -28,7 +28,11 @@ import 'package:submersion/features/settings/presentation/pages/section_appearan
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
+import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
@@ -39,9 +43,33 @@ import 'package:submersion/features/settings/presentation/providers/debug_log_pr
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../support/fake_app_settings_repository.dart';
+
 typedef Override = riverpod.Override;
+
+/// Records the mode the place name language flow asks for and answers "no
+/// candidates", which ends the flow at its snackbar without a database.
+class _RecordingBackfill extends StateNotifier<BackfillState>
+    implements SiteLocationBackfillNotifier {
+  _RecordingBackfill() : super(const BackfillIdle());
+
+  final List<SiteLocationLookupMode> counted = [];
+
+  @override
+  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
+    counted.add(mode);
+    return const [];
+  }
+
+  @override
+  void reset() => state = const BackfillIdle();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /// Mock SettingsNotifier that doesn't access the database
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
@@ -483,6 +511,22 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> resetDiveDetailSections() async =>
       state = state.copyWith(clearDiveDetailSections: true);
+  @override
+  Future<void> setDiveDetailLayout(DiveDetailLayout layout) async =>
+      state = state.copyWith(diveDetailLayout: layout);
+
+  @override
+  Future<void> setDiveDetailSectionExpanded(
+    DiveDetailSectionId id,
+    bool expanded,
+  ) async {
+    state = state.copyWith(
+      diveDetailSections: [
+        for (final section in state.diveDetailSections)
+          section.id == id ? section.copyWith(expanded: expanded) : section,
+      ],
+    );
+  }
 
   @override
   Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
@@ -918,6 +962,7 @@ void main() {
       String? channel,
       Map<String, Object> extraPrefs = const {},
       UpdateStatus? status,
+      AppSettings settings = const AppSettings(),
     }) async {
       SharedPreferences.setMockInitialValues({
         'auto_update_enabled': false,
@@ -930,7 +975,7 @@ void main() {
       return [
         sharedPreferencesProvider.overrideWithValue(aboutPrefs),
         logFileServiceProvider.overrideWithValue(logFileService),
-        settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+        settingsProvider.overrideWith((ref) => _MockSettingsNotifier(settings)),
         currentDiverIdProvider.overrideWith(
           (ref) => _MockCurrentDiverIdNotifier(),
         ),
@@ -1097,13 +1142,20 @@ void main() {
       expect(find.text('Error: offline'), findsOneWidget);
     });
 
-    testWidgets('a recorded last-check time is formatted, not Never', (
+    // #1512: this stamp was hand-rolled as M/D/YYYY on a 24-hour clock, so it
+    // ignored both the date and the time preference. It now goes through
+    // UnitFormatter like every other displayed date.
+    testWidgets('a recorded last-check time follows the diver preferences', (
       tester,
     ) async {
       final lastCheck = DateTime(2026, 7, 4, 9, 5);
       await tester.pumpWidget(
         buildAboutWidget(
           await aboutOverrides(
+            settings: const AppSettings(
+              dateFormat: DateFormatPreference.ddmmyyyy,
+              timeFormat: TimeFormat.twentyFourHour,
+            ),
             extraPrefs: {
               'auto_update_last_check': lastCheck.millisecondsSinceEpoch,
             },
@@ -1113,8 +1165,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 6));
       await tester.scrollUntilVisible(find.text('Last checked'), 100);
-      expect(find.text('7/4/2026 09:05'), findsOneWidget);
+      expect(find.text('04/07/2026 at 09:05'), findsOneWidget);
       expect(find.text('Never'), findsNothing);
+      // The old hand-rolled shape, which no preference could ever produce.
+      expect(find.text('7/4/2026 09:05'), findsNothing);
     });
 
     testWidgets('version row shows a beta badge on the beta channel', (
@@ -1172,6 +1226,51 @@ void main() {
         ),
       );
     }
+
+    // Same twin problem as the accent toggles below: the navigation
+    // customizer row lived only on AppearancePage, so on wide screens the
+    // rail had no way to reach its own ordering.
+    testWidgets('hub shows the navigation customization row', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        buildAppearanceWidget([
+          ...getOverrides(),
+          appSettingsRepositoryProvider.overrideWithValue(
+            FakeAppSettingsRepository(),
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NavCustomizationTile), findsOneWidget);
+      expect(find.text('Navigation layout'), findsOneWidget);
+      // Narrow: the subtitle previews the phone bottom-bar slots.
+      expect(find.text('Dives · Sites · Trips'), findsOneWidget);
+    });
+
+    testWidgets('hub row previews the rail order at rail width', (
+      tester,
+    ) async {
+      // Above the 800px rail breakpoint, below the 1100px master-detail one,
+      // so _AppearanceSectionContent renders without MasterDetailScaffold.
+      await tester.binding.setSurfaceSize(const Size(900, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final repo = FakeAppSettingsRepository()
+        ..navRailIds = ['statistics', 'gps-log', 'planning'];
+      await tester.pumpWidget(
+        buildAppearanceWidget([
+          ...getOverrides(),
+          appSettingsRepositoryProvider.overrideWithValue(repo),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NavCustomizationTile), findsOneWidget);
+      expect(find.text('Statistics · GPS Log · Planning'), findsOneWidget);
+    });
 
     // The desktop master-detail pane renders _AppearanceSectionContent, a
     // separate widget from AppearancePage. The color-accent toggles have to
@@ -1374,6 +1473,10 @@ void main() {
             path: '/equipment/service-types',
             builder: (context, state) => const Text('Service Types Stub'),
           ),
+          GoRoute(
+            path: '/settings/trimix-mixer',
+            builder: (context, state) => const Text('Trimix Mixer Stub'),
+          ),
         ],
       );
 
@@ -1425,6 +1528,24 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Service Types Stub'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    // Issue #1335 follow-up: the mixer's own settings gear moved off the
+    // top-level settings list and in here, next to Tank Presets -- the
+    // global preset list its cylinder dropdown now reads.
+    testWidgets('renders the trimix mixer tile and navigates on tap', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Trimix Mixer'), findsOneWidget);
+
+      await tester.tap(find.text('Trimix Mixer'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Trimix Mixer Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
@@ -1651,6 +1772,7 @@ void main() {
         '/settings',
         reason: 'the fallback clears the selected-section query parameter',
       );
+      await tester.scrollUntilVisible(find.text('Units'), 100);
       expect(find.text('Units'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -1841,6 +1963,79 @@ void main() {
 
       expect(find.text('70 bar'), findsOneWidget);
       expect(find.text('50 bar'), findsNothing);
+    });
+  });
+
+  group('UnitsSectionContent place name language', () {
+    late _RecordingBackfill backfill;
+
+    setUp(() => backfill = _RecordingBackfill());
+
+    Widget buildUnitsWidget(AppSettings settings) {
+      final router = GoRouter(
+        initialLocation: '/settings?selected=units',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
+      );
+      return ProviderScope(
+        overrides: [
+          ...getOverrides(settings),
+          siteLocationBackfillProvider.overrideWith((_) => backfill),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    Future<void> pick(WidgetTester tester, String language) async {
+      await tester.scrollUntilVisible(find.text('Place name language'), 200);
+      await tester.ensureVisible(find.text('Place name language'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Place name language'));
+      await tester.pumpAndSettle();
+      // Scoped to the dialog: the tile behind it shows the current language
+      // by the same native name.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(language),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('changing it offers to refresh the sites already stored', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildUnitsWidget(const AppSettings()));
+      await tester.pumpAndSettle();
+
+      await pick(tester, 'Deutsch');
+
+      // Existing sites keep the language they were geocoded in, so a change
+      // splits the database unless the diver is offered the repair (#1187).
+      expect(backfill.counted, [SiteLocationLookupMode.refreshAll]);
+    });
+
+    testWidgets('picking the language already in force offers nothing', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildUnitsWidget(const AppSettings(placeNameLanguage: 'de')),
+      );
+      await tester.pumpAndSettle();
+
+      await pick(tester, 'Deutsch');
+
+      expect(backfill.counted, isEmpty);
     });
   });
 }

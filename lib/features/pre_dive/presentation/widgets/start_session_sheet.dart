@@ -6,7 +6,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
@@ -49,10 +48,16 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
   List<PreDiveChecklistTemplateItem> _templateItems = const [];
   EquipmentSet? _equipmentSet;
   bool _setInitialized = false;
+  final Map<String, EquipmentItem?> _equipmentByItemId = {};
+  final Set<String> _equipmentInitialized = {};
   bool _starting = false;
 
   bool get _needsEquipmentSet =>
       _templateItems.any((i) => i.itemType == PreDiveItemType.equipmentSet);
+
+  List<PreDiveChecklistTemplateItem> get _equipmentItems => _templateItems
+      .where((i) => i.itemType == PreDiveItemType.equipment)
+      .toList();
 
   Future<void> _selectTemplate(PreDiveChecklistTemplate template) async {
     final items = await ref
@@ -62,47 +67,47 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
     setState(() {
       _template = template;
       _templateItems = items;
+      _equipmentByItemId.clear();
+      _equipmentInitialized.clear();
     });
   }
 
   Future<void> _begin() async {
     final template = _template;
     if (template == null || _starting) return;
-    // Capture the localized note before any await, so the composer never
-    // touches BuildContext across an async gap.
-    final serviceOverdueNote = context.l10n.preDive_runner_serviceOverdue;
     setState(() => _starting = true);
     try {
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
       final chosenSet = _needsEquipmentSet ? _equipmentSet : null;
-      List<EquipmentItem> gear = const [];
-      Set<String> overdueEquipmentIds = const {};
+      final chosenSingles = <String, EquipmentItem>{
+        for (final item in _equipmentItems)
+          if (_equipmentByItemId[item.id] != null)
+            item.id: _equipmentByItemId[item.id]!,
+      };
+      var gear = const <EquipmentItem>[];
       if (chosenSet != null) {
         final all = await EquipmentRepository().getAllEquipment(
           diverId: diverId,
         );
         gear = all.where((g) => chosenSet.equipmentIds.contains(g.id)).toList();
-        // Overdue gear is flagged from the service-clock ledger, evaluated only
-        // for the chosen set (proportional to the set) and in parallel so total
-        // latency is the slowest item, not the sum.
-        final statusesPerGear = await Future.wait(
-          gear.map((g) => ref.read(serviceClockStatusesProvider(g.id).future)),
-        );
-        overdueEquipmentIds = {
-          for (var i = 0; i < gear.length; i++)
-            if (statusesPerGear[i].any(
-              (s) => s.severity == ServiceClockSeverity.overdue,
-            ))
-              gear[i].id,
-        };
       }
+      // Union of set-expanded gear and single-item links, deduplicated by id
+      // so a device chosen both ways is not passed twice to the composer.
+      final allGear = {
+        for (final g in gear) g.id: g,
+        for (final g in chosenSingles.values) g.id: g,
+      }.values.toList();
+      // Overdue service is a purely informative, live-computed warning shown
+      // in the runner (SessionItemTile), not a decision baked into the
+      // session at start time -- so no service-clock lookup happens here.
       final items = SessionItemComposer.compose(
         templateItems: _templateItems,
         equipmentSet: chosenSet,
-        equipmentItems: gear,
+        equipmentItems: allGear,
+        equipmentByTemplateItemId: {
+          for (final entry in chosenSingles.entries) entry.key: entry.value.id,
+        },
         now: DateTime.now(),
-        serviceOverdueNote: serviceOverdueNote,
-        overdueEquipmentIds: overdueEquipmentIds,
       );
       final session = await ref
           .read(preDiveSessionRepositoryProvider)
@@ -115,6 +120,19 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
             equipmentSetId: chosenSet?.id,
             equipmentSetName: chosenSet?.name,
           );
+      // Remember each single-equipment choice on its template item so the
+      // next session pre-fills it. Skipped for built-in templates, whose
+      // items are shared across every diver.
+      if (!template.isBuiltIn) {
+        final templateRepo = ref.read(preDiveTemplateRepositoryProvider);
+        for (final item in _equipmentItems) {
+          final chosen = _equipmentByItemId[item.id];
+          final chosenId = chosen?.id;
+          if (chosenId != item.equipmentId) {
+            await templateRepo.updateItemEquipment(item.id, chosenId);
+          }
+        }
+      }
       if (mounted) {
         Navigator.pop(context);
         context.push('/pre-dive-sessions/${session.id}');
@@ -131,11 +149,25 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
     final templates = templatesAsync.value ?? const [];
     final setsAsync = ref.watch(equipmentSetsProvider);
     final sets = setsAsync.value ?? const [];
+    final equipmentAsync = ref.watch(allEquipmentProvider);
+    final equipmentList = equipmentAsync.value ?? const [];
 
     // Pre-select the diver's default equipment set once sets load.
     if (!_setInitialized && sets.isNotEmpty) {
       _setInitialized = true;
       _equipmentSet = sets.where((s) => s.isDefault).firstOrNull;
+    }
+
+    // Pre-fill each single-equipment item with its remembered device once
+    // the diver's equipment list loads.
+    if (equipmentList.isNotEmpty) {
+      for (final item in _equipmentItems) {
+        if (_equipmentInitialized.add(item.id)) {
+          _equipmentByItemId[item.id] = equipmentList
+              .where((e) => e.id == item.equipmentId)
+              .firstOrNull;
+        }
+      }
     }
 
     return SafeArea(
@@ -182,6 +214,26 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
                     ),
                 ],
                 onChanged: (set) => setState(() => _equipmentSet = set),
+              ),
+            ],
+            for (final item in _equipmentItems) ...[
+              const SizedBox(height: 8),
+              DropdownButtonFormField<EquipmentItem?>(
+                initialValue: _equipmentByItemId[item.id],
+                decoration: InputDecoration(labelText: item.title),
+                items: [
+                  DropdownMenuItem<EquipmentItem?>(
+                    value: null,
+                    child: Text(l10n.preDive_start_noEquipment),
+                  ),
+                  for (final e in equipmentList)
+                    DropdownMenuItem<EquipmentItem?>(
+                      value: e,
+                      child: Text(e.name),
+                    ),
+                ],
+                onChanged: (e) =>
+                    setState(() => _equipmentByItemId[item.id] = e),
               ),
             ],
             const SizedBox(height: 16),

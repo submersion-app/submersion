@@ -39,7 +39,7 @@ void main() {
       mode: PlanMode.oc,
       tanks: const [tank],
       segments: [
-        PlanSegment.bottom(
+        PlanSegment.hold(
           id: 'seg-1',
           depth: 30,
           durationMinutes: 20,

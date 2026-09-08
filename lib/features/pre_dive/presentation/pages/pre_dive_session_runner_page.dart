@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/services/checklist_session_engine.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/session_item_tile.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Runs (or, once locked, displays) a pre-dive checklist session. Every tap
@@ -22,6 +27,8 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
     PreDiveItemState state, {
     double? valueNumber,
     String? note,
+    List<OverdueServiceEntry>? overdueServices,
+    bool freezeOverdueServices = false,
   }) {
     return ref
         .read(preDiveSessionRepositoryProvider)
@@ -31,7 +38,62 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
           state: state,
           valueNumber: valueNumber,
           note: note,
+          // Only a resolving call overwrites the snapshot, and it may
+          // legitimately write null (an item with no linked equipment has
+          // nothing to freeze). A plain `??` fallback could not express that,
+          // so the intent is carried by the flag rather than by the value.
+          // Every other call passes the item's existing snapshot straight
+          // through: a transition to pending clears it repository-side
+          // regardless, and a note or value edit that leaves the item
+          // resolved must leave the snapshot untouched.
+          overdueServices: freezeOverdueServices
+              ? overdueServices
+              : item.overdueServices,
         );
+  }
+
+  /// Resolves [item] to [state], freezing its live overdue-service list at
+  /// this exact moment -- the informative red warning becomes a snapshot the
+  /// instant the diver makes a decision, rather than staying tied to
+  /// whatever the equipment's service clocks say later.
+  Future<void> _resolve(
+    WidgetRef ref,
+    PreDiveSessionItem item,
+    PreDiveItemState state, {
+    double? valueNumber,
+    String? note,
+  }) async {
+    final overdueServices = await _overdueEntriesFor(ref, item);
+    await _setState(
+      ref,
+      item,
+      state,
+      valueNumber: valueNumber,
+      note: note,
+      overdueServices: overdueServices,
+      freezeOverdueServices: true,
+    );
+  }
+
+  /// The item's currently overdue service clocks, or null when the item has
+  /// no linked equipment. Null and empty are deliberately different: null
+  /// means there was nothing to check, while an empty list means the linked
+  /// equipment was checked and nothing was overdue. Collapsing the two would
+  /// store a snapshot for every unlinked item and lose that distinction.
+  Future<List<OverdueServiceEntry>?> _overdueEntriesFor(
+    WidgetRef ref,
+    PreDiveSessionItem item,
+  ) async {
+    final equipmentId = item.equipmentId;
+    if (equipmentId == null) return null;
+    final statuses = await ref.read(
+      serviceClockStatusesProvider(equipmentId).future,
+    );
+    return [
+      for (final status in statuses)
+        if (status.severity == ServiceClockSeverity.overdue)
+          OverdueServiceEntry.fromStatus(status),
+    ];
   }
 
   Future<void> _editValue(
@@ -44,7 +106,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
       builder: (context) => _ValueEntryDialog(item: item),
     );
     if (result == null) return;
-    await _setState(
+    await _resolve(
       ref,
       item,
       PreDiveItemState.done,
@@ -63,7 +125,8 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
       builder: (context) => _NoteDialog(item: item),
     );
     if (note == null) return;
-    // Preserve the current state; only the note changes.
+    // Preserve the current state; only the note changes. _setState keeps
+    // item.overdueServices untouched since no fresh snapshot is passed.
     await _setState(ref, item, item.state, note: note);
   }
 
@@ -78,7 +141,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
     );
     // Flagging without a note is allowed; dialog cancel aborts.
     if (note == null) return;
-    await _setState(ref, item, PreDiveItemState.flagged, note: note);
+    await _resolve(ref, item, PreDiveItemState.flagged, note: note);
   }
 
   Future<void> _complete(
@@ -234,7 +297,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
               child: Text(
                 '${l10n.preDive_runner_locked} - '
                 '${_statusLabel(context, session.status)}'
-                '${session.completedAt == null ? '' : ' - ${MaterialLocalizations.of(context).formatMediumDate(session.completedAt!)}'}',
+                '${session.completedAt == null ? '' : ' - ${UnitFormatter(ref.watch(settingsProvider)).formatDate(session.completedAt)}'}',
                 style: theme.textTheme.bodyMedium,
               ),
             ),
@@ -257,9 +320,9 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
                       session: session,
                       sortedItems: items,
                       item: item,
-                      onDone: () => _setState(ref, item, PreDiveItemState.done),
+                      onDone: () => _resolve(ref, item, PreDiveItemState.done),
                       onSkip: () =>
-                          _setState(ref, item, PreDiveItemState.skipped),
+                          _resolve(ref, item, PreDiveItemState.skipped),
                       onFlag: () => _flag(context, ref, item),
                       onEditValue: () => _editValue(context, ref, item),
                       onAddNote: () => _addNote(context, ref, item),

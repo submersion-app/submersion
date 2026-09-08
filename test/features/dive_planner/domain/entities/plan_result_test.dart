@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 
 PlanResult _result({int totalRuntime = 0, int ndlAtBottom = 0}) {
   return PlanResult(
@@ -106,6 +107,96 @@ void main() {
     test('percentFormatted returns integer percentage', () {
       final gas = _gas();
       expect(gas.percentFormatted, '68%');
+    });
+  });
+
+  group('PlanSegment equality', () {
+    PlanSegment segment({double targetDepth = 30.0}) => PlanSegment(
+      id: 'seg-1',
+      targetDepth: targetDepth,
+      durationSeconds: 180,
+      tankId: 't1',
+      gasMix: const GasMix(),
+    );
+
+    test('segments with identical fields are equal', () {
+      expect(segment(), equals(segment()));
+      expect(segment().hashCode, segment().hashCode);
+    });
+
+    test('segments differing only in targetDepth are not equal', () {
+      expect(segment(), isNot(equals(segment(targetDepth: 18.0))));
+    });
+  });
+
+  group('DivePlanState', () {
+    final createdAt = DateTime(2026, 1, 1, 9);
+
+    PlanSegment segment(double targetDepth) => PlanSegment(
+      id: 's$targetDepth',
+      targetDepth: targetDepth,
+      durationSeconds: 60,
+      tankId: 't1',
+      gasMix: const GasMix(),
+    );
+
+    DivePlanState state({
+      List<PlanSegment> segments = const [],
+      double intermediateAscentRate = 6.0,
+      double shallowAscentRate = 3.0,
+      double finalAscentRate = 1.0,
+      double lastStopDepth = 3.0,
+    }) => DivePlanState(
+      id: 'plan-1',
+      name: 'Plan',
+      segments: segments,
+      tanks: const [],
+      intermediateAscentRate: intermediateAscentRate,
+      shallowAscentRate: shallowAscentRate,
+      finalAscentRate: finalAscentRate,
+      lastStopDepth: lastStopDepth,
+      createdAt: createdAt,
+      updatedAt: createdAt,
+    );
+
+    test('maxDepth is 0 for a plan with no segments', () {
+      expect(state().maxDepth, 0);
+    });
+
+    test('maxDepth is the deepest target across all segments', () {
+      final plan = state(
+        segments: [segment(12), segment(40), segment(40), segment(18)],
+      );
+
+      expect(plan.maxDepth, 40.0);
+    });
+
+    test('maxDepth ignores where the profile ends', () {
+      // The last segment returns to the surface; the bottom is still 30 m.
+      final plan = state(segments: [segment(30), segment(30), segment(0)]);
+
+      expect(plan.maxDepth, 30.0);
+    });
+
+    test('states with identical fields are equal', () {
+      expect(state(), equals(state()));
+      expect(state().hashCode, state().hashCode);
+    });
+
+    test('a different intermediateAscentRate breaks equality', () {
+      expect(state(), isNot(equals(state(intermediateAscentRate: 9.0))));
+    });
+
+    test('a different shallowAscentRate breaks equality', () {
+      expect(state(), isNot(equals(state(shallowAscentRate: 6.0))));
+    });
+
+    test('a different finalAscentRate breaks equality', () {
+      expect(state(), isNot(equals(state(finalAscentRate: 3.0))));
+    });
+
+    test('a different lastStopDepth breaks equality', () {
+      expect(state(), isNot(equals(state(lastStopDepth: 6.0))));
     });
   });
 }

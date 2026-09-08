@@ -97,6 +97,30 @@ def interp_gf(state, depth, gf_low, gf_high):
     return gf_high - (gf_high - gf_low) * (depth / state.anchor)
 
 
+CEILING_SOLVE_ITERATIONS = 24
+CEILING_SOLVE_TOL_M = 0.001
+
+
+def gf_ceiling_m(state, gf_low, gf_high):
+    """The operative ceiling: the depth tolerated under the GF that applies
+    at that same depth, i.e. a fixed point of interp_gf. Mirrors Dart's
+    BuhlmannAlgorithm.calculateCeiling. Depends only on tissue state and the
+    anchor, never on where the diver currently is.
+    """
+    c = ceiling_m(state, gf_low)
+    if c <= 0:
+        return 0.0
+    if state.anchor <= 0:
+        return ceiling_m(state, gf_high)
+    for _ in range(CEILING_SOLVE_ITERATIONS):
+        nxt = ceiling_m(state, interp_gf(state, c, gf_low, gf_high))
+        converged = abs(nxt - c) < CEILING_SOLVE_TOL_M
+        c = nxt
+        if converged:
+            break
+    return c
+
+
 def load(state, depth, seconds, f_n2, f_he, gf_low, setpoint=None):
     amb = state.env.p_at(depth)
     p_alv = max(amb - WV, 0.0)
@@ -164,22 +188,62 @@ def _leg_load(state, frm, to, rate, gases, gf_low):
     load(state, (frm + to) / 2.0, secs, g["f_n2"], g["f_he"], gf_low)
 
 
-def stop_time(state, depth, gases, gf_low, gf_high, last_stop, incr):
+TRIAL_SLICE_SECONDS = 10
+
+
+def trial_clears(state, depth, nxt, rate, gases, gf_low, gf_high):
+    """Mirror of _trialAscentClears: may the diver leave `depth` for `nxt`?
+
+    Simulates the leg in slices of at most TRIAL_SLICE_SECONDS, each loaded
+    at its mean depth on the gas eligible at its deeper end, and requires the
+    ceiling to stay at or below the diver after every slice - the last of
+    which lands exactly on `nxt`, so arrival is checked too. Works on a clone;
+    `state` is untouched.
+    """
+    secs = round((depth - nxt) / rate * 60)
+    if secs <= 0:
+        return gf_ceiling_m(state, gf_low, gf_high) <= nxt
+    trial = state.clone()
+    span = depth - nxt
+    elapsed = 0
+    while elapsed < secs:
+        dt = min(TRIAL_SLICE_SECONDS, secs - elapsed)
+        start = depth - span * elapsed / secs
+        end = nxt if elapsed + dt >= secs else depth - span * (elapsed + dt) / secs
+        g = gas_at(gases, start)
+        load(trial, (start + end) / 2.0, dt, g["f_n2"], g["f_he"], gf_low)
+        elapsed += dt
+        if gf_ceiling_m(trial, gf_low, gf_high) > end:
+            return False
+    return True
+
+
+def next_level(depth, last_stop, incr):
+    """Mirror of _nextLevel: next grid stop, the last stop when the grid
+    would step past it, or 0 (surface) from the last stop itself."""
+    if depth <= last_stop:
+        return 0.0
+    return max(depth - incr, last_stop)
+
+
+def stop_time(state, depth, gases, gf_low, gf_high, last_stop, incr, rate):
     """Minutes-at-stop search, mirroring _calculateStopTime.
 
     Applies the found minutes to `state` (equivalent to Dart's restore +
     _loadStopMinutes single-call application: exponential loading composes).
     """
-    nxt = 0.0 if depth <= last_stop else depth - incr
+    nxt = next_level(depth, last_stop, incr)
     g = gas_at(gases, depth)
     t = 0
     while t < 120 * 60:
-        trial = state.clone()
-        load(trial, depth, 60, g["f_n2"], g["f_he"], gf_low)
-        gf = interp_gf(trial, nxt, gf_low, gf_high)
-        if ceiling_m(trial, gf) <= nxt:
+        # Tested on arrival, BEFORE the minute is loaded: may the diver leave
+        # with the time spent so far? Testing after a trial minute and then
+        # discarding it credited off-gassing the schedule never spends. The
+        # test simulates the leg to the next level (Subsurface trial_ascent),
+        # so the travel's own off-gassing counts toward clearing the stop.
+        if trial_clears(state, depth, nxt, rate, gases, gf_low, gf_high):
             break
-        state.n2, state.he, state.anchor = trial.n2, trial.he, trial.anchor
+        load(state, depth, 60, g["f_n2"], g["f_he"], gf_low)
         t += 60
     return t
 
@@ -189,19 +253,21 @@ def schedule(state, depth, gases, gf_low, gf_high,
     """Stops + TTS from `depth`, mirroring calculateDecoSchedule/Tts."""
     stops = []
     work = state.clone()
-    gf_here = interp_gf(work, depth, gf_low, gf_high)
-    ceil0 = ceiling_m(work, gf_here)
+    ceil0 = gf_ceiling_m(work, gf_low, gf_high)
     if ceil0 <= 0:
         return stops, round(depth / rate * 60)
-    stop = math.ceil(ceil0 / incr) * incr
+    # First stop: the grid level at or below the ceiling, never shallower
+    # than the last stop (mirrors calculateDecoSchedule).
+    stop = max(math.ceil(ceil0 / incr) * incr, last_stop)
 
     ascend_load(work, depth, stop, rate, gases, gf_low)
-    while stop >= last_stop:
-        t = stop_time(work, stop, gases, gf_low, gf_high, last_stop, incr)
+    while stop > 0:
+        t = stop_time(work, stop, gases, gf_low, gf_high, last_stop, incr,
+                      rate)
         if t > 0:
             stops.append({"depth_m": stop, "seconds": t})
-        nxt = stop - incr
-        if nxt >= last_stop:
+        nxt = next_level(stop, last_stop, incr)
+        if nxt > 0:
             ascend_load(work, stop, nxt, rate, gases, gf_low)
         stop = nxt
 
@@ -218,7 +284,7 @@ def schedule(state, depth, gases, gf_low, gf_high,
 
 
 def run_case(name, env, gf, segments, sched_depth, gases,
-             tissues=False, ccr_ceiling_at=None):
+             tissues=False, ceiling=False):
     st = State(env)
     for seg in segments:
         load(st, seg["avg_depth_m"], seg["seconds"], seg["f_n2"],
@@ -232,9 +298,9 @@ def run_case(name, env, gf, segments, sched_depth, gases,
     if tissues:
         expected["tissues_p_n2_bar"] = [round(x, 6) for x in st.n2]
         expected["tissues_p_he_bar"] = [round(x, 6) for x in st.he]
-    if ccr_ceiling_at is not None:
-        gf_here = interp_gf(st, ccr_ceiling_at, gf[0] / 100.0, gf[1] / 100.0)
-        expected["ceiling_m"] = round(ceiling_m(st, gf_here), 3)
+    if ceiling:
+        expected["ceiling_m"] = round(
+            gf_ceiling_m(st, gf[0] / 100.0, gf[1] / 100.0), 3)
     return {
         "name": name,
         "environment": {"surface_pressure_bar": env.surface,
@@ -298,8 +364,8 @@ cases = [
                "f_he": 0.45, "setpoint": 1.3},
               {"avg_depth_m": 60.0, "seconds": 1500, "f_n2": 0.37,
                "f_he": 0.45, "setpoint": 1.3}],
-             None, [], tissues=True, ccr_ceiling_at=60.0),
+             None, [], tissues=True, ceiling=True),
 ]
 
 print(json.dumps({"generator": "scripts/deco_golden/generate_vectors.py",
-                  "semantics_version": 1, "cases": cases}, indent=2))
+                  "semantics_version": 3, "cases": cases}, indent=2))

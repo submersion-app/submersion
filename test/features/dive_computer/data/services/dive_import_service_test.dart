@@ -1049,4 +1049,66 @@ void main() {
       expect(loads, 1);
     });
   });
+  group('water temperature (PR #342)', () {
+    setUp(() {
+      when(
+        mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => 1);
+    });
+
+    test(
+      'forwards the dive minimum so header-only computers keep it',
+      () async {
+        // The Cressi Leonardo reports its water temperature in the dive header
+        // and never in the sample stream, so a value the repository cannot
+        // derive from the profile has to be handed to it.
+        await service.importDives(
+          dives: [
+            DownloadedDive(
+              fingerprint: 'fp-leonardo',
+              startTime: DateTime(2026, 3, 3, 9, 0),
+              durationSeconds: 2400,
+              maxDepth: 18.0,
+              minTemperature: 18.0,
+              profile: const [],
+              tanks: const [],
+              events: const [],
+            ),
+          ],
+          computer: computer,
+        );
+
+        final captured = verify(
+          mockComputerRepo.importProfile(
+            computerId: anyNamed('computerId'),
+            profileStartTime: anyNamed('profileStartTime'),
+            points: anyNamed('points'),
+            durationSeconds: anyNamed('durationSeconds'),
+            maxDepth: anyNamed('maxDepth'),
+            avgDepth: anyNamed('avgDepth'),
+            isPrimary: anyNamed('isPrimary'),
+            diverId: anyNamed('diverId'),
+            tanks: anyNamed('tanks'),
+            decoAlgorithm: anyNamed('decoAlgorithm'),
+            gfLow: anyNamed('gfLow'),
+            gfHigh: anyNamed('gfHigh'),
+            decoConservatism: anyNamed('decoConservatism'),
+            events: anyNamed('events'),
+            gasSwitches: anyNamed('gasSwitches'),
+            diveNumber: anyNamed('diveNumber'),
+            forceNew: anyNamed('forceNew'),
+            rawData: anyNamed('rawData'),
+            rawFingerprint: anyNamed('rawFingerprint'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+            minTemperature: captureAnyNamed('minTemperature'),
+          ),
+        ).captured;
+
+        expect(captured.single, 18.0);
+      },
+    );
+  });
 }

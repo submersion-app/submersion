@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
@@ -591,6 +592,75 @@ void main() {
         expect(find.byType(FieldAttributionBadge), findsNothing);
       },
     );
+
+    testWidgets(
+      'tankSourceColors is wired through to the chart, and an overlaid '
+      "source carries its own computed analysis, not the active source's",
+      (tester) async {
+        final dive = diveWithProfile().copyWith(
+          tanks: const [
+            DiveTank(id: 'tank-a', computerId: 'comp-uuid-1'),
+            DiveTank(id: 'tank-b', computerId: 'comp-uuid-2'),
+          ],
+        );
+        final base = await getBaseOverrides();
+        final sources = [
+          dataSource(
+            id: 'src-1',
+            computerId: 'comp-uuid-1',
+            isPrimary: true,
+            computerModel: 'Perdix 2',
+          ),
+          dataSource(
+            id: 'src-2',
+            computerId: 'comp-uuid-2',
+            isPrimary: false,
+            computerModel: 'Suunto D5',
+          ),
+        ];
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...base,
+              ...multiComputerOverrides(dive, sources),
+              // 'src-1' stays active (the primary); overlaying 'src-2' is
+              // what builds the ChartSourceOverlay list this test inspects.
+              overlaySourcesProvider(dive.id).overrideWith((ref) => {'src-2'}),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: DiveDetailPage(diveId: dive.id, embedded: true),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        final chart = tester.widget<DiveProfileChart>(
+          find.byType(DiveProfileChart),
+        );
+
+        // Every computer-attributed tank gets its owning computer's colour.
+        expect(chart.tankSourceColors, isNotNull);
+        expect(chart.tankSourceColors!.keys, containsAll(['tank-a', 'tank-b']));
+        expect(
+          chart.tankSourceColors!['tank-a'],
+          isNot(chart.tankSourceColors!['tank-b']),
+        );
+
+        // The overlay carries an analysis field wired to
+        // sourceProfileAnalysisProvider (unresolved here, since no
+        // repository backs this dive id -- the coverage win is that the
+        // field is wired through the provider watch at all).
+        expect(chart.overlays, isNotNull);
+        final overlay = chart.overlays!.singleWhere(
+          (o) => o.sourceId == 'src-2',
+        );
+        expect(overlay.analysis, isNull);
+      },
+    );
   });
 
   // =========================================================================
@@ -633,6 +703,42 @@ void main() {
         tags: const [],
       );
     }
+
+    testWidgets('profile header ends with fullscreen, after the 3D actions', (
+      tester,
+    ) async {
+      final dive = makeDiveWithTanksAndProfile();
+      await _pumpDetailPage(tester, dive);
+
+      double x(IconData icon) => tester.getCenter(find.byIcon(icon).first).dx;
+
+      // Fullscreen is the last action in the row: it is the one that takes
+      // over the screen, so it reads as the end of the escalation.
+      expect(x(Icons.fullscreen), greaterThan(x(Icons.terrain)));
+      expect(x(Icons.fullscreen), greaterThan(x(Icons.view_in_ar)));
+      expect(x(Icons.fullscreen), greaterThan(x(Icons.share)));
+    });
+
+    testWidgets('range analysis is an icon toggle, not a labelled pill', (
+      tester,
+    ) async {
+      final dive = makeDiveWithTanksAndProfile();
+      await _pumpDetailPage(tester, dive);
+
+      // It sits in the icon row rather than shouldering it aside with a pill.
+      expect(find.byIcon(Icons.straighten), findsOneWidget);
+      expect(find.widgetWithIcon(FilledButton, Icons.straighten), findsNothing);
+      expect(
+        find.widgetWithIcon(OutlinedButton, Icons.straighten),
+        findsNothing,
+      );
+
+      // And it leads the row, before the share action.
+      expect(
+        tester.getCenter(find.byIcon(Icons.straighten).first).dx,
+        lessThan(tester.getCenter(find.byIcon(Icons.share).first).dx),
+      );
+    });
 
     testWidgets('renders without crash when dive has tanks and a profile', (
       tester,

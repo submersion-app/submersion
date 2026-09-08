@@ -51,7 +51,7 @@ bool planIsPersisted(String id, List<domain.DivePlanSummary> summaries) =>
 /// - >= 1160 px: editor pane, chart column, results pane (side panes
 ///   collapsible with remembered state)
 /// - 760-1160 px: chart column + results pane; the editor lives in a drawer
-/// - < 760 px: phone Chart + Tab Deck (Plan / Tanks / Setup / Results)
+/// - < 760 px: phone Chart + Tab Deck (Tanks / Plan / Setup / Results)
 class PlanCanvasPage extends ConsumerStatefulWidget {
   const PlanCanvasPage({super.key, this.planId});
 
@@ -418,9 +418,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
 
   Widget _buildPhone(BoxConstraints constraints) {
     final tab = ref.watch(plannerPhoneTabProvider);
+    // Tanks first: the gas is chosen before the profile that breathes it, and
+    // the deck's default index of 0 therefore opens on Tanks. Setup and
+    // Results keep indices 2 and 3, which _focusSetup and the issues chip
+    // write directly.
     final tabs = [
-      context.l10n.divePlanner_tab_plan,
       context.l10n.divePlanner_label_tanks,
+      context.l10n.divePlanner_tab_plan,
       context.l10n.plannerCanvas_tab_setup,
       context.l10n.divePlanner_tab_results,
     ];
@@ -501,12 +505,12 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       case 0:
         return const Padding(
           padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: SegmentList(),
+          child: PlanTankList(),
         );
       case 1:
         return const Padding(
           padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: PlanTankList(),
+          child: SegmentList(),
         );
       case 2:
         return const Padding(
@@ -560,7 +564,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       lostGasLabel: l10n.plannerCanvas_contingency_lostGas,
       rangeTable: l10n.plannerCanvas_range_title,
       bailout: l10n.plannerCanvas_bailout_title,
-      stop: l10n.plannerCanvas_table_stop,
+      duration: l10n.plannerCanvas_table_duration,
       depth: l10n.plannerCanvas_table_depth,
       runtime: l10n.plannerCanvas_table_runtime,
       gas: l10n.plannerCanvas_table_gas,
@@ -644,7 +648,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
           depthLabel: suggestedDepth > 0
               ? units.formatDepth(suggestedDepth)
               : null,
-          date: planState.startDateTime ?? DateTime.now(),
+          dateLabel: units.formatMonthDay(
+            planState.startDateTime ?? DateTime.now(),
+          ),
           fallbackLabel: l10n.plannerCanvas_name_defaultFallback,
         ),
         title: l10n.plannerCanvas_name_dialogTitle,

@@ -7,6 +7,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Quiet chip shown in dive detail when near-miss reports link to the dive.
 /// Renders nothing when there are none.
+///
+/// Carries no spacing of its own: [DiveSafetySummarySection], the only place
+/// it is used, decides the gap above it depending on whether it is the first
+/// visible thing in the group or sits under [SafetyReviewSection].
 class LinkedIncidentsRow extends ConsumerWidget {
   final String diveId;
 
@@ -19,19 +23,16 @@ class LinkedIncidentsRow extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: ActionChip(
-        avatar: Icon(
-          Icons.flag_outlined,
-          size: 16,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-        label: Text(
-          context.l10n.diveLog_detail_linkedIncidents(incidents.length),
-        ),
-        onPressed: () => context.push('/incidents'),
+    return ActionChip(
+      avatar: Icon(
+        Icons.flag_outlined,
+        size: 16,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
+      label: Text(
+        context.l10n.diveLog_detail_linkedIncidents(incidents.length),
+      ),
+      onPressed: () => context.push('/incidents'),
     );
   }
 }

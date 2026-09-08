@@ -1,0 +1,73 @@
+diff --git a/src/cressi_leonardo_parser.c b/src/cressi_leonardo_parser.c
+index df382c5..6866c8a 100644
+--- a/src/cressi_leonardo_parser.c
++++ b/src/cressi_leonardo_parser.c
+@@ -30,6 +30,7 @@
+ 
+ #define SZ_HEADER 82
+ 
++#define LEONARDO 1
+ #define DRAKE 6
+ 
+ typedef struct cressi_leonardo_parser_t cressi_leonardo_parser_t;
+@@ -177,6 +178,14 @@ cressi_leonardo_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callbac
+ 		gasmix = gasmix_previous;
+ 	}
+ 
++	// The Leonardo reports a decompression obligation in bit 11 of the sample
++	// word, and grades its ascent rate on four levels of which only the
++	// highest sounds the alarm. The other models in this family share the
++	// record layout, but neither has been confirmed on them, so they keep the
++	// original behaviour.
++	unsigned int is_leonardo = (parser->model == LEONARDO);
++	unsigned int deco_previous = 0;
++
+ 	unsigned int offset = SZ_HEADER;
+ 	while (offset + 2 <= size) {
+ 		dc_sample_value_t sample = {0};
+@@ -199,6 +208,7 @@ cressi_leonardo_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callbac
+ 		} else {
+ 			unsigned int value = array_uint16_le (data + offset);
+ 			unsigned int depth = value & 0x07FF;
++			unsigned int deco = is_leonardo ? (value & 0x0800) >> 11 : 0;
+ 			unsigned int ascent = (value & 0xC000) >> 14;
+ 
+ 			// Time (seconds).
+@@ -217,8 +227,35 @@ cressi_leonardo_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callbac
+ 				gasmix_previous = gasmix;
+ 			}
+ 
+-			// Ascent rate
+-			if (ascent) {
++			// Deco obligation, reported only when it changes: it is state
++			// the computer holds rather than a reading it retakes, and the
++			// first report is therefore always the start of a stop. Nothing
++			// at all is reported for a dive that never incurs one, which
++			// leaves the obligation unknown rather than asserting there is
++			// none. The stop depth, the stop time and the remaining no-stop
++			// time are all absent from the 16 bits this computer logs, so
++			// they stay zero: DC_DECO_NDL here means the obligation has
++			// cleared, not that zero minutes of no-stop time remain.
++			if (deco != deco_previous) {
++				sample.deco.type = deco ? DC_DECO_DECOSTOP : DC_DECO_NDL;
++				sample.deco.time = 0;
++				sample.deco.depth = 0.0;
++				sample.deco.tts = 0;
++				if (callback) callback (DC_SAMPLE_DECO, &sample, userdata);
++
++				sample.event.type = SAMPLE_EVENT_DECOSTOP;
++				sample.event.time = 0;
++				sample.event.flags = deco ? SAMPLE_FLAGS_BEGIN : SAMPLE_FLAGS_END;
++				sample.event.value = 0;
++				if (callback) callback (DC_SAMPLE_EVENT, &sample, userdata);
++
++				deco_previous = deco;
++			}
++
++			// Ascent rate. Levels 1 and 2 move the rate indicator on the
++			// Leonardo's display without sounding its alarm, so raising an
++			// event for them marked most of an ordinary ascent as a warning.
++			if (is_leonardo ? ascent == 3 : ascent != 0) {
+ 				sample.event.type = SAMPLE_EVENT_ASCENT;
+ 				sample.event.time = 0;
+ 				sample.event.flags = 0;

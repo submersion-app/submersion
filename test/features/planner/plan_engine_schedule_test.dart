@@ -17,14 +17,16 @@ const _airTank = DiveTank(
 );
 
 List<PlanSegment> _airSegments({double depth = 45.0, int minutes = 25}) => [
-  PlanSegment.descent(
+  PlanSegment.travel(
     id: 'seg-1',
+    fromDepth: 0,
     targetDepth: depth,
     tankId: 'tank-1',
     gasMix: _air,
     order: 0,
+    ratePerMinute: 18.0,
   ),
-  PlanSegment.bottom(
+  PlanSegment.hold(
     id: 'seg-2',
     depth: depth,
     durationMinutes: minutes,
@@ -39,6 +41,7 @@ domain.DivePlan _plan({
   List<DiveTank> tanks = const [_airTank],
   double lastStopDepth = 3.0,
   AirBreakPolicy? airBreaks,
+  bool flatAscentRate = false,
 }) {
   return domain.DivePlan(
     id: 'plan-1',
@@ -47,6 +50,13 @@ domain.DivePlan _plan({
     gfHigh: 80,
     lastStopDepth: lastStopDepth,
     airBreaks: airBreaks,
+    // The banded deco ascent rates are a planner feature the legacy
+    // calculator has no concept of, so a parity comparison has to collapse
+    // them onto the single working rate or it is measuring the bands rather
+    // than the schedule.
+    intermediateAscentRate: flatAscentRate ? 9.0 : 6.0,
+    shallowAscentRate: flatAscentRate ? 9.0 : 3.0,
+    finalAscentRate: flatAscentRate ? 9.0 : 1.0,
     segments: segments ?? _airSegments(),
     tanks: tanks,
     createdAt: DateTime(2026, 7, 5),
@@ -57,7 +67,7 @@ domain.DivePlan _plan({
 void main() {
   group('PlanEngine schedule', () {
     test('parity with the legacy PlanCalculatorService', () {
-      final plan = _plan();
+      final plan = _plan(flatAscentRate: true);
       final outcome = const PlanEngine().compute(plan);
 
       final legacy = PlanCalculatorService(gfLow: 40, gfHigh: 80).calculatePlan(
@@ -68,14 +78,24 @@ void main() {
 
       expect(outcome.stops, isNotEmpty);
       expect(outcome.stops.length, legacy.decoSchedule.length);
+      // The engine snaps each stop to end on a whole minute of the ascent
+      // clock (the legacy service does not), so a stop may run up to 59 s
+      // longer - or, because those seconds off-gas the tissues, a later stop
+      // may clear one minute sooner. Same depths, same schedule to within
+      // that rounding.
       for (var i = 0; i < legacy.decoSchedule.length; i++) {
         expect(outcome.stops[i].depthMeters, legacy.decoSchedule[i].depth);
+        final legacySeconds = legacy.decoSchedule[i].durationSeconds;
         expect(
           outcome.stops[i].durationSeconds,
-          legacy.decoSchedule[i].durationSeconds,
+          inInclusiveRange(legacySeconds - 60, legacySeconds + 59),
+          reason: 'stop ${legacy.decoSchedule[i].depth} m',
         );
       }
-      expect(outcome.ttsAtBottom, legacy.ttsAtBottom);
+      expect(
+        (outcome.ttsAtBottom - legacy.ttsAtBottom).abs(),
+        lessThan(60 * legacy.decoSchedule.length),
+      );
       expect(outcome.ndlAtBottom, legacy.ndlAtBottom);
     });
 
@@ -99,14 +119,16 @@ void main() {
       final plan = _plan(
         tanks: tanks,
         segments: [
-          PlanSegment.descent(
+          PlanSegment.travel(
             id: 'seg-1',
+            fromDepth: 0,
             targetDepth: 60.0,
             tankId: 'back',
             gasMix: backGas,
             order: 0,
+            ratePerMinute: 18.0,
           ),
-          PlanSegment.bottom(
+          PlanSegment.hold(
             id: 'seg-2',
             depth: 60.0,
             durationMinutes: 25,

@@ -81,14 +81,16 @@ void main() {
   group('segmentIdAtTime', () {
     const gas = GasMix(o2: 21);
     final segments = [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'descent',
+        fromDepth: 0,
         targetDepth: 30,
         tankId: 't1',
         gasMix: gas,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'bottom',
         depth: 30,
         durationMinutes: 20,

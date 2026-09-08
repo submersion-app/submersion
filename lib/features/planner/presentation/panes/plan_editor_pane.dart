@@ -8,8 +8,12 @@ import 'package:submersion/features/planner/presentation/providers/planner_layou
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The editing column of Mission Control: segments and tanks always visible,
+/// The editing column of Mission Control: tanks and segments always visible,
 /// everything else in the Setup accordion.
+///
+/// Tanks come first because a segment's tank dropdown can only offer
+/// cylinders that already exist, so authoring the profile before the gas
+/// means re-picking the tank on every segment afterwards.
 ///
 /// On a setup-focus request the pane scrolls toward the accordion (its last
 /// child) so the lazily-built accordion materializes and can consume the
@@ -48,9 +52,9 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
       controller: _scrollController,
       padding: const EdgeInsets.all(12),
       children: [
-        const SegmentList(),
-        const SizedBox(height: 12),
         const PlanTankList(),
+        const SizedBox(height: 12),
+        const SegmentList(),
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),

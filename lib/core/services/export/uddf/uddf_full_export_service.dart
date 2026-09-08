@@ -6,7 +6,9 @@ import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/services/export/models/export_service_record.dart';
+import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -14,6 +16,7 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -38,7 +41,7 @@ class UddfFullExportService {
   /// Generate comprehensive UDDF XML content as a string.
   ///
   /// Shared by both the share and save-to-file export paths.
-  String _generateAllDataXml({
+  Future<String> _generateAllDataXml({
     required List<Dive> dives,
     List<DiveSite>? sites,
     List<EquipmentItem>? equipment,
@@ -62,7 +65,39 @@ class UddfFullExportService {
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
-  }) {
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
+  }) async {
+    // Encoding happens before the XML build, so the builders stay pure
+    // synchronous functions over already-encoded strings like every other
+    // builder in that file. bzip2 is slow in pure Dart, so it runs on a
+    // worker isolate rather than whichever isolate called the export.
+    final sources = options.includeRawData
+        ? (dataSources ?? const <DiveSourceExport>[])
+        : const <DiveSourceExport>[];
+    final withBytes = sources.where((s) => s.hasDump).toList(growable: false);
+    final encoded = await UddfDumpCodec.encodeAll(
+      withBytes.map((s) => s.rawData!).toList(growable: false),
+    );
+    final encodedById = <String, String?>{
+      for (var i = 0; i < withBytes.length; i++) withBytes[i].id: encoded[i],
+    };
+
+    // Which computers this document will actually declare as
+    // <divecomputer id=...>. Mirrors the uniqueComputers block below, which
+    // only runs when there is an owner, and which mints ids from the dives'
+    // own model and serial snapshots. A dump may only link to an id in here.
+    final declaredComputerIds = <String>{
+      if (owner != null)
+        for (final dive in dives)
+          if (dive.diveComputerModel != null &&
+              dive.diveComputerModel!.isNotEmpty)
+            UddfExportBuilders.computerRefId(
+              dive.diveComputerModel!,
+              dive.diveComputerSerial,
+            ),
+    };
+
     final builder = XmlBuilder();
 
     builder.processing('xml', 'version="1.0" encoding="UTF-8"');
@@ -125,8 +160,10 @@ class UddfFullExportService {
                     for (final dive in dives) {
                       if (dive.diveComputerModel != null &&
                           dive.diveComputerModel!.isNotEmpty) {
-                        final computerId =
-                            'dc_${dive.diveComputerModel!.replaceAll(' ', '_')}_${dive.diveComputerSerial ?? 'unknown'}';
+                        final computerId = UddfExportBuilders.computerRefId(
+                          dive.diveComputerModel!,
+                          dive.diveComputerSerial,
+                        );
                         uniqueComputers[computerId] = {
                           'model': dive.diveComputerModel!,
                           'serial': dive.diveComputerSerial ?? '',
@@ -418,6 +455,17 @@ class UddfFullExportService {
           equipmentSets: equipmentSets,
           trips: trips,
           courses: courses,
+          dataSources: sources,
+          dataSourceDumps: encodedById,
+        );
+
+        // The UDDF specification places <divecomputercontrol> last, so this
+        // stays the final child of <uddf>.
+        UddfExportBuilders.buildDiveComputerControl(
+          builder,
+          sources,
+          encodedById,
+          declaredComputerIds: declaredComputerIds,
         );
       },
     );
@@ -425,6 +473,23 @@ class UddfFullExportService {
     final xmlDoc = builder.buildDocument();
     return xmlDoc.toXmlString(pretty: true, indent: '  ');
   }
+
+  /// The document this service would write, without delivering it anywhere.
+  ///
+  /// Visible for testing: the two public methods below both hand their XML
+  /// straight to the filesystem or the share sheet, so this is how a test
+  /// inspects the document itself.
+  Future<String> generateAllDataXmlForTest({
+    required List<Dive> dives,
+    Diver? owner,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
+  }) => _generateAllDataXml(
+    dives: dives,
+    owner: owner,
+    dataSources: dataSources,
+    options: options,
+  );
 
   /// Export ALL application data to UDDF and share via the system share sheet.
   /// Returns the share result path.
@@ -452,8 +517,10 @@ class UddfFullExportService {
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
-  }) {
-    final xmlString = _generateAllDataXml(
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
+  }) async {
+    final xmlString = await _generateAllDataXml(
       dives: dives,
       sites: sites,
       equipment: equipment,
@@ -477,6 +544,8 @@ class UddfFullExportService {
       courses: courses,
       diveGasSwitches: diveGasSwitches,
       diveTankPressures: diveTankPressures,
+      dataSources: dataSources,
+      options: options,
     );
     final fileName =
         'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';
@@ -509,8 +578,10 @@ class UddfFullExportService {
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) async {
-    final xmlString = _generateAllDataXml(
+    final xmlString = await _generateAllDataXml(
       dives: dives,
       sites: sites,
       equipment: equipment,
@@ -534,6 +605,8 @@ class UddfFullExportService {
       courses: courses,
       diveGasSwitches: diveGasSwitches,
       diveTankPressures: diveTankPressures,
+      dataSources: dataSources,
+      options: options,
     );
     final fileName =
         'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';

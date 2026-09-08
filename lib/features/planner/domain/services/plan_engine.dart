@@ -12,6 +12,9 @@ import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -149,7 +152,13 @@ class PlanEngine {
     return OpenCircuit(fO2: gas.o2 / 100.0, fHe: gas.he / 100.0);
   }
 
-  PlanOutcome compute(domain.DivePlan plan, {TissueState? startState}) {
+  PlanOutcome compute(domain.DivePlan inputPlan, {TissueState? startState}) {
+    // Cylinder roles are derived from the mixes and the segments that breathe
+    // them rather than declared by the diver, so resolve them before any of
+    // the role-dependent maths below (turn pressure, rock bottom, deco-gas
+    // attribution, CCR O2/diluent). Applied to a local copy: the stored role
+    // stays the diver's raw bailout override.
+    final plan = const TankRoleResolver().apply(inputPlan);
     // The engine hard-codes BuhlmannGf and casts state back to BuhlmannState;
     // reject a foreign seed up front so misuse fails predictably instead of
     // crashing mid-computation on an opaque cast.
@@ -168,13 +177,7 @@ class PlanEngine {
       altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
       waterType: plan.waterType,
     );
-    final policy = SchedulePolicy(
-      lastStopDepth: plan.lastStopDepth,
-      ascentRate: plan.ascentRate,
-      descentRate: plan.descentRate,
-      gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
-      airBreaks: plan.airBreaks,
-    );
+    final policy = _policyFor(plan);
     final model = BuhlmannGf(
       gfLow: plan.gfLow / 100.0,
       gfHigh: plan.gfHigh / 100.0,
@@ -190,6 +193,10 @@ class PlanEngine {
 
     final segments = List<PlanSegment>.from(plan.segments)
       ..sort((a, b) => a.order.compareTo(b.order));
+    // Waypoints carry only a target depth, so the profile they describe -
+    // start depths, phases, rates - is resolved once here, and everything
+    // downstream reads legs rather than segments.
+    final legs = const SegmentChain().resolve(segments);
     final ascentPlan = isCcr
         ? CcrLoopAscentGas(
             environment: environment,
@@ -216,12 +223,13 @@ class PlanEngine {
     final segmentOutcomes = <SegmentOutcome>[];
     final timeline = <(int, BuhlmannState)>[];
 
-    for (final segment in segments) {
+    for (final leg in legs) {
+      final segment = leg.segment;
       final startRuntime = runtime;
       final breathing = _breathingFor(
         plan,
         segment.gasMix,
-        segment.avgDepth,
+        leg.avgDepth,
         segment: segment,
       );
       // The segment's effective breathing mode is loop-based (CCR/SCR) unless
@@ -231,8 +239,8 @@ class PlanEngine {
       state = model.applySegment(
         state,
         DecoSegment(
-          startDepth: segment.startDepth,
-          endDepth: segment.endDepth,
+          startDepth: leg.startDepth,
+          endDepth: leg.endDepth,
           durationSeconds: segment.durationSeconds,
         ),
         breathing,
@@ -240,9 +248,7 @@ class PlanEngine {
       runtime += segment.durationSeconds;
       timeline.add((runtime, state as BuhlmannState));
 
-      final deeperEnd = segment.startDepth > segment.endDepth
-          ? segment.startDepth
-          : segment.endDepth;
+      final deeperEnd = leg.deeperEnd;
       // OC ppO2 keeps the legacy ambient x fraction convention; loop ppO2 is
       // the inspired (setpoint/CMF) value.
       final segmentMaxPpO2 = segmentIsLoop
@@ -259,11 +265,9 @@ class PlanEngine {
       if (segmentMaxPpO2 > maxPpO2) maxPpO2 = segmentMaxPpO2;
 
       final avgPpO2 = segmentIsLoop
-          ? breathing
-                .inspiredAt(environment.pressureAtDepth(segment.avgDepth))
-                .pO2
+          ? breathing.inspiredAt(environment.pressureAtDepth(leg.avgDepth)).pO2
           : O2ToxicityCalculator.calculatePpO2(
-              segment.avgDepth,
+              leg.avgDepth,
               segment.gasMix.o2 / 100.0,
             );
       cns += o2Calc.calculateCnsForSegment(avgPpO2, segment.durationSeconds);
@@ -271,30 +275,28 @@ class PlanEngine {
 
       final ndl = model.ndlSeconds(
         state,
-        depthMeters: segment.endDepth,
+        depthMeters: leg.endDepth,
         breathing: _breathingFor(
           plan,
           segment.gasMix,
-          segment.endDepth,
+          leg.endDepth,
           segment: segment,
         ),
       );
-      final ceiling = model.ceilingMeters(
-        state,
-        currentDepth: segment.endDepth,
-      );
-      final tts = segment.endDepth > 0
+      // Only report a ceiling once deco is actually owed, the same gate
+      // getDecoStatus applies for dive details: a GF ceiling exists from the
+      // moment supersaturation crosses the GF-low line, well before a direct
+      // ascent stops being allowed.
+      final ceiling = ndl < 0 ? model.ceilingMeters(state) : 0.0;
+      final tts = leg.endDepth > 0
           ? model
-                .schedule(
-                  state,
-                  currentDepth: segment.endDepth,
-                  gases: ascentPlan,
-                )
+                .schedule(state, currentDepth: leg.endDepth, gases: ascentPlan)
                 .ttsSeconds
           : 0;
 
-      if (segment.type == SegmentType.bottom ||
-          segment.endDepth >= maxDepth - 0.1) {
+      // The deepest leg is the bottom. The old condition also tested for a
+      // declared bottom type, which this depth test already subsumed.
+      if (leg.endDepth >= maxDepth - 0.1) {
         ndlAtBottom = ndl;
         ttsAtBottom = tts;
       }
@@ -315,11 +317,19 @@ class PlanEngine {
     }
 
     // Computed ascent from the last user depth.
-    final lastDepth = segments.isEmpty ? 0.0 : segments.last.endDepth;
+    final lastDepth = legs.isEmpty ? 0.0 : legs.last.endDepth;
     final schedule = lastDepth > 0
         ? model.schedule(state, currentDepth: lastDepth, gases: ascentPlan)
         : const DecoSchedule(stops: [], ttsSeconds: 0);
     final stops = _mapStops(schedule, plan, ascentPlan, lastDepth, runtime);
+    final scheduleRows = _buildSchedule(
+      legs,
+      stops,
+      plan,
+      ascentPlan,
+      lastDepth,
+      runtime,
+    );
 
     // A separate, finely-sampled replay purely for the chart's ceiling curve.
     // It never feeds back into `state`/cns/otu/stops, so it cannot perturb
@@ -327,7 +337,7 @@ class PlanEngine {
     final ceilingTrace = _ceilingTrace(
       model,
       plan,
-      segments,
+      legs,
       stops,
       lastDepth,
       ascentPlan,
@@ -365,7 +375,7 @@ class PlanEngine {
           )
         : _computeTankUsages(
             plan,
-            segments,
+            legs,
             stops,
             lastDepth,
             environment,
@@ -373,7 +383,7 @@ class PlanEngine {
           );
     final issues = _computeIssues(
       plan,
-      segments,
+      legs,
       segmentOutcomes,
       tankUsages,
       cns,
@@ -382,11 +392,16 @@ class PlanEngine {
     );
 
     return PlanOutcome(
-      runtimeSeconds: runtime + schedule.ttsSeconds,
+      // The last table line's end, so the headline runtime can never
+      // disagree with the table printed under it.
+      runtimeSeconds: scheduleRows.isEmpty
+          ? runtime + schedule.ttsSeconds
+          : scheduleRows.last.runtimeSeconds,
       maxDepth: maxDepth,
       ndlAtBottom: ndlAtBottom ?? 0,
       ttsAtBottom: ttsAtBottom ?? schedule.ttsSeconds,
       stops: stops,
+      schedule: scheduleRows,
       segmentOutcomes: segmentOutcomes,
       tankUsages: tankUsages,
       cnsEnd: cns,
@@ -411,7 +426,7 @@ class PlanEngine {
   List<(int, double)> _ceilingTrace(
     DecoModel model,
     domain.DivePlan plan,
-    List<PlanSegment> segments,
+    List<ResolvedLeg> legs,
     List<PlanStop> stops,
     double lastDepth,
     AscentGasPlan ascentPlan,
@@ -448,10 +463,17 @@ class PlanEngine {
         );
         runtime += step;
         elapsed += step;
-        trace.add((
-          runtime,
-          model.ceilingMeters(traceState, currentDepth: legEnd),
-        ));
+        // A ceiling only constrains the diver once deco is actually owed.
+        // Against the surface target the gradient factor is GF-high, so a
+        // zero there means a direct ascent is allowed and there is nothing to
+        // draw. Without this gate the curve plotted the GF-low deep-stop
+        // target from the moment supersaturation crossed the GF-low line,
+        // which put a 7.5 m ceiling on a dive whose schedule was a single
+        // 3 m stop. getDecoStatus applies the same gate for dive details
+        // (buhlmann_algorithm.dart, "only calculate ceiling/stops when
+        // actually in deco").
+        final owesDeco = model.surfaceCeilingMeters(traceState) > 0;
+        trace.add((runtime, owesDeco ? model.ceilingMeters(traceState) : 0.0));
       }
     }
 
@@ -460,19 +482,25 @@ class PlanEngine {
       return OpenCircuit(fO2: 1.0 - gas.fN2 - gas.fHe, fHe: gas.fHe);
     }
 
-    for (final segment in segments) {
+    for (final leg in legs) {
+      final segment = leg.segment;
       sampleLeg(
-        segment.startDepth,
-        segment.endDepth,
-        segment.durationSeconds,
+        leg.startDepth,
+        leg.endDepth,
+        leg.durationSeconds,
         (depth) => _breathingFor(plan, segment.gasMix, depth, segment: segment),
       );
     }
 
+    final policy = _policyFor(plan);
     var depth = lastDepth;
+    var phase = AscentPhase.toFirstStop;
     for (final stop in stops) {
-      final legSeconds = ((depth - stop.depthMeters) / plan.ascentRate * 60)
-          .round();
+      final legSeconds = policy.ascentSeconds(
+        fromDepth: depth,
+        toDepth: stop.depthMeters,
+        phase: phase,
+      );
       sampleLeg(depth, stop.depthMeters, legSeconds, ascentBreathingAt);
       sampleLeg(
         stop.depthMeters,
@@ -481,9 +509,14 @@ class PlanEngine {
         (_) => ascentBreathingAt(stop.depthMeters),
       );
       depth = stop.depthMeters;
+      phase = AscentPhase.betweenStops;
     }
     if (depth > 0) {
-      final legSeconds = (depth / plan.ascentRate * 60).round();
+      final legSeconds = policy.ascentSeconds(
+        fromDepth: depth,
+        toDepth: 0,
+        phase: AscentPhase.surfacingAfter(phase),
+      );
       sampleLeg(depth, 0, legSeconds, ascentBreathingAt);
     }
 
@@ -561,12 +594,13 @@ class PlanEngine {
     ];
   }
 
-  /// SAC-based consumption: bottom SAC on descent/bottom segments, deco SAC
-  /// on everything shallower-bound (ascent legs, stops), depth pressure via
-  /// the plan's environment, remaining pressure compressibility-corrected.
+  /// SAC-based consumption: bottom SAC while the dive is still working
+  /// (descending, or level at depth), deco SAC once it is heading up (ascent
+  /// legs and stops), depth pressure via the plan's environment, remaining
+  /// pressure compressibility-corrected.
   List<PlanTankUsage> _computeTankUsages(
     domain.DivePlan plan,
-    List<PlanSegment> segments,
+    List<ResolvedLeg> legs,
     List<PlanStop> stops,
     double lastDepth,
     DiveEnvironment environment,
@@ -583,25 +617,29 @@ class PlanEngine {
       liters[id] = (liters[id] ?? 0) + amount;
     }
 
-    for (final segment in segments) {
-      final sac =
-          segment.type == SegmentType.bottom ||
-              segment.type == SegmentType.descent
-          ? plan.sacBottom
-          : plan.sacDecoEffective;
+    for (final leg in legs) {
+      final sac = switch (leg.phase) {
+        SegmentPhase.descent || SegmentPhase.level => plan.sacBottom,
+        SegmentPhase.ascent || SegmentPhase.stop => plan.sacDecoEffective,
+      };
       charge(
-        segment.tankId,
+        leg.tankId,
         sac *
-            (segment.durationSeconds / 60.0) *
-            environment.pressureAtDepth(segment.avgDepth),
+            (leg.durationSeconds / 60.0) *
+            environment.pressureAtDepth(leg.avgDepth),
       );
     }
 
     // Computed ascent: travel legs and stops on the deco SAC.
+    final policy = _policyFor(plan);
     var depth = lastDepth;
+    var phase = AscentPhase.toFirstStop;
     for (final stop in stops) {
-      final legSeconds = ((depth - stop.depthMeters) / plan.ascentRate * 60)
-          .round();
+      final legSeconds = policy.ascentSeconds(
+        fromDepth: depth,
+        toDepth: stop.depthMeters,
+        phase: phase,
+      );
       final legAvg = (depth + stop.depthMeters) / 2.0;
       charge(
         stop.tankId,
@@ -616,9 +654,14 @@ class PlanEngine {
             environment.pressureAtDepth(stop.depthMeters),
       );
       depth = stop.depthMeters;
+      phase = AscentPhase.betweenStops;
     }
     if (depth > 0) {
-      final legSeconds = (depth / plan.ascentRate * 60).round();
+      final legSeconds = policy.ascentSeconds(
+        fromDepth: depth,
+        toDepth: 0,
+        phase: AscentPhase.surfacingAfter(phase),
+      );
       final gas = ascentPlan.gasForDepth(depth);
       charge(
         _tankForGas(plan.tanks, 1.0 - gas.fN2 - gas.fHe, gas.fHe),
@@ -693,7 +736,11 @@ class PlanEngine {
     final maxDepth = plan.maxDepth;
     if (maxDepth <= 0) return null;
     final sac = plan.sacStressedEffective * config.buddyFactor;
-    final ascentMinutes = maxDepth / plan.ascentRate;
+    final ascentMinutes =
+        _policyFor(
+          plan,
+        ).ascentTravelSeconds(fromDepth: maxDepth, stopDepths: const []) /
+        60.0;
     final liters =
         sac * environment.pressureAtDepth(maxDepth) +
         sac * ascentMinutes * environment.pressureAtDepth(maxDepth / 2.0);
@@ -703,7 +750,7 @@ class PlanEngine {
 
   List<PlanIssue> _computeIssues(
     domain.DivePlan plan,
-    List<PlanSegment> segments,
+    List<ResolvedLeg> legs,
     List<SegmentOutcome> segmentOutcomes,
     List<PlanTankUsage> tankUsages,
     double cns,
@@ -712,15 +759,14 @@ class PlanEngine {
   ) {
     final issues = <PlanIssue>[];
 
-    for (var i = 0; i < segments.length; i++) {
-      final segment = segments[i];
+    for (var i = 0; i < legs.length; i++) {
+      final leg = legs[i];
+      final segment = leg.segment;
       final outcome = segmentOutcomes[i];
-      final deeperEnd = segment.startDepth > segment.endDepth
-          ? segment.startDepth
-          : segment.endDepth;
-      final shallowerEnd = segment.startDepth < segment.endDepth
-          ? segment.startDepth
-          : segment.endDepth;
+      final deeperEnd = leg.deeperEnd;
+      final shallowerEnd = leg.startDepth < leg.endDepth
+          ? leg.startDepth
+          : leg.endDepth;
       final fO2 = segment.gasMix.o2 / 100.0;
       final fHe = segment.gasMix.he / 100.0;
 
@@ -951,6 +997,26 @@ class PlanEngine {
     );
   }
 
+  /// The schedule policy a plan describes.
+  ///
+  /// Derived rather than passed around: the ascent legs of a computed
+  /// schedule are measured in several places (profile sampling, gas charging,
+  /// stop runtimes, rock-bottom), and every one of them has to agree with the
+  /// legs the deco model actually loaded. One derivation from the plan keeps
+  /// them from drifting apart.
+  SchedulePolicy _policyFor(domain.DivePlan plan) => SchedulePolicy(
+    lastStopDepth: plan.lastStopDepth,
+    ascentRate: plan.ascentRate,
+    intermediateAscentRate: plan.intermediateAscentRate,
+    shallowAscentRate: plan.shallowAscentRate,
+    finalAscentRate: plan.finalAscentRate,
+    descentRate: plan.descentRate,
+    gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
+    // A plan is read against a watch: stops end on whole minutes.
+    snapStopsToWholeMinutes: true,
+    airBreaks: plan.airBreaks,
+  );
+
   AscentGasPlan _ascentPlanFor(List<DiveTank> tanks) {
     if (tanks.isEmpty) {
       return FixedAscentGas(fN2: 0.7902);
@@ -979,10 +1045,16 @@ class PlanEngine {
     int segmentsRuntime,
   ) {
     final stops = <PlanStop>[];
+    final policy = _policyFor(plan);
     var arrival = segmentsRuntime;
     var depth = fromDepth;
+    var phase = AscentPhase.toFirstStop;
     for (final stop in schedule.stops) {
-      arrival += ((depth - stop.depthMeters) / plan.ascentRate * 60).round();
+      arrival += policy.ascentSeconds(
+        fromDepth: depth,
+        toDepth: stop.depthMeters,
+        phase: phase,
+      );
       final gas = ascentPlan.gasForDepth(stop.depthMeters);
       final fO2 = 1.0 - gas.fN2 - gas.fHe;
       stops.add(
@@ -998,8 +1070,131 @@ class PlanEngine {
       );
       arrival += stop.durationSeconds;
       depth = stop.depthMeters;
+      phase = AscentPhase.betweenStops;
     }
     return stops;
+  }
+
+  /// Two gas fractions closer than this are the same gas for the purpose of
+  /// marking a switch on the table.
+  static const double _gasFractionEpsilon = 0.0005;
+
+  /// The dive as table lines: the authored legs, then the computed ascent as
+  /// alternating travel legs and stops, ending with the leg to the surface.
+  ///
+  /// Travel durations are read off the stops' arrival times rather than
+  /// recomputed, so a line can never disagree with the stop it leads to. A
+  /// travel leg breathes the gas eligible where it starts: the diver switches
+  /// at the stop, and the table marks the switch on the stop's line, the way
+  /// a slate does.
+  List<PlanScheduleRow> _buildSchedule(
+    List<ResolvedLeg> legs,
+    List<PlanStop> stops,
+    domain.DivePlan plan,
+    AscentGasPlan ascentPlan,
+    double lastDepth,
+    int segmentsRuntime,
+  ) {
+    final rows = <PlanScheduleRow>[];
+    double? previousFO2;
+    double? previousFHe;
+
+    void add({
+      required PlanScheduleRowKind kind,
+      required double depth,
+      required int duration,
+      required int runtime,
+      required double fO2,
+      required double fHe,
+      required String? tankId,
+      int airBreakSeconds = 0,
+    }) {
+      final lastFO2 = previousFO2;
+      final lastFHe = previousFHe;
+      final switched =
+          lastFO2 == null ||
+          lastFHe == null ||
+          (fO2 - lastFO2).abs() > _gasFractionEpsilon ||
+          (fHe - lastFHe).abs() > _gasFractionEpsilon;
+      rows.add(
+        PlanScheduleRow(
+          kind: kind,
+          depthMeters: depth,
+          durationSeconds: duration,
+          runtimeSeconds: runtime,
+          gasFO2: fO2,
+          gasFHe: fHe,
+          tankId: tankId,
+          gasSwitch: switched,
+          airBreakSeconds: airBreakSeconds,
+        ),
+      );
+      previousFO2 = fO2;
+      previousFHe = fHe;
+    }
+
+    for (final leg in legs) {
+      add(
+        kind: switch (leg.phase) {
+          SegmentPhase.descent => PlanScheduleRowKind.descent,
+          SegmentPhase.level => PlanScheduleRowKind.level,
+          SegmentPhase.ascent => PlanScheduleRowKind.ascent,
+          SegmentPhase.stop => PlanScheduleRowKind.stop,
+        },
+        depth: leg.endDepth,
+        duration: leg.durationSeconds,
+        runtime: leg.runtimeSeconds,
+        fO2: leg.gasMix.o2 / 100.0,
+        fHe: leg.gasMix.he / 100.0,
+        tankId: leg.tankId,
+      );
+    }
+
+    void addTravel(double from, double to, int duration, int arrival) {
+      final gas = ascentPlan.gasForDepth(from);
+      final fO2 = 1.0 - gas.fN2 - gas.fHe;
+      add(
+        kind: PlanScheduleRowKind.ascent,
+        depth: to,
+        duration: duration,
+        runtime: arrival,
+        fO2: fO2,
+        fHe: gas.fHe,
+        tankId: _tankForGas(plan.tanks, fO2, gas.fHe),
+      );
+    }
+
+    var depth = lastDepth;
+    var end = segmentsRuntime;
+    var phase = AscentPhase.toFirstStop;
+    for (final stop in stops) {
+      final travel = stop.arrivalRuntimeSeconds - end;
+      if (travel > 0) {
+        addTravel(depth, stop.depthMeters, travel, stop.arrivalRuntimeSeconds);
+      }
+      end = stop.arrivalRuntimeSeconds + stop.durationSeconds;
+      add(
+        kind: PlanScheduleRowKind.stop,
+        depth: stop.depthMeters,
+        duration: stop.durationSeconds,
+        runtime: end,
+        fO2: stop.gasFO2,
+        fHe: stop.gasFHe,
+        tankId: stop.tankId,
+        airBreakSeconds: stop.airBreakSeconds,
+      );
+      depth = stop.depthMeters;
+      phase = AscentPhase.betweenStops;
+    }
+    if (depth > 0) {
+      final travel = _policyFor(plan).ascentSeconds(
+        fromDepth: depth,
+        toDepth: 0,
+        phase: AscentPhase.surfacingAfter(phase),
+      );
+      addTravel(depth, 0, travel, end + travel);
+    }
+    return rows;
   }
 
   /// The carried tank whose mix matches the stop gas (deco/stage roles win

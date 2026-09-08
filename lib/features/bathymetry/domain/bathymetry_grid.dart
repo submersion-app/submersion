@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 /// A rectangular grid of seafloor depths around a coordinate, in the app's
 /// depth convention: meters positive DOWN. Negative values are land
 /// elevation above the waterline; null cells are nodata. Rows run
@@ -41,6 +43,18 @@ class BathymetryGrid {
     return known == 0 ? 0 : wet / known;
   }
 
+  /// Fraction of cells that carry a reading at all. A grid can be almost
+  /// entirely wet and still be mostly holes: EMODnet's Caribbean tile
+  /// answers 99.96% wet on 48% coverage. The resolver needs both numbers.
+  double get knownFraction {
+    if (depthsMeters.isEmpty) return 0;
+    var known = 0;
+    for (final d in depthsMeters) {
+      if (d != null) known++;
+    }
+    return known / depthsMeters.length;
+  }
+
   double get maxDepthMeters {
     var m = 0.0;
     for (final d in depthsMeters) {
@@ -49,7 +63,9 @@ class BathymetryGrid {
     return m;
   }
 
-  /// Strided downsample so neither dimension exceeds [maxDim].
+  /// Block-mean downsample so neither dimension exceeds [maxDim]. Averaging
+  /// rather than striding keeps the information in the discarded cells: a
+  /// stride of 2 throws away three quarters of a grid outright.
   BathymetryGrid downsampleTo(int maxDim) {
     if (rows <= maxDim && cols <= maxDim) return this;
     final stepR = (rows / maxDim).ceil();
@@ -58,13 +74,36 @@ class BathymetryGrid {
     final newCols = (cols + stepC - 1) ~/ stepC;
     final out = List<double?>.filled(newRows * newCols, null);
     for (var r = 0; r < newRows; r++) {
+      final r1 = math.min((r + 1) * stepR, rows);
       for (var c = 0; c < newCols; c++) {
-        out[r * newCols + c] = depthsMeters[(r * stepR) * cols + (c * stepC)];
+        final c1 = math.min((c + 1) * stepC, cols);
+        var sum = 0.0;
+        var n = 0;
+        for (var sr = r * stepR; sr < r1; sr++) {
+          for (var sc = c * stepC; sc < c1; sc++) {
+            final v = depthsMeters[sr * cols + sc];
+            if (v == null) continue;
+            sum += v;
+            n++;
+          }
+        }
+        // An entirely unmeasured block stays unmeasured: averaging must
+        // never invent a reading where the source had none.
+        out[r * newCols + c] = n == 0 ? null : sum / n;
       }
     }
     return BathymetryGrid(
-      originLat: originLat,
-      originLon: originLon,
+      // Origin is the SOUTH-WEST CELL CENTER, so it has to follow the data.
+      // Striding kept the block's first sample, whose center already WAS
+      // the origin; a block mean sits at the block's centroid instead, half
+      // a stride further north and east. Leaving the origin put would
+      // report every cell half a block south-west of the depths it holds,
+      // dragging the 3D mesh, the 2D overlay bounds, the imagery mosaic and
+      // the hover lat/lon readout with it. The south-west edge of the
+      // footprint is unchanged by this shift, which is the invariant those
+      // consumers actually depend on.
+      originLat: originLat + cellSizeLatDeg * (stepR - 1) / 2,
+      originLon: originLon + cellSizeLonDeg * (stepC - 1) / 2,
       cellSizeLatDeg: cellSizeLatDeg * stepR,
       cellSizeLonDeg: cellSizeLonDeg * stepC,
       rows: newRows,

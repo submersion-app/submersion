@@ -82,13 +82,13 @@ void main() {
     test('ceilingMeters reports the loaded ceiling', () {
       final model = BuhlmannGf(gfLow: 0.4, gfHigh: 0.8);
       var state = model.initial();
-      expect(model.ceilingMeters(state, currentDepth: 40), 0.0);
+      expect(model.ceilingMeters(state), 0.0);
       state = model.applySegment(
         state,
         const DecoSegment(startDepth: 40, endDepth: 40, durationSeconds: 2400),
         air,
       );
-      expect(model.ceilingMeters(state, currentDepth: 40), greaterThan(0));
+      expect(model.ceilingMeters(state), greaterThan(0));
     });
   });
 }

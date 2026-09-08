@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
@@ -63,7 +64,7 @@ class _DivePickerSheetState extends ConsumerState<_DivePickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = Localizations.localeOf(context).toString();
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final dives = _dives;
     final visible = dives?.where(_matches).toList();
 
@@ -108,9 +109,7 @@ class _DivePickerSheetState extends ConsumerState<_DivePickerSheet> {
                           final dive = visible[index];
                           return ListTile(
                             title: Text(_label(dive)),
-                            subtitle: Text(
-                              DateFormat.yMMMd(locale).format(dive.dateTime),
-                            ),
+                            subtitle: Text(units.formatDate(dive.dateTime)),
                             onTap: () => Navigator.of(context).pop(dive.id),
                           );
                         },

@@ -308,16 +308,16 @@ void main() {
       expect(notesY, greaterThan(detailsY));
     });
 
-    testWidgets('takes the leading gap of the slot it occupies', (
+    testWidgets('sits at the same height whichever half is ordered first', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(1000, 2000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Details is the one section that emits no leading gap of its own;
-      // Environment emits the usual 24. A pair renders at the slot of
-      // whichever half the diver ordered first, so that is the gap it must
-      // inherit -- not whichever half the pair table calls the left one.
+      // Gaps are placed between sections, never owned by one of them, so the
+      // pair's position depends only on its slot -- not on whether the diver
+      // put Details or Environment first, and not on which half the pair
+      // table calls the left one.
       final dive = _diveWithConditions('gap-slot');
 
       Future<double> pairTop(List<DiveDetailSectionId> order) async {
@@ -351,7 +351,7 @@ void main() {
         DiveDetailSectionId.details,
       ]);
 
-      expect(environmentFirst - detailsFirst, 24);
+      expect(environmentFirst, detailsFirst);
     });
   });
 

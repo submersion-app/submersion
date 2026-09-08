@@ -242,6 +242,7 @@ class PreDiveTemplateRepository {
                 valueMin: Value(entry.item.valueMin),
                 valueMax: Value(entry.item.valueMax),
                 isRequired: Value(entry.item.isRequired),
+                equipmentId: Value(entry.item.equipmentId),
                 createdAt: Value(existingCreatedAt[entry.id] ?? now),
                 updatedAt: Value(now),
               ),
@@ -302,6 +303,40 @@ class PreDiveTemplateRepository {
     return clone;
   }
 
+  /// Persists the diver's session-start equipment choice for one 'equipment'
+  /// item so the next session pre-fills the same device. Not exposed via the
+  /// template editor: the only writer is the start-session flow. Callers
+  /// must skip this for built-in templates -- their items are shared across
+  /// every diver, so writing one diver's equipment there would leak across
+  /// divers; a built-in template's equipment choice lives only in that run's
+  /// session items.
+  Future<void> updateItemEquipment(String itemId, String? equipmentId) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(
+        _db.preDiveChecklistTemplateItems,
+      )..where((t) => t.id.equals(itemId))).write(
+        PreDiveChecklistTemplateItemsCompanion(
+          equipmentId: Value(equipmentId),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: _itemEntity,
+        recordId: itemId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to update pre-dive template item equipment link',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Guard shared by update/delete/saveItems: built-ins are read-only.
   Future<void> _assertNotBuiltIn(String templateId) async {
     final row = await (_db.select(
@@ -341,6 +376,7 @@ class PreDiveTemplateRepository {
     valueMin: row.valueMin,
     valueMax: row.valueMax,
     isRequired: row.isRequired,
+    equipmentId: row.equipmentId,
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
   );

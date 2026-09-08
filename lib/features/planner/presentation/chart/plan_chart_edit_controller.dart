@@ -6,9 +6,9 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_geomet
 /// Pure gesture-to-mutation logic for on-chart waypoint editing.
 ///
 /// Vertices are segment boundaries: vertex i sits at the END of user segment
-/// i. Moving one uses waypoint semantics - the segment ending there and the
-/// segment starting there both follow, and their types are re-derived from
-/// the resulting slopes (Subsurface's model mapped onto our segment list).
+/// i, which is its target depth. Moving one rewrites only that segment - the
+/// next leg starts wherever this one now finishes, so there is nothing to
+/// propagate and no type to re-derive.
 
 class PlanVertex {
   final int segmentIndex;
@@ -44,8 +44,10 @@ List<PlanVertex> planVertices(List<PlanSegment> segments) {
         segmentIndex: i,
         segmentId: ordered[i].id,
         timeSeconds: elapsed,
-        depth: ordered[i].endDepth,
-        draggable: ordered[i].type != SegmentType.gasSwitch,
+        depth: ordered[i].targetDepth,
+        // Every waypoint is draggable. Gas-switch segments used to be
+        // exempt; they no longer exist as a kind of segment.
+        draggable: true,
       ),
     );
   }
@@ -82,35 +84,6 @@ int _snapDuration(double seconds) {
   return minutes < 1 ? 60 : minutes * 60;
 }
 
-/// Re-derive a segment's type from its slope after an edit. Flat segments
-/// keep their flat identity; sloped ones become descent/ascent with the
-/// stored rate cleared (it no longer matches).
-PlanSegment _retyped(PlanSegment segment) {
-  if (segment.type == SegmentType.gasSwitch) return segment;
-  if (segment.startDepth == segment.endDepth) {
-    final flat = switch (segment.type) {
-      SegmentType.bottom ||
-      SegmentType.decoStop ||
-      SegmentType.safetyStop => segment.type,
-      _ => SegmentType.bottom,
-    };
-    return segment.copyWith(type: flat);
-  }
-  return PlanSegment(
-    id: segment.id,
-    type: segment.startDepth < segment.endDepth
-        ? SegmentType.descent
-        : SegmentType.ascent,
-    startDepth: segment.startDepth,
-    endDepth: segment.endDepth,
-    durationSeconds: segment.durationSeconds,
-    tankId: segment.tankId,
-    gasMix: segment.gasMix,
-    switchToTankId: segment.switchToTankId,
-    order: segment.order,
-  );
-}
-
 VertexDragResult dragVertex({
   required List<PlanSegment> ordered,
   required int vertexIndex,
@@ -125,17 +98,17 @@ VertexDragResult dragVertex({
   }
   final duration = _snapDuration(newTimeSeconds - segmentStart);
 
-  final updates = <(String, PlanSegment)>[];
+  // Only the dragged segment changes. The old code also wrote the new depth
+  // into the next segment's stored start depth, and rebuilt both through a
+  // re-typing helper that dropped their per-segment setpoint and dive-mode
+  // override on the way. copyWith preserves both.
   final segment = ordered[vertexIndex];
-  updates.add((
-    segment.id,
-    _retyped(segment.copyWith(endDepth: depth, durationSeconds: duration)),
-  ));
-  if (vertexIndex + 1 < ordered.length) {
-    final next = ordered[vertexIndex + 1];
-    updates.add((next.id, _retyped(next.copyWith(startDepth: depth))));
-  }
-  return VertexDragResult(updates);
+  return VertexDragResult([
+    (
+      segment.id,
+      segment.copyWith(targetDepth: depth, durationSeconds: duration),
+    ),
+  ]);
 }
 
 ({String replaceId, List<PlanSegment> replacements})? splitSegmentAt({
@@ -156,35 +129,32 @@ VertexDragResult dragVertex({
       final firstDuration = _snapDuration(timeSeconds - elapsed);
       final secondDuration = segment.durationSeconds - firstDuration;
       if (firstDuration < 60 || secondDuration < 60) return null;
-      final first = _retyped(
-        segment.copyWith(endDepth: depth, durationSeconds: firstDuration),
+      // The first half now turns at the split depth; the second keeps the
+      // original target, so it picks up from wherever the first left off.
+      final first = segment.copyWith(
+        targetDepth: depth,
+        durationSeconds: firstDuration,
       );
-      final second = _retyped(
-        segment.copyWith(
-          id: idGen(),
-          startDepth: depth,
-          durationSeconds: secondDuration,
-        ),
+      final second = segment.copyWith(
+        id: idGen(),
+        durationSeconds: secondDuration,
       );
       return (replaceId: segment.id, replacements: [first, second]);
     }
     elapsed = end;
   }
 
-  // Beyond the user span: append a travel segment from the last depth.
+  // Beyond the user span: append a waypoint at the tapped depth. It starts
+  // wherever the last segment ends, so its phase follows from the two.
   final last = ordered.last;
   final duration = _snapDuration(timeSeconds - elapsed);
-  final appended = _retyped(
-    PlanSegment(
-      id: idGen(),
-      type: SegmentType.bottom,
-      startDepth: last.endDepth,
-      endDepth: depth,
-      durationSeconds: duration,
-      tankId: last.tankId,
-      gasMix: last.gasMix,
-      order: last.order + 1,
-    ),
+  final appended = PlanSegment(
+    id: idGen(),
+    targetDepth: depth,
+    durationSeconds: duration,
+    tankId: last.tankId,
+    gasMix: last.gasMix,
+    order: last.order + 1,
   );
   return (replaceId: '', replacements: [appended]);
 }

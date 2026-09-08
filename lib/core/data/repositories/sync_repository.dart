@@ -231,6 +231,42 @@ class SyncRepository {
     return metadata.deviceId;
   }
 
+  /// Whether this database has ever taken part in a sync.
+  ///
+  /// True as soon as anything sync-related has been recorded: a baseline
+  /// timestamp, an accepted library epoch, a remote file reference, a sync
+  /// record, a tombstone, a peer cursor or a publish state.
+  ///
+  /// False only for a database that has never synced. On a launch whose
+  /// out-of-database anchors name some other install, that is the signature of
+  /// a fresh install rather than a restore; see
+  /// [SyncInitializer.reconcileDeviceIdentity].
+  ///
+  /// Deliberately does NOT count [SyncMetadataData.syncProvider], which merely
+  /// names a chosen backend and is set before any sync has run.
+  Future<bool> hasSyncHistory() async {
+    final metadata = await getOrCreateMetadata();
+    if (metadata.lastSyncTimestamp != null) return true;
+    // Accepting a library epoch, or holding a remote file reference, both mean
+    // this database has taken part in a sync even when no baseline survives.
+    if (metadata.lastAcceptedEpochId != null) return true;
+    if (metadata.remoteFileId != null) return true;
+    if (await _hasAnyRow(_db.syncRecords)) return true;
+    if (await _hasAnyRow(_db.deletionLog)) return true;
+    if (await _hasAnyRow(_db.syncPeerCursors)) return true;
+    if (await _hasAnyRow(_db.localPublishStates)) return true;
+    return false;
+  }
+
+  /// True if [table] holds at least one row. Uses a LIMIT 1 select rather than
+  /// a COUNT so the check stops at the first row on a large table.
+  Future<bool> _hasAnyRow<T extends HasResultSet, R>(
+    ResultSetImplementation<T, R> table,
+  ) async {
+    final row = await (_db.select(table)..limit(1)).getSingleOrNull();
+    return row != null;
+  }
+
   /// Get this database's instance token, or null if none has been set yet
   /// (rows predating the column, or a freshly created/restored database).
   Future<String?> getInstanceToken() async {

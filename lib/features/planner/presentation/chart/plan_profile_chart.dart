@@ -177,7 +177,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
       final result = dragVertex(
         ordered: ordered,
         vertexIndex: index,
-        newDepthMeters: segment.endDepth + delta,
+        newDepthMeters: segment.targetDepth + delta,
         newTimeSeconds: _endTimeOf(ordered, index),
         depthUnitScale: geometry.depthUnitScale,
       );

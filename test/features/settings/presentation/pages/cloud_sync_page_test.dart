@@ -574,6 +574,31 @@ void main() {
     });
   });
 
+  group('errorDisplayText', () {
+    test('drops the class-name prefix from a CloudStorageException', () {
+      // The banner in the reported screenshots read "CloudStorageException:
+      // Google Sign-In was cancelled (...)". CloudStorageException documents
+      // displayMessage as the snackbar-safe form for exactly this reason.
+      const error = CloudStorageException('Sign-in was refused');
+
+      expect(errorDisplayText(error), 'Sign-in was refused');
+      expect(errorDisplayText(error), isNot(contains('CloudStorageException')));
+    });
+
+    test('keeps the underlying cause, which carries the detail', () {
+      const error = CloudStorageException(
+        'Sign-in was refused',
+        '[16] Account reauth failed.',
+      );
+
+      expect(errorDisplayText(error), contains('Account reauth failed'));
+    });
+
+    test('falls back to toString for any other error', () {
+      expect(errorDisplayText(StateError('boom')), contains('boom'));
+    });
+  });
+
   group('connectionErrorMessage', () {
     final l10n = AppLocalizationsEn();
 

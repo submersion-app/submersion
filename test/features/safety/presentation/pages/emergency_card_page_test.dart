@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart'
-    show IconButton, Icons, Locale, MaterialApp, PopupMenuButton, Size;
+    show
+        FilledButton,
+        IconButton,
+        Icons,
+        Locale,
+        MaterialApp,
+        PopupMenuButton,
+        Size;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -67,6 +74,7 @@ void main() {
   Future<void> pump(
     WidgetTester tester, {
     bool includeDiver = true,
+    Diver? diverOverride,
     List<EmergencyChamber>? chambers,
     List<ChamberListing>? listings,
     int? totalChamberCount,
@@ -83,7 +91,7 @@ void main() {
               countryCode: 'AU',
               hotline: hotline,
               emsNumber: '000',
-              diver: includeDiver ? diver : null,
+              diver: includeDiver ? (diverOverride ?? diver) : null,
               nearbyChambers:
                   listings ??
                   [
@@ -305,5 +313,230 @@ void main() {
       find.textContaining('Not confirmed with the facility'),
       findsOneWidget,
     );
+  });
+
+  group('issue #1522: the insurer leads when the diver recorded a number', () {
+    final insured = diver.copyWith(
+      insurance: const DiverInsurance(
+        provider: 'ARENA',
+        policyNumber: 'A-777',
+        emergencyPhone: '+49-30-555-0100',
+        phone: '+49-30-555-0199',
+      ),
+    );
+
+    testWidgets('the primary button calls the insurer, not the hotline', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(tester, diverOverride: insured);
+
+      final primary = tester.widget<FilledButton>(
+        find.byType(FilledButton).first,
+      );
+      expect(
+        find.descendant(
+          of: find.byWidget(primary),
+          matching: find.textContaining('Call ARENA'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byWidget(primary),
+          matching: find.textContaining('+49-30-555-0100'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Your dive insurance emergency line'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the regional hotline stays on the card as the fallback', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(tester, diverOverride: insured);
+
+      expect(find.textContaining('DES Australia'), findsOneWidget);
+      expect(find.textContaining('1800-088-200'), findsOneWidget);
+      expect(
+        find.textContaining('Call this if your insurer'),
+        findsOneWidget,
+        reason: 'the hotline must say why it is now the second call',
+      );
+    });
+
+    testWidgets('an office line alone never displaces the 24h hotline', (
+      tester,
+    ) async {
+      // An insurer's office line typically answers in business hours only.
+      // Promoting it would promise a first call that rings an empty desk at
+      // 2am, which is worse than the regional hotline that does answer.
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(
+        tester,
+        diverOverride: diver.copyWith(
+          insurance: const DiverInsurance(
+            provider: 'ARENA',
+            phone: '+49-30-555-0199',
+          ),
+        ),
+      );
+
+      final primary = tester.widget<FilledButton>(
+        find.byType(FilledButton).first,
+      );
+      expect(
+        find.descendant(
+          of: find.byWidget(primary),
+          matching: find.textContaining('DES Australia'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Your dive insurance emergency line'),
+        findsNothing,
+        reason: 'an office line must not be described as an emergency line',
+      );
+    });
+
+    testWidgets('an unnamed insurer still leads, under a generic label', (
+      tester,
+    ) async {
+      // A diver can save the number off their card without typing the
+      // insurer's name. "Call" on its own is not a button, so the section
+      // heading stands in for the name.
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(
+        tester,
+        diverOverride: diver.copyWith(
+          insurance: const DiverInsurance(emergencyPhone: '+49-30-555-0100'),
+        ),
+      );
+
+      final primary = tester.widget<FilledButton>(
+        find.byType(FilledButton).first,
+      );
+      expect(
+        find.descendant(
+          of: find.byWidget(primary),
+          matching: find.textContaining('Call Dive insurance'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byWidget(primary),
+          matching: find.textContaining('+49-30-555-0100'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a whitespace-only policy number prints no policy line', (
+      tester,
+    ) async {
+      // A blank "Policy" line is noise on a screen read under stress.
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(
+        tester,
+        diverOverride: diver.copyWith(
+          insurance: const DiverInsurance(
+            provider: 'ARENA',
+            policyNumber: '   ',
+            emergencyPhone: '+49-30-555-0100',
+          ),
+        ),
+      );
+
+      expect(find.textContaining('Policy'), findsNothing);
+    });
+
+    testWidgets('the office line stays reachable in the insurance block', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(
+        tester,
+        diverOverride: diver.copyWith(
+          insurance: const DiverInsurance(
+            provider: 'ARENA',
+            phone: '+49-30-555-0199',
+          ),
+        ),
+      );
+
+      expect(find.text('Office line'), findsOneWidget);
+      expect(find.text('+49-30-555-0199'), findsOneWidget);
+      expect(
+        find.textContaining('No insurer emergency number saved'),
+        findsOneWidget,
+        reason: 'an office line alone still needs the 24h number nudge',
+      );
+    });
+
+    testWidgets('both insurer numbers are listed and tappable', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(tester, diverOverride: insured);
+
+      expect(find.text('24h emergency line'), findsOneWidget);
+      expect(find.text('Office line'), findsOneWidget);
+      expect(find.text('+49-30-555-0199'), findsOneWidget);
+    });
+
+    testWidgets('the hotline still leads when no insurer number is stored', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(tester);
+
+      final primary = tester.widget<FilledButton>(
+        find.byType(FilledButton).first,
+      );
+      expect(
+        find.descendant(
+          of: find.byWidget(primary),
+          matching: find.textContaining('DES Australia'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Diver emergency hotline. Call first'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a provider with no number explains why it cannot lead', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(tester);
+
+      expect(
+        find.textContaining('No insurer emergency number saved'),
+        findsOneWidget,
+      );
+    });
   });
 }

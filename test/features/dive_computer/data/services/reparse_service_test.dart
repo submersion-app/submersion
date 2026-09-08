@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1460,6 +1462,77 @@ void main() {
       expect(await service.hasRawData('dive-nonexistent'), isFalse);
     });
 
+    test('DiveTanks carry-over: writes the transmitter serial on both an '
+        'existing tank and a new one', () async {
+      // Tanks downloaded before v194 have no serial; a re-parse of the stored
+      // raw data is how they gain one, so the existing-tank branch must write
+      // it alongside the other computer-owned fields.
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(
+              id: Value('tank-0'),
+              diveId: Value('dive-1'),
+              startPressure: Value(200.0),
+              endPressure: Value(50.0),
+              o2Percent: Value(32.0),
+              hePercent: Value(0.0),
+              tankOrder: Value(0),
+              tankName: Value('My Primary AL80'),
+            ),
+          );
+
+      final parsed = makeParsedDive(
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: 0,
+            startPressureBar: 210.0,
+            endPressureBar: 40.0,
+            transmitterSerial: 180777,
+          ),
+          pigeon.TankInfo(
+            index: 1,
+            gasMixIndex: 1,
+            startPressureBar: 200.0,
+            endPressureBar: 100.0,
+            transmitterSerial: 109623,
+          ),
+        ],
+        gasMixes: [
+          pigeon.GasMix(index: 0, o2Percent: 32.0, hePercent: 0.0),
+          pigeon.GasMix(index: 1, o2Percent: 100.0, hePercent: 0.0),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final tanks =
+          await (db.select(db.diveTanks)
+                ..where((t) => t.diveId.equals('dive-1'))
+                ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+              .get();
+      expect(tanks.map((t) => t.transmitterSerial), ['180777', '109623']);
+      // The user-authored name survives the update as before.
+      expect(tanks.first.tankName, 'My Primary AL80');
+    });
+
     test('DiveTanks carry-over: overwrites computer fields, preserves user '
         'fields, handles new/removed tanks', () async {
       await insertDive('dive-1');
@@ -2248,6 +2321,62 @@ void main() {
       expect(events[6].eventType, 'ppO2High');
       expect(events[6].severity, 'alert');
     });
+
+    test(
+      'a deco event carrying the END flag re-parses as decoStopEnd',
+      () async {
+        // libdivecomputer reports both ends of a stop as SAMPLE_EVENT_DECOSTOP
+        // and separates them with SAMPLE_FLAGS_BEGIN (1) / SAMPLE_FLAGS_END (2),
+        // which the platform bindings pass through in the event data map. The
+        // Cressi Leonardo is the first computer whose parser reports the pair
+        // (PR #342); without the flag both ends persisted as a stop starting.
+        await insertDive('dive-1');
+        await insertComputer('comp-1');
+        await insertSource(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+          isPrimary: true,
+        );
+
+        final parsed = makeParsedDive(
+          events: [
+            pigeon.DiveEvent(
+              timeSeconds: 200,
+              type: 'deco',
+              data: {'flags': '1', 'value': '0'},
+            ),
+            pigeon.DiveEvent(
+              timeSeconds: 400,
+              type: 'deco',
+              data: {'flags': '2', 'value': '0'},
+            ),
+            pigeon.DiveEvent(timeSeconds: 600, type: 'deco'),
+          ],
+        );
+
+        await service.applyParsedUpdate(
+          diveId: 'dive-1',
+          sourceRowId: 'src-1',
+          parsed: parsed,
+          descriptorVendor: null,
+          descriptorProduct: null,
+          descriptorModel: null,
+          libdivecomputerVersion: null,
+        );
+
+        final events =
+            await (db.select(db.diveProfileEvents)
+                  ..where((t) => t.diveId.equals('dive-1'))
+                  ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+                .get();
+        expect(events.map((e) => e.eventType).toList(), [
+          'decoStopStart',
+          'decoStopEnd',
+          'decoStopStart',
+        ]);
+      },
+    );
 
     test('rbt and airtime events re-parse as lowGas warnings', () async {
       // Before the event-code table was corrected, libdivecomputer's RBT code
@@ -3842,5 +3971,35 @@ void main() {
         expect(result.profilesPreserved, 2);
       },
     );
+  });
+
+  test('re-parse receives the exact bytes that were downloaded', () async {
+    // The path that matters most: these bytes go straight to
+    // libdivecomputer, and a decode this misses would hand it a zlib stream.
+    final raw = Uint8List.fromList(
+      File(
+        'packages/libdivecomputer_plugin/android/src/androidTest/assets/'
+        'shearwater_teric_dive.bin',
+      ).readAsBytesSync(),
+    );
+    await insertDive('dive-raw');
+    final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion(
+            id: const Value('src-raw'),
+            diveId: const Value('dive-raw'),
+            isPrimary: const Value(true),
+            rawData: Value(raw),
+            importedAt: Value(now),
+            createdAt: Value(now),
+          ),
+        );
+
+    final sources = await service.getSourcesForDiveReparse('dive-raw');
+
+    expect(sources, hasLength(1));
+    expect(sources.single.rawData, equals(raw));
   });
 }

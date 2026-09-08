@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -62,77 +61,55 @@ Widget buildToggleWithSource<T>(
   required T currentSource,
   required ValueChanged<T> onSourceChanged,
   required List<(T, String)> segments,
-  bool isAreaSwatch = false,
 }) {
-  return InkWell(
-    onTap: onTap,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Row(
-        children: [
-          Icon(
-            isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-            size: 20,
-            color: isEnabled
-                ? color
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          // Area metrics are drawn on the chart as a translucent shaded
-          // region rather than a stroked curve, so their swatch is a filled
-          // block in the same wash instead of a line.
-          if (isAreaSwatch)
-            Container(
-              width: 16,
-              height: 12,
-              decoration: BoxDecoration(
-                color: color.withValues(
-                  alpha: isEnabled ? decoStopFillAlpha : decoStopFillAlpha / 2,
-                ),
-                border: Border.all(
-                  color: color.withValues(alpha: isEnabled ? 0.5 : 0.2),
-                ),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            )
-          else
-            Container(
-              width: 16,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isEnabled ? color : color.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+  return _checkboxSemantics(
+    isEnabled: isEnabled,
+    child: InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: Row(
+          children: [
+            _checkboxIndicator(context, isEnabled: isEnabled, color: color),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: isEnabled
+                    ? null
+                    : TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
               ),
             ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(label)),
-          GestureDetector(
-            onTap: () {}, // absorb tap to prevent parent InkWell from firing
-            child: SizedBox(
-              height: 28,
-              child: SegmentedButton<T>(
-                segments: [
-                  for (final (value, text) in segments)
-                    ButtonSegment(
-                      value: value,
-                      label: Text(text, style: const TextStyle(fontSize: 11)),
+            GestureDetector(
+              onTap: () {}, // absorb tap to prevent parent InkWell from firing
+              child: SizedBox(
+                height: 28,
+                child: SegmentedButton<T>(
+                  segments: [
+                    for (final (value, text) in segments)
+                      ButtonSegment(
+                        value: value,
+                        label: Text(text, style: const TextStyle(fontSize: 11)),
+                      ),
+                  ],
+                  selected: {currentSource},
+                  onSelectionChanged: (selected) =>
+                      onSourceChanged(selected.first),
+                  showSelectedIcon: false,
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: WidgetStatePropertyAll(
+                      EdgeInsets.symmetric(horizontal: 8),
                     ),
-                ],
-                selected: {currentSource},
-                onSelectionChanged: (selected) =>
-                    onSourceChanged(selected.first),
-                showSelectedIcon: false,
-                style: const ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  padding: WidgetStatePropertyAll(
-                    EdgeInsets.symmetric(horizontal: 8),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ),
   );
@@ -149,9 +126,6 @@ Widget buildGasToggleItem(
   required VoidCallback onTap,
 }) {
   final colorScheme = Theme.of(context).colorScheme;
-  final iconColor = isEnabled
-      ? colorScheme.primary
-      : colorScheme.onSurfaceVariant;
   Widget bar(Color color) => Container(
     width: 16,
     height: 3,
@@ -161,33 +135,45 @@ Widget buildGasToggleItem(
     ),
   );
 
-  return InkWell(
-    onTap: onTap,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        children: [
-          Icon(
-            isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-            size: 20,
-            color: iconColor,
-          ),
-          const SizedBox(width: 8),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              bar(GasColors.air),
-              const SizedBox(height: 1),
-              bar(GasColors.nitrox),
-              const SizedBox(height: 1),
-              bar(GasColors.oxygen),
-              const SizedBox(height: 1),
-              bar(GasColors.trimix),
-            ],
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(label)),
-        ],
+  return _checkboxSemantics(
+    isEnabled: isEnabled,
+    child: InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            Icon(
+              isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
+              size: 18,
+              color: isEnabled
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                bar(GasColors.air),
+                const SizedBox(height: 1),
+                bar(GasColors.nitrox),
+                const SizedBox(height: 1),
+                bar(GasColors.oxygen),
+                const SizedBox(height: 1),
+                bar(GasColors.trimix),
+              ],
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: isEnabled
+                    ? null
+                    : TextStyle(color: colorScheme.onSurfaceVariant),
+              ),
+            ),
+          ],
+        ),
       ),
     ),
   );
@@ -203,12 +189,38 @@ Widget _checkboxSemantics({required bool isEnabled, required Widget child}) =>
       child: Semantics(checked: isEnabled, child: child),
     );
 
+/// Colored checkbox used as the primary on/off indicator for a toggle row.
+/// When [sourceColor] is given (combined-dive per-computer rows), it draws a
+/// ring around the checkbox in that color instead of a separate swatch.
+Widget _checkboxIndicator(
+  BuildContext context, {
+  required bool isEnabled,
+  required Color color,
+  Color? sourceColor,
+}) {
+  final checkbox = Icon(
+    isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
+    size: 18,
+    color: isEnabled ? color : Theme.of(context).colorScheme.onSurfaceVariant,
+  );
+  if (sourceColor == null) return checkbox;
+  return Container(
+    padding: const EdgeInsets.all(2),
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(color: sourceColor, width: 1),
+    ),
+    child: checkbox,
+  );
+}
+
 Widget buildToggleItem(
   BuildContext context, {
   required String label,
   required Color color,
   required bool isEnabled,
   required VoidCallback onTap,
+  Color? sourceColor,
 }) {
   return _checkboxSemantics(
     isEnabled: isEnabled,
@@ -218,24 +230,23 @@ Widget buildToggleItem(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            Icon(
-              isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-              size: 20,
-              color: isEnabled
-                  ? color
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            _checkboxIndicator(
+              context,
+              isEnabled: isEnabled,
+              color: color,
+              sourceColor: sourceColor,
             ),
             const SizedBox(width: 8),
-            Container(
-              width: 16,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isEnabled ? color : color.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+            Expanded(
+              child: Text(
+                label,
+                style: isEnabled
+                    ? null
+                    : TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(label)),
           ],
         ),
       ),
@@ -263,42 +274,23 @@ Widget buildBehaviorItem(
           children: [
             Icon(
               isEnabled ? Icons.check_box : Icons.check_box_outline_blank,
-              size: 20,
+              size: 18,
               color: isEnabled
                   ? colorScheme.primary
                   : colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 8),
-            Expanded(child: Text(label)),
+            Expanded(
+              child: Text(
+                label,
+                style: isEnabled
+                    ? TextStyle(color: colorScheme.primary)
+                    : TextStyle(color: colorScheme.onSurfaceVariant),
+              ),
+            ),
           ],
         ),
       ),
-    ),
-  );
-}
-
-Widget buildStaticItem(
-  BuildContext context, {
-  required String label,
-  required Color color,
-}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-    child: Row(
-      children: [
-        Icon(Icons.circle, size: 12, color: color),
-        const SizedBox(width: 12),
-        Container(
-          width: 16,
-          height: 4,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(child: Text(label)),
-      ],
     ),
   );
 }

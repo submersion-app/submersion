@@ -18,7 +18,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
-import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
@@ -78,6 +77,10 @@ void main() {
     bool settle = true,
   }) async {
     final base = await getBaseOverrides(
+      tankPresets: [
+        TankPresetEntity.fromBuiltIn(TankPresets.al80),
+        TankPresetEntity.fromBuiltIn(TankPresets.steel12),
+      ],
       settingsNotifier: settings == null
           ? null
           : MockSettingsNotifier(settings),
@@ -104,12 +107,6 @@ void main() {
             (ref) async => latestHeightFuture == null
                 ? latestHeight
                 : await latestHeightFuture,
-          ),
-          tankPresetsProvider.overrideWith(
-            (ref) async => [
-              TankPresetEntity.fromBuiltIn(TankPresets.al80),
-              TankPresetEntity.fromBuiltIn(TankPresets.steel12),
-            ],
           ),
           ...extraOverrides,
         ],

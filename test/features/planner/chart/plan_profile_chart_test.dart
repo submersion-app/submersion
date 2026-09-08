@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_edit_controller.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
@@ -27,6 +28,15 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// The bottom leg of a plan, found the way the app finds it now: the deepest
+/// level leg of the resolved chain, rather than a segment carrying a declared
+/// bottom type.
+PlanSegment _bottomSegment(List<PlanSegment> segments) {
+  const chain = SegmentChain();
+  final legs = chain.resolve(segments);
+  return legs[chain.bottomLegIndex(legs)!].segment;
 }
 
 void main() {
@@ -148,10 +158,9 @@ void main() {
       maxDepthMeters: series.maxDepth,
       depthUnitScale: 1,
     );
-    final bottom = container
-        .read(divePlanNotifierProvider)
-        .segments
-        .firstWhere((s) => s.type == SegmentType.bottom);
+    final bottom = _bottomSegment(
+      container.read(divePlanNotifierProvider).segments,
+    );
     final midTime = 100 + bottom.durationSeconds / 2;
     await tester.tapAt(rect.topLeft + Offset(geometry.xFor(midTime), 200));
     // onDoubleTapDown is registered, so a single tap resolves only after the
@@ -231,10 +240,9 @@ void main() {
     notifier.addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
     await tester.pumpAndSettle();
 
-    final bottom = container
-        .read(divePlanNotifierProvider)
-        .segments
-        .firstWhere((s) => s.type == SegmentType.bottom);
+    final bottom = _bottomSegment(
+      container.read(divePlanNotifierProvider).segments,
+    );
     container.read(selectedSegmentIdProvider.notifier).state = bottom.id;
     // Focus the chart's Focus node directly so key events route to it.
     final focusNode = tester
@@ -256,7 +264,7 @@ void main() {
         .read(divePlanNotifierProvider)
         .segments
         .firstWhere((s) => s.id == bottom.id);
-    expect(deepened.endDepth, greaterThan(bottom.endDepth));
+    expect(deepened.targetDepth, greaterThan(bottom.targetDepth));
 
     await tester.sendKeyEvent(LogicalKeyboardKey.delete);
     await tester.pump();
@@ -288,10 +296,9 @@ void main() {
     await tester.pumpAndSettle();
 
     // Right-click the bottom vertex handle (end of the bottom segment).
-    final bottom = container
-        .read(divePlanNotifierProvider)
-        .segments
-        .firstWhere((s) => s.type == SegmentType.bottom);
+    final bottom = _bottomSegment(
+      container.read(divePlanNotifierProvider).segments,
+    );
     final vertices = planVertices(
       container.read(divePlanNotifierProvider).segments,
     );

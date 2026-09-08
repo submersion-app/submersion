@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Decimals a blender's pressure is worth carrying, by unit.
@@ -40,3 +41,11 @@ String formatPreciseMix(BuildContext context, GasMix m) {
 /// point so the call sites read as what they mean.
 String formatPreciseGasName(BuildContext context, GasMix m) =>
     formatPreciseMix(context, m);
+
+/// The label to print for a fill-gas role.
+String blenderGasRoleLabel(BuildContext context, BlenderGasRole role) =>
+    switch (role) {
+      BlenderGasRole.o2 => context.l10n.gasCalculators_blender_o2,
+      BlenderGasRole.he => context.l10n.gasCalculators_blender_helium,
+      BlenderGasRole.topup => context.l10n.gasCalculators_blender_topup,
+    };

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
@@ -18,6 +21,7 @@ import '../../../../helpers/test_app.dart';
 /// reveal (or not) the equipment-set picker.
 class _FakeTemplateRepo implements PreDiveTemplateRepository {
   final Map<String, List<PreDiveChecklistTemplateItem>> itemsByTemplate;
+  final Map<String, String?> updatedEquipmentByItemId = {};
 
   _FakeTemplateRepo(this.itemsByTemplate);
 
@@ -25,6 +29,11 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   Future<List<PreDiveChecklistTemplateItem>> getItemsForTemplate(
     String templateId,
   ) async => itemsByTemplate[templateId] ?? const [];
+
+  @override
+  Future<void> updateItemEquipment(String itemId, String? equipmentId) async {
+    updatedEquipmentByItemId[itemId] = equipmentId;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -101,10 +110,32 @@ void main() {
     updatedAt: now,
   );
 
+  final primaryComputer = EquipmentItem(
+    id: 'g1',
+    name: 'Primary computer',
+    type: EquipmentType.values.first,
+  );
+  final backupComputer = EquipmentItem(
+    id: 'g2',
+    name: 'Backup computer',
+    type: EquipmentType.values.first,
+  );
+
   Future<void> pumpSheet(WidgetTester tester) async {
     final fakeRepo = _FakeTemplateRepo({
       'plain': [tItem('plain', PreDiveItemType.check)],
       'packing': [tItem('packing', PreDiveItemType.equipmentSet)],
+      'computer': [
+        PreDiveChecklistTemplateItem(
+          id: 'computer-i',
+          templateId: 'computer',
+          title: 'Computer check',
+          itemType: PreDiveItemType.equipment,
+          equipmentId: 'g1',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ],
     });
     await tester.pumpWidget(
       testApp(
@@ -115,9 +146,13 @@ void main() {
             (ref) async => [
               template('plain', 'BWRAF'),
               template('packing', 'Gear Packing'),
+              template('computer', 'Computer Check'),
             ],
           ),
           equipmentSetsProvider.overrideWith((ref) async => [defaultSet]),
+          allEquipmentProvider.overrideWith(
+            (ref) async => [primaryComputer, backupComputer],
+          ),
         ],
         child: Builder(
           builder: (context) => Consumer(
@@ -167,11 +202,23 @@ void main() {
   });
 
   /// Opens the sheet inside a GoRouter so the post-start `context.push` to the
-  /// runner resolves. Returns the fake session repo for assertions.
-  Future<_FakeSessionRepo> pumpSheetForBegin(WidgetTester tester) async {
+  /// runner resolves. Returns the fake repos for assertions.
+  Future<(_FakeSessionRepo, _FakeTemplateRepo)> pumpSheetForBegin(
+    WidgetTester tester,
+  ) async {
     final fakeTemplateRepo = _FakeTemplateRepo({
       'plain': [tItem('plain', PreDiveItemType.check)],
       'packing': [tItem('packing', PreDiveItemType.equipmentSet)],
+      'computer': [
+        PreDiveChecklistTemplateItem(
+          id: 'computer-i',
+          templateId: 'computer',
+          title: 'Computer check',
+          itemType: PreDiveItemType.equipment,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ],
     });
     final fakeSessionRepo = _FakeSessionRepo();
     final router = GoRouter(
@@ -204,22 +251,32 @@ void main() {
             (ref) async => [
               template('plain', 'BWRAF'),
               template('packing', 'Gear Packing'),
+              template('computer', 'Computer Check'),
             ],
           ),
           equipmentSetsProvider.overrideWith((ref) async => [defaultSet]),
+          allEquipmentProvider.overrideWith(
+            (ref) async => [primaryComputer, backupComputer],
+          ),
+          serviceClockStatusesProvider(
+            'g1',
+          ).overrideWith((ref) async => const []),
+          serviceClockStatusesProvider(
+            'g2',
+          ).overrideWith((ref) async => const []),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver1'),
         ],
       ),
     );
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
-    return fakeSessionRepo;
+    return (fakeSessionRepo, fakeTemplateRepo);
   }
 
   testWidgets('Begin composes items and starts a session, then navigates', (
     tester,
   ) async {
-    final repo = await pumpSheetForBegin(tester);
+    final (repo, _) = await pumpSheetForBegin(tester);
 
     // Choose the plain template (no equipment set involved).
     await tester.tap(find.text('Checklist'));
@@ -244,7 +301,7 @@ void main() {
   testWidgets(
     'Begin on an equipmentSet template with no set chosen omits the set',
     (tester) async {
-      final repo = await pumpSheetForBegin(tester);
+      final (repo, _) = await pumpSheetForBegin(tester);
 
       // Choose the packing template: the equipment picker appears with the
       // default set pre-selected.
@@ -270,6 +327,50 @@ void main() {
       expect(repo.capturedEquipmentSetName, isNull);
       // The equipmentSet item degrades to a plain check row.
       expect(repo.capturedItems, isNotEmpty);
+      expect(find.text('SESSION newsession'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'equipment picker appears for an equipment-typed template, pre-filled',
+    (tester) async {
+      await pumpSheet(tester);
+
+      await tester.tap(find.text('Checklist'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Computer Check').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Computer check'), findsOneWidget);
+      expect(find.text('Primary computer'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Begin on an equipment template links the chosen device and remembers it',
+    (tester) async {
+      final (repo, templateRepo) = await pumpSheetForBegin(tester);
+
+      await tester.tap(find.text('Checklist'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Computer Check').last);
+      await tester.pumpAndSettle();
+
+      // No remembered link yet: the picker starts on None.
+      expect(find.text('Computer check'), findsOneWidget);
+      expect(find.text('None'), findsOneWidget);
+
+      await tester.tap(find.text('None'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Backup computer').last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Begin'));
+      await tester.pumpAndSettle();
+
+      expect(repo.startCalls, 1);
+      expect(repo.capturedItems!.single.equipmentId, 'g2');
+      expect(templateRepo.updatedEquipmentByItemId['computer-i'], 'g2');
       expect(find.text('SESSION newsession'), findsOneWidget);
     },
   );

@@ -574,8 +574,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               onPressed: _selectPurchaseDate,
               icon: const Icon(Icons.calendar_today),
               label: Text(
+                // #1512: hand-rolled M/D/YYYY ignored the diver's preference,
+                // which the detail page for the same field already honours.
                 _purchaseDate != null
-                    ? '${_purchaseDate!.month}/${_purchaseDate!.day}/${_purchaseDate!.year}'
+                    ? UnitFormatter(
+                        ref.watch(settingsProvider),
+                      ).formatDate(_purchaseDate)
                     : context.l10n.equipment_edit_selectDate,
               ),
               style: OutlinedButton.styleFrom(
@@ -659,6 +663,25 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            // Purchase record (issue #1517): SKU, retailer and the product
+            // listing, kept with the date and price because they are all
+            // parts of the same receipt an insurer asks for.
+            EquipmentAttributeFormSection(
+              key: ValueKey('purchase-attrs-${_selectedType.name}'),
+              type: _selectedType,
+              group: AttributeGroup.purchase,
+              values: _attrValues,
+              units: UnitFormatter(ref.watch(settingsProvider)),
+              onChanged: (attr) => setState(() {
+                _attrValues[attr.key] = attr;
+                _hasChanges = true;
+              }),
+              onCleared: (key) => setState(() {
+                _attrValues.remove(key);
+                _hasChanges = true;
+              }),
             ),
           ],
         ),

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/session_item_tile.dart';
@@ -36,6 +41,8 @@ void main() {
     double? valueMin,
     double? valueMax,
     DateTime? completedAt,
+    String? equipmentId,
+    List<OverdueServiceEntry>? overdueServices,
   }) => PreDiveSessionItem(
     id: id,
     sessionId: 's1',
@@ -51,6 +58,8 @@ void main() {
     valueMin: valueMin,
     valueMax: valueMax,
     completedAt: completedAt,
+    equipmentId: equipmentId,
+    overdueServices: overdueServices,
     createdAt: now,
     updatedAt: now,
   );
@@ -66,10 +75,12 @@ void main() {
     VoidCallback? onEditValue,
     VoidCallback? onAddNote,
     VoidCallback? onReset,
+    List<dynamic> overrides = const [],
   }) async {
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
+        overrides: overrides,
         child: SessionItemTile(
           session: s,
           sortedItems: items ?? [it],
@@ -206,6 +217,169 @@ void main() {
       expect(find.text('Needle jumpy'), findsOneWidget);
       expect(find.text('Should read 200 bar'), findsOneWidget);
     });
+  });
+
+  group('overdue service warning', () {
+    final overdueStatus = ServiceClockStatus(
+      schedule: ServiceSchedule(
+        id: 'sched1',
+        equipmentId: 'g1',
+        serviceKindId: 'vip',
+        createdAt: now,
+        updatedAt: now,
+      ),
+      kind: ServiceKind(
+        id: 'vip',
+        name: 'Visual inspection',
+        applicableTypes: const [],
+        createdAt: now,
+        updatedAt: now,
+      ),
+      anchor: now,
+      dueDate: DateTime(2020, 1, 1),
+      severity: ServiceClockSeverity.overdue,
+      now: DateTime(2026, 1, 1),
+    );
+
+    testWidgets(
+      'pending item with overdue equipment shows a live warning, not a '
+      'resolved state',
+      (tester) async {
+        await pumpTile(
+          tester,
+          s: session(),
+          it: item(equipmentId: 'g1'),
+          overrides: [
+            serviceClockStatusesProvider(
+              'g1',
+            ).overrideWith((ref) async => [overdueStatus]),
+          ],
+        );
+        expect(find.text('Service overdue'), findsOneWidget);
+        expect(find.textContaining('Visual inspection'), findsOneWidget);
+        // Still pending: the warning is informative only, not a done state.
+        expect(find.byIcon(Icons.radio_button_unchecked), findsOneWidget);
+        expect(find.byIcon(Icons.flag), findsNothing);
+      },
+    );
+
+    testWidgets('pending item with no overdue clocks shows nothing extra', (
+      tester,
+    ) async {
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(equipmentId: 'g1'),
+        overrides: [
+          serviceClockStatusesProvider('g1').overrideWith((ref) async => []),
+        ],
+      );
+      expect(find.text('Service overdue'), findsNothing);
+    });
+
+    testWidgets(
+      'resolved item shows its frozen overdue snapshot without touching the '
+      "equipment provider (a later service log entry can't rewrite it)",
+      (tester) async {
+        await pumpTile(
+          tester,
+          s: session(),
+          it: item(
+            state: PreDiveItemState.done,
+            completedAt: now,
+            equipmentId: 'g1',
+            overdueServices: const [
+              OverdueServiceEntry(
+                kindName: 'Hydrostatic test',
+                divesRemaining: -3,
+              ),
+            ],
+          ),
+          // No serviceClockStatusesProvider override: a resolved item must
+          // never watch it, so this would fail with a missing-provider error
+          // if the live path were used by mistake.
+        );
+        expect(find.text('Service overdue'), findsOneWidget);
+        expect(find.textContaining('Hydrostatic test'), findsOneWidget);
+      },
+    );
+
+    testWidgets('resolved item with an empty frozen list shows nothing extra', (
+      tester,
+    ) async {
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(
+          state: PreDiveItemState.done,
+          completedAt: now,
+          equipmentId: 'g1',
+          overdueServices: const [],
+        ),
+      );
+      expect(find.text('Service overdue'), findsNothing);
+    });
+
+    testWidgets(
+      'a frozen entry is worded against completedAt, not the wall clock: a '
+      'dueDate that was still in the future at freeze time keeps reading '
+      '"Due", however long ago the item was resolved',
+      (tester) async {
+        // The entry was frozen because its dives trigger was overdue, while
+        // its date trigger was not yet due. Reading it against DateTime.now()
+        // would silently reword the snapshot to "Overdue since" once real
+        // time passed dueDate, even though nothing stored changed.
+        await pumpTile(
+          tester,
+          s: session(),
+          it: item(
+            state: PreDiveItemState.done,
+            completedAt: now, // 2023-11-14
+            equipmentId: 'g1',
+            overdueServices: [
+              OverdueServiceEntry(
+                kindName: 'Hydrostatic test',
+                dueDate: DateTime(2024, 6), // after completedAt, before today
+                divesSinceAnchor: 53,
+                divesRemaining: -3,
+              ),
+            ],
+          ),
+        );
+
+        expect(find.text('Service overdue'), findsOneWidget);
+        expect(find.textContaining('Hydrostatic test: Due '), findsOneWidget);
+        expect(find.textContaining('Overdue since'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a pending item is still worded against the wall clock, so a dueDate '
+      'already in the past reads "Overdue since"',
+      (tester) async {
+        await pumpTile(
+          tester,
+          s: session(),
+          it: item(equipmentId: 'g1'),
+          overrides: [
+            serviceClockStatusesProvider('g1').overrideWith(
+              (ref) async => [
+                ServiceClockStatus(
+                  schedule: overdueStatus.schedule,
+                  kind: overdueStatus.kind,
+                  anchor: now,
+                  dueDate: DateTime(2024, 6),
+                  severity: ServiceClockSeverity.overdue,
+                  now: DateTime(2026, 1, 1),
+                ),
+              ],
+            ),
+          ],
+        );
+
+        expect(find.textContaining('Overdue since'), findsOneWidget);
+      },
+    );
   });
 
   group('tap target', () {

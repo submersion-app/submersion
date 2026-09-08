@@ -65,9 +65,8 @@ void main() {
       }
 
       if (expected.containsKey('ceiling_m')) {
-        final depth = (c['segments'] as List).last['avg_depth_m'] as num;
         expect(
-          algo.calculateCeiling(currentDepth: depth.toDouble()),
+          algo.calculateCeiling(),
           closeTo((expected['ceiling_m'] as num).toDouble(), 0.5),
           reason: '${c['name']} ceiling',
         );

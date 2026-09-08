@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
@@ -10,6 +9,8 @@ import 'package:submersion/features/dive_computer/presentation/widgets/pin_code_
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Widget for the download step of the discovery wizard.
 class DownloadStepWidget extends ConsumerStatefulWidget {
@@ -336,7 +337,9 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
   Widget _buildCutoffPrompt(BuildContext context) {
     final theme = Theme.of(context);
     final cutoff = _cutoff!;
-    final dateLabel = DateFormat.yMMMd().format(cutoff);
+    final dateLabel = UnitFormatter(
+      ref.watch(settingsProvider),
+    ).formatDate(cutoff);
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -595,11 +598,10 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    final date = dive.startTime;
-    final dateStr =
-        '${date.month}/${date.day}/${date.year} '
-        '${date.hour.toString().padLeft(2, '0')}:'
-        '${date.minute.toString().padLeft(2, '0')}';
+    // #1512: hand-rolled M/D/YYYY with a 24-hour clock ignored both the date
+    // and the time preference.
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    final dateStr = units.formatDateTimeBullet(dive.startTime);
     final durationMin = dive.durationSeconds ~/ 60;
 
     // Build detail chips

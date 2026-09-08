@@ -25,8 +25,18 @@ class GmrtSource implements BathymetrySource {
   @override
   bool get global => true;
 
+  /// GMRT's global tiles run to roughly 60 m where ship multibeam exists.
+  /// A NOMINAL figure: elsewhere the same grid spacing carries upsampled
+  /// GEBCO. The resolver's preemption factor exists so this number cannot
+  /// demote a genuinely surveyed regional source on a claim alone.
+  static const double declaredCellSizeMeters = 60;
+
   @override
-  bool covers(GeoPoint center) => true;
+  Future<SourceCapability?> probe(GeoPoint center) async =>
+      const SourceCapability(
+        cellSizeMeters: declaredCellSizeMeters,
+        detail: 'GMRT GridServer',
+      );
 
   @override
   Future<BathymetryGrid> fetch(

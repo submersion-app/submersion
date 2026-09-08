@@ -253,6 +253,45 @@ add(
 )
 
 
+# Drysuit layers. Both hang off the same wardrobe idea as the suits above but
+# must never be mistaken for them at 20px, so each carries a shape the suits
+# do not: the undersuit its quilting, the base layer its short body and
+# straight sleeves.
+add(
+    "undersuit",
+    "Undersuit",
+    "The suit silhouette again, quilted: a drysuit undersuit is worn inside one.",
+    g(
+        WETSUIT_BODY,
+        rrect(7.6, 5.8, 8.8, 1.2, 0.6, solid=False),  # quilting seam
+        rrect(7.6, 8.6, 8.8, 1.2, 0.6, solid=False),
+        rrect(7.6, 11.4, 8.8, 1.2, 0.6, solid=False),
+    ),
+)
+
+add(
+    "baselayer",
+    "Base layer",
+    "Long-sleeved thermal top: a garment, not a suit, so it stops at the hips.",
+    poly(
+        [
+            (8.4, 4.2),                                # left shoulder
+            (10.3, 4.2),
+            (12.0, 6.3),                               # crew neck
+            (13.7, 4.2),
+            (15.6, 4.2),                               # right shoulder
+            (21.2, 6.6),                               # right sleeve, top
+            (21.2, 11.4),                              # right cuff
+            (16.6, 9.8),                               # right armpit
+            (16.6, 20.2),                              # right hem
+            (7.4, 20.2),                               # left hem
+            (7.4, 9.8),                                # left armpit
+            (2.8, 11.4),                               # left cuff
+            (2.8, 6.6),                                # left sleeve, top
+        ]
+    ),
+)
+
 # Private Use Area code points, assigned in declaration order and never
 # renumbered: they are baked into the committed font and into
 # lib/core/icons/submersion_icons.dart.

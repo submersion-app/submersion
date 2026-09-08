@@ -17,6 +17,18 @@ import 'dart:io';
 /// exactly, while glyph positioning is ignored.
 String pdfVisibleText(List<int> bytes) => pdfTextTokens(bytes).join(' ');
 
+/// Number of pages in the generated PDF.
+///
+/// Counts `/Type /Page` object headers, ignoring the single `/Type /Pages`
+/// tree node. Lets a test assert on pagination (one dive per page, a
+/// certification list that spills onto a second sheet) rather than only on
+/// the text that came back.
+int pdfPageCount(List<int> bytes) =>
+    _pageObject.allMatches(latin1.decode(bytes, allowInvalid: true)).length;
+
+/// `/Type /Page` not followed by an `s`, so `/Type /Pages` does not match.
+final _pageObject = RegExp(r'/Type\s*/Page(?![s\w])');
+
 /// The individual text tokens of [bytes], in document order.
 List<String> pdfTextTokens(List<int> bytes) {
   final tokens = <String>[];

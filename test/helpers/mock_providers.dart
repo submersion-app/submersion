@@ -19,6 +19,7 @@ import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -28,6 +29,8 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.da
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
@@ -451,6 +454,23 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> resetDiveDetailSections() async =>
       state = state.copyWith(clearDiveDetailSections: true);
   @override
+  Future<void> setDiveDetailLayout(DiveDetailLayout layout) async =>
+      state = state.copyWith(diveDetailLayout: layout);
+
+  @override
+  Future<void> setDiveDetailSectionExpanded(
+    DiveDetailSectionId id,
+    bool expanded,
+  ) async {
+    state = state.copyWith(
+      diveDetailSections: [
+        for (final section in state.diveDetailSections)
+          section.id == id ? section.copyWith(expanded: expanded) : section,
+      ],
+    );
+  }
+
+  @override
   Future<void> setShowDataSourceBadges(bool value) async =>
       state = state.copyWith(showDataSourceBadges: value);
   @override
@@ -559,6 +579,7 @@ Future<List<Override>> getBaseOverrides({
   http.Client? weatherHttpClient,
   PreDiveSession? linkedPreDiveSession,
   Map<int, TripDayWeather>? tripDayWeather,
+  List<TankPresetEntity>? tankPresets,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -597,5 +618,9 @@ Future<List<Override>> getBaseOverrides({
       (ref, tripId) async => tripDayWeather ?? const {},
     ),
     tripDayWeatherBackfillProvider.overrideWith((ref, tripId) async {}),
+    // The trimix mixer's cylinder dropdown reads the diver's global tank
+    // presets (issue #1335 follow-up); without this it reaches the real
+    // repository and a database widget tests do not have.
+    tankPresetsProvider.overrideWith((ref) async => tankPresets ?? const []),
   ];
 }

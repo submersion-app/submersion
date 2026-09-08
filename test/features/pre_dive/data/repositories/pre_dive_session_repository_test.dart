@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart'
@@ -134,6 +135,49 @@ void main() {
     expect(reread[1].valueNumber, 7.9);
     expect(reread[1].note, 'cell 2 sluggish');
   });
+
+  test('updateItemState freezes the overdue-services snapshot when leaving '
+      'pending, and clears it back to null on reset', () async {
+    final session = await start();
+    final items = await repository.getItemsForSession(session.id);
+    const entries = [
+      OverdueServiceEntry(kindName: 'Visual inspection', divesRemaining: -2),
+    ];
+    await repository.updateItemState(
+      sessionId: session.id,
+      itemId: items[0].id,
+      state: domain.PreDiveItemState.done,
+      overdueServices: entries,
+    );
+    var reread = await repository.getItemsForSession(session.id);
+    expect(reread[0].overdueServices, entries);
+
+    await repository.updateItemState(
+      sessionId: session.id,
+      itemId: items[0].id,
+      state: domain.PreDiveItemState.pending,
+      overdueServices: entries,
+    );
+    reread = await repository.getItemsForSession(session.id);
+    // Reset always clears the frozen snapshot, even if a caller (wrongly)
+    // passes a non-null value along with the pending transition.
+    expect(reread[0].overdueServices, isNull);
+  });
+
+  test(
+    'updateItemState with no overdueServices passed leaves it null',
+    () async {
+      final session = await start();
+      final items = await repository.getItemsForSession(session.id);
+      await repository.updateItemState(
+        sessionId: session.id,
+        itemId: items[0].id,
+        state: domain.PreDiveItemState.done,
+      );
+      final reread = await repository.getItemsForSession(session.id);
+      expect(reread[0].overdueServices, isNull);
+    },
+  );
 
   test('completed sessions are immutable', () async {
     final session = await start();

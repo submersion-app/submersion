@@ -191,9 +191,101 @@
       "country": "NL",
       "city": "Amsterdam",
       "phone": "+31-20-566-4500",
-      "capability": "hyperbaric_unit",
-      "availability": "unknown",
-      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.amsterdamumc.nl/nl/hyperbare-geneeskunde/home"}
+      "emergencyPhone": "+31-20-566-9111",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://www.amsterdamumc.nl/nl/hyperbare-geneeskunde/over"}
+    },
+    {
+      "id": "nl-goes",
+      "name": "Adrz Medisch Centrum Hyperbare Zuurstoftherapie",
+      "country": "NL",
+      "city": "Goes",
+      "phone": "+31-88-125-4290",
+      "emergencyPhone": "+31-88-125-0000",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://www.hyperbaarcentrum.nl/"}
+    },
+    {
+      "id": "nl-sneek",
+      "name": "Antonius Hypercare Hyperbaar Centrum",
+      "country": "NL",
+      "city": "Sneek",
+      "phone": "+31-515-48-80-77",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://hypercare.nl/contact/"}
+    },
+    {
+      "id": "nl-denhelder",
+      "name": "Duikmedisch Centrum Koninklijke Marine (24/7 duikerarts)",
+      "country": "NL",
+      "city": "Den Helder",
+      "phone": "+31-88-950-1417",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://www.defensie.nl/organisatie/marine/eenheden/duikmedisch-centrum"}
+    },
+    {
+      "id": "nl-rijswijk",
+      "name": "Hyperbaar Geneeskundig Centrum Rijswijk",
+      "country": "NL",
+      "city": "Rijswijk",
+      "phone": "+31-70-406-3195",
+      "capability": "elective",
+      "availability": "business_hours",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://hgcrijswijk.nl/"}
+    },
+    {
+      "id": "nl-amersfoort",
+      "name": "Eurocept Clinics Amersfoort",
+      "country": "NL",
+      "city": "Amersfoort",
+      "phone": "+31-33-202-0300",
+      "capability": "elective",
+      "availability": "business_hours",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://eurocept-clinics.nl/contact/"}
+    },
+    {
+      "id": "nl-geldrop",
+      "name": "Eurocept Clinics Geldrop",
+      "country": "NL",
+      "city": "Geldrop",
+      "phone": "+31-40-218-0530",
+      "capability": "elective",
+      "availability": "business_hours",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://eurocept-clinics.nl/contact/"}
+    },
+    {
+      "id": "nl-hoogeveen",
+      "name": "Eurocept Clinics Hoogeveen",
+      "country": "NL",
+      "city": "Hoogeveen",
+      "phone": "+31-528-233-343",
+      "capability": "elective",
+      "availability": "business_hours",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://eurocept-clinics.nl/contact/"}
+    },
+    {
+      "id": "nl-rotterdam",
+      "name": "Eurocept Clinics Rotterdam",
+      "country": "NL",
+      "city": "Rotterdam",
+      "phone": "+31-10-279-4444",
+      "capability": "elective",
+      "availability": "business_hours",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://eurocept-clinics.nl/contact/"}
+    },
+    {
+      "id": "nl-waalwijk",
+      "name": "Eurocept Clinics Waalwijk",
+      "country": "NL",
+      "city": "Waalwijk",
+      "phone": "+31-416-347-500",
+      "capability": "elective",
+      "availability": "business_hours",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://eurocept-clinics.nl/contact/"}
     },
     {
       "id": "be-brussels",
@@ -201,9 +293,63 @@
       "country": "BE",
       "city": "Brussels",
       "phone": "+32-2-443-2183",
-      "capability": "hyperbaric_unit",
-      "availability": "unknown",
-      "verified": {"date": "2026-08-26", "via": "facility", "url": "https://www.hopitalmilitaire.be/consultatiediensten_fr.php"}
+      "emergencyPhone": "+32-2-443-2175",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://www.hopitalmilitaire.be/consultatiediensten_fr.php"}
+    },
+    {
+      "id": "be-aalst",
+      "name": "OLV Ziekenhuis Aalst Hyperbaar Zuurstofcentrum",
+      "country": "BE",
+      "city": "Aalst",
+      "phone": "+32-53-72-43-48",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://www.azorg.be/nl/urgentiegeneeskunde-spoed"}
+    },
+    {
+      "id": "be-antwerpen",
+      "name": "UZ Antwerpen Hyperbare Zuurstoftherapie",
+      "country": "BE",
+      "city": "Edegem (Antwerpen)",
+      "phone": "+32-3-821-30-55",
+      "emergencyPhone": "+32-3-821-46-07",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://www.uza.be/nl/zorgaanbod/hyperbare-zuurstoftherapie"}
+    },
+    {
+      "id": "be-brugge",
+      "name": "AZ Sint-Jan Brugge Centrum voor Hyperbare Zuurstoftherapie",
+      "country": "BE",
+      "city": "Brugge",
+      "phone": "+32-50-45-20-00",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://www.azsintjan.be/diensten/spoedopname/hyperbare-zuurstoftherapie"}
+    },
+    {
+      "id": "be-genk",
+      "name": "Ziekenhuis Oost-Limburg Hyperbaar Zuurstofcentrum",
+      "country": "BE",
+      "city": "Genk",
+      "phone": "+32-89-80-80-80",
+      "emergencyPhone": "+32-89-80-81-00",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://www.zol.be/publicaties/zolarium/zolarium-2026-98/hyperbaar-zuurstofcentrum-viert-twintigjarig-jubileum"}
+    },
+    {
+      "id": "lu-esch",
+      "name": "Centre Hospitalier Emile Mayrisch Service national d'Oxygenotherapie Hyperbare",
+      "country": "LU",
+      "city": "Esch-sur-Alzette",
+      "phone": "+352-5711-1",
+      "emergencyPhone": "+352-5711-99300",
+      "capability": "diving_emergency",
+      "availability": "h24",
+      "verified": {"date": "2026-09-04", "via": "facility", "url": "https://www.chem.lu/specialites-et-services-de-support/service-national-d-oxygenotherapie-hyperbare-esch"}
     },
     {
       "id": "at-graz",

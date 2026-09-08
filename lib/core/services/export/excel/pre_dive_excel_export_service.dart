@@ -226,6 +226,7 @@ class PreDiveExcelExportService {
     PreDiveItemType.check => 'Check',
     PreDiveItemType.value => 'Value',
     PreDiveItemType.equipmentSet => 'Equipment',
+    PreDiveItemType.equipment => 'Equipment',
   };
 
   xl.CellValue _toCellValue(dynamic value) {

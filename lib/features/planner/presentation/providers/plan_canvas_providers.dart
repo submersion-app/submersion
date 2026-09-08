@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
@@ -142,12 +143,14 @@ PlanCanvasSeries buildCanvasSeries({
 
   final profile = <CanvasPoint>[];
   var t = 0.0;
-  for (final segment in sorted) {
-    if (profile.isEmpty || profile.last.depth != segment.startDepth) {
-      profile.add(CanvasPoint(t, segment.startDepth));
-    }
-    t += segment.durationSeconds;
-    profile.add(CanvasPoint(t, segment.endDepth));
+  // Legs are contiguous by construction now, so the old guard against a
+  // depth discontinuity (which used to emit an extra point for a jump the
+  // engine integrated as an instant depth change) has nothing to catch: only
+  // the very first leg needs its start boundary.
+  for (final leg in const SegmentChain().resolve(sorted)) {
+    if (profile.isEmpty) profile.add(CanvasPoint(t, leg.startDepth));
+    t += leg.durationSeconds;
+    profile.add(CanvasPoint(t, leg.endDepth));
   }
 
   // Computed ascent tail: travel to each stop, hold, then surface.

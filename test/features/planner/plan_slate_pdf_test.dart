@@ -43,7 +43,7 @@ final _labels = PlanSlateLabels(
   lostGasLabel: (gas) => 'Lost $gas',
   rangeTable: 'Range table',
   bailout: 'Bailout',
-  stop: 'Stop',
+  duration: 'Duration',
   depth: 'Depth',
   runtime: 'RT',
   gas: 'Gas',
@@ -61,14 +61,16 @@ domain.DivePlan _plan({domain.PlanMode mode = domain.PlanMode.oc}) {
     mode: mode,
     turnPressureRule: domain.TurnPressureRule.thirds,
     segments: [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'seg-1',
+        fromDepth: 0,
         targetDepth: 45.0,
         tankId: 'tank-1',
         gasMix: _air,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'seg-2',
         depth: 45.0,
         durationMinutes: 25,

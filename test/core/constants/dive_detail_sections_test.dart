@@ -11,11 +11,11 @@ void main() {
     // compiler only partly checks, so this failing is the prompt to also
     // update defaultSections and the ARB keys for the localized switches.
     test('section count changes are intentional', () {
-      expect(DiveDetailSectionId.values.length, 21);
+      expect(DiveDetailSectionId.values.length, 23);
     });
 
     test('values match expected IDs', () {
-      expect(DiveDetailSectionId.values.first, DiveDetailSectionId.decoO2);
+      expect(DiveDetailSectionId.values.first, DiveDetailSectionId.profile);
       expect(DiveDetailSectionId.values.last, DiveDetailSectionId.dataSources);
     });
   });
@@ -23,10 +23,10 @@ void main() {
   group('DiveDetailSectionConfig', () {
     test('constructs with required fields', () {
       const config = DiveDetailSectionConfig(
-        id: DiveDetailSectionId.decoO2,
+        id: DiveDetailSectionId.decoStatus,
         visible: true,
       );
-      expect(config.id, DiveDetailSectionId.decoO2);
+      expect(config.id, DiveDetailSectionId.decoStatus);
       expect(config.visible, true);
     });
 
@@ -71,7 +71,10 @@ void main() {
   group('DiveDetailSectionConfig list serialization', () {
     test('sectionsToJson produces valid JSON string', () {
       const sections = [
-        DiveDetailSectionConfig(id: DiveDetailSectionId.decoO2, visible: true),
+        DiveDetailSectionConfig(
+          id: DiveDetailSectionId.decoStatus,
+          visible: true,
+        ),
         DiveDetailSectionConfig(
           id: DiveDetailSectionId.details,
           visible: false,
@@ -80,32 +83,55 @@ void main() {
       final jsonStr = DiveDetailSectionConfig.sectionsToJson(sections);
       final decoded = jsonDecode(jsonStr) as List;
       expect(decoded.length, 2);
-      expect(decoded[0]['id'], 'decoO2');
+      expect(decoded[0]['id'], 'decoStatus');
       expect(decoded[1]['visible'], false);
     });
 
     test('sectionsFromJson parses and ensures all sections', () {
       const jsonStr =
-          '[{"id":"decoO2","visible":true},{"id":"details","visible":false}]';
+          '[{"id":"decoStatus","visible":true},{"id":"details","visible":false}]';
       final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
-      // saved entries first, the rest appended
       expect(sections.length, DiveDetailSectionId.values.length);
-      expect(sections[0].id, DiveDetailSectionId.decoO2);
-      expect(sections[0].visible, true);
-      expect(sections[1].id, DiveDetailSectionId.details);
-      expect(sections[1].visible, false);
-      // Missing sections appended as visible
-      expect(sections.sublist(2).every((s) => s.visible), true);
+      // Saved entries keep their relative order and their visibility.
+      final ids = sections.map((s) => s.id).toList();
+      expect(
+        ids.indexOf(DiveDetailSectionId.decoStatus),
+        lessThan(ids.indexOf(DiveDetailSectionId.details)),
+      );
+      expect(
+        sections
+            .firstWhere((s) => s.id == DiveDetailSectionId.decoStatus)
+            .visible,
+        true,
+      );
+      expect(
+        sections.firstWhere((s) => s.id == DiveDetailSectionId.details).visible,
+        false,
+      );
+      // Everything the saved config never named comes back visible.
+      expect(
+        sections
+            .where(
+              (s) =>
+                  s.id != DiveDetailSectionId.decoStatus &&
+                  s.id != DiveDetailSectionId.details,
+            )
+            .every((s) => s.visible),
+        true,
+      );
     });
 
     test('sectionsFromJson skips unknown IDs and ensures all sections', () {
       const jsonStr =
-          '[{"id":"decoO2","visible":true},{"id":"unknown","visible":true},{"id":"details","visible":false}]';
+          '[{"id":"decoStatus","visible":true},{"id":"unknown","visible":true},{"id":"details","visible":false}]';
       final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
-      // unknown ids skipped, the rest appended
+      // unknown ids skipped, the rest filled in
       expect(sections.length, DiveDetailSectionId.values.length);
-      expect(sections[0].id, DiveDetailSectionId.decoO2);
-      expect(sections[1].id, DiveDetailSectionId.details);
+      final ids = sections.map((s) => s.id).toList();
+      expect(
+        ids.indexOf(DiveDetailSectionId.decoStatus),
+        lessThan(ids.indexOf(DiveDetailSectionId.details)),
+      );
     });
 
     test('sectionsFromJson returns defaults for null input', () {
@@ -155,9 +181,12 @@ void main() {
   });
 
   group('ensureAllSections', () {
-    test('appends missing sections from a saved config', () {
+    test('fills in missing sections, keeping the saved ones in order', () {
       const saved = [
-        DiveDetailSectionConfig(id: DiveDetailSectionId.decoO2, visible: true),
+        DiveDetailSectionConfig(
+          id: DiveDetailSectionId.decoStatus,
+          visible: true,
+        ),
         DiveDetailSectionConfig(
           id: DiveDetailSectionId.details,
           visible: false,
@@ -165,11 +194,57 @@ void main() {
       ];
       final result = DiveDetailSectionConfig.ensureAllSections(saved);
       expect(result.length, DiveDetailSectionId.values.length);
-      expect(result[0].id, DiveDetailSectionId.decoO2);
-      expect(result[0].visible, true);
-      expect(result[1].id, DiveDetailSectionId.details);
-      expect(result[1].visible, false);
-      expect(result.sublist(2).every((s) => s.visible), true);
+      final ids = result.map((s) => s.id).toList();
+      expect(
+        ids.indexOf(DiveDetailSectionId.decoStatus),
+        lessThan(ids.indexOf(DiveDetailSectionId.details)),
+      );
+      expect(
+        result.firstWhere((s) => s.id == DiveDetailSectionId.details).visible,
+        false,
+      );
+      expect(
+        result
+            .where((s) => s.id != DiveDetailSectionId.details)
+            .every((s) => s.visible),
+        true,
+      );
+    });
+
+    test('lands a missing section where the default order puts it', () {
+      // A config saved before the profile chart became configurable. Appended,
+      // the chart would come out below the Data Sources card; it belongs at
+      // the top, where the default order has it.
+      const saved = [
+        DiveDetailSectionConfig(
+          id: DiveDetailSectionId.decoStatus,
+          visible: true,
+        ),
+        DiveDetailSectionConfig(id: DiveDetailSectionId.notes, visible: true),
+      ];
+      final result = DiveDetailSectionConfig.ensureAllSections(saved);
+      expect(result.first.id, DiveDetailSectionId.profile);
+      final ids = result.map((s) => s.id).toList();
+      // Tissue Loading follows Deco Status, as it does by default.
+      expect(
+        ids.indexOf(DiveDetailSectionId.tissueLoading),
+        ids.indexOf(DiveDetailSectionId.decoStatus) + 1,
+      );
+    });
+
+    test('keeps a missing section behind a reordered predecessor', () {
+      // Notes was dragged to the top; Custom Fields, which the saved config
+      // never named, follows it rather than jumping to the default position.
+      const saved = [
+        DiveDetailSectionConfig(id: DiveDetailSectionId.notes, visible: true),
+        DiveDetailSectionConfig(id: DiveDetailSectionId.details, visible: true),
+      ];
+      final result = DiveDetailSectionConfig.ensureAllSections(saved);
+      final ids = result.map((s) => s.id).toList();
+      expect(
+        ids.indexOf(DiveDetailSectionId.customFields),
+        ids.indexOf(DiveDetailSectionId.notes) + 1,
+      );
     });
 
     test('returns saved config unchanged when all sections present', () {
@@ -202,7 +277,7 @@ void main() {
 
     test('fromJson with visible explicitly set to false', () {
       final config = DiveDetailSectionConfig.fromJson({
-        'id': 'decoO2',
+        'id': 'decoStatus',
         'visible': false,
       });
       expect(config.visible, false);
@@ -268,21 +343,28 @@ void main() {
           ),
           DiveDetailSectionConfig(id: DiveDetailSectionId.notes, visible: true),
           DiveDetailSectionConfig(
-            id: DiveDetailSectionId.decoO2,
+            id: DiveDetailSectionId.decoStatus,
             visible: true,
           ),
         ];
         final json = DiveDetailSectionConfig.sectionsToJson(original);
         final restored = DiveDetailSectionConfig.sectionsFromJson(json);
-        // saved entries keep their order, the rest appended
+        // saved entries keep their relative order, the rest fill in around
+        // them at their default positions
         expect(restored.length, DiveDetailSectionId.values.length);
-        // First 3 preserve original order and visibility
-        expect(restored[0].id, DiveDetailSectionId.tanks);
-        expect(restored[0].visible, false);
-        expect(restored[1].id, DiveDetailSectionId.notes);
-        expect(restored[1].visible, true);
-        expect(restored[2].id, DiveDetailSectionId.decoO2);
-        expect(restored[2].visible, true);
+        final ids = restored.map((s) => s.id).toList();
+        expect(
+          ids.indexOf(DiveDetailSectionId.tanks),
+          lessThan(ids.indexOf(DiveDetailSectionId.notes)),
+        );
+        expect(
+          ids.indexOf(DiveDetailSectionId.notes),
+          lessThan(ids.indexOf(DiveDetailSectionId.decoStatus)),
+        );
+        expect(
+          restored.firstWhere((s) => s.id == DiveDetailSectionId.tanks).visible,
+          false,
+        );
       },
     );
 
@@ -356,13 +438,17 @@ void main() {
     test(
       'preserves valid entries in JSON list with mixed valid/invalid types',
       () {
-        const jsonStr = '[{"id":"decoO2","visible":true}, "not a map", 42]';
+        const jsonStr = '[{"id":"decoStatus","visible":true}, "not a map", 42]';
         final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
-        // Non-Map items are skipped; valid decoO2 is preserved; missing sections
-        // are appended by ensureAllSections.
+        // Non-Map items are skipped; the valid decoStatus entry is kept and
+        // ensureAllSections fills in the rest.
         expect(sections.length, DiveDetailSectionId.values.length);
-        expect(sections.first.id, DiveDetailSectionId.decoO2);
-        expect(sections.first.visible, true);
+        expect(
+          sections
+              .firstWhere((s) => s.id == DiveDetailSectionId.decoStatus)
+              .visible,
+          true,
+        );
       },
     );
   });
@@ -392,10 +478,9 @@ void main() {
     });
 
     test('displayName values are correct for each section', () {
-      expect(
-        DiveDetailSectionId.decoO2.displayName,
-        'Deco Status / Tissue Loading',
-      );
+      expect(DiveDetailSectionId.profile.displayName, 'Dive Profile');
+      expect(DiveDetailSectionId.decoStatus.displayName, 'Deco Status');
+      expect(DiveDetailSectionId.tissueLoading.displayName, 'Tissue Loading');
       expect(
         DiveDetailSectionId.sacSegments.displayName,
         'Gas consumption by segment',
@@ -419,8 +504,12 @@ void main() {
 
     test('description values are correct for each section', () {
       expect(
-        DiveDetailSectionId.decoO2.description,
-        'NDL, ceiling, tissue heat map, O2 toxicity',
+        DiveDetailSectionId.decoStatus.description,
+        'NDL, ceiling, stops, O2 toxicity',
+      );
+      expect(
+        DiveDetailSectionId.tissueLoading.description,
+        'Per-compartment saturation and heat map',
       );
       expect(
         DiveDetailSectionId.sacSegments.description,
@@ -517,8 +606,16 @@ void main() {
 
     test('localizedDisplayName values are correct for each section', () {
       expect(
-        DiveDetailSectionId.decoO2.localizedDisplayName(l10n),
-        'Deco Status / Tissue Loading',
+        DiveDetailSectionId.profile.localizedDisplayName(l10n),
+        'Dive Profile',
+      );
+      expect(
+        DiveDetailSectionId.decoStatus.localizedDisplayName(l10n),
+        'Deco Status',
+      );
+      expect(
+        DiveDetailSectionId.tissueLoading.localizedDisplayName(l10n),
+        'Tissue Loading',
       );
       expect(
         DiveDetailSectionId.sacSegments.localizedDisplayName(l10n),
@@ -564,8 +661,8 @@ void main() {
 
     test('localizedDescription values are correct for each section', () {
       expect(
-        DiveDetailSectionId.decoO2.localizedDescription(l10n),
-        'NDL, ceiling, tissue heat map, O2 toxicity',
+        DiveDetailSectionId.decoStatus.localizedDescription(l10n),
+        'NDL, ceiling, stops, O2 toxicity',
       );
       expect(
         DiveDetailSectionId.sacSegments.localizedDescription(l10n),
@@ -669,7 +766,10 @@ void main() {
 
     test('ensureAllSections appends reefHealth to a legacy config', () {
       const legacy = [
-        DiveDetailSectionConfig(id: DiveDetailSectionId.decoO2, visible: true),
+        DiveDetailSectionConfig(
+          id: DiveDetailSectionId.decoStatus,
+          visible: true,
+        ),
         DiveDetailSectionConfig(id: DiveDetailSectionId.tide, visible: true),
       ];
       final result = DiveDetailSectionConfig.ensureAllSections(legacy);
@@ -692,7 +792,10 @@ void main() {
 
     test('ensureAllSections appends buoyancy to a legacy config', () {
       const legacy = [
-        DiveDetailSectionConfig(id: DiveDetailSectionId.decoO2, visible: true),
+        DiveDetailSectionConfig(
+          id: DiveDetailSectionId.decoStatus,
+          visible: true,
+        ),
         DiveDetailSectionConfig(id: DiveDetailSectionId.tanks, visible: true),
       ];
       final result = DiveDetailSectionConfig.ensureAllSections(legacy);
@@ -715,15 +818,20 @@ void main() {
   });
 
   group('hiddenInGaugeMode', () {
-    test('gauge hides deco, SAC segments, and cylinders sections only', () {
+    test('gauge hides deco, tissue, SAC segments, and cylinders only', () {
       final hidden = DiveDetailSectionId.values
           .where((s) => s.hiddenInGaugeMode)
           .toSet();
       expect(hidden, {
-        DiveDetailSectionId.decoO2,
+        DiveDetailSectionId.decoStatus,
+        DiveDetailSectionId.tissueLoading,
         DiveDetailSectionId.sacSegments,
         DiveDetailSectionId.tanks,
       });
+    });
+
+    test('the profile chart stays -- depth over time is what a gauge logs', () {
+      expect(DiveDetailSectionId.profile.hiddenInGaugeMode, isFalse);
     });
 
     test('sections a gauge diver still wants remain visible', () {
@@ -731,6 +839,316 @@ void main() {
       expect(DiveDetailSectionId.weights.hiddenInGaugeMode, isFalse);
       expect(DiveDetailSectionId.equipment.hiddenInGaugeMode, isFalse);
       expect(DiveDetailSectionId.notes.hiddenInGaugeMode, isFalse);
+    });
+  });
+
+  // The deco/tissue panel used to be one section, `decoO2`. Orders saved
+  // before the split still name it, and a diver who had hidden the panel must
+  // not find both halves switched back on.
+  group('legacy decoO2 configs', () {
+    test('expands into Deco Status and Tissue Loading, in that order', () {
+      const jsonStr = '[{"id":"decoO2","visible":true}]';
+      final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
+      final ids = sections.map((s) => s.id).toList();
+      expect(
+        ids.indexOf(DiveDetailSectionId.tissueLoading),
+        ids.indexOf(DiveDetailSectionId.decoStatus) + 1,
+      );
+    });
+
+    test('carries the panel\'s visibility to both halves', () {
+      const jsonStr = '[{"id":"decoO2","visible":false}]';
+      final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
+      expect(
+        sections
+            .firstWhere((s) => s.id == DiveDetailSectionId.decoStatus)
+            .visible,
+        isFalse,
+      );
+      expect(
+        sections
+            .firstWhere((s) => s.id == DiveDetailSectionId.tissueLoading)
+            .visible,
+        isFalse,
+      );
+    });
+
+    test('stays adjacent, and stays where the diver dragged the panel', () {
+      // The panel was dragged below Notes and above Cylinders. Both halves
+      // keep that slot -- they do not jump back to the default position --
+      // and they stay next to each other so the pair can still form.
+      const jsonStr =
+          '[{"id":"notes","visible":true},{"id":"decoO2","visible":true},'
+          '{"id":"tanks","visible":true}]';
+      final ids = DiveDetailSectionConfig.sectionsFromJson(
+        jsonStr,
+      ).map((s) => s.id).toList();
+      expect(
+        ids.indexOf(DiveDetailSectionId.tissueLoading),
+        ids.indexOf(DiveDetailSectionId.decoStatus) + 1,
+      );
+      expect(
+        ids.indexOf(DiveDetailSectionId.decoStatus),
+        greaterThan(ids.indexOf(DiveDetailSectionId.notes)),
+      );
+      expect(
+        ids.indexOf(DiveDetailSectionId.tissueLoading),
+        lessThan(ids.indexOf(DiveDetailSectionId.tanks)),
+      );
+    });
+
+    test('a saved order that never knew the profile chart still gets it', () {
+      const jsonStr =
+          '[{"id":"decoO2","visible":true},'
+          '{"id":"details","visible":true}]';
+      final sections = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
+      expect(sections.first.id, DiveDetailSectionId.profile);
+      expect(sections.first.visible, isTrue);
+      expect(sections.length, DiveDetailSectionId.values.length);
+    });
+  });
+
+  group('icons', () {
+    test('every section has its own icon', () {
+      final icons = DiveDetailSectionId.values.map((id) => id.icon).toSet();
+      expect(icons.length, DiveDetailSectionId.values.length);
+    });
+  });
+
+  group('DiveDetailSectionConfig expanded', () {
+    test('defaults to folded', () {
+      const config = DiveDetailSectionConfig(
+        id: DiveDetailSectionId.notes,
+        visible: true,
+      );
+      expect(config.expanded, isFalse);
+      expect(
+        DiveDetailSectionConfig.defaultSections.every((s) => !s.expanded),
+        isTrue,
+      );
+    });
+
+    test('round-trips through JSON', () {
+      const config = DiveDetailSectionConfig(
+        id: DiveDetailSectionId.notes,
+        visible: true,
+        expanded: true,
+      );
+      final restored = DiveDetailSectionConfig.fromJson(config.toJson());
+      expect(restored.expanded, isTrue);
+      expect(restored.id, DiveDetailSectionId.notes);
+      expect(restored.visible, isTrue);
+    });
+
+    // Folded is the default, so writing the flag only when it is set keeps
+    // the stored blob -- and therefore the sync changeset -- unchanged for
+    // divers who never unfold anything.
+    test('toJson omits the flag while folded', () {
+      const config = DiveDetailSectionConfig(
+        id: DiveDetailSectionId.notes,
+        visible: true,
+      );
+      expect(config.toJson().containsKey('expanded'), isFalse);
+      expect(
+        const DiveDetailSectionConfig(
+          id: DiveDetailSectionId.notes,
+          visible: true,
+          expanded: true,
+        ).toJson()['expanded'],
+        isTrue,
+      );
+    });
+
+    test('an entry saved before the flag existed reads back folded', () {
+      final config = DiveDetailSectionConfig.fromJson({
+        'id': 'notes',
+        'visible': true,
+      });
+      expect(config.expanded, isFalse);
+    });
+
+    test('copyWith changes expanded without touching the rest', () {
+      const config = DiveDetailSectionConfig(
+        id: DiveDetailSectionId.tanks,
+        visible: false,
+      );
+      final unfolded = config.copyWith(expanded: true);
+      expect(unfolded.expanded, isTrue);
+      expect(unfolded.visible, isFalse);
+      expect(unfolded.id, DiveDetailSectionId.tanks);
+      expect(config.expanded, isFalse);
+    });
+
+    test('survives a full sectionsToJson/sectionsFromJson round-trip', () {
+      final sections = [
+        for (final section in DiveDetailSectionConfig.defaultSections)
+          section.id == DiveDetailSectionId.notes
+              ? section.copyWith(expanded: true)
+              : section,
+      ];
+      final restored = DiveDetailSectionConfig.sectionsFromJson(
+        DiveDetailSectionConfig.sectionsToJson(sections),
+      );
+      final unfolded = restored
+          .where((s) => s.expanded)
+          .map((s) => s.id)
+          .toList();
+      expect(unfolded, [DiveDetailSectionId.notes]);
+    });
+
+    // The retired combined panel becomes two sections; a diver who had it
+    // unfolded should find both halves unfolded rather than one of each.
+    test('the legacy decoO2 entry carries its fold state to both halves', () {
+      final restored = DiveDetailSectionConfig.sectionsFromJson(
+        jsonEncode([
+          {'id': 'decoO2', 'visible': true, 'expanded': true},
+          {'id': 'notes', 'visible': true},
+        ]),
+      );
+      final byId = {for (final s in restored) s.id: s};
+      expect(byId[DiveDetailSectionId.decoStatus]!.expanded, isTrue);
+      expect(byId[DiveDetailSectionId.tissueLoading]!.expanded, isTrue);
+      expect(byId[DiveDetailSectionId.notes]!.expanded, isFalse);
+    });
+
+    // A section the saved order predates is inserted for the diver, and an
+    // inserted section they have never seen must not open itself.
+    test('ensureAllSections inserts missing sections folded', () {
+      final filled = DiveDetailSectionConfig.ensureAllSections([
+        const DiveDetailSectionConfig(
+          id: DiveDetailSectionId.notes,
+          visible: true,
+          expanded: true,
+        ),
+      ]);
+      final inserted = filled.where((s) => s.id != DiveDetailSectionId.notes);
+      expect(inserted.every((s) => !s.expanded), isTrue);
+      expect(
+        filled.firstWhere((s) => s.id == DiveDetailSectionId.notes).expanded,
+        isTrue,
+      );
+    });
+  });
+
+  group('DiveDetailSectionConfig.moveRenderedSection', () {
+    List<DiveDetailSectionId> ids(List<DiveDetailSectionConfig> sections) =>
+        sections.map((s) => s.id).toList();
+
+    const a = DiveDetailSectionId.profile;
+    const b = DiveDetailSectionId.notes;
+    const c = DiveDetailSectionId.tanks;
+    const hidden = DiveDetailSectionId.media;
+
+    List<DiveDetailSectionConfig> configs(
+      List<DiveDetailSectionId> order, {
+      List<DiveDetailSectionId> invisible = const [],
+    }) => [
+      for (final id in order)
+        DiveDetailSectionConfig(id: id, visible: !invisible.contains(id)),
+    ];
+
+    test('moves a section down', () {
+      final moved = DiveDetailSectionConfig.moveRenderedSection(
+        configs([a, b, c]),
+        [a, b, c],
+        0,
+        2,
+      );
+      expect(ids(moved), [b, c, a]);
+    });
+
+    test('moves a section up', () {
+      final moved = DiveDetailSectionConfig.moveRenderedSection(
+        configs([a, b, c]),
+        [a, b, c],
+        2,
+        0,
+      );
+      expect(ids(moved), [c, a, b]);
+    });
+
+    test('a drop back onto the same index changes nothing', () {
+      final sections = configs([a, b, c]);
+      final moved = DiveDetailSectionConfig.moveRenderedSection(
+        sections,
+        [a, b, c],
+        1,
+        1,
+      );
+      expect(ids(moved), [a, b, c]);
+    });
+
+    // The dive page renders only the sections that are visible and have
+    // content, so a drop index in that subset is not an index into the
+    // saved list.
+    test('a hidden section between two rendered ones keeps its place', () {
+      final moved = DiveDetailSectionConfig.moveRenderedSection(
+        configs([a, hidden, b], invisible: [hidden]),
+        [a, b],
+        0,
+        1,
+      );
+      expect(ids(moved), [hidden, b, a]);
+      expect(moved.firstWhere((s) => s.id == hidden).visible, isFalse);
+    });
+
+    test('a section dropped last still precedes a trailing hidden one', () {
+      final moved = DiveDetailSectionConfig.moveRenderedSection(
+        configs([a, b, hidden], invisible: [hidden]),
+        [a, b],
+        0,
+        1,
+      );
+      expect(ids(moved), [b, a, hidden]);
+    });
+
+    test('moving within a subset leaves the untouched sections alone', () {
+      final moved = DiveDetailSectionConfig.moveRenderedSection(
+        configs([a, b, c, hidden], invisible: [hidden]),
+        [b, c],
+        0,
+        1,
+      );
+      expect(ids(moved), [a, c, b, hidden]);
+    });
+
+    test('every section survives the move', () {
+      const sections = DiveDetailSectionConfig.defaultSections;
+      final rendered = ids(sections);
+      final moved = DiveDetailSectionConfig.moveRenderedSection(
+        sections,
+        rendered,
+        3,
+        0,
+      );
+      expect(moved.length, sections.length);
+      expect(ids(moved).toSet(), rendered.toSet());
+    });
+
+    // Fold state and visibility travel with the section, not its slot.
+    test('the moved section keeps its own flags', () {
+      final sections = [
+        const DiveDetailSectionConfig(id: a, visible: true),
+        const DiveDetailSectionConfig(id: b, visible: true, expanded: true),
+      ];
+      final moved = DiveDetailSectionConfig.moveRenderedSection(
+        sections,
+        [a, b],
+        1,
+        0,
+      );
+      expect(ids(moved), [b, a]);
+      expect(moved.first.expanded, isTrue);
+    });
+
+    test('a single rendered section cannot move', () {
+      final moved = DiveDetailSectionConfig.moveRenderedSection(
+        configs([a, b], invisible: [b]),
+        [a],
+        0,
+        0,
+      );
+      expect(ids(moved), [a, b]);
     });
   });
 }

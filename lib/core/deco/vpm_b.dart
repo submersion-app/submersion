@@ -196,10 +196,16 @@ class VpmB implements DecoModel {
   }
 
   @override
-  double ceilingMeters(TissueState state, {double currentDepth = 0}) {
+  double ceilingMeters(TissueState state) {
     _load(state as VpmBState);
     return _algo.ascentCeilingDepthMeters();
   }
+
+  /// VPM-B has a single ascent ceiling: there is no GF-low/GF-high split, so
+  /// the operative ceiling and the surface target are the same number. A
+  /// non-zero ascent ceiling already means the surface is not permitted.
+  @override
+  double surfaceCeilingMeters(TissueState state) => ceilingMeters(state);
 
   @override
   int ndlSeconds(

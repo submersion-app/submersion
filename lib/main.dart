@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/network/trusted_http_overrides.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/root_overrides.dart';
+import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/core/services/global_error_handler.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/log_environment.dart';
@@ -38,6 +39,10 @@ Future<void> _bootstrap() async {
   // Route uncaught Flutter framework and platform errors into the debug log so
   // future crashes are diagnosable from the user-shared log (issue #318).
   installGlobalErrorHandlers(); // coverage:ignore-line
+
+  // The bundled ocean and sea table is CC-BY, so its credit has to reach
+  // the license page whether or not anything ever geocodes a coordinate.
+  SeaAreaService.registerLicense();
 
   // Windows cannot expose its system trust store to Dart's bundled BoringSSL,
   // so every default-context HttpClient (S3 sync, map tiles, NetworkImage,

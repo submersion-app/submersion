@@ -264,4 +264,37 @@ void main() {
       expect(ndl, -1);
     });
   });
+
+  group('VpmB surfaceCeilingMeters', () {
+    test('is zero for a fresh surface-equilibrated state', () {
+      final model = VpmB();
+      final state = model.initial();
+
+      expect(model.ceilingMeters(state), 0.0);
+      expect(model.surfaceCeilingMeters(state), 0.0);
+    });
+
+    test('equals the single ascent ceiling once tissues carry a ceiling', () {
+      // VPM-B has no GF-low/GF-high split, so the operative ceiling and the
+      // surface target must be the same number.
+      final model = VpmB(
+        policy: const SchedulePolicy(ascentRate: 10.0, stopIncrement: 3.0),
+      );
+      var state = model.initial();
+      state = model.applySegment(
+        state,
+        const DecoSegment(startDepth: 0, endDepth: 50, durationSeconds: 180),
+        const OpenCircuit(fO2: 0.21),
+      );
+      state = model.applySegment(
+        state,
+        const DecoSegment(startDepth: 50, endDepth: 50, durationSeconds: 1320),
+        const OpenCircuit(fO2: 0.21),
+      );
+
+      final ceiling = model.ceilingMeters(state);
+      expect(ceiling, greaterThan(0));
+      expect(model.surfaceCeilingMeters(state), ceiling);
+    });
+  });
 }

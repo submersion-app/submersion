@@ -60,6 +60,7 @@ class BlenderCylinderCard extends ConsumerWidget {
                   he: mixPercentOrKeep(startHe.text, current.he),
                 );
               },
+              onSave: () => saveBlenderPreferences(ref),
             ),
             const SizedBox(height: 20),
             Row(
@@ -95,6 +96,7 @@ class BlenderCylinderCard extends ConsumerWidget {
                   he: mixPercentOrKeep(targetHe.text, current.he),
                 );
               },
+              onSave: () => saveBlenderPreferences(ref),
             ),
           ],
         ),

@@ -41,6 +41,19 @@ class DiveTankConfigAdapter {
     order: order,
   );
 
+  /// One saved cylinder as a plan tank, carrying its gas.
+  ///
+  /// The planner adds saved tanks one at a time rather than merging a whole
+  /// configuration: a plan's cylinders are an input the diver is choosing,
+  /// so each pick is a deliberate addition, not a fill of what was missing.
+  /// Gas is carried for the same reason [apply] refuses it on a fill - in a
+  /// plan the mix is the thing being chosen.
+  DiveTank tankFromItem(
+    CylinderConfigItem item, {
+    required String id,
+    int order = 0,
+  }) => _fromItem(item, order, id);
+
   /// Returns the merged tank list, the counts to report to the diver, and
   /// whether anything actually changed.
   ///

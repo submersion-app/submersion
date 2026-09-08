@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
 /// Interior-sample spacing (seconds) for constant-depth plan segments so the
@@ -21,29 +22,27 @@ const int _kInteriorSampleSeconds = 30;
 List<TwinProfileSample> synthesizePlanProfile(List<PlanSegment> segments) {
   final samples = <TwinProfileSample>[];
   if (segments.isEmpty) return samples;
-  samples.add(
-    TwinProfileSample(timestamp: 0, depthM: segments.first.startDepth),
-  );
+  final legs = const SegmentChain().resolve(segments);
+  samples.add(TwinProfileSample(timestamp: 0, depthM: legs.first.startDepth));
   var t = 0;
-  for (final seg in segments) {
+  for (final leg in legs) {
     // A zero- or negative-duration leg adds no time (the segment editor
     // defaults a blank/invalid duration field to 0). Emitting its end
     // boundary would duplicate the previous sample's timestamp and break the
     // monotonic invariant, so skip it.
-    if (seg.durationSeconds <= 0) continue;
+    if (leg.durationSeconds <= 0) continue;
     final start = t;
-    t += seg.durationSeconds;
-    if (seg.startDepth == seg.endDepth &&
-        seg.durationSeconds > _kInteriorSampleSeconds) {
+    t += leg.durationSeconds;
+    if (leg.phase.isFlat && leg.durationSeconds > _kInteriorSampleSeconds) {
       for (
         var s = start + _kInteriorSampleSeconds;
         s < t;
         s += _kInteriorSampleSeconds
       ) {
-        samples.add(TwinProfileSample(timestamp: s, depthM: seg.startDepth));
+        samples.add(TwinProfileSample(timestamp: s, depthM: leg.startDepth));
       }
     }
-    samples.add(TwinProfileSample(timestamp: t, depthM: seg.endDepth));
+    samples.add(TwinProfileSample(timestamp: t, depthM: leg.endDepth));
   }
   return samples;
 }

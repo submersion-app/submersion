@@ -6,6 +6,8 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 import '../../../../helpers/mock_file_picker_platform.dart';
@@ -51,6 +53,10 @@ final isoDates = PdfDateFormatter(
   dateFormat: DateFormatPreference.yyyymmdd,
   timeFormat: TimeFormat.twentyFourHour,
 );
+
+/// Metric formatter: these tests predate unit support and assert on the
+/// metric output they always produced.
+const testUnits = UnitFormatter(AppSettings());
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -120,15 +126,19 @@ void main() {
     final target = '${workDir.path}/logbook.pdf';
     picker.saveFileResult = Uri.file(target);
 
-    final path = await service.saveDivesToPdfFile([
-      Dive(
-        id: 'd1',
-        diveNumber: 1,
-        dateTime: DateTime(2026, 1, 15, 9),
-        runtime: const Duration(minutes: 62),
-        maxDepth: 25.0,
-      ),
-    ], dates: isoDates);
+    final path = await service.saveDivesToPdfFile(
+      [
+        Dive(
+          id: 'd1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 1, 15, 9),
+          runtime: const Duration(minutes: 62),
+          maxDepth: 25.0,
+        ),
+      ],
+      dates: isoDates,
+      units: testUnits,
+    );
 
     expect(path, target);
     expect(picker.requestedFileName, startsWith('dive_logbook_'));

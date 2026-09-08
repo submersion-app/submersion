@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
@@ -37,7 +39,93 @@ Future<void> _seedDecoPlan(WidgetTester tester, Finder anchor) async {
   await tester.pumpAndSettle();
 }
 
+/// A hand-built outcome: a descent, a level leg and an ascent straight to
+/// the surface with no stops, so the table has lines but no deco.
+PlanOutcome _noDecoOutcome({int airBreakSeconds = 0}) {
+  PlanScheduleRow row(
+    PlanScheduleRowKind kind,
+    double depth,
+    int duration,
+    int runtime, {
+    int airBreak = 0,
+  }) => PlanScheduleRow(
+    kind: kind,
+    depthMeters: depth,
+    durationSeconds: duration,
+    runtimeSeconds: runtime,
+    gasFO2: 0.32,
+    gasFHe: 0,
+    airBreakSeconds: airBreak,
+  );
+  return PlanOutcome(
+    runtimeSeconds: 1620,
+    maxDepth: 18,
+    ndlAtBottom: 600,
+    ttsAtBottom: 120,
+    stops: const [],
+    schedule: [
+      row(PlanScheduleRowKind.descent, 18, 240, 240),
+      row(PlanScheduleRowKind.level, 18, 1200, 1440, airBreak: airBreakSeconds),
+      row(PlanScheduleRowKind.ascent, 0, 180, 1620),
+    ],
+    segmentOutcomes: const [],
+    tankUsages: const [],
+    cnsEnd: 5,
+    otuTotal: 10,
+    issues: const [],
+    endTissue: const BuhlmannState(compartments: []),
+    tissueTimeline: const [],
+    ceilingTrace: const [],
+  );
+}
+
+Widget _outcomeHarness(PlanOutcome outcome) => testApp(
+  overrides: [
+    settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+    activePlanOutcomeProvider.overrideWithValue(outcome),
+  ],
+  child: SizedBox(
+    width: 500,
+    height: 600,
+    child: PlanResultsSheet(controller: ScrollController()),
+  ),
+);
+
 void main() {
+  testWidgets('runtime table says no deco above the rows when there are '
+      'lines but no stops', (tester) async {
+    await tester.pumpWidget(_outcomeHarness(_noDecoOutcome()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No decompression required'), findsOneWidget);
+    // The table still prints: header plus the three authored lines.
+    expect(find.text('Depth'), findsOneWidget);
+    expect(find.text('↘'), findsOneWidget);
+    expect(find.text('→'), findsOneWidget);
+    expect(find.text('↗'), findsOneWidget);
+    expect(find.text('−'), findsNothing);
+    // Whole minutes: 4, 20 and 3 add up to the 27-minute runtime. The first
+    // line's duration and runtime are the same number, so it prints twice.
+    expect(find.text('4′'), findsNWidgets(2));
+    expect(find.text('20′'), findsOneWidget);
+    expect(find.text('24′'), findsOneWidget);
+    expect(find.text('3′'), findsOneWidget);
+    expect(find.text('27′'), findsOneWidget);
+    expect(find.textContaining('(+'), findsNothing);
+  });
+
+  testWidgets('a line with an air break shows the break minutes after its '
+      'duration', (tester) async {
+    await tester.pumpWidget(
+      _outcomeHarness(_noDecoOutcome(airBreakSeconds: 290)),
+    );
+    await tester.pumpAndSettle();
+
+    // 290 s rounds up to a whole 5-minute break.
+    expect(find.text("20′ (+5′)"), findsOneWidget);
+    expect(find.textContaining('(+'), findsOneWidget);
+  });
+
   testWidgets('PlanStatusChips shows a TTS chip and a tappable issues chip', (
     tester,
   ) async {
@@ -58,6 +146,13 @@ void main() {
 
     // Runtime table header(s) — the contingency mini-tables repeat it.
     expect(find.text('Depth'), findsWidgets);
+    expect(find.text('Duration'), findsWidgets);
+    // The table reads like a slate: the authored descent and bottom, then
+    // a travel leg and a stop per computed stop, marked by direction.
+    expect(find.text('↘'), findsOneWidget);
+    expect(find.text('→'), findsOneWidget);
+    expect(find.text('↗'), findsWidgets);
+    expect(find.text('−'), findsWidgets);
     // Gas section rendered a per-tank consumption bar.
     expect(find.byType(LinearProgressIndicator), findsWidgets);
     // Air at 45 m trips the critical gas-density issue (issues sit below

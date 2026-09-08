@@ -19,6 +19,15 @@ apply_standard_settings(${BINARY_NAME})
 # Add preprocessor definitions for the application ID.
 add_definitions(-DAPPLICATION_ID="${APPLICATION_ID}")
 
+# Add a preprocessor definition for the build version, mirroring
+# windows/runner/CMakeLists.txt. FLUTTER_VERSION comes from
+# flutter/generated_config.cmake and reads "1.7.7+7161"; the dotted form is
+# what the release tag and the packages use, and what formatAppVersion()
+# reports inside the app, so --version and the package version agree.
+string(REPLACE "+" "." SUBMERSION_VERSION "${FLUTTER_VERSION}")
+target_compile_definitions(${BINARY_NAME}
+  PRIVATE "SUBMERSION_VERSION=\"${SUBMERSION_VERSION}\"")
+
 # Add dependency libraries. Add any application-specific dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)

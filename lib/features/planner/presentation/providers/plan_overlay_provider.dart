@@ -40,6 +40,9 @@ ChartSourceOverlay buildPlannedOverlay(
     sourceId: 'plan:${plan.id}',
     name: plan.name,
     color: Colors.purple,
+    // A plan is not another computer's reading of the same dive, so it keeps
+    // its own identity colour rather than a tint of each metric's colour.
+    tintByMetric: false,
     computerId: null,
     points: [
       for (final point in series.profile)

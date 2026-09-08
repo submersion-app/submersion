@@ -7,22 +7,36 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Resolves to the trimmed entered name, or `null` when the diver cancels or
 /// dismisses the dialog. Confirm stays disabled while the trimmed field is
 /// empty, so an empty name can never be returned.
+///
+/// [fieldLabel] names what is being named; it defaults to the plan-name label
+/// so existing callers read as before, and other callers (saving a tank) pass
+/// their own so the field never claims to be a plan name when it is not.
 Future<String?> showPlanNameDialog(
   BuildContext context, {
   required String initialName,
   required String title,
+  String? fieldLabel,
 }) {
   return showDialog<String>(
     context: context,
-    builder: (_) => _PlanNameDialog(initialName: initialName, title: title),
+    builder: (_) => _PlanNameDialog(
+      initialName: initialName,
+      title: title,
+      fieldLabel: fieldLabel,
+    ),
   );
 }
 
 class _PlanNameDialog extends StatefulWidget {
-  const _PlanNameDialog({required this.initialName, required this.title});
+  const _PlanNameDialog({
+    required this.initialName,
+    required this.title,
+    this.fieldLabel,
+  });
 
   final String initialName;
   final String title;
+  final String? fieldLabel;
 
   @override
   State<_PlanNameDialog> createState() => _PlanNameDialogState();
@@ -50,7 +64,8 @@ class _PlanNameDialogState extends State<_PlanNameDialog> {
       content: TextField(
         controller: _controller,
         decoration: InputDecoration(
-          labelText: context.l10n.divePlanner_field_planName,
+          labelText:
+              widget.fieldLabel ?? context.l10n.divePlanner_field_planName,
         ),
         autofocus: true,
         textCapitalization: TextCapitalization.sentences,

@@ -12,14 +12,22 @@ import 'package:submersion/l10n/l10n_extension.dart';
 const _uuid = Uuid();
 
 /// Dialog for creating and editing dive plan segments.
+///
+/// A segment is a waypoint: a depth to reach and a time to spend. It has no
+/// declared type, so there is no type picker and no field that a type choice
+/// could rewrite. Whether the leg reads as a descent, a level or an ascent
+/// follows from [startDepth] and the depth entered, and is shown back to the
+/// diver as they type.
 class SegmentEditor extends ConsumerStatefulWidget {
-  /// Segment to edit (null for new segment).
+  /// Segment to edit (null for a new segment).
   final PlanSegment? segment;
 
-  /// Default start depth (meters) to seed a new segment with, taken from the
-  /// end depth of the previous segment in the plan. Ignored when editing an
-  /// existing segment.
-  final double initialStartDepth;
+  /// Where this leg begins, in meters: the previous segment's target depth, or
+  /// 0 for the first segment in the plan.
+  ///
+  /// Not editable. It is a property of the segment's position in the profile,
+  /// so the only way to change it is to change the segment before this one.
+  final double startDepth;
 
   /// Available tanks for gas selection.
   final List<DiveTank> availableTanks;
@@ -30,7 +38,7 @@ class SegmentEditor extends ConsumerStatefulWidget {
   const SegmentEditor({
     super.key,
     this.segment,
-    this.initialStartDepth = 0,
+    this.startDepth = 0,
     required this.availableTanks,
     required this.onSave,
   });
@@ -40,11 +48,8 @@ class SegmentEditor extends ConsumerStatefulWidget {
 }
 
 class _SegmentEditorState extends ConsumerState<SegmentEditor> {
-  late SegmentType _type;
-  late TextEditingController _startDepthController;
-  late TextEditingController _endDepthController;
+  late TextEditingController _depthController;
   late TextEditingController _durationController;
-  late TextEditingController _rateController;
   late String _selectedTankId;
   bool _unitsInitialized = false;
 
@@ -53,20 +58,14 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
     super.initState();
     final segment = widget.segment;
 
-    _type = segment?.type ?? SegmentType.bottom;
     // Initialize with raw meter values - will convert in first build.
     // Every seed goes through formatDecimalForInput so the diver's locale
     // decides the separator and the parse half can read it back (#1091).
-    _startDepthController = TextEditingController(
+    // A new segment seeds at the depth it starts from, which makes it a level
+    // leg until the diver changes it.
+    _depthController = TextEditingController(
       text: formatDecimalForInput(
-        segment?.startDepth.roundToDouble() ??
-            widget.initialStartDepth.roundToDouble(),
-      ),
-    );
-    _endDepthController = TextEditingController(
-      text: formatDecimalForInput(
-        segment?.endDepth.roundToDouble() ??
-            widget.initialStartDepth.roundToDouble(),
+        (segment?.targetDepth ?? widget.startDepth).roundToDouble(),
       ),
     );
     _durationController = TextEditingController(
@@ -74,26 +73,19 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
         segment != null ? (segment.durationSeconds ~/ 60).toDouble() : 20,
       ),
     );
-    _rateController = TextEditingController(
-      text: formatDecimalForInput(segment?.rate?.abs().roundToDouble() ?? 10),
-    );
     _selectedTankId = segment?.tankId ?? widget.availableTanks.first.id;
   }
 
   @override
   void dispose() {
-    _startDepthController.dispose();
-    _endDepthController.dispose();
+    _depthController.dispose();
     _durationController.dispose();
-    _rateController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isNew = widget.segment == null;
-    final showRate =
-        _type == SegmentType.descent || _type == SegmentType.ascent;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
@@ -112,73 +104,23 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Segment type dropdown
-            InputDecorator(
-              decoration: InputDecoration(
-                labelText: context.l10n.divePlanner_segmentEditor_segmentType,
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<SegmentType>(
-                  value: _type,
-                  isExpanded: true,
-                  isDense: true,
-                  items: SegmentType.values.map((type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Row(
-                        children: [
-                          ExcludeSemantics(child: _SegmentTypeIcon(type: type)),
-                          const SizedBox(width: 8),
-                          Text(_getTypeLabel(type)),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _type = value;
-                        _updateDefaultsForType(value);
-                      });
-                    }
-                  },
-                ),
-              ),
-            ),
+            // What the numbers below add up to. Shown rather than asked, so
+            // the inference is visible instead of magic.
+            _DerivedPhaseLine(summary: _phaseSummary(units)),
             const SizedBox(height: 16),
 
-            // Depth inputs
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _startDepthController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n
-                          .divePlanner_segmentEditor_startDepth(
-                            units.depthSymbol,
-                          ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    enabled: _type != SegmentType.gasSwitch,
-                  ),
+            // Target depth
+            TextField(
+              controller: _depthController,
+              decoration: InputDecoration(
+                labelText: context.l10n.divePlanner_segmentEditor_depth(
+                  units.depthSymbol,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _endDepthController,
-                    decoration: InputDecoration(
-                      labelText: context.l10n
-                          .divePlanner_segmentEditor_endDepth(
-                            units.depthSymbol,
-                          ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    enabled: _type != SegmentType.gasSwitch,
-                  ),
-                ),
-              ],
+              ),
+              keyboardType: TextInputType.number,
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
 
@@ -187,31 +129,11 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
               controller: _durationController,
               decoration: InputDecoration(
                 labelText: context.l10n.divePlanner_segmentEditor_duration,
-                helperText: _type == SegmentType.gasSwitch
-                    ? context.l10n.divePlanner_segmentEditor_gasSwitchTime
-                    : null,
               ),
               keyboardType: TextInputType.number,
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
-
-            // Rate input (only for descent/ascent)
-            if (showRate) ...[
-              TextField(
-                controller: _rateController,
-                decoration: InputDecoration(
-                  labelText: _type == SegmentType.descent
-                      ? context.l10n.divePlanner_segmentEditor_descentRate(
-                          units.depthSymbol,
-                        )
-                      : context.l10n.divePlanner_segmentEditor_ascentRate(
-                          units.depthSymbol,
-                        ),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-            ],
 
             // Tank selection
             InputDecorator(
@@ -253,81 +175,62 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
     );
   }
 
+  /// The phase and rate implied by the fields as they currently stand.
+  ///
+  /// Only descent, ascent and level are distinguishable here: telling a deco
+  /// stop from the bottom needs the rest of the profile, so the segment list
+  /// makes that call, not this dialog.
+  String _phaseSummary(UnitFormatter units) {
+    final l10n = context.l10n;
+    final targetUserUnits = parseUserDecimal(_depthController.text) ?? 0;
+    final targetMeters = units.depthToMeters(targetUserUnits);
+    final durationMinutes = parseUserInt(_durationController.text) ?? 0;
+    final startDisplay = units.formatDepth(widget.startDepth, decimals: 0);
+    final targetDisplay = units.formatDepth(targetMeters, decimals: 0);
+
+    if (targetMeters == widget.startDepth) {
+      return l10n.divePlanner_segmentEditor_derivedLevel(targetDisplay);
+    }
+
+    // A rate needs a duration to divide by; without one the leg is an
+    // instantaneous depth change and only its direction is known.
+    final rateDisplay = durationMinutes > 0
+        ? units.formatDepth(
+            (targetMeters - widget.startDepth).abs() / durationMinutes,
+            decimals: 1,
+          )
+        : null;
+
+    if (targetMeters > widget.startDepth) {
+      return rateDisplay == null
+          ? l10n.divePlanner_segmentEditor_derivedDescentNoRate(
+              startDisplay,
+              targetDisplay,
+            )
+          : l10n.divePlanner_segmentEditor_derivedDescent(
+              startDisplay,
+              targetDisplay,
+              rateDisplay,
+            );
+    }
+    return rateDisplay == null
+        ? l10n.divePlanner_segmentEditor_derivedAscentNoRate(
+            startDisplay,
+            targetDisplay,
+          )
+        : l10n.divePlanner_segmentEditor_derivedAscent(
+            startDisplay,
+            targetDisplay,
+            rateDisplay,
+          );
+  }
+
   /// Convert controller values from meters to user's preferred units.
   void _convertControllersToUserUnits(UnitFormatter units) {
-    final startDepthMeters = parseUserDecimal(_startDepthController.text) ?? 0;
-    final endDepthMeters = parseUserDecimal(_endDepthController.text) ?? 0;
-    final rateMeters = parseUserDecimal(_rateController.text) ?? 10;
-
-    _startDepthController.text = formatDecimalForInput(
-      units.convertDepth(startDepthMeters).roundToDouble(),
+    final depthMeters = parseUserDecimal(_depthController.text) ?? 0;
+    _depthController.text = formatDecimalForInput(
+      units.convertDepth(depthMeters).roundToDouble(),
     );
-    _endDepthController.text = formatDecimalForInput(
-      units.convertDepth(endDepthMeters).roundToDouble(),
-    );
-    _rateController.text = formatDecimalForInput(
-      units.convertDepth(rateMeters).roundToDouble(),
-    );
-  }
-
-  void _updateDefaultsForType(SegmentType type) {
-    final settings = ref.read(settingsProvider);
-    final units = UnitFormatter(settings);
-
-    // Seed depth in the display unit, rounded and locale-formatted.
-    String depth(double meters) =>
-        formatDecimalForInput(units.convertDepth(meters).roundToDouble());
-
-    switch (type) {
-      case SegmentType.descent:
-        // Leave the start depth alone. The field already holds the right
-        // value: the segment's own start depth when editing, the previous
-        // segment's end depth when adding, or whatever the diver has since
-        // typed. Only the first segment in a plan starts at the surface, so
-        // the old unconditional reset to 0 clobbered every later one, and
-        // re-seeding from the widget would still discard a typed edit.
-        // 18 m/min default descent rate
-        _rateController.text = depth(18);
-        break;
-      case SegmentType.bottom:
-        // Keep end depth as target
-        _startDepthController.text = _endDepthController.text;
-        break;
-      case SegmentType.ascent:
-        // 9 m/min default ascent rate
-        _rateController.text = depth(9);
-        break;
-      case SegmentType.decoStop:
-        _durationController.text = formatDecimalForInput(3);
-        break;
-      case SegmentType.safetyStop:
-        // 5m default safety stop depth
-        final safetyDepth = depth(5);
-        _startDepthController.text = safetyDepth;
-        _endDepthController.text = safetyDepth;
-        _durationController.text = formatDecimalForInput(3);
-        break;
-      case SegmentType.gasSwitch:
-        _durationController.text = formatDecimalForInput(1);
-        break;
-    }
-  }
-
-  String _getTypeLabel(SegmentType type) {
-    switch (type) {
-      case SegmentType.descent:
-        return context.l10n.divePlanner_segmentType_descent;
-      case SegmentType.bottom:
-        return context.l10n.divePlanner_segmentType_bottomTime;
-      case SegmentType.ascent:
-        return context.l10n.divePlanner_segmentType_ascent;
-      case SegmentType.decoStop:
-        return context.l10n.divePlanner_segmentType_decoStop;
-      case SegmentType.safetyStop:
-        return context.l10n.divePlanner_segmentType_safetyStop;
-      case SegmentType.gasSwitch:
-        return context.l10n.divePlanner_segmentType_gasSwitch;
-    }
   }
 
   void _save() {
@@ -339,27 +242,22 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
     );
 
     // Parse values in user's units and convert to meters for storage
-    final startDepthUserUnits =
-        parseUserDecimal(_startDepthController.text) ?? 0;
-    final endDepthUserUnits = parseUserDecimal(_endDepthController.text) ?? 0;
+    final depthUserUnits = parseUserDecimal(_depthController.text) ?? 0;
     final durationMinutes = parseUserInt(_durationController.text) ?? 0;
-    final rateUserUnits = parseUserDecimal(_rateController.text) ?? 10;
 
-    // Convert depths and rate from user units to meters
-    final startDepthMeters = units.depthToMeters(startDepthUserUnits);
-    final endDepthMeters = units.depthToMeters(endDepthUserUnits);
-    final rateMeters = units.depthToMeters(rateUserUnits);
-
+    final existing = widget.segment;
     final segment = PlanSegment(
-      id: widget.segment?.id ?? _uuid.v4(),
-      type: _type,
-      startDepth: startDepthMeters,
-      endDepth: endDepthMeters,
+      id: existing?.id ?? _uuid.v4(),
+      targetDepth: units.depthToMeters(depthUserUnits),
       durationSeconds: durationMinutes * 60,
       tankId: _selectedTankId,
       gasMix: selectedTank.gasMix,
-      rate: rateMeters,
-      order: widget.segment?.order ?? 0,
+      // Carried through rather than dropped: the old editor rebuilt the
+      // segment from the fields alone and lost the CCR setpoint and the
+      // dive-mode override on every edit round-trip.
+      setpointBar: existing?.setpointBar,
+      diveModeOverride: existing?.diveModeOverride,
+      order: existing?.order ?? 0,
     );
 
     widget.onSave(segment);
@@ -367,43 +265,26 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
   }
 }
 
-class _SegmentTypeIcon extends StatelessWidget {
-  final SegmentType type;
+class _DerivedPhaseLine extends StatelessWidget {
+  const _DerivedPhaseLine({required this.summary});
 
-  const _SegmentTypeIcon({required this.type});
+  final String summary;
 
   @override
   Widget build(BuildContext context) {
-    IconData icon;
-    Color color;
-
-    switch (type) {
-      case SegmentType.descent:
-        icon = Icons.arrow_downward;
-        color = Colors.blue;
-        break;
-      case SegmentType.bottom:
-        icon = Icons.horizontal_rule;
-        color = Theme.of(context).colorScheme.primary;
-        break;
-      case SegmentType.ascent:
-        icon = Icons.arrow_upward;
-        color = Colors.green;
-        break;
-      case SegmentType.decoStop:
-        icon = Icons.stop_circle;
-        color = Colors.orange;
-        break;
-      case SegmentType.gasSwitch:
-        icon = Icons.swap_horiz;
-        color = Colors.purple;
-        break;
-      case SegmentType.safetyStop:
-        icon = Icons.pause_circle;
-        color = Colors.teal;
-        break;
-    }
-
-    return Icon(icon, color: color, size: 20);
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        summary,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
   }
 }

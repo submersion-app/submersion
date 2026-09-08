@@ -23,7 +23,7 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 void main() {
-  testWidgets('shows ascent and descent sliders reflecting plan state', (
+  testWidgets('shows all five rate sliders reflecting plan state', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -36,17 +36,34 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(Slider), findsNWidgets(2));
-    expect(find.text('9 m/min'), findsOneWidget); // default ascent
-    expect(find.text('18 m/min'), findsOneWidget); // default descent
+    // Working ascent, the two deco bands, the final stretch, and descent.
+    expect(find.byType(Slider), findsNWidgets(5));
+    expect(find.text('9 m/min'), findsOneWidget); // bottom to first stop
+    expect(find.text('6 m/min'), findsOneWidget); // between intermediate stops
+    expect(find.text('3 m/min'), findsOneWidget); // between shallow stops
+    expect(find.text('1 m/min'), findsOneWidget); // last stop to surface
+    expect(find.text('18 m/min'), findsOneWidget); // descent
 
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanRatesSection)),
     );
-    final ascent = tester.widgetList<Slider>(find.byType(Slider)).first;
-    ascent.onChanged!(6);
+    final sliders = tester.widgetList<Slider>(find.byType(Slider)).toList();
+    // Each slider must drive its own rate: five controls in one column are
+    // easy to wire to the wrong callback, and the mistake would be invisible
+    // until a schedule came out wrong.
+    sliders[0].onChanged!(12);
+    sliders[1].onChanged!(7);
+    sliders[2].onChanged!(4);
+    sliders[3].onChanged!(2);
+    sliders[4].onChanged!(20);
     await tester.pumpAndSettle();
-    expect(container.read(divePlanNotifierProvider).ascentRate, 6);
+
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.ascentRate, 12);
+    expect(state.intermediateAscentRate, 7);
+    expect(state.shallowAscentRate, 4);
+    expect(state.finalAscentRate, 2);
+    expect(state.descentRate, 20);
   });
 
   testWidgets('displays and edits rates in ft/min when depth unit is feet', (
@@ -64,8 +81,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Defaults 9 / 18 m/min shown converted to whole ft/min, with no m/min text.
-    expect(find.text('30 ft/min'), findsOneWidget); // 9 m/min ascent
+    // Defaults shown converted to whole ft/min, with no m/min text. These are
+    // the TDI rates a diver taught in imperial would recognise: 30 / 20 / 10
+    // off the bottom and down the stops, 3 over the last stretch.
+    expect(find.text('30 ft/min'), findsOneWidget); // 9 m/min
+    expect(find.text('20 ft/min'), findsOneWidget); // 6 m/min
+    expect(find.text('10 ft/min'), findsOneWidget); // 3 m/min
+    expect(find.text('3 ft/min'), findsOneWidget); // 1 m/min
     expect(find.text('59 ft/min'), findsOneWidget); // 18 m/min descent
     expect(find.textContaining('m/min'), findsNothing);
 

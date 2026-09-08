@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' show DateFormat;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
 import 'package:submersion/features/reef/domain/entities/reef_health.dart';
@@ -68,6 +68,7 @@ class WaterConditionsCard extends ConsumerWidget {
 
     final data = health.value!;
     final tempUnit = ref.watch(temperatureUnitProvider);
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     final lines = <String>[];
     if (_reefPossible) {
@@ -108,9 +109,7 @@ class WaterConditionsCard extends ConsumerWidget {
     // day at the extremes of the timezone range, reporting an observation
     // date the dataset never had.
     lines.add(
-      context.l10n.reef_health_asOf(
-        DateFormat.yMMMd().format(data.observedAt.toUtc()),
-      ),
+      context.l10n.reef_health_asOf(units.formatDate(data.observedAt.toUtc())),
     );
 
     return tile(lines.join('\n'), isThreeLine: lines.length > 2);

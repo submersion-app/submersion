@@ -3,17 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart'
     show StoragePlatformCapabilities, storagePlatformCapabilitiesProvider;
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -58,6 +60,18 @@ String connectionErrorMessage(
   }
   return l10n.settings_cloudSync_provider_connectionFailed(providerName, error);
 }
+
+/// Snackbar-safe text for a connection failure.
+///
+/// [CloudStorageException.displayMessage] exists for this: its `toString`
+/// prefixes the class name, which reached users as "Google Drive connection
+/// failed: CloudStorageException: ...". The cause is kept either way, since
+/// that is where the actionable detail lives.
+///
+/// Pure (no `BuildContext`/`ref`) so it is unit-testable on any host.
+@visibleForTesting
+String errorDisplayText(Object error) =>
+    error is CloudStorageException ? error.displayMessage : error.toString();
 
 class CloudSyncPage extends ConsumerStatefulWidget {
   const CloudSyncPage({super.key});
@@ -919,7 +933,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
       provider,
       iCloudAvailability,
       providerName,
-      error.toString(),
+      errorDisplayText(error),
     );
   }
 
@@ -1488,7 +1502,9 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
     } else if (difference.inDays < 7) {
       return l10n.settings_cloudSync_time_daysAgo(difference.inDays);
     } else {
-      return DateFormat.yMMMd().format(dateTime);
+      // watch, not read: both callers render this into the widget tree, so a
+      // preference change while the page is open must repaint it.
+      return UnitFormatter(ref.watch(settingsProvider)).formatDate(dateTime);
     }
   }
 }

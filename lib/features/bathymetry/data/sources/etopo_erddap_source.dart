@@ -33,8 +33,14 @@ class EtopoErddapSource implements BathymetrySource {
   @override
   bool get global => true;
 
+  static const double declaredCellSizeMeters = _resolutionMeters;
+
   @override
-  bool covers(GeoPoint center) => true;
+  Future<SourceCapability?> probe(GeoPoint center) async =>
+      const SourceCapability(
+        cellSizeMeters: _resolutionMeters,
+        detail: _dataset,
+      );
 
   @override
   Future<BathymetryGrid> fetch(

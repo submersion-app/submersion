@@ -9,7 +9,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Ascent and descent rate controls for the Setup accordion (Subsurface
 /// parity G7/G8). Rates are stored in m/min internally; the sliders display
 /// and edit in the diver's depth unit per minute (m/min or ft/min), converting
-/// back to m/min for storage. Per-depth-band ascent rates land in a later phase.
+/// back to m/min for storage.
+///
+/// The ascent is four rates, not one, following TDI's decompression
+/// procedures: divers do not climb the stop grid at the speed they leave the
+/// bottom, and they slow further as they get shallow, where a given depth
+/// change costs the most pressure change.
 class PlanRatesSection extends ConsumerWidget {
   const PlanRatesSection({super.key});
 
@@ -26,6 +31,26 @@ class PlanRatesSection extends ConsumerWidget {
           value: state.ascentRate,
           units: units,
           onChanged: (v) => notifier.updateRates(ascent: v),
+        ),
+        _RateSlider(
+          label: context.l10n.plannerCanvas_rates_intermediateAscent,
+          value: state.intermediateAscentRate,
+          units: units,
+          onChanged: (v) => notifier.updateRates(intermediate: v),
+        ),
+        _RateSlider(
+          label: context.l10n.plannerCanvas_rates_shallowAscent,
+          value: state.shallowAscentRate,
+          units: units,
+          onChanged: (v) => notifier.updateRates(shallow: v),
+        ),
+        _RateSlider(
+          label: context.l10n.plannerCanvas_rates_finalAscent(
+            units.formatDepth(state.lastStopDepth, decimals: 0),
+          ),
+          value: state.finalAscentRate,
+          units: units,
+          onChanged: (v) => notifier.updateRates(finalStretch: v),
         ),
         _RateSlider(
           label: context.l10n.plannerCanvas_rates_descent,

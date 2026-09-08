@@ -10,12 +10,39 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 
 class EquipmentRepository {
+  /// Injectable seams mirror [SiteRepository]: tests hand in a coordinator
+  /// over an in-memory queue, production builds the default. A redirecting
+  /// GENERATIVE constructor (not a factory) so existing test fakes that
+  /// `extends EquipmentRepository` keep their implicit super() call.
+  EquipmentRepository({
+    MediaRepository? mediaRepository,
+    MediaDeletionCoordinator? mediaDeletionCoordinator,
+  }) : this._(mediaRepository ?? MediaRepository(), mediaDeletionCoordinator);
+
+  EquipmentRepository._(
+    this._mediaRepository,
+    MediaDeletionCoordinator? coordinator,
+  ) : _mediaDeletionCoordinator =
+          coordinator ??
+          MediaDeletionCoordinator(
+            mediaRepository: _mediaRepository,
+            queue: () => MediaTransferQueueRepository(),
+            // No worker kick from the data layer (provider cycles): queued
+            // intents drain on the next connectivity event, app start, or
+            // any other kick; the Verify Library sweep is the backstop.
+          );
+
+  final MediaRepository _mediaRepository;
+  final MediaDeletionCoordinator _mediaDeletionCoordinator;
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
@@ -371,6 +398,23 @@ class EquipmentRepository {
     }
   }
 
+  /// Splits a dying item's attachments (issue #1517): rows only this item
+  /// referenced die with it, rows a dive or site still needs survive with
+  /// equipment_id cleared and an HLC stamp -- which a silent FK SET NULL
+  /// never produces, so without this the unlink would not propagate to the
+  /// diver's other devices.
+  Future<void> _cascadeMediaForEquipmentDeletion(List<String> ids) async {
+    final split = await _mediaRepository.partitionMediaForEquipmentDeletion(
+      ids,
+    );
+    if (split.doomed.isNotEmpty) {
+      await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
+    }
+    if (split.unlinkIds.isNotEmpty) {
+      await _mediaRepository.unlinkMediaFromDeletedEquipment(split.unlinkIds);
+    }
+  }
+
   /// Delete equipment. Service schedules and service records are first-class
   /// synced children cascade-deleted by SQLite, but cascades emit no
   /// deletion-log entries, so each is tombstoned explicitly (mirrors
@@ -378,6 +422,11 @@ class EquipmentRepository {
   Future<void> deleteEquipment(String id) async {
     try {
       _log.info('Deleting equipment: $id');
+      // Attachments first, outside the transaction: the coordinator's queue
+      // writes live in another database, so no cross-DB transaction exists
+      // and every step is individually idempotent/tombstoned. Same shape and
+      // same reasoning as SiteRepository's media cascade.
+      await _cascadeMediaForEquipmentDeletion([id]);
       await _db.transaction(() async {
         final schedules = await (_db.select(
           _db.serviceSchedules,

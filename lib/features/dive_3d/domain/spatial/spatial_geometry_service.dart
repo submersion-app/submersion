@@ -101,16 +101,23 @@ class SpatialGeometryService {
       maxE = math.max(b.maxEast, placed.maxEast + padE);
       minN = math.min(b.minNorth, placed.minNorth - padN);
       maxN = math.max(b.maxNorth, placed.maxNorth + padN);
-      maxDepth = math.max(
-        math.max(placed.maxDepth, grid.maxDepthMeters),
-        math.max(siteMaxDepth ?? 0, 1.0),
-      );
+      // Scaled from the measured terrain and the dive's own path alone:
+      // siteMaxDepth is the site's recorded max depth, which need not fall
+      // inside this local box, and folding it in here squashed real
+      // terrain toward the surface whenever it exceeded the grid's own
+      // range (issue #45).
+      maxDepth = math.max(math.max(placed.maxDepth, grid.maxDepthMeters), 1.0);
     } else {
       minE = placed.minEast - padE;
       maxE = placed.maxEast + padE;
       minN = placed.minNorth - padN;
       maxN = placed.maxNorth + padN;
-      maxDepth = math.max(math.max(placed.maxDepth, siteMaxDepth ?? 0), 1.0);
+      // Scaled from the dive's own path alone, mirroring the bathymetry
+      // branch above: the synthesized terrain is reconstructed purely from
+      // this path (see TerrainBuilder), never from siteMaxDepth, so folding
+      // it in here squashed that synthesized seafloor toward the surface
+      // whenever it exceeded the path's own depth (issue #45).
+      maxDepth = math.max(placed.maxDepth, 1.0);
     }
 
     final proj = SpatialProjection(

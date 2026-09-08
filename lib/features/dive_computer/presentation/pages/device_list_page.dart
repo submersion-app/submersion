@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -335,7 +337,7 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
 }
 
 /// Card widget displaying a single dive computer.
-class _ComputerCard extends StatelessWidget {
+class _ComputerCard extends ConsumerWidget {
   final DiveComputer computer;
   final VoidCallback onTap;
   final VoidCallback onDownload;
@@ -353,9 +355,10 @@ class _ComputerCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -450,7 +453,11 @@ class _ComputerCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            formatLastDownload(context, computer.lastDownload),
+                            formatLastDownload(
+                              context,
+                              computer.lastDownload,
+                              units: units,
+                            ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),

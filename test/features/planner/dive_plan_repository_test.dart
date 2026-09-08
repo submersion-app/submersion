@@ -56,14 +56,16 @@ domain.DivePlan _fullPlan() {
     turnPressureRule: domain.TurnPressureRule.thirds,
     tanks: const [tank1, tank2],
     segments: [
-      PlanSegment.descent(
+      PlanSegment.travel(
         id: 'seg-1',
+        fromDepth: 0,
         targetDepth: 60.0,
         tankId: 'tank-1',
         gasMix: backGas,
         order: 0,
+        ratePerMinute: 18.0,
       ),
-      PlanSegment.bottom(
+      PlanSegment.hold(
         id: 'seg-2',
         depth: 60.0,
         durationMinutes: 25,
@@ -122,7 +124,7 @@ void main() {
       expect(loaded.tanks.last.isTravelGas, isTrue);
       expect(loaded.tanks.first.isTravelGas, isFalse);
       expect(loaded.segments, hasLength(2));
-      expect(loaded.segments.first.type, SegmentType.descent);
+      expect(loaded.segments.first.targetDepth, 60.0);
       expect(loaded.segments.last.durationSeconds, 25 * 60);
     });
 

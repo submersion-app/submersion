@@ -72,7 +72,8 @@ class ProfileLegendState {
   final MetricDataSource decoStopSource;
   final MetricDataSource gtrSource;
 
-  // Per-tank pressure visibility (keyed by tank ID)
+  // Per-tank visibility (keyed by tank ID). Hides the tank's pressure trace
+  // on multi-tank dives and its gas-switch markers on gas-switch dives.
   final Map<String, bool> showTankPressure;
 
   // Gas timeline strip visibility

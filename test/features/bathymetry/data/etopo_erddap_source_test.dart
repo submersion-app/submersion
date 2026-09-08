@@ -69,11 +69,14 @@ void main() {
     );
   });
 
-  test('covers everywhere and is global', () {
+  test('probes everywhere at its declared 450 m and is global', () async {
     final source = EtopoErddapSource(
       client: MockClient((_) async => http.Response('', 500)),
     );
-    expect(source.covers(const GeoPoint(-80, 170)), isTrue);
+    final cap = await source.probe(const GeoPoint(-80, 170));
+    expect(cap, isNotNull);
+    expect(cap!.cellSizeMeters, 450);
+    expect(cap.detail, 'ETOPO_2022_v1_15s');
     expect(source.global, isTrue);
   });
 }

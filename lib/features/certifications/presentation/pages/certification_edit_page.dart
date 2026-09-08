@@ -5,8 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/certification_levels.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -1044,7 +1045,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   }
 }
 
-class _DatePickerField extends StatelessWidget {
+class _DatePickerField extends ConsumerWidget {
   final String label;
   final DateTime? value;
   final IconData icon;
@@ -1060,14 +1061,15 @@ class _DatePickerField extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final units = UnitFormatter(ref.watch(settingsProvider));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Semantics(
           button: true,
           label: value != null
-              ? '$label: ${DateFormat.yMMMd().format(value!)}. Tap to change'
+              ? '$label: ${units.formatDate(value)}. Tap to change'
               : '$label: not set. Tap to select',
           child: InkWell(
             onTap: () => _pickDate(context),
@@ -1086,7 +1088,7 @@ class _DatePickerField extends StatelessWidget {
               ),
               child: Text(
                 value != null
-                    ? DateFormat.yMMMd().format(value!)
+                    ? units.formatDate(value)
                     : context.l10n.certifications_edit_datePicker_tapToSelect,
                 style: TextStyle(
                   color: value != null

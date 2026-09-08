@@ -15,14 +15,16 @@ const _tank = DiveTank(
 );
 
 List<PlanSegment> _segments() => [
-  PlanSegment.descent(
+  PlanSegment.travel(
     id: 'seg-1',
+    fromDepth: 0,
     targetDepth: 45,
     tankId: 'tank-1',
     gasMix: _air,
     order: 0,
+    ratePerMinute: 18.0,
   ),
-  PlanSegment.bottom(
+  PlanSegment.hold(
     id: 'seg-2',
     depth: 45,
     durationMinutes: 20,
@@ -119,14 +121,16 @@ domain.DivePlan _pscrPlan(domain.PlanMode mode) => domain.DivePlan(
   gfHigh: 70,
   mode: mode,
   segments: [
-    PlanSegment.descent(
+    PlanSegment.travel(
       id: 'seg-1',
+      fromDepth: 0,
       targetDepth: 30,
       tankId: 'tank-32',
       gasMix: _ean32,
       order: 0,
+      ratePerMinute: 18.0,
     ),
-    PlanSegment.bottom(
+    PlanSegment.hold(
       id: 'seg-2',
       depth: 30,
       durationMinutes: 20,

@@ -321,6 +321,55 @@ void main() {
     });
   });
 
+  group('a fresh install whose preferences survived', () {
+    // macOS leaves ~/Library/Preferences in place when the .app is replaced,
+    // so a reinstall can present anchors from the previous install against a
+    // brand-new database. Treating that as a restore made the new install
+    // adopt the old device id, which then classified every file the previous
+    // install had published as "ours" rather than a peer's: the account read
+    // as empty and the setup wizard offered Start Fresh over a live library.
+    test('keeps its own identity instead of adopting the sentinel', () async {
+      const previousInstallId = 'device-of-the-install-that-was-replaced';
+      await prefs.setString('sync_device_id_sentinel', previousInstallId);
+      await prefs.setString('sync_db_instance_token', 'token-of-a-gone-db');
+
+      final freshId = await repository.getDeviceId();
+
+      final status = await initializer.reconcileDeviceIdentity();
+
+      expect(status, DeviceIdentityStatus.freshInstall);
+      expect(
+        await repository.getDeviceId(),
+        freshId,
+        reason:
+            'a database with no sync history has nothing to restore; taking '
+            "the previous install's id hides that install's cloud library",
+      );
+      expect(
+        prefs.getString('sync_device_id_sentinel'),
+        freshId,
+        reason: 'the anchors must be re-pointed at the identity we kept',
+      );
+    });
+
+    test('still rebaselines when the database carries sync history', () async {
+      // The discriminator is history, not the token: a backup predating
+      // instance tokens also arrives with a null token, and that IS a restore.
+      const liveId = 'live-device';
+      await prefs.setString('sync_device_id_sentinel', liveId);
+      await prefs.setString('sync_db_instance_token', 'token-of-a-gone-db');
+      await repository.getOrCreateMetadata();
+      await repository.updateLastSyncTime(
+        DateTime.fromMillisecondsSinceEpoch(1000),
+      );
+
+      final status = await initializer.reconcileDeviceIdentity();
+
+      expect(status, DeviceIdentityStatus.rebaselined);
+      expect(await repository.getDeviceId(), liveId);
+    });
+  });
+
   group('SyncNotifier.resetSyncState', () {
     test('adopts a fresh device identity', () async {
       // The twin-device trap: two installs syncing as the same device write

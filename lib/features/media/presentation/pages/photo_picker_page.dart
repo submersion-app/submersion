@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:photo_manager/photo_manager.dart' as pm;
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 import 'package:submersion/core/utils/log_failure.dart';
@@ -338,19 +339,18 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
 }
 
 /// Header showing the date range being browsed.
-class _DateRangeHeader extends StatelessWidget {
+class _DateRangeHeader extends ConsumerWidget {
   final DateTime startTime;
   final DateTime endTime;
 
   const _DateRangeHeader({required this.startTime, required this.endTime});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final dateFormat = DateFormat.MMMd();
-    final timeFormat = DateFormat.jm();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     final sameDay =
         startTime.day == endTime.day &&
@@ -360,10 +360,10 @@ class _DateRangeHeader extends StatelessWidget {
     String rangeText;
     if (sameDay) {
       rangeText =
-          '${dateFormat.format(startTime)}, ${timeFormat.format(startTime)} to ${timeFormat.format(endTime)}';
+          '${units.formatMonthDay(startTime)}, ${units.formatTime(startTime)} to ${units.formatTime(endTime)}';
     } else {
       rangeText =
-          '${dateFormat.format(startTime)} ${timeFormat.format(startTime)} to ${dateFormat.format(endTime)} ${timeFormat.format(endTime)}';
+          '${units.formatMonthDay(startTime)} ${units.formatTime(startTime)} to ${units.formatMonthDay(endTime)} ${units.formatTime(endTime)}';
     }
 
     return Container(
@@ -579,18 +579,17 @@ class _PhotoThumbnail extends ConsumerWidget {
 }
 
 /// View shown when no photos are found in the date range.
-class _EmptyStateView extends StatelessWidget {
+class _EmptyStateView extends ConsumerWidget {
   final DateTime startTime;
   final DateTime endTime;
 
   const _EmptyStateView({required this.startTime, required this.endTime});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final dateFormat = DateFormat.MMMd();
-    final timeFormat = DateFormat.jm();
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Center(
       child: Padding(
@@ -611,10 +610,10 @@ class _EmptyStateView extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               context.l10n.media_photoPicker_emptyMessage(
-                dateFormat.format(startTime),
-                timeFormat.format(startTime),
-                dateFormat.format(endTime),
-                timeFormat.format(endTime),
+                units.formatMonthDay(startTime),
+                units.formatTime(startTime),
+                units.formatMonthDay(endTime),
+                units.formatTime(endTime),
               ),
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(

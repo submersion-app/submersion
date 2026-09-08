@@ -11,17 +11,21 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/place_name_language_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/visibility_scale_picker.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -585,7 +589,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                     ],
                   ),
                   onTap: () =>
-                      showPlaceNameLanguagePicker(context, ref, settings),
+                      unawaited(_pickPlaceNameLanguage(context, ref, settings)),
                 ),
               ],
             ),
@@ -1901,6 +1905,8 @@ class _AppearanceSectionContentState
                     }).toList(),
                   ),
                 ),
+                const Divider(height: 1),
+                const NavCustomizationTile(),
               ],
             ),
           ),
@@ -2330,6 +2336,16 @@ class _ManageSectionContent extends StatelessWidget {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/tank-presets'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.gas_meter),
+                  title: Text(context.l10n.settings_section_trimixMixer_title),
+                  subtitle: Text(
+                    context.l10n.settings_section_trimixMixer_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(kTrimixMixerSettingsRoute),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -3251,11 +3267,12 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
       ),
     };
 
+    // #1512: this stamp was hand-rolled as M/D/YYYY with a 24-hour clock, so
+    // it ignored both the date and the time preference.
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final lastCheck = prefs.lastCheckTime;
     final lastCheckText = lastCheck != null
-        ? '${lastCheck.month}/${lastCheck.day}/${lastCheck.year} '
-              '${lastCheck.hour.toString().padLeft(2, '0')}:'
-              '${lastCheck.minute.toString().padLeft(2, '0')}'
+        ? units.formatDateTime(lastCheck, l10n: context.l10n)
         : context.l10n.settings_updates_never;
 
     return Card(
@@ -3815,4 +3832,26 @@ class _GradientFactorDialogState extends State<_GradientFactorDialog> {
       ],
     );
   }
+}
+
+/// Picks the place name language and, when it changed, offers to look the
+/// diver's sites up again in the new language.
+///
+/// Without that offer a change quietly splits the database: sites geocoded
+/// before it keep their old names, so statistics group one region under two
+/// spellings (issue #1187). The refresh flow asks for confirmation itself,
+/// so a diver who only wants the language changed can decline.
+Future<void> _pickPlaceNameLanguage(
+  BuildContext context,
+  WidgetRef ref,
+  AppSettings settings,
+) async {
+  final previous = settings.placeNameLanguage;
+  final chosen = await showPlaceNameLanguagePicker(context, ref, settings);
+  if (chosen == null || chosen == previous || !context.mounted) return;
+  await showSiteLocationBackfillFlow(
+    context,
+    ref,
+    mode: SiteLocationLookupMode.refreshAll,
+  );
 }

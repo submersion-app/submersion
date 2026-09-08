@@ -3,8 +3,14 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 /// Library health facet: rows whose backing file is missing (persisted
-/// orphan flag). Every row carries a dive or site link, so there is no
-/// "unlinked" facet; an album saved with one decodes to no constraint.
+/// orphan flag).
+///
+/// There is deliberately no "unlinked" facet, but NOT because unlinked rows
+/// cannot exist: they can. A row with `retain_in_library` set keeps its place
+/// with no dive, site or equipment link, and the orphan sweep
+/// (`getSweepableOrphanIds`) exists precisely to collect the unlinked rows
+/// nothing retains. The facet was simply never built, so an album saved with
+/// one decodes to no constraint.
 enum MediaHealthFilter { missing }
 
 /// Cross-dive library filter. Compiled to SQL by MediaLibraryRepository;

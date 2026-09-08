@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
@@ -32,6 +34,8 @@ class _StubExportService implements ExportService {
     List<Dive> dives, {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) async {
     calls.add('share:uddf');
     return '/tmp/shared_uddf';
@@ -42,6 +46,8 @@ class _StubExportService implements ExportService {
     List<Dive> dives, {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) async {
     calls.add('save:uddf');
     return '/tmp/saved_uddf';
@@ -58,6 +64,8 @@ class _ThrowingExportService extends _StubExportService {
     List<Dive> dives, {
     List<DiveSite>? sites,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    UddfExportOptions options = const UddfExportOptions(),
   }) async {
     calls.add('share:uddf');
     throw StateError('disk full');
@@ -118,6 +126,11 @@ void main() {
             dive.id,
           ).overrideWith((ref) async => <DiveDataSource>[]),
           exportServiceProvider.overrideWithValue(exportService),
+          // These tests have no database. The real fetch would reach the
+          // repository, so the export would never be issued.
+          uddfSourceFetchProvider.overrideWithValue(
+            (diveIds, options) async => const [],
+          ),
         ],
         child: DiveDetailPage(diveId: dive.id, embedded: true),
       ),

@@ -76,17 +76,24 @@ void main() {
     expect(find.byType(PlanStatusChips), findsNothing);
     expect(find.text('Base'), findsOneWidget);
     expect(find.byType(ContingencyChips), findsOneWidget);
-    expect(find.byType(SegmentList), findsOneWidget);
+    // The deck opens on Tanks: gas is chosen before the profile that
+    // breathes it.
+    expect(find.byType(PlanTankList), findsOneWidget);
+    expect(find.byType(SegmentList), findsNothing);
     expect(find.byType(DraggableScrollableSheet), findsNothing);
   });
 
-  testWidgets('phone tabs switch between plan, tanks, setup, results', (
+  testWidgets('phone tabs switch between tanks, plan, setup, results', (
     tester,
   ) async {
     await setSize(tester, const Size(420, 900));
     await tester.pumpWidget(harness());
     seed(tester);
     await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Plan'));
+    await tester.pumpAndSettle();
+    expect(find.byType(SegmentList), findsOneWidget);
 
     await tester.tap(find.text('Tanks'));
     await tester.pumpAndSettle();
@@ -99,6 +106,32 @@ void main() {
     await tester.tap(find.text('Results'));
     await tester.pumpAndSettle();
     expect(find.byType(PlanResultsPane), findsOneWidget);
+  });
+
+  testWidgets('phone deck reads Tanks, Plan, Setup, Results left to right', (
+    tester,
+  ) async {
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness());
+    seed(tester);
+    await tester.pumpAndSettle();
+
+    // Scoped to the deck: "Tanks" also appears as the section header of the
+    // tab body, which is the Tanks pane by default.
+    final xs = <String, double>{
+      for (final label in ['Tanks', 'Plan', 'Setup', 'Results'])
+        label: tester
+            .getTopLeft(
+              find.descendant(
+                of: find.byType(SegmentedButton<int>),
+                matching: find.text(label),
+              ),
+            )
+            .dx,
+    };
+    expect(xs['Tanks']!, lessThan(xs['Plan']!));
+    expect(xs['Plan']!, lessThan(xs['Setup']!));
+    expect(xs['Setup']!, lessThan(xs['Results']!));
   });
 
   testWidgets('wide layout shows three panes and no draggable sheet', (

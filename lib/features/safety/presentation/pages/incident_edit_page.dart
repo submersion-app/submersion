@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/formatters/incident_labels.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -92,6 +93,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final units = UnitFormatter(ref.watch(settingsProvider));
     if (!_loaded) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -172,7 +174,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
               title: Text(l10n.incidentEdit_date),
               // Format the wall-clock UTC components directly (no toLocal), so
               // the shown day is identical on every synced device.
-              subtitle: Text(DateFormat.yMMMd().format(_occurredAt)),
+              subtitle: Text(units.formatDate(_occurredAt)),
               onTap: _pickDate,
             ),
             TextFormField(

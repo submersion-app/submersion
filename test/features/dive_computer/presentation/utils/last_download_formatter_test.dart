@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// The formatter replaced a domain getter that could not localize (#152), so
@@ -24,6 +27,7 @@ void main() {
     WidgetTester tester,
     DateTime? lastDownload, {
     Locale locale = const Locale('en'),
+    AppSettings settings = const AppSettings(),
   }) async {
     late String output;
     await tester.pumpWidget(
@@ -33,7 +37,11 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Builder(
           builder: (context) {
-            output = formatLastDownload(context, lastDownload);
+            output = formatLastDownload(
+              context,
+              lastDownload,
+              units: UnitFormatter(settings),
+            );
             return Text(output);
           },
         ),
@@ -81,11 +89,25 @@ void main() {
     );
   });
 
-  testWidgets('downloads older than a week fall back to a numeric date', (
+  testWidgets('downloads older than a week fall back to a full date', (
     tester,
   ) async {
     final old = DateTime(2026, 1, 15);
-    expect(await render(tester, old), DateFormat.yMd('en').format(old));
+    expect(await render(tester, old), 'Jan 15, 2026');
+  });
+
+  testWidgets('the fallback date honours the diver\'s date preference', (
+    tester,
+  ) async {
+    final old = DateTime(2026, 1, 15);
+    expect(
+      await render(
+        tester,
+        old,
+        settings: const AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
+      ),
+      '15/01/2026',
+    );
   });
 
   testWidgets('a future timestamp does not render a negative duration', (

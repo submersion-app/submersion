@@ -10,6 +10,8 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 
 /// The open-circuit bailout picture at one instant of a CCR plan.
 class BailoutPoint {
@@ -67,8 +69,11 @@ class BailoutSolver {
 
   const BailoutSolver({this.config = const PlanEngineConfig()});
 
-  BailoutOutcome? solve(domain.DivePlan plan) {
-    if (plan.mode != domain.PlanMode.ccr) return null;
+  BailoutOutcome? solve(domain.DivePlan inputPlan) {
+    if (inputPlan.mode != domain.PlanMode.ccr) return null;
+    // Which cylinders are bailout is partly derived (any open-circuit gas
+    // carried on a loop dive) and partly the diver's explicit override.
+    final plan = const TankRoleResolver().apply(inputPlan);
     final bailoutTanks = plan.tanks
         .where((t) => t.role == TankRole.bailout)
         .toList();
@@ -76,6 +81,7 @@ class BailoutSolver {
     final segments = List<PlanSegment>.from(plan.segments)
       ..sort((a, b) => a.order.compareTo(b.order));
     if (segments.isEmpty) return null;
+    final legs = const SegmentChain().resolve(segments);
 
     final environment = DiveEnvironment.forConditions(
       altitudeMeters: plan.altitude,
@@ -84,6 +90,9 @@ class BailoutSolver {
     final policy = SchedulePolicy(
       lastStopDepth: plan.lastStopDepth,
       ascentRate: plan.ascentRate,
+      intermediateAscentRate: plan.intermediateAscentRate,
+      shallowAscentRate: plan.shallowAscentRate,
+      finalAscentRate: plan.finalAscentRate,
       gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
       airBreaks: plan.airBreaks,
     );
@@ -131,15 +140,16 @@ class BailoutSolver {
     var elapsed = 0;
     final points = <BailoutPoint>[];
 
-    for (final segment in segments) {
+    for (final leg in legs) {
+      final segment = leg.segment;
       var covered = 0;
       while (covered < segment.durationSeconds) {
         final chunk = (segment.durationSeconds - covered) < sampleInterval
             ? segment.durationSeconds - covered
             : sampleInterval;
         double depthAt(int secondsIntoSegment) =>
-            segment.startDepth +
-            (segment.endDepth - segment.startDepth) *
+            leg.startDepth +
+            (leg.endDepth - leg.startDepth) *
                 (secondsIntoSegment / segment.durationSeconds);
         final chunkStartDepth = depthAt(covered);
         final chunkEndDepth = depthAt(covered + chunk);
@@ -178,7 +188,7 @@ class BailoutSolver {
                 schedule,
                 fromDepth: chunkEndDepth,
                 sac: plan.sacStressedEffective,
-                ascentRate: plan.ascentRate,
+                policy: policy,
                 environment: environment,
               ),
             ),
@@ -199,19 +209,27 @@ class BailoutSolver {
     );
   }
 
-  /// Stressed-SAC surface liters for an OC ascent: travel legs at
-  /// [ascentRate], the stops themselves, and the final surfacing leg.
+  /// Stressed-SAC surface liters for an OC ascent: the travel legs at the
+  /// rates [policy] defines, the stops themselves, and the final surfacing
+  /// leg. Measuring the legs through the policy is what keeps the gas
+  /// estimate honest about the slow final stretch, which is where a bailout
+  /// spends a surprising share of its volume.
   double _ascentLiters(
     DecoSchedule schedule, {
     required double fromDepth,
     required double sac,
-    required double ascentRate,
+    required SchedulePolicy policy,
     required DiveEnvironment environment,
   }) {
     var liters = 0.0;
     var depth = fromDepth;
+    var phase = AscentPhase.toFirstStop;
     for (final stop in schedule.stops) {
-      final legSeconds = ((depth - stop.depthMeters) / ascentRate * 60).round();
+      final legSeconds = policy.ascentSeconds(
+        fromDepth: depth,
+        toDepth: stop.depthMeters,
+        phase: phase,
+      );
       liters +=
           sac *
           (legSeconds / 60.0) *
@@ -221,9 +239,14 @@ class BailoutSolver {
           (stop.durationSeconds / 60.0) *
           environment.pressureAtDepth(stop.depthMeters);
       depth = stop.depthMeters;
+      phase = AscentPhase.betweenStops;
     }
     if (depth > 0) {
-      final legSeconds = (depth / ascentRate * 60).round();
+      final legSeconds = policy.ascentSeconds(
+        fromDepth: depth,
+        toDepth: 0,
+        phase: AscentPhase.surfacingAfter(phase),
+      );
       liters +=
           sac * (legSeconds / 60.0) * environment.pressureAtDepth(depth / 2.0);
     }

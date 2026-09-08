@@ -1,16 +1,13 @@
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/live_database_copier.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
-
-typedef AsyncPathResolver = Future<String> Function();
 
 /// Copies the live sqlite database before Drift runs a schema migration.
 ///
@@ -18,6 +15,9 @@ typedef AsyncPathResolver = Future<String> Function();
 /// existing BackupPreferences registry so it appears alongside manual
 /// backups in the backup list UI.
 class PreMigrationBackupService {
+  /// How many unpinned pre-migration copies survive a prune. Each one is a
+  /// full database, so this stays small; see [_pruneExcess] for which of
+  /// them are kept.
   static const int _retainN = 3;
   final AsyncPathResolver _livePathProvider;
   final AsyncPathResolver _backupsDirProvider;
@@ -62,14 +62,22 @@ class PreMigrationBackupService {
       throw BackupFailedException.fromError(e, stack);
     }
 
-    await _settleJournalMode(livePath);
+    await LiveDatabaseCopier.settleJournalMode(
+      livePath,
+      keyHex: _databaseKeyHexProvider?.call(),
+    );
 
     final now = _clock().toUtc();
-    final filename = '${_formatTimestamp(now)}-v$stored-v$target.db';
+    final filename =
+        '${LiveDatabaseCopier.formatTimestamp(now)}-v$stored-v$target.db';
 
     late final String finalPath;
     try {
-      finalPath = await _backupInto(_backupsDirProvider, livePath, filename);
+      finalPath = await LiveDatabaseCopier.copyInto(
+        _backupsDirProvider,
+        livePath,
+        filename,
+      );
     } catch (preferredError, preferredStack) {
       final fallbackProvider = _fallbackBackupsDirProvider;
       if (fallbackProvider == null) {
@@ -83,7 +91,11 @@ class PreMigrationBackupService {
         stackTrace: preferredStack,
       );
       try {
-        finalPath = await _backupInto(fallbackProvider, livePath, filename);
+        finalPath = await LiveDatabaseCopier.copyInto(
+          fallbackProvider,
+          livePath,
+          filename,
+        );
       } catch (e, stack) {
         if (e is BackupFailedException) rethrow;
         throw BackupFailedException.fromError(e, stack);
@@ -133,151 +145,69 @@ class PreMigrationBackupService {
     }
   }
 
-  /// Takes the closed database out of WAL so the byte copy below is a
-  /// complete, self-contained snapshot of what the migration is about to
-  /// touch.
+  /// Keeps [_retainN] pre-migration copies: the recovery floor, plus the
+  /// newest of the rest.
   ///
-  /// A SQLite database is not one file. In WAL mode committed transactions
-  /// live in `<db>-wal` until a checkpoint folds them back, and a crash or
-  /// force-kill leaves them there; the migration replays them when it opens
-  /// the database, so a copy of `<db>` alone is missing the tail of the user's
-  /// data: precisely the data a safety copy exists to protect. Copying the
-  /// sidecar alongside would not help: `DatabaseService.restore` stages only
-  /// the single backup file and deletes the destination's sidecars before the
-  /// swap, so a `-wal` next to the backup would never travel.
+  /// Retention here is not "the last few backups". These copies exist for one
+  /// job: to be opened by a build that refuses the live database because the
+  /// schema has moved past what that build understands. Only a copy whose
+  /// [BackupRecord.fromSchemaVersion] is at or below that build's own version
+  /// can do that job, so the single most valuable record is the one with the
+  /// LOWEST `fromSchemaVersion` -- and pruning newest-first is precisely the
+  /// order that deletes it first. A diver crossing several schema rungs would
+  /// otherwise end up holding three copies, none of which the build in front
+  /// of them can open, having deleted the one that it could.
   ///
-  /// `journal_mode = DELETE` settles both halves of the problem in one
-  /// statement. It checkpoints and removes the `-wal`, AND it clears the WAL
-  /// flag from the header -- which a checkpoint alone does not. That second
-  /// half matters because the flag is what a byte copy inherits: a WAL-mode
-  /// artifact makes SQLite create an `-shm` beside it on the next READ-ONLY
-  /// open, which is how `BackupService.validateBackupFile` and the schema
-  /// probe read backups, and which fails outright on a file the picker handed
-  /// over from a read-only directory.
-  ///
-  /// The live database goes straight back to WAL the next time
-  /// `applyMainDatabaseSetup` opens it, which on this path is the migration
-  /// itself, moments later.
-  ///
-  /// Best-effort by contract. A database that cannot be opened read-write
-  /// (ejected volume, read-only mount, missing or wrong key) still gets its
-  /// plain copy: an incomplete safety net beats a bricked startup, and the
-  /// migration that follows will surface the real problem itself.
-  Future<void> _settleJournalMode(String livePath) async {
-    try {
-      final db = DatabaseService.openRaw(
-        livePath,
-        keyHex: _databaseKeyHexProvider?.call(),
-      );
-      try {
-        // Returns one row holding the resulting mode. Anything other than
-        // 'delete' means frames may have been left behind, so say so rather
-        // than implying a clean snapshot.
-        final result = db.select('PRAGMA journal_mode = DELETE');
-        final mode = result.isEmpty ? null : result.first.values.first;
-        if (mode != 'delete') {
-          _log.warning(
-            'Could not take the database out of WAL before the pre-migration '
-            'backup (mode=$mode); the copy may omit WAL-resident rows',
-          );
-        }
-      } finally {
-        db.close();
-      }
-    } catch (e, stack) {
-      _log.warning(
-        'Settling the journal mode before the pre-migration backup failed; '
-        'copying the database file as-is',
-        error: e,
-        stackTrace: stack,
-      );
-    }
-  }
-
-  /// Resolves + creates [provider]'s directory, sweeps stale temp files, and
-  /// atomically copies the live DB into it. Returns the final path.
-  ///
-  /// Wrapping the WHOLE attempt -- not just directory creation -- means an
-  /// existing but unwritable preferred location (e.g. an iOS iCloud folder
-  /// whose write scope was lost, where create() is a no-op but the copy is
-  /// denied) still degrades to the caller's fallback instead of bricking
-  /// startup. Throws if any step fails; the caller decides whether to retry.
-  Future<String> _backupInto(
-    AsyncPathResolver provider,
-    String livePath,
-    String filename,
-  ) async {
-    final dir = await provider();
-    await Directory(dir).create(recursive: true);
-    await _sweepTempFiles(dir);
-    final tempPath = p.join(dir, '.$filename.tmp');
-    final finalPath = p.join(dir, filename);
-    try {
-      await File(livePath).copy(tempPath);
-      await File(tempPath).rename(finalPath);
-    } catch (e) {
-      await _safeDelete(tempPath);
-      rethrow;
-    }
-    return finalPath;
-  }
-
-  String _formatTimestamp(DateTime utc) {
-    String two(int v) => v.toString().padLeft(2, '0');
-    String three(int v) => v.toString().padLeft(3, '0');
-    final d = utc;
-    return '${d.year}${two(d.month)}${two(d.day)}-'
-        '${two(d.hour)}${two(d.minute)}${two(d.second)}'
-        '${three(d.millisecond)}';
-  }
-
-  Future<void> _safeDelete(String path) async {
-    try {
-      final f = File(path);
-      if (await f.exists()) await f.delete();
-    } catch (e, stack) {
-      _log.warning(
-        'Failed to delete backup file at $path (continuing)',
-        error: e,
-        stackTrace: stack,
-      );
-    }
-  }
-
+  /// The floor is therefore retained in place of the third-newest rather than
+  /// in addition to it: which copies are kept changes, how many does not.
   Future<void> _pruneExcess() async {
     final all = _preferences.getHistory();
-    final preMigration = all
-        .where((r) => r.type == BackupType.preMigration)
-        .toList();
-    final unpinned = preMigration.where((r) => !r.pinned).toList()
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    if (unpinned.length <= _retainN) return;
-    final toDelete = unpinned.sublist(_retainN);
-    for (final record in toDelete) {
+    final candidates =
+        all
+            .where((r) => r.type == BackupType.preMigration && !r.pinned)
+            .toList()
+          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    if (candidates.length <= _retainN) return;
+
+    final keep = <String>{};
+    final floor = _recoveryFloor(candidates);
+    if (floor != null) keep.add(floor.id);
+    for (final record in candidates) {
+      if (keep.length >= _retainN) break;
+      keep.add(record.id);
+    }
+
+    for (final record in candidates) {
+      if (keep.contains(record.id)) continue;
       final path = record.localPath;
       if (path != null) {
-        await _safeDelete(path);
+        await LiveDatabaseCopier.safeDelete(path);
       }
       await _preferences.removeRecord(record.id);
     }
   }
 
-  Future<void> _sweepTempFiles(String backupsDir) async {
-    try {
-      final dir = Directory(backupsDir);
-      await for (final entity in dir.list(followLinks: false)) {
-        if (entity is! File) continue;
-        final name = p.basename(entity.path);
-        if (name.startsWith('.') && name.endsWith('.db.tmp')) {
-          await _safeDelete(entity.path);
-        }
-      }
-    } catch (e, stack) {
-      _log.warning(
-        'Failed sweeping .tmp files in $backupsDir',
-        error: e,
-        stackTrace: stack,
-      );
+  /// The copy the oldest build could still open: the lowest
+  /// [BackupRecord.fromSchemaVersion] among [candidates], ties going to the
+  /// newer copy since both open in the same builds and the newer one holds
+  /// more of the diver's data.
+  ///
+  /// A record with no recorded `fromSchemaVersion` was written before the
+  /// schema pair existed, so there is nothing to show it opens anywhere; it
+  /// never claims the floor slot and competes on recency like any other copy.
+  /// Returns null when no candidate records a version, which leaves retention
+  /// purely newest-first.
+  ///
+  /// [candidates] must already be ordered newest-first, which is what makes
+  /// the strict `<` below resolve ties toward the newer copy.
+  BackupRecord? _recoveryFloor(List<BackupRecord> candidates) {
+    BackupRecord? floor;
+    for (final record in candidates) {
+      final version = record.fromSchemaVersion;
+      if (version == null) continue;
+      final lowest = floor?.fromSchemaVersion;
+      if (lowest == null || version < lowest) floor = record;
     }
+    return floor;
   }
 }

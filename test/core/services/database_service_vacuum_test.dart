@@ -167,16 +167,16 @@ void main() {
     },
   );
 
-  test('a file stamped at the current version whose legacy table the BACKSTOP '
-      'drops is VACUUMed', () async {
+  test('a file at the current version whose legacy table the BACKSTOP drops '
+      'is VACUUMed', () async {
     // The v183 rung is explicitly allowed to skip its drop: its own pack
     // threw, the series table's foreign-key parents were absent, or the
-    // residue count found rows no series covered. The file is stamped at the
-    // current version either way, and the beforeOpen backstop drops the tables on the first
-    // later open whose pack succeeds. That open has no pending ladder, so a
-    // reclamation keyed on the stored version never runs for it, and there
-    // is no other VACUUM of the live database anywhere in the app: the
-    // diver's file keeps every freed page forever.
+    // residue count found rows no series covered. The file is stamped past
+    // that rung either way, and the beforeOpen backstop drops the tables on
+    // the first later open whose pack succeeds. That open has no pending
+    // ladder, so a reclamation keyed on the stored version never runs for it,
+    // and there is no other VACUUM of the live database anywhere in the app:
+    // the diver's file keeps every freed page forever.
     await seedFile((raw) {
       raw.execute('DROP TABLE IF EXISTS dive_profiles');
       raw.execute('''
@@ -206,8 +206,9 @@ void main() {
       }
       raw.execute('COMMIT');
       stmt.close();
-      // Already at the current version, so there is no ladder to run.
-      raw.execute('PRAGMA user_version = ${AppDatabase.currentSchemaVersion}');
+      // No rewind: seedFile leaves the file at the current version, so there
+      // is no ladder to run. Pinning a literal here made this case quietly
+      // stop being the one it describes as soon as a rung was added.
     });
 
     expect(freelistOnDisk(), 0);

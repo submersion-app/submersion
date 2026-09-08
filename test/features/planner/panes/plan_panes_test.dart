@@ -42,7 +42,7 @@ void main() {
     expect(find.text("46'"), findsOneWidget);
   });
 
-  testWidgets('editor pane stacks segments, tanks, setup', (tester) async {
+  testWidgets('editor pane stacks tanks, segments, setup', (tester) async {
     tester.view.physicalSize = const Size(400, 1200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -56,6 +56,31 @@ void main() {
     expect(find.byType(SegmentList), findsOneWidget);
     expect(find.byType(PlanTankList), findsOneWidget);
     expect(find.byType(PlanSetupAccordion), findsOneWidget);
+  });
+
+  testWidgets('editor pane puts tanks above segments above setup', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const SizedBox(width: 320, child: PlanEditorPane()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Gas before profile: a segment's tank dropdown can only offer tanks that
+    // already exist, so the cylinders have to be defined first. Asserted on
+    // vertical offsets rather than presence, because presence alone passed
+    // both orders.
+    final tanksY = tester.getTopLeft(find.byType(PlanTankList)).dy;
+    final segmentsY = tester.getTopLeft(find.byType(SegmentList)).dy;
+    final setupY = tester.getTopLeft(find.byType(PlanSetupAccordion)).dy;
+    expect(tanksY, lessThan(segmentsY));
+    expect(segmentsY, lessThan(setupY));
   });
 
   testWidgets('results pane shows stat tiles reflecting the outcome', (

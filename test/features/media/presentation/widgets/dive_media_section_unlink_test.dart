@@ -92,7 +92,7 @@ void main() {
 
     expect(await repo.getMediaById('m1'), isNull);
     expect(outcome.deleted, 1);
-    expect(outcome.keptAsSiteMedia, 0);
+    expect(outcome.keptLinked, 0);
   });
 
   test('unlinkMultipleMedia keeps a row a dive site still needs', () async {
@@ -122,7 +122,7 @@ void main() {
     // The site link is what keeps the row; nothing latches a retain flag.
     expect(kept.retainInLibrary, isFalse);
     expect(outcome.deleted, 0);
-    expect(outcome.keptAsSiteMedia, 1);
+    expect(outcome.keptLinked, 1);
   });
 
   testWidgets('the selection bar offers Unlink and no Delete; Unlink keeps '

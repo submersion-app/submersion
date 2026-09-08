@@ -8,9 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/gas_calculators/presentation/pages/blender_settings_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_billing_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -24,7 +26,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 /// Cubic feet per litre, as `VolumeUnit.convert` uses.
 const double _cuftPerLiter = 0.0353147;
 
-Future<WidgetRef> _pump(WidgetTester tester, VolumeUnit unit) async {
+/// The price fields moved from [BlenderBillingCard] to the fill-gas rows on
+/// [BlenderSettingsPage] (issue #1335, then Eric's PR #1359 review point 3);
+/// this is the settings surface now.
+Future<WidgetRef> _pumpDefaults(WidgetTester tester, VolumeUnit unit) async {
   await tester.binding.setSurfaceSize(const Size(900, 2000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
   late WidgetRef captured;
@@ -41,6 +46,39 @@ Future<WidgetRef> _pump(WidgetTester tester, VolumeUnit unit) async {
             AppSettings(volumeUnit: unit, defaultCurrency: 'USD'),
           ),
         ),
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Consumer(
+          builder: (context, ref, _) {
+            captured = ref;
+            return const BlenderSettingsPage();
+          },
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return captured;
+}
+
+/// Cost lines and the totals column still live on [BlenderBillingCard].
+Future<WidgetRef> _pumpBilling(WidgetTester tester, VolumeUnit unit) async {
+  await tester.binding.setSurfaceSize(const Size(900, 2000));
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+  late WidgetRef captured;
+  await tester.pumpWidget(
+    ProviderScope(
+      key: ValueKey(unit),
+      overrides: [
+        settingsProvider.overrideWith(
+          (ref) => _TestSettingsNotifier(
+            AppSettings(volumeUnit: unit, defaultCurrency: 'USD'),
+          ),
+        ),
+        tankPresetsProvider.overrideWith((ref) async => const []),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -75,7 +113,7 @@ void main() {
   testWidgets('a price typed per 100 cu ft is stored per 100 litres', (
     tester,
   ) async {
-    final ref = await _pump(tester, VolumeUnit.cubicFeet);
+    final ref = await _pumpDefaults(tester, VolumeUnit.cubicFeet);
 
     await tester.enterText(_priceField(0), '7.99');
     await tester.pumpAndSettle();
@@ -89,7 +127,7 @@ void main() {
   });
 
   testWidgets('a price typed per 100 L is stored as typed', (tester) async {
-    final ref = await _pump(tester, VolumeUnit.liters);
+    final ref = await _pumpDefaults(tester, VolumeUnit.liters);
 
     await tester.enterText(_priceField(0), '7.99');
     await tester.pumpAndSettle();
@@ -101,7 +139,7 @@ void main() {
     // An AL80 (11.1 L of water) taking 50 bar of oxygen, priced identically in
     // each system. The bill must not depend on which unit the diver reads in.
     Future<double> totalFor(VolumeUnit unit, String price) async {
-      final ref = await _pump(tester, unit);
+      final ref = await _pumpDefaults(tester, unit);
       ref.read(blenderCylinderLitersProvider.notifier).state = 11.1;
       await tester.pumpAndSettle();
       await tester.enterText(_priceField(0), price);
@@ -119,7 +157,7 @@ void main() {
   });
 
   testWidgets('the volume column is converted exactly once', (tester) async {
-    final ref = await _pump(tester, VolumeUnit.cubicFeet);
+    final ref = await _pumpBilling(tester, VolumeUnit.cubicFeet);
     ref.read(blenderCylinderLitersProvider.notifier).state = 11.1;
     ref.read(blenderGasPricesProvider.notifier).state = const [1.0, 1.0, 1.0];
     await tester.pumpAndSettle();

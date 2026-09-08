@@ -190,8 +190,14 @@ double _fO2(GasMix m) => m.o2 / 100;
 double _fHe(GasMix m) => m.he / 100;
 double _fN2(GasMix m) => (100 - m.o2 - m.he) / 100;
 
+/// Whether [m] is physically possible: no negative fraction, and O2 plus He
+/// no more than 100%. [computeBlend] throws [BlendError.invalidMix] for the
+/// same condition; exposed so a settings field can flag it inline instead of
+/// waiting for a solve to fail.
+bool isValidGasMix(GasMix m) => m.o2 >= 0 && m.he >= 0 && m.o2 + m.he <= 100;
+
 void _validateMix(GasMix m) {
-  if (m.o2 < 0 || m.he < 0 || m.o2 + m.he > 100) {
+  if (!isValidGasMix(m)) {
     throw const BlendException(BlendError.invalidMix);
   }
 }

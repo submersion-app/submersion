@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -186,7 +187,7 @@ class CertificationPickerSheet extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final cert = sortedCerts[index];
                   final isSelected = selectedCertification?.id == cert.id;
-                  final dateFormat = DateFormat.yMMMd();
+                  final units = UnitFormatter(ref.watch(settingsProvider));
 
                   // Only non-null when a custom name owns the title, so the
                   // level is spoken exactly once either way.
@@ -199,7 +200,7 @@ class CertificationPickerSheet extends ConsumerWidget {
                       '${cert.agency.displayName} '
                       '${certificationTitle(cert)}$levelLabel';
                   final certLabel = cert.issueDate != null
-                      ? '$certName, issued ${dateFormat.format(cert.issueDate!)}${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}'
+                      ? '$certName, issued ${units.formatDate(cert.issueDate)}${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}'
                       : '$certName${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}';
 
                   return Semantics(
@@ -228,7 +229,7 @@ class CertificationPickerSheet extends ConsumerWidget {
                       title: Text(certificationTitle(cert)),
                       subtitle: Text(
                         cert.issueDate != null
-                            ? '${certificationAgencyAndLevel(cert)} - ${dateFormat.format(cert.issueDate!)}'
+                            ? '${certificationAgencyAndLevel(cert)} - ${units.formatDate(cert.issueDate)}'
                             : certificationAgencyAndLevel(cert),
                       ),
                       trailing: isSelected

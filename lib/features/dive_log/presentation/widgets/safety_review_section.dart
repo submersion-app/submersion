@@ -11,12 +11,25 @@ import 'package:submersion/features/dive_log/presentation/widgets/safety_finding
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Whether [review] has any finding [settings] would show, once the
+/// diver's disabled-rule filter is applied.
+///
+/// Shared with [DiveSafetySummarySection] so the section that decides
+/// whether to reserve space for [SafetyReviewSection] and the widget that
+/// decides whether to render it agree on the same answer.
+bool hasVisibleSafetyFindings(AppSettings settings, SafetyReview? review) {
+  if (!settings.safetyReviewEnabled || review == null) return false;
+  final disabled = settings.safetyReviewDisabledRules;
+  return review.findings.any((f) => !disabled.contains(f.ruleId.dbValue));
+}
+
 /// Dive detail section listing the post-dive safety review findings.
 ///
 /// Tone rules (safety-features spec): neutral wording and iconography, no
 /// alarm red, per-finding dismiss plus a footer action that dismisses (or
 /// restores) the whole dive at once. Collapses to nothing when the review is
-/// disabled, absent, or has no findings to show.
+/// disabled, absent, or has no findings to show; pairs with
+/// [DiveSafetySummarySection], which owns the space above the pair.
 class SafetyReviewSection extends ConsumerStatefulWidget {
   final String diveId;
 
@@ -34,19 +47,17 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
-    if (!settings.safetyReviewEnabled) return const SizedBox.shrink();
-
-    final reviewAsync = ref.watch(safetyReviewProvider(widget.diveId));
-    final review = reviewAsync.value;
-    if (review == null) return const SizedBox.shrink();
+    final review = ref.watch(safetyReviewProvider(widget.diveId)).value;
+    if (!hasVisibleSafetyFindings(settings, review)) {
+      return const SizedBox.shrink();
+    }
 
     final disabled = settings.safetyReviewDisabledRules;
-    final visible = review.findings
+    final visible = review!.findings
         .where((f) => !disabled.contains(f.ruleId.dbValue))
         .toList();
     final active = visible.where((f) => !f.isDismissed).toList();
     final dismissed = visible.where((f) => f.isDismissed).toList();
-    if (active.isEmpty && dismissed.isEmpty) return const SizedBox.shrink();
 
     final l10n = context.l10n;
     final units = UnitFormatter(settings);
@@ -54,83 +65,78 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
       selectedSafetyFindingProvider(widget.diveId),
     );
 
-    // Top spacing lives here (not in the section builder) so the section
-    // occupies no space at all when it renders nothing.
-    return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: CollapsibleSection(
-        title: l10n.safetyReview_sectionTitle,
-        icon: Icons.health_and_safety_outlined,
-        trailing: Text(
-          l10n.safetyReview_findingCount(active.length),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+    return CollapsibleSection(
+      title: l10n.safetyReview_sectionTitle,
+      icon: Icons.health_and_safety_outlined,
+      trailing: Text(
+        l10n.safetyReview_findingCount(active.length),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
-        isExpanded: _expanded,
-        onToggle: (expanded) => setState(() => _expanded = expanded),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final finding in active)
-              _FindingTile(
-                finding: finding,
-                units: units,
-                selected: selectedFinding?.id == finding.id,
-                onTap: _tapHandlerFor(finding),
-                onDismissChanged: (dismissed) =>
-                    _setDismissed(finding, dismissed),
-              ),
-            // Footer: the dismissed-findings toggle on the left, the bulk
-            // action on the right. The bulk action flips to "restore all"
-            // once nothing active is left, so the row never offers a no-op.
-            //
-            // OverflowBar, not Row: after a "dismiss all" both controls are on
-            // screen at once, and in the longer locales that pair does not fit
-            // a narrow phone. OverflowBar stacks them instead of overflowing.
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: OverflowBar(
-                alignment: dismissed.isEmpty
-                    ? MainAxisAlignment.end
-                    : MainAxisAlignment.spaceBetween,
-                overflowAlignment: OverflowBarAlignment.end,
-                children: [
-                  if (dismissed.isNotEmpty)
-                    TextButton(
-                      onPressed: () =>
-                          setState(() => _showDismissed = !_showDismissed),
-                      child: Text(
-                        l10n.safetyReview_showDismissed(dismissed.length),
-                      ),
-                    ),
+      ),
+      isExpanded: _expanded,
+      onToggle: (expanded) => setState(() => _expanded = expanded),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final finding in active)
+            _FindingTile(
+              finding: finding,
+              units: units,
+              selected: selectedFinding?.id == finding.id,
+              onTap: _tapHandlerFor(finding),
+              onDismissChanged: (dismissed) =>
+                  _setDismissed(finding, dismissed),
+            ),
+          // Footer: the dismissed-findings toggle on the left, the bulk
+          // action on the right. The bulk action flips to "restore all"
+          // once nothing active is left, so the row never offers a no-op.
+          //
+          // OverflowBar, not Row: after a "dismiss all" both controls are on
+          // screen at once, and in the longer locales that pair does not fit
+          // a narrow phone. OverflowBar stacks them instead of overflowing.
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: OverflowBar(
+              alignment: dismissed.isEmpty
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.spaceBetween,
+              overflowAlignment: OverflowBarAlignment.end,
+              children: [
+                if (dismissed.isNotEmpty)
                   TextButton(
-                    onPressed: () => _onBulkPressed(active.isNotEmpty),
+                    onPressed: () =>
+                        setState(() => _showDismissed = !_showDismissed),
                     child: Text(
-                      active.isNotEmpty
-                          ? l10n.safetyReview_dismissAll
-                          : l10n.safetyReview_restoreAll,
+                      l10n.safetyReview_showDismissed(dismissed.length),
                     ),
                   ),
-                ],
-              ),
-            ),
-            if (dismissed.isNotEmpty && _showDismissed)
-              for (final finding in dismissed)
-                Opacity(
-                  opacity: 0.6,
-                  child: _FindingTile(
-                    finding: finding,
-                    units: units,
-                    selected: selectedFinding?.id == finding.id,
-                    onTap: _tapHandlerFor(finding),
-                    onDismissChanged: (dismissed) =>
-                        _setDismissed(finding, dismissed),
+                TextButton(
+                  onPressed: () => _onBulkPressed(active.isNotEmpty),
+                  child: Text(
+                    active.isNotEmpty
+                        ? l10n.safetyReview_dismissAll
+                        : l10n.safetyReview_restoreAll,
                   ),
                 ),
-            const SizedBox(height: 8),
-          ],
-        ),
+              ],
+            ),
+          ),
+          if (dismissed.isNotEmpty && _showDismissed)
+            for (final finding in dismissed)
+              Opacity(
+                opacity: 0.6,
+                child: _FindingTile(
+                  finding: finding,
+                  units: units,
+                  selected: selectedFinding?.id == finding.id,
+                  onTap: _tapHandlerFor(finding),
+                  onDismissChanged: (dismissed) =>
+                      _setDismissed(finding, dismissed),
+                ),
+              ),
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }
