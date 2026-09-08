@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/readout_card_p
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -187,7 +188,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
         ref.watch(diveDataSourcesProvider(widget.diveId)).value ?? const [];
     final overlayIds = ref.watch(overlaySourcesProvider(widget.diveId));
     final gasSwitches = ref.watch(gasSwitchesProvider(widget.diveId)).value;
-    final tankPressures = ref.watch(tankPressuresProvider(widget.diveId)).value;
+    final tankPressures = ref
+        .watch(activeSourceTankPressuresProvider(widget.diveId))
+        .value;
     // Chart-only: real pressures augmented with linear estimates (#197).
     final estimatedTankPressures = ref
         .watch(estimatedTankPressuresProvider(widget.diveId))

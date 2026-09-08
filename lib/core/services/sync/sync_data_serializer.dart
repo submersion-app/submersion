@@ -5910,27 +5910,24 @@ class SyncDataSerializer {
     return out;
   }
 
-  /// `media_species` has no clock of its own, so an incremental export
-  /// ships the tags of every photo whose `media.hlc` advanced; a full export
-  /// ships the table.
+  /// `media_species` carries its own clock since v195, so an incremental
+  /// export filters on the tag's `hlc`; a full export ships the table.
+  ///
+  /// It rode the parent `media.hlc` until then, which silently dropped every
+  /// tag: tagging a photo does not edit the photo, so the parent clock never
+  /// advanced past the peer watermark and the tag reached other devices only
+  /// on a full base publish (issue #1638). Tags written before v195 have a
+  /// NULL `hlc` (and `NULL > watermark` is not true, so they would never
+  /// publish); `SyncRepository.backfillMissingHlc` stamps them at the start
+  /// of the next sync.
   Future<List<Map<String, dynamic>>> _exportMediaSpecies(
     String? hlcSince,
   ) async {
+    final query = _db.select(_db.mediaSpecies);
     if (hlcSince != null) {
-      final modifiedMedia = await (_db.select(
-        _db.media,
-      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
-      final mediaIds = modifiedMedia.map((m) => m.id).toSet();
-      if (mediaIds.isEmpty) return [];
-
-      return _childRowsOf(
-        mediaIds,
-        (chunk) => (_db.select(
-          _db.mediaSpecies,
-        )..where((t) => t.mediaId.isIn(chunk))).get(),
-      );
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
-    final rows = await _db.select(_db.mediaSpecies).get();
+    final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
   }
 

@@ -24,6 +24,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// Static XML builder methods for comprehensive UDDF export.
 ///
@@ -481,6 +482,15 @@ class UddfExportBuilders {
                 }
                 // Tank order (for multi-tank configurations)
                 builder.element('tankorder', nest: tank.order.toString());
+                // Air-integration transmitter serial (app-specific): UDDF
+                // has no element for it, and it is the cylinder's identity
+                // across computers, so our own round trip must keep it.
+                final transmitterSerial = normalizeTransmitterSerial(
+                  tank.transmitterSerial,
+                );
+                if (transmitterSerial != null) {
+                  builder.element('transmitterserial', nest: transmitterSerial);
+                }
               },
             );
           }

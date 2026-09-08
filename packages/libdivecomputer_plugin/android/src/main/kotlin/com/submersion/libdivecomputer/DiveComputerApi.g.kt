@@ -286,7 +286,14 @@ data class TankInfo (
    * Tank usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
    * 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
    */
-  val usage: Long? = null
+  val usage: Long? = null,
+  /**
+   * Serial number of the air-integration transmitter that reported this
+   * tank's pressures (`dc_tank_t.serial`, a fork extension); null when the
+   * computer reported none. Identifies the physical cylinder across
+   * computers paired to the same transmitter.
+   */
+  val transmitterSerial: Long? = null
 )
  {
   companion object {
@@ -297,7 +304,8 @@ data class TankInfo (
       val startPressureBar = pigeonVar_list[3] as Double?
       val endPressureBar = pigeonVar_list[4] as Double?
       val usage = pigeonVar_list[5] as Long?
-      return TankInfo(index, gasMixIndex, volumeLiters, startPressureBar, endPressureBar, usage)
+      val transmitterSerial = pigeonVar_list[6] as Long?
+      return TankInfo(index, gasMixIndex, volumeLiters, startPressureBar, endPressureBar, usage, transmitterSerial)
     }
   }
   fun toList(): List<Any?> {
@@ -308,6 +316,7 @@ data class TankInfo (
       startPressureBar,
       endPressureBar,
       usage,
+      transmitterSerial,
     )
   }
 }

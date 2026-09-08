@@ -683,6 +683,7 @@ class DiveComputerHostApiImpl(
                 startPressureBar = if (tk[3] > 0) tk[3] else null,
                 endPressureBar = if (tk[4] > 0) tk[4] else null,
                 usage = if (tk[5].toLong() == 0L) null else tk[5].toLong(),
+                transmitterSerial = tk.getOrNull(6)?.toLong()?.takeIf { it != 0L },
             )
         }
 

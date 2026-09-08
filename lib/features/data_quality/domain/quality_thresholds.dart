@@ -62,6 +62,10 @@ abstract final class QualityThresholds {
   static const double wrongTankMinTotalDropBar = 20.0;
   static const double twinSeriesMeanDiffBar = 2.0;
   static const int twinSeriesMinSamples = 10;
+  // Two computers rarely sample on the same second, so twin series are
+  // compared at their nearest samples within this gap rather than at
+  // identical timestamps.
+  static const int twinSeriesMaxTimeGapSeconds = 5;
 
   // source_conflict
   static const double sourceDepthDiffFraction = 0.05;

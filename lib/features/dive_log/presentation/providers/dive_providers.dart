@@ -12,9 +12,7 @@ import 'package:submersion/features/dive_log/data/services/dive_consolidation_se
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_uncombine_service.dart';
-import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -408,7 +406,9 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
 
     // Reload silently when the `dives` table is written directly (e.g. a sync
     // applies remote changes) without going through this notifier's mutation
-    // methods. Silent so a multi-write sync doesn't flash a loading spinner.
+    // methods. Silent so a multi-write sync doesn't flash a loading spinner,
+    // and page-preserving so a local edit-save doesn't shrink the list out
+    // from under the diver (#1610).
     final divesChangeSub = _repository.watchDivesChanges().listen(
       (_) => _silentReload(),
     );
@@ -621,6 +621,15 @@ class PaginatedDiveListNotifier
   int _currentOffset = 0;
   static const _pageSize = 50;
 
+  /// Serializes every operation that rewrites the loaded rows.
+  ///
+  /// A reload and a page load each snapshot the list before awaiting their
+  /// query, so interleaving them lets whichever lands last overwrite the
+  /// other's work: the reload truncates the page just appended, or the page
+  /// append reinstates the rows the reload just refreshed. Running them one at
+  /// a time means each reads a snapshot that is still current when it writes.
+  Future<void> _pagingQueue = Future<void>.value();
+
   PaginatedDiveListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
     _currentDiverId = _ref.read(currentDiverIdProvider);
@@ -648,7 +657,7 @@ class PaginatedDiveListNotifier
       next,
     ) {
       if (previous != next) {
-        _silentReloadFirstPage();
+        _silentReloadLoadedPages();
       }
     });
     loadFirstPage();
@@ -657,7 +666,7 @@ class PaginatedDiveListNotifier
     // applies remote changes) without going through this notifier's mutation
     // methods. Silent so a multi-write sync doesn't flash a loading spinner.
     final divesChangeSub = _repository.watchDivesChanges().listen(
-      (_) => _silentReloadFirstPage(),
+      (_) => _silentReloadLoadedPages(),
     );
     _ref.onDispose(divesChangeSub.cancel);
   }
@@ -667,7 +676,23 @@ class PaginatedDiveListNotifier
     return sort.field == DiveSortField.date;
   }
 
-  Future<void> loadFirstPage() async {
+  /// Runs [op] after every paging operation queued before it.
+  ///
+  /// The returned future carries [op]'s own error; the queue keeps a swallowed
+  /// copy so one failed load cannot wedge every load after it.
+  Future<void> _enqueuePaging(Future<void> Function() op) {
+    final next = _pagingQueue.then((_) => op());
+    _pagingQueue = next.catchError((_) {});
+    return next;
+  }
+
+  Future<void> loadFirstPage() => _enqueuePaging(_loadFirstPage);
+
+  Future<void> _loadFirstPage() async {
+    // Queued work can reach its turn after the notifier is gone: this provider
+    // is invalidated from half a dozen places (imports, merges, renumbering),
+    // and writing state on a disposed StateNotifier throws.
+    if (!mounted) return;
     state = const AsyncValue.loading();
     _currentOffset = 0;
     try {
@@ -687,6 +712,7 @@ class PaginatedDiveListNotifier
       final totalCount = results[1] as int;
       _currentOffset = dives.length;
 
+      if (!mounted) return;
       state = AsyncValue.data(
         PaginatedDiveListState(
           dives: dives,
@@ -698,15 +724,37 @@ class PaginatedDiveListNotifier
       // Pre-load downsampled profiles for mini charts (fire and forget)
       _loadBatchProfiles(dives.map((d) => d.id).toList());
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      if (mounted) state = AsyncValue.error(e, st);
     }
   }
 
-  Future<void> loadNextPage() async {
+  Future<void> loadNextPage() {
     final current = state.valueOrNull;
-    if (current == null || current.isLoadingMore || !current.hasMore) return;
+    // Cheap pre-check so a burst of scroll notifications cannot queue the same
+    // page a hundred times. The queued body re-reads the state and decides for
+    // real, since anything ahead of it in the queue may have changed the list.
+    if (current == null || current.isLoadingMore || !current.hasMore) {
+      return Future<void>.value();
+    }
+    // Flip the spinner on now rather than when the queue reaches this load, so
+    // the trailing row reflects the request the diver just made.
+    state = AsyncValue.data(
+      current.copyWith(isLoadingMore: true, loadMoreFailed: false),
+    );
+    return _enqueuePaging(_loadNextPage);
+  }
 
-    state = AsyncValue.data(current.copyWith(isLoadingMore: true));
+  Future<void> _loadNextPage() async {
+    if (!mounted) return;
+    final current = state.valueOrNull;
+    if (current == null) return;
+    if (!current.hasMore) {
+      // A reload ahead of this one reached the end of the list.
+      if (current.isLoadingMore) {
+        state = AsyncValue.data(current.copyWith(isLoadingMore: false));
+      }
+      return;
+    }
     try {
       final filter = _ref.read(diveFilterProvider);
       final sort = _ref.read(diveSortProvider);
@@ -721,30 +769,57 @@ class PaginatedDiveListNotifier
       );
       _currentOffset += newDives.length;
 
+      // A reload that ran while this page was queued may already hold some of
+      // these rows; appending by id keeps the list from showing them twice.
+      final loadedIds = current.dives.map((d) => d.id).toSet();
+      final added = newDives
+          .where((d) => !loadedIds.contains(d.id))
+          .toList(growable: false);
+
+      if (!mounted) return;
       state = AsyncValue.data(
         current.copyWith(
-          dives: [...current.dives, ...newDives],
+          dives: [...current.dives, ...added],
           isLoadingMore: false,
           hasMore: newDives.length >= _pageSize,
           nextCursor: _isDateSort ? _cursorFromLastDive(newDives) : null,
+          loadMoreFailed: false,
         ),
       );
       // Pre-load downsampled profiles for the new page
-      _loadBatchProfiles(newDives.map((d) => d.id).toList());
+      _loadBatchProfiles(added.map((d) => d.id).toList());
     } catch (_) {
-      state = AsyncValue.data(current.copyWith(isLoadingMore: false));
+      // Record the failure rather than silently going idle: the trailing row
+      // must be able to offer a retry instead of spinning on nothing (#1610).
+      if (mounted) {
+        state = AsyncValue.data(
+          current.copyWith(isLoadingMore: false, loadMoreFailed: true),
+        );
+      }
     }
   }
 
   /// Load downsampled profiles for a batch of dive IDs and merge into cache.
+  ///
+  /// Every caller starts this and walks away, so a throw here lands in the
+  /// zone with nobody to catch it. It holds its own [mounted] checks rather
+  /// than trusting the caller's, because the await is inside this method: the
+  /// notifier can go away after a caller has already checked.
+  ///
+  /// Measured, rather than assumed: what throws is the container going away
+  /// ("Cannot use the Ref of StateNotifierProvider<PaginatedDiveListNotifier,
+  /// ...> after it has been disposed"), which is app teardown. Invalidating
+  /// this provider on its own unmounts the notifier but leaves its Ref usable,
+  /// so that case is only wasted work. [mounted] is false in both.
   Future<void> _loadBatchProfiles(List<String> diveIds) async {
-    if (diveIds.isEmpty) return;
+    if (diveIds.isEmpty || !mounted) return;
     // Skip IDs already in cache
     final cache = _ref.read(batchProfileCacheProvider);
     final uncached = diveIds.where((id) => !cache.containsKey(id)).toList();
     if (uncached.isEmpty) return;
 
     final profiles = await _repository.getBatchProfileSummaries(uncached);
+    if (!mounted) return;
     // Merge into cache (immutable update)
     _ref.read(batchProfileCacheProvider.notifier).state = {
       ...cache,
@@ -756,11 +831,32 @@ class PaginatedDiveListNotifier
     await loadFirstPage();
   }
 
-  /// Reload the first page without flashing a loading spinner. Mirrors
-  /// [loadFirstPage] (resetting to page 1 with the same diver/filter/sort
-  /// params) but never sets `state = AsyncValue.loading()`, so table-change
-  /// ticks from a sync update the data in place instead of flickering the UI.
-  Future<void> _silentReloadFirstPage() async {
+  /// Reload every page already loaded, without flashing a loading spinner.
+  ///
+  /// Mirrors [loadFirstPage] (same diver/filter/sort params, re-read from the
+  /// top) but never sets `state = AsyncValue.loading()`, so table-change ticks
+  /// from a sync update the data in place instead of flickering the UI.
+  ///
+  /// It refetches as many rows as are currently loaded, not a single page.
+  /// Shrinking back to page one drops every row the diver scrolled past, puts
+  /// the trailing "loading more" row back under their cursor with nothing
+  /// below it to scroll toward, and throws the scroll offset away -- which is
+  /// what made the list appear to hang after an edit was saved (#1610), since
+  /// the notifier's own writes tick this stream too.
+  ///
+  /// One row beyond the loaded count is fetched purely to decide [hasMore], so
+  /// a fully loaded list does not sprout a spinner row that no further page
+  /// could ever clear.
+  ///
+  /// Queued behind any page load already running, so the two cannot overwrite
+  /// each other's rows.
+  Future<void> _silentReloadLoadedPages() =>
+      _enqueuePaging(_silentReloadLoadedPagesNow);
+
+  Future<void> _silentReloadLoadedPagesNow() async {
+    if (!mounted) return;
+    final loadedCount = state.valueOrNull?.dives.length ?? 0;
+    final limit = loadedCount > _pageSize ? loadedCount : _pageSize;
     _currentOffset = 0;
     try {
       final filter = _ref.read(diveFilterProvider);
@@ -770,25 +866,41 @@ class PaginatedDiveListNotifier
           diverId: _currentDiverId,
           filter: filter,
           sort: sort,
-          limit: _pageSize,
+          limit: limit + 1,
           disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
         ),
         _repository.getDiveCount(diverId: _currentDiverId, filter: filter),
       ]);
-      final dives = results[0] as List<DiveSummary>;
+      final fetched = results[0] as List<DiveSummary>;
       final totalCount = results[1] as int;
+      final hasMore = fetched.length > limit;
+      final dives = hasMore ? fetched.sublist(0, limit) : fetched;
       _currentOffset = dives.length;
 
-      if (mounted) {
-        state = AsyncValue.data(
-          PaginatedDiveListState(
-            dives: dives,
-            hasMore: dives.length >= _pageSize,
-            nextCursor: _isDateSort ? _cursorFromLastDive(dives) : null,
-            totalCount: totalCount,
-          ),
-        );
-      }
+      if (!mounted) return;
+      // Read at apply time, not before the await: loadNextPage flips
+      // isLoadingMore synchronously and queues its body behind this reload,
+      // so the flags can change while this query is running.
+      //
+      // Both are carried over rather than reset. isLoadingMore still marks a
+      // page load queued behind this one -- dropping it blinks the spinner
+      // off and lets the stranded-loader kick queue a second load for a page
+      // already coming. loadMoreFailed still marks a next page that could not
+      // be fetched, which refreshing the rows already loaded says nothing
+      // about -- dropping it swaps the retry row back for a spinner the kick
+      // then declines to touch, which is the dead end this all started from
+      // (#1610).
+      final flags = state.valueOrNull;
+      state = AsyncValue.data(
+        PaginatedDiveListState(
+          dives: dives,
+          hasMore: hasMore,
+          nextCursor: _isDateSort ? _cursorFromLastDive(dives) : null,
+          totalCount: totalCount,
+          isLoadingMore: flags?.isLoadingMore ?? false,
+          loadMoreFailed: flags?.loadMoreFailed ?? false,
+        ),
+      );
       // Pre-load downsampled profiles for mini charts (fire and forget)
       _loadBatchProfiles(dives.map((d) => d.id).toList());
     } catch (e, st) {
@@ -1115,53 +1227,6 @@ final tankPressuresProvider =
         ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
       );
       return repository.getTankPressuresForDive(diveId);
-    });
-
-/// Real per-tank pressures augmented with in-memory linear estimates for tanks
-/// that have start/end pressures but no transmitter data. Chart-only; the
-/// estimates are never persisted, so SAC analysis and exports (which read the
-/// repository directly) still see real measured data only.
-final estimatedTankPressuresProvider =
-    FutureProvider.family<EstimatedTankPressures, String>((ref, diveId) async {
-      // Start the independent fetches concurrently to avoid a request waterfall
-      // on the chart load path.
-      final realFuture = ref.watch(tankPressuresProvider(diveId).future);
-      final diveFuture = ref.watch(diveProvider(diveId).future);
-      final switchesFuture = ref.watch(gasSwitchesProvider(diveId).future);
-      // Read synchronously, before the first await, so the dependency is
-      // registered while the provider is certainly still alive.
-      final showEstimates = ref.watch(
-        settingsProvider.select((s) => s.defaultShowEstimatedTankPressure),
-      );
-      final real = await realFuture;
-      final dive = await diveFuture;
-      if (dive == null) {
-        return EstimatedTankPressures(real, const <String>{});
-      }
-      // A gauge (bottom-timer) dive models no gas at all, so a synthesized
-      // pressure trace would be fabricated rather than measured (issue #731).
-      // Real transmitter samples, if the dive has any, still pass through.
-      if (dive.isGauge) {
-        return EstimatedTankPressures(real, const <String>{});
-      }
-      // The diver can switch estimates off entirely (issue #731). Gating here
-      // rather than at the chart means the series never exists, so no legend
-      // chip, tooltip row, or "(est.)" label survives anywhere.
-      if (!showEstimates) {
-        return EstimatedTankPressures(real, const <String>{});
-      }
-      final switches = await switchesFuture;
-      return synthesizeEstimatedTankPressures(
-        existing: real,
-        tanks: dive.tanks,
-        gasSwitches: switches,
-        diveDurationSeconds: dive.profile.isEmpty
-            ? 0
-            : dive.profile.last.timestamp,
-        firstSampleSeconds: dive.profile.isEmpty
-            ? 0
-            : dive.profile.first.timestamp,
-      );
     });
 
 /// Provider to load data sources for a dive.

@@ -87,6 +87,38 @@ List<TankPressurePoint> mergeTankSeriesPoints(List<TankPressureSeries> series) {
   return [for (final e in entries) e.$3];
 }
 
+/// The series a single computer's view of a dive should draw, per tank.
+///
+/// Consolidating two computers that were paired to the same transmitter
+/// files both computers' pressure series under one tank (the tanks match on
+/// gas mix, so the secondary's tank merges into the primary's). Merging
+/// those two series interleaves rival readings of the same cylinder, and
+/// because the computers sample on offset seconds the line alternates
+/// between them every sample: a fuzzy band wherever the two disagree by a
+/// fraction of a bar. This is the pressure twin of the depth rule in
+/// `activeSourceProfileProvider` (#543).
+///
+/// For each tank, keeps only the series logged by [computerId] (null keeps
+/// the series with no computer) when it logged that tank at all; a tank the
+/// computer never logged keeps every series it has, so a stage read by the
+/// other computer is not hidden. Input order is preserved.
+List<TankPressureSeries> selectTankSeriesForComputer(
+  List<TankPressureSeries> series,
+  String? computerId,
+) {
+  if (series.isEmpty) return const [];
+  final tanksLoggedByComputer = <String>{
+    for (final s in series)
+      if (s.computerId == computerId) s.tankId,
+  };
+  return [
+    for (final s in series)
+      if (!tanksLoggedByComputer.contains(s.tankId) ||
+          s.computerId == computerId)
+        s,
+  ];
+}
+
 /// Series-level twin of `DiveRepository._dropSupersededOriginals`.
 ///
 /// A saved profile edit demotes the originals and inserts a null-computer

@@ -864,7 +864,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                     volumeLiters: tk.volume > 0 ? tk.volume : nil,
                     startPressureBar: tk.beginpressure > 0 ? tk.beginpressure : nil,
                     endPressureBar: tk.endpressure > 0 ? tk.endpressure : nil,
-                    usage: tk.usage == 0 ? nil : Int64(tk.usage)
+                    usage: tk.usage == 0 ? nil : Int64(tk.usage),
+                    transmitterSerial: tk.serial == 0 ? nil : Int64(tk.serial)
                 ))
             }
         }

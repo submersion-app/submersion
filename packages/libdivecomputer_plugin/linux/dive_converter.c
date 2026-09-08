@@ -193,9 +193,13 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
         int64_t usage_val = (int64_t)tk->usage;
         int64_t* usage = (tk->usage == 0) ? NULL : &usage_val;
 
+        int64_t serial_val = (int64_t)tk->serial;
+        int64_t* serial = (tk->serial == 0) ? NULL : &serial_val;
+
         LibdivecomputerPluginTankInfo* tank =
             libdivecomputer_plugin_tank_info_new(
-                (int64_t)i, (int64_t)tk->gasmix, volume, begin_p, end_p, usage);
+                (int64_t)i, (int64_t)tk->gasmix, volume, begin_p, end_p, usage,
+                serial);
         fl_value_append_take(
             tanks,
             fl_value_new_custom_object(134, G_OBJECT(tank)));

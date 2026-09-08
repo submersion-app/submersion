@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_summary_widget.dart';
@@ -78,5 +79,24 @@ void main() {
     await tester.pump();
 
     expect(find.byType(ProfileAvatar), findsNothing);
+  });
+
+  testWidgets('a certified buddy shows the certification line as subtitle', (
+    tester,
+  ) async {
+    final certified = Buddy(
+      id: 'b1',
+      name: 'Jane Doe',
+      certificationLevel: CertificationLevel.rescue,
+      certificationAgency: CertificationAgency.padi,
+      certificationTitle: 'Rescue Diver',
+      createdAt: _now,
+      updatedAt: _now,
+    );
+
+    await tester.pumpWidget(await _widget([certified]));
+    await tester.pump();
+
+    expect(find.text('Rescue Diver · PADI'), findsOneWidget);
   });
 }

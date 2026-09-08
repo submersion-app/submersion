@@ -644,9 +644,9 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                   ).colorScheme.onSurfaceVariant,
                 ),
           title: Text(buddy.name),
-          subtitle: buddy.certificationLevel == null
+          subtitle: buddy.certificationLine == null
               ? null
-              : Text(buddy.certificationLevel!.displayName),
+              : Text(buddy.certificationLine!),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
