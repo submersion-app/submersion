@@ -186,6 +186,7 @@ Widget _scope(
   QualityScanStateStore? store,
   String? filterDiveId,
   Map<String, String>? computerNames,
+  VoidCallback? onComputerNamesRead,
 }) => ProviderScope(
   overrides: [
     qualityFindingsRepositoryProvider.overrideWithValue(
@@ -199,8 +200,11 @@ Widget _scope(
     // The name map is built from the saved-computers list, which needs a
     // diver and a computers table this page test has no reason to stand up.
     // Overriding it keeps the assertion on what the page does with the names.
-    if (computerNames != null)
-      qualityComputerNamesProvider.overrideWith((ref) async => computerNames),
+    if (computerNames != null || onComputerNamesRead != null)
+      qualityComputerNamesProvider.overrideWith((ref) async {
+        onComputerNamesRead?.call();
+        return computerNames ?? const {};
+      }),
   ],
   child: localizedMaterialApp(
     home: DataQualityInboxPage(filterDiveId: filterDiveId),
@@ -562,6 +566,82 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Recorded by Perdix AI'), findsOneWidget);
+  });
+
+  testWidgets('a deep link still names a paired dive outside its filter', (
+    tester,
+  ) async {
+    // The identity lookup is scoped to the dive filter so a deep link does not
+    // load the whole library. The pair's other dive is outside that filter, and
+    // must still be named: scoping away the dive the row points at would make
+    // the row useless exactly where the deep link sends you.
+    await _seedDive('d1', name: 'Reef wall');
+    await _seedDive('d2', name: 'Night dive');
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        filterDiveId: 'd1',
+        findings: [
+          _f(
+            id: 'dupe',
+            detectorId: 'duplicate',
+            category: QualityCategory.duplicate,
+            relatedDiveId: 'd2',
+            params: const {'score': 0.5, 'timeDiffMinutes': 1},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Night dive'), findsOneWidget);
+  });
+
+  testWidgets('computer names are not read when no finding names one', (
+    tester,
+  ) async {
+    // Resolving names costs a diver lookup plus a computers-table read. No
+    // finding here carries a computerId, so nothing should ask for them.
+    await _seedDive('d1', name: 'Reef wall');
+    var read = false;
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [finding()],
+        onComputerNamesRead: () => read = true,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(read, isFalse);
+  });
+
+  testWidgets('computer names are read when a finding names one', (
+    tester,
+  ) async {
+    await _seedDive('d1', name: 'Reef wall');
+    var read = false;
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'gap',
+            detectorId: 'sample_gap',
+            category: QualityCategory.profile,
+            computerId: 'c1',
+            params: const {'gapCount': 2, 'longestGapSeconds': 90},
+          ),
+        ],
+        onComputerNamesRead: () => read = true,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(read, isTrue);
   });
 
   // --- Empty state variants + library scan flow ----------------------------

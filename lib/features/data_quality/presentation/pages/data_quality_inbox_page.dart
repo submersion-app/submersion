@@ -342,28 +342,35 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
               (widget.filterDiveId == null || widget.filterDiveId!.isEmpty)
               ? null
               : widget.filterDiveId!.split(',').toSet();
-          final open = [
+          // Everything this page could ever show: open, and within the dive
+          // filter. The chip is applied separately below, deliberately -- it
+          // changes as the diver taps, while the dive filter is fixed for the
+          // life of the page.
+          final scoped = [
             for (final f in all)
               if (f.status == QualityStatus.open &&
-                  categoriesFor(chip).contains(f.category) &&
                   (filterIds == null ||
                       filterIds.contains(f.diveId) ||
                       filterIds.contains(f.relatedDiveId)))
                 f,
           ];
-          // Keyed off every open finding rather than the visible subset, so
-          // switching chips reuses one cached lookup instead of re-querying
-          // the same dives under a narrower key.
+          final open = [
+            for (final f in scoped)
+              if (categoriesFor(chip).contains(f.category)) f,
+          ];
+          // Keyed off the scoped set, not the visible one: narrowing by the
+          // fixed dive filter keeps a deep link (from the import summary, say)
+          // from loading identities for the whole library, while keeping the
+          // chip out of the key so switching chips reuses one cached lookup.
           final divesAsync = ref.watch(
-            qualityFindingDivesProvider(
-              qualityFindingDivesKey(
-                all.where((f) => f.status == QualityStatus.open),
-              ),
-            ),
+            qualityFindingDivesProvider(qualityFindingDivesKey(scoped)),
           );
           final dives = divesAsync.valueOrNull;
-          final computerNames =
-              ref.watch(qualityComputerNamesProvider).valueOrNull ?? const {};
+          // Reading the names costs a diver lookup plus a computers-table
+          // read, so only pay it when some finding actually names a computer.
+          final computerNames = scoped.any((f) => f.computerId != null)
+              ? ref.watch(qualityComputerNamesProvider).valueOrNull ?? const {}
+              : const <String, String>{};
           // Only the identity lines wait on that lookup; the findings
           // themselves render immediately from the stream that already
           // resolved.
