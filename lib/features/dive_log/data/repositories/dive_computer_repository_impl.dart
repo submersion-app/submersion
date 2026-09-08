@@ -2087,6 +2087,12 @@ class DiveComputerRepository {
         // Remaining bottom time (Uwatec) and air time (Suunto) alarms both
         // mean the gas supply is running short at the current rate.
         return 'lowGas';
+      // The Suunto Cloud parser (suunto_cloud_event_map) names these
+      // ProfileEventType values directly -- no libdivecomputer equivalent.
+      case 'cnsWarning':
+      case 'cnsCritical':
+      case 'missedStop':
+        return type;
       default:
         return null;
     }
@@ -2099,9 +2105,12 @@ class DiveComputerRepository {
     switch (eventType) {
       case 'decoViolation':
       case 'ppO2High':
+      case 'cnsCritical':
+      case 'missedStop':
         return 'alert';
       case 'ascentRateWarning':
       case 'lowGas':
+      case 'cnsWarning':
         return 'warning';
       case 'safetyStopStart':
       case 'decoStopStart':

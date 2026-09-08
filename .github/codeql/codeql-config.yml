@@ -1,0 +1,34 @@
+name: Submersion CodeQL config
+
+# Query exclusions. Keep this list short, and record why each one is here:
+# an exclusion is a permanent hole in the analysis, so it needs to be as
+# defensible in a year as it is today.
+query-filters:
+  # py/weak-sensitive-data-hashing fires on scripts/check_apk_signing_cert.py
+  # and its test, which SHA-1 the APK's signing certificate.
+  #
+  # The algorithm is fixed by Google, not chosen by us. An Android app carries
+  # no OAuth client ID; Google matches it by package name plus the SHA-1
+  # fingerprint of its signing certificate, and an Android OAuth client is
+  # registered against that SHA-1. A stronger digest would produce a value
+  # that matches nothing the Google Cloud console exposes, so "fixing" the
+  # alert would silence it by destroying the check.
+  #
+  # The query's sensitive-data classification is also a name-based heuristic
+  # firing on the word "certificate". A signing certificate is public: it
+  # ships inside every copy of the APK. No integrity decision rests on the
+  # digest either, since Android verifies the signature itself and the guard
+  # only compares identifiers.
+  #
+  # Excluded by query id rather than by path so every other query still runs
+  # on those two files. As of this writing they hold the only hashlib calls in
+  # the repository, so nothing else is losing coverage; if Python that hashes
+  # a real secret is added later, narrow or remove this exclusion.
+  #
+  # Inline `# codeql[py/weak-sensitive-data-hashing]` comments were tried
+  # first and do not work: GitHub code scanning does not honour CodeQL
+  # suppression comments, and re-flagged the alert on the exact line carrying
+  # one. Dismissing the alerts in the Security tab is the alternative, but it
+  # leaves no trace in the repository for a reviewer to weigh.
+  - exclude:
+      id: py/weak-sensitive-data-hashing

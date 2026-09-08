@@ -651,4 +651,111 @@ void main() {
       expect(byIndex[1]!.o2Percent, closeTo(50.0, 1e-9));
     });
   });
+
+  group('full dive-event extraction', () {
+    Map<String, dynamic> header() => {
+      'DateTime': '2026-08-26T13:48:11Z',
+      'ActivityType': 51,
+      'Device': {'Name': 'Porvoo'},
+      'DiveTime': 2255,
+    };
+
+    Map<String, dynamic> eventSample(String iso, Map<String, dynamic> event) =>
+        {
+          'TimeISO8601': iso,
+          'Depth': 12.0,
+          'Events': [
+            {
+              'State': {'Active': true, 'Type': 'Dive Active'},
+            },
+            event,
+          ],
+        };
+
+    test(
+      'emits the Alarm / Notify / State events the old importer dropped',
+      () {
+        final result = SuuntoDiveParser.parse(
+          header: header(),
+          samples: [
+            eventSample('2026-08-26T13:48:11Z', const {
+              'State': {'Active': true, 'Type': 'Dive Active'},
+            }),
+            eventSample('2026-08-26T14:06:01Z', const {
+              'Alarm': {'Active': true, 'Type': 'Ascent Speed'},
+            }),
+            eventSample('2026-08-26T14:09:40Z', const {
+              'Notify': {'Active': true, 'Type': 'User Tank Pressure'},
+            }),
+            eventSample('2026-08-26T14:12:53Z', const {
+              'State': {'Active': true, 'Type': 'At Deco Stop'},
+            }),
+            eventSample('2026-08-26T14:16:28Z', const {
+              'State': {'Active': true, 'Type': 'At Safety Stop'},
+            }),
+            eventSample('2026-08-26T14:18:00Z', const {
+              'Warning': {'Active': true, 'Type': 'CNS80%'},
+            }),
+          ],
+        );
+
+        final types = result.dive.events.map((e) => e.type).toList();
+        expect(types, containsAll(['ascent', 'airtime', 'deco', 'safetystop']));
+        expect(types, contains('cnsWarning'));
+      },
+    );
+
+    test('stamps DownloadedEvent.value with the native (subgroup<<8|type)', () {
+      final result = SuuntoDiveParser.parse(
+        header: header(),
+        samples: [
+          eventSample('2026-08-26T14:06:01Z', const {
+            'Alarm': {'Active': true, 'Type': 'Ascent Speed'},
+          }),
+        ],
+      );
+      final ascent = result.dive.events.singleWhere((e) => e.type == 'ascent');
+      expect(ascent.value, (0x18 << 8) | 5);
+    });
+
+    test(
+      'a begin held across samples is imported once; a re-trigger again',
+      () {
+        final held = SuuntoDiveParser.parse(
+          header: header(),
+          samples: [
+            eventSample('2026-08-26T14:06:01Z', const {
+              'Alarm': {'Active': true, 'Type': 'Ascent Speed'},
+            }),
+            eventSample('2026-08-26T14:06:11Z', const {
+              'Alarm': {'Active': true, 'Type': 'Ascent Speed'},
+            }),
+            eventSample('2026-08-26T14:06:21Z', const {
+              'Alarm': {'Active': false, 'Type': 'Ascent Speed'},
+            }),
+          ],
+        );
+        expect(held.dive.events.where((e) => e.type == 'ascent'), hasLength(1));
+
+        final retrigger = SuuntoDiveParser.parse(
+          header: header(),
+          samples: [
+            eventSample('2026-08-26T14:06:01Z', const {
+              'Alarm': {'Active': true, 'Type': 'Ascent Speed'},
+            }),
+            eventSample('2026-08-26T14:06:11Z', const {
+              'Alarm': {'Active': false, 'Type': 'Ascent Speed'},
+            }),
+            eventSample('2026-08-26T14:07:41Z', const {
+              'Alarm': {'Active': true, 'Type': 'Ascent Speed'},
+            }),
+          ],
+        );
+        expect(
+          retrigger.dive.events.where((e) => e.type == 'ascent'),
+          hasLength(2),
+        );
+      },
+    );
+  });
 }
