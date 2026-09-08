@@ -212,6 +212,17 @@ class MainTest(unittest.TestCase):
         self._paths.append(path)
         self.assertEqual(guard.main([path], registered={"ab" * 20: "test"}), 1)
 
+    def test_rejects_a_truncated_end_of_central_directory(self):
+        """Unpacking past the end must fail as a guard error, not a traceback.
+
+        The EOCD magic is present but the record is cut short, so reading the
+        central-directory offset runs off the end of the file. struct.error
+        escaping here would crash the release build instead of failing it.
+        """
+        path = _write_temp(b"PK\x05\x06" + b"\x00" * 5)
+        self._paths.append(path)
+        self.assertEqual(guard.main([path], registered={"ab" * 20: "test"}), 1)
+
     def test_requires_at_least_one_apk(self):
         self.assertEqual(guard.main([]), 2)
 

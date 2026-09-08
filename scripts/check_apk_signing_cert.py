@@ -96,6 +96,18 @@ def _signing_block_pairs(data):
     The block sits immediately before the central directory, and is framed by
     a size field at each end plus a trailing magic string.
     """
+    try:
+        return _unchecked_signing_block_pairs(data)
+    except struct.error as error:
+        # Every _read_u32/_read_u64 below walks offsets taken from the file
+        # itself, so a truncated or hostile APK can point past the end. Report
+        # that as a guard failure; an escaping struct.error would crash the
+        # release build rather than failing it.
+        raise SigningBlockError(f"malformed APK Signing Block: {error}") from error
+
+
+def _unchecked_signing_block_pairs(data):
+    """Body of [_signing_block_pairs], minus the struct.error translation."""
     eocd = _find_eocd(data)
     cd_offset = _read_u32(data, eocd + 16)
     if cd_offset < len(APK_SIG_BLOCK_MAGIC) + 8:
@@ -125,6 +137,12 @@ def _signing_block_pairs(data):
         block_id = _read_u32(data, offset + 8)
         pairs[block_id] = data[offset + 12 : offset + 8 + pair_length]
         offset += 8 + pair_length
+
+    # Redundant while the per-pair bound above is correct, and kept precisely
+    # because that bound was once wrong: it allowed a pair to finish 8 bytes
+    # past `end`, which this check would have caught independently.
+    if offset != end:
+        raise SigningBlockError("APK Signing Block pairs do not fill the block")
     return pairs
 
 

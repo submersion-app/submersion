@@ -121,7 +121,7 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
             // Deliberately platform-neutral about where to look: this
             // authenticator also serves iOS and macOS, so naming Android's
             // settings would misdirect users there.
-            'Google sign-in was refused by the device (${e.description}). '
+            'Google Sign-In was refused by the device (${e.description}). '
             'Check that the Google account on this device is signed in and '
             'up to date in the system settings, then try again.',
             e,
