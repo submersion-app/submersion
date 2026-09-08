@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v195 adds the reusable weighting-rig tables (issue #1609).
+/// v196 adds the reusable weighting-rig tables (issue #1609).
 
 Future<Set<String>> _tables(AppDatabase db) async {
   final rows = await db
@@ -18,12 +18,13 @@ Future<Set<String>> _columns(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v195 is the current schema version and is in the ladder', () {
-    // Renumbered from 192: main landed the transmitter-serial rung (194)
-    // while this branch was open. As the newest rung this holds the exact
-    // assertion; older rung tests relax to greaterThanOrEqualTo.
-    expect(AppDatabase.currentSchemaVersion, 195);
-    expect(AppDatabase.migrationVersions, contains(195));
+  test('v196 is the current schema version and is in the ladder', () {
+    // Renumbered from 192 then 195: main landed the transmitter-serial rung
+    // (194) and the media-species-clock rung (195) while this branch was
+    // open. As the newest rung this holds the exact assertion; older rung
+    // tests relax to greaterThanOrEqualTo.
+    expect(AppDatabase.currentSchemaVersion, 196);
+    expect(AppDatabase.migrationVersions, contains(196));
   });
 
   test('a fresh database has both weight-preset tables', () async {
@@ -49,10 +50,10 @@ void main() {
     );
   });
 
-  test('a database stranded before v195 gains the tables', () async {
+  test('a database stranded before v196 gains the tables', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 194');
+        rawDb.execute('PRAGMA user_version = 195');
         rawDb.execute('''
           CREATE TABLE divers (
             id TEXT NOT NULL PRIMARY KEY,
