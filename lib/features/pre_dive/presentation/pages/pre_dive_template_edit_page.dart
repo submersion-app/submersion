@@ -36,7 +36,21 @@ class _PreDiveTemplateEditPageState
   /// can read what a default checks before cloning it. Everything that would
   /// mutate the template is withheld rather than merely disabled, so the page
   /// reads as a viewer instead of a broken editor.
+  ///
+  /// False until [_load] lands, so read [_editable] rather than `!_readOnly`
+  /// for anything that offers editing.
   bool get _readOnly => _existing?.isBuiltIn ?? false;
+
+  /// Whether the editing chrome may be shown yet.
+  ///
+  /// The built-in flag lives on the fetched row, so while a template is in
+  /// flight this page does not know which mode it is in. Treating "not known
+  /// to be read-only" as editable put the edit title and a Save button on the
+  /// first frame and then withdrew them the instant a built-in resolved.
+  /// Waiting is the claim that can only be upgraded, never retracted.
+  ///
+  /// A brand new template has nothing to fetch, so it is editable at once.
+  bool get _editable => !_loading && !_readOnly;
 
   @override
   void initState() {
@@ -147,18 +161,15 @@ class _PreDiveTemplateEditPageState
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _readOnly
-              ? l10n.preDive_edit_titleView
-              : widget.isEditing
+          !widget.isEditing
+              ? l10n.preDive_edit_titleNew
+              : _editable
               ? l10n.preDive_edit_titleEdit
-              : l10n.preDive_edit_titleNew,
+              : l10n.preDive_edit_titleView,
         ),
         actions: [
-          if (!_readOnly)
-            TextButton(
-              onPressed: _loading ? null : _save,
-              child: Text(l10n.common_action_save),
-            ),
+          if (_editable)
+            TextButton(onPressed: _save, child: Text(l10n.common_action_save)),
         ],
       ),
       body: _loading
