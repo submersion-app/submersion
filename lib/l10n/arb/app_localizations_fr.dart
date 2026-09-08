@@ -17281,17 +17281,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_manage_tankPresets_subtitle =>
-      'Gérer les configurations de blocs personnalisees';
+      'Gérer les configurations de blocs personnalisées';
 
   @override
-  String get settings_manage_weightPresets => 'Presets de lestage';
+  String get settings_manage_weightPresets => 'Présélections de lestage';
 
   @override
   String get settings_manage_weightPresets_subtitle =>
       'Ensembles de plombs réutilisables pour une plongée';
 
   @override
-  String get weightPresets_page_title => 'Presets de lestage';
+  String get weightPresets_page_title => 'Présélections de lestage';
 
   @override
   String get weightPresets_page_empty =>
@@ -17301,10 +17301,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get weightPresets_action_rename => 'Renommer';
 
   @override
-  String get weightPresets_rename_title => 'Renommer le preset';
+  String get weightPresets_rename_title => 'Renommer la présélection';
 
   @override
-  String get weightPresets_delete_title => 'Supprimer ce preset ?';
+  String get weightPresets_delete_title => 'Supprimer cette présélection ?';
 
   @override
   String weightPresets_delete_body(Object name) {
