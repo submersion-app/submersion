@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -15,13 +16,19 @@ import '../../../../helpers/test_database.dart';
 void main() {
   group('DiveEditPage weighting feedback', () {
     late DiveRepository repository;
+    String? previousLocale;
 
     setUp(() async {
+      // The seeded amount is formatted through Intl; pin the locale so the
+      // decimal separator is a dot regardless of the host environment.
+      previousLocale = Intl.defaultLocale;
+      Intl.defaultLocale = 'en';
       await setUpTestDatabase();
       repository = DiveRepository();
     });
 
     tearDown(() async {
+      Intl.defaultLocale = previousLocale;
       await tearDownTestDatabase();
     });
 
@@ -42,6 +49,7 @@ void main() {
         ProviderScope(
           overrides: buildOverrides(overrides).cast(),
           child: MaterialApp(
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: DiveEditPage(diveId: diveId, embedded: true)),
