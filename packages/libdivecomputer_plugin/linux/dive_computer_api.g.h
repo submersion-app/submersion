@@ -576,12 +576,13 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginTankInfo, libdivecomputer_plugin_tank_
  * start_pressure_bar: field in this object.
  * end_pressure_bar: field in this object.
  * usage: field in this object.
+ * transmitter_serial: field in this object.
  *
  * Creates a new #TankInfo object.
  *
  * Returns: a new #LibdivecomputerPluginTankInfo
  */
-LibdivecomputerPluginTankInfo* libdivecomputer_plugin_tank_info_new(int64_t index, int64_t gas_mix_index, double* volume_liters, double* start_pressure_bar, double* end_pressure_bar, int64_t* usage);
+LibdivecomputerPluginTankInfo* libdivecomputer_plugin_tank_info_new(int64_t index, int64_t gas_mix_index, double* volume_liters, double* start_pressure_bar, double* end_pressure_bar, int64_t* usage, int64_t* transmitter_serial);
 
 /**
  * libdivecomputer_plugin_tank_info_get_index
@@ -643,6 +644,19 @@ double* libdivecomputer_plugin_tank_info_get_end_pressure_bar(LibdivecomputerPlu
  * Returns: the field value.
  */
 int64_t* libdivecomputer_plugin_tank_info_get_usage(LibdivecomputerPluginTankInfo* object);
+
+/**
+ * libdivecomputer_plugin_tank_info_get_transmitter_serial
+ * @object: a #LibdivecomputerPluginTankInfo.
+ *
+ * Serial number of the air-integration transmitter that reported this
+ * tank's pressures (`dc_tank_t.serial`, a fork extension); null when the
+ * computer reported none. Identifies the physical cylinder across
+ * computers paired to the same transmitter.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_tank_info_get_transmitter_serial(LibdivecomputerPluginTankInfo* object);
 
 /**
  * LibdivecomputerPluginDiveEvent:

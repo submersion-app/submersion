@@ -167,6 +167,8 @@ void main() {
         startPressure: 200.0,
         endPressure: 50.0,
         gasMix: GasMix(o2: 21.0, he: 0.0),
+        computerId: 'dc-1',
+        transmitterSerial: '180777',
       );
 
       DiveTank? updatedTank;
@@ -226,6 +228,11 @@ void main() {
 
       // End pressure: 725 psi -> ~50 bar
       expect(updatedTank!.endPressure, closeTo(50.0, 0.5));
+
+      // Computer-owned identity survives an edit: the editor rebuilds the
+      // tank field by field, so anything it forgets is silently wiped.
+      expect(updatedTank!.computerId, 'dc-1');
+      expect(updatedTank!.transmitterSerial, '180777');
     });
 
     testWidgets('applyPreset shows volumeCuft in imperial mode', (
