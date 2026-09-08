@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
@@ -125,6 +126,39 @@ void main() {
       expect(find.text('Start pre-dive check'), findsOneWidget);
       expect(find.text('Trip: Red Sea'), findsOneWidget);
       expect(find.text('0 of 3 to-dos done'), findsOneWidget);
+    });
+
+    testWidgets('the trip row opens that trip', (tester) async {
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const PreDiveDashboardCard()),
+          GoRoute(
+            path: '/trips/:tripId',
+            builder: (_, state) =>
+                Scaffold(body: Text('TRIP ${state.pathParameters['tripId']}')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        testAppRouter(
+          router: router,
+          locale: const Locale('en'),
+          overrides: [
+            preDiveActiveSessionProvider.overrideWith((ref) async => null),
+            preDiveSessionsProvider.overrideWith((ref) async => const []),
+            preDiveTemplatesProvider.overrideWith((ref) async => [builtIn()]),
+            homeTripChecklistProvider.overrideWith(
+              (ref) async => (trip: trip(), done: 1, total: 4),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('1 of 4 to-dos done'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('TRIP t1'), findsOneWidget);
     });
 
     testWidgets('no trip checklist leaves the pre-dive row alone', (

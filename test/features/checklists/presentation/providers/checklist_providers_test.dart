@@ -201,6 +201,56 @@ void main() {
       expect(result!.trip.id, running.id);
     });
 
+    test('an empty nearer trip does not hide a later one with items', () async {
+      // The date-best candidate has nothing on its list. Picking by date and
+      // only then checking for items returned null here and hid the home row
+      // even though a perfectly good checklist existed one trip along.
+      final now = DateTime.now();
+      await makeTrip(
+        'Empty and sooner',
+        now.add(const Duration(days: 3)),
+        now.add(const Duration(days: 6)),
+      );
+      final later = await makeTrip(
+        'Stocked and later',
+        now.add(const Duration(days: 30)),
+        now.add(const Duration(days: 37)),
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      await addItem(container, later.id);
+
+      final result = await container.read(homeTripChecklistProvider.future);
+      expect(result, isNotNull);
+      expect(result!.trip.id, later.id);
+      expect(result.total, 1);
+    });
+
+    test(
+      'an empty in-progress trip falls through to an upcoming one',
+      () async {
+        final now = DateTime.now();
+        await makeTrip(
+          'Running but empty',
+          now.subtract(const Duration(days: 1)),
+          now.add(const Duration(days: 3)),
+        );
+        final ahead = await makeTrip(
+          'Ahead with items',
+          now.add(const Duration(days: 10)),
+          now.add(const Duration(days: 17)),
+        );
+
+        final container = makeContainer();
+        addTearDown(container.dispose);
+        await addItem(container, ahead.id);
+
+        final result = await container.read(homeTripChecklistProvider.future);
+        expect(result!.trip.id, ahead.id);
+      },
+    );
+
     test('a trip with an empty checklist is not surfaced', () async {
       final now = DateTime.now();
       await makeTrip(

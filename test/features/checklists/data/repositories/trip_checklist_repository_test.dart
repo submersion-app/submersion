@@ -291,6 +291,58 @@ void main() {
       expect(progress.total, 2);
     });
 
+    test('getProgressForTrips batches counts and omits empty trips', () async {
+      final other = await tripRepository.createTrip(
+        Trip(
+          id: '',
+          name: 'Truk',
+          startDate: tripStart.add(const Duration(days: 40)),
+          endDate: tripStart.add(const Duration(days: 47)),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final empty = await tripRepository.createTrip(
+        Trip(
+          id: '',
+          name: 'Nothing packed yet',
+          startDate: tripStart.add(const Duration(days: 80)),
+          endDate: tripStart.add(const Duration(days: 87)),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+
+      final a = await repository.createItem(item(title: 'A'));
+      await repository.createItem(item(title: 'B'));
+      await repository.toggleDone(a.id, isDone: true);
+      await repository.createItem(
+        TripChecklistItem(
+          id: '',
+          tripId: other.id,
+          title: 'Passport',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+
+      final progress = await repository.getProgressForTrips([
+        testTrip.id,
+        other.id,
+        empty.id,
+      ]);
+
+      expect(progress[testTrip.id], (done: 1, total: 2));
+      expect(progress[other.id], (done: 0, total: 1));
+      // GROUP BY yields no row for a trip with no items, and callers read
+      // that absence as "nothing to show".
+      expect(progress.containsKey(empty.id), isFalse);
+    });
+
+    test('getProgressForTrips on an empty id list is a no-op', () async {
+      expect(await repository.getProgressForTrips([]), isEmpty);
+    });
+
     test('deleteByTripId removes all items', () async {
       await repository.createItem(item(title: 'A'));
       await repository.createItem(item(title: 'B'));
