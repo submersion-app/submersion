@@ -20,6 +20,19 @@ class ThirdBlock extends DashboardEntry {
   const ThirdBlock(this.child);
 }
 
+/// Two widgets sharing one row at 2 or 3 columns, half the width each, and
+/// stacked in order at 1 column.
+///
+/// Deliberately not two [ThirdBlock]s: those are packed in chunks of the
+/// column count, so at 3 columns a neighbouring third would join the row and
+/// squeeze the pair to a third of the width each. A pair states that the two
+/// cards belong side by side whatever surrounds them.
+class PairBlock extends DashboardEntry {
+  final Widget first;
+  final Widget second;
+  const PairBlock({required this.first, required this.second});
+}
+
 /// A lead widget with side widgets stacked in the remaining column.
 /// At 3 columns the lead spans 2; at 2 columns it spans 1; at 1 column
 /// the group dissolves into the plain ordered stack.
@@ -85,6 +98,25 @@ class DashboardGrid extends StatelessWidget {
         case FullBlock(:final child):
           flushThirds();
           rows.add(child);
+        case PairBlock(:final first, :final second):
+          flushThirds();
+          if (columns == 1) {
+            rows.add(first);
+            rows.add(second);
+          } else {
+            // Same top-aligned natural heights as every other row here: the
+            // taller card does not stretch its partner.
+            rows.add(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: first),
+                  SizedBox(width: spacing),
+                  Expanded(child: second),
+                ],
+              ),
+            );
+          }
         case LeadSideGroup(:final lead, :final side):
           flushThirds();
           if (columns == 1) {
