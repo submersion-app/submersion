@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/export/excel/pre_dive_excel_export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
@@ -257,6 +258,58 @@ void main() {
     expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
     expect(find.byIcon(Icons.cancel_outlined), findsOneWidget);
     expect(find.byType(ListTile), findsNWidgets(2));
+  });
+
+  testWidgets('the timestamp connector follows the locale', (tester) async {
+    // formatDateTime falls back to a hardcoded English "at" unless it is
+    // handed l10n, which would leave a German tile reading "... at 14:12".
+    await pumpPage(
+      tester,
+      sessions: [
+        session('done1', name: 'Riff', status: PreDiveSessionStatus.completed),
+      ],
+      items: {
+        'done1': [item('done1', 0, PreDiveItemState.done)],
+      },
+      locale: const Locale('de'),
+    );
+
+    expect(find.textContaining('bei'), findsOneWidget);
+    expect(find.textContaining(' at '), findsNothing);
+  });
+
+  testWidgets('a running row reports its start even with a finish stamp', (
+    tester,
+  ) async {
+    // Contradictory data: in-progress with a completion stamp. Deriving the
+    // displayed time from completedAt and only the label from the status
+    // printed the finish time under a "Started" label.
+    final contradictory = PreDiveSession(
+      id: 'weird',
+      templateName: 'Half-done Check',
+      status: PreDiveSessionStatus.inProgress,
+      startedAt: now,
+      completedAt: now.add(const Duration(hours: 5)),
+      createdAt: now,
+      updatedAt: now,
+    );
+    await pumpPage(
+      tester,
+      sessions: [contradictory],
+      items: {
+        'weird': [item('weird', 0, PreDiveItemState.pending)],
+      },
+    );
+
+    const units = UnitFormatter(AppSettings());
+    expect(
+      find.textContaining('Started ${units.formatDateTime(now)}'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(units.formatDateTime(contradictory.completedAt)),
+      findsNothing,
+    );
   });
 
   testWidgets('in-progress history tile shows pending icon and status', (

@@ -349,21 +349,33 @@ class _SessionTile extends ConsumerWidget {
   /// A finished run is stamped the moment it is completed or aborted, and
   /// that stamp is what decides which dive the run auto-links to, so it is
   /// the timestamp worth showing -- with the time of day, not just the date.
-  /// Only a run still going has nothing to report but its start.
+  ///
+  /// The stamp is only meaningful once the run is over, so the status picks
+  /// the timestamp as well as the wording. A row that is still in progress
+  /// reports its start whatever `completedAt` holds: that pairing is
+  /// contradictory data, and reading the finish time out of it to print under
+  /// a "Started" label would quietly misreport the run rather than expose the
+  /// contradiction. A finished row missing its stamp can likewise only report
+  /// its start honestly.
+  ///
+  /// [l10n] reaches [UnitFormatter.formatDateTime] so the connector between
+  /// date and time is translated; without it the formatter falls back to a
+  /// hardcoded English "at" and a German tile reads "14.11.2023 at 09:12".
   String _whenLabel(BuildContext context, UnitFormatter units) {
     final l10n = context.l10n;
-    final finishedAt = session.completedAt;
+    final finishedAt = session.status == PreDiveSessionStatus.inProgress
+        ? null
+        : session.completedAt;
     if (finishedAt == null) {
       return l10n.preDive_sessions_startedAt(
-        units.formatDateTime(session.startedAt),
+        units.formatDateTime(session.startedAt, l10n: l10n),
       );
     }
-    final when = units.formatDateTime(finishedAt);
-    return switch (session.status) {
-      PreDiveSessionStatus.inProgress => l10n.preDive_sessions_startedAt(when),
-      PreDiveSessionStatus.completed => l10n.preDive_sessions_completedAt(when),
-      PreDiveSessionStatus.aborted => l10n.preDive_sessions_abortedAt(when),
-    };
+    final when = units.formatDateTime(finishedAt, l10n: l10n);
+    // inProgress is handled above, so only the two finished states remain.
+    return session.status == PreDiveSessionStatus.aborted
+        ? l10n.preDive_sessions_abortedAt(when)
+        : l10n.preDive_sessions_completedAt(when);
   }
 
   /// Attaches this run to a dive the diver picks (#1066). The automatic
