@@ -43343,6 +43343,30 @@ abstract class AppLocalizations {
   /// **'Data quality'**
   String get dataQuality_inbox_title;
 
+  /// No description provided for @dataQuality_dive_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive details unavailable'**
+  String get dataQuality_dive_unknown;
+
+  /// Dive number segment of the identity line on a data quality group header.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number}'**
+  String dataQuality_dive_number(int number);
+
+  /// Names the second dive of a cross-dive finding (a likely duplicate or an accidental split), so the diver can see which dive would be merged.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired with {dive}'**
+  String dataQuality_dive_pairedWith(String dive);
+
+  /// Names the dive computer that produced the data a finding is about.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded by {computer}'**
+  String dataQuality_dive_recordedBy(String computer);
+
   /// No description provided for @dataQuality_badge_tooltip.
   ///
   /// In en, this message translates to:

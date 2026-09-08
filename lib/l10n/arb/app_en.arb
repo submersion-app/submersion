@@ -16778,6 +16778,34 @@
   "settings_security_done": "Done",
   "settings_security_turnOff": "Turn off",
   "dataQuality_inbox_title": "Data quality",
+  "dataQuality_dive_unknown": "Dive details unavailable",
+  "dataQuality_dive_number": "#{number}",
+  "@dataQuality_dive_number": {
+    "description": "Dive number segment of the identity line on a data quality group header.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_dive_pairedWith": "Paired with {dive}",
+  "@dataQuality_dive_pairedWith": {
+    "description": "Names the second dive of a cross-dive finding (a likely duplicate or an accidental split), so the diver can see which dive would be merged.",
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_dive_recordedBy": "Recorded by {computer}",
+  "@dataQuality_dive_recordedBy": {
+    "description": "Names the dive computer that produced the data a finding is about.",
+    "placeholders": {
+      "computer": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_badge_tooltip": "Data quality review",
   "dataQuality_scan_start": "Scan library",
   "dataQuality_scan_progress": "Checked {done} of {total} dives",

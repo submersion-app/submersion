@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
+import 'package:submersion/features/data_quality/presentation/widgets/dive_identity_label.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 
@@ -32,6 +33,7 @@ const _formatters = QualityUnitFormatters(
   temperature: _fmt,
   sac: _fmt,
   date: _fmtDate,
+  dateTime: _fmtDate,
 );
 
 String _fmt(double v) => '$v';
@@ -45,6 +47,8 @@ void main() {
     void Function(QualityRepairAction)? onRepair,
     VoidCallback? onDismiss,
     void Function(String)? onGoToDive,
+    DiveIdentityLabel? relatedDive,
+    String? computerName,
     Widget? evidence,
   }) async {
     await tester.pumpWidget(
@@ -56,6 +60,8 @@ void main() {
             onRepair: onRepair ?? (_) {},
             onDismiss: onDismiss ?? () {},
             onGoToDive: onGoToDive ?? (_) {},
+            relatedDive: relatedDive,
+            computerName: computerName,
             evidence: evidence,
           ),
         ),
@@ -461,6 +467,52 @@ void main() {
         await toggleExpand(tester);
         expect(find.byType(OverflowBar), findsOneWidget);
       });
+    });
+  });
+
+  group('finding context rows', () {
+    // A cross-dive finding's message can only ever say "a dive 1 min apart":
+    // the message builder renders numeric params and holds no prose. Naming
+    // the second dive is what makes consolidating it a decision rather than a
+    // guess.
+    testWidgets('names the paired dive and links to it', (tester) async {
+      final tapped = <String>[];
+      await pumpCard(
+        tester,
+        finding: _finding(
+          detectorId: 'duplicate',
+          relatedDiveId: 'd2',
+          params: const {'score': 0.5, 'timeDiffMinutes': 1},
+        ),
+        relatedDive: const DiveIdentityLabel(headline: '#43 · Night dive'),
+        onGoToDive: tapped.add,
+      );
+
+      expect(find.text('Paired with #43 · Night dive'), findsOneWidget);
+      await tester.tap(find.text('Paired with #43 · Night dive'));
+      await tester.pumpAndSettle();
+      expect(tapped, ['d2']);
+    });
+
+    testWidgets('omits the paired row when there is no related dive', (
+      tester,
+    ) async {
+      await pumpCard(tester, finding: _finding());
+      expect(find.textContaining('Paired with'), findsNothing);
+    });
+
+    testWidgets('names the computer that recorded the flagged data', (
+      tester,
+    ) async {
+      await pumpCard(tester, finding: _finding(), computerName: 'Perdix AI');
+      expect(find.text('Recorded by Perdix AI'), findsOneWidget);
+    });
+
+    testWidgets('omits the computer row when the finding names none', (
+      tester,
+    ) async {
+      await pumpCard(tester, finding: _finding());
+      expect(find.textContaining('Recorded by'), findsNothing);
     });
   });
 }

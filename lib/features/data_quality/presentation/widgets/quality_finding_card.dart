@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
+import 'package:submersion/features/data_quality/presentation/widgets/dive_identity_label.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -13,6 +14,8 @@ class QualityFindingCard extends StatefulWidget {
     required this.onRepair,
     required this.onDismiss,
     required this.onGoToDive,
+    this.relatedDive,
+    this.computerName,
     this.evidence,
   });
 
@@ -21,6 +24,18 @@ class QualityFindingCard extends StatefulWidget {
   final void Function(QualityRepairAction action) onRepair;
   final VoidCallback onDismiss;
   final void Function(String diveId) onGoToDive;
+
+  /// Identity of the second dive in a cross-dive finding (a likely duplicate
+  /// or an accidental split). The message itself only ever says "a dive 1 min
+  /// apart", because [buildFindingMessage] renders numeric params and must
+  /// stay free of any one library's prose; this names which dive that is, so
+  /// consolidating or combining is a decision and not a guess.
+  final DiveIdentityLabel? relatedDive;
+
+  /// Display name of the computer that recorded the flagged data, when the
+  /// finding records one. This is what makes "same computer resumed after an
+  /// 8 min surface interval" checkable.
+  final String? computerName;
 
   /// Optional expanded-state evidence (before/after chart, sparklines...),
   /// injected by the page so this widget stays synchronous.
@@ -94,6 +109,9 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
         if (a is! GoToDiveRepair) a,
     ];
     final primary = actions.isNotEmpty ? actions.first : null;
+    final related = widget.relatedDive;
+    final relatedId = widget.finding.relatedDiveId;
+    final computerName = widget.computerName;
 
     return Card(
       child: Column(
@@ -115,32 +133,27 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
                   ),
             onTap: () => setState(() => _expanded = !_expanded),
           ),
+          if (related != null)
+            _ContextRow(
+              icon: Icons.link_outlined,
+              text: context.l10n.dataQuality_dive_pairedWith(related.headline),
+              onTap: relatedId == null
+                  ? null
+                  : () => widget.onGoToDive(relatedId),
+            ),
+          if (computerName != null)
+            _ContextRow(
+              icon: Icons.watch_outlined,
+              text: context.l10n.dataQuality_dive_recordedBy(computerName),
+            ),
           // Some findings are a judgment call the app must not make for the
           // diver, so no repair converges and the trailing button is absent.
           // Say that plainly: an unexplained bare row reads as a broken
           // button (issue #1035).
           if (primary == null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.build_circle_outlined,
-                    size: 16,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      context.l10n.dataQuality_repair_needsReview,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            _ContextRow(
+              icon: Icons.build_circle_outlined,
+              text: context.l10n.dataQuality_repair_needsReview,
             ),
           if (_expanded) ...[
             if (widget.evidence != null)
@@ -170,5 +183,44 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
         ],
       ),
     );
+  }
+}
+
+/// A quiet, icon-led line of context under a finding's message: which dive it
+/// is paired with, which computer recorded it, or why no repair is offered.
+class _ContextRow extends StatelessWidget {
+  const _ContextRow({required this.icon, required this.text, this.onTap});
+
+  final IconData icon;
+  final String text;
+
+  /// Non-null makes the row a link. Null leaves it as plain context, with no
+  /// tap target to promise something that would not happen.
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final color = onTap == null ? scheme.onSurfaceVariant : scheme.primary;
+    final row = Padding(
+      // Indented to the ListTile's title, so context reads as belonging to the
+      // message above it rather than as a new item.
+      padding: const EdgeInsets.fromLTRB(56, 0, 16, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodySmall?.copyWith(color: color),
+            ),
+          ),
+        ],
+      ),
+    );
+    return onTap == null ? row : InkWell(onTap: onTap, child: row);
   }
 }

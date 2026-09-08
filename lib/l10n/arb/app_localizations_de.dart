@@ -26218,6 +26218,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dataQuality_inbox_title => 'Datenqualität';
 
   @override
+  String get dataQuality_dive_unknown => 'Tauchgangsdetails nicht verfügbar';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return 'Verknüpft mit $dive';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return 'Aufgezeichnet von $computer';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Datenqualitätsprüfung';
 
   @override

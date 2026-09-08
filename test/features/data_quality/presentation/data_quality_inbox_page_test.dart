@@ -11,6 +11,7 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_stat
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_page.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
+import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -111,6 +112,7 @@ QualityFinding _f({
   required String id,
   String diveId = 'd1',
   String? relatedDiveId,
+  String? computerId,
   required String detectorId,
   required QualityCategory category,
   Map<String, Object?> params = const {},
@@ -119,6 +121,7 @@ QualityFinding _f({
   id: id,
   diveId: diveId,
   relatedDiveId: relatedDiveId,
+  computerId: computerId,
   detectorId: detectorId,
   detectorVersion: 1,
   category: category,
@@ -146,6 +149,28 @@ Future<Widget> _wrap(_FakeFindingsRepository repo) async {
   );
 }
 
+/// Seeds a dive so the inbox can name it. The group header reads through the
+/// real repository, so a test that asserts on a header needs a real row.
+Future<void> _seedDive(
+  String id, {
+  String? name,
+  DateTime? entryTime,
+  double? maxDepth,
+  Duration? runtime,
+}) {
+  final entry = entryTime ?? DateTime.utc(2026, 6, 14, 9, 12);
+  return DiveRepository().createDive(
+    domain.Dive(
+      id: id,
+      name: name,
+      dateTime: entry,
+      entryTime: entry,
+      maxDepth: maxDepth,
+      runtime: runtime,
+    ),
+  );
+}
+
 Future<SharedPreferences> _prefs() async {
   SharedPreferences.setMockInitialValues({});
   return SharedPreferences.getInstance();
@@ -160,6 +185,7 @@ Widget _scope(
   QualityScanService? scanService,
   QualityScanStateStore? store,
   String? filterDiveId,
+  Map<String, String>? computerNames,
 }) => ProviderScope(
   overrides: [
     qualityFindingsRepositoryProvider.overrideWithValue(
@@ -170,6 +196,11 @@ Widget _scope(
     if (scanService != null)
       qualityScanServiceProvider.overrideWithValue(scanService),
     if (store != null) qualityScanStateStoreProvider.overrideWithValue(store),
+    // The name map is built from the saved-computers list, which needs a
+    // diver and a computers table this page test has no reason to stand up.
+    // Overriding it keeps the assertion on what the page does with the names.
+    if (computerNames != null)
+      qualityComputerNamesProvider.overrideWith((ref) async => computerNames),
   ],
   child: localizedMaterialApp(
     home: DataQualityInboxPage(filterDiveId: filterDiveId),
@@ -234,6 +265,7 @@ void main() {
   ) async {
     // One finding per formatter closure (depth, pressure, temperature, sac),
     // all on the same dive so they collapse into one group (append branch).
+    await _seedDive('d1', name: 'Reef wall');
     final prefs = await _prefs();
     await tester.pumpWidget(
       _scope(
@@ -272,8 +304,9 @@ void main() {
     expect(find.text('Depth spike'), findsOneWidget);
     expect(find.text('Temperature anomaly'), findsOneWidget);
     expect(find.text('Pressure anomaly'), findsNWidgets(2));
-    // Single dive group header (falls back to the raw dive id, no dive name).
-    expect(find.text('d1'), findsOneWidget);
+    // Single dive group header, naming the dive rather than its uuid.
+    expect(find.textContaining('Reef wall'), findsOneWidget);
+    expect(find.text('d1'), findsNothing);
   });
 
   // --- Chip row / filtering ------------------------------------------------
@@ -400,13 +433,14 @@ void main() {
   testWidgets('one dive gets one header even when findings interleave', (
     tester,
   ) async {
+    await _seedDive('d1', name: 'Reef wall');
+    await _seedDive('d2', name: 'Night dive');
     final prefs = await _prefs();
     await tester.pumpWidget(
       _scope(
         prefs,
         // watchFindings emits in updatedAt order (not by dive), so d1's two
-        // findings straddle d2's. Grouping must still yield a single d1 header
-        // (no dive seeded -> the header falls back to rendering the dive id).
+        // findings straddle d2's. Grouping must still yield a single d1 header.
         findings: [
           _f(
             id: 'd1-gap',
@@ -432,9 +466,102 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Exactly one header per dive despite the interleaving.
-    expect(find.text('d1'), findsOneWidget);
-    expect(find.text('d2'), findsOneWidget);
+    // Exactly one header per dive despite the interleaving, each naming its
+    // own dive.
+    expect(find.textContaining('Reef wall'), findsOneWidget);
+    expect(find.textContaining('Night dive'), findsOneWidget);
+  });
+
+  // --- Dive identity -------------------------------------------------------
+
+  testWidgets('header names an unnamed, siteless dive by when it happened', (
+    tester,
+  ) async {
+    // The reported bug: a downloaded dive carries neither a custom name nor a
+    // site, so the old fallback chain ran all the way to the raw uuid and the
+    // page named no dive the diver could recognize.
+    await _seedDive('d1', entryTime: DateTime.utc(2026, 6, 14, 9, 12));
+    final prefs = await _prefs();
+    await tester.pumpWidget(_scope(prefs, findings: [finding()]));
+    await tester.pumpAndSettle();
+
+    expect(find.text('d1'), findsNothing);
+    expect(find.textContaining('2026'), findsOneWidget);
+  });
+
+  testWidgets('header carries the dive max depth and duration', (tester) async {
+    await _seedDive(
+      'd1',
+      name: 'Reef wall',
+      maxDepth: 28.4,
+      runtime: const Duration(minutes: 47),
+    );
+    final prefs = await _prefs();
+    await tester.pumpWidget(_scope(prefs, findings: [finding()]));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('28.4'), findsOneWidget);
+    expect(find.textContaining('47 min'), findsOneWidget);
+  });
+
+  testWidgets('a finding whose dive is gone says so instead of showing an id', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(_scope(prefs, findings: [finding()]));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dive details unavailable'), findsOneWidget);
+    expect(find.text('d1'), findsNothing);
+  });
+
+  testWidgets('a cross-dive finding names the dive it is paired with', (
+    tester,
+  ) async {
+    await _seedDive('d1', name: 'Reef wall');
+    await _seedDive('d2', name: 'Night dive');
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'dupe',
+            detectorId: 'duplicate',
+            category: QualityCategory.duplicate,
+            relatedDiveId: 'd2',
+            params: const {'score': 0.5, 'timeDiffMinutes': 1},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Paired with'), findsOneWidget);
+    expect(find.textContaining('Night dive'), findsOneWidget);
+  });
+
+  testWidgets('a finding names the computer that recorded it', (tester) async {
+    await _seedDive('d1', name: 'Reef wall');
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'gap',
+            detectorId: 'sample_gap',
+            category: QualityCategory.profile,
+            computerId: 'c1',
+            params: const {'gapCount': 2, 'longestGapSeconds': 90},
+          ),
+        ],
+        computerNames: const {'c1': 'Perdix AI'},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Recorded by Perdix AI'), findsOneWidget);
   });
 
   // --- Empty state variants + library scan flow ----------------------------

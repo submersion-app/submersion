@@ -8,6 +8,7 @@ class QualityUnitFormatters {
     required this.temperature,
     required this.sac,
     required this.date,
+    required this.dateTime,
   });
   final String Function(double meters) depth;
   final String Function(double bar) pressure;
@@ -21,6 +22,12 @@ class QualityUnitFormatters {
   /// preference, so a clock finding reads "01/06/1900" or "1900-06-01" to
   /// match the rest of the app instead of an ISO timestamp.
   final String Function(DateTime date) date;
+
+  /// Formats a calendar date together with its clock time, in the diver's
+  /// date-format and 12h/24h preferences. Identifying a dive needs the time
+  /// as well as the day: repetitive dives share a date, and the findings that
+  /// pair two of them are exactly the ones minutes apart.
+  final String Function(DateTime dateTime) dateTime;
 }
 
 class QualityFindingMessage {

@@ -25795,6 +25795,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_inbox_title => 'جودة البيانات';
 
   @override
+  String get dataQuality_dive_unknown => 'تفاصيل الغطسة غير متاحة';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return 'مقترنة بـ $dive';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return 'مسجّلة بواسطة $computer';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'مراجعة جودة البيانات';
 
   @override

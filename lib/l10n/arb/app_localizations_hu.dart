@@ -26159,6 +26159,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_inbox_title => 'Adatminőség';
 
   @override
+  String get dataQuality_dive_unknown => 'A merülés adatai nem érhetők el';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number.';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return 'Párosítva ezzel: $dive';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return 'Rögzítette: $computer';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Adatminőség-ellenőrzés';
 
   @override

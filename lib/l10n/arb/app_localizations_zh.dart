@@ -24904,6 +24904,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_inbox_title => '数据质量';
 
   @override
+  String get dataQuality_dive_unknown => '无法获取潜水详情';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return '与 $dive 配对';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return '由 $computer 记录';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => '数据质量审查';
 
   @override

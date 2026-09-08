@@ -18,6 +18,8 @@ void main() {
     // Renders the UTC calendar date so assertions can prove the clock message
     // routes through the diver's date formatter rather than an ISO timestamp.
     date: (d) => 'DATE(${d.year}-${d.month}-${d.day})',
+    dateTime: (d) =>
+        'WHEN(${d.year}-${d.month}-${d.day} ${d.hour}:${d.minute})',
   );
 
   setUp(() {

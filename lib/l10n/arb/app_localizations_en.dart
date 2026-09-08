@@ -25826,6 +25826,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_inbox_title => 'Data quality';
 
   @override
+  String get dataQuality_dive_unknown => 'Dive details unavailable';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return 'Paired with $dive';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return 'Recorded by $computer';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Data quality review';
 
   @override

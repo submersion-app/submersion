@@ -25617,6 +25617,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_inbox_title => 'איכות הנתונים';
 
   @override
+  String get dataQuality_dive_unknown => 'פרטי הצלילה אינם זמינים';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return 'משויכת ל-$dive';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return 'נרשמה על ידי $computer';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'בדיקת איכות הנתונים';
 
   @override

@@ -26067,6 +26067,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_inbox_title => 'Datakwaliteit';
 
   @override
+  String get dataQuality_dive_unknown => 'Duikgegevens niet beschikbaar';
+
+  @override
+  String dataQuality_dive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String dataQuality_dive_pairedWith(String dive) {
+    return 'Gekoppeld aan $dive';
+  }
+
+  @override
+  String dataQuality_dive_recordedBy(String computer) {
+    return 'Vastgelegd door $computer';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Controle van datakwaliteit';
 
   @override
