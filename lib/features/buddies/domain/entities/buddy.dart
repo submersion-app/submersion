@@ -64,9 +64,15 @@ class Buddy extends Equatable {
           ? null
           : agency.displayName;
     }
-    if (agency == null ||
-        agency == CertificationAgency.other ||
-        title.contains(agency.displayName)) {
+    if (agency == null || agency == CertificationAgency.other) {
+      return title;
+    }
+    // A stored "Name on the card" often already spells out the agency in its
+    // own casing/spacing ("Padi Rescue Diver", "PADI - Rescue Diver"), so
+    // compare loosely to avoid appending the agency a second time.
+    String loose(String s) =>
+        s.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
+    if (loose(title).contains(loose(agency.displayName))) {
       return title;
     }
     return '$title · ${agency.displayName}';

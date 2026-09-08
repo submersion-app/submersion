@@ -86,6 +86,23 @@ void main() {
       expect(b.certificationLine, 'PADI Rescue Diver');
     });
 
+    test('agency in the title with other casing/spacing is not repeated', () {
+      expect(
+        _buddy(
+          agency: CertificationAgency.padi,
+          title: 'Padi Rescue Diver',
+        ).certificationLine,
+        'Padi Rescue Diver',
+      );
+      expect(
+        _buddy(
+          agency: CertificationAgency.padi,
+          title: 'PADI - Rescue Diver',
+        ).certificationLine,
+        'PADI - Rescue Diver',
+      );
+    });
+
     test('level only, no agency', () {
       final b = _buddy(
         level: CertificationLevel.openWater,

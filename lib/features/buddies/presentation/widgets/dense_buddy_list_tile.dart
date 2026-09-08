@@ -73,16 +73,14 @@ class DenseBuddyListTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Cert title (~100px) -- issue #1303: the "Name on the card"
-                // when the agency/level pair alone would just read "Other".
-                if ((buddy.certificationTitle ??
-                        buddy.certificationLevel?.displayName) !=
-                    null)
+                // Cert line (~100px) -- issue #1303: the "Name on the card",
+                // plus the agency unless it is "Other" or already in the
+                // name, so the pair alone never just reads "Other".
+                if (buddy.certificationLine != null)
                   SizedBox(
                     width: 100,
                     child: Text(
-                      buddy.certificationTitle ??
-                          buddy.certificationLevel!.displayName,
+                      buddy.certificationLine!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: secondaryTextColor,
                       ),
