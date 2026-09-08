@@ -35,6 +35,7 @@ Usage:
 """
 
 import hashlib
+import mmap
 import struct
 import sys
 
@@ -186,12 +187,21 @@ def sha1_fingerprint(certificate):
 def signer_sha1(path):
     """Return the lowercase SHA-1 hex digest of the APK's signer certificate."""
     with open(path, "rb") as apk:
-        data = apk.read()
-
-    pairs = _signing_block_pairs(data)
-    for block_id in SCHEME_BLOCK_IDS:
-        if block_id in pairs:
-            return sha1_fingerprint(_first_certificate(pairs[block_id]))
+        # Mapped rather than read: a release APK runs to hundreds of MB and
+        # this parser only ever seeks, slices and unpacks, so a full in-memory
+        # copy buys nothing. The slices handed back are ordinary bytes, so
+        # they outlive the mapping.
+        try:
+            mapped = mmap.mmap(apk.fileno(), 0, access=mmap.ACCESS_READ)
+        except ValueError as error:
+            # mmap rejects a zero-length file; report it like any other
+            # unparseable input rather than escaping as a ValueError.
+            raise SigningBlockError(f"cannot read APK: {error}") from error
+        with mapped as data:
+            pairs = _signing_block_pairs(data)
+            for block_id in SCHEME_BLOCK_IDS:
+                if block_id in pairs:
+                    return sha1_fingerprint(_first_certificate(pairs[block_id]))
     raise SigningBlockError(
         "APK Signing Block holds no v2, v3 or v3.1 signature scheme block"
     )

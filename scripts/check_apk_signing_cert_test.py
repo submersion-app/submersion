@@ -207,6 +207,12 @@ class MainTest(unittest.TestCase):
         self._paths.append(path)
         self.assertEqual(guard.main([path], registered={"ab" * 20: "test"}), 1)
 
+    def test_rejects_an_empty_file(self):
+        """A zero-length file must fail as a guard error, not crash it."""
+        path = _write_temp(b"")
+        self._paths.append(path)
+        self.assertEqual(guard.main([path], registered={"ab" * 20: "test"}), 1)
+
     def test_requires_at_least_one_apk(self):
         self.assertEqual(guard.main([]), 2)
 
