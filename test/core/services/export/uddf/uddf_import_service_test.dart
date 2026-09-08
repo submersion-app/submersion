@@ -21,6 +21,7 @@ void main() {
         <tankdata>
           <tankpressurebegin>21952916</tankpressurebegin>
           <tankpressureend>14244574</tankpressureend>
+          <transmitterserial>0</transmitterserial>
         </tankdata>
         <samples>
           <waypoint>
@@ -39,6 +40,7 @@ void main() {
           result['dives']!.single['tanks'] as List<Map<String, dynamic>>;
 
       expect(tanks[0]['transmitterSerial'], '180777');
+      // "0" is the no-transmitter sentinel, never an identity.
       expect(tanks[1].containsKey('transmitterSerial'), isFalse);
     });
 

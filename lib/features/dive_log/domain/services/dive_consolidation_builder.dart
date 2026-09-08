@@ -1,4 +1,5 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// Why a consolidation was rejected outright.
 enum ConsolidationInvalidReason {
@@ -137,9 +138,9 @@ class DiveConsolidationBuilder {
   /// one transmitter with 31% on one and 32% on the other still logged the
   /// same tank.
   bool? _serialIdentity(DiveTank primary, DiveTank secondary) {
-    final a = primary.transmitterSerial;
-    final b = secondary.transmitterSerial;
-    if (a == null || a.isEmpty || b == null || b.isEmpty) return null;
+    final a = normalizeTransmitterSerial(primary.transmitterSerial);
+    final b = normalizeTransmitterSerial(secondary.transmitterSerial);
+    if (a == null || b == null) return null;
     return a == b;
   }
 

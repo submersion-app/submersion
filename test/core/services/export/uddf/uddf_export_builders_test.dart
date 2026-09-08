@@ -422,6 +422,43 @@ void main() {
         },
       );
 
+      test('does not write a blank or zero transmitter serial', () {
+        final dive = Dive(
+          id: 'dive-serial-0',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 3, 28, 10, 0),
+          bottomTime: const Duration(minutes: 30),
+          maxDepth: 20.0,
+          tanks: const [
+            DiveTank(id: 'tank-1', transmitterSerial: '0'),
+            DiveTank(id: 'tank-2', transmitterSerial: '  '),
+          ],
+        );
+
+        final builder = XmlBuilder();
+        builder.element(
+          'root',
+          nest: () {
+            UddfExportBuilders.buildDiveElement(
+              builder,
+              dive,
+              null,
+              const [],
+              const [],
+              const [],
+              const [],
+              null,
+              const [],
+            );
+          },
+        );
+
+        expect(
+          builder.buildDocument().toXmlString(),
+          isNot(contains('transmitterserial')),
+        );
+      });
+
       test('no tankpressure elements when tankPressures is null', () {
         final dive = Dive(
           id: 'dive-tp-null',

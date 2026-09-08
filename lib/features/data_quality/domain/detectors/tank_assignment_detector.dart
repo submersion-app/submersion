@@ -3,6 +3,7 @@ import 'package:submersion/features/data_quality/domain/entities/quality_finding
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 class TankAssignmentDetector extends QualityDetector {
   const TankAssignmentDetector();
@@ -112,10 +113,8 @@ class TankAssignmentDetector extends QualityDetector {
     return out;
   }
 
-  static String? _serial(DiveTank tank) {
-    final serial = tank.transmitterSerial;
-    return serial == null || serial.isEmpty ? null : serial;
-  }
+  static String? _serial(DiveTank tank) =>
+      normalizeTransmitterSerial(tank.transmitterSerial);
 
   /// Mean absolute pressure difference between two series at their nearest
   /// samples, or null when they never come within the gap tolerance of each

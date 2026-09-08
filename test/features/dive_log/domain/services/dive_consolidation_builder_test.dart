@@ -275,6 +275,34 @@ void main() {
       },
     );
 
+    test('a zero sentinel serial on both sides is no identity at all', () {
+      // "0" is libdivecomputer's "no transmitter"; two such tanks must fall
+      // back to the gas-mix rule, which here keeps them apart.
+      const primaryTank = DiveTank(
+        id: 'p1',
+        gasMix: GasMix(o2: 31.0, he: 0.0),
+        transmitterSerial: '0',
+      );
+      const secondaryTank = DiveTank(
+        id: 's1',
+        gasMix: GasMix(o2: 32.0, he: 0.0),
+        transmitterSerial: '0',
+      );
+      final primary = makeDive(
+        'p',
+        entry: t,
+        runtimeMin: 40,
+        tanks: [primaryTank],
+      );
+      final secondary = makeDive(
+        's',
+        entry: t.add(const Duration(minutes: 10)),
+        runtimeMin: 30,
+        tanks: [secondaryTank],
+      );
+      expect(builder.build([primary, secondary]).tankMerges, isEmpty);
+    });
+
     test('a serial on only one side falls back to the gas-mix rule', () {
       const primaryTank = DiveTank(
         id: 'p1',

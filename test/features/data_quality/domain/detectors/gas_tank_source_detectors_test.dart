@@ -263,6 +263,18 @@ void main() {
       expect(out.single.params['meanDiffBar'], lessThan(1.0));
     });
 
+    test('a zero sentinel serial on two tanks is not a shared transmitter', () {
+      final ctx = makeContext(
+        dive: makeTestDive(
+          tanks: [
+            tank(id: 'a', transmitterSerial: '0'),
+            tank(id: 'b', order: 1, transmitterSerial: ' 0 '),
+          ],
+        ),
+      );
+      expect(det.detect(ctx), isEmpty);
+    });
+
     test('single-tank dives are skipped', () {
       final ctx = makeContext(
         dive: makeTestDive(tanks: [tank()]),
