@@ -208,4 +208,36 @@ void main() {
       expect((await sessions.getSessionById(s.id))!.diveId, 'dive-1');
     });
   });
+
+  test('a running session ignores a stale completion stamp', () async {
+    // Contradictory data: status still inProgress, yet a finish stamp sits on
+    // the row 4.5 h before the splash. Anchoring on that stamp puts the run
+    // outside the window and loses the link; the run has not finished, so its
+    // start is the only honest anchor.
+    final s = await sessionStartedAt(
+      diveStart.subtract(const Duration(minutes: 20)),
+    );
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      'UPDATE pre_dive_sessions SET completed_at = '
+      '${diveStart.subtract(const Duration(hours: 4, minutes: 30)).millisecondsSinceEpoch} '
+      "WHERE id = '${s.id}'",
+    );
+    final running = (await sessions.getSessionById(s.id))!;
+    expect(running.status, domain.PreDiveSessionStatus.inProgress);
+    expect(running.completedAt, isNotNull);
+    expect(
+      ChecklistDiveLinker.anchorOf(running),
+      running.startedAt,
+      reason: 'a run still in progress anchors on its start',
+    );
+
+    final linked = await linker.autoLinkForDive(
+      diveId: 'dive-1',
+      diverId: null,
+      diveStart: diveStart,
+    );
+    expect(linked, isTrue);
+    expect((await sessions.getSessionById(s.id))!.diveId, 'dive-1');
+  });
 }

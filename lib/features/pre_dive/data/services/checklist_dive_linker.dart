@@ -30,10 +30,17 @@ class ChecklistDiveLinker {
   /// a CCR build or a gear-packing list worked through over an hour would
   /// fall out of the window even when it ended minutes before the dive.
   ///
-  /// A run still in progress has no completion stamp, so it falls back to its
-  /// start.
+  /// A run still in progress anchors on its start. The status decides that,
+  /// not the presence of the stamp: `completedAt` is only written alongside a
+  /// terminal status, so a running row carrying one is contradictory data,
+  /// and trusting it would anchor the run on a time it never finished at and
+  /// hand it to the wrong dive -- or, if that time falls outside the window,
+  /// to none at all. Mirrors the same defence in the sessions list's
+  /// `_whenLabel`.
   static DateTime anchorOf(domain.PreDiveSession session) =>
-      session.completedAt ?? session.startedAt;
+      session.status == domain.PreDiveSessionStatus.inProgress
+      ? session.startedAt
+      : session.completedAt ?? session.startedAt;
 
   Future<bool> autoLinkForDive({
     required String diveId,
