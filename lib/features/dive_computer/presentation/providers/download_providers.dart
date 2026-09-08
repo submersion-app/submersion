@@ -198,8 +198,10 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     _computer = computer;
     _device = device;
 
-    // Hold the screen awake for the whole transfer. A retry or a fresh start
-    // reuses the existing hold rather than stacking a second one.
+    // Hold the screen awake for the whole transfer. If startDownload runs
+    // again while a hold is already active, reuse it rather than stacking a
+    // second one; each terminal path clears the field so the next run
+    // acquires a fresh hold.
     _screenAwake ??= ScreenAwake.acquire();
 
     try {

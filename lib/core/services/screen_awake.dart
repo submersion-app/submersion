@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-/// Keeps the screen on while blocking foreground work runs.
+/// Keeps the screen on while foreground work the user is watching runs --
+/// whether that work is a single awaited call ([hold]) or an event-driven
+/// span with no owning [Future] ([acquire]).
 ///
 /// A phone that locks part-way through a sync repair suspends the app behind
 /// it, so an operation the user was told not to interrupt is interrupted by

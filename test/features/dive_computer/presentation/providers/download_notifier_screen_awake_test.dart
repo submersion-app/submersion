@@ -19,6 +19,7 @@ void main() {
   late MockDiveComputerService mockService;
   late StreamController<DownloadEvent> events;
   late List<bool> toggles;
+  DownloadNotifier? notifier;
 
   setUp(() {
     mockRepository = MockDiveComputerRepository();
@@ -36,8 +37,12 @@ void main() {
     };
   });
 
-  tearDown(() {
-    events.close();
+  tearDown(() async {
+    // Dispose the notifier before debugReset so the seam that took the hold
+    // is still in place to release it; debugReset then only clears the seam.
+    notifier?.dispose();
+    notifier = null;
+    await events.close();
     ScreenAwake.debugReset();
   });
 
@@ -50,12 +55,11 @@ void main() {
   );
 
   DownloadNotifier makeNotifier() {
-    final notifier = DownloadNotifier(
+    notifier = DownloadNotifier(
       service: mockService,
       repository: mockRepository,
     );
-    addTearDown(notifier.dispose);
-    return notifier;
+    return notifier!;
   }
 
   test('takes the lock when a download starts', () async {
