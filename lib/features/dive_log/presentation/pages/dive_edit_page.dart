@@ -126,11 +126,24 @@ const _createNewTripSentinel = '__create_new_trip__';
 /// under de/es/it that dot is the GROUPING separator, so a diver who opened a
 /// dive and saved it untouched would store ten times the depth (#1091).
 ///
-/// This page keeps trailing zeros (a weight seeds as "2.0"), so it uses
+/// This page keeps trailing zeros (a depth seeds as "12.0"), so it uses
 /// [formatFixedForInput] rather than the trailing-zero-dropping
 /// [formatRoundedForInput] the other forms use.
 String _seedDecimal(double value, int fractionDigits) =>
     formatFixedForInput(value, fractionDigits);
+
+/// A weight already converted to the diver's display unit, rendered for
+/// seeding an editable field.
+///
+/// Weight has no pinned display precision the way depth and temperature do: a
+/// diver trims with 0.25 kg (or fractional-lb) increments, so seeding at one
+/// decimal snapped a stored 0.65 kg to "0.7", and opening a dive and saving it
+/// untouched then persisted the rounded value (#1609). Three decimals in the
+/// display unit covers the increments a diver actually trims with (0.25 kg,
+/// fractional lb) while still hiding the float tail a kg-to-lb conversion
+/// leaves; trailing zeros are dropped so a clean 2 kg still seeds as "2".
+String _seedWeight(double displayValue) =>
+    formatRoundedForInput(displayValue, 3);
 
 /// [value] rendered for seeding a whole-number field, paired with
 /// [parseUserInt]. Grouping is off, so this is digit-only text.
@@ -743,7 +756,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _weightingFeedback = dive.weightingFeedback;
           _weightingFeedbackAmountController.text =
               dive.weightingFeedbackKg != null
-              ? _seedDecimal(units.convertWeight(dive.weightingFeedbackKg!), 1)
+              ? _seedWeight(units.convertWeight(dive.weightingFeedbackKg!))
               : '';
 
           // Load tags
@@ -4427,9 +4440,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           Expanded(
             flex: 1,
             child: TextFormField(
-              initialValue: displayAmount > 0
-                  ? _seedDecimal(displayAmount, 1)
-                  : '',
+              initialValue: displayAmount > 0 ? _seedWeight(displayAmount) : '',
               decoration: InputDecoration(
                 labelText: units.weightSymbol,
                 isDense: true,

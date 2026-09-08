@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_repos
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/certification_primary.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 
 // Re-export merge types so callers can import from buddy_repository.dart
 export 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart'
@@ -1106,6 +1107,9 @@ class BuddyRepository {
       return b.copyWith(
         certificationLevel: primary?.level,
         certificationAgency: primary?.agency,
+        certificationTitle: primary == null
+            ? null
+            : certificationTitle(primary),
       );
     }).toList();
   }
@@ -1121,6 +1125,7 @@ class BuddyRepository {
       // _withPrimaryCerts overwrites these on the read paths.
       certificationLevel: null,
       certificationAgency: null,
+      certificationTitle: null,
       photoPath: row.photoPath,
       photo: row.photo,
       notes: row.notes,
