@@ -810,7 +810,7 @@ class CertificationListTile extends ConsumerWidget {
     final parts = <String>[];
     // Carries the level too when the title is a custom name, which is the
     // only place the level can show on this tile.
-    parts.add(certificationAgencyAndLevelL10n(certification, context.l10n));
+    parts.add(certificationCredentialsLineL10n(certification, context.l10n));
     if (certification.issueDate != null) {
       parts.add(units.formatDate(certification.issueDate));
     }

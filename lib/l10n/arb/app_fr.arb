@@ -742,6 +742,7 @@
   "certifications_detail_dialog_deleteContent": "Es-tu sûr de vouloir supprimer \"{name}\" ?",
   "certifications_detail_dialog_deleteTitle": "Supprimer la certification ?",
   "certifications_detail_label_agency": "Organisme",
+  "certifications_detail_label_alsoRecognized": "Aussi reconnu comme",
   "certifications_detail_label_cardNumber": "Numéro de carte",
   "certifications_detail_label_certification": "Certification",
   "certifications_detail_label_expiryDate": "Date d'expiration",

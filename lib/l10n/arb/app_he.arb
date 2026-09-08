@@ -742,6 +742,7 @@
   "certifications_detail_dialog_deleteContent": "האם אתה בטוח שברצונך למחוק את \"{name}\"?",
   "certifications_detail_dialog_deleteTitle": "למחוק הסמכה?",
   "certifications_detail_label_agency": "סוכנות",
+  "certifications_detail_label_alsoRecognized": "Also recognized as",
   "certifications_detail_label_cardNumber": "מספר כרטיס",
   "certifications_detail_label_certification": "הסמכה",
   "certifications_detail_label_expiryDate": "תאריך תפוגה",

@@ -1626,6 +1626,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_detail_label_agency => 'Agency';
 
   @override
+  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+
+  @override
   String get certifications_detail_label_cardNumber => 'Card Number';
 
   @override

@@ -1561,6 +1561,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_detail_label_agency => '机构';
 
   @override
+  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+
+  @override
   String get certifications_detail_label_cardNumber => '卡号';
 
   @override

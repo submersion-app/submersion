@@ -1635,6 +1635,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_detail_label_agency => 'الجهة المانحة';
 
   @override
+  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+
+  @override
   String get certifications_detail_label_cardNumber => 'رقم البطاقة';
 
   @override

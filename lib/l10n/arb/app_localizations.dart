@@ -2813,6 +2813,12 @@ abstract class AppLocalizations {
   /// **'Agency'**
   String get certifications_detail_label_agency;
 
+  /// No description provided for @certifications_detail_label_alsoRecognized.
+  ///
+  /// In en, this message translates to:
+  /// **'Also recognized as'**
+  String get certifications_detail_label_alsoRecognized;
+
   /// No description provided for @certifications_detail_label_cardNumber.
   ///
   /// In en, this message translates to:

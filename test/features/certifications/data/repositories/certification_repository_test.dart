@@ -98,6 +98,45 @@ void main() {
         expect(fetchedCert.instructorName, equals('John Smith'));
         expect(fetchedCert.notes, equals('EAN32/EAN36 certified'));
       });
+
+      test(
+        'additionalCredentials persist and reload as a JSON array',
+        () async {
+          final cert =
+              createTestCert(
+                name: 'Niveau 1',
+                agency: CertificationAgency.ffessm,
+                level: CertificationLevel.ffessmN1,
+              ).copyWith(
+                additionalCredentials: const [
+                  CertificationCredential(
+                    agency: CertificationAgency.cmas,
+                    level: CertificationLevel.cmas1StarDiver,
+                  ),
+                ],
+              );
+
+          final created = await repository.createCertification(cert);
+          final reloaded = await repository.getCertificationById(created.id);
+
+          expect(reloaded!.hasMultipleCredentials, isTrue);
+          expect(
+            reloaded.additionalCredentials.single.agency,
+            CertificationAgency.cmas,
+          );
+          expect(
+            reloaded.additionalCredentials.single.level,
+            CertificationLevel.cmas1StarDiver,
+          );
+
+          await repository.updateCertification(
+            reloaded.copyWith(additionalCredentials: const []),
+          );
+          final cleared = await repository.getCertificationById(created.id);
+          expect(cleared!.hasMultipleCredentials, isFalse);
+          expect(cleared.additionalCredentials, isEmpty);
+        },
+      );
     });
 
     group('getCertificationById', () {

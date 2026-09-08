@@ -1618,6 +1618,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_detail_label_agency => 'סוכנות';
 
   @override
+  String get certifications_detail_label_alsoRecognized => 'Also recognized as';
+
+  @override
   String get certifications_detail_label_cardNumber => 'מספר כרטיס';
 
   @override

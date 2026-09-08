@@ -511,6 +511,18 @@ class _CertificationDetailContent extends ConsumerWidget {
                 label: context.l10n.certifications_detail_label_certification,
                 value: certification.level!.localizedName(context.l10n),
               ),
+            if (certification.hasMultipleCredentials)
+              _InfoRow(
+                icon: Icons.workspace_premium_outlined,
+                label: context.l10n.certifications_detail_label_alsoRecognized,
+                value: certification.additionalCredentials
+                    .map((c) {
+                      final a = c.agency.localizedName(context.l10n);
+                      final l = c.level?.localizedName(context.l10n);
+                      return l == null ? a : '$a $l';
+                    })
+                    .join(' · '),
+              ),
             if (certification.cardNumber != null)
               _InfoRow(
                 icon: Icons.numbers,

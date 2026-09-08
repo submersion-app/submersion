@@ -742,6 +742,7 @@
   "certifications_detail_dialog_deleteContent": "Tem certeza de que deseja excluir \"{name}\"?",
   "certifications_detail_dialog_deleteTitle": "Excluir Certificacao?",
   "certifications_detail_label_agency": "Agencia",
+  "certifications_detail_label_alsoRecognized": "Also recognized as",
   "certifications_detail_label_cardNumber": "Numero do Cartao",
   "certifications_detail_label_certification": "Certificação",
   "certifications_detail_label_expiryDate": "Data de Validade",

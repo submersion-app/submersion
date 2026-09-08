@@ -742,6 +742,7 @@
   "certifications_detail_dialog_deleteContent": "هل أنت متأكد من حذف \"{name}\"؟",
   "certifications_detail_dialog_deleteTitle": "حذف الشهادة؟",
   "certifications_detail_label_agency": "الجهة المانحة",
+  "certifications_detail_label_alsoRecognized": "Also recognized as",
   "certifications_detail_label_cardNumber": "رقم البطاقة",
   "certifications_detail_label_certification": "الشهادة",
   "certifications_detail_label_expiryDate": "تاريخ الانتهاء",

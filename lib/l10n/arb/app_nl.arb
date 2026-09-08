@@ -742,6 +742,7 @@
   "certifications_detail_dialog_deleteContent": "Weet je zeker dat je \"{name}\" wilt verwijderen?",
   "certifications_detail_dialog_deleteTitle": "Certificering verwijderen?",
   "certifications_detail_label_agency": "Organisatie",
+  "certifications_detail_label_alsoRecognized": "Also recognized as",
   "certifications_detail_label_cardNumber": "Kaartnummer",
   "certifications_detail_label_certification": "Certificering",
   "certifications_detail_label_expiryDate": "Vervaldatum",
