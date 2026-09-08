@@ -132,6 +132,7 @@ import 'package:submersion/features/transfer/presentation/pages/transfer_page.da
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
 import 'package:submersion/features/dive_roles/presentation/pages/dive_roles_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_presets_page.dart';
+import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
@@ -1345,11 +1346,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Weight Presets Management (issue #1609)
+          // Weight Presets Management (issue #1609, #1663)
           GoRoute(
             path: '/weight-presets',
             name: 'weightPresets',
             builder: (context, state) => const WeightPresetsPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newWeightPreset',
+                builder: (context, state) => const WeightPresetEditorPage(),
+              ),
+              GoRoute(
+                path: ':presetId/edit',
+                name: 'editWeightPreset',
+                builder: (context, state) => WeightPresetEditorPage(
+                  presetId: state.pathParameters['presetId'],
+                ),
+              ),
+            ],
           ),
 
           // Checklist Templates Management

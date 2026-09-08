@@ -72,11 +72,53 @@ class WeightPresetRepository {
     }
   }
 
-  /// Save a set of [DiveWeight] rows as a new named preset for [diverId].
+  /// One preset with its entries, or null. Used by the editor to load a
+  /// preset for editing (the list provider is diver-scoped; this is by id).
+  Future<WeightPreset?> getPresetById(String id) async {
+    final p = await (_db.select(
+      _db.weightPresets,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (p == null) return null;
+    final entryRows =
+        await (_db.select(_db.weightPresetEntries)
+              ..where((t) => t.presetId.equals(id))
+              ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
+            .get();
+    return WeightPreset(
+      id: p.id,
+      diverId: p.diverId,
+      displayName: p.displayName,
+      notes: p.notes,
+      sortOrder: p.sortOrder,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(p.createdAt),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(p.updatedAt),
+      entries: entryRows.map(_mapEntry).toList(),
+    );
+  }
+
+  /// Save a set of [DiveWeight] rows as a new named preset for [diverId]
+  /// (the "Save as preset" action in the dive editor).
   Future<WeightPreset> createFromWeights({
     required String diverId,
     required String displayName,
     required List<DiveWeight> weights,
+    String notes = '',
+  }) => createPreset(
+    diverId: diverId,
+    displayName: displayName,
+    notes: notes,
+    entries: [
+      for (final w in weights)
+        (weightType: w.weightType, amountKg: w.amountKg, notes: w.notes),
+    ],
+  );
+
+  /// Create a new named preset from hand-composed rows (the manage-page
+  /// editor). [entries] may be empty.
+  Future<WeightPreset> createPreset({
+    required String diverId,
+    required String displayName,
+    required List<WeightEntryDraft> entries,
     String notes = '',
   }) async {
     final id = _uuid.v4();
@@ -98,7 +140,7 @@ class WeightPresetRepository {
               updatedAt: Value(now),
             ),
           );
-      for (var i = 0; i < weights.length; i++) {
+      for (var i = 0; i < entries.length; i++) {
         final entryId = _uuid.v4();
         entryIds.add(entryId);
         await _db
@@ -107,9 +149,9 @@ class WeightPresetRepository {
               WeightPresetEntriesCompanion(
                 id: Value(entryId),
                 presetId: Value(id),
-                weightType: Value(weights[i].weightType.name),
-                amountKg: Value(weights[i].amountKg),
-                notes: Value(weights[i].notes),
+                weightType: Value(entries[i].weightType.name),
+                amountKg: Value(entries[i].amountKg),
+                notes: Value(entries[i].notes),
                 sortOrder: Value(i),
                 createdAt: Value(now),
               ),
@@ -153,6 +195,79 @@ class WeightPresetRepository {
       recordId: id,
       localUpdatedAt: now,
     );
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Rename a preset and replace its whole entry list (the manage-page
+  /// editor's Save). The rows are rewritten rather than diffed: the old
+  /// entries are tombstoned and fresh ones inserted, so a peer converges on
+  /// the new set. Dives that already applied this preset are untouched --
+  /// they hold their own copied [DiveWeight] rows. Done in one transaction
+  /// (like [deletePreset]) so a mid-write failure can't leave the entries and
+  /// their tombstones out of step.
+  Future<void> updatePreset({
+    required String id,
+    required String displayName,
+    String? notes,
+    required List<WeightEntryDraft> entries,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final newIds = <String>[];
+
+    await _db.transaction(() async {
+      final oldEntries = await (_db.select(
+        _db.weightPresetEntries,
+      )..where((t) => t.presetId.equals(id))).get();
+
+      await (_db.update(
+        _db.weightPresets,
+      )..where((t) => t.id.equals(id))).write(
+        WeightPresetsCompanion(
+          displayName: Value(displayName.trim()),
+          notes: notes == null ? const Value.absent() : Value(notes.trim()),
+          updatedAt: Value(now),
+        ),
+      );
+      await (_db.delete(
+        _db.weightPresetEntries,
+      )..where((t) => t.presetId.equals(id))).go();
+      for (var i = 0; i < entries.length; i++) {
+        final entryId = _uuid.v4();
+        newIds.add(entryId);
+        await _db
+            .into(_db.weightPresetEntries)
+            .insert(
+              WeightPresetEntriesCompanion(
+                id: Value(entryId),
+                presetId: Value(id),
+                weightType: Value(entries[i].weightType.name),
+                amountKg: Value(entries[i].amountKg),
+                notes: Value(entries[i].notes),
+                sortOrder: Value(i),
+                createdAt: Value(now),
+              ),
+            );
+      }
+
+      await _syncRepository.markRecordPending(
+        entityType: 'weightPresets',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      for (final e in oldEntries) {
+        await _syncRepository.logDeletion(
+          entityType: 'weightPresetEntries',
+          recordId: e.id,
+        );
+      }
+      for (final entryId in newIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'weightPresetEntries',
+          recordId: entryId,
+          localUpdatedAt: now,
+        );
+      }
+    });
     SyncEventBus.notifyLocalChange();
   }
 

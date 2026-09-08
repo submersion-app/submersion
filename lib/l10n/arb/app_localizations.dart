@@ -28822,7 +28822,7 @@ abstract class AppLocalizations {
   /// No description provided for @weightPresets_page_empty.
   ///
   /// In en, this message translates to:
-  /// **'Save a weighting from the dive editor and it will appear here to reuse.'**
+  /// **'Save a weighting from the dive editor, or tap + to build one here.'**
   String get weightPresets_page_empty;
 
   /// No description provided for @weightPresets_action_rename.
@@ -28830,6 +28830,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rename'**
   String get weightPresets_action_rename;
+
+  /// No description provided for @weightPresets_action_new.
+  ///
+  /// In en, this message translates to:
+  /// **'New preset'**
+  String get weightPresets_action_new;
+
+  /// No description provided for @weightPresets_action_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get weightPresets_action_edit;
+
+  /// No description provided for @weightPresets_new_title.
+  ///
+  /// In en, this message translates to:
+  /// **'New weight preset'**
+  String get weightPresets_new_title;
+
+  /// No description provided for @weightPresets_edit_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit weight preset'**
+  String get weightPresets_edit_title;
+
+  /// No description provided for @weightPresets_editor_addWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Add weight'**
+  String get weightPresets_editor_addWeight;
+
+  /// No description provided for @weightPresets_editor_needName.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the preset a name'**
+  String get weightPresets_editor_needName;
+
+  /// No description provided for @weightPresets_editor_needWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one weight'**
+  String get weightPresets_editor_needWeight;
 
   /// No description provided for @weightPresets_rename_title.
   ///

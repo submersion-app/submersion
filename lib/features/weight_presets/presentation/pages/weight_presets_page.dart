@@ -10,8 +10,9 @@ import 'package:submersion/features/weight_presets/presentation/providers/weight
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Settings → Management → Weight Presets (issue #1609). Presets are created
-/// from the dive editor; this screen only renames and deletes them.
+/// Settings → Management → Weight Presets (issue #1609). Lists the diver's
+/// rigs; create, edit, rename and delete them here or save one from the dive
+/// editor (issue #1663 added the on-page create/edit).
 class WeightPresetsPage extends ConsumerWidget {
   const WeightPresetsPage({super.key});
 
@@ -29,6 +30,13 @@ class WeightPresetsPage extends ConsumerWidget {
           onPressed: () => context.pop(),
           tooltip: l10n.common_action_back,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: l10n.weightPresets_action_new,
+            onPressed: () => context.pushNamed('newWeightPreset'),
+          ),
+        ],
       ),
       body: presetsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -62,15 +70,28 @@ class WeightPresetsPage extends ConsumerWidget {
                     units.formatWeight(preset.totalKg),
                   ),
                 ),
+                onTap: () => context.pushNamed(
+                  'editWeightPreset',
+                  pathParameters: {'presetId': preset.id},
+                ),
                 trailing: PopupMenuButton<String>(
                   onSelected: (value) {
-                    if (value == 'rename') {
+                    if (value == 'edit') {
+                      context.pushNamed(
+                        'editWeightPreset',
+                        pathParameters: {'presetId': preset.id},
+                      );
+                    } else if (value == 'rename') {
                       _rename(context, ref, preset);
                     } else if (value == 'delete') {
                       _confirmDelete(context, ref, preset);
                     }
                   },
                   itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Text(l10n.weightPresets_action_edit),
+                    ),
                     PopupMenuItem(
                       value: 'rename',
                       child: Text(l10n.weightPresets_action_rename),

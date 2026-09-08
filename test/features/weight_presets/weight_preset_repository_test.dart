@@ -159,4 +159,79 @@ void main() {
       );
     },
   );
+
+  test(
+    'createPreset builds a preset from hand-composed rows (#1663)',
+    () async {
+      final preset = await repo.createPreset(
+        diverId: diverId,
+        displayName: '  Wetsuit 5mm  ',
+        entries: const [
+          (weightType: WeightType.belt, amountKg: 4.0, notes: ''),
+          (weightType: WeightType.trimWeights, amountKg: 1.0, notes: 'tail'),
+        ],
+      );
+
+      expect(preset.displayName, 'Wetsuit 5mm');
+      expect(preset.diverId, diverId);
+      expect(preset.entries, hasLength(2));
+      expect(preset.entries[1].weightType, WeightType.trimWeights);
+      expect(preset.entries[1].notes, 'tail');
+      expect(preset.totalKg, closeTo(5.0, 1e-9));
+    },
+  );
+
+  test('getPresetById returns the preset with its entries, or null', () async {
+    final created = await repo.createFromWeights(
+      diverId: diverId,
+      displayName: 'Drysuit',
+      weights: [_w(WeightType.belt, 3.0)],
+    );
+
+    final fetched = await repo.getPresetById(created.id);
+    expect(fetched, isNotNull);
+    expect(fetched!.displayName, 'Drysuit');
+    expect(fetched.entries, hasLength(1));
+    expect(await repo.getPresetById('nope'), isNull);
+  });
+
+  test('updatePreset replaces the entry list and renames (#1663)', () async {
+    final preset = await repo.createFromWeights(
+      diverId: diverId,
+      displayName: 'Old name',
+      weights: [_w(WeightType.belt, 2.0), _w(WeightType.ankleWeights, 0.5)],
+    );
+
+    await repo.updatePreset(
+      id: preset.id,
+      displayName: 'New name',
+      entries: const [
+        (weightType: WeightType.integrated, amountKg: 6.0, notes: ''),
+      ],
+    );
+
+    final reloaded = (await repo.getPresets(diverId: diverId)).single;
+    expect(reloaded.displayName, 'New name');
+    expect(reloaded.entries, hasLength(1));
+    expect(reloaded.entries.single.weightType, WeightType.integrated);
+    expect(reloaded.totalKg, closeTo(6.0, 1e-9));
+
+    final db = DatabaseService.instance.database;
+    // The two removed entries are tombstoned so a peer does not resurrect
+    // them; the preset row itself is updated in place, not deleted.
+    final entryTombstones = await db
+        .customSelect(
+          "SELECT COUNT(*) AS n FROM deletion_log "
+          "WHERE entity_type = 'weightPresetEntries'",
+        )
+        .getSingle();
+    expect(entryTombstones.read<int>('n'), 2);
+    final presetTombstones = await db
+        .customSelect(
+          "SELECT COUNT(*) AS n FROM deletion_log "
+          "WHERE entity_type = 'weightPresets'",
+        )
+        .getSingle();
+    expect(presetTombstones.read<int>('n'), 0);
+  });
 }

@@ -17494,10 +17494,31 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Enregistrez un lestage depuis l\'éditeur de plongée pour le réutiliser ici.';
+      'Enregistrez un lestage depuis l\'éditeur de plongée, ou touchez + pour en créer un ici.';
 
   @override
   String get weightPresets_action_rename => 'Renommer';
+
+  @override
+  String get weightPresets_action_new => 'Nouvelle présélection';
+
+  @override
+  String get weightPresets_action_edit => 'Modifier';
+
+  @override
+  String get weightPresets_new_title => 'Nouvelle présélection de lestage';
+
+  @override
+  String get weightPresets_edit_title => 'Modifier la présélection de lestage';
+
+  @override
+  String get weightPresets_editor_addWeight => 'Ajouter un lest';
+
+  @override
+  String get weightPresets_editor_needName => 'Donnez un nom à la présélection';
+
+  @override
+  String get weightPresets_editor_needWeight => 'Ajoutez au moins un lest';
 
   @override
   String get weightPresets_rename_title => 'Renommer la présélection';

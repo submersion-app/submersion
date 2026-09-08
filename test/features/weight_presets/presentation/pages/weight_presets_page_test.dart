@@ -68,7 +68,24 @@ void main() {
     final base = await getBaseOverrides();
     final router = GoRouter(
       routes: [
-        GoRoute(path: '/', builder: (_, _) => const WeightPresetsPage()),
+        GoRoute(
+          path: '/',
+          builder: (_, _) => const WeightPresetsPage(),
+          routes: [
+            GoRoute(
+              path: 'new',
+              name: 'newWeightPreset',
+              builder: (_, _) => const Scaffold(body: Text('editor: new')),
+            ),
+            GoRoute(
+              path: ':presetId/edit',
+              name: 'editWeightPreset',
+              builder: (_, s) => Scaffold(
+                body: Text('editor: ${s.pathParameters['presetId']}'),
+              ),
+            ),
+          ],
+        ),
       ],
     );
     await tester.pumpWidget(
@@ -110,6 +127,24 @@ void main() {
 
     expect(find.byType(ListTile), findsNothing);
     expect(find.textContaining('dive editor'), findsOneWidget);
+  });
+
+  testWidgets('the + action opens the new-preset editor', (tester) async {
+    await pump(tester, []);
+
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+
+    expect(find.text('editor: new'), findsOneWidget);
+  });
+
+  testWidgets('tapping a preset opens the editor for it', (tester) async {
+    await pump(tester, [_preset('p1', 'Drysuit')]);
+
+    await tester.tap(find.text('Drysuit'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('editor: p1'), findsOneWidget);
   });
 
   testWidgets('the rename action writes the new name through the repository', (
