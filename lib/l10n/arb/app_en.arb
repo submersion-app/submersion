@@ -16779,6 +16779,9 @@
   "settings_security_turnOff": "Turn off",
   "dataQuality_inbox_title": "Data quality",
   "dataQuality_dive_unknown": "Dive details unavailable",
+  "@dataQuality_dive_unknown": {
+    "description": "Stands in for a dive identity the inbox cannot resolve, either because the dive was deleted or folded into another by a merge, or because the lookup failed. Deliberately neutral: it must not assert that the dive was deleted, because that is only one of the two cases."
+  },
   "dataQuality_dive_number": "#{number}",
   "@dataQuality_dive_number": {
     "description": "Dive number segment of the identity line on a data quality group header.",

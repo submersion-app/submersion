@@ -43343,7 +43343,7 @@ abstract class AppLocalizations {
   /// **'Data quality'**
   String get dataQuality_inbox_title;
 
-  /// No description provided for @dataQuality_dive_unknown.
+  /// Stands in for a dive identity the inbox cannot resolve, either because the dive was deleted or folded into another by a merge, or because the lookup failed. Deliberately neutral: it must not assert that the dive was deleted, because that is only one of the two cases.
   ///
   /// In en, this message translates to:
   /// **'Dive details unavailable'**
