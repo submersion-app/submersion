@@ -165,6 +165,27 @@ void main() {
     );
   });
 
+  test('equal timestamps break the tie on id, whatever the input order', () {
+    final same = DateTime.utc(2026, 3, 1);
+    final a = _entry(id: 'a', role: TankRole.deco, updatedAt: same);
+    final b = _entry(id: 'b', role: TankRole.stage, updatedAt: same);
+
+    expect(
+      TransmitterMatcher.fromEntries([
+        a,
+        b,
+      ]).match(serial: '180777', computerId: null, index: 0)!.id,
+      'b',
+    );
+    expect(
+      TransmitterMatcher.fromEntries([
+        b,
+        a,
+      ]).match(serial: '180777', computerId: null, index: 0)!.id,
+      'b',
+    );
+  });
+
   test('an empty matcher is a no-op', () {
     const tank = TankData(index: 0, o2Percent: 21, transmitterSerial: '180777');
     final out = applyTransmitterRegistry(

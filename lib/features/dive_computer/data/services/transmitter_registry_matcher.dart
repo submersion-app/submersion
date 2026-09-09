@@ -23,8 +23,14 @@ class TransmitterMatcher {
   const TransmitterMatcher._(this._bySerial, this._byChannel);
 
   factory TransmitterMatcher.fromEntries(List<Transmitter> entries) {
+    // Ascending so the last write wins; the id tie-break keeps the winner
+    // deterministic when a sync merge lands two entries on one timestamp
+    // (List.sort is not stable).
     final ordered = [...entries]
-      ..sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+      ..sort((a, b) {
+        final byTime = a.updatedAt.compareTo(b.updatedAt);
+        return byTime != 0 ? byTime : a.id.compareTo(b.id);
+      });
     final bySerial = <String, Transmitter>{};
     final byChannel = <(String, int), Transmitter>{};
     for (final entry in ordered) {
