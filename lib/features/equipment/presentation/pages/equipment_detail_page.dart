@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_attri
 import 'package:submersion/features/cylinder_configs/presentation/widgets/unit_configurations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
@@ -140,14 +142,23 @@ class _EquipmentDetailContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    // Service state now derives from the clock engine, not the legacy
-    // isServiceDue getter: any overdue clock lights the header.
-    final isServiceOverdue =
+    // Any overdue clock lights the header: the item's own, or any part's
+    // through the rollup (issue #1487). Own clocks are read separately so a
+    // retired item, absent from the active rollup, still shows its state.
+    final ownOverdue =
         ref
             .watch(serviceClockStatusesProvider(equipmentId))
             .value
             ?.any((s) => s.severity == ServiceClockSeverity.overdue) ??
         false;
+    final rollupOverdue =
+        ref
+            .watch(equipmentRollupClockProvider)
+            .value?[equipmentId]
+            ?.status
+            .severity ==
+        ServiceClockSeverity.overdue;
+    final isServiceOverdue = ownOverdue || rollupOverdue;
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -168,6 +179,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
               serviceKindId: status.kind.id,
             ),
           ),
+          const SizedBox(height: 24),
+          ComponentsCard(equipmentId: equipmentId),
           // Only rebreathers own configurations; every other type would show
           // a card that can never be anything but empty.
           if (equipment.type == EquipmentType.rebreather) ...[

@@ -5,8 +5,16 @@ enum PreDiveItemType {
   check,
   value,
   equipmentSet,
-  equipment;
+  equipment,
 
+  /// Records a cell's millivolts in pure oxygen and derives its linearity
+  /// against the air reading held by the item named in [sourceItemId]
+  /// (issue #986).
+  cellLinearity;
+
+  /// The fallback to [check] is load-bearing forward compatibility: an older
+  /// build that syncs a row of a type it does not know renders it as a plain
+  /// tick-box instead of failing. Do not turn this into a throw.
   static PreDiveItemType parse(String raw) => PreDiveItemType.values.firstWhere(
     (e) => e.name == raw,
     orElse: () => PreDiveItemType.check,
@@ -97,6 +105,14 @@ class PreDiveChecklistTemplateItem extends Equatable {
   final double? valueMax;
   final bool isRequired;
   final String? equipmentId;
+
+  /// For a [PreDiveItemType.cellLinearity] item, the id of the template item
+  /// holding this cell's air reading (issue #986). Null on every other type.
+  ///
+  /// Tolerated as dangling: ids are remapped on clone and again at session
+  /// start, and the editor lets a source item be deleted from under this
+  /// one, so every reader degrades rather than assuming it resolves.
+  final String? sourceItemId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -114,6 +130,7 @@ class PreDiveChecklistTemplateItem extends Equatable {
     this.valueMax,
     this.isRequired = false,
     this.equipmentId,
+    this.sourceItemId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -132,6 +149,7 @@ class PreDiveChecklistTemplateItem extends Equatable {
     Object? valueMax = _undefined,
     bool? isRequired,
     Object? equipmentId = _undefined,
+    Object? sourceItemId = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -155,6 +173,9 @@ class PreDiveChecklistTemplateItem extends Equatable {
       equipmentId: equipmentId == _undefined
           ? this.equipmentId
           : equipmentId as String?,
+      sourceItemId: sourceItemId == _undefined
+          ? this.sourceItemId
+          : sourceItemId as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -175,6 +196,7 @@ class PreDiveChecklistTemplateItem extends Equatable {
     valueMax,
     isRequired,
     equipmentId,
+    sourceItemId,
     createdAt,
     updatedAt,
   ];

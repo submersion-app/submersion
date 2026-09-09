@@ -4,7 +4,10 @@
   "settings_oauth_connect_copyLink": "Link kopieren",
   "settings_oauth_connect_linkCopied": "Link kopiert. Fügen Sie ihn zum Autorisieren in Ihren Browser ein.",
   "universalImport_action_importFromGarmin": "Von Garmin-Gerät importieren",
+  "enum_equipmentType_backplate": "Backplate",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "O2-Zelle",
+  "enum_equipmentType_battery": "Batterie",
   "diveLog_tank_saveAsPreset": "Als Vorlage speichern",
   "diveLog_tank_saveAsPreset_needSpecs": "Zuerst Volumen und Arbeitsdruck eingeben",
   "diveLog_tank_saveAsPreset_nameTitle": "Flaschenvorlage speichern",
@@ -162,6 +165,23 @@
   "diveLog_edit_geofenceSuggestion_body": "Set \"{setName}\" übernehmen?",
   "diveLog_edit_geofenceSuggestion_apply": "Übernehmen",
   "common_action_dismiss": "Verwerfen",
+  "equipment_components_add": "Komponente hinzufügen",
+  "equipment_components_count": "{count, plural, =1{1 Komponente} other{{count} Komponenten}}",
+  "equipment_components_cycleError": "Dieser Gegenstand enthält diesen bereits, daher kann er nicht als Komponente hinzugefügt werden.",
+  "equipment_components_editRole": "Rolle bearbeiten",
+  "equipment_components_empty": "Keine Komponenten. Füge die Teile hinzu, aus denen dieser Gegenstand besteht.",
+  "equipment_components_partOf": "Teil von {name}",
+  "equipment_components_partOfCount": "{count, plural, =1{Teil von 1 Baugruppe} other{Teil von {count} Baugruppen}}",
+  "equipment_components_pickerConfirm": "{count, plural, =0{Hinzufügen} =1{1 hinzufügen} other{{count} hinzufügen}}",
+  "equipment_components_pickerEmpty": "Keine weitere aktive Ausrüstung kann hier hinzugefügt werden.",
+  "equipment_components_pickerTitle": "Komponenten hinzufügen",
+  "equipment_components_remove": "Komponente entfernen",
+  "equipment_components_reorder": "Neu anordnen",
+  "equipment_components_role": "Rolle",
+  "equipment_components_roleDialogTitle": "Rolle der Komponente",
+  "equipment_components_roleHint": "z. B. Primäre zweite Stufe",
+  "equipment_components_rollupClock": "{component}: {kind}",
+  "equipment_components_title": "Komponenten",
   "equipment_setEdit_defaultSwitch_title": "Standard-Set",
   "equipment_setEdit_defaultSwitch_subtitle": "Wird automatisch auf neue Tauchgänge ohne Ausrüstung angewendet",
   "equipment_setEdit_geofencesTitle": "Geofences",
@@ -937,8 +957,9 @@
   "checklists_saveTemplate_title": "Als Vorlage speichern",
   "checklists_saveTemplate_nameLabel": "Vorlagenname",
   "checklists_saveTemplate_success": "Vorlage gespeichert",
-  "checklists_templates_pageTitle": "Checklistenvorlagen",
+  "checklists_templates_pageTitle": "Reise-Checklistenvorlagen",
   "checklists_templates_addTemplate": "Vorlage hinzufügen",
+  "checklists_templates_editTemplate": "Vorlage bearbeiten",
   "checklists_templates_empty": "Noch keine Vorlagen vorhanden",
   "checklists_templates_deleteTitle": "Vorlage löschen",
   "checklists_templates_deleteContent": "\"{name}\" löschen? Reisen, die sie bereits angewendet haben, behalten ihre Einträge.",
@@ -976,6 +997,20 @@
   "preDive_item_valueUnit": "Einheit",
   "preDive_item_valueMin": "Min. (Warnung)",
   "preDive_item_valueMax": "Max. (Warnung)",
+  "preDive_item_type_cellLinearity": "Zellenlinearität",
+  "preDive_item_sourceItem": "Luftmesswert von",
+  "preDive_item_sourceItemRequired": "Wähle das Element mit dem Luftmesswert",
+  "preDive_item_linearityMin": "Min. Linearität % (Warnung)",
+  "preDive_item_linearityMax": "Max. Linearität % (Warnung)",
+  "preDive_item_sourceCleared": "{title} hat keinen Luftmesswert mehr zum Vergleich",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Verwendet einen Wert, der später in dieser Liste erfasst wird",
   "preDive_runner_progress": "{done} von {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1039,35 @@
   "preDive_runner_serviceOverdue": "Wartung überfällig",
   "preDive_runner_addNote": "Notiz hinzufügen",
   "preDive_runner_enterValue": "Wert eingeben",
+  "preDive_runner_cellInAir": "In Luft",
+  "preDive_runner_cellInAirMissing": "Noch nicht erfasst",
+  "preDive_runner_enterO2Value": "Wert in O2 eingeben",
+  "preDive_runner_linearityReadout": "Erwartet {expected} mV, Linearität {percent} %",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Luft {air} mV, erwartet {expected} mV, Linearität {percent} %",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "Luftmesswert wurde seitdem geändert",
   "preDive_runner_flaggedBadge": "{count} markiert",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2634,6 +2698,8 @@
   "diveLog_tank_selectPreset": "Vorlage auswählen...",
   "diveLog_tank_title": "Flasche {number}",
   "diveLog_tank_tooltip_remove": "Flasche entfernen",
+  "diveLog_tank_regulatorLabel": "Atemregler",
+  "diveLog_tank_regulatorNone": "Keiner",
   "diveLog_tissue_label_ceiling": "Ceiling",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -2833,6 +2899,7 @@
   "diveSites_detail_deleteMenu_label": "Löschen",
   "diveSites_detail_deleteSnackbar": "Tauchplatz gelöscht",
   "diveSites_detail_depth_maximum": "Maximum",
+  "diveSites_detail_depth_reachedHeading": "Erreichte Tiefe",
   "diveSites_detail_depth_minimum": "Minimum",
   "diveSites_detail_diveCount_one": "1 Tauchgang eingetragen",
   "diveSites_detail_diveCount_other": "{count} Tauchgänge eingetragen",
@@ -2872,6 +2939,8 @@
   "diveSites_detail_stats_maxDepth": "Tiefster Tauchgang",
   "diveSites_detail_stats_minDepth": "Flachster Tauchgang",
   "diveSites_detail_stats_notAvailable": "Nicht verfügbar",
+  "diveSites_detail_stats_viewAllDives": "{count, plural, =1{1 Tauchgang anzeigen} other{Alle {count} Tauchgänge anzeigen}}",
+  "diveSites_detail_semantics_openLinkedDive": "{label}, diesen Tauchgang öffnen",
   "diveSites_detail_semantics_copyToClipboard": "{label} in die Zwischenablage kopieren",
   "diveSites_detail_semantics_viewDivesAtSite": "Tauchgänge an diesem Platz anzeigen",
   "diveSites_detail_semantics_viewFullscreenMap": "Karte im Vollbild anzeigen",
@@ -3136,6 +3205,10 @@
   "diveSites_summary_stat_totalDives": "Tauchgänge gesamt",
   "diveSites_summary_stat_totalSites": "Tauchplätze gesamt",
   "diveSites_summary_stat_withGps": "Mit GPS",
+  "diveSites_summary_stat_countries": "Länder",
+  "diveSites_summary_stat_notDived": "Nicht getaucht",
+  "diveSites_summary_section_recentlyDived": "Zuletzt getaucht",
+  "diveSites_summary_tile_lastDived": "Zuletzt getaucht {date}",
   "diveType_builtin_altitude": "Bergseetauchen",
   "diveType_builtin_altitude_short": "Bergsee",
   "diveType_builtin_boat": "Bootstauchgang",
@@ -3431,6 +3504,12 @@
   "enum_equipmentType_computer": "Tauchcomputer",
   "enum_equipmentType_drysuit": "Trockentauchanzug",
   "enum_equipmentType_baselayer": "Basisschicht",
+  "enum_equipmentType_firstStage": "Erste Stufe",
+  "enum_equipmentType_harness": "Harness",
+  "enum_equipmentType_hose": "Schlauch",
+  "enum_equipmentType_housing": "Gehäuse",
+  "enum_equipmentType_secondStage": "Zweite Stufe",
+  "enum_equipmentType_strobe": "Blitz",
   "enum_equipmentType_undersuit": "Unterzieher",
   "enum_equipmentType_fins": "Flossen",
   "enum_equipmentType_gloves": "Handschuhe",
@@ -3452,6 +3531,7 @@
   "enum_equipmentType_rebreather": "Kreislaufgerät",
   "enum_equipmentType_tool": "Werkzeug",
   "enum_equipmentType_rashGuard": "Rashguard",
+  "enum_equipmentType_wing": "Wing",
   "enum_eventSeverity_alert": "Alarm",
   "enum_eventSeverity_info": "Info",
   "enum_eventSeverity_warning": "Warnung",
@@ -3699,6 +3779,61 @@
   "cylinderConfigs_sectionTitle": "Konfigurationen",
   "equipment_serviceClocks_hoursSource": "Aus der protokollierten Tauchzeit berechnet",
   "equipment_serviceClocks_hoursLeft": "{remaining} von {total} Stunden übrig",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} von {total} Salzwasserstunden übrig",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} von {total} Kaltwassertauchgängen übrig",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} von {total} Stunden mit hohem O2 übrig",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} von {total} tiefen Tauchgängen übrig",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} von {total} Batteriezyklen übrig",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Wartungsarten verwalten",
   "equipment_serviceClocks_appliesToClock": "Zugehöriges Intervall",
   "equipment_serviceClocks_noClockOption": "Keinem Intervall zugeordnet",
@@ -3706,6 +3841,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervall (Tage)",
   "equipment_scheduleDialog_intervalDives": "Intervall (Tauchgänge)",
   "equipment_scheduleDialog_intervalHours": "Intervall (Stunden)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervall (Salzwasserstunden)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervall (Kaltwassertauchgänge)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervall (Stunden mit hohem O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervall (tiefe Tauchgänge)",
+  "equipment_scheduleDialog_intervalCycles": "Intervall (Batteriezyklen)",
   "equipment_scheduleDialog_inheritHint": "Standard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referenzdatum",
   "equipment_scheduleDialog_anchorHint": "Wird verwendet, solange noch kein Wartungseintrag dieser Art vorliegt",
@@ -3804,6 +3944,8 @@
   "equipment_edit_snackbar_error": "Fehler beim Speichern der Ausrüstung: {error}",
   "equipment_edit_snackbar_updated": "Ausrüstung aktualisiert",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_parentLabel": "Eingebaut in",
+  "equipment_edit_parentNone": "Nirgends eingebaut",
   "equipment_edit_thicknessDesignationHint": "z.B. 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "z.B. shop.example.com/product",
   "equipment_edit_thicknessHint": "z.B. 5mm, 7mm",
@@ -5205,7 +5347,7 @@
   "settings_lightroom_scan_summary": "{attached} verknüpft, {suggested} vorgeschlagen, {skipped} bereits verknüpft",
   "settings_lightroom_subtitle": "Fotos und Videos automatisch mit Tauchgängen verknüpfen",
   "settings_lightroom_title": "Adobe Lightroom",
-  "settings_manage_checklistTemplates": "Checklistenvorlagen",
+  "settings_manage_checklistTemplates": "Reise-Checklistenvorlagen",
   "settings_manage_checklistTemplates_subtitle": "Wiederverwendbare Aufgabenlisten für die Reiseplanung",
   "settings_manage_diveRoles": "Tauchrollen",
   "settings_manage_diveRoles_subtitle": "Benutzerdefinierte Tauchrollen verwalten",
@@ -6585,10 +6727,6 @@
   "settings_siteMatch_subtitle": "Wie aggressiv heruntergeladene Tauchgänge Tauchplätzen zugeordnet werden",
   "settings_tankPressureAtSurfacing_title": "Flaschendruck beim Auftauchen",
   "settings_tankPressureAtSurfacing_subtitle": "Enddruck beim Erreichen der Oberfläche übernehmen, nicht am Ende der Aufzeichnung",
-  "settings_cloudImportPageSize_title": "Seitengröße für Cloud-Import",
-  "settings_cloudImportPageSize_subtitle": "Wie viele der neuesten Tauchgänge jeweils von Suunto Cloud oder Garmin Connect geladen werden. „Mehr laden“ holt den nächsten Stapel derselben Größe.",
-  "settings_cloudImportPageSize_dialogTitle": "Tauchgänge pro Seite",
-  "settings_cloudImportPageSize_range": "Zwischen {min} und {max}",
   "settings_siteMatch_strict": "Streng",
   "settings_siteMatch_balanced": "Ausgewogen",
   "settings_siteMatch_relaxed": "Locker",
@@ -7411,6 +7549,8 @@
   "media_unavailablePlaceholder_volumeOffline": "Volume nicht eingebunden",
   "media_unavailablePlaceholder_stillFetching": "Wird noch geladen. Zum Wiederholen tippen.",
   "media_unavailablePlaceholder_accessDenied": "Kein Zugriff auf die Fotomediathek",
+  "attrLabel_hose_length_m": "Schlauchlänge",
+  "attrLabel_plate_material": "Plattenmaterial",
   "attrLabel_size": "Größe",
   "attrLabel_thickness_mm": "Dicke (mm)",
   "attrLabel_suit_style": "Anzugtyp",
@@ -7458,6 +7598,9 @@
   "attrLabel_o2_cylinder_l": "O2-Flasche",
   "attrLabel_dpv_style": "Bauart",
   "attrLabel_burn_time_h": "Laufzeit",
+  "attrLabel_cell_slot": "Zellenplatz",
+  "attrLabel_installed_date": "Eingebaut am",
+  "attrLabel_rechargeable": "Wiederaufladbar",
   "attrLabel_battery_type": "Akku",
   "attrLabel_battery_capacity_wh": "Akkukapazität (Wh)",
   "attrLabel_motor_type": "Motor",
@@ -7475,6 +7618,9 @@
   "attrLabel_balance_zone": "Balancezone",
   "attrLabel_tilt_tolerance_deg": "Neigungstoleranz (°)",
   "attrLabel_tool_type": "Werkzeugart",
+  "attrChoice_plate_material_aluminum": "Aluminium",
+  "attrChoice_plate_material_carbon_fiber": "Kohlefaser",
+  "attrChoice_plate_material_steel": "Stahl",
   "attrChoice_unit_type_eccr": "Elektronischer CCR (eCCR)",
   "attrChoice_unit_type_mccr": "Manueller CCR (mCCR)",
   "attrChoice_unit_type_hccr": "Hybrid-CCR (hCCR)",
@@ -7564,6 +7710,8 @@
   "attrChoice_battery_type_lithium_ion": "Lithium-Ionen",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Blei-Säure",
+  "attrChoice_battery_type_alkaline": "Alkali",
+  "attrChoice_battery_type_lithium_primary": "Lithium (nicht wiederaufladbar)",
   "attrChoice_motor_type_brushless": "Bürstenlos",
   "attrChoice_motor_type_brushed": "Mit Bürsten",
   "attrChoice_sleeve_length_short": "Kurz",
@@ -8018,6 +8166,16 @@
   "planning_card_noFly_subtitle": "Richtwert-Countdown ab deinen letzten Tauchgängen",
   "settings_section_safety_title": "Sicherheit",
   "settings_section_safety_subtitle": "Überprüfungsregeln & Fliegen nach dem Tauchen",
+  "settings_section_equipmentCondition_title": "Ausrüstungszustand",
+  "settings_section_equipmentCondition_subtitle": "Belastungsgrenzen für Wartungsuhren",
+  "equipmentConditionSettings_title": "Ausrüstungszustand",
+  "equipmentConditionSettings_thresholdsHeader": "Belastungsgrenzen",
+  "equipmentConditionSettings_thresholdsHelp": "Ein Tauchgang zählt für Wartungsuhren als kalt, tief oder O2-reich, wenn er diese Grenzen überschreitet.",
+  "equipmentConditionSettings_coldLabel": "Kaltwasser unter",
+  "equipmentConditionSettings_deepLabel": "Tiefer Tauchgang ab",
+  "equipmentConditionSettings_o2Label": "O2-reiches Gemisch über (% O2)",
+  "equipmentConditionSettings_invalid": "Bitte eine Zahl eingeben",
+  "equipmentConditionSettings_saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
   "dataQuality_inbox_title": "Datenqualität",
   "dataQuality_dive_unknown": "Tauchgangsdetails nicht verfügbar",
   "dataQuality_dive_number": "#{number}",
@@ -8092,6 +8250,11 @@
   "dataQuality_repairLabel_shiftTime": "Zeit um {offset} verschieben",
   "dataQuality_repairLabel_shiftImport": "Alle Tauchgänge aus diesem Import verschieben",
   "dataQuality_repairLabel_consolidate": "Konsolidieren",
+  "dataQuality_repairLabel_deleteDuplicate": "Duplikat löschen",
+  "dataQuality_deleteDuplicate_title": "Redundante Kopie löschen?",
+  "dataQuality_deleteDuplicate_body": "Beide wurden vom selben Tauchcomputer aufgezeichnet. Die Kopie mit weniger Tauchgangsdaten wird gelöscht. Sie können dies anschließend rückgängig machen.",
+  "dataQuality_deleteDuplicate_keep": "Behalten: {dive}",
+  "dataQuality_deleteDuplicate_delete": "Löschen: {dive}",
   "dataQuality_repairLabel_combine": "Zu einem Tauchgang kombinieren",
   "dataQuality_repairLabel_despike": "Ausreißer entfernen",
   "dataQuality_repairLabel_clampNegative": "Tiefen über der Oberfläche begrenzen",
@@ -8432,6 +8595,14 @@
   "enum_siteField_lastDived": "Zuletzt getaucht",
   "enum_siteField_lastDived_short": "Zuletzt",
   "enum_siteField_maxDepthReached": "Deine max. Tiefe",
+  "enum_siteField_firstDived": "Erster Tauchgang",
+  "enum_siteField_firstDived_short": "Erster TG",
+  "enum_siteField_averageDepthReached": "Deine Ø-Tiefe",
+  "enum_siteField_averageDepthReached_short": "Ø Tiefe",
+  "enum_siteField_longestDive": "Längster Tauchgang",
+  "enum_siteField_longestDive_short": "Längster",
+  "enum_siteField_averageDuration": "Ø-Dauer",
+  "enum_siteField_averageDuration_short": "Ø Dauer",
   "enum_siteField_maxDepthReached_short": "Dein Max.",
   "enum_buddyField_buddyName": "Name",
   "enum_buddyField_email": "E-Mail",
@@ -8475,6 +8646,8 @@
   "enum_tripField_maxDepth_short": "Max T",
   "enum_tripField_avgDepth_short": "Ø T",
   "enum_tripField_notes_short": "Notizen",
+  "enum_equipmentField_components": "Komponenten",
+  "enum_equipmentField_components_short": "Teile",
   "enum_equipmentField_itemName": "Name",
   "enum_equipmentField_fullName": "Vollständiger Name",
   "enum_equipmentField_type": "Typ",
@@ -10980,5 +11153,25 @@
   "backup_unrecognized_deleteFailed": "Die ausgewählten Dateien konnten nicht gelöscht werden.",
   "backup_unrecognized_freed": "{size} freigegeben",
   "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 Datei fehlt im Sicherungsverlauf} other{{count} Dateien fehlen im Sicherungsverlauf}}",
-  "settings_storageUsage_unrecognized_action": "Prüfen"
+  "settings_storageUsage_unrecognized_action": "Prüfen",
+  "enum_equipmentTypeOrder_none": "Nicht nach Typ ordnen",
+  "enum_equipmentTypeOrder_alphabetical": "Alphabetisch",
+  "enum_equipmentTypeOrder_headToToe": "Von Kopf bis Fuß",
+  "enum_equipmentTypeOrder_dressingOrder": "Anziehreihenfolge",
+  "enum_equipmentTypeOrder_canonical": "Nach Funktion",
+  "enum_equipmentItemSortField_name": "Name",
+  "enum_equipmentItemSortField_purchaseDate": "Kaufdatum",
+  "enum_equipmentItemSortField_dateAdded": "Hinzugefügt am",
+  "enum_equipmentItemSortField_lastServiceDate": "Letzte Wartung",
+  "equipment_arrange_title": "Ausrüstung anordnen",
+  "equipment_arrange_groupByType": "Nach Typ gruppieren",
+  "equipment_arrange_groupByTypeSubtitle": "Für jede Ausrüstungsart eine Überschrift anzeigen",
+  "equipment_arrange_typeOrderLabel": "Typen ordnen nach",
+  "equipment_arrange_itemOrderLabel": "Danach nach",
+  "equipment_arrange_itemOrderLabelFlat": "Sortieren nach",
+  "equipment_arrange_tooltip": "Ausrüstung anordnen",
+  "equipment_arrange_reset": "Auf Standard zurücksetzen",
+  "equipment_arrange_saveFailed": "Anordnung konnte nicht gespeichert werden",
+  "settings_appearance_gearArrangement": "Ausrüstungsanordnung",
+  "settings_appearance_gearArrangementSubtitle": "Wie Ausrüstung bei einem Tauchgang gruppiert und sortiert wird"
 }

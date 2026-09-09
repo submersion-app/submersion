@@ -29,6 +29,7 @@ class QualityNeighbor {
     this.computerSerial,
     this.firstSampleDepth,
     this.lastSampleDepth,
+    this.sampleCount,
   });
 
   final String id;
@@ -39,6 +40,11 @@ class QualityNeighbor {
   final String? computerSerial;
   final double? firstSampleDepth;
   final double? lastSampleDepth;
+
+  /// Samples stored across the neighbor's primary series, from the same
+  /// column [DiveQualityContext.primarySampleCount] reads, so the two sides
+  /// of a pair are compared on one measure. Null when unknown.
+  final int? sampleCount;
 }
 
 /// Everything a detector may look at for one dive. Built once per dive per
@@ -50,6 +56,7 @@ class DiveQualityContext {
     required this.now,
     this.sources = const [],
     this.primarySamples = const [],
+    this.primarySampleCount,
     this.tanks = const [],
     this.pressuresByTankId = const {},
     this.gasSwitches = const [],
@@ -62,6 +69,13 @@ class DiveQualityContext {
   final DateTime now;
   final List<DiveDataSource> sources;
   final List<QualitySample> primarySamples;
+
+  /// Samples stored across the dive's primary series, as the series report
+  /// them. Deliberately not `primarySamples.length`: that list is sanitized
+  /// and merged, and a neighbor's count comes straight from the stored
+  /// column, so comparing the two would make a pair's richer side depend on
+  /// which dive the scan happened to start from. Null when unknown.
+  final int? primarySampleCount;
   final List<domain.DiveTank> tanks;
   final Map<String, List<QualityPressureSample>> pressuresByTankId;
   final List<GasSwitch> gasSwitches;

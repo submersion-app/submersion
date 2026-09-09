@@ -4,7 +4,10 @@
   "settings_oauth_connect_copyLink": "Copier le lien",
   "settings_oauth_connect_linkCopied": "Lien copié. Collez-le dans votre navigateur pour autoriser l'accès.",
   "universalImport_action_importFromGarmin": "Importer depuis l'appareil Garmin",
+  "enum_equipmentType_backplate": "Plaque dorsale",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "Cellule O2",
+  "enum_equipmentType_battery": "Batterie",
   "diveLog_tank_saveAsPreset": "Enregistrer comme preset",
   "diveLog_tank_saveAsPreset_needSpecs": "Saisissez d'abord un volume et une pression de service",
   "diveLog_tank_saveAsPreset_nameTitle": "Enregistrer le preset de bloc",
@@ -162,6 +165,23 @@
   "diveLog_edit_geofenceSuggestion_body": "Appliquer l'ensemble \"{setName}\" ?",
   "diveLog_edit_geofenceSuggestion_apply": "Appliquer",
   "common_action_dismiss": "Ignorer",
+  "equipment_components_add": "Ajouter un composant",
+  "equipment_components_count": "{count, plural, =1{1 composant} other{{count} composants}}",
+  "equipment_components_cycleError": "Cet équipement contient déjà celui-ci, il ne peut donc pas être ajouté comme composant.",
+  "equipment_components_editRole": "Modifier le rôle",
+  "equipment_components_empty": "Aucun composant. Ajoutez les pièces qui composent cet équipement.",
+  "equipment_components_partOf": "Fait partie de {name}",
+  "equipment_components_partOfCount": "{count, plural, =1{Fait partie de 1 ensemble} other{Fait partie de {count} ensembles}}",
+  "equipment_components_pickerConfirm": "{count, plural, =0{Ajouter} =1{Ajouter 1} other{Ajouter {count}}}",
+  "equipment_components_pickerEmpty": "Aucun autre équipement actif ne peut être ajouté ici.",
+  "equipment_components_pickerTitle": "Ajouter des composants",
+  "equipment_components_remove": "Retirer le composant",
+  "equipment_components_reorder": "Réorganiser",
+  "equipment_components_role": "Rôle",
+  "equipment_components_roleDialogTitle": "Rôle du composant",
+  "equipment_components_roleHint": "p. ex. Deuxième étage principal",
+  "equipment_components_rollupClock": "{component} : {kind}",
+  "equipment_components_title": "Composants",
   "equipment_setEdit_defaultSwitch_title": "Ensemble par défaut",
   "equipment_setEdit_defaultSwitch_subtitle": "Appliqué automatiquement aux nouvelles plongées sans équipement",
   "equipment_setEdit_geofencesTitle": "Géorepères",
@@ -937,8 +957,9 @@
   "checklists_saveTemplate_title": "Enregistrer comme modèle",
   "checklists_saveTemplate_nameLabel": "Nom du modèle",
   "checklists_saveTemplate_success": "Modèle enregistré",
-  "checklists_templates_pageTitle": "Modèles de liste de contrôle",
+  "checklists_templates_pageTitle": "Modèles de liste de contrôle de voyage",
   "checklists_templates_addTemplate": "Ajouter un modèle",
+  "checklists_templates_editTemplate": "Modifier le modèle",
   "checklists_templates_empty": "Aucun modèle pour l'instant",
   "checklists_templates_deleteTitle": "Supprimer le modèle",
   "checklists_templates_deleteContent": "Supprimer « {name} » ? Les voyages qui l'ont déjà appliqué conservent leurs éléments.",
@@ -976,6 +997,20 @@
   "preDive_item_valueUnit": "Unité",
   "preDive_item_valueMin": "Min (avertissement)",
   "preDive_item_valueMax": "Max (avertissement)",
+  "preDive_item_type_cellLinearity": "Linéarité de la cellule",
+  "preDive_item_sourceItem": "Mesure dans l'air de",
+  "preDive_item_sourceItemRequired": "Choisis l'élément contenant la mesure dans l'air",
+  "preDive_item_linearityMin": "Linéarité min. % (alerte)",
+  "preDive_item_linearityMax": "Linéarité max. % (alerte)",
+  "preDive_item_sourceCleared": "{title} n'a plus de mesure dans l'air à laquelle se comparer",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Utilise une valeur enregistrée plus loin dans cette liste",
   "preDive_runner_progress": "{done} sur {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1039,35 @@
   "preDive_runner_serviceOverdue": "Entretien en retard",
   "preDive_runner_addNote": "Ajouter une note",
   "preDive_runner_enterValue": "Saisir une valeur",
+  "preDive_runner_cellInAir": "Dans l'air",
+  "preDive_runner_cellInAirMissing": "Pas encore enregistré",
+  "preDive_runner_enterO2Value": "Saisir la valeur en O2",
+  "preDive_runner_linearityReadout": "Attendu {expected} mV, linéarité {percent} %",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Air {air} mV, attendu {expected} mV, linéarité {percent} %",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "La mesure dans l'air a changé depuis",
   "preDive_runner_flaggedBadge": "{count} signalés",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2550,6 +2614,8 @@
   "diveLog_tank_selectPreset": "Sélectionner un preset...",
   "diveLog_tank_title": "Bloc {number}",
   "diveLog_tank_tooltip_remove": "Retirer le bloc",
+  "diveLog_tank_regulatorLabel": "Détendeur",
+  "diveLog_tank_regulatorNone": "Aucun",
   "diveLog_tissue_label_ceiling": "Plafond",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -2749,6 +2815,7 @@
   "diveSites_detail_deleteMenu_label": "Supprimer",
   "diveSites_detail_deleteSnackbar": "Site supprimé",
   "diveSites_detail_depth_maximum": "Maximum",
+  "diveSites_detail_depth_reachedHeading": "Profondeur atteinte",
   "diveSites_detail_depth_minimum": "Minimum",
   "diveSites_detail_diveCount_one": "1 plongée enregistrée",
   "diveSites_detail_diveCount_other": "{count} plongées enregistrées",
@@ -2788,6 +2855,8 @@
   "diveSites_detail_stats_maxDepth": "Plongée la plus profonde",
   "diveSites_detail_stats_minDepth": "Plongée la moins profonde",
   "diveSites_detail_stats_notAvailable": "Non disponible",
+  "diveSites_detail_stats_viewAllDives": "{count, plural, =1{Voir 1 plongée} other{Voir les {count} plongées}}",
+  "diveSites_detail_semantics_openLinkedDive": "{label}, ouvrir cette plongée",
   "diveSites_detail_semantics_copyToClipboard": "Copier {label} dans le presse-papiers",
   "diveSites_detail_semantics_viewDivesAtSite": "Voir les plongées sur ce site",
   "diveSites_detail_semantics_viewFullscreenMap": "Voir la carte en plein écran",
@@ -3052,6 +3121,10 @@
   "diveSites_summary_stat_totalDives": "Total plongées",
   "diveSites_summary_stat_totalSites": "Total sites",
   "diveSites_summary_stat_withGps": "Avec GPS",
+  "diveSites_summary_stat_countries": "Pays",
+  "diveSites_summary_stat_notDived": "Non plongés",
+  "diveSites_summary_section_recentlyDived": "Plongés récemment",
+  "diveSites_summary_tile_lastDived": "Plongé le {date}",
   "diveType_builtin_altitude": "Altitude",
   "diveType_builtin_altitude_short": "Altitude",
   "diveType_builtin_boat": "Depuis un bateau",
@@ -3347,6 +3420,12 @@
   "enum_equipmentType_computer": "Ordinateur de plongée",
   "enum_equipmentType_drysuit": "Combinaison étanche",
   "enum_equipmentType_baselayer": "Sous-couche",
+  "enum_equipmentType_firstStage": "Premier étage",
+  "enum_equipmentType_harness": "Harnais",
+  "enum_equipmentType_hose": "Flexible",
+  "enum_equipmentType_housing": "Caisson",
+  "enum_equipmentType_secondStage": "Deuxième étage",
+  "enum_equipmentType_strobe": "Flash",
   "enum_equipmentType_undersuit": "Sous-combinaison",
   "enum_equipmentType_fins": "Palmes",
   "enum_equipmentType_gloves": "Gants",
@@ -3368,6 +3447,7 @@
   "enum_equipmentType_rebreather": "Recycleur",
   "enum_equipmentType_tool": "Outil",
   "enum_equipmentType_rashGuard": "Lycra",
+  "enum_equipmentType_wing": "Wing",
   "enum_eventSeverity_alert": "Alerte",
   "enum_eventSeverity_info": "Info",
   "enum_eventSeverity_warning": "Avertissement",
@@ -3615,6 +3695,61 @@
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Calculé à partir du temps de plongée enregistré",
   "equipment_serviceClocks_hoursLeft": "{remaining} heures restantes sur {total}",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} sur {total} heures en eau salée restantes",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} sur {total} plongées en eau froide restantes",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} sur {total} heures à haut O2 restantes",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} sur {total} plongées profondes restantes",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} sur {total} cycles de batterie restants",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Gérer les types d'entretien",
   "equipment_serviceClocks_appliesToClock": "S'applique au compteur",
   "equipment_serviceClocks_noClockOption": "Non lié à un compteur",
@@ -3622,6 +3757,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervalle (jours)",
   "equipment_scheduleDialog_intervalDives": "Intervalle (plongées)",
   "equipment_scheduleDialog_intervalHours": "Intervalle (heures)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervalle (heures en eau salée)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervalle (plongées en eau froide)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervalle (heures à haut O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervalle (plongées profondes)",
+  "equipment_scheduleDialog_intervalCycles": "Intervalle (cycles de batterie)",
   "equipment_scheduleDialog_inheritHint": "Par défaut : {value}",
   "equipment_scheduleDialog_anchorDate": "Date de référence",
   "equipment_scheduleDialog_anchorHint": "Utilisée lorsqu'aucun entretien de ce type n'a encore été enregistré",
@@ -3720,6 +3860,8 @@
   "equipment_edit_snackbar_error": "Erreur d'enregistrement de l'équipement : {error}",
   "equipment_edit_snackbar_updated": "Équipement mis à jour",
   "equipment_edit_statusLabel": "Statut",
+  "equipment_edit_parentLabel": "Installé dans",
+  "equipment_edit_parentNone": "Installé nulle part",
   "equipment_edit_thicknessDesignationHint": "ex: 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "par ex. shop.example.com/product",
   "equipment_edit_thicknessHint": "ex: 5mm, 7mm",
@@ -5121,7 +5263,7 @@
   "settings_lightroom_scan_summary": "{attached} liées, {suggested} suggérées, {skipped} déjà liées",
   "settings_lightroom_subtitle": "Associer automatiquement photos et vidéos aux plongées",
   "settings_lightroom_title": "Adobe Lightroom",
-  "settings_manage_checklistTemplates": "Modèles de liste de contrôle",
+  "settings_manage_checklistTemplates": "Modèles de liste de contrôle de voyage",
   "settings_manage_checklistTemplates_subtitle": "Listes de tâches réutilisables pour la planification de voyages",
   "settings_manage_diveRoles": "Rôles de plongée",
   "settings_manage_diveRoles_subtitle": "Gérer les rôles de plongée personnalisés",
@@ -6501,10 +6643,6 @@
   "settings_siteMatch_subtitle": "À quel point les plongées téléchargées sont associées aux sites",
   "settings_tankPressureAtSurfacing_title": "Pression du bloc à l'arrivée en surface",
   "settings_tankPressureAtSurfacing_subtitle": "Relever la pression finale à l'arrivée en surface, et non à la fin de l'enregistrement",
-  "settings_cloudImportPageSize_title": "Taille de page d'import cloud",
-  "settings_cloudImportPageSize_subtitle": "Combien des plongées les plus récentes charger à la fois depuis Suunto Cloud ou Garmin Connect. « Charger plus » récupère le lot suivant de la même taille.",
-  "settings_cloudImportPageSize_dialogTitle": "Plongées par page",
-  "settings_cloudImportPageSize_range": "Entre {min} et {max}",
   "settings_siteMatch_strict": "Strict",
   "settings_siteMatch_balanced": "Équilibré",
   "settings_siteMatch_relaxed": "Souple",
@@ -7411,6 +7549,8 @@
   "media_unavailablePlaceholder_volumeOffline": "Volume non monté",
   "media_unavailablePlaceholder_stillFetching": "Chargement en cours. Touchez pour réessayer.",
   "media_unavailablePlaceholder_accessDenied": "Aucun accès à la photothèque",
+  "attrLabel_hose_length_m": "Longueur du flexible",
+  "attrLabel_plate_material": "Matériau de la plaque",
   "attrLabel_size": "Taille",
   "attrLabel_thickness_mm": "Épaisseur (mm)",
   "attrLabel_suit_style": "Type de combinaison",
@@ -7458,6 +7598,9 @@
   "attrLabel_o2_cylinder_l": "Bouteille d'O2",
   "attrLabel_dpv_style": "Style",
   "attrLabel_burn_time_h": "Autonomie",
+  "attrLabel_cell_slot": "Emplacement de la cellule",
+  "attrLabel_installed_date": "Installée le",
+  "attrLabel_rechargeable": "Rechargeable",
   "attrLabel_battery_type": "Batterie",
   "attrLabel_battery_capacity_wh": "Capacité de la batterie (Wh)",
   "attrLabel_motor_type": "Moteur",
@@ -7475,6 +7618,9 @@
   "attrLabel_balance_zone": "Zone de balancement",
   "attrLabel_tilt_tolerance_deg": "Tolérance d'inclinaison (°)",
   "attrLabel_tool_type": "Type d'outil",
+  "attrChoice_plate_material_aluminum": "Aluminium",
+  "attrChoice_plate_material_carbon_fiber": "Fibre de carbone",
+  "attrChoice_plate_material_steel": "Acier",
   "attrChoice_unit_type_eccr": "CCR électronique (eCCR)",
   "attrChoice_unit_type_mccr": "CCR manuel (mCCR)",
   "attrChoice_unit_type_hccr": "CCR hybride (hCCR)",
@@ -7564,6 +7710,8 @@
   "attrChoice_battery_type_lithium_ion": "Lithium-ion",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Plomb-acide",
+  "attrChoice_battery_type_alkaline": "Alcaline",
+  "attrChoice_battery_type_lithium_primary": "Lithium (non rechargeable)",
   "attrChoice_motor_type_brushless": "Sans balais",
   "attrChoice_motor_type_brushed": "À balais",
   "attrChoice_sleeve_length_short": "Courtes",
@@ -8018,6 +8166,16 @@
   "planning_card_noFly_subtitle": "Compte à rebours indicatif depuis vos dernières plongées",
   "settings_section_safety_title": "Sécurité",
   "settings_section_safety_subtitle": "Règles du bilan et vol après la plongée",
+  "settings_section_equipmentCondition_title": "État du matériel",
+  "settings_section_equipmentCondition_subtitle": "Seuils d'exposition pour les compteurs d'entretien",
+  "equipmentConditionSettings_title": "État du matériel",
+  "equipmentConditionSettings_thresholdsHeader": "Seuils d'exposition",
+  "equipmentConditionSettings_thresholdsHelp": "Une plongée compte comme froide, profonde ou à haut O2 pour les compteurs d'entretien lorsqu'elle franchit ces seuils.",
+  "equipmentConditionSettings_coldLabel": "Eau froide en dessous de",
+  "equipmentConditionSettings_deepLabel": "Plongée profonde à partir de",
+  "equipmentConditionSettings_o2Label": "Mélange à haut O2 au-dessus de (% O2)",
+  "equipmentConditionSettings_invalid": "Saisissez un nombre",
+  "equipmentConditionSettings_saveFailed": "Enregistrement impossible. Réessayez.",
   "dataQuality_inbox_title": "Qualité des données",
   "dataQuality_dive_unknown": "Détails de la plongée indisponibles",
   "dataQuality_dive_number": "n°{number}",
@@ -8092,6 +8250,11 @@
   "dataQuality_repairLabel_shiftTime": "Décaler l'heure de {offset}",
   "dataQuality_repairLabel_shiftImport": "Décaler toutes les plongées de cet import",
   "dataQuality_repairLabel_consolidate": "Consolider",
+  "dataQuality_repairLabel_deleteDuplicate": "Supprimer le doublon",
+  "dataQuality_deleteDuplicate_title": "Supprimer la copie redondante ?",
+  "dataQuality_deleteDuplicate_body": "Les deux ont été enregistrées par le même ordinateur de plongée. La copie contenant le moins de données sera supprimée. Vous pourrez annuler ensuite.",
+  "dataQuality_deleteDuplicate_keep": "Conserver : {dive}",
+  "dataQuality_deleteDuplicate_delete": "Supprimer : {dive}",
   "dataQuality_repairLabel_combine": "Combiner en une seule plongée",
   "dataQuality_repairLabel_despike": "Supprimer le pic",
   "dataQuality_repairLabel_clampNegative": "Ramener les profondeurs négatives à zéro",
@@ -8432,6 +8595,14 @@
   "enum_siteField_lastDived": "Dernière plongée",
   "enum_siteField_lastDived_short": "Dernière",
   "enum_siteField_maxDepthReached": "Votre prof. max",
+  "enum_siteField_firstDived": "Première plongée",
+  "enum_siteField_firstDived_short": "Première",
+  "enum_siteField_averageDepthReached": "Prof. moyenne",
+  "enum_siteField_averageDepthReached_short": "Moyenne",
+  "enum_siteField_longestDive": "Plongée la plus longue",
+  "enum_siteField_longestDive_short": "La plus longue",
+  "enum_siteField_averageDuration": "Durée moyenne",
+  "enum_siteField_averageDuration_short": "Durée moy.",
   "enum_siteField_maxDepthReached_short": "Votre max",
   "enum_buddyField_buddyName": "Nom",
   "enum_buddyField_email": "E-mail",
@@ -8475,6 +8646,8 @@
   "enum_tripField_maxDepth_short": "P max",
   "enum_tripField_avgDepth_short": "P moy",
   "enum_tripField_notes_short": "Notes",
+  "enum_equipmentField_components": "Composants",
+  "enum_equipmentField_components_short": "Pièces",
   "enum_equipmentField_itemName": "Nom",
   "enum_equipmentField_fullName": "Nom complet",
   "enum_equipmentField_type": "Type",
@@ -10980,5 +11153,25 @@
   "backup_unrecognized_deleteFailed": "Impossible de supprimer les fichiers sélectionnés.",
   "backup_unrecognized_freed": "{size} libéré",
   "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 fichier absent de votre historique de sauvegarde} other{{count} fichiers absents de votre historique de sauvegarde}}",
-  "settings_storageUsage_unrecognized_action": "Examiner"
+  "settings_storageUsage_unrecognized_action": "Examiner",
+  "enum_equipmentTypeOrder_none": "Ne pas trier par type",
+  "enum_equipmentTypeOrder_alphabetical": "Alphabétique",
+  "enum_equipmentTypeOrder_headToToe": "De la tête aux pieds",
+  "enum_equipmentTypeOrder_dressingOrder": "Ordre d'habillage",
+  "enum_equipmentTypeOrder_canonical": "Par fonction",
+  "enum_equipmentItemSortField_name": "Nom",
+  "enum_equipmentItemSortField_purchaseDate": "Date d'achat",
+  "enum_equipmentItemSortField_dateAdded": "Date d'ajout",
+  "enum_equipmentItemSortField_lastServiceDate": "Dernier entretien",
+  "equipment_arrange_title": "Organiser l'équipement",
+  "equipment_arrange_groupByType": "Grouper par type",
+  "equipment_arrange_groupByTypeSubtitle": "Afficher un titre pour chaque type d'équipement",
+  "equipment_arrange_typeOrderLabel": "Trier les types par",
+  "equipment_arrange_itemOrderLabel": "Puis par",
+  "equipment_arrange_itemOrderLabelFlat": "Trier par",
+  "equipment_arrange_tooltip": "Organiser l'équipement",
+  "equipment_arrange_reset": "Réinitialiser",
+  "equipment_arrange_saveFailed": "Impossible d'enregistrer l'organisation",
+  "settings_appearance_gearArrangement": "Organisation de l'équipement",
+  "settings_appearance_gearArrangementSubtitle": "Comment l'équipement est groupé et trié sur une plongée"
 }

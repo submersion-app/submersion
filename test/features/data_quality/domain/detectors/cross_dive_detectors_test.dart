@@ -4,6 +4,8 @@ import 'package:submersion/features/data_quality/domain/detectors/duplicate_dete
 import 'package:submersion/features/data_quality/domain/detectors/split_pair_detector.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 
 import '../../helpers/quality_test_helpers.dart';
@@ -168,6 +170,270 @@ void main() {
         ],
       );
       expect(det.detect(ctx).single.params['sameComputer'], isFalse);
+    });
+
+    group('redundantDiveId', () {
+      // The commonest duplicate is one dive downloaded twice from a single
+      // computer. Consolidation is refused for that pair, so the repair is
+      // to delete the redundant copy; the detector names it here so the
+      // repair mapping (pure over params) can offer that without seeing the
+      // dives. The richer recording survives: it must be at least as good
+      // on every metric and strictly better on one.
+      QualityNeighbor neighbor({
+        required String id,
+        required int samples,
+        int durationSeconds = 2100,
+        double maxDepth = 20,
+        String? serial = 'S1',
+      }) => QualityNeighbor(
+        id: id,
+        entryTime: entry.add(const Duration(minutes: 1)),
+        maxDepth: maxDepth,
+        durationSeconds: durationSeconds,
+        computerSerial: serial,
+        sampleCount: samples,
+      );
+
+      test('names the fragment when the other recording dominates', () {
+        // The real pair: 35 min / 20 m versus a 13 s / 1.7 m fragment.
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dA',
+            entry: entry,
+            maxDepth: 20,
+            runtime: const Duration(minutes: 35),
+            serial: 'S1',
+          ),
+          primarySampleCount: 420,
+          neighbors: [
+            neighbor(id: 'dB', samples: 3, durationSeconds: 13, maxDepth: 1.7),
+          ],
+        );
+        final out = det.detect(ctx);
+        expect(out.single.params['sameComputer'], isTrue);
+        expect(out.single.params['redundantDiveId'], 'dB');
+      });
+
+      test('names the scanned dive when it is the dominated side', () {
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dB',
+            entry: entry,
+            maxDepth: 1.7,
+            runtime: const Duration(seconds: 13),
+            serial: 'S1',
+          ),
+          primarySampleCount: 3,
+          neighbors: [neighbor(id: 'dA', samples: 420, durationSeconds: 2100)],
+        );
+        expect(det.detect(ctx).single.params['redundantDiveId'], 'dB');
+      });
+
+      test('an exact tie names nobody', () {
+        // Two identical downloads: either copy may carry the diver's notes
+        // or site, so the choice is theirs and the card keeps its
+        // no-automatic-fix row.
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dA',
+            entry: entry,
+            maxDepth: 20,
+            runtime: const Duration(minutes: 35),
+            serial: 'S1',
+          ),
+          primarySampleCount: 420,
+          neighbors: [neighbor(id: 'dB', samples: 420)],
+        );
+        final params = det.detect(ctx).single.params;
+        expect(params.containsKey('redundantDiveId'), isFalse);
+      });
+
+      test('a mixed pair (longer but shallower) names nobody', () {
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dA',
+            entry: entry,
+            maxDepth: 18,
+            runtime: const Duration(minutes: 40),
+            serial: 'S1',
+          ),
+          primarySampleCount: 480,
+          neighbors: [neighbor(id: 'dB', samples: 420, maxDepth: 20)],
+        );
+        expect(
+          det.detect(ctx).single.params.containsKey('redundantDiveId'),
+          isFalse,
+        );
+      });
+
+      test('equal on two metrics and worse on one is still dominated', () {
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dA',
+            entry: entry,
+            maxDepth: 20,
+            runtime: const Duration(minutes: 35),
+            serial: 'S1',
+          ),
+          primarySampleCount: 400,
+          neighbors: [neighbor(id: 'dB', samples: 420)],
+        );
+        expect(det.detect(ctx).single.params['redundantDiveId'], 'dA');
+      });
+
+      test('an unknown sample count on either side blocks the choice', () {
+        // A missing metric is unknown, not zero: assuming zero would
+        // volunteer a dive for deletion on a fact nobody recorded.
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dA',
+            entry: entry,
+            maxDepth: 20,
+            runtime: const Duration(minutes: 35),
+            serial: 'S1',
+          ),
+          primarySampleCount: 420,
+          neighbors: [
+            QualityNeighbor(
+              id: 'dB',
+              entryTime: entry.add(const Duration(minutes: 1)),
+              maxDepth: 1.7,
+              durationSeconds: 13,
+              computerSerial: 'S1',
+            ),
+          ],
+        );
+        expect(
+          det.detect(ctx).single.params.containsKey('redundantDiveId'),
+          isFalse,
+        );
+      });
+
+      test('a runtime the scanned side only computes does not decide', () {
+        // The neighbor query reads the STORED runtime (else bottom time).
+        // The scanned dive must read the same columns: effectiveRuntime
+        // would fall back to exit minus entry, or to the profile, and the
+        // two contexts of one pair would then disagree on that dive's
+        // duration, making the choice depend on scan order.
+        final dive = domain.Dive(
+          id: 'dA',
+          dateTime: entry,
+          entryTime: entry,
+          exitTime: entry.add(const Duration(minutes: 35)),
+          maxDepth: 20,
+          diveComputerSerial: 'S1',
+        );
+        expect(dive.runtime, isNull);
+        expect(dive.effectiveRuntime, const Duration(minutes: 35));
+        final ctx = makeContext(
+          dive: dive,
+          primarySampleCount: 420,
+          neighbors: [
+            neighbor(id: 'dB', samples: 3, durationSeconds: 13, maxDepth: 1.7),
+          ],
+        );
+        final out = det.detect(ctx);
+        expect(out, hasLength(1), reason: 'still a duplicate candidate');
+        expect(out.single.params.containsKey('redundantDiveId'), isFalse);
+      });
+
+      test('a stored bottom time stands in for a missing runtime', () {
+        // Mirrors the neighbor query's `runtime ?? bottom_time`.
+        final dive = domain.Dive(
+          id: 'dA',
+          dateTime: entry,
+          entryTime: entry,
+          bottomTime: const Duration(minutes: 35),
+          maxDepth: 20,
+          diveComputerSerial: 'S1',
+        );
+        final ctx = makeContext(
+          dive: dive,
+          primarySampleCount: 420,
+          neighbors: [
+            neighbor(id: 'dB', samples: 3, durationSeconds: 13, maxDepth: 1.7),
+          ],
+        );
+        expect(det.detect(ctx).single.params['redundantDiveId'], 'dB');
+      });
+
+      test('is not recorded for a pair from two different computers', () {
+        // Consolidation is the right repair there; deleting a second
+        // computer's recording would throw away real data.
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dA',
+            entry: entry,
+            maxDepth: 20,
+            runtime: const Duration(minutes: 35),
+            serial: 'S1',
+          ),
+          primarySampleCount: 420,
+          neighbors: [
+            neighbor(
+              id: 'dB',
+              samples: 3,
+              durationSeconds: 13,
+              maxDepth: 1.7,
+              serial: 'S2',
+            ),
+          ],
+        );
+        expect(
+          det.detect(ctx).single.params.containsKey('redundantDiveId'),
+          isFalse,
+        );
+      });
+
+      test('names the same dive whichever side the scan starts from', () {
+        // The pair has ONE canonical finding, written by whichever dive was
+        // scanned last, so the choice must not depend on scan order.
+        final fromA = det.detect(
+          makeContext(
+            dive: makeTestDive(
+              id: 'dA',
+              entry: entry,
+              maxDepth: 20,
+              runtime: const Duration(minutes: 35),
+              serial: 'S1',
+            ),
+            primarySampleCount: 420,
+            neighbors: [
+              neighbor(
+                id: 'dB',
+                samples: 3,
+                durationSeconds: 13,
+                maxDepth: 1.7,
+              ),
+            ],
+          ),
+        );
+        final fromB = det.detect(
+          makeContext(
+            dive: makeTestDive(
+              id: 'dB',
+              entry: entry.add(const Duration(minutes: 1)),
+              maxDepth: 1.7,
+              runtime: const Duration(seconds: 13),
+              serial: 'S1',
+            ),
+            primarySampleCount: 3,
+            neighbors: [
+              QualityNeighbor(
+                id: 'dA',
+                entryTime: entry,
+                maxDepth: 20,
+                durationSeconds: 2100,
+                computerSerial: 'S1',
+                sampleCount: 420,
+              ),
+            ],
+          ),
+        );
+        expect(fromA.single.id, fromB.single.id);
+        expect(fromA.single.params['redundantDiveId'], 'dB');
+        expect(fromB.single.params['redundantDiveId'], 'dB');
+      });
     });
 
     test('12 min apart, same profile -> 0.65 -> warning', () {

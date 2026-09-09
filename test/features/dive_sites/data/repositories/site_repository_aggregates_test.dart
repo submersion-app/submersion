@@ -13,6 +13,8 @@ Future<void> _insertDive(
   required String siteId,
   required DateTime at,
   double? maxDepth,
+  int? runtime,
+  int? bottomTime,
 }) async {
   final ms = at.millisecondsSinceEpoch;
   await database
@@ -23,6 +25,8 @@ Future<void> _insertDive(
           diveDateTime: Value(ms),
           siteId: Value(siteId),
           maxDepth: Value(maxDepth),
+          runtime: Value(runtime),
+          bottomTime: Value(bottomTime),
           createdAt: Value(ms),
           updatedAt: Value(ms),
         ),
@@ -181,6 +185,69 @@ void main() {
       expect(c.lastDivedAt, isNull);
       expect(c.maxDepthReached, isNull);
       expect(c.featureTypes, isEmpty);
+    });
+  });
+  group('getDiveAggregatesBySite richer per-site figures', () {
+    test('carries first dived, average depth and duration per site', () async {
+      await _insertDive(
+        database,
+        id: 'd1',
+        siteId: 'site-a',
+        at: DateTime(2026, 1, 5),
+        maxDepth: 10,
+        runtime: 1800,
+      );
+      await _insertDive(
+        database,
+        id: 'd2',
+        siteId: 'site-a',
+        at: DateTime(2026, 6, 5),
+        maxDepth: 30,
+        runtime: 3600,
+      );
+
+      final aggregates = await repository.getDiveAggregatesBySite();
+      final site = aggregates['site-a']!;
+
+      expect(site.firstDivedAt, equals(DateTime(2026, 1, 5)));
+      expect(site.averageDepthReached, equals(20));
+      expect(site.longestDiveSeconds, equals(3600));
+      expect(site.averageDurationSeconds, equals(2700));
+    });
+
+    test('falls back to bottom time when a dive has no runtime', () async {
+      await _insertDive(
+        database,
+        id: 'd3',
+        siteId: 'site-b',
+        at: DateTime(2026, 2, 2),
+        maxDepth: 12,
+        bottomTime: 2400,
+      );
+
+      final aggregates = await repository.getDiveAggregatesBySite();
+
+      expect(aggregates['site-b']!.longestDiveSeconds, equals(2400));
+      expect(aggregates['site-b']!.averageDurationSeconds, equals(2400));
+    });
+
+    test('leaves the new figures null when no dive records them', () async {
+      await _insertDive(
+        database,
+        id: 'd4',
+        siteId: 'site-c',
+        at: DateTime(2026, 3, 3),
+      );
+
+      final aggregates = await repository.getDiveAggregatesBySite();
+      final site = aggregates['site-c']!;
+
+      expect(site.diveCount, equals(1));
+      expect(site.averageDepthReached, isNull);
+      expect(site.longestDiveSeconds, isNull);
+      expect(site.averageDurationSeconds, isNull);
+      // The date is always recorded, so first dived is always known.
+      expect(site.firstDivedAt, equals(DateTime(2026, 3, 3)));
     });
   });
 }

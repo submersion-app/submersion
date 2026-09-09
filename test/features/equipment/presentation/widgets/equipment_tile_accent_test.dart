@@ -7,7 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -17,8 +17,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 void main() {
   final t0 = DateTime(2025, 1, 1);
 
-  DueClock worstClock(EquipmentItem item, ServiceClockSeverity severity) => (
-    item: item,
+  RollupClock worstClock(EquipmentItem item, ServiceClockSeverity severity) => (
+    ownerId: item.id,
+    ownerName: item.name,
     status: ServiceClockStatus(
       schedule: ServiceSchedule(
         id: 's1',
@@ -49,12 +50,15 @@ void main() {
 
   Widget wrap(
     Widget child, {
-    Map<String, DueClock> worst = const {},
+    Map<String, RollupClock> worst = const {},
     bool accentsOn = false,
   }) {
     return ProviderScope(
       overrides: [
-        equipmentWorstClockProvider.overrideWith((ref) async => worst),
+        equipmentRollupClockProvider.overrideWith((ref) async => worst),
+        equipmentComponentsIndexProvider.overrideWith(
+          (ref) async => ComponentsIndex.empty,
+        ),
         settingsProvider.overrideWith(
           (ref) =>
               _StubSettingsNotifier(AppSettings(accentListIcons: accentsOn)),

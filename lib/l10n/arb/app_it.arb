@@ -4,7 +4,10 @@
   "settings_oauth_connect_copyLink": "Copia link",
   "settings_oauth_connect_linkCopied": "Link copiato. Incollalo nel browser per autorizzare.",
   "universalImport_action_importFromGarmin": "Importa da dispositivo Garmin",
+  "enum_equipmentType_backplate": "Piastra dorsale",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "Cella O2",
+  "enum_equipmentType_battery": "Batteria",
   "diveLog_tank_saveAsPreset": "Salva come preset",
   "diveLog_tank_saveAsPreset_needSpecs": "Inserisci prima volume e pressione di esercizio",
   "diveLog_tank_saveAsPreset_nameTitle": "Salva preset bombola",
@@ -162,6 +165,23 @@
   "diveLog_edit_geofenceSuggestion_body": "Applicare il set \"{setName}\"?",
   "diveLog_edit_geofenceSuggestion_apply": "Applica",
   "common_action_dismiss": "Ignora",
+  "equipment_components_add": "Aggiungi componente",
+  "equipment_components_count": "{count, plural, =1{1 componente} other{{count} componenti}}",
+  "equipment_components_cycleError": "Quell'articolo contiene già questo, quindi non può essere aggiunto come componente.",
+  "equipment_components_editRole": "Modifica ruolo",
+  "equipment_components_empty": "Nessun componente. Aggiungi le parti che compongono questo articolo.",
+  "equipment_components_partOf": "Parte di {name}",
+  "equipment_components_partOfCount": "{count, plural, =1{Parte di 1 assieme} other{Parte di {count} assiemi}}",
+  "equipment_components_pickerConfirm": "{count, plural, =0{Aggiungi} =1{Aggiungi 1} other{Aggiungi {count}}}",
+  "equipment_components_pickerEmpty": "Nessun'altra attrezzatura attiva può essere aggiunta qui.",
+  "equipment_components_pickerTitle": "Aggiungi componenti",
+  "equipment_components_remove": "Rimuovi componente",
+  "equipment_components_reorder": "Riordina",
+  "equipment_components_role": "Ruolo",
+  "equipment_components_roleDialogTitle": "Ruolo del componente",
+  "equipment_components_roleHint": "es. Secondo stadio principale",
+  "equipment_components_rollupClock": "{component}: {kind}",
+  "equipment_components_title": "Componenti",
   "equipment_setEdit_defaultSwitch_title": "Set predefinito",
   "equipment_setEdit_defaultSwitch_subtitle": "Applicato automaticamente alle nuove immersioni senza attrezzatura",
   "equipment_setEdit_geofencesTitle": "Geofence",
@@ -937,8 +957,9 @@
   "checklists_saveTemplate_title": "Salva come modello",
   "checklists_saveTemplate_nameLabel": "Nome del modello",
   "checklists_saveTemplate_success": "Modello salvato",
-  "checklists_templates_pageTitle": "Modelli di liste di controllo",
+  "checklists_templates_pageTitle": "Modelli di liste di controllo di viaggio",
   "checklists_templates_addTemplate": "Aggiungi modello",
+  "checklists_templates_editTemplate": "Modifica modello",
   "checklists_templates_empty": "Nessun modello disponibile",
   "checklists_templates_deleteTitle": "Elimina modello",
   "checklists_templates_deleteContent": "Eliminare \"{name}\"? I viaggi che lo hanno già applicato manterranno i loro elementi.",
@@ -976,6 +997,20 @@
   "preDive_item_valueUnit": "Unità",
   "preDive_item_valueMin": "Min (avviso)",
   "preDive_item_valueMax": "Max (avviso)",
+  "preDive_item_type_cellLinearity": "Linearità della cella",
+  "preDive_item_sourceItem": "Lettura in aria da",
+  "preDive_item_sourceItemRequired": "Scegli l'elemento con la lettura in aria",
+  "preDive_item_linearityMin": "Linearità min. % (avviso)",
+  "preDive_item_linearityMax": "Linearità max. % (avviso)",
+  "preDive_item_sourceCleared": "{title} non ha più una lettura in aria con cui confrontarsi",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Usa un valore registrato più avanti in questo elenco",
   "preDive_runner_progress": "{done} di {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1039,35 @@
   "preDive_runner_serviceOverdue": "Manutenzione scaduta",
   "preDive_runner_addNote": "Aggiungi nota",
   "preDive_runner_enterValue": "Inserisci valore",
+  "preDive_runner_cellInAir": "In aria",
+  "preDive_runner_cellInAirMissing": "Non ancora registrato",
+  "preDive_runner_enterO2Value": "Inserisci il valore in O2",
+  "preDive_runner_linearityReadout": "Atteso {expected} mV, linearità {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Aria {air} mV, atteso {expected} mV, linearità {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "La lettura in aria è cambiata da allora",
   "preDive_runner_flaggedBadge": "{count} segnalati",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2550,6 +2614,8 @@
   "diveLog_tank_selectPreset": "Seleziona preset...",
   "diveLog_tank_title": "Bombola {number}",
   "diveLog_tank_tooltip_remove": "Rimuovi bombola",
+  "diveLog_tank_regulatorLabel": "Erogatore",
+  "diveLog_tank_regulatorNone": "Nessuno",
   "diveLog_tissue_label_ceiling": "Ceiling",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -2749,6 +2815,7 @@
   "diveSites_detail_deleteMenu_label": "Elimina",
   "diveSites_detail_deleteSnackbar": "Sito eliminato",
   "diveSites_detail_depth_maximum": "Massima",
+  "diveSites_detail_depth_reachedHeading": "Profondità raggiunta",
   "diveSites_detail_depth_minimum": "Minima",
   "diveSites_detail_diveCount_one": "1 immersione registrata",
   "diveSites_detail_diveCount_other": "{count} immersioni registrate",
@@ -2788,6 +2855,8 @@
   "diveSites_detail_stats_maxDepth": "Immersione piu profonda",
   "diveSites_detail_stats_minDepth": "Immersione meno profonda",
   "diveSites_detail_stats_notAvailable": "Non disponibile",
+  "diveSites_detail_stats_viewAllDives": "{count, plural, =1{Vedi 1 immersione} other{Vedi tutte le {count} immersioni}}",
+  "diveSites_detail_semantics_openLinkedDive": "{label}, apri questa immersione",
   "diveSites_detail_semantics_copyToClipboard": "Copia {label} negli appunti",
   "diveSites_detail_semantics_viewDivesAtSite": "Visualizza immersioni in questo sito",
   "diveSites_detail_semantics_viewFullscreenMap": "Visualizza mappa a schermo intero",
@@ -3052,6 +3121,10 @@
   "diveSites_summary_stat_totalDives": "Immersioni totali",
   "diveSites_summary_stat_totalSites": "Siti totali",
   "diveSites_summary_stat_withGps": "Con GPS",
+  "diveSites_summary_stat_countries": "Paesi",
+  "diveSites_summary_stat_notDived": "Mai immersi",
+  "diveSites_summary_section_recentlyDived": "Immersioni recenti",
+  "diveSites_summary_tile_lastDived": "Immersione il {date}",
   "diveType_builtin_altitude": "Altitudine",
   "diveType_builtin_altitude_short": "Altitudine",
   "diveType_builtin_boat": "Da barca",
@@ -3347,6 +3420,12 @@
   "enum_equipmentType_computer": "Computer subacqueo",
   "enum_equipmentType_drysuit": "Muta stagna",
   "enum_equipmentType_baselayer": "Strato base",
+  "enum_equipmentType_firstStage": "Primo stadio",
+  "enum_equipmentType_harness": "Imbrago",
+  "enum_equipmentType_hose": "Frusta",
+  "enum_equipmentType_housing": "Custodia",
+  "enum_equipmentType_secondStage": "Secondo stadio",
+  "enum_equipmentType_strobe": "Flash",
   "enum_equipmentType_undersuit": "Sottomuta",
   "enum_equipmentType_fins": "Pinne",
   "enum_equipmentType_gloves": "Guanti",
@@ -3368,6 +3447,7 @@
   "enum_equipmentType_rebreather": "Rebreather",
   "enum_equipmentType_tool": "Attrezzo",
   "enum_equipmentType_rashGuard": "Rash guard",
+  "enum_equipmentType_wing": "Sacco wing",
   "enum_eventSeverity_alert": "Allarme",
   "enum_eventSeverity_info": "Info",
   "enum_eventSeverity_warning": "Attenzione",
@@ -3615,6 +3695,61 @@
   "cylinderConfigs_sectionTitle": "Configurazioni",
   "equipment_serviceClocks_hoursSource": "Calcolato dal tempo di immersione registrato",
   "equipment_serviceClocks_hoursLeft": "{remaining} ore rimanenti su {total}",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} di {total} ore in acqua salata rimanenti",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} di {total} immersioni in acqua fredda rimanenti",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} di {total} ore ad alto O2 rimanenti",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} di {total} immersioni profonde rimanenti",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} di {total} cicli di batteria rimanenti",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Gestisci tipi di manutenzione",
   "equipment_serviceClocks_appliesToClock": "Si applica alla scadenza",
   "equipment_serviceClocks_noClockOption": "Non collegato a una scadenza",
@@ -3622,6 +3757,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervallo (giorni)",
   "equipment_scheduleDialog_intervalDives": "Intervallo (immersioni)",
   "equipment_scheduleDialog_intervalHours": "Intervallo (ore)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervallo (ore in acqua salata)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervallo (immersioni in acqua fredda)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervallo (ore ad alto O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervallo (immersioni profonde)",
+  "equipment_scheduleDialog_intervalCycles": "Intervallo (cicli di batteria)",
   "equipment_scheduleDialog_inheritHint": "Predefinito: {value}",
   "equipment_scheduleDialog_anchorDate": "Data di riferimento",
   "equipment_scheduleDialog_anchorHint": "Usata quando non esiste ancora alcuna registrazione di manutenzione di questo tipo",
@@ -3720,6 +3860,8 @@
   "equipment_edit_snackbar_error": "Errore nel salvataggio dell'attrezzatura: {error}",
   "equipment_edit_snackbar_updated": "Attrezzatura aggiornata",
   "equipment_edit_statusLabel": "Stato",
+  "equipment_edit_parentLabel": "Installato in",
+  "equipment_edit_parentNone": "Non installato",
   "equipment_edit_thicknessDesignationHint": "es: 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "es. shop.example.com/product",
   "equipment_edit_thicknessHint": "es: 5mm, 7mm",
@@ -5117,7 +5259,7 @@
   "settings_lightroom_scan_summary": "{attached} collegate, {suggested} suggerite, {skipped} già collegate",
   "settings_lightroom_subtitle": "Collega automaticamente foto e video alle immersioni",
   "settings_lightroom_title": "Adobe Lightroom",
-  "settings_manage_checklistTemplates": "Modelli di liste di controllo",
+  "settings_manage_checklistTemplates": "Modelli di liste di controllo di viaggio",
   "settings_manage_checklistTemplates_subtitle": "Liste di controllo riutilizzabili per pianificare i viaggi",
   "settings_manage_diveRoles": "Ruoli di immersione",
   "settings_manage_diveRoles_subtitle": "Gestisci ruoli di immersione personalizzati",
@@ -6497,10 +6639,6 @@
   "settings_siteMatch_subtitle": "Con quanta intensità le immersioni scaricate vengono associate ai siti",
   "settings_tankPressureAtSurfacing_title": "Pressione della bombola in superficie",
   "settings_tankPressureAtSurfacing_subtitle": "Rileva la pressione finale quando raggiungi la superficie, non a fine registrazione",
-  "settings_cloudImportPageSize_title": "Dimensione pagina importazione cloud",
-  "settings_cloudImportPageSize_subtitle": "Quante delle immersioni più recenti scaricare per volta da Suunto Cloud o Garmin Connect. «Carica altro» recupera il lotto successivo della stessa dimensione.",
-  "settings_cloudImportPageSize_dialogTitle": "Immersioni per pagina",
-  "settings_cloudImportPageSize_range": "Tra {min} e {max}",
   "settings_siteMatch_strict": "Rigoroso",
   "settings_siteMatch_balanced": "Bilanciato",
   "settings_siteMatch_relaxed": "Rilassato",
@@ -7411,6 +7549,8 @@
   "media_unavailablePlaceholder_volumeOffline": "Volume non montato",
   "media_unavailablePlaceholder_stillFetching": "Ancora in caricamento. Tocca per riprovare.",
   "media_unavailablePlaceholder_accessDenied": "Nessun accesso alla libreria foto",
+  "attrLabel_hose_length_m": "Lunghezza della frusta",
+  "attrLabel_plate_material": "Materiale della piastra",
   "attrLabel_size": "Taglia",
   "attrLabel_thickness_mm": "Spessore (mm)",
   "attrLabel_suit_style": "Tipo di muta",
@@ -7458,6 +7598,9 @@
   "attrLabel_o2_cylinder_l": "Bombola O2",
   "attrLabel_dpv_style": "Stile",
   "attrLabel_burn_time_h": "Autonomia",
+  "attrLabel_cell_slot": "Posizione della cella",
+  "attrLabel_installed_date": "Installata il",
+  "attrLabel_rechargeable": "Ricaricabile",
   "attrLabel_battery_type": "Batteria",
   "attrLabel_battery_capacity_wh": "Capacità batteria (Wh)",
   "attrLabel_motor_type": "Motore",
@@ -7475,6 +7618,9 @@
   "attrLabel_balance_zone": "Zona di bilanciamento",
   "attrLabel_tilt_tolerance_deg": "Tolleranza di inclinazione (°)",
   "attrLabel_tool_type": "Tipo di attrezzo",
+  "attrChoice_plate_material_aluminum": "Alluminio",
+  "attrChoice_plate_material_carbon_fiber": "Fibra di carbonio",
+  "attrChoice_plate_material_steel": "Acciaio",
   "attrChoice_unit_type_eccr": "CCR elettronico (eCCR)",
   "attrChoice_unit_type_mccr": "CCR manuale (mCCR)",
   "attrChoice_unit_type_hccr": "CCR ibrido (hCCR)",
@@ -7564,6 +7710,8 @@
   "attrChoice_battery_type_lithium_ion": "Ioni di litio",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Piombo-acido",
+  "attrChoice_battery_type_alkaline": "Alcalina",
+  "attrChoice_battery_type_lithium_primary": "Litio (non ricaricabile)",
   "attrChoice_motor_type_brushless": "Brushless",
   "attrChoice_motor_type_brushed": "Con spazzole",
   "attrChoice_sleeve_length_short": "Corte",
@@ -8018,6 +8166,16 @@
   "planning_card_noFly_subtitle": "Conto alla rovescia indicativo dalle ultime immersioni",
   "settings_section_safety_title": "Sicurezza",
   "settings_section_safety_subtitle": "Regole di revisione e volo dopo l'immersione",
+  "settings_section_equipmentCondition_title": "Stato dell'attrezzatura",
+  "settings_section_equipmentCondition_subtitle": "Soglie di esposizione per i contatori di manutenzione",
+  "equipmentConditionSettings_title": "Stato dell'attrezzatura",
+  "equipmentConditionSettings_thresholdsHeader": "Soglie di esposizione",
+  "equipmentConditionSettings_thresholdsHelp": "Un'immersione conta come fredda, profonda o ad alto O2 per i contatori di manutenzione quando supera queste soglie.",
+  "equipmentConditionSettings_coldLabel": "Acqua fredda sotto",
+  "equipmentConditionSettings_deepLabel": "Immersione profonda da",
+  "equipmentConditionSettings_o2Label": "Miscela ad alto O2 oltre (% O2)",
+  "equipmentConditionSettings_invalid": "Inserisci un numero",
+  "equipmentConditionSettings_saveFailed": "Salvataggio non riuscito. Riprova.",
   "dataQuality_inbox_title": "Qualità dei dati",
   "dataQuality_dive_unknown": "Dettagli dell'immersione non disponibili",
   "dataQuality_dive_number": "#{number}",
@@ -8092,6 +8250,11 @@
   "dataQuality_repairLabel_shiftTime": "Sposta l'orario di {offset}",
   "dataQuality_repairLabel_shiftImport": "Sposta tutte le immersioni di questa importazione",
   "dataQuality_repairLabel_consolidate": "Consolida",
+  "dataQuality_repairLabel_deleteDuplicate": "Elimina duplicato",
+  "dataQuality_deleteDuplicate_title": "Eliminare la copia ridondante?",
+  "dataQuality_deleteDuplicate_body": "Entrambe sono state registrate dallo stesso computer subacqueo. La copia con meno dati dell'immersione verrà eliminata. Potrai annullare in seguito.",
+  "dataQuality_deleteDuplicate_keep": "Mantieni: {dive}",
+  "dataQuality_deleteDuplicate_delete": "Elimina: {dive}",
   "dataQuality_repairLabel_combine": "Unisci in un'immersione",
   "dataQuality_repairLabel_despike": "Rimuovi picco",
   "dataQuality_repairLabel_clampNegative": "Azzera le profondità sopra la superficie",
@@ -8432,6 +8595,14 @@
   "enum_siteField_lastDived": "Ultima immersione",
   "enum_siteField_lastDived_short": "Ultima",
   "enum_siteField_maxDepthReached": "La tua prof. max",
+  "enum_siteField_firstDived": "Prima immersione",
+  "enum_siteField_firstDived_short": "Prima",
+  "enum_siteField_averageDepthReached": "Prof. media",
+  "enum_siteField_averageDepthReached_short": "Media",
+  "enum_siteField_longestDive": "Immersione più lunga",
+  "enum_siteField_longestDive_short": "Più lunga",
+  "enum_siteField_averageDuration": "Durata media",
+  "enum_siteField_averageDuration_short": "Durata",
   "enum_siteField_maxDepthReached_short": "Tuo max",
   "enum_buddyField_buddyName": "Nome",
   "enum_buddyField_email": "Email",
@@ -8475,6 +8646,8 @@
   "enum_tripField_maxDepth_short": "P max",
   "enum_tripField_avgDepth_short": "P med",
   "enum_tripField_notes_short": "Note",
+  "enum_equipmentField_components": "Componenti",
+  "enum_equipmentField_components_short": "Parti",
   "enum_equipmentField_itemName": "Nome",
   "enum_equipmentField_fullName": "Nome completo",
   "enum_equipmentField_type": "Tipo",
@@ -10980,5 +11153,25 @@
   "backup_unrecognized_deleteFailed": "Impossibile eliminare i file selezionati.",
   "backup_unrecognized_freed": "Liberati {size}",
   "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 file non presente nella cronologia dei backup} other{{count} file non presenti nella cronologia dei backup}}",
-  "settings_storageUsage_unrecognized_action": "Esamina"
+  "settings_storageUsage_unrecognized_action": "Esamina",
+  "enum_equipmentTypeOrder_none": "Non ordinare per tipo",
+  "enum_equipmentTypeOrder_alphabetical": "Alfabetico",
+  "enum_equipmentTypeOrder_headToToe": "Dalla testa ai piedi",
+  "enum_equipmentTypeOrder_dressingOrder": "Ordine di vestizione",
+  "enum_equipmentTypeOrder_canonical": "Per funzione",
+  "enum_equipmentItemSortField_name": "Nome",
+  "enum_equipmentItemSortField_purchaseDate": "Data di acquisto",
+  "enum_equipmentItemSortField_dateAdded": "Data di inserimento",
+  "enum_equipmentItemSortField_lastServiceDate": "Ultima revisione",
+  "equipment_arrange_title": "Disponi l'attrezzatura",
+  "equipment_arrange_groupByType": "Raggruppa per tipo",
+  "equipment_arrange_groupByTypeSubtitle": "Mostra un'intestazione per ogni tipo di attrezzatura",
+  "equipment_arrange_typeOrderLabel": "Ordina i tipi per",
+  "equipment_arrange_itemOrderLabel": "Poi per",
+  "equipment_arrange_itemOrderLabelFlat": "Ordina per",
+  "equipment_arrange_tooltip": "Disponi l'attrezzatura",
+  "equipment_arrange_reset": "Ripristina predefiniti",
+  "equipment_arrange_saveFailed": "Impossibile salvare la disposizione",
+  "settings_appearance_gearArrangement": "Disposizione dell'attrezzatura",
+  "settings_appearance_gearArrangementSubtitle": "Come l'attrezzatura viene raggruppata e ordinata in un'immersione"
 }

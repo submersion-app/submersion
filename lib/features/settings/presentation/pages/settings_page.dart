@@ -15,6 +15,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
+import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -61,8 +62,6 @@ import 'package:submersion/features/auto_update/domain/entities/update_status.da
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
-import 'package:submersion/features/import_wizard/presentation/providers/cloud_import_page_size_provider.dart';
-import 'package:submersion/features/settings/presentation/widgets/cloud_import_page_size_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/settings/presentation/format_enum_display.dart';
@@ -164,6 +163,8 @@ class SettingsPage extends ConsumerWidget {
         return const DiverProfileHubPage();
       case 'safety':
         return const SafetySettingsPage();
+      case 'equipmentCondition':
+        return const EquipmentConditionSettingsPage();
       case 'security':
         return const SecuritySettingsPage();
       case 'units':
@@ -255,6 +256,7 @@ const settingsSectionDedicatedRoutes = <String, String>{
   'profile': '/settings/diver-profile',
   'appearance': '/settings/appearance',
   'safety': '/settings/safety',
+  'equipmentCondition': '/settings/equipment-condition',
   'debug': '/settings/debug-logs',
 };
 
@@ -318,6 +320,8 @@ class SettingsSectionDetailPage extends ConsumerWidget {
         return const DiverProfileHubPage();
       case 'safety':
         return const SafetySettingsPage();
+      case 'equipmentCondition':
+        return const EquipmentConditionSettingsPage();
       case 'security':
         return const SecuritySettingsPage();
       case 'units':
@@ -397,6 +401,8 @@ class _MobileSettingsTile extends StatelessWidget {
       'dataSources' => context.l10n.settings_section_dataSources_title,
       'sharedData' => context.l10n.settings_sharedData_sectionTitle,
       'safety' => context.l10n.settings_section_safety_title,
+      'equipmentCondition' =>
+        context.l10n.settings_section_equipmentCondition_title,
       'security' => context.l10n.settings_section_security_title,
       'debug' => context.l10n.settings_section_debug_title,
       _ => section.title,
@@ -415,6 +421,8 @@ class _MobileSettingsTile extends StatelessWidget {
       'about' => context.l10n.settings_section_about_subtitle,
       'dataSources' => context.l10n.settings_section_dataSources_subtitle,
       'safety' => context.l10n.settings_section_safety_subtitle,
+      'equipmentCondition' =>
+        context.l10n.settings_section_equipmentCondition_subtitle,
       'security' => context.l10n.settings_section_security_subtitle,
       'debug' => context.l10n.settings_section_debug_subtitle,
       _ => section.subtitle,
@@ -2767,19 +2775,6 @@ class _DataSectionContent extends ConsumerWidget {
 
   const _DataSectionContent({required this.ref});
 
-  Future<void> _editCloudImportPageSize(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final current = ref.read(cloudImportPageSizeProvider);
-    final entered = await showDialog<int>(
-      context: context,
-      builder: (_) => CloudImportPageSizeDialog(initialValue: current),
-    );
-    if (entered == null) return;
-    await ref.read(cloudImportPageSizeProvider.notifier).setPageSize(entered);
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final storageState = ref.watch(storageConfigNotifierProvider);
@@ -2835,18 +2830,6 @@ class _DataSectionContent extends ConsumerWidget {
               onChanged: (value) => ref
                   .read(settingsProvider.notifier)
                   .setTrimTankPressureAtSurfacing(value),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.cloud_download_outlined),
-              title: Text(context.l10n.settings_cloudImportPageSize_title),
-              subtitle: Text(
-                context.l10n.settings_cloudImportPageSize_subtitle,
-              ),
-              trailing: Text('${ref.watch(cloudImportPageSizeProvider)}'),
-              onTap: () => _editCloudImportPageSize(context, ref),
             ),
           ),
           const SizedBox(height: 16),

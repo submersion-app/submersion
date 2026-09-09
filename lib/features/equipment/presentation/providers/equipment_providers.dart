@@ -19,7 +19,13 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
+import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
+import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -110,6 +116,23 @@ final ownedEquipmentTypesProvider = Provider<List<EquipmentType>>((ref) {
   return EquipmentType.values.where(present.contains).toList();
 });
 
+/// The Add Equipment picker's own filter (#1576).
+///
+/// Separate from [equipmentFilterProvider], which belongs to the Equipment
+/// page: sharing one would mean narrowing the gear list silently narrowed the
+/// dive picker, which is not what either control implies.
+///
+/// autoDispose so it resets when the picker closes. A plain StateProvider
+/// lives for the whole ProviderContainer, i.e. the app session, so a
+/// narrowing applied to find one regulator would still be hiding gear the
+/// next time a dive's picker opened, with only a badge to explain the short
+/// list. The picker is the sole listener, so losing it is exactly the signal
+/// that the narrowing is done with.
+final equipmentPickerFilterProvider =
+    StateProvider.autoDispose<EquipmentPickerFilter>(
+      (ref) => EquipmentPickerFilter.none,
+    );
+
 /// Equipment sort state provider
 final equipmentSortProvider = StateProvider<SortState<EquipmentSortField>>(
   (ref) => const SortState(
@@ -127,6 +150,11 @@ List<EquipmentItem> applyEquipmentSorting(
   List<EquipmentItem> equipment,
   SortState<EquipmentSortField> sort, {
   Map<String, ServiceClockStatus> serviceUrgency = const {},
+  // Sorting by type compared the hardcoded English displayName while the UI
+  // rendered the localized label, so on a non-English build the list ordered
+  // by names the diver could not see. Callers with localizations in scope
+  // pass the resolver; the default keeps the old behaviour for those without.
+  String Function(EquipmentType)? typeLabel,
 }) {
   final sorted = List<EquipmentItem>.from(equipment);
 
@@ -134,6 +162,12 @@ List<EquipmentItem> applyEquipmentSorting(
   // with no clock rank -1 so they sort last on ascending (most-urgent first).
   int urgencyRank(EquipmentItem e) =>
       serviceUrgency[e.id]?.severity.index ?? -1;
+
+  // Resolved once rather than inside the comparator: the fallback is a
+  // closure literal, so building it per comparison allocated one on every
+  // O(n log n) call for no benefit.
+  final resolveTypeLabel =
+      typeLabel ?? (EquipmentType type) => type.displayName;
 
   sorted.sort((a, b) {
     int comparison;
@@ -146,7 +180,9 @@ List<EquipmentItem> applyEquipmentSorting(
       case EquipmentSortField.name:
         comparison = a.name.compareTo(b.name);
       case EquipmentSortField.type:
-        comparison = a.type.displayName.compareTo(b.type.displayName);
+        comparison = resolveTypeLabel(
+          a.type,
+        ).compareTo(resolveTypeLabel(b.type));
       case EquipmentSortField.purchaseDate:
         comparison = (a.purchaseDate ?? DateTime(1900)).compareTo(
           b.purchaseDate ?? DateTime(1900),
@@ -439,6 +475,7 @@ final serviceRecordCountProvider = FutureProvider.family<int, String>((
 /// Service record notifier for mutations
 class ServiceRecordNotifier
     extends StateNotifier<AsyncValue<List<ServiceRecord>>> {
+  static final _log = LoggerService.forClass(ServiceRecordNotifier);
   final ServiceRecordRepository _repository;
   final Ref _ref;
   final String equipmentId;
@@ -470,6 +507,31 @@ class ServiceRecordNotifier
     // The base evaluation, not the derived lists: dueClocksProvider and the
     // service-due list would otherwise rebuild off its cached verdicts.
     _ref.invalidate(activeEquipmentClocksProvider);
+    await _rescheduleNotifications();
+  }
+
+  /// A record moves the clock anchor, so a usage reminder armed for the old
+  /// anchor may no longer be due. Re-evaluate this item's reminders now
+  /// rather than at the next app start; a failure here must not fail the
+  /// record write.
+  Future<void> _rescheduleNotifications() async {
+    try {
+      final settings = _ref.read(settingsProvider);
+      if (!settings.notificationsEnabled) return;
+      final item = await _ref
+          .read(equipmentRepositoryProvider)
+          .getEquipmentById(equipmentId);
+      if (item == null) return;
+      await _ref
+          .read(notificationSchedulerProvider)
+          .updateForEquipment(item: item, globalSettings: settings);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Failed to reschedule reminders after a service record',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<ServiceRecord> addRecord(ServiceRecord record) async {
@@ -617,11 +679,14 @@ final serviceDueSoonWindowDaysProvider = FutureProvider<int>((ref) async {
   return repository.getDueSoonWindowDays(diverId: validatedDiverId);
 });
 
-/// Evaluates every enabled clock on [item] at this moment.
+/// Evaluates every enabled clock on [item] at this moment. [siblings] is the
+/// active gear list when the caller already has it, so the parent and
+/// children lookups cost no query per item.
 Future<List<ServiceClockStatus>> _evaluateClocksFor(
   Ref ref,
   EquipmentItem item, {
   List<ServiceKind>? kinds,
+  List<EquipmentItem>? siblings,
 }) async {
   final schedules = await ref
       .watch(serviceScheduleRepositoryProvider)
@@ -632,15 +697,36 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
   final records = await ref
       .watch(serviceRecordRepositoryProvider)
       .getRecordsForEquipment(item.id);
-  final usage = await ref
-      .watch(equipmentRepositoryProvider)
-      .getUsageSamplesForEquipment(item.id);
+  final repository = ref.watch(equipmentRepositoryProvider);
+  final parentId = item.parentEquipmentId;
+  final parent = parentId == null
+      ? null
+      : siblings?.where((s) => s.id == parentId).firstOrNull ??
+            await repository.getEquipmentById(parentId);
+  final children = siblings != null
+      ? siblings.where((s) => s.parentEquipmentId == item.id).toList()
+      : await repository.getChildEquipment(item.id);
+  final isRebreather =
+      item.type == EquipmentType.rebreather ||
+      parent?.type == EquipmentType.rebreather;
+  final usage = await repository.getExposureSamplesForEquipment(
+    item.id,
+    parentEquipmentId: parentId,
+    installedSince: item.installedDate,
+    rebreatherContact: isRebreather,
+  );
+  final classifier = ExposureClassifier(
+    thresholds: ref.watch(exposureThresholdsProvider),
+    loopTimeOnly: isRebreather,
+    hasBatteryChild: children.any((c) => c.type == EquipmentType.battery),
+  );
   final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
   return const ServiceDueEngine().evaluate(
     schedules: schedules,
     kindsById: {for (final k in allKinds) k.id: k},
     records: records,
     usage: usage,
+    classifier: classifier,
     purchaseDate: item.purchaseDate,
     equipmentCreatedAt: item.createdAt ?? DateTime.now(),
     dueSoonWindowDays: window,
@@ -686,7 +772,15 @@ final activeEquipmentClocksProvider = FutureProvider<List<EquipmentClocks>>((
   final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
   return [
     for (final item in items)
-      (item: item, statuses: await _evaluateClocksFor(ref, item, kinds: kinds)),
+      (
+        item: item,
+        statuses: await _evaluateClocksFor(
+          ref,
+          item,
+          kinds: kinds,
+          siblings: items,
+        ),
+      ),
   ];
 });
 
@@ -759,7 +853,12 @@ final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
     final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
     final alerts = <DueClock>[];
     for (final item in items) {
-      final statuses = await _evaluateClocksFor(ref, item, kinds: kinds);
+      final statuses = await _evaluateClocksFor(
+        ref,
+        item,
+        kinds: kinds,
+        siblings: items,
+      );
       alerts.addAll([
         for (final s in statuses)
           if (s.severity == ServiceClockSeverity.overdue ||

@@ -227,6 +227,65 @@ void main() {
     expect(ctx.neighbors.single.firstSampleDepth, merged.first.depth);
   });
 
+  test('reports both sides of a pair from the stored sample counts', () async {
+    // The duplicate detector picks the richer of two same-computer
+    // recordings by sample count, and the pair has ONE canonical finding
+    // written by whichever side the scan reached last. Both counts must
+    // therefore come from the same stored column: the scanned dive's from
+    // its primary series rows, the neighbor's from a subquery over the same
+    // table. A non-primary series never counts on either side.
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    await seedDive(
+      id: 'dA',
+      entry: entry,
+      serial: 'SN-1',
+      profile: [
+        for (var t = 0; t < 5; t++)
+          domain.DiveProfilePoint(timestamp: t * 10, depth: 3.0),
+      ],
+    );
+    await seedDive(
+      id: 'dB',
+      entry: entry.add(const Duration(minutes: 1)),
+      serial: 'SN-1',
+      profile: [
+        for (var t = 0; t < 3; t++)
+          domain.DiveProfilePoint(timestamp: t * 10, depth: 2.0),
+      ],
+    );
+    await profileSeries.insertSeries(
+      diveId: 'dB',
+      isPrimary: false,
+      samples: const [
+        ProfileSample(timestamp: 0, depth: 1.0),
+        ProfileSample(timestamp: 10, depth: 1.0),
+        ProfileSample(timestamp: 20, depth: 1.0),
+        ProfileSample(timestamp: 30, depth: 1.0),
+      ],
+    );
+
+    final ctxA = (await builder.buildAll(['dA'])).single;
+    expect(ctxA.primarySampleCount, 5);
+    expect(ctxA.neighbors.single.sampleCount, 3);
+
+    final ctxB = (await builder.buildAll(['dB'])).single;
+    expect(ctxB.primarySampleCount, 3);
+    expect(ctxB.neighbors.single.sampleCount, 5);
+  });
+
+  test('a dive with no primary series has an unknown sample count', () async {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    await seedDive(id: 'dA', entry: entry, serial: 'SN-1');
+    await seedDive(
+      id: 'dB',
+      entry: entry.add(const Duration(minutes: 1)),
+      serial: 'SN-1',
+    );
+    final ctx = (await builder.buildAll(['dA'])).single;
+    expect(ctx.primarySampleCount, isNull);
+    expect(ctx.neighbors.single.sampleCount, isNull);
+  });
+
   test(
     'finds same-diver neighbors within the window with edge depths',
     () async {

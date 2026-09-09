@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -39,6 +40,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     Map<String, PdfProfileSeries>? profiles,
     Uint8List? diverPhoto,
     bool includeVerificationAreas = false,
+    EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
   }) async {
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);

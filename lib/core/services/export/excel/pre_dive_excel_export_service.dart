@@ -161,6 +161,8 @@ class PreDiveExcelExportService {
       'State',
       'Value',
       'Unit',
+      'Air Value',
+      'Linearity %',
       'Note',
       'Completed At',
       'Required',
@@ -181,6 +183,17 @@ class PreDiveExcelExportService {
           _stateLabel(item.state),
           item.valueNumber ?? '',
           item.valueUnit ?? '',
+          // Only a cell linearity item populates these (issue #986).
+          // Everything else leaves them blank rather than repeating its own
+          // reading into a column that means something different.
+          //
+          // Both are gated on the type, not just on the value being present.
+          // linearityPercent already returns null off-type, but
+          // sourceValueNumber is a plain field, so a stray value arriving on
+          // another type through sync would otherwise fill a column the
+          // header says belongs to linearity items.
+          item.isCellLinearity ? item.sourceValueNumber ?? '' : '',
+          item.isCellLinearity ? item.linearityPercent?.round() ?? '' : '',
           item.note.replaceAll('\n', ' '),
           _dateTime(item.completedAt, dateFormat),
           item.isRequired ? 'Yes' : 'No',
@@ -227,6 +240,7 @@ class PreDiveExcelExportService {
     PreDiveItemType.value => 'Value',
     PreDiveItemType.equipmentSet => 'Equipment',
     PreDiveItemType.equipment => 'Equipment',
+    PreDiveItemType.cellLinearity => 'Cell linearity',
   };
 
   xl.CellValue _toCellValue(dynamic value) {

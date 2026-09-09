@@ -4,7 +4,10 @@
   "settings_oauth_connect_copyLink": "Link kopiëren",
   "settings_oauth_connect_linkCopied": "Link gekopieerd. Plak hem in je browser om toegang te verlenen.",
   "universalImport_action_importFromGarmin": "Importeren vanaf Garmin-apparaat",
+  "enum_equipmentType_backplate": "Backplate",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "O2-cel",
+  "enum_equipmentType_battery": "Batterij",
   "diveLog_tank_saveAsPreset": "Als voorinstelling opslaan",
   "diveLog_tank_saveAsPreset_needSpecs": "Voer eerst een volume en werkdruk in",
   "diveLog_tank_saveAsPreset_nameTitle": "Flesvoorinstelling opslaan",
@@ -162,6 +165,23 @@
   "diveLog_edit_geofenceSuggestion_body": "Set \"{setName}\" toepassen?",
   "diveLog_edit_geofenceSuggestion_apply": "Toepassen",
   "common_action_dismiss": "Sluiten",
+  "equipment_components_add": "Onderdeel toevoegen",
+  "equipment_components_count": "{count, plural, =1{1 onderdeel} other{{count} onderdelen}}",
+  "equipment_components_cycleError": "Dat item bevat dit item al, dus het kan niet als onderdeel worden toegevoegd.",
+  "equipment_components_editRole": "Rol bewerken",
+  "equipment_components_empty": "Geen onderdelen. Voeg de delen toe waaruit dit item is opgebouwd.",
+  "equipment_components_partOf": "Onderdeel van {name}",
+  "equipment_components_partOfCount": "{count, plural, =1{Onderdeel van 1 samenstel} other{Onderdeel van {count} samenstellen}}",
+  "equipment_components_pickerConfirm": "{count, plural, =0{Toevoegen} =1{1 toevoegen} other{{count} toevoegen}}",
+  "equipment_components_pickerEmpty": "Er is geen andere actieve uitrusting die hier kan worden toegevoegd.",
+  "equipment_components_pickerTitle": "Onderdelen toevoegen",
+  "equipment_components_remove": "Onderdeel verwijderen",
+  "equipment_components_reorder": "Herschikken",
+  "equipment_components_role": "Rol",
+  "equipment_components_roleDialogTitle": "Rol van onderdeel",
+  "equipment_components_roleHint": "bijv. Primaire tweede trap",
+  "equipment_components_rollupClock": "{component}: {kind}",
+  "equipment_components_title": "Onderdelen",
   "equipment_setEdit_defaultSwitch_title": "Standaardset",
   "equipment_setEdit_defaultSwitch_subtitle": "Automatisch toegepast op nieuwe duiken zonder uitrusting",
   "equipment_setEdit_geofencesTitle": "Geofences",
@@ -937,8 +957,9 @@
   "checklists_saveTemplate_title": "Opslaan als sjabloon",
   "checklists_saveTemplate_nameLabel": "Sjabloonnaam",
   "checklists_saveTemplate_success": "Sjabloon opgeslagen",
-  "checklists_templates_pageTitle": "Checklistsjablonen",
+  "checklists_templates_pageTitle": "Reis-checklistsjablonen",
   "checklists_templates_addTemplate": "Sjabloon toevoegen",
+  "checklists_templates_editTemplate": "Sjabloon bewerken",
   "checklists_templates_empty": "Nog geen sjablonen",
   "checklists_templates_deleteTitle": "Sjabloon verwijderen",
   "checklists_templates_deleteContent": "\"{name}\" verwijderen? Reizen die dit al hebben toegepast, behouden hun items.",
@@ -976,6 +997,20 @@
   "preDive_item_valueUnit": "Eenheid",
   "preDive_item_valueMin": "Min (waarschuwing)",
   "preDive_item_valueMax": "Max (waarschuwing)",
+  "preDive_item_type_cellLinearity": "Cellineariteit",
+  "preDive_item_sourceItem": "Luchtmeting van",
+  "preDive_item_sourceItemRequired": "Kies het item met de luchtmeting",
+  "preDive_item_linearityMin": "Min. lineariteit % (waarschuwing)",
+  "preDive_item_linearityMax": "Max. lineariteit % (waarschuwing)",
+  "preDive_item_sourceCleared": "{title} heeft geen luchtmeting meer om mee te vergelijken",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Gebruikt een waarde die verderop in deze lijst wordt vastgelegd",
   "preDive_runner_progress": "{done} van {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1039,35 @@
   "preDive_runner_serviceOverdue": "Onderhoud verlopen",
   "preDive_runner_addNote": "Notitie toevoegen",
   "preDive_runner_enterValue": "Waarde invoeren",
+  "preDive_runner_cellInAir": "In lucht",
+  "preDive_runner_cellInAirMissing": "Nog niet vastgelegd",
+  "preDive_runner_enterO2Value": "Voer de waarde in O2 in",
+  "preDive_runner_linearityReadout": "Verwacht {expected} mV, lineariteit {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Lucht {air} mV, verwacht {expected} mV, lineariteit {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "Luchtmeting is sindsdien gewijzigd",
   "preDive_runner_flaggedBadge": "{count} gemarkeerd",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2634,6 +2698,8 @@
   "diveLog_tank_selectPreset": "Selecteer voorinstelling...",
   "diveLog_tank_title": "Fles {number}",
   "diveLog_tank_tooltip_remove": "Fles verwijderen",
+  "diveLog_tank_regulatorLabel": "Ademautomaat",
+  "diveLog_tank_regulatorNone": "Geen",
   "diveLog_tissue_label_ceiling": "Plafond",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -2833,6 +2899,7 @@
   "diveSites_detail_deleteMenu_label": "Verwijderen",
   "diveSites_detail_deleteSnackbar": "Stek verwijderd",
   "diveSites_detail_depth_maximum": "Maximum",
+  "diveSites_detail_depth_reachedHeading": "Bereikte diepte",
   "diveSites_detail_depth_minimum": "Minimum",
   "diveSites_detail_diveCount_one": "1 duik gelogd",
   "diveSites_detail_diveCount_other": "{count} duiken gelogd",
@@ -2872,6 +2939,8 @@
   "diveSites_detail_stats_maxDepth": "Diepste duik",
   "diveSites_detail_stats_minDepth": "Ondiepste duik",
   "diveSites_detail_stats_notAvailable": "Niet beschikbaar",
+  "diveSites_detail_stats_viewAllDives": "{count, plural, =1{1 duik bekijken} other{Alle {count} duiken bekijken}}",
+  "diveSites_detail_semantics_openLinkedDive": "{label}, deze duik openen",
   "diveSites_detail_semantics_copyToClipboard": "Kopieer {label} naar klembord",
   "diveSites_detail_semantics_viewDivesAtSite": "Bekijk duiken op deze stek",
   "diveSites_detail_semantics_viewFullscreenMap": "Bekijk kaart op volledig scherm",
@@ -3136,6 +3205,10 @@
   "diveSites_summary_stat_totalDives": "Totaal duiken",
   "diveSites_summary_stat_totalSites": "Totaal stekken",
   "diveSites_summary_stat_withGps": "Met GPS",
+  "diveSites_summary_stat_countries": "Landen",
+  "diveSites_summary_stat_notDived": "Niet gedoken",
+  "diveSites_summary_section_recentlyDived": "Recent gedoken",
+  "diveSites_summary_tile_lastDived": "Laatst gedoken {date}",
   "diveType_builtin_altitude": "Hoogte",
   "diveType_builtin_altitude_short": "Hoogte",
   "diveType_builtin_boat": "Vanaf boot",
@@ -3431,6 +3504,12 @@
   "enum_equipmentType_computer": "Duikcomputer",
   "enum_equipmentType_drysuit": "Droogpak",
   "enum_equipmentType_baselayer": "Basislaag",
+  "enum_equipmentType_firstStage": "Eerste trap",
+  "enum_equipmentType_harness": "Harnas",
+  "enum_equipmentType_hose": "Slang",
+  "enum_equipmentType_housing": "Behuizing",
+  "enum_equipmentType_secondStage": "Tweede trap",
+  "enum_equipmentType_strobe": "Flitser",
   "enum_equipmentType_undersuit": "Onderpak",
   "enum_equipmentType_fins": "Vinnen",
   "enum_equipmentType_gloves": "Handschoenen",
@@ -3452,6 +3531,7 @@
   "enum_equipmentType_rebreather": "Rebreather",
   "enum_equipmentType_tool": "Gereedschap",
   "enum_equipmentType_rashGuard": "Rashguard",
+  "enum_equipmentType_wing": "Wing",
   "enum_eventSeverity_alert": "Alarm",
   "enum_eventSeverity_info": "Info",
   "enum_eventSeverity_warning": "Waarschuwing",
@@ -3699,6 +3779,61 @@
   "cylinderConfigs_sectionTitle": "Configuraties",
   "equipment_serviceClocks_hoursSource": "Berekend op basis van geregistreerde duiktijd",
   "equipment_serviceClocks_hoursLeft": "{remaining} van {total} uur resterend",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} van {total} uren in zout water over",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} van {total} koudwaterduiken over",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} van {total} uren met hoog O2 over",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} van {total} diepe duiken over",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} van {total} batterijcycli over",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Servicetypen beheren",
   "equipment_serviceClocks_appliesToClock": "Gekoppeld aan interval",
   "equipment_serviceClocks_noClockOption": "Niet aan een interval gekoppeld",
@@ -3706,6 +3841,11 @@
   "equipment_scheduleDialog_intervalDays": "Interval (dagen)",
   "equipment_scheduleDialog_intervalDives": "Interval (duiken)",
   "equipment_scheduleDialog_intervalHours": "Interval (uren)",
+  "equipment_scheduleDialog_intervalSaltHours": "Interval (uren in zout water)",
+  "equipment_scheduleDialog_intervalColdDives": "Interval (koudwaterduiken)",
+  "equipment_scheduleDialog_intervalO2Hours": "Interval (uren met hoog O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Interval (diepe duiken)",
+  "equipment_scheduleDialog_intervalCycles": "Interval (batterijcycli)",
   "equipment_scheduleDialog_inheritHint": "Standaard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referentiedatum",
   "equipment_scheduleDialog_anchorHint": "Wordt gebruikt zolang er nog geen servicerecord van dit type bestaat",
@@ -3804,6 +3944,8 @@
   "equipment_edit_snackbar_error": "Fout bij opslaan van uitrusting: {error}",
   "equipment_edit_snackbar_updated": "Uitrusting bijgewerkt",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_parentLabel": "Geplaatst in",
+  "equipment_edit_parentNone": "Nergens geplaatst",
   "equipment_edit_thicknessDesignationHint": "bijv. 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "bijv. shop.example.com/product",
   "equipment_edit_thicknessHint": "bijv. 5mm, 7mm",
@@ -5205,7 +5347,7 @@
   "settings_lightroom_scan_summary": "{attached} gekoppeld, {suggested} voorgesteld, {skipped} al gekoppeld",
   "settings_lightroom_subtitle": "Foto's en video's automatisch aan duiken koppelen",
   "settings_lightroom_title": "Adobe Lightroom",
-  "settings_manage_checklistTemplates": "Checklistsjablonen",
+  "settings_manage_checklistTemplates": "Reis-checklistsjablonen",
   "settings_manage_checklistTemplates_subtitle": "Herbruikbare takenlijsten voor reisplanning",
   "settings_manage_diveRoles": "Duikrollen",
   "settings_manage_diveRoles_subtitle": "Aangepaste duikrollen beheren",
@@ -6585,10 +6727,6 @@
   "settings_siteMatch_subtitle": "Hoe agressief gedownloade duiken aan stekken worden gekoppeld",
   "settings_tankPressureAtSurfacing_title": "Flesdruk bij bovenkomen",
   "settings_tankPressureAtSurfacing_subtitle": "Neem de einddruk op het moment van bovenkomen, niet aan het einde van de opname",
-  "settings_cloudImportPageSize_title": "Paginagrootte voor cloudimport",
-  "settings_cloudImportPageSize_subtitle": "Hoeveel van de nieuwste duiken per keer op te halen van Suunto Cloud of Garmin Connect. „Meer laden” haalt de volgende batch van dezelfde grootte op.",
-  "settings_cloudImportPageSize_dialogTitle": "Duiken per pagina",
-  "settings_cloudImportPageSize_range": "Tussen {min} en {max}",
   "settings_siteMatch_strict": "Strikt",
   "settings_siteMatch_balanced": "Gebalanceerd",
   "settings_siteMatch_relaxed": "Soepel",
@@ -7411,6 +7549,8 @@
   "media_unavailablePlaceholder_volumeOffline": "Volume niet gekoppeld",
   "media_unavailablePlaceholder_stillFetching": "Nog aan het laden. Tik om opnieuw te proberen.",
   "media_unavailablePlaceholder_accessDenied": "Geen toegang tot fotobibliotheek",
+  "attrLabel_hose_length_m": "Slanglengte",
+  "attrLabel_plate_material": "Plaatmateriaal",
   "attrLabel_size": "Maat",
   "attrLabel_thickness_mm": "Dikte (mm)",
   "attrLabel_suit_style": "Type pak",
@@ -7458,6 +7598,9 @@
   "attrLabel_o2_cylinder_l": "O2-fles",
   "attrLabel_dpv_style": "Stijl",
   "attrLabel_burn_time_h": "Looptijd",
+  "attrLabel_cell_slot": "Celpositie",
+  "attrLabel_installed_date": "Geplaatst op",
+  "attrLabel_rechargeable": "Oplaadbaar",
   "attrLabel_battery_type": "Accu",
   "attrLabel_battery_capacity_wh": "Accucapaciteit (Wh)",
   "attrLabel_motor_type": "Motor",
@@ -7475,6 +7618,9 @@
   "attrLabel_balance_zone": "Balanszone",
   "attrLabel_tilt_tolerance_deg": "Kanteltolerantie (°)",
   "attrLabel_tool_type": "Soort gereedschap",
+  "attrChoice_plate_material_aluminum": "Aluminium",
+  "attrChoice_plate_material_carbon_fiber": "Koolstofvezel",
+  "attrChoice_plate_material_steel": "Staal",
   "attrChoice_unit_type_eccr": "Elektronische CCR (eCCR)",
   "attrChoice_unit_type_mccr": "Handmatige CCR (mCCR)",
   "attrChoice_unit_type_hccr": "Hybride CCR (hCCR)",
@@ -7564,6 +7710,8 @@
   "attrChoice_battery_type_lithium_ion": "Lithium-ion",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Loodzuur",
+  "attrChoice_battery_type_alkaline": "Alkaline",
+  "attrChoice_battery_type_lithium_primary": "Lithium (niet oplaadbaar)",
   "attrChoice_motor_type_brushless": "Borstelloos",
   "attrChoice_motor_type_brushed": "Met borstels",
   "attrChoice_sleeve_length_short": "Kort",
@@ -8018,6 +8166,16 @@
   "planning_card_noFly_subtitle": "Richtlijn-aftelling vanaf je laatste duiken",
   "settings_section_safety_title": "Veiligheid",
   "settings_section_safety_subtitle": "Controleregels & vliegen na het duiken",
+  "settings_section_equipmentCondition_title": "Staat van uitrusting",
+  "settings_section_equipmentCondition_subtitle": "Blootstellingsdrempels voor onderhoudsklokken",
+  "equipmentConditionSettings_title": "Staat van uitrusting",
+  "equipmentConditionSettings_thresholdsHeader": "Blootstellingsdrempels",
+  "equipmentConditionSettings_thresholdsHelp": "Een duik telt voor onderhoudsklokken als koud, diep of met hoog O2 wanneer hij deze grenzen overschrijdt.",
+  "equipmentConditionSettings_coldLabel": "Koud water onder",
+  "equipmentConditionSettings_deepLabel": "Diepe duik vanaf",
+  "equipmentConditionSettings_o2Label": "Mengsel met hoog O2 boven (% O2)",
+  "equipmentConditionSettings_invalid": "Voer een getal in",
+  "equipmentConditionSettings_saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
   "dataQuality_inbox_title": "Datakwaliteit",
   "dataQuality_dive_unknown": "Duikgegevens niet beschikbaar",
   "dataQuality_dive_number": "#{number}",
@@ -8092,6 +8250,11 @@
   "dataQuality_repairLabel_shiftTime": "Tijd verschuiven met {offset}",
   "dataQuality_repairLabel_shiftImport": "Alle duiken uit deze import verschuiven",
   "dataQuality_repairLabel_consolidate": "Consolideren",
+  "dataQuality_repairLabel_deleteDuplicate": "Duplicaat verwijderen",
+  "dataQuality_deleteDuplicate_title": "Overbodige kopie verwijderen?",
+  "dataQuality_deleteDuplicate_body": "Beide zijn door dezelfde duikcomputer opgenomen. De kopie met minder duikgegevens wordt verwijderd. Je kunt dit daarna ongedaan maken.",
+  "dataQuality_deleteDuplicate_keep": "Behouden: {dive}",
+  "dataQuality_deleteDuplicate_delete": "Verwijderen: {dive}",
   "dataQuality_repairLabel_combine": "Samenvoegen tot één duik",
   "dataQuality_repairLabel_despike": "Piek verwijderen",
   "dataQuality_repairLabel_clampNegative": "Diepten boven het oppervlak begrenzen",
@@ -8432,6 +8595,14 @@
   "enum_siteField_lastDived": "Laatst gedoken",
   "enum_siteField_lastDived_short": "Laatst",
   "enum_siteField_maxDepthReached": "Jouw max. diepte",
+  "enum_siteField_firstDived": "Eerste duik",
+  "enum_siteField_firstDived_short": "Eerste",
+  "enum_siteField_averageDepthReached": "Gem. diepte",
+  "enum_siteField_averageDepthReached_short": "Gem.",
+  "enum_siteField_longestDive": "Langste duik",
+  "enum_siteField_longestDive_short": "Langste",
+  "enum_siteField_averageDuration": "Gem. duur",
+  "enum_siteField_averageDuration_short": "Gem. duur",
   "enum_siteField_maxDepthReached_short": "Jouw max.",
   "enum_buddyField_buddyName": "Naam",
   "enum_buddyField_email": "E-mail",
@@ -8475,6 +8646,8 @@
   "enum_tripField_maxDepth_short": "Max D",
   "enum_tripField_avgDepth_short": "Gem D",
   "enum_tripField_notes_short": "Notities",
+  "enum_equipmentField_components": "Onderdelen",
+  "enum_equipmentField_components_short": "Delen",
   "enum_equipmentField_itemName": "Naam",
   "enum_equipmentField_fullName": "Volledige naam",
   "enum_equipmentField_type": "Type",
@@ -10980,5 +11153,25 @@
   "backup_unrecognized_deleteFailed": "Kon de geselecteerde bestanden niet verwijderen.",
   "backup_unrecognized_freed": "{size} vrijgemaakt",
   "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 bestand ontbreekt in je back-upgeschiedenis} other{{count} bestanden ontbreken in je back-upgeschiedenis}}",
-  "settings_storageUsage_unrecognized_action": "Bekijken"
+  "settings_storageUsage_unrecognized_action": "Bekijken",
+  "enum_equipmentTypeOrder_none": "Niet op type ordenen",
+  "enum_equipmentTypeOrder_alphabetical": "Alfabetisch",
+  "enum_equipmentTypeOrder_headToToe": "Van hoofd tot voet",
+  "enum_equipmentTypeOrder_dressingOrder": "Aankleedvolgorde",
+  "enum_equipmentTypeOrder_canonical": "Op functie",
+  "enum_equipmentItemSortField_name": "Naam",
+  "enum_equipmentItemSortField_purchaseDate": "Aankoopdatum",
+  "enum_equipmentItemSortField_dateAdded": "Datum toegevoegd",
+  "enum_equipmentItemSortField_lastServiceDate": "Laatste onderhoud",
+  "equipment_arrange_title": "Uitrusting ordenen",
+  "equipment_arrange_groupByType": "Groeperen op type",
+  "equipment_arrange_groupByTypeSubtitle": "Toon een kop voor elk type uitrusting",
+  "equipment_arrange_typeOrderLabel": "Typen ordenen op",
+  "equipment_arrange_itemOrderLabel": "Daarna op",
+  "equipment_arrange_itemOrderLabelFlat": "Sorteren op",
+  "equipment_arrange_tooltip": "Uitrusting ordenen",
+  "equipment_arrange_reset": "Standaardwaarden herstellen",
+  "equipment_arrange_saveFailed": "Kan de ordening niet opslaan",
+  "settings_appearance_gearArrangement": "Ordening van uitrusting",
+  "settings_appearance_gearArrangementSubtitle": "Hoe uitrusting bij een duik wordt gegroepeerd en gesorteerd"
 }
