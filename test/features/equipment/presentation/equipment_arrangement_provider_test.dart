@@ -33,6 +33,28 @@ class _FakeSettingsRepository extends AppSettingsRepository {
   Stream<void> watchSettingsChanges() => settingsTicks.stream;
 }
 
+/// Hands out reads the test completes by hand, so two loads can be put in
+/// flight and finished out of order.
+class _OrderedFakeRepository extends AppSettingsRepository {
+  final List<Completer<EquipmentArrangement?>> pending = [];
+  final StreamController<void> settingsTicks = StreamController<void>();
+
+  @override
+  Future<EquipmentArrangement?> getEquipmentArrangement() {
+    final completer = Completer<EquipmentArrangement?>();
+    pending.add(completer);
+    return completer.future;
+  }
+
+  @override
+  Future<void> setEquipmentArrangement(
+    EquipmentArrangement arrangement,
+  ) async {}
+
+  @override
+  Stream<void> watchSettingsChanges() => settingsTicks.stream;
+}
+
 void main() {
   ProviderContainer containerWith(_FakeSettingsRepository fake) {
     final container = ProviderContainer(
@@ -151,5 +173,43 @@ void main() {
     await pumpEventQueue();
 
     expect(fake.settingsTicks.hasListener, isFalse);
+  });
+
+  test('a slow earlier read cannot clobber a newer one', () async {
+    // The settings subscription starts a read per tick without awaiting the
+    // one before it, so two can be in flight at once. If the earlier read
+    // finishes last, its stale value must not win.
+    final fake = _OrderedFakeRepository();
+    final container = ProviderContainer(
+      overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+    );
+    addTearDown(container.dispose);
+
+    container.read(equipmentArrangementNotifierProvider);
+    await pumpEventQueue();
+    expect(fake.pending, hasLength(1), reason: 'the constructor read');
+
+    fake.settingsTicks.add(null);
+    await pumpEventQueue();
+    expect(fake.pending, hasLength(2), reason: 'the tick read');
+
+    // Newest read lands first, then the stale one.
+    fake.pending[1].complete(
+      EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.dressingOrder,
+      ),
+    );
+    await pumpEventQueue();
+    fake.pending[0].complete(
+      EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.headToToe,
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(
+      container.read(equipmentArrangementNotifierProvider).typeOrder,
+      EquipmentTypeOrder.dressingOrder,
+    );
   });
 }

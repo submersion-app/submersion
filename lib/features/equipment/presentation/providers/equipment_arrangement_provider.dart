@@ -54,6 +54,15 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
 
   StreamSubscription<void>? _settingsSubscription;
 
+  /// Identifies the most recently STARTED read.
+  ///
+  /// The settings subscription fires a read per tick without awaiting the
+  /// previous one, so several can be in flight at once and they are not
+  /// guaranteed to finish in the order they began. Only the newest read is
+  /// allowed to publish, so a slow earlier one cannot overwrite a fresher
+  /// value with a stale one.
+  int _loadSeq = 0;
+
   /// Completes when the stored value has been read. Exposed for tests; the UI
   /// does not await it because the defaults are already a valid state.
   late final Future<void> loaded;
@@ -65,6 +74,7 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   }
 
   Future<void> _load() async {
+    final seq = ++_loadSeq;
     EquipmentArrangement? stored;
     try {
       stored = await _repository.getEquipmentArrangement();
@@ -80,6 +90,9 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
       );
       return;
     }
+    // A newer read started while this one was in flight; that one owns the
+    // outcome, whether or not it has landed yet.
+    if (seq != _loadSeq) return;
     if (stored != null && mounted) state = stored;
   }
 

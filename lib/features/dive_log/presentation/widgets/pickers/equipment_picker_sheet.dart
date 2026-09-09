@@ -119,42 +119,50 @@ class EquipmentPickerSheet extends ConsumerWidget {
               // Filtering happens before arranging, so a type whose every
               // item is already on the dive (or filtered out) contributes no
               // empty heading.
-              final rows = <Widget>[
+              //
+              // Rows are a lightweight data model, not widgets: a diver with a
+              // large inventory is exactly who #1576 is about, and building
+              // every ListTile up front would defeat ListView.builder's lazy
+              // construction on open and on every filter or arrangement
+              // change. Widgets are built in itemBuilder, so only visible rows
+              // cost anything.
+              final rows = <_PickerRow>[
                 for (final group in arrangeEquipment(
                   available,
                   arrangement,
                   typeLabel: (type) => type.localizedName(context.l10n),
                 )) ...[
-                  if (group.type != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: EquipmentGroupHeader(type: group.type!),
-                    ),
-                  ...group.items.map((equipment) {
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        child: Icon(
-                          equipmentTypeIcon(equipment.type),
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      title: Text(equipment.name),
-                      subtitle: group.type == null
-                          ? Text(equipment.type.localizedName(context.l10n))
-                          : null,
-                      onTap: () => onEquipmentSelected(equipment),
-                    );
-                  }),
+                  if (group.type != null) _HeaderRow(group.type!),
+                  for (final equipment in group.items)
+                    _ItemRow(equipment, showTypeLabel: group.type == null),
                 ],
               ];
 
               return ListView.builder(
                 controller: scrollController,
                 itemCount: rows.length,
-                itemBuilder: (context, index) => rows[index],
+                itemBuilder: (context, index) => switch (rows[index]) {
+                  _HeaderRow(:final type) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: EquipmentGroupHeader(type: type),
+                  ),
+                  _ItemRow(:final item, :final showTypeLabel) => ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      child: Icon(
+                        equipmentTypeIcon(item.type),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    title: Text(item.name),
+                    subtitle: showTypeLabel
+                        ? Text(item.type.localizedName(context.l10n))
+                        : null,
+                    onTap: () => onEquipmentSelected(item),
+                  ),
+                },
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -203,6 +211,27 @@ class EquipmentPickerSheet extends ConsumerWidget {
     if (chosen == null) return;
     ref.read(equipmentPickerFilterProvider.notifier).state = chosen;
   }
+}
+
+/// One row of the picker list, as data rather than a built widget so the
+/// list stays lazy.
+sealed class _PickerRow {
+  const _PickerRow();
+}
+
+class _HeaderRow extends _PickerRow {
+  const _HeaderRow(this.type);
+
+  final EquipmentType type;
+}
+
+class _ItemRow extends _PickerRow {
+  const _ItemRow(this.item, {required this.showTypeLabel});
+
+  final EquipmentItem item;
+
+  /// Only when no heading names the type already.
+  final bool showTypeLabel;
 }
 
 class _EmptyState extends StatelessWidget {
