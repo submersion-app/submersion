@@ -17,6 +17,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_weight_e
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
@@ -162,6 +163,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
       waterType: _water,
       bodyWeightKg: _bodyWeightKg(units),
       heightCm: _heightCm(units),
+      rolledUpIds: GearTree.rolledUpIds(_gearProvenance),
     );
     final input = TwinInput(
       profile: _squareProfile(),

@@ -54,8 +54,20 @@ class WeightHistoryRepository {
     for (final row in weightRows) {
       weightsByDive.putIfAbsent(row.diveId, () => []).add(row);
     }
+    // Leaf gear only: an assembly whose parts are on the dive would be a
+    // second feature for one object, and its parts carry the lead (#1487).
+    final rolledUpByDive = <String, Set<String>>{};
+    for (final row in equipmentRows) {
+      final parent = row.viaEquipmentId;
+      if (parent != null) {
+        rolledUpByDive.putIfAbsent(row.diveId, () => {}).add(parent);
+      }
+    }
     final equipmentByDive = <String, List<String>>{};
     for (final row in equipmentRows) {
+      if (rolledUpByDive[row.diveId]?.contains(row.equipmentId) ?? false) {
+        continue;
+      }
       equipmentByDive.putIfAbsent(row.diveId, () => []).add(row.equipmentId);
     }
     final leadByEquipment = await _gearCarriedLead(
