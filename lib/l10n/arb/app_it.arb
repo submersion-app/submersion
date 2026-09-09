@@ -3054,6 +3054,7 @@
   "diveSites_summary_stat_countries": "Paesi",
   "diveSites_summary_stat_notDived": "Mai immersi",
   "diveSites_summary_section_recentlyDived": "Immersioni recenti",
+  "diveSites_summary_tile_lastDived": "Immersione il {date}",
   "diveType_builtin_altitude": "Altitudine",
   "diveType_builtin_altitude_short": "Altitudine",
   "diveType_builtin_boat": "Da barca",

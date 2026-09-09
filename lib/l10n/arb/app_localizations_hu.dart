@@ -9517,6 +9517,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_summary_section_recentlyDived => 'Nemrég merülve';
 
   @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'Utoljára merülve: $date';
+  }
+
+  @override
   String get diveType_builtin_altitude => 'Magaslati';
 
   @override

@@ -9299,6 +9299,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_summary_section_recentlyDived => 'נצללו לאחרונה';
 
   @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'נצלל לאחרונה $date';
+  }
+
+  @override
   String get diveType_builtin_altitude => 'גובה רב';
 
   @override

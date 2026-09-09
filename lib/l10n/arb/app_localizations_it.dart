@@ -9541,6 +9541,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_summary_section_recentlyDived => 'Immersioni recenti';
 
   @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'Immersione il $date';
+  }
+
+  @override
   String get diveType_builtin_altitude => 'Altitudine';
 
   @override

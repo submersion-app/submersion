@@ -3138,6 +3138,7 @@
   "diveSites_summary_stat_countries": "Países",
   "diveSites_summary_stat_notDived": "Sin bucear",
   "diveSites_summary_section_recentlyDived": "Buceados recientemente",
+  "diveSites_summary_tile_lastDived": "Buceado {date}",
   "diveType_builtin_altitude": "Altitud",
   "diveType_builtin_altitude_short": "Altitud",
   "diveType_builtin_boat": "Desde barco",

@@ -9542,6 +9542,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Buceados recientemente';
 
   @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'Buceado $date';
+  }
+
+  @override
   String get diveType_builtin_altitude => 'Altitud';
 
   @override

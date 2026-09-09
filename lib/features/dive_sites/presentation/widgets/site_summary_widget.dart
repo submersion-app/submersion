@@ -275,23 +275,27 @@ class SiteSummaryWidget extends ConsumerWidget {
 
   /// One row in the top-sites lists.
   ///
-  /// All three lists (rated, most dived, recent) share the same secondary
-  /// line, where the site is and how many dives it holds, so a site reads the
-  /// same whichever list surfaces it. [trailingText] is what that particular
-  /// list ranks by, so it differs: a rating in the rated list, a date in the
-  /// other two.
+  /// [trailingText] is always the value its list ranks by, so the reader can
+  /// see why a site placed where it did: the rating in Top Rated, the dive
+  /// count in Most Dived, the date in Recently Dived.
+  ///
+  /// [secondaryFact] is the other figure, shown after the location on the
+  /// second line. It is passed in rather than fixed because whichever figure
+  /// a list ranks by is already the trailing value, and printing it twice in
+  /// one row reads as a mistake.
   Widget _buildSiteTile(
     BuildContext context,
     SiteWithDiveCount siteData, {
     required IconData icon,
     required String trailingText,
+    required String secondaryFact,
     Color? iconColor,
   }) {
     final site = siteData.site;
     final colorScheme = Theme.of(context).colorScheme;
     final details = <String>[
       if (site.locationString.isNotEmpty) site.locationString,
-      context.l10n.diveSites_list_tile_diveCount(siteData.diveCount),
+      secondaryFact,
     ];
 
     return ListTile(
@@ -353,6 +357,7 @@ class SiteSummaryWidget extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Card(
+            key: const ValueKey('summaryTopRatedList'),
             child: Column(
               children: topRated
                   .map(
@@ -362,6 +367,9 @@ class SiteSummaryWidget extends ConsumerWidget {
                       icon: Icons.star,
                       iconColor: Colors.amber,
                       trailingText: siteData.site.rating!.toStringAsFixed(1),
+                      secondaryFact: context.l10n.diveSites_list_tile_diveCount(
+                        siteData.diveCount,
+                      ),
                     ),
                   )
                   .toList(),
@@ -378,6 +386,7 @@ class SiteSummaryWidget extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Card(
+            key: const ValueKey('summaryRecentlyDivedList'),
             child: Column(
               children: topRecent
                   .map(
@@ -386,6 +395,9 @@ class SiteSummaryWidget extends ConsumerWidget {
                       siteData,
                       icon: Icons.history,
                       trailingText: units.formatDate(siteData.lastDivedAt),
+                      secondaryFact: context.l10n.diveSites_list_tile_diveCount(
+                        siteData.diveCount,
+                      ),
                     ),
                   )
                   .toList(),
@@ -402,6 +414,7 @@ class SiteSummaryWidget extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Card(
+            key: const ValueKey('summaryMostDivedList'),
             child: Column(
               children: topDived
                   .map(
@@ -409,7 +422,13 @@ class SiteSummaryWidget extends ConsumerWidget {
                       context,
                       siteData,
                       icon: Icons.scuba_diving,
-                      trailingText: units.formatDate(siteData.lastDivedAt),
+                      trailingText: context.l10n.diveSites_list_tile_diveCount(
+                        siteData.diveCount,
+                      ),
+                      secondaryFact: context.l10n
+                          .diveSites_summary_tile_lastDived(
+                            units.formatDate(siteData.lastDivedAt),
+                          ),
                     ),
                   )
                   .toList(),

@@ -3138,6 +3138,7 @@
   "diveSites_summary_stat_countries": "Landen",
   "diveSites_summary_stat_notDived": "Niet gedoken",
   "diveSites_summary_section_recentlyDived": "Recent gedoken",
+  "diveSites_summary_tile_lastDived": "Laatst gedoken {date}",
   "diveType_builtin_altitude": "Hoogte",
   "diveType_builtin_altitude_short": "Hoogte",
   "diveType_builtin_boat": "Vanaf boot",

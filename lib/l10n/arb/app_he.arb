@@ -3054,6 +3054,7 @@
   "diveSites_summary_stat_countries": "מדינות",
   "diveSites_summary_stat_notDived": "לא נצללו",
   "diveSites_summary_section_recentlyDived": "נצללו לאחרונה",
+  "diveSites_summary_tile_lastDived": "נצלל לאחרונה {date}",
   "diveType_builtin_altitude": "גובה רב",
   "diveType_builtin_altitude_short": "גובה",
   "diveType_builtin_boat": "מסירה",

@@ -3138,6 +3138,7 @@
   "diveSites_summary_stat_countries": "Länder",
   "diveSites_summary_stat_notDived": "Nicht getaucht",
   "diveSites_summary_section_recentlyDived": "Zuletzt getaucht",
+  "diveSites_summary_tile_lastDived": "Zuletzt getaucht {date}",
   "diveType_builtin_altitude": "Bergseetauchen",
   "diveType_builtin_altitude_short": "Bergsee",
   "diveType_builtin_boat": "Bootstauchgang",

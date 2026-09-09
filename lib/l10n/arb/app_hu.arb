@@ -3054,6 +3054,7 @@
   "diveSites_summary_stat_countries": "Országok",
   "diveSites_summary_stat_notDived": "Nem merült",
   "diveSites_summary_section_recentlyDived": "Nemrég merülve",
+  "diveSites_summary_tile_lastDived": "Utoljára merülve: {date}",
   "diveType_builtin_altitude": "Magaslati",
   "diveType_builtin_altitude_short": "Magaslati",
   "diveType_builtin_boat": "Hajóról",

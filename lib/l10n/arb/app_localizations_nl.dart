@@ -9464,6 +9464,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_summary_section_recentlyDived => 'Recent gedoken';
 
   @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'Laatst gedoken $date';
+  }
+
+  @override
   String get diveType_builtin_altitude => 'Hoogte';
 
   @override

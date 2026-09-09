@@ -143,4 +143,69 @@ void main() {
       expect(find.text('Someday Reef'), findsNothing);
     });
   });
+  group('each list shows the value it ranks by', () {
+    testWidgets('the most dived list shows the dive count, not a date', (
+      tester,
+    ) async {
+      await pumpSummary(tester);
+
+      final list = find.byKey(const ValueKey('summaryMostDivedList'));
+      expect(list, findsOneWidget);
+
+      // Blue Hole tops this list with 9 dives; that count is what the list
+      // sorts by, so it is what the row must lead with.
+      expect(
+        find.descendant(of: list, matching: find.text('9 dives')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the most dived list does not print the same count twice', (
+      tester,
+    ) async {
+      await pumpSummary(tester);
+
+      final list = find.byKey(const ValueKey('summaryMostDivedList'));
+
+      // The count is the trailing value here, so the secondary line carries
+      // the last-dived date instead of repeating it.
+      expect(
+        find.descendant(of: list, matching: find.textContaining('Last dived')),
+        findsWidgets,
+      );
+    });
+
+    testWidgets('the recently dived list still leads with its date', (
+      tester,
+    ) async {
+      await pumpSummary(tester);
+
+      final list = find.byKey(const ValueKey('summaryRecentlyDivedList'));
+      expect(list, findsOneWidget);
+
+      // Ranked by recency, so the count belongs on the secondary line, where
+      // it is joined to the location rather than standing alone.
+      expect(
+        find.descendant(of: list, matching: find.textContaining('9 dives')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: list, matching: find.text('9 dives')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('the top rated list still leads with its rating', (
+      tester,
+    ) async {
+      await pumpSummary(tester);
+
+      final list = find.byKey(const ValueKey('summaryTopRatedList'));
+      expect(list, findsOneWidget);
+      expect(
+        find.descendant(of: list, matching: find.text('5.0')),
+        findsOneWidget,
+      );
+    });
+  });
 }

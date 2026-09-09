@@ -3138,6 +3138,7 @@
   "diveSites_summary_stat_countries": "الدول",
   "diveSites_summary_stat_notDived": "لم تُغطس",
   "diveSites_summary_section_recentlyDived": "غُطست مؤخرًا",
+  "diveSites_summary_tile_lastDived": "آخر غطسة {date}",
   "diveType_builtin_altitude": "ارتفاع",
   "diveType_builtin_altitude_short": "ارتفاع",
   "diveType_builtin_boat": "من القارب",

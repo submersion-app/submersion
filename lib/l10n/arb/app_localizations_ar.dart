@@ -9356,6 +9356,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_summary_section_recentlyDived => 'غُطست مؤخرًا';
 
   @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'آخر غطسة $date';
+  }
+
+  @override
   String get diveType_builtin_altitude => 'ارتفاع';
 
   @override

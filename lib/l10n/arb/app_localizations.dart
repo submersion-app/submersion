@@ -15840,6 +15840,12 @@ abstract class AppLocalizations {
   /// **'Recently Dived'**
   String get diveSites_summary_section_recentlyDived;
 
+  /// No description provided for @diveSites_summary_tile_lastDived.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived {date}'**
+  String diveSites_summary_tile_lastDived(Object date);
+
   /// No description provided for @diveType_builtin_altitude.
   ///
   /// In en, this message translates to:

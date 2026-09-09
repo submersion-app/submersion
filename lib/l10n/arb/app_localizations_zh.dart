@@ -9071,6 +9071,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_summary_section_recentlyDived => '最近潜水';
 
   @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return '最近潜水 $date';
+  }
+
+  @override
   String get diveType_builtin_altitude => '高原潜水';
 
   @override

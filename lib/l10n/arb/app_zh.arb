@@ -3271,6 +3271,7 @@
   "diveSites_summary_stat_countries": "国家",
   "diveSites_summary_stat_notDived": "未潜过",
   "diveSites_summary_section_recentlyDived": "最近潜水",
+  "diveSites_summary_tile_lastDived": "最近潜水 {date}",
   "diveType_builtin_altitude": "高原潜水",
   "diveType_builtin_altitude_short": "高原",
   "diveType_builtin_boat": "船潜",

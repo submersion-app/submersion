@@ -5340,6 +5340,7 @@
   "diveSites_summary_stat_countries": "Countries",
   "diveSites_summary_stat_notDived": "Not dived",
   "diveSites_summary_section_recentlyDived": "Recently Dived",
+  "diveSites_summary_tile_lastDived": "Last dived {date}",
   "@diveSites_detail_diveCount_other": {
     "placeholders": {
       "count": {
@@ -5379,6 +5380,13 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "@diveSites_summary_tile_lastDived": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
       }
     }
   },
