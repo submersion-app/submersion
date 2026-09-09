@@ -1554,6 +1554,20 @@
   "preDive_item_valueUnit": "Unit",
   "preDive_item_valueMin": "Min (warning)",
   "preDive_item_valueMax": "Max (warning)",
+  "preDive_item_type_cellLinearity": "Cell linearity",
+  "preDive_item_sourceItem": "Air reading from",
+  "preDive_item_sourceItemRequired": "Choose the item holding the air reading",
+  "preDive_item_linearityMin": "Min linearity % (warning)",
+  "preDive_item_linearityMax": "Max linearity % (warning)",
+  "preDive_item_sourceCleared": "{title} no longer has an air reading to compare against",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Reads a value recorded later in this list",
   "preDive_runner_progress": "{done} of {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1582,6 +1596,35 @@
   "preDive_runner_serviceOverdue": "Service overdue",
   "preDive_runner_addNote": "Add note",
   "preDive_runner_enterValue": "Enter value",
+  "preDive_runner_cellInAir": "In air",
+  "preDive_runner_cellInAirMissing": "Not yet recorded",
+  "preDive_runner_enterO2Value": "Enter value in O2",
+  "preDive_runner_linearityReadout": "Expected {expected} mV, linearity {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Air {air} mV, expected {expected} mV, linearity {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "Air reading has changed since",
   "preDive_runner_flaggedBadge": "{count} flagged",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {

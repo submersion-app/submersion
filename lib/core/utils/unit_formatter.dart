@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart'
     as coords;
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -22,7 +23,7 @@ class UnitFormatter {
   String formatDepth(double? value, {int decimals = 1}) {
     if (value == null) return '--';
     final converted = DepthUnit.meters.convert(value, settings.depthUnit);
-    return '${converted.toStringAsFixed(decimals)}${settings.depthUnit.symbol}';
+    return '${formatFixedForDisplay(converted, decimals)}${settings.depthUnit.symbol}';
   }
 
   /// Get depth unit symbol
@@ -68,7 +69,7 @@ class UnitFormatter {
   /// Used for surface drift between GPS entry and exit points.
   String formatDistance(double meters, {int decimals = 0}) {
     final converted = DepthUnit.meters.convert(meters, settings.depthUnit);
-    return '${converted.toStringAsFixed(decimals)}${settings.depthUnit.symbol}';
+    return '${formatFixedForDisplay(converted, decimals)}${settings.depthUnit.symbol}';
   }
 
   /// Format a geographic distance (meters) for site lists and pickers.
@@ -83,7 +84,9 @@ class UnitFormatter {
     if (isMetric) {
       if (meters < 1000) return '${meters.round()} m';
       final km = meters / 1000;
-      final text = km < 10 ? km.toStringAsFixed(1) : km.round().toString();
+      final text = km < 10
+          ? formatFixedForDisplay(km, 1)
+          : km.round().toString();
       return '$text km';
     }
     final feet = meters * 3.28084;
@@ -91,7 +94,7 @@ class UnitFormatter {
     if (feet < feetPerMile) return '${feet.round()} ft';
     final miles = feet / feetPerMile;
     final text = miles < 10
-        ? miles.toStringAsFixed(1)
+        ? formatFixedForDisplay(miles, 1)
         : miles.round().toString();
     return '$text mi';
   }
@@ -112,12 +115,19 @@ class UnitFormatter {
       value,
       settings.temperatureUnit,
     );
-    final text = _trimTrailingZeros(converted.toStringAsFixed(decimals));
+    final text = localiseDecimalText(
+      _trimTrailingZeros(converted.toStringAsFixed(decimals)),
+    );
     return '$text°${settings.temperatureUnit.symbol}';
   }
 
   /// Strips a fractional part that is all zeros, along with the separator.
   /// "26.0" -> "26", "25.60" -> "25.6", "26" -> "26".
+  ///
+  /// Matches a literal '.', so it must run on the raw `toStringAsFixed`
+  /// output and hand the result to `localiseDecimalText` afterwards. Run the
+  /// other way round it does nothing under a comma locale, and under a
+  /// grouping locale the '.' it would match is the group separator.
   static String _trimTrailingZeros(String text) {
     if (!text.contains('.')) return text;
     final trimmed = text.replaceFirst(RegExp(r'0+$'), '');
@@ -147,14 +157,14 @@ class UnitFormatter {
   String formatPressure(double? value, {int decimals = 0}) {
     if (value == null) return '--';
     final converted = PressureUnit.bar.convert(value, settings.pressureUnit);
-    return '${converted.toStringAsFixed(decimals)} ${settings.pressureUnit.symbol}';
+    return '${formatFixedForDisplay(converted, decimals)} ${settings.pressureUnit.symbol}';
   }
 
   /// Format pressure value without unit (for ranges like "200 → 50")
   String formatPressureValue(double? value, {int decimals = 0}) {
     if (value == null) return '--';
     final converted = PressureUnit.bar.convert(value, settings.pressureUnit);
-    return converted.toStringAsFixed(decimals);
+    return formatFixedForDisplay(converted, decimals);
   }
 
   /// Get pressure unit symbol
@@ -178,7 +188,7 @@ class UnitFormatter {
   String formatVolume(double? value, {int decimals = 0}) {
     if (value == null) return '--';
     final converted = VolumeUnit.liters.convert(value, settings.volumeUnit);
-    return '${converted.toStringAsFixed(decimals)} ${settings.volumeUnit.symbol}';
+    return '${formatFixedForDisplay(converted, decimals)} ${settings.volumeUnit.symbol}';
   }
 
   /// Format a cylinder's size - handles gas capacity conversion for imperial.
@@ -214,21 +224,23 @@ class UnitFormatter {
         cuft = match?.ratedCapacityCuft;
       }
       if (cuft != null) {
-        return '${cuft.toStringAsFixed(cuftDecimals)} ${settings.volumeUnit.symbol}';
+        return '${formatFixedForDisplay(cuft, cuftDecimals)} ${settings.volumeUnit.symbol}';
       }
       if (workingPressureBar != null && workingPressureBar > 0) {
         // Ideal gas approximation for non-standard tanks
         final calcCuft = (volumeLiters * workingPressureBar) / 28.3168;
-        return '${calcCuft.toStringAsFixed(cuftDecimals)} ${settings.volumeUnit.symbol}';
+        return '${formatFixedForDisplay(calcCuft, cuftDecimals)} ${settings.volumeUnit.symbol}';
       } else {
         // No working pressure - approximate assuming 200 bar
         final calcCuft = (volumeLiters * 200) / 28.3168;
-        return '~${calcCuft.toStringAsFixed(cuftDecimals)} ${settings.volumeUnit.symbol}';
+        return '~${formatFixedForDisplay(calcCuft, cuftDecimals)} ${settings.volumeUnit.symbol}';
       }
     }
 
     // For liters, show the physical volume the cylinder is named by
-    final liters = _trimTrailingZeros(volumeLiters.toStringAsFixed(1));
+    final liters = localiseDecimalText(
+      _trimTrailingZeros(volumeLiters.toStringAsFixed(1)),
+    );
     return '$liters ${settings.volumeUnit.symbol}';
   }
 
@@ -274,11 +286,11 @@ class UnitFormatter {
 
   /// "1.5 bar/min" or "21 psi/min".
   String formatSac(double barPerMin) =>
-      '${convertSac(barPerMin).toStringAsFixed(sacDecimals)} $sacSymbol';
+      '${formatFixedForDisplay(convertSac(barPerMin), sacDecimals)} $sacSymbol';
 
   /// "16.8 L/min" or "0.59 cuft/min".
   String formatRmv(double litersPerMin) =>
-      '${convertRmv(litersPerMin).toStringAsFixed(rmvDecimals)} $rmvSymbol';
+      '${formatFixedForDisplay(convertRmv(litersPerMin), rmvDecimals)} $rmvSymbol';
 
   // ============================================================================
   // Weight
@@ -288,7 +300,7 @@ class UnitFormatter {
   String formatWeight(double? value, {int decimals = 1}) {
     if (value == null) return '--';
     final converted = WeightUnit.kilograms.convert(value, settings.weightUnit);
-    return '${converted.toStringAsFixed(decimals)} ${settings.weightUnit.symbol}';
+    return '${formatFixedForDisplay(converted, decimals)} ${settings.weightUnit.symbol}';
   }
 
   /// Get weight unit symbol
@@ -362,14 +374,14 @@ class UnitFormatter {
   /// Format barometric pressure
   String formatBarometricPressure(double? bar, {int decimals = 3}) {
     if (bar == null) return '--';
-    return '${bar.toStringAsFixed(decimals)} bar';
+    return '${formatFixedForDisplay(bar, decimals)} bar';
   }
 
   /// Format barometric pressure in millibar
   String formatBarometricPressureMbar(double? bar, {int decimals = 0}) {
     if (bar == null) return '--';
     final mbar = bar * 1000;
-    return '${mbar.toStringAsFixed(decimals)} mbar';
+    return '${formatFixedForDisplay(mbar, decimals)} mbar';
   }
 
   /// Inches of mercury per bar.
@@ -387,9 +399,9 @@ class UnitFormatter {
   String formatSurfacePressure(double? bar) {
     if (bar == null) return '--';
     if (settings.depthUnit == DepthUnit.meters) {
-      return '${(bar * 1000).toStringAsFixed(0)} $surfacePressureSymbol';
+      return '${formatFixedForDisplay(bar * 1000, 0)} $surfacePressureSymbol';
     }
-    return '${(bar * _inHgPerBar).toStringAsFixed(2)} $surfacePressureSymbol';
+    return '${formatFixedForDisplay(bar * _inHgPerBar, 2)} $surfacePressureSymbol';
   }
 
   /// Get altitude unit symbol
@@ -417,7 +429,7 @@ class UnitFormatter {
   String formatWindSpeed(double? metersPerSecond, {int decimals = 0}) {
     if (metersPerSecond == null) return '--';
     final converted = convertWindSpeed(metersPerSecond);
-    return '${converted.toStringAsFixed(decimals)} $windSpeedSymbol';
+    return '${formatFixedForDisplay(converted, decimals)} $windSpeedSymbol';
   }
 
   /// Convert wind speed from m/s to the user's preferred display unit.
@@ -447,7 +459,7 @@ class UnitFormatter {
   /// boat speed on a GPS surface track.
   String formatSpeed(double metersPerSecond, {int decimals = 1}) {
     final converted = convertWindSpeed(metersPerSecond);
-    return '${converted.toStringAsFixed(decimals)} $speedSymbol';
+    return '${formatFixedForDisplay(converted, decimals)} $speedSymbol';
   }
 
   // ============================================================================

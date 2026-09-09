@@ -19,12 +19,11 @@ Future<Set<String>> _columns(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v200 is the current schema version and is in the ladder', () {
-    // This is the newest rung, so it owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    // v202 (equipment condition intelligence) is the current rung; 200 stays
-    // in the ladder.
-    expect(AppDatabase.currentSchemaVersion, 202);
+  test('v200 is in the ladder and shipped', () {
+    // Relaxed as this rung's own comment asked, now that later rungs (v201,
+    // the cell linearity link, and v202, equipment condition intelligence)
+    // are newer. This one only claims its rung is still in the ladder.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(200));
     expect(AppDatabase.migrationVersions, contains(200));
   });
 

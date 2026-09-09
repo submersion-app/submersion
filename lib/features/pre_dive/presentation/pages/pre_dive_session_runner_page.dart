@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/overdue_service_en
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
+import 'package:submersion/features/pre_dive/domain/services/cell_linearity.dart';
 import 'package:submersion/features/pre_dive/domain/services/checklist_session_engine.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/session_item_tile.dart';
@@ -29,6 +30,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
     String? note,
     List<OverdueServiceEntry>? overdueServices,
     bool freezeOverdueServices = false,
+    double? sourceValueNumber,
   }) {
     return ref
         .read(preDiveSessionRepositoryProvider)
@@ -49,6 +51,9 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
           overdueServices: freezeOverdueServices
               ? overdueServices
               : item.overdueServices,
+          // Same rule as overdueServices: a call that supplies no fresh
+          // reading (a note edit, say) must leave the frozen one alone.
+          sourceValueNumber: sourceValueNumber ?? item.sourceValueNumber,
         );
   }
 
@@ -62,6 +67,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
     PreDiveItemState state, {
     double? valueNumber,
     String? note,
+    double? sourceValueNumber,
   }) async {
     final overdueServices = await _overdueEntriesFor(ref, item);
     await _setState(
@@ -72,6 +78,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
       note: note,
       overdueServices: overdueServices,
       freezeOverdueServices: true,
+      sourceValueNumber: sourceValueNumber,
     );
   }
 
@@ -99,11 +106,19 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
   Future<void> _editValue(
     BuildContext context,
     WidgetRef ref,
+    List<PreDiveSessionItem> items,
     PreDiveSessionItem item,
   ) async {
+    // Read the source at the moment the dialog opens and freeze whatever it
+    // said when the diver confirms. A linearity item that is unlinked, or
+    // whose source is still unanswered, records its own reading regardless.
+    final sourceValue = item.isCellLinearity
+        ? _currentSourceValue(items, item)
+        : null;
     final result = await showDialog<({double? value, String? note})>(
       context: context,
-      builder: (context) => _ValueEntryDialog(item: item),
+      builder: (context) =>
+          _ValueEntryDialog(item: item, sourceValue: sourceValue),
     );
     if (result == null) return;
     await _resolve(
@@ -112,7 +127,39 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
       PreDiveItemState.done,
       valueNumber: result.value,
       note: result.note,
+      sourceValueNumber: sourceValue,
     );
+  }
+
+  /// The current value of [item]'s source row, or null when it is unlinked,
+  /// missing, or not yet answered.
+  static double? _currentSourceValue(
+    List<PreDiveSessionItem> items,
+    PreDiveSessionItem item,
+  ) {
+    final sourceId = item.sourceItemId;
+    if (sourceId == null) return null;
+    for (final candidate in items) {
+      if (candidate.id == sourceId) return candidate.valueNumber;
+    }
+    return null;
+  }
+
+  /// The source item's current value when it no longer matches the reading
+  /// frozen onto [item], or null when there is nothing to flag.
+  ///
+  /// Only a resolved item can be stale: a pending one has frozen nothing
+  /// yet, so there is no discrepancy to report.
+  static double? _staleSourceValue(
+    List<PreDiveSessionItem> items,
+    PreDiveSessionItem item,
+  ) {
+    if (!item.isCellLinearity) return null;
+    final frozen = item.sourceValueNumber;
+    if (frozen == null) return null;
+    final current = _currentSourceValue(items, item);
+    if (current == null || current == frozen) return null;
+    return current;
   }
 
   Future<void> _addNote(
@@ -329,7 +376,8 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
                       onSkip: () =>
                           _resolve(ref, item, PreDiveItemState.skipped),
                       onFlag: () => _flag(context, ref, item),
-                      onEditValue: () => _editValue(context, ref, item),
+                      onEditValue: () => _editValue(context, ref, items, item),
+                      staleSourceValue: _staleSourceValue(items, item),
                       onAddNote: () => _addNote(context, ref, item),
                       onReset: () =>
                           _setState(ref, item, PreDiveItemState.pending),
@@ -361,12 +409,23 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
   }
 }
 
-/// Value entry for a `value` item. Owns its controllers and disposes them in
-/// its own [State.dispose] (see the checklist item dialog for why).
+/// Number entry for a `value` item or a `cellLinearity` one.
+///
+/// A linearity item additionally shows the cell's air reading above the
+/// field and a live expected-mV and linearity readout below it, recomputed
+/// on each keystroke so the diver sees the result before committing to it.
+///
+/// Owns its controllers and disposes them in its own [State.dispose] (see
+/// the checklist item dialog for why).
 class _ValueEntryDialog extends StatefulWidget {
   final PreDiveSessionItem item;
 
-  const _ValueEntryDialog({required this.item});
+  /// The source item's air reading, for a cell linearity item. Null for a
+  /// plain value item, and for a linearity item whose air reading has not
+  /// been taken yet.
+  final double? sourceValue;
+
+  const _ValueEntryDialog({required this.item, this.sourceValue});
 
   @override
   State<_ValueEntryDialog> createState() => _ValueEntryDialogState();
@@ -393,23 +452,69 @@ class _ValueEntryDialogState extends State<_ValueEntryDialog> {
     super.dispose();
   }
 
+  /// The live readout, recomputed on every keystroke from the text in the
+  /// field rather than from the stored value, so the diver sees the answer
+  /// before committing to it. Null when there is nothing to compute.
+  String? _readout(BuildContext context) {
+    if (!widget.item.isCellLinearity) return null;
+    final typed = parseUserDecimal(_valueController.text);
+    final expected = CellLinearity.expectedO2Millivolts(widget.sourceValue);
+    final percent = CellLinearity.percent(
+      airMillivolts: widget.sourceValue,
+      o2Millivolts: typed,
+    );
+    if (expected == null || percent == null) return null;
+    return context.l10n.preDive_runner_linearityReadout(
+      formatDecimalForDisplay(double.parse(expected.toStringAsFixed(1))),
+      percent.round().toString(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final isLinearity = widget.item.isCellLinearity;
+    final readout = _readout(context);
     return AlertDialog(
       title: Text(widget.item.valueLabel ?? widget.item.title),
       content: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (isLinearity)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                widget.sourceValue == null
+                    ? '${l10n.preDive_runner_cellInAir}: '
+                          '${l10n.preDive_runner_cellInAirMissing}'
+                    : '${l10n.preDive_runner_cellInAir}: '
+                              '${formatDecimalForDisplay(widget.sourceValue!)} '
+                              '${widget.item.valueUnit ?? ''}'
+                          .trim(),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
           TextField(
             controller: _valueController,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: isLinearity ? (_) => setState(() {}) : null,
             decoration: InputDecoration(
-              labelText: l10n.preDive_runner_enterValue,
+              labelText: isLinearity
+                  ? l10n.preDive_runner_enterO2Value
+                  : l10n.preDive_runner_enterValue,
               suffixText: widget.item.valueUnit,
             ),
           ),
+          if (readout != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(readout, style: theme.textTheme.bodyMedium),
+            ),
           const SizedBox(height: 16),
           TextField(
             controller: _noteController,

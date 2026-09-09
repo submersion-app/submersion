@@ -2457,6 +2457,31 @@ class AppLocalizationsNl extends AppLocalizations {
   String get preDive_item_valueMax => 'Max (waarschuwing)';
 
   @override
+  String get preDive_item_type_cellLinearity => 'Cellineariteit';
+
+  @override
+  String get preDive_item_sourceItem => 'Luchtmeting van';
+
+  @override
+  String get preDive_item_sourceItemRequired =>
+      'Kies het item met de luchtmeting';
+
+  @override
+  String get preDive_item_linearityMin => 'Min. lineariteit % (waarschuwing)';
+
+  @override
+  String get preDive_item_linearityMax => 'Max. lineariteit % (waarschuwing)';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return '$title heeft geen luchtmeting meer om mee te vergelijken';
+  }
+
+  @override
+  String get preDive_item_sourceBelow =>
+      'Gebruikt een waarde die verderop in deze lijst wordt vastgelegd';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done van $total';
   }
@@ -2493,6 +2518,33 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => 'Waarde invoeren';
+
+  @override
+  String get preDive_runner_cellInAir => 'In lucht';
+
+  @override
+  String get preDive_runner_cellInAirMissing => 'Nog niet vastgelegd';
+
+  @override
+  String get preDive_runner_enterO2Value => 'Voer de waarde in O2 in';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return 'Verwacht $expected mV, lineariteit $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return 'Lucht $air mV, verwacht $expected mV, lineariteit $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged =>
+      'Luchtmeting is sindsdien gewijzigd';
 
   @override
   String preDive_runner_flaggedBadge(int count) {

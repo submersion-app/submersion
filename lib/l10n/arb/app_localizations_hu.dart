@@ -2460,6 +2460,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get preDive_item_valueMax => 'Maximum (figyelmeztetés)';
 
   @override
+  String get preDive_item_type_cellLinearity => 'Cella linearitása';
+
+  @override
+  String get preDive_item_sourceItem => 'Levegős mérés innen';
+
+  @override
+  String get preDive_item_sourceItemRequired =>
+      'Válaszd ki a levegős mérést tartalmazó elemet';
+
+  @override
+  String get preDive_item_linearityMin => 'Min. linearitás % (figyelmeztetés)';
+
+  @override
+  String get preDive_item_linearityMax => 'Max. linearitás % (figyelmeztetés)';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return '$title elemhez már nincs összehasonlítható levegős mérés';
+  }
+
+  @override
+  String get preDive_item_sourceBelow =>
+      'A listában később rögzített értéket használ';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done / $total';
   }
@@ -2496,6 +2521,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => 'Érték megadása';
+
+  @override
+  String get preDive_runner_cellInAir => 'Levegőben';
+
+  @override
+  String get preDive_runner_cellInAirMissing => 'Még nincs rögzítve';
+
+  @override
+  String get preDive_runner_enterO2Value => 'Add meg az O2-ben mért értéket';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return 'Várt $expected mV, linearitás $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return 'Levegő $air mV, várt $expected mV, linearitás $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged =>
+      'A levegős mérés azóta megváltozott';
 
   @override
   String preDive_runner_flaggedBadge(int count) {

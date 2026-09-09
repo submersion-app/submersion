@@ -2400,6 +2400,30 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_item_valueMax => 'מקסימום (אזהרה)';
 
   @override
+  String get preDive_item_type_cellLinearity => 'ליניאריות התא';
+
+  @override
+  String get preDive_item_sourceItem => 'קריאת אוויר מתוך';
+
+  @override
+  String get preDive_item_sourceItemRequired =>
+      'בחר את הפריט שמכיל את קריאת האוויר';
+
+  @override
+  String get preDive_item_linearityMin => 'ליניאריות מזערית % (אזהרה)';
+
+  @override
+  String get preDive_item_linearityMax => 'ליניאריות מרבית % (אזהרה)';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return 'ל־$title אין יותר קריאת אוויר להשוואה';
+  }
+
+  @override
+  String get preDive_item_sourceBelow => 'קורא ערך שנרשם בהמשך הרשימה';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done מתוך $total';
   }
@@ -2436,6 +2460,32 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => 'הזן ערך';
+
+  @override
+  String get preDive_runner_cellInAir => 'באוויר';
+
+  @override
+  String get preDive_runner_cellInAirMissing => 'טרם נרשם';
+
+  @override
+  String get preDive_runner_enterO2Value => 'הזן ערך בחמצן טהור';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return 'צפוי $expected mV, ליניאריות $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return 'אוויר $air mV, צפוי $expected mV, ליניאריות $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged => 'קריאת האוויר השתנתה מאז';
 
   @override
   String preDive_runner_flaggedBadge(int count) {

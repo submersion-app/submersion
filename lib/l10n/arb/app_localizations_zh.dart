@@ -2329,6 +2329,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_item_valueMax => '最大值（警告）';
 
   @override
+  String get preDive_item_type_cellLinearity => '氧电池线性度';
+
+  @override
+  String get preDive_item_sourceItem => '空气读数来自';
+
+  @override
+  String get preDive_item_sourceItemRequired => '选择包含空气读数的项目';
+
+  @override
+  String get preDive_item_linearityMin => '最小线性度 %（警告）';
+
+  @override
+  String get preDive_item_linearityMax => '最大线性度 %（警告）';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return '$title 已没有可对比的空气读数';
+  }
+
+  @override
+  String get preDive_item_sourceBelow => '引用的数值在本列表中位于其后';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done/$total';
   }
@@ -2364,6 +2387,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => '输入数值';
+
+  @override
+  String get preDive_runner_cellInAir => '空气中';
+
+  @override
+  String get preDive_runner_cellInAirMissing => '尚未记录';
+
+  @override
+  String get preDive_runner_enterO2Value => '输入纯氧中的数值';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return '预期 $expected mV，线性度 $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return '空气 $air mV，预期 $expected mV，线性度 $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged => '空气读数此后已更改';
 
   @override
   String preDive_runner_flaggedBadge(int count) {
