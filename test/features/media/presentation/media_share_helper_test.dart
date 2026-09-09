@@ -153,16 +153,33 @@ void main() {
     expect(platform.calls, isEmpty);
   });
 
-  /// Taps Share and lets the real event loop run.
+  /// Taps Share and waits for the share to reach the platform.
   ///
   /// writeShareTempFile does genuine file I/O, and testWidgets' fake async
   /// clock never advances real time -- pumpAndSettle would spin through its
   /// whole budget while the write sits pending. runAsync hands control back
   /// to the real loop for the duration.
+  ///
+  /// It polls for the recorded call rather than sleeping a fixed span: how
+  /// long the resolve and the temp-file write take is a property of the
+  /// filesystem, so any constant is a race that a slow CI runner eventually
+  /// loses. The deadline only bounds a share that never arrives, and the
+  /// caller's own assertion is what fails when it does not.
+  ///
+  /// Every caller is a success-path test, so "a call was recorded" is the
+  /// right thing to wait for. A test asserting the sheet never opens has
+  /// nothing to wait for and drives the tap itself.
   Future<void> tapShareAndDrain(WidgetTester tester) async {
     await tester.runAsync(() async {
       await tester.tap(find.text('SHARE'));
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      final deadline = DateTime.now().add(const Duration(seconds: 10));
+      while (platform.calls.isEmpty && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+      }
+      // The call is recorded on entry to the fake's share(), so yield one
+      // more turn to let the awaiting handler resume and report its result.
+      // A scheduling yield, not a wall-clock guess.
+      await Future<void>.delayed(Duration.zero);
     });
     await tester.pump();
   }

@@ -555,10 +555,21 @@ void main() {
       expect(find.text('1 selected'), findsOneWidget);
 
       // Writing the share temp file is real I/O, which deadlocks under the
-      // test zone's fake async unless it runs through runAsync.
+      // test zone's fake async unless it runs through runAsync. Wait for the
+      // platform call rather than a fixed span: how long the resolve and the
+      // write take belongs to the filesystem, so any constant is a race a
+      // slow runner eventually loses. The deadline only bounds a share that
+      // never arrives, and the assertions below are what fail when it does
+      // not.
       await tester.runAsync(() async {
         await tester.tap(find.byKey(const ValueKey('selection_action_share')));
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        final deadline = DateTime.now().add(const Duration(seconds: 10));
+        while (platform.calls.isEmpty && DateTime.now().isBefore(deadline)) {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+        }
+        // The call is recorded on entry to the fake's share(); one more turn
+        // lets the bar's handler resume and report its outcome.
+        await Future<void>.delayed(Duration.zero);
       });
       await tester.pump();
 
