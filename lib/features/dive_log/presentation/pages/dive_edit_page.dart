@@ -59,6 +59,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/buddies_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/conditions_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/experience_section.dart';
@@ -1626,7 +1627,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<WaterType>(
               value: _waterType,
               options: WaterType.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _waterType = v),
             ),
           ),
@@ -1813,7 +1814,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<DiveMode>(
               value: _diveMode,
               options: DiveMode.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _diveMode = v ?? DiveMode.oc),
             ),
           ),
@@ -3973,7 +3974,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         label: l10n.diveLog_edit_label_waterType,
         value: _waterType,
         values: WaterType.values,
-        displayName: (v) => v.displayName,
+        displayName: (v) => v.localizedName(l10n),
         onChanged: (v) => setState(() => _waterType = v),
       ),
       EnumPickerRow<CurrentDirection>(
