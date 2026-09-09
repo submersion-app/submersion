@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "Link másolva. Illeszd be a böngésződbe az engedélyezéshez.",
   "universalImport_action_importFromGarmin": "Importálás Garmin eszközről",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "O2-cella",
+  "enum_equipmentType_battery": "Akkumulátor",
   "diveLog_tank_saveAsPreset": "Mentés előre beállításként",
   "diveLog_tank_saveAsPreset_needSpecs": "Először adjon meg térfogatot és üzemi nyomást",
   "diveLog_tank_saveAsPreset_nameTitle": "Palack előre beállítás mentése",
@@ -976,6 +978,20 @@
   "preDive_item_valueUnit": "Mértékegység",
   "preDive_item_valueMin": "Minimum (figyelmeztetés)",
   "preDive_item_valueMax": "Maximum (figyelmeztetés)",
+  "preDive_item_type_cellLinearity": "Cella linearitása",
+  "preDive_item_sourceItem": "Levegős mérés innen",
+  "preDive_item_sourceItemRequired": "Válaszd ki a levegős mérést tartalmazó elemet",
+  "preDive_item_linearityMin": "Min. linearitás % (figyelmeztetés)",
+  "preDive_item_linearityMax": "Max. linearitás % (figyelmeztetés)",
+  "preDive_item_sourceCleared": "{title} elemhez már nincs összehasonlítható levegős mérés",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "A listában később rögzített értéket használ",
   "preDive_runner_progress": "{done} / {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1020,35 @@
   "preDive_runner_serviceOverdue": "A karbantartás lejárt",
   "preDive_runner_addNote": "Megjegyzés hozzáadása",
   "preDive_runner_enterValue": "Érték megadása",
+  "preDive_runner_cellInAir": "Levegőben",
+  "preDive_runner_cellInAirMissing": "Még nincs rögzítve",
+  "preDive_runner_enterO2Value": "Add meg az O2-ben mért értéket",
+  "preDive_runner_linearityReadout": "Várt {expected} mV, linearitás {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Levegő {air} mV, várt {expected} mV, linearitás {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "A levegős mérés azóta megváltozott",
   "preDive_runner_flaggedBadge": "{count} megjelölve",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2549,6 +2594,8 @@
   "diveLog_tank_selectPreset": "Valasszon elore beallitast...",
   "diveLog_tank_title": "{number}. palack",
   "diveLog_tank_tooltip_remove": "Palack eltavolitasa",
+  "diveLog_tank_regulatorLabel": "Reduktor",
+  "diveLog_tank_regulatorNone": "Nincs",
   "diveLog_tissue_label_ceiling": "Plafon",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3614,6 +3661,61 @@
   "cylinderConfigs_sectionTitle": "Konfigurációk",
   "equipment_serviceClocks_hoursSource": "A naplózott merülési idő alapján számolva",
   "equipment_serviceClocks_hoursLeft": "{remaining} / {total} óra van hátra",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} / {total} sós vízi óra van hátra",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} / {total} hideg vízi merülés van hátra",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} / {total} magas O2-tartalmú óra van hátra",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} / {total} mély merülés van hátra",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} / {total} akkumulátorciklus van hátra",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Szerviztípusok kezelése",
   "equipment_serviceClocks_appliesToClock": "Kapcsolódó intervallum",
   "equipment_serviceClocks_noClockOption": "Nem tartozik intervallumhoz",
@@ -3621,6 +3723,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervallum (nap)",
   "equipment_scheduleDialog_intervalDives": "Intervallum (merülés)",
   "equipment_scheduleDialog_intervalHours": "Intervallum (óra)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervallum (sós vízi órák)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervallum (hideg vízi merülések)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervallum (magas O2-tartalmú órák)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervallum (mély merülések)",
+  "equipment_scheduleDialog_intervalCycles": "Intervallum (akkumulátorciklusok)",
   "equipment_scheduleDialog_inheritHint": "Alapértelmezés: {value}",
   "equipment_scheduleDialog_anchorDate": "Kiindulási dátum",
   "equipment_scheduleDialog_anchorHint": "Akkor használjuk, ha még nincs ilyen típusú szervizbejegyzés",
@@ -3719,6 +3826,8 @@
   "equipment_edit_snackbar_error": "Hiba a felszereles mentesekor: {error}",
   "equipment_edit_snackbar_updated": "Felszereles frissitve",
   "equipment_edit_statusLabel": "Allapot",
+  "equipment_edit_parentLabel": "Beszerelve ebbe",
+  "equipment_edit_parentNone": "Nincs beszerelve",
   "equipment_edit_thicknessDesignationHint": "pl. 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "pl. shop.example.com/product",
   "equipment_edit_thicknessHint": "pl. 5mm, 7mm",
@@ -6500,10 +6609,6 @@
   "settings_siteMatch_subtitle": "Mennyire agresszíven rendelődnek a letöltött merülések a helyekhez",
   "settings_tankPressureAtSurfacing_title": "Palacknyomás felbukkanáskor",
   "settings_tankPressureAtSurfacing_subtitle": "A végnyomás a felszínre érkezéskor legyen leolvasva, ne a rögzítés végén",
-  "settings_cloudImportPageSize_title": "Felhőimport oldalmérete",
-  "settings_cloudImportPageSize_subtitle": "Hány legutóbbi merülést töltsön le egyszerre a Suunto Cloudból vagy a Garmin Connectből. A „Továbbiak betöltése” ugyanekkora következő köteget kér.",
-  "settings_cloudImportPageSize_dialogTitle": "Merülések oldalanként",
-  "settings_cloudImportPageSize_range": "{min} és {max} között",
   "settings_siteMatch_strict": "Szigorú",
   "settings_siteMatch_balanced": "Kiegyensúlyozott",
   "settings_siteMatch_relaxed": "Laza",
@@ -7457,6 +7562,9 @@
   "attrLabel_o2_cylinder_l": "O2 palack",
   "attrLabel_dpv_style": "Fazon",
   "attrLabel_burn_time_h": "Üzemidő",
+  "attrLabel_cell_slot": "Cellahely",
+  "attrLabel_installed_date": "Beszerelve",
+  "attrLabel_rechargeable": "Újratölthető",
   "attrLabel_battery_type": "Akkumulátor",
   "attrLabel_battery_capacity_wh": "Akkukapacitás (Wh)",
   "attrLabel_motor_type": "Motor",
@@ -7563,6 +7671,8 @@
   "attrChoice_battery_type_lithium_ion": "Lítium-ion",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Ólom-savas",
+  "attrChoice_battery_type_alkaline": "Alkáli",
+  "attrChoice_battery_type_lithium_primary": "Lítium (nem újratölthető)",
   "attrChoice_motor_type_brushless": "Szénkefe nélküli",
   "attrChoice_motor_type_brushed": "Szénkefés",
   "attrChoice_sleeve_length_short": "Rövid",
@@ -8017,6 +8127,16 @@
   "planning_card_noFly_subtitle": "Irányadó visszaszámlálás az utolsó merüléseidtől",
   "settings_section_safety_title": "Biztonság",
   "settings_section_safety_subtitle": "Áttekintési szabályok és repülés merülés után",
+  "settings_section_equipmentCondition_title": "Felszerelés állapota",
+  "settings_section_equipmentCondition_subtitle": "Terhelési küszöbök a szervizórákhoz",
+  "equipmentConditionSettings_title": "Felszerelés állapota",
+  "equipmentConditionSettings_thresholdsHeader": "Terhelési küszöbök",
+  "equipmentConditionSettings_thresholdsHelp": "Egy merülés akkor számít hidegnek, mélynek vagy magas O2-tartalmúnak a szervizórák számára, ha átlépi ezeket a határokat.",
+  "equipmentConditionSettings_coldLabel": "Hideg víz ez alatt",
+  "equipmentConditionSettings_deepLabel": "Mély merülés ettől",
+  "equipmentConditionSettings_o2Label": "Magas O2-tartalmú keverék e felett (% O2)",
+  "equipmentConditionSettings_invalid": "Adjon meg egy számot",
+  "equipmentConditionSettings_saveFailed": "A mentés nem sikerült. Próbálja újra.",
   "dataQuality_inbox_title": "Adatminőség",
   "dataQuality_dive_unknown": "A merülés adatai nem érhetők el",
   "dataQuality_dive_number": "#{number}.",

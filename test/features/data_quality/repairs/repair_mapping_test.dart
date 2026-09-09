@@ -39,6 +39,32 @@ void main() {
     expect(c.secondaryDiveId, 'd2');
   });
 
+  test('duplicate from the SAME computer offers no consolidate', () {
+    // DiveConsolidationBuilder refuses two records from one physical
+    // computer, so a Consolidate button on that pair can only ever fail.
+    final actions = repairOptionsFor(
+      f(
+        detectorId: 'duplicate',
+        relatedDiveId: 'd2',
+        params: {'sameComputer': true},
+      ),
+    );
+    expect(actions.whereType<ConsolidateDuplicateRepair>(), isEmpty);
+    // The pair is still navigable from the card's expanded row.
+    expect(actions.whereType<GoToDiveRepair>(), isNotEmpty);
+  });
+
+  test('duplicate from two different computers still offers consolidate', () {
+    final actions = repairOptionsFor(
+      f(
+        detectorId: 'duplicate',
+        relatedDiveId: 'd2',
+        params: {'sameComputer': false},
+      ),
+    );
+    expect(actions.whereType<ConsolidateDuplicateRepair>(), hasLength(1));
+  });
+
   test('split pair maps to combine', () {
     final actions = repairOptionsFor(
       f(detectorId: 'split_pair', relatedDiveId: 'd2'),

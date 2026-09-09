@@ -13,7 +13,6 @@ import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_session_store.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/cloud_import_paging.dart';
-import 'package:submersion/features/import_wizard/presentation/providers/cloud_import_page_size_provider.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/suunto_cloud_adapter_steps.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -569,34 +568,9 @@ void main() {
       expect(client.fetchedKeys, ['w1', 'w2']);
       expect(fetched, hasLength(2));
       expect(find.text('Found 2 dives'), findsOneWidget);
-      expect(client.requestedPageSizes, [CloudImportPaging.defaultPageSize]);
+      expect(client.requestedPageSizes, [CloudImportPaging.pageSize]);
       // The offset in the fixture must survive as the wall clock.
       expect(fetched!.first.dive.startTime, DateTime.utc(2026, 5, 1, 10));
-    });
-
-    testWidgets('asks the client for the configured page size', (tester) async {
-      final client = _FakeCloudClient(
-        workouts: [_workout('w1')],
-        smlByKey: {'w1': _diveJson()},
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            cloudImportPageSizeProvider.overrideWith(
-              (ref) => CloudImportPageSizeNotifier(initial: 7),
-            ),
-          ],
-          child: _host(
-            store: _FakeSessionStore(),
-            clientFactory: _FakeCloudClient.new,
-            child: SuuntoCloudFetchStep(client: client, onDivesFetched: (_) {}),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(client.requestedPageSizes, [7]);
     });
 
     testWidgets('skips a single unreadable dive rather than aborting', (

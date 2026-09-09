@@ -45,11 +45,29 @@ void main() {
   });
 
   test('rank follows table position', () {
+    // Stated as relationships rather than arithmetic on length: the earlier
+    // version pinned fins to `length - 2`, which broke the moment the
+    // consumable tail grew even though fins had not moved.
     expect(equipmentTypeRank(EquipmentType.hood, kHeadToToeTypeOrder), 0);
-    expect(
-      equipmentTypeRank(EquipmentType.fins, kHeadToToeTypeOrder),
-      kHeadToToeTypeOrder.length - 2,
-    );
     expect(equipmentTypeRank(EquipmentType.rashGuard, kDressingTypeOrder), 0);
+
+    int rank(EquipmentType t) => equipmentTypeRank(t, kHeadToToeTypeOrder);
+    // Fins are the toe end of the worn sequence.
+    expect(rank(EquipmentType.fins), greaterThan(rank(EquipmentType.boots)));
+    expect(rank(EquipmentType.fins), greaterThan(rank(EquipmentType.hood)));
+  });
+
+  test('consumable child parts tail every sequence', () {
+    // They live inside another item, so they have no place in an anatomical
+    // or a dressing sequence and must not displace worn gear.
+    for (final table in tables.values) {
+      for (final part in [EquipmentType.o2Cell, EquipmentType.battery]) {
+        expect(
+          equipmentTypeRank(part, table),
+          greaterThan(equipmentTypeRank(EquipmentType.fins, table)),
+          reason: '${part.name} should sit after the gear a diver wears',
+        );
+      }
+    }
   });
 }

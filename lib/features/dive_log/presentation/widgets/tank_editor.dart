@@ -16,6 +16,8 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
 /// Callback when tank data changes
 typedef TankChangeCallback = void Function(DiveTank tank);
@@ -60,6 +62,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TankRole _role;
   late TankMaterial? _material;
   TankPresetEntity? _selectedPreset;
+
+  /// The regulator breathed from this cylinder (v202). Null until the diver
+  /// picks one or a preset prefills it from the last pairing.
+  String? _regulatorEquipmentId;
 
   @override
   void initState() {
@@ -135,6 +141,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _mndController = TextEditingController();
     _role = widget.tank.role;
     _material = widget.tank.material;
+    _regulatorEquipmentId = widget.tank.regulatorEquipmentId;
     // Initialize selected preset from tank's presetName
     // Check built-in presets first, async lookup for custom presets happens in build
     if (widget.tank.presetName != null) {
@@ -308,6 +315,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         // through edits; only consolidation/unlink flows may change them.
         computerId: widget.tank.computerId,
         transmitterSerial: widget.tank.transmitterSerial,
+        regulatorEquipmentId: _regulatorEquipmentId,
       ),
     );
   }
@@ -349,6 +357,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 label: Text(context.l10n.diveLog_tank_saveAsPreset),
               ),
             ),
+            const SizedBox(height: 12),
+
+            // Regulator breathed from this cylinder (v202), so high-O2
+            // contact reaches the regulator's service clocks.
+            _buildRegulatorPicker(),
             const SizedBox(height: 12),
 
             // Gas mix with templates
@@ -524,6 +537,36 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildRegulatorPicker() {
+    final regs =
+        (ref.watch(activeEquipmentProvider).valueOrNull ??
+                const <EquipmentItem>[])
+            .where((e) => e.type == EquipmentType.regulator)
+            .toList();
+    final known = regs.any((r) => r.id == _regulatorEquipmentId);
+    return DropdownButtonFormField<String?>(
+      key: const Key('tank-regulator-picker'),
+      initialValue: known ? _regulatorEquipmentId : null,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: context.l10n.diveLog_tank_regulatorLabel,
+        isDense: true,
+      ),
+      items: [
+        DropdownMenuItem<String?>(
+          value: null,
+          child: Text(context.l10n.diveLog_tank_regulatorNone),
+        ),
+        for (final r in regs)
+          DropdownMenuItem<String?>(value: r.id, child: Text(r.name)),
+      ],
+      onChanged: (value) {
+        setState(() => _regulatorEquipmentId = value);
+        _notifyChange();
+      },
     );
   }
 
@@ -830,9 +873,35 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
   }
 
+  /// Prefill the regulator from the last dive that paired one with this
+  /// preset, but never overwrite a choice already made on this tank.
+  void _prefillRegulatorFor(String presetName) {
+    if (_regulatorEquipmentId != null) return;
+    // A convenience, not a requirement: a host without a database (widget
+    // tests, previews) must not break preset selection.
+    Future<String?> lookup;
+    try {
+      lookup = ref
+          .read(equipmentRepositoryProvider)
+          .getLastRegulatorForPreset(presetName);
+    } catch (_) {
+      return;
+    }
+    lookup
+        .then((reg) {
+          if (!mounted || reg == null || _regulatorEquipmentId != null) {
+            return;
+          }
+          setState(() => _regulatorEquipmentId = reg);
+          _notifyChange();
+        })
+        .catchError((Object _) {});
+  }
+
   void _applyPreset(TankPresetEntity preset) {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
+    _prefillRegulatorFor(preset.name);
 
     setState(() {
       _selectedPreset = preset;

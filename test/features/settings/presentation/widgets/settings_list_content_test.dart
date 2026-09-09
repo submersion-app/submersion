@@ -34,6 +34,7 @@ void main() {
     void Function(String?)? onItemSelected,
     String? selectedId,
     List<Diver> divers = const [],
+    Locale? locale,
   }) async {
     SharedPreferences.setMockInitialValues(
       debugEnabled ? {'debug_mode_enabled': true} : {},
@@ -47,6 +48,7 @@ void main() {
         allDiversProvider.overrideWith((ref) async => divers),
       ],
       child: MaterialApp(
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: SettingsListContent(
@@ -66,6 +68,22 @@ void main() {
   );
 
   group('SettingsListContent', () {
+    testWidgets('the equipment condition section reads in the active locale', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await buildWidget(debugEnabled: false, locale: const Locale('de')),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Ausrüstungszustand'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Ausrüstungszustand'), findsOneWidget);
+      expect(find.text('Equipment condition'), findsNothing);
+    });
+
     testWidgets('shows Debug section when debug mode is enabled', (
       tester,
     ) async {

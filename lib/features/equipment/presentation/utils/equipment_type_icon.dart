@@ -94,6 +94,10 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return SubmersionIcons.reel;
     case EquipmentType.dpv:
       return SubmersionIcons.dpv;
+    case EquipmentType.o2Cell:
+      return Icons.sensors;
+    case EquipmentType.battery:
+      return Icons.battery_full;
     // A wrench until #1518, when Tool became a type of its own and the two
     // would have read as the same idea. The catch-all now says catch-all.
     case EquipmentType.other:

@@ -1432,6 +1432,7 @@ class DiveRepository {
                 presetName: Value(tank.presetName),
                 computerId: Value(tank.computerId),
                 transmitterSerial: Value(tank.transmitterSerial),
+                regulatorEquipmentId: Value(tank.regulatorEquipmentId),
                 sourceTankIndex: Value(tank.sourceTankIndex),
               ),
             );
@@ -1678,6 +1679,9 @@ class DiveRepository {
               // and deliberately not written here: edit flows rebuild the
               // tank field by field, and a rebuild that forgot them must not
               // wipe what the download recorded.
+              // The regulator link is user-authored, unlike the two above,
+              // so an edit does write it.
+              regulatorEquipmentId: Value(tank.regulatorEquipmentId),
             ),
           );
           // Log as pending update (assuming sync handles updates)
@@ -1707,6 +1711,7 @@ class DiveRepository {
                   presetName: Value(tank.presetName),
                   computerId: Value(tank.computerId),
                   transmitterSerial: Value(tank.transmitterSerial),
+                  regulatorEquipmentId: Value(tank.regulatorEquipmentId),
                   sourceTankIndex: Value(tank.sourceTankIndex),
                 ),
               );
@@ -3598,6 +3603,7 @@ class DiveRepository {
               presetName: t.presetName,
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
+              regulatorEquipmentId: t.regulatorEquipmentId,
               sourceTankIndex: t.sourceTankIndex,
             ),
           )
@@ -4005,6 +4011,7 @@ class DiveRepository {
           presetName: t.presetName,
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
+          regulatorEquipmentId: t.regulatorEquipmentId,
           sourceTankIndex: t.sourceTankIndex,
         );
       }).toList(),
@@ -5864,6 +5871,7 @@ class DiveRepository {
     presetName: Value(t.presetName),
     computerId: Value(t.computerId),
     transmitterSerial: Value(t.transmitterSerial),
+    regulatorEquipmentId: Value(t.regulatorEquipmentId),
     sourceTankIndex: Value(t.sourceTankIndex),
   );
 

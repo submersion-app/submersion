@@ -116,6 +116,10 @@ class SyncRepository {
     'qualityFindings': (table: 'quality_findings', pk: 'id'),
     'emergencyChambers': (table: 'emergency_chambers', pk: 'id'),
     'incidents': (table: 'incidents', pk: 'id'),
+    // v202: gear check-ins. The serializer wires them in the condition
+    // findings phase; registering the clock target now keeps the hlc census
+    // honest about the table carrying a clock column.
+    'equipmentObservations': (table: 'equipment_observations', pk: 'id'),
     'mediaSmartAlbums': (table: 'media_smart_albums', pk: 'id'),
   };
 

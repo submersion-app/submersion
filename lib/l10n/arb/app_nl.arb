@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "Link gekopieerd. Plak hem in je browser om toegang te verlenen.",
   "universalImport_action_importFromGarmin": "Importeren vanaf Garmin-apparaat",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "O2-cel",
+  "enum_equipmentType_battery": "Batterij",
   "diveLog_tank_saveAsPreset": "Als voorinstelling opslaan",
   "diveLog_tank_saveAsPreset_needSpecs": "Voer eerst een volume en werkdruk in",
   "diveLog_tank_saveAsPreset_nameTitle": "Flesvoorinstelling opslaan",
@@ -976,6 +978,20 @@
   "preDive_item_valueUnit": "Eenheid",
   "preDive_item_valueMin": "Min (waarschuwing)",
   "preDive_item_valueMax": "Max (waarschuwing)",
+  "preDive_item_type_cellLinearity": "Cellineariteit",
+  "preDive_item_sourceItem": "Luchtmeting van",
+  "preDive_item_sourceItemRequired": "Kies het item met de luchtmeting",
+  "preDive_item_linearityMin": "Min. lineariteit % (waarschuwing)",
+  "preDive_item_linearityMax": "Max. lineariteit % (waarschuwing)",
+  "preDive_item_sourceCleared": "{title} heeft geen luchtmeting meer om mee te vergelijken",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Gebruikt een waarde die verderop in deze lijst wordt vastgelegd",
   "preDive_runner_progress": "{done} van {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1020,35 @@
   "preDive_runner_serviceOverdue": "Onderhoud verlopen",
   "preDive_runner_addNote": "Notitie toevoegen",
   "preDive_runner_enterValue": "Waarde invoeren",
+  "preDive_runner_cellInAir": "In lucht",
+  "preDive_runner_cellInAirMissing": "Nog niet vastgelegd",
+  "preDive_runner_enterO2Value": "Voer de waarde in O2 in",
+  "preDive_runner_linearityReadout": "Verwacht {expected} mV, lineariteit {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Lucht {air} mV, verwacht {expected} mV, lineariteit {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "Luchtmeting is sindsdien gewijzigd",
   "preDive_runner_flaggedBadge": "{count} gemarkeerd",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2633,6 +2678,8 @@
   "diveLog_tank_selectPreset": "Selecteer voorinstelling...",
   "diveLog_tank_title": "Fles {number}",
   "diveLog_tank_tooltip_remove": "Fles verwijderen",
+  "diveLog_tank_regulatorLabel": "Ademautomaat",
+  "diveLog_tank_regulatorNone": "Geen",
   "diveLog_tissue_label_ceiling": "Plafond",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3698,6 +3745,61 @@
   "cylinderConfigs_sectionTitle": "Configuraties",
   "equipment_serviceClocks_hoursSource": "Berekend op basis van geregistreerde duiktijd",
   "equipment_serviceClocks_hoursLeft": "{remaining} van {total} uur resterend",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} van {total} uren in zout water over",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} van {total} koudwaterduiken over",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} van {total} uren met hoog O2 over",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} van {total} diepe duiken over",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} van {total} batterijcycli over",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Servicetypen beheren",
   "equipment_serviceClocks_appliesToClock": "Gekoppeld aan interval",
   "equipment_serviceClocks_noClockOption": "Niet aan een interval gekoppeld",
@@ -3705,6 +3807,11 @@
   "equipment_scheduleDialog_intervalDays": "Interval (dagen)",
   "equipment_scheduleDialog_intervalDives": "Interval (duiken)",
   "equipment_scheduleDialog_intervalHours": "Interval (uren)",
+  "equipment_scheduleDialog_intervalSaltHours": "Interval (uren in zout water)",
+  "equipment_scheduleDialog_intervalColdDives": "Interval (koudwaterduiken)",
+  "equipment_scheduleDialog_intervalO2Hours": "Interval (uren met hoog O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Interval (diepe duiken)",
+  "equipment_scheduleDialog_intervalCycles": "Interval (batterijcycli)",
   "equipment_scheduleDialog_inheritHint": "Standaard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referentiedatum",
   "equipment_scheduleDialog_anchorHint": "Wordt gebruikt zolang er nog geen servicerecord van dit type bestaat",
@@ -3803,6 +3910,8 @@
   "equipment_edit_snackbar_error": "Fout bij opslaan van uitrusting: {error}",
   "equipment_edit_snackbar_updated": "Uitrusting bijgewerkt",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_parentLabel": "Geplaatst in",
+  "equipment_edit_parentNone": "Nergens geplaatst",
   "equipment_edit_thicknessDesignationHint": "bijv. 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "bijv. shop.example.com/product",
   "equipment_edit_thicknessHint": "bijv. 5mm, 7mm",
@@ -6584,10 +6693,6 @@
   "settings_siteMatch_subtitle": "Hoe agressief gedownloade duiken aan stekken worden gekoppeld",
   "settings_tankPressureAtSurfacing_title": "Flesdruk bij bovenkomen",
   "settings_tankPressureAtSurfacing_subtitle": "Neem de einddruk op het moment van bovenkomen, niet aan het einde van de opname",
-  "settings_cloudImportPageSize_title": "Paginagrootte voor cloudimport",
-  "settings_cloudImportPageSize_subtitle": "Hoeveel van de nieuwste duiken per keer op te halen van Suunto Cloud of Garmin Connect. „Meer laden” haalt de volgende batch van dezelfde grootte op.",
-  "settings_cloudImportPageSize_dialogTitle": "Duiken per pagina",
-  "settings_cloudImportPageSize_range": "Tussen {min} en {max}",
   "settings_siteMatch_strict": "Strikt",
   "settings_siteMatch_balanced": "Gebalanceerd",
   "settings_siteMatch_relaxed": "Soepel",
@@ -7457,6 +7562,9 @@
   "attrLabel_o2_cylinder_l": "O2-fles",
   "attrLabel_dpv_style": "Stijl",
   "attrLabel_burn_time_h": "Looptijd",
+  "attrLabel_cell_slot": "Celpositie",
+  "attrLabel_installed_date": "Geplaatst op",
+  "attrLabel_rechargeable": "Oplaadbaar",
   "attrLabel_battery_type": "Accu",
   "attrLabel_battery_capacity_wh": "Accucapaciteit (Wh)",
   "attrLabel_motor_type": "Motor",
@@ -7563,6 +7671,8 @@
   "attrChoice_battery_type_lithium_ion": "Lithium-ion",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Loodzuur",
+  "attrChoice_battery_type_alkaline": "Alkaline",
+  "attrChoice_battery_type_lithium_primary": "Lithium (niet oplaadbaar)",
   "attrChoice_motor_type_brushless": "Borstelloos",
   "attrChoice_motor_type_brushed": "Met borstels",
   "attrChoice_sleeve_length_short": "Kort",
@@ -8017,6 +8127,16 @@
   "planning_card_noFly_subtitle": "Richtlijn-aftelling vanaf je laatste duiken",
   "settings_section_safety_title": "Veiligheid",
   "settings_section_safety_subtitle": "Controleregels & vliegen na het duiken",
+  "settings_section_equipmentCondition_title": "Staat van uitrusting",
+  "settings_section_equipmentCondition_subtitle": "Blootstellingsdrempels voor onderhoudsklokken",
+  "equipmentConditionSettings_title": "Staat van uitrusting",
+  "equipmentConditionSettings_thresholdsHeader": "Blootstellingsdrempels",
+  "equipmentConditionSettings_thresholdsHelp": "Een duik telt voor onderhoudsklokken als koud, diep of met hoog O2 wanneer hij deze grenzen overschrijdt.",
+  "equipmentConditionSettings_coldLabel": "Koud water onder",
+  "equipmentConditionSettings_deepLabel": "Diepe duik vanaf",
+  "equipmentConditionSettings_o2Label": "Mengsel met hoog O2 boven (% O2)",
+  "equipmentConditionSettings_invalid": "Voer een getal in",
+  "equipmentConditionSettings_saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
   "dataQuality_inbox_title": "Datakwaliteit",
   "dataQuality_dive_unknown": "Duikgegevens niet beschikbaar",
   "dataQuality_dive_number": "#{number}",

@@ -56,6 +56,13 @@ const List<EquipmentType> kHeadToToeTypeOrder = [
   EquipmentType.gloves,
   EquipmentType.boots,
   EquipmentType.fins,
+  // Consumable child parts (#1708): they live inside another item and are
+  // never worn or donned on their own, so they have no position in an
+  // anatomical or a dressing sequence. They tail the list beside `other`
+  // rather than being guessed next to a likely host, since a battery serves
+  // computers, lights and transmitters alike.
+  EquipmentType.o2Cell,
+  EquipmentType.battery,
   EquipmentType.other,
 ];
 
@@ -91,6 +98,13 @@ const List<EquipmentType> kDressingTypeOrder = [
   EquipmentType.mask,
   EquipmentType.snorkel,
   EquipmentType.gloves,
+  // Consumable child parts (#1708): they live inside another item and are
+  // never worn or donned on their own, so they have no position in an
+  // anatomical or a dressing sequence. They tail the list beside `other`
+  // rather than being guessed next to a likely host, since a battery serves
+  // computers, lights and transmitters alike.
+  EquipmentType.o2Cell,
+  EquipmentType.battery,
   EquipmentType.other,
 ];
 
@@ -133,6 +147,10 @@ const List<EquipmentType> kCanonicalTypeOrder = [
   EquipmentType.reel,
   EquipmentType.knife,
   EquipmentType.tool,
+  // Consumable child parts (#1708), a family of their own: they live inside
+  // another item rather than being gear a diver wears.
+  EquipmentType.o2Cell,
+  EquipmentType.battery,
   EquipmentType.other,
 ];
 

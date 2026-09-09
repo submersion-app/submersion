@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -22,6 +21,7 @@ import 'package:submersion/features/transmitters/data/repositories/transmitter_r
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 /// Full-screen editor for one registry entry. Picking a gear cylinder or a
 /// preset copies its specs into the fields (snapshot rule); the fields stay

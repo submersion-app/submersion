@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "链接已复制。请粘贴到浏览器中进行授权。",
   "universalImport_action_importFromGarmin": "从 Garmin 设备导入",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "氧电池",
+  "enum_equipmentType_battery": "电池",
   "diveLog_tank_saveAsPreset": "另存为预设",
   "diveLog_tank_saveAsPreset_needSpecs": "请先输入容积和工作压力",
   "diveLog_tank_saveAsPreset_nameTitle": "保存气瓶预设",
@@ -1070,6 +1072,20 @@
   "preDive_item_valueUnit": "单位",
   "preDive_item_valueMin": "最小值（警告）",
   "preDive_item_valueMax": "最大值（警告）",
+  "preDive_item_type_cellLinearity": "氧电池线性度",
+  "preDive_item_sourceItem": "空气读数来自",
+  "preDive_item_sourceItemRequired": "选择包含空气读数的项目",
+  "preDive_item_linearityMin": "最小线性度 %（警告）",
+  "preDive_item_linearityMax": "最大线性度 %（警告）",
+  "preDive_item_sourceCleared": "{title} 已没有可对比的空气读数",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "引用的数值在本列表中位于其后",
   "preDive_runner_progress": "{done}/{total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1098,6 +1114,35 @@
   "preDive_runner_serviceOverdue": "维护已逾期",
   "preDive_runner_addNote": "添加备注",
   "preDive_runner_enterValue": "输入数值",
+  "preDive_runner_cellInAir": "空气中",
+  "preDive_runner_cellInAirMissing": "尚未记录",
+  "preDive_runner_enterO2Value": "输入纯氧中的数值",
+  "preDive_runner_linearityReadout": "预期 {expected} mV，线性度 {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "空气 {air} mV，预期 {expected} mV，线性度 {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "空气读数此后已更改",
   "preDive_runner_flaggedBadge": "{count} 个已标记",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2766,6 +2811,8 @@
   "diveLog_tank_selectPreset": "选择预设...",
   "diveLog_tank_title": "气瓶 {number}",
   "diveLog_tank_tooltip_remove": "移除气瓶",
+  "diveLog_tank_regulatorLabel": "调节器",
+  "diveLog_tank_regulatorNone": "无",
   "diveLog_tissue_label_ceiling": "上升限制",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "免减压极限",
@@ -3843,6 +3890,61 @@
   "cylinderConfigs_sectionTitle": "配置",
   "equipment_serviceClocks_hoursSource": "根据已记录的潜水时间计算",
   "equipment_serviceClocks_hoursLeft": "剩余 {remaining}/{total} 小时",
+  "equipment_serviceClocks_saltHoursLeft": "海水小时数剩余 {remaining} / {total}",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "冷水潜水剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "高氧小时数剩余 {remaining} / {total}",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "深潜剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "电池循环剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "管理维护类型",
   "equipment_serviceClocks_appliesToClock": "适用的倒计时",
   "equipment_serviceClocks_noClockOption": "不关联倒计时",
@@ -3850,6 +3952,11 @@
   "equipment_scheduleDialog_intervalDays": "间隔（天）",
   "equipment_scheduleDialog_intervalDives": "间隔（潜水次数）",
   "equipment_scheduleDialog_intervalHours": "间隔（小时）",
+  "equipment_scheduleDialog_intervalSaltHours": "间隔（海水小时数）",
+  "equipment_scheduleDialog_intervalColdDives": "间隔（冷水潜水次数）",
+  "equipment_scheduleDialog_intervalO2Hours": "间隔（高氧小时数）",
+  "equipment_scheduleDialog_intervalDeepCycles": "间隔（深潜次数）",
+  "equipment_scheduleDialog_intervalCycles": "间隔（电池循环次数）",
   "equipment_scheduleDialog_inheritHint": "默认：{value}",
   "equipment_scheduleDialog_anchorDate": "基准日期",
   "equipment_scheduleDialog_anchorHint": "在尚无此类维护记录时使用",
@@ -3948,6 +4055,8 @@
   "equipment_edit_snackbar_error": "保存装备出错：{error}",
   "equipment_edit_snackbar_updated": "装备已更新",
   "equipment_edit_statusLabel": "状态",
+  "equipment_edit_parentLabel": "安装于",
+  "equipment_edit_parentNone": "未安装",
   "equipment_edit_thicknessDesignationHint": "例如：5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "例如 shop.example.com/product",
   "equipment_edit_thicknessHint": "例如：5mm, 7mm",
@@ -5507,10 +5616,6 @@
   "settings_siteMatch_subtitle": "下载的潜水与潜水点匹配的积极程度",
   "settings_tankPressureAtSurfacing_title": "出水时的气瓶压力",
   "settings_tankPressureAtSurfacing_subtitle": "以到达水面时的压力作为结束压力，而不是记录结束时的压力",
-  "settings_cloudImportPageSize_title": "云导入分页大小",
-  "settings_cloudImportPageSize_subtitle": "每次从 Suunto Cloud 或 Garmin Connect 获取多少条最新潜水记录。「加载更多」会获取同样大小的下一批。",
-  "settings_cloudImportPageSize_dialogTitle": "每页潜水次数",
-  "settings_cloudImportPageSize_range": "{min} 到 {max} 之间",
   "settings_siteMatch_strict": "严格",
   "settings_siteMatch_balanced": "平衡",
   "settings_siteMatch_relaxed": "宽松",
@@ -7457,6 +7562,9 @@
   "attrLabel_o2_cylinder_l": "O2 气瓶",
   "attrLabel_dpv_style": "款式",
   "attrLabel_burn_time_h": "续航时间",
+  "attrLabel_cell_slot": "电池槽位",
+  "attrLabel_installed_date": "安装日期",
+  "attrLabel_rechargeable": "可充电",
   "attrLabel_battery_type": "电池",
   "attrLabel_battery_capacity_wh": "电池容量（瓦时）",
   "attrLabel_motor_type": "电机",
@@ -7563,6 +7671,8 @@
   "attrChoice_battery_type_lithium_ion": "锂离子",
   "attrChoice_battery_type_nimh": "镍氢",
   "attrChoice_battery_type_lead_acid": "铅酸",
+  "attrChoice_battery_type_alkaline": "碱性",
+  "attrChoice_battery_type_lithium_primary": "锂（不可充电）",
   "attrChoice_motor_type_brushless": "无刷",
   "attrChoice_motor_type_brushed": "有刷",
   "attrChoice_sleeve_length_short": "短袖",
@@ -8017,6 +8127,16 @@
   "planning_card_noFly_subtitle": "基于最近潜水的指导倒计时",
   "settings_section_safety_title": "安全",
   "settings_section_safety_subtitle": "回顾规则与潜水后飞行",
+  "settings_section_equipmentCondition_title": "装备状况",
+  "settings_section_equipmentCondition_subtitle": "保养计时的暴露阈值",
+  "equipmentConditionSettings_title": "装备状况",
+  "equipmentConditionSettings_thresholdsHeader": "暴露阈值",
+  "equipmentConditionSettings_thresholdsHelp": "潜水越过这些界线时，保养计时将其计为冷水、深潜或高氧。",
+  "equipmentConditionSettings_coldLabel": "冷水低于",
+  "equipmentConditionSettings_deepLabel": "深潜达到或超过",
+  "equipmentConditionSettings_o2Label": "高氧混合气高于（% O2）",
+  "equipmentConditionSettings_invalid": "请输入数字",
+  "equipmentConditionSettings_saveFailed": "无法保存。请重试。",
   "dataQuality_inbox_title": "数据质量",
   "dataQuality_dive_unknown": "无法获取潜水详情",
   "dataQuality_dive_number": "#{number}",
