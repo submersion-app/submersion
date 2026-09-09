@@ -116,6 +116,23 @@ void main() {
     },
   );
 
+  test(
+    'rethrows a database failure so the migration can leave the file',
+    () async {
+      // The migration copies the page first and only deletes the legacy copy
+      // after the rows are relinked, so a swallowed error here would strand a
+      // row on a path that is about to disappear. The error must surface.
+      // Dropping the table rather than closing the database: a closed
+      // in-memory database quietly answers a select with no rows.
+      await db.customStatement('DROP TABLE media');
+
+      await expectLater(
+        repo.relocateLocalFile(from: from, to: to),
+        throwsA(isA<Exception>()),
+      );
+    },
+  );
+
   test('returns zero and marks nothing when no row matches', () async {
     await insertDive('d1');
     await repo.createMedia(scan(filePath: '/elsewhere/1.jpg'));
