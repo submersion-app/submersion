@@ -108,8 +108,15 @@ class _PreDiveTemplateEditPageState
   }
 
   /// Whether the item at [index] is a linearity item whose source sorts
-  /// after it. Only meaningful in a strict-order template, where the runner
-  /// gates each item behind the ones above it.
+  /// after it.
+  ///
+  /// Deliberately not gated on strict order. Strict order makes the trap
+  /// unavoidable, because the runner will not let the diver reach the air
+  /// row first, but the same trap exists without it: a diver working the
+  /// list top to bottom meets the linearity row with no air reading, records
+  /// the oxygen value anyway, and ends up with an item that can only be
+  /// completed properly by resetting it. The warning is worth showing in
+  /// both modes, and its wording claims nothing about gating.
   bool _readsLaterValue(int index) {
     final item = _items[index];
     // Guarded on the type as well as on the link, so malformed data (a
@@ -402,6 +409,20 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
   late PreDiveItemType _itemType;
   String? _sourceItemId;
 
+  /// The selection the dropdown may show: [_sourceItemId] only when it still
+  /// names a candidate.
+  ///
+  /// A dangling link is reachable without sync: retype the air item as a
+  /// check and it drops out of the candidate list while the linearity item
+  /// still points at it. DropdownButtonFormField asserts when its value is
+  /// absent from a non-empty item list, which would take the editor down
+  /// rather than let the diver fix the link. Falling back to null leaves the
+  /// field empty and lets the validator ask for a new source.
+  String? get _selectedSourceId =>
+      _sourceCandidates.any((c) => c.id == _sourceItemId)
+      ? _sourceItemId
+      : null;
+
   /// Items this one may take its air reading from: the plain value items in
   /// the same template, minus itself (nothing may source itself).
   List<PreDiveChecklistTemplateItem> get _sourceCandidates => [
@@ -489,7 +510,7 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
         valueMax: isValue ? parseUserDecimal(_valueMaxController.text) : null,
         isRequired: _isRequired,
         sourceItemId: _itemType == PreDiveItemType.cellLinearity
-            ? _sourceItemId
+            ? _selectedSourceId
             : null,
         createdAt: widget.item?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
@@ -541,7 +562,7 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
               ),
               if (_itemType == PreDiveItemType.cellLinearity)
                 DropdownButtonFormField<String>(
-                  initialValue: _sourceItemId,
+                  initialValue: _selectedSourceId,
                   decoration: InputDecoration(
                     labelText: l10n.preDive_item_sourceItem,
                   ),
@@ -560,7 +581,10 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
                   // Required in the editor. Degradation exists for rows that
                   // arrive from a clone, from sync, or from a since-deleted
                   // source, not as a state the editor may author.
-                  validator: (value) => value == null
+                  // Reads the resolved selection rather than the raw
+                  // field, so a dangling link is rejected as firmly as an
+                  // empty one instead of being saved back unchanged.
+                  validator: (_) => _selectedSourceId == null
                       ? l10n.preDive_item_sourceItemRequired
                       : null,
                 ),

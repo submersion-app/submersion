@@ -790,6 +790,51 @@ void main() {
       );
     });
 
+    testWidgets('a dangling source opens the dialog instead of asserting', (
+      tester,
+    ) async {
+      // Reachable without sync: change the air item's type to check and its
+      // id drops out of the candidate list while the linearity item still
+      // points at it. A DropdownButtonFormField whose initialValue is absent
+      // from its items asserts, taking the whole editor down.
+      // Needs a surviving candidate as well as the dangling link: the
+      // framework assert short-circuits on an empty item list, so a template
+      // with no value items left would not have caught this.
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(id: 'air1', title: 'Cell 1 mV in air'),
+          tItem(
+            id: 'air2',
+            title: 'Was an air reading',
+            type: PreDiveItemType.check,
+            order: 1,
+          ),
+          tItem(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air2',
+            order: 2,
+          ),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      await tester.tap(find.text('Cell 1 mV in O2'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Air reading from'), findsOneWidget);
+      // The validator can then ask for a new source.
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Choose the item holding the air reading'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a stray link on a non-linearity item raises no warning', (
       tester,
     ) async {
@@ -808,6 +853,32 @@ void main() {
       expect(
         find.text('Reads a value recorded later in this list'),
         findsNothing,
+      );
+    });
+
+    testWidgets('the reads-later warning also shows without strict order', (
+      tester,
+    ) async {
+      // Strict order makes the trap unavoidable, but it exists either way: a
+      // diver working top to bottom hits the linearity row before the air
+      // reading exists. Pins the decision not to gate the warning.
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(strictOrder: false),
+        items: [
+          tItem(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air1',
+          ),
+          tItem(id: 'air1', title: 'Cell 1 mV in air', order: 1),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      expect(
+        find.text('Reads a value recorded later in this list'),
+        findsOneWidget,
       );
     });
 
