@@ -465,7 +465,7 @@ class _ValueEntryDialogState extends State<_ValueEntryDialog> {
     );
     if (expected == null || percent == null) return null;
     return context.l10n.preDive_runner_linearityReadout(
-      expected.toStringAsFixed(1),
+      formatDecimalForDisplay(double.parse(expected.toStringAsFixed(1))),
       percent.round().toString(),
     );
   }
@@ -490,7 +490,7 @@ class _ValueEntryDialogState extends State<_ValueEntryDialog> {
                     ? '${l10n.preDive_runner_cellInAir}: '
                           '${l10n.preDive_runner_cellInAirMissing}'
                     : '${l10n.preDive_runner_cellInAir}: '
-                              '${widget.sourceValue} '
+                              '${formatDecimalForDisplay(widget.sourceValue!)} '
                               '${widget.item.valueUnit ?? ''}'
                           .trim(),
                 style: theme.textTheme.bodyMedium?.copyWith(

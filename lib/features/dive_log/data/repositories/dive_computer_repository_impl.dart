@@ -1437,6 +1437,11 @@ class DiveComputerRepository {
                 tankOrder: Value(tank.index),
                 tankRole: Value(tank.role ?? 'backGas'),
                 transmitterSerial: Value(tank.transmitterSerial),
+                equipmentId: Value.absentIfNull(tank.equipmentId),
+                tankName: Value.absentIfNull(tank.tankName),
+                // The parsed index this row's computer data comes from
+                // (issue #1314); re-parse keys on it.
+                sourceTankIndex: Value(tank.index),
               ),
             );
             _log.info(
@@ -2326,6 +2331,12 @@ class TankData {
   /// from, or null when it reported none.
   final String? transmitterSerial;
 
+  /// Gear cylinder the transmitter registry linked this tank to, if any.
+  final String? equipmentId;
+
+  /// Display name from the transmitter registry's label, if any.
+  final String? tankName;
+
   const TankData({
     required this.index,
     required this.o2Percent,
@@ -2338,7 +2349,39 @@ class TankData {
     this.presetName,
     this.role,
     this.transmitterSerial,
+    this.equipmentId,
+    this.tankName,
   });
+
+  TankData copyWith({
+    int? index,
+    double? o2Percent,
+    double? hePercent,
+    double? startPressure,
+    double? endPressure,
+    double? volumeLiters,
+    double? workingPressure,
+    String? material,
+    String? presetName,
+    String? role,
+    String? transmitterSerial,
+    String? equipmentId,
+    String? tankName,
+  }) => TankData(
+    index: index ?? this.index,
+    o2Percent: o2Percent ?? this.o2Percent,
+    hePercent: hePercent ?? this.hePercent,
+    startPressure: startPressure ?? this.startPressure,
+    endPressure: endPressure ?? this.endPressure,
+    volumeLiters: volumeLiters ?? this.volumeLiters,
+    workingPressure: workingPressure ?? this.workingPressure,
+    material: material ?? this.material,
+    presetName: presetName ?? this.presetName,
+    role: role ?? this.role,
+    transmitterSerial: transmitterSerial ?? this.transmitterSerial,
+    equipmentId: equipmentId ?? this.equipmentId,
+    tankName: tankName ?? this.tankName,
+  );
 }
 
 /// Data class for importing a gas switch (a change to the cylinder at [toTankIndex]).

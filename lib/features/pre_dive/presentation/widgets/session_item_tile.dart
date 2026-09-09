@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -121,7 +122,8 @@ class SessionItemTile extends ConsumerWidget {
         ? [
             if (item.valueLabel != null) item.valueLabel!,
             if (item.valueNumber != null)
-              '${item.valueNumber}${item.valueUnit == null ? '' : ' ${item.valueUnit}'}',
+              '${formatDecimalForDisplay(item.valueNumber!)}'
+                  '${item.valueUnit == null ? '' : ' ${item.valueUnit}'}',
           ].join(': ')
         : null;
 
@@ -131,10 +133,19 @@ class SessionItemTile extends ConsumerWidget {
     final percent = item.linearityPercent;
     final expected = item.expectedO2Millivolts;
     final air = item.sourceValueNumber;
+    // Both numbers go through formatDecimalForDisplay so the diver reads
+    // their own decimal separator (#1684 did the value line above; this is
+    // the same bug on the same tile, tracked as #1682).
+    //
+    // The air reading keeps the precision the diver entered, because it is
+    // their input and rounding it would show a figure they never typed. The
+    // expected value is derived, so it is rounded to 1 dp first, which is
+    // what formatDecimalForDisplay asks callers wanting pinned decimals to
+    // do.
     final linearityLine = (percent != null && expected != null && air != null)
         ? l10n.preDive_runner_linearityLine(
-            '$air',
-            expected.toStringAsFixed(1),
+            formatDecimalForDisplay(air),
+            formatDecimalForDisplay(double.parse(expected.toStringAsFixed(1))),
             percent.round().toString(),
           )
         : null;
