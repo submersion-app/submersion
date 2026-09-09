@@ -127,10 +127,14 @@ for built-in templates, independently of what they reference. Referential
 integrity is enforced at the application layer, and every read path
 tolerates a dangling reference.
 
-Migration takes the next free rung on the ladder. Main is at v199 and #1365
-is already claiming v200, so this is v201. The ladder is contested
-by parallel branches, so **re-check the current maximum across sibling branches
-immediately before taking the rung**, rather than trusting this number.
+Migration takes the next free rung on the ladder. Verified against the tree
+on 2026-09-08: `currentSchemaVersion` is 199 and the highest rung in
+`onUpgrade` is `from < 199`, so the next free rung in main is **v200**.
+Issue #1365 is expected to claim v200 as well, and the ladder is contested by
+parallel branches generally, so **re-check the current maximum across sibling
+branches immediately before taking the rung** rather than trusting any number
+written here. `database.dart` already carries a worked example of this
+renumbering, in the comment on the v199 rung.
 
 The migration itself is the guarded pattern already used twice for this
 feature: read `PRAGMA table_info`, and `ALTER TABLE ... ADD COLUMN` only
@@ -153,6 +157,18 @@ Note that `source_item_id` on a session item references a row in the same
 table, and both rows sync as independent HLC records. Order of arrival is
 therefore not guaranteed, which is a further reason the reference is not a
 SQL foreign key and why every reader must tolerate a dangling one.
+
+### Excel export
+
+`lib/core/services/export/excel/pre_dive_excel_export_service.dart` writes a
+row per session item and switches exhaustively on `PreDiveItemType`, so the
+new enum value is a compile error there until an arm is added. Its label is a
+plain English data string like the four existing arms, not a localised one.
+
+The items sheet also gains two columns after `Unit`, `Air Value` and
+`Linearity %`, populated only for a `cellLinearity` row. Without them an
+exported linearity item would carry its oxygen reading and nothing else, which
+is precisely the incomplete record the issue is asking us to stop producing.
 
 ### The calculator
 
