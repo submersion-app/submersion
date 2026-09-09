@@ -26546,6 +26546,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_repairLabel_consolidate => 'Consolidate';
 
   @override
+  String get dataQuality_repairLabel_deleteDuplicate => 'Delete duplicate';
+
+  @override
+  String get dataQuality_deleteDuplicate_title => 'Delete the redundant copy?';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      'Both were recorded by the same dive computer. The copy with less of the dive will be deleted. You can undo this afterwards.';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return 'Keep: $dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return 'Delete: $dive';
+  }
+
+  @override
   String get dataQuality_repairLabel_combine => 'Combine into one dive';
 
   @override

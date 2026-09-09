@@ -26995,6 +26995,27 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dataQuality_repairLabel_consolidate => 'Consolida';
 
   @override
+  String get dataQuality_repairLabel_deleteDuplicate => 'Elimina duplicato';
+
+  @override
+  String get dataQuality_deleteDuplicate_title =>
+      'Eliminare la copia ridondante?';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      'Entrambe sono state registrate dallo stesso computer subacqueo. La copia con meno dati dell\'immersione verrà eliminata. Potrai annullare in seguito.';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return 'Mantieni: $dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return 'Elimina: $dive';
+  }
+
+  @override
   String get dataQuality_repairLabel_combine => 'Unisci in un\'immersione';
 
   @override

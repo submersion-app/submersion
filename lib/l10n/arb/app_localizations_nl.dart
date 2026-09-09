@@ -26790,6 +26790,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_repairLabel_consolidate => 'Consolideren';
 
   @override
+  String get dataQuality_repairLabel_deleteDuplicate => 'Duplicaat verwijderen';
+
+  @override
+  String get dataQuality_deleteDuplicate_title =>
+      'Overbodige kopie verwijderen?';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      'Beide zijn door dezelfde duikcomputer opgenomen. De kopie met minder duikgegevens wordt verwijderd. Je kunt dit daarna ongedaan maken.';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return 'Behouden: $dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return 'Verwijderen: $dive';
+  }
+
+  @override
   String get dataQuality_repairLabel_combine => 'Samenvoegen tot één duik';
 
   @override

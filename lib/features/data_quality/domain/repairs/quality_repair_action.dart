@@ -24,6 +24,19 @@ class ConsolidateDuplicateRepair extends QualityRepairAction {
   final String secondaryDiveId;
 }
 
+/// Delete the redundant copy of a dive downloaded twice from one computer.
+/// The pair cannot be consolidated (that folds a SECOND computer's recording
+/// in), so the fix is to keep the richer recording and drop the other; which
+/// is which was decided by the detector and is carried here.
+class DeleteDuplicateRepair extends QualityRepairAction {
+  const DeleteDuplicateRepair({
+    required this.keepDiveId,
+    required this.deleteDiveId,
+  });
+  final String keepDiveId;
+  final String deleteDiveId;
+}
+
 class CombineSplitRepair extends QualityRepairAction {
   const CombineSplitRepair(this.diveIds);
   final List<String> diveIds;
@@ -196,7 +209,21 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       // Findings written before the detector reported this (no key at all)
       // stay repairable until a rescan fills the fact in.
       final consolidatable = p['sameComputer'] != true;
+      // A same-computer pair's fix is to delete the redundant copy, and the
+      // detector names it (see DuplicateDetector's redundantDuplicate). Only
+      // trusted when it names one side of THIS pair: a stale or foreign id
+      // must never volunteer a dive.
+      final redundant = p['redundantDiveId'] as String?;
+      final deletable =
+          !consolidatable &&
+          related != null &&
+          (redundant == diveId || redundant == related);
       return [
+        if (deletable)
+          DeleteDuplicateRepair(
+            keepDiveId: redundant == diveId ? related : diveId,
+            deleteDiveId: redundant!,
+          ),
         if (related != null && consolidatable)
           ConsolidateDuplicateRepair(
             targetDiveId: diveId,

@@ -1097,6 +1097,93 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 6));
   });
 
+  group('delete-duplicate repair', () {
+    // The commonest duplicate: one dive downloaded twice from a single
+    // computer, where the second copy is a fragment. Consolidation is
+    // refused for that pair, so the card offers to delete the fragment,
+    // and names both dives before anything is written.
+    Future<QualityFinding> seedPair() async {
+      await _seedDive(
+        'd1',
+        name: 'Blue Hole',
+        maxDepth: 20,
+        runtime: const Duration(minutes: 35),
+      );
+      await _seedDive(
+        'd2',
+        name: 'Fragment',
+        entryTime: DateTime.utc(2026, 6, 14, 9, 13),
+        maxDepth: 1.7,
+        runtime: const Duration(seconds: 13),
+      );
+      return _f(
+        id: 'r-dup-same',
+        diveId: 'd1',
+        relatedDiveId: 'd2',
+        detectorId: 'duplicate',
+        category: QualityCategory.duplicate,
+        params: const {
+          'score': 0.9,
+          'timeDiffMinutes': 1,
+          'sameComputer': true,
+          'redundantDiveId': 'd2',
+        },
+      );
+    }
+
+    testWidgets('names both dives, deletes the fragment, and can undo', (
+      tester,
+    ) async {
+      final finding = await seedPair();
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [finding]));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('No automatic fix. Open the dive to correct this.'),
+        findsNothing,
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete duplicate'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.textContaining('Keep: '), findsOneWidget);
+      expect(find.textContaining('Blue Hole'), findsWidgets);
+      expect(find.textContaining('Delete: '), findsOneWidget);
+      expect(find.textContaining('Fragment'), findsWidgets);
+      // The confirmation has to say what is about to happen, not only who.
+      expect(find.textContaining('same dive computer'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('Repair applied'), findsOneWidget);
+      expect(await DiveRepository().getDiveById('d2'), isNull);
+      expect(await DiveRepository().getDiveById('d1'), isNotNull);
+
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle(const Duration(seconds: 6));
+      expect(await DiveRepository().getDiveById('d2'), isNotNull);
+    });
+
+    testWidgets('cancelling the confirmation deletes nothing', (tester) async {
+      final finding = await seedPair();
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [finding]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete duplicate'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(SnackBar), findsNothing);
+      expect(await DiveRepository().getDiveById('d2'), isNotNull);
+    });
+  });
+
   testWidgets('a same-computer duplicate offers no Consolidate button', (
     tester,
   ) async {

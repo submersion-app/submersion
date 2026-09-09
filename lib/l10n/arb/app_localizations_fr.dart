@@ -27091,6 +27091,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dataQuality_repairLabel_consolidate => 'Consolider';
 
   @override
+  String get dataQuality_repairLabel_deleteDuplicate => 'Supprimer le doublon';
+
+  @override
+  String get dataQuality_deleteDuplicate_title =>
+      'Supprimer la copie redondante ?';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      'Les deux ont été enregistrées par le même ordinateur de plongée. La copie contenant le moins de données sera supprimée. Vous pourrez annuler ensuite.';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return 'Conserver : $dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return 'Supprimer : $dive';
+  }
+
+  @override
   String get dataQuality_repairLabel_combine => 'Combiner en une seule plongée';
 
   @override

@@ -17336,6 +17336,36 @@
   },
   "dataQuality_repairLabel_shiftImport": "Shift all dives from this import",
   "dataQuality_repairLabel_consolidate": "Consolidate",
+  "dataQuality_repairLabel_deleteDuplicate": "Delete duplicate",
+  "@dataQuality_repairLabel_deleteDuplicate": {
+    "description": "Button on a same-computer duplicate finding that deletes the redundant copy of a dive downloaded twice."
+  },
+  "dataQuality_deleteDuplicate_title": "Delete the redundant copy?",
+  "@dataQuality_deleteDuplicate_title": {
+    "description": "Title of the confirmation shown before deleting the redundant copy of a duplicate dive."
+  },
+  "dataQuality_deleteDuplicate_body": "Both were recorded by the same dive computer. The copy with less of the dive will be deleted. You can undo this afterwards.",
+  "@dataQuality_deleteDuplicate_body": {
+    "description": "Explains why one copy of a same-computer duplicate pair is being deleted and that the deletion can be undone."
+  },
+  "dataQuality_deleteDuplicate_keep": "Keep: {dive}",
+  "@dataQuality_deleteDuplicate_keep": {
+    "description": "Names the dive that survives a delete-duplicate repair.",
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_deleteDuplicate_delete": "Delete: {dive}",
+  "@dataQuality_deleteDuplicate_delete": {
+    "description": "Names the dive a delete-duplicate repair will delete.",
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_repairLabel_combine": "Combine into one dive",
   "dataQuality_repairLabel_despike": "Remove spike",
   "dataQuality_repairLabel_clampNegative": "Clamp above-surface depths",

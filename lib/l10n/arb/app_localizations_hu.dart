@@ -26886,6 +26886,27 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_repairLabel_consolidate => 'Konszolidálás';
 
   @override
+  String get dataQuality_repairLabel_deleteDuplicate => 'Duplikátum törlése';
+
+  @override
+  String get dataQuality_deleteDuplicate_title =>
+      'Törli a felesleges másolatot?';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      'Mindkettőt ugyanaz a búvárkomputer rögzítette. A kevesebb merülési adatot tartalmazó másolat törlődik. Ezt utólag visszavonhatja.';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return 'Megtartás: $dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return 'Törlés: $dive';
+  }
+
+  @override
   String get dataQuality_repairLabel_combine => 'Összevonás egy merüléssé';
 
   @override

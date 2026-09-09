@@ -26515,6 +26515,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_repairLabel_consolidate => 'توحيد';
 
   @override
+  String get dataQuality_repairLabel_deleteDuplicate => 'حذف التكرار';
+
+  @override
+  String get dataQuality_deleteDuplicate_title => 'حذف النسخة الزائدة؟';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      'تم تسجيل كلتيهما بواسطة كمبيوتر الغوص نفسه. سيتم حذف النسخة التي تحتوي على بيانات أقل من الغوصة. يمكنك التراجع عن ذلك لاحقًا.';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return 'الاحتفاظ: $dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return 'الحذف: $dive';
+  }
+
+  @override
   String get dataQuality_repairLabel_combine => 'دمج في غوصة واحدة';
 
   @override

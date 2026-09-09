@@ -25605,6 +25605,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_repairLabel_consolidate => '整合';
 
   @override
+  String get dataQuality_repairLabel_deleteDuplicate => '删除重复项';
+
+  @override
+  String get dataQuality_deleteDuplicate_title => '删除多余的副本？';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      '两条记录来自同一台潜水电脑。包含较少潜水数据的副本将被删除。之后可以撤销此操作。';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return '保留：$dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return '删除：$dive';
+  }
+
+  @override
   String get dataQuality_repairLabel_combine => '合并为一次潜水';
 
   @override

@@ -26946,6 +26946,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dataQuality_repairLabel_consolidate => 'Konsolidieren';
 
   @override
+  String get dataQuality_repairLabel_deleteDuplicate => 'Duplikat löschen';
+
+  @override
+  String get dataQuality_deleteDuplicate_title => 'Redundante Kopie löschen?';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      'Beide wurden vom selben Tauchcomputer aufgezeichnet. Die Kopie mit weniger Tauchgangsdaten wird gelöscht. Sie können dies anschließend rückgängig machen.';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return 'Behalten: $dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return 'Löschen: $dive';
+  }
+
+  @override
   String get dataQuality_repairLabel_combine =>
       'Zu einem Tauchgang kombinieren';
 

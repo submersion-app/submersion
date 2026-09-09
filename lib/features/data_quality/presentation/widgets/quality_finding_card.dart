@@ -71,6 +71,7 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
                 '${suggestedOffset.inHours} h',
               ),
       ConsolidateDuplicateRepair() => l10n.dataQuality_repairLabel_consolidate,
+      DeleteDuplicateRepair() => l10n.dataQuality_repairLabel_deleteDuplicate,
       CombineSplitRepair() => l10n.dataQuality_repairLabel_combine,
       SetPrimarySourceRepair() => l10n.dataQuality_repairLabel_setPrimary,
       SplitSourceRepair() => l10n.dataQuality_repairLabel_split,

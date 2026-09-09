@@ -26329,6 +26329,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_repairLabel_consolidate => 'איחוד';
 
   @override
+  String get dataQuality_repairLabel_deleteDuplicate => 'מחיקת כפילות';
+
+  @override
+  String get dataQuality_deleteDuplicate_title => 'למחוק את העותק המיותר?';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      'שניהם הוקלטו על ידי אותו מחשב צלילה. העותק עם פחות נתוני צלילה יימחק. ניתן לבטל זאת לאחר מכן.';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return 'לשמור: $dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return 'למחוק: $dive';
+  }
+
+  @override
   String get dataQuality_repairLabel_combine => 'מיזוג לצלילה אחת';
 
   @override

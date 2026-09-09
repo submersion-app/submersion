@@ -44501,6 +44501,36 @@ abstract class AppLocalizations {
   /// **'Consolidate'**
   String get dataQuality_repairLabel_consolidate;
 
+  /// Button on a same-computer duplicate finding that deletes the redundant copy of a dive downloaded twice.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete duplicate'**
+  String get dataQuality_repairLabel_deleteDuplicate;
+
+  /// Title of the confirmation shown before deleting the redundant copy of a duplicate dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the redundant copy?'**
+  String get dataQuality_deleteDuplicate_title;
+
+  /// Explains why one copy of a same-computer duplicate pair is being deleted and that the deletion can be undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Both were recorded by the same dive computer. The copy with less of the dive will be deleted. You can undo this afterwards.'**
+  String get dataQuality_deleteDuplicate_body;
+
+  /// Names the dive that survives a delete-duplicate repair.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep: {dive}'**
+  String dataQuality_deleteDuplicate_keep(String dive);
+
+  /// Names the dive a delete-duplicate repair will delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete: {dive}'**
+  String dataQuality_deleteDuplicate_delete(String dive);
+
   /// No description provided for @dataQuality_repairLabel_combine.
   ///
   /// In en, this message translates to:

@@ -14,6 +14,7 @@ import 'package:submersion/features/data_quality/domain/repairs/quality_repair_a
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
+import 'package:submersion/features/data_quality/presentation/widgets/delete_duplicate_dialog.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/dive_identity_label.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
@@ -94,7 +95,14 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
     }
   }
 
-  Future<void> _runAction(QualityFinding f, QualityRepairAction action) async {
+  /// [identityOf] names a dive the way the page's headers do; it comes from
+  /// build, where the identity lookup is already watched, so a confirmation
+  /// can name both dives of a pair without a second read.
+  Future<void> _runAction(
+    QualityFinding f,
+    QualityRepairAction action, {
+    required DiveIdentityLabel? Function(String? diveId) identityOf,
+  }) async {
     final executor = QualityRepairExecutor();
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
@@ -153,6 +161,23 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           targetDiveId: targetDiveId,
           secondaryDiveIds: [secondaryDiveId],
           onConsolidated: () => scheduleQualityScan([targetDiveId]),
+        );
+      case DeleteDuplicateRepair(:final keepDiveId, :final deleteDiveId):
+        // Destructive, so it names both dives and waits for an explicit yes
+        // before the executor writes anything. Undo rides the same SnackBar
+        // as every other repair.
+        final confirmed = await showDeleteDuplicateDialog(
+          context,
+          keep: identityOf(keepDiveId),
+          delete: identityOf(deleteDiveId),
+        );
+        if (confirmed != true) return;
+        await withUndo(
+          () => executor.deleteDuplicate(
+            keepDiveId: keepDiveId,
+            deleteDiveId: deleteDiveId,
+            findingId: f.id,
+          ),
         );
       case CombineSplitRepair(:final diveIds):
         await showCombineDivesDialog(context: context, diveIds: diveIds);
@@ -427,7 +452,8 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                                 formatters: formatters,
                                 relatedDive: identity(f.relatedDiveId),
                                 computerName: computerNames[f.computerId],
-                                onRepair: (a) => _runAction(f, a),
+                                onRepair: (a) =>
+                                    _runAction(f, a, identityOf: identity),
                                 onDismiss: () => ref
                                     .read(qualityFindingsRepositoryProvider)
                                     .setStatus(f.id, QualityStatus.dismissed),

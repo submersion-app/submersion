@@ -36,11 +36,13 @@ DiveQualityContext makeContext({
   List<QualityNeighbor> neighbors = const [],
   List<GasSwitch> gasSwitches = const [],
   double ppO2MaxBar = 1.6,
+  int? primarySampleCount,
 }) => DiveQualityContext(
   dive: dive,
   now: now ?? DateTime.utc(2026, 7, 17, 12),
   sources: sources,
   primarySamples: samples,
+  primarySampleCount: primarySampleCount,
   tanks: dive.tanks,
   pressuresByTankId: pressures,
   gasSwitches: gasSwitches,
