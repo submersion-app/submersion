@@ -2355,10 +2355,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get checklists_templates_pageTitle =>
-      'Plantillas de listas de verificación';
+      'Plantillas de listas de verificación de viaje';
 
   @override
   String get checklists_templates_addTemplate => 'Agregar plantilla';
+
+  @override
+  String get checklists_templates_editTemplate => 'Editar plantilla';
 
   @override
   String get checklists_templates_empty => 'Aún no hay plantillas';
@@ -17575,7 +17578,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_manage_checklistTemplates =>
-      'Plantillas de listas de verificación';
+      'Plantillas de listas de verificación de viaje';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>

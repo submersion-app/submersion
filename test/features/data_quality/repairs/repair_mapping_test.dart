@@ -34,9 +34,10 @@ void main() {
     final actions = repairOptionsFor(
       f(detectorId: 'duplicate', relatedDiveId: 'd2'),
     );
+    // The pair is handed to the combine dialog, which asks the diver which
+    // recording survives; the mapping itself names no survivor (#1690).
     final c = actions.whereType<ConsolidateDuplicateRepair>().single;
-    expect(c.targetDiveId, 'd1');
-    expect(c.secondaryDiveId, 'd2');
+    expect(c.diveIds, ['d1', 'd2']);
   });
 
   test('duplicate from the SAME computer offers no consolidate', () {

@@ -2336,10 +2336,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_saveTemplate_success => 'Sjabloon opgeslagen';
 
   @override
-  String get checklists_templates_pageTitle => 'Checklistsjablonen';
+  String get checklists_templates_pageTitle => 'Reis-checklistsjablonen';
 
   @override
   String get checklists_templates_addTemplate => 'Sjabloon toevoegen';
+
+  @override
+  String get checklists_templates_editTemplate => 'Sjabloon bewerken';
 
   @override
   String get checklists_templates_empty => 'Nog geen sjablonen';
@@ -17430,7 +17433,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'Checklistsjablonen';
+  String get settings_manage_checklistTemplates => 'Reis-checklistsjablonen';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>

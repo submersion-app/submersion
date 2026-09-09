@@ -2280,10 +2280,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_saveTemplate_success => 'התבנית נשמרה';
 
   @override
-  String get checklists_templates_pageTitle => 'תבניות רשימות משימות';
+  String get checklists_templates_pageTitle => 'תבניות רשימות משימות לטיול';
 
   @override
   String get checklists_templates_addTemplate => 'הוסף תבנית';
+
+  @override
+  String get checklists_templates_editTemplate => 'עריכת תבנית';
 
   @override
   String get checklists_templates_empty => 'עדיין אין תבניות';
@@ -17125,7 +17128,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'תבניות רשימות משימות';
+  String get settings_manage_checklistTemplates => 'תבניות רשימות משימות לטיול';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>

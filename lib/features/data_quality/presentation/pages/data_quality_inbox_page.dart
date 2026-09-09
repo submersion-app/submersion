@@ -21,7 +21,6 @@ import 'package:submersion/features/data_quality/presentation/widgets/quality_un
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassign_tank_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/run_dive_consolidation.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -144,16 +143,15 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
             findingId: f.id,
           ),
         );
-      case ConsolidateDuplicateRepair(
-        :final targetDiveId,
-        :final secondaryDiveId,
-      ):
-        await runDiveConsolidation(
+      case ConsolidateDuplicateRepair(:final diveIds):
+        // The dialog owns the survivor choice, and runDiveConsolidation
+        // queues the rescan once apply has resolved. Queueing one here on
+        // return would scan the pre-merge rows: the dialog pops before the
+        // merge completes.
+        await showCombineDivesDialog(
           context: context,
-          service: ref.read(diveConsolidationServiceProvider),
-          targetDiveId: targetDiveId,
-          secondaryDiveIds: [secondaryDiveId],
-          onConsolidated: () => scheduleQualityScan([targetDiveId]),
+          diveIds: diveIds,
+          consolidateOnly: true,
         );
       case CombineSplitRepair(:final diveIds):
         await showCombineDivesDialog(context: context, diveIds: diveIds);

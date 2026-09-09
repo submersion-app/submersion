@@ -2356,10 +2356,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get checklists_saveTemplate_success => 'Vorlage gespeichert';
 
   @override
-  String get checklists_templates_pageTitle => 'Checklistenvorlagen';
+  String get checklists_templates_pageTitle => 'Reise-Checklistenvorlagen';
 
   @override
   String get checklists_templates_addTemplate => 'Vorlage hinzufügen';
+
+  @override
+  String get checklists_templates_editTemplate => 'Vorlage bearbeiten';
 
   @override
   String get checklists_templates_empty => 'Noch keine Vorlagen vorhanden';
@@ -17547,7 +17550,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'Checklistenvorlagen';
+  String get settings_manage_checklistTemplates => 'Reise-Checklistenvorlagen';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>

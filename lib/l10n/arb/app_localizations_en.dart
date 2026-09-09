@@ -2306,10 +2306,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checklists_saveTemplate_success => 'Template saved';
 
   @override
-  String get checklists_templates_pageTitle => 'Checklist Templates';
+  String get checklists_templates_pageTitle => 'Trip Checklist Templates';
 
   @override
   String get checklists_templates_addTemplate => 'Add Template';
+
+  @override
+  String get checklists_templates_editTemplate => 'Edit Template';
 
   @override
   String get checklists_templates_empty => 'No templates yet';
@@ -17271,7 +17274,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'Checklist Templates';
+  String get settings_manage_checklistTemplates => 'Trip Checklist Templates';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>

@@ -2347,10 +2347,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get checklists_templates_pageTitle =>
-      'Modelos de Lista de Verificação';
+      'Modelos de Lista de Verificação de Viagem';
 
   @override
   String get checklists_templates_addTemplate => 'Adicionar Modelo';
+
+  @override
+  String get checklists_templates_editTemplate => 'Editar Modelo';
 
   @override
   String get checklists_templates_empty => 'Ainda não há modelos';
@@ -17572,7 +17575,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_manage_checklistTemplates =>
-      'Modelos de Lista de Verificação';
+      'Modelos de Lista de Verificação de Viagem';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>

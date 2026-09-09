@@ -2337,10 +2337,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_saveTemplate_success => 'Sablon mentve';
 
   @override
-  String get checklists_templates_pageTitle => 'Ellenőrzőlista-sablonok';
+  String get checklists_templates_pageTitle =>
+      'Utazási ellenőrzőlista-sablonok';
 
   @override
   String get checklists_templates_addTemplate => 'Sablon hozzáadása';
+
+  @override
+  String get checklists_templates_editTemplate => 'Sablon szerkesztése';
 
   @override
   String get checklists_templates_empty => 'Még nincsenek sablonok';
@@ -17518,7 +17522,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'Ellenőrzőlista-sablonok';
+  String get settings_manage_checklistTemplates =>
+      'Utazási ellenőrzőlista-sablonok';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>

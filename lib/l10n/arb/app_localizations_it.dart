@@ -2350,10 +2350,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get checklists_saveTemplate_success => 'Modello salvato';
 
   @override
-  String get checklists_templates_pageTitle => 'Modelli di liste di controllo';
+  String get checklists_templates_pageTitle =>
+      'Modelli di liste di controllo di viaggio';
 
   @override
   String get checklists_templates_addTemplate => 'Aggiungi modello';
+
+  @override
+  String get checklists_templates_editTemplate => 'Modifica modello';
 
   @override
   String get checklists_templates_empty => 'Nessun modello disponibile';
@@ -17571,7 +17575,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_manage_checklistTemplates =>
-      'Modelli di liste di controllo';
+      'Modelli di liste di controllo di viaggio';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>

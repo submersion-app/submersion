@@ -1723,7 +1723,8 @@ void main() {
           ),
           GoRoute(
             path: '/checklist-templates',
-            builder: (context, state) => const Text('Checklist Templates Stub'),
+            builder: (context, state) =>
+                const Text('Trip Checklist Templates Stub'),
           ),
           GoRoute(
             path: '/equipment/service-types',
@@ -1753,17 +1754,17 @@ void main() {
       await tester.pumpWidget(buildManageWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      expect(find.text('Checklist Templates'), findsOneWidget);
+      expect(find.text('Trip Checklist Templates'), findsOneWidget);
       expect(
         find.text('Reusable to-do lists for trip planning'),
         findsOneWidget,
       );
 
-      await tester.ensureVisible(find.text('Checklist Templates'));
-      await tester.tap(find.text('Checklist Templates'));
+      await tester.ensureVisible(find.text('Trip Checklist Templates'));
+      await tester.tap(find.text('Trip Checklist Templates'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Checklist Templates Stub'), findsOneWidget);
+      expect(find.text('Trip Checklist Templates Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

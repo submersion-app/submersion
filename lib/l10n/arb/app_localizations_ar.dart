@@ -2301,10 +2301,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_saveTemplate_success => 'تم حفظ القالب';
 
   @override
-  String get checklists_templates_pageTitle => 'قوالب قوائم التحقق';
+  String get checklists_templates_pageTitle => 'قوالب قوائم التحقق للرحلات';
 
   @override
   String get checklists_templates_addTemplate => 'إضافة قالب';
+
+  @override
+  String get checklists_templates_editTemplate => 'تعديل قالب';
 
   @override
   String get checklists_templates_empty => 'لا توجد قوالب بعد';
@@ -17254,7 +17257,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'قوالب قوائم التحقق';
+  String get settings_manage_checklistTemplates => 'قوالب قوائم التحقق للرحلات';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>

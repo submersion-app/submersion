@@ -2210,10 +2210,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_saveTemplate_success => '模板已保存';
 
   @override
-  String get checklists_templates_pageTitle => '清单模板';
+  String get checklists_templates_pageTitle => '行程清单模板';
 
   @override
   String get checklists_templates_addTemplate => '添加模板';
+
+  @override
+  String get checklists_templates_editTemplate => '编辑模板';
 
   @override
   String get checklists_templates_empty => '暂无模板';
@@ -16687,7 +16690,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => '清单模板';
+  String get settings_manage_checklistTemplates => '行程清单模板';
 
   @override
   String get settings_manage_checklistTemplates_subtitle => '用于旅行规划的可重复使用待办清单';
