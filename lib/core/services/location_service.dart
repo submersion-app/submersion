@@ -14,6 +14,33 @@ import 'package:submersion/core/services/logger_service.dart';
 /// Check if we're on a mobile platform (iOS/Android)
 bool get _isMobile => !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 
+/// Nominatim (and, following it, the platform geocoders) reports a handful of
+/// administrative "states" that only restate the country: the mainland part of
+/// a country that also holds overseas territories. Stored as a region they
+/// render as "Metropolitan France, France". Treat them as no region at all.
+const _pseudoRegions = <String>{
+  'metropolitan france',
+  'european netherlands',
+  'continental portugal',
+  'mainland portugal',
+  'metropolitan denmark',
+  'european spain',
+  'peninsular spain',
+};
+
+/// A region string with the country-restating pseudo-regions above removed,
+/// and a region that merely repeats [country] dropped too. Returns null when
+/// nothing meaningful is left, so callers can `?? next candidate`.
+@visibleForTesting
+String? normalizeGeocodedRegion(String? region, {String? country}) {
+  final trimmed = region?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  final lower = trimmed.toLowerCase();
+  if (_pseudoRegions.contains(lower)) return null;
+  if (country != null && country.trim().toLowerCase() == lower) return null;
+  return trimmed;
+}
+
 /// Nominatim answered with something other than 200. "Nothing here" is a
 /// 200 with an error body, so a non-200 is the service itself (rate limit,
 /// outage, blocked user agent), which callers must not mistake for "no
@@ -322,7 +349,10 @@ class LocationService {
             return await _withBodyOfWater(
               PlaceLookup(
                 country: place.country,
-                region: place.administrativeArea,
+                region: normalizeGeocodedRegion(
+                  place.administrativeArea,
+                  country: place.country,
+                ),
                 locality: place.locality,
               ),
               latitude,
@@ -364,10 +394,12 @@ class LocationService {
       if (address == null) return const PlaceLookup.empty();
 
       final country = address['country'] as String?;
-      final region =
-          address['state'] as String? ??
-          address['province'] as String? ??
-          address['region'] as String?;
+      final region = normalizeGeocodedRegion(
+        address['state'] as String? ??
+            address['province'] as String? ??
+            address['region'] as String?,
+        country: country,
+      );
       final locality =
           address['city'] as String? ??
           address['town'] as String? ??
@@ -498,10 +530,12 @@ class LocationService {
               final addressDetails =
                   result['address'] as Map<String, dynamic>? ?? {};
               final country = addressDetails['country'] as String?;
-              final region =
-                  addressDetails['state'] as String? ??
-                  addressDetails['province'] as String? ??
-                  addressDetails['region'] as String?;
+              final region = normalizeGeocodedRegion(
+                addressDetails['state'] as String? ??
+                    addressDetails['province'] as String? ??
+                    addressDetails['region'] as String?,
+                country: country,
+              );
               final locality =
                   addressDetails['city'] as String? ??
                   addressDetails['town'] as String? ??
