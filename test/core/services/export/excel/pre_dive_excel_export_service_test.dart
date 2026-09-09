@@ -45,6 +45,9 @@ void main() {
     String note = '',
     bool required = false,
     DateTime? completedAt,
+    double? valueMin,
+    String? sourceItemId,
+    double? sourceValueNumber,
   }) => PreDiveSessionItem(
     id: id,
     sessionId: sessionId,
@@ -57,6 +60,9 @@ void main() {
     note: note,
     isRequired: required,
     completedAt: completedAt,
+    valueMin: valueMin,
+    sourceItemId: sourceItemId,
+    sourceValueNumber: sourceValueNumber,
     sortOrder: 0,
     createdAt: started,
     updatedAt: started,
@@ -237,5 +243,69 @@ void main() {
       rowsOf(decode(bytes), PreDiveExcelExportService.runsSheet),
       hasLength(1),
     );
+  });
+
+  test('a linearity item exports its air reading and percentage', () {
+    final bytes = service.generateBytes(
+      sessions: [session()],
+      itemsBySession: {
+        's1': [
+          item(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            state: PreDiveItemState.done,
+            valueNumber: 48.0,
+            valueUnit: 'mV',
+            valueMin: 95,
+            sourceItemId: 'air1',
+            sourceValueNumber: 10.1,
+            completedAt: completed,
+          ),
+        ],
+      },
+      dateFormat: DateFormatPreference.yyyymmdd,
+    );
+
+    final rows = rowsOf(decode(bytes), PreDiveExcelExportService.itemsSheet);
+    final header = rows.first;
+    String cell(String column) => rows[1][header.indexOf(column)];
+
+    expect(header, contains('Air Value'));
+    expect(header, contains('Linearity %'));
+    expect(cell('Type'), 'Cell linearity');
+    // Numeric cells, so assert the value rather than its rendering: the
+    // sheet stores 48.0, which stringifies without the trailing zero.
+    expect(double.parse(cell('Value')), 48.0);
+    expect(cell('Unit'), 'mV');
+    expect(double.parse(cell('Air Value')), 10.1);
+    expect(cell('Linearity %'), '99');
+  });
+
+  test('a plain value item leaves the two linearity columns empty', () {
+    final bytes = service.generateBytes(
+      sessions: [session()],
+      itemsBySession: {
+        's1': [
+          item(
+            id: 'air1',
+            title: 'Cell 1 mV in air',
+            type: PreDiveItemType.value,
+            state: PreDiveItemState.done,
+            valueNumber: 10.1,
+            valueUnit: 'mV',
+            completedAt: completed,
+          ),
+        ],
+      },
+      dateFormat: DateFormatPreference.yyyymmdd,
+    );
+
+    final rows = rowsOf(decode(bytes), PreDiveExcelExportService.itemsSheet);
+    final header = rows.first;
+    String cell(String column) => rows[1][header.indexOf(column)];
+
+    expect(cell('Air Value'), isEmpty);
+    expect(cell('Linearity %'), isEmpty);
   });
 }

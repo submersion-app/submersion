@@ -161,6 +161,8 @@ class PreDiveExcelExportService {
       'State',
       'Value',
       'Unit',
+      'Air Value',
+      'Linearity %',
       'Note',
       'Completed At',
       'Required',
@@ -181,6 +183,11 @@ class PreDiveExcelExportService {
           _stateLabel(item.state),
           item.valueNumber ?? '',
           item.valueUnit ?? '',
+          // Only a cell linearity item populates these (issue #986).
+          // Everything else leaves them blank rather than repeating its own
+          // reading into a column that means something different.
+          item.sourceValueNumber ?? '',
+          item.linearityPercent?.round() ?? '',
           item.note.replaceAll('\n', ' '),
           _dateTime(item.completedAt, dateFormat),
           item.isRequired ? 'Yes' : 'No',
