@@ -96,3 +96,15 @@ extension MediaSortFieldDisplay on MediaSortField {
     MediaSortField.fileSize => l10n.enum_sortField_fileSize,
   };
 }
+
+extension EquipmentItemSortFieldDisplay on EquipmentItemSortField {
+  String localizedName(AppLocalizations l10n) => switch (this) {
+    EquipmentItemSortField.name => l10n.enum_equipmentItemSortField_name,
+    EquipmentItemSortField.purchaseDate =>
+      l10n.enum_equipmentItemSortField_purchaseDate,
+    EquipmentItemSortField.dateAdded =>
+      l10n.enum_equipmentItemSortField_dateAdded,
+    EquipmentItemSortField.lastServiceDate =>
+      l10n.enum_equipmentItemSortField_lastServiceDate,
+  };
+}

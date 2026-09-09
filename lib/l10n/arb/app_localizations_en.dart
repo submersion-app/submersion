@@ -36714,4 +36714,66 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (auto)';
   }
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'Do not order by type';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Alphabetical';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'Head to toe';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Dressing order';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'By function';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Name';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Purchase date';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Date added';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Last service';
+
+  @override
+  String get equipment_arrange_title => 'Arrange gear';
+
+  @override
+  String get equipment_arrange_groupByType => 'Group by type';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Show a heading for each kind of gear';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Order types by';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Then by';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Sort by';
+
+  @override
+  String get equipment_arrange_tooltip => 'Arrange gear';
+
+  @override
+  String get equipment_arrange_reset => 'Reset to defaults';
+
+  @override
+  String get equipment_arrange_saveFailed => 'Could not save the arrangement';
+
+  @override
+  String get settings_appearance_gearArrangement => 'Gear arrangement';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'How equipment is grouped and sorted on a dive';
 }

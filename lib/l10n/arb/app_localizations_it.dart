@@ -37283,4 +37283,68 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (auto)';
   }
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'Non ordinare per tipo';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Alfabetico';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'Dalla testa ai piedi';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Ordine di vestizione';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'Per funzione';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Nome';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Data di acquisto';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Data di inserimento';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Ultima revisione';
+
+  @override
+  String get equipment_arrange_title => 'Disponi l\'attrezzatura';
+
+  @override
+  String get equipment_arrange_groupByType => 'Raggruppa per tipo';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Mostra un\'intestazione per ogni tipo di attrezzatura';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Ordina i tipi per';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Poi per';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Ordina per';
+
+  @override
+  String get equipment_arrange_tooltip => 'Disponi l\'attrezzatura';
+
+  @override
+  String get equipment_arrange_reset => 'Ripristina predefiniti';
+
+  @override
+  String get equipment_arrange_saveFailed =>
+      'Impossibile salvare la disposizione';
+
+  @override
+  String get settings_appearance_gearArrangement =>
+      'Disposizione dell\'attrezzatura';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'Come l\'attrezzatura viene raggruppata e ordinata in un\'immersione';
 }

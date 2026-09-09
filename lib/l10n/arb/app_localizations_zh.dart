@@ -35099,4 +35099,64 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size（自动）';
   }
+
+  @override
+  String get enum_equipmentTypeOrder_none => '不按类型排序';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => '按字母顺序';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => '从头到脚';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => '穿戴顺序';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => '按功能';
+
+  @override
+  String get enum_equipmentItemSortField_name => '名称';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => '购买日期';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => '添加日期';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => '上次保养';
+
+  @override
+  String get equipment_arrange_title => '整理装备';
+
+  @override
+  String get equipment_arrange_groupByType => '按类型分组';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle => '为每类装备显示标题';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => '类型排序方式';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => '然后按';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => '排序方式';
+
+  @override
+  String get equipment_arrange_tooltip => '整理装备';
+
+  @override
+  String get equipment_arrange_reset => '恢复默认';
+
+  @override
+  String get equipment_arrange_saveFailed => '无法保存排列方式';
+
+  @override
+  String get settings_appearance_gearArrangement => '装备排列';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle => '潜水记录中装备的分组和排序方式';
 }

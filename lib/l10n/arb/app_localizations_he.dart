@@ -36546,4 +36546,65 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (אוטומטי)';
   }
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'אל תמיין לפי סוג';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'לפי א-ב';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'מהראש ועד כף הרגל';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'סדר הלבישה';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'לפי תפקיד';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'שם';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'תאריך רכישה';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'תאריך הוספה';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'טיפול אחרון';
+
+  @override
+  String get equipment_arrange_title => 'סידור הציוד';
+
+  @override
+  String get equipment_arrange_groupByType => 'קיבוץ לפי סוג';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle => 'הצגת כותרת לכל סוג ציוד';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'מיון סוגים לפי';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'ולאחר מכן לפי';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'מיון לפי';
+
+  @override
+  String get equipment_arrange_tooltip => 'סידור הציוד';
+
+  @override
+  String get equipment_arrange_reset => 'איפוס לברירת המחדל';
+
+  @override
+  String get equipment_arrange_saveFailed => 'לא ניתן לשמור את הסידור';
+
+  @override
+  String get settings_appearance_gearArrangement => 'סידור הציוד';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'כיצד הציוד מקובץ וממוין בצלילה';
 }

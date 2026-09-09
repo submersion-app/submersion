@@ -37296,4 +37296,68 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automático)';
   }
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'Não ordenar por tipo';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Alfabética';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'Da cabeça aos pés';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Ordem de equipamento';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'Por função';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Nome';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Data de compra';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Data de adição';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Última revisão';
+
+  @override
+  String get equipment_arrange_title => 'Organizar o equipamento';
+
+  @override
+  String get equipment_arrange_groupByType => 'Agrupar por tipo';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Mostrar um cabeçalho para cada tipo de equipamento';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Ordenar tipos por';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Depois por';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Ordenar por';
+
+  @override
+  String get equipment_arrange_tooltip => 'Organizar o equipamento';
+
+  @override
+  String get equipment_arrange_reset => 'Repor predefinições';
+
+  @override
+  String get equipment_arrange_saveFailed =>
+      'Não foi possível guardar a organização';
+
+  @override
+  String get settings_appearance_gearArrangement =>
+      'Organização do equipamento';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'Como o equipamento é agrupado e ordenado num mergulho';
 }

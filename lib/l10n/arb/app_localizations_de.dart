@@ -37215,4 +37215,67 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automatisch)';
   }
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'Nicht nach Typ ordnen';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Alphabetisch';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'Von Kopf bis Fuß';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Anziehreihenfolge';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'Nach Funktion';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Name';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Kaufdatum';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Hinzugefügt am';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Letzte Wartung';
+
+  @override
+  String get equipment_arrange_title => 'Ausrüstung anordnen';
+
+  @override
+  String get equipment_arrange_groupByType => 'Nach Typ gruppieren';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Für jede Ausrüstungsart eine Überschrift anzeigen';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Typen ordnen nach';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Danach nach';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Sortieren nach';
+
+  @override
+  String get equipment_arrange_tooltip => 'Ausrüstung anordnen';
+
+  @override
+  String get equipment_arrange_reset => 'Auf Standard zurücksetzen';
+
+  @override
+  String get equipment_arrange_saveFailed =>
+      'Anordnung konnte nicht gespeichert werden';
+
+  @override
+  String get settings_appearance_gearArrangement => 'Ausrüstungsanordnung';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'Wie Ausrüstung bei einem Tauchgang gruppiert und sortiert wird';
 }

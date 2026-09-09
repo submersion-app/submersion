@@ -61139,6 +61139,126 @@ abstract class AppLocalizations {
     int siteCount,
     String size,
   );
+
+  /// No description provided for @enum_equipmentTypeOrder_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not order by type'**
+  String get enum_equipmentTypeOrder_none;
+
+  /// No description provided for @enum_equipmentTypeOrder_alphabetical.
+  ///
+  /// In en, this message translates to:
+  /// **'Alphabetical'**
+  String get enum_equipmentTypeOrder_alphabetical;
+
+  /// No description provided for @enum_equipmentTypeOrder_headToToe.
+  ///
+  /// In en, this message translates to:
+  /// **'Head to toe'**
+  String get enum_equipmentTypeOrder_headToToe;
+
+  /// No description provided for @enum_equipmentTypeOrder_dressingOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Dressing order'**
+  String get enum_equipmentTypeOrder_dressingOrder;
+
+  /// No description provided for @enum_equipmentTypeOrder_canonical.
+  ///
+  /// In en, this message translates to:
+  /// **'By function'**
+  String get enum_equipmentTypeOrder_canonical;
+
+  /// No description provided for @enum_equipmentItemSortField_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get enum_equipmentItemSortField_name;
+
+  /// No description provided for @enum_equipmentItemSortField_purchaseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase date'**
+  String get enum_equipmentItemSortField_purchaseDate;
+
+  /// No description provided for @enum_equipmentItemSortField_dateAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Date added'**
+  String get enum_equipmentItemSortField_dateAdded;
+
+  /// No description provided for @enum_equipmentItemSortField_lastServiceDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Last service'**
+  String get enum_equipmentItemSortField_lastServiceDate;
+
+  /// No description provided for @equipment_arrange_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange gear'**
+  String get equipment_arrange_title;
+
+  /// No description provided for @equipment_arrange_groupByType.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by type'**
+  String get equipment_arrange_groupByType;
+
+  /// No description provided for @equipment_arrange_groupByTypeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a heading for each kind of gear'**
+  String get equipment_arrange_groupByTypeSubtitle;
+
+  /// No description provided for @equipment_arrange_typeOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order types by'**
+  String get equipment_arrange_typeOrderLabel;
+
+  /// No description provided for @equipment_arrange_itemOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Then by'**
+  String get equipment_arrange_itemOrderLabel;
+
+  /// No description provided for @equipment_arrange_itemOrderLabelFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get equipment_arrange_itemOrderLabelFlat;
+
+  /// No description provided for @equipment_arrange_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange gear'**
+  String get equipment_arrange_tooltip;
+
+  /// No description provided for @equipment_arrange_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get equipment_arrange_reset;
+
+  /// No description provided for @equipment_arrange_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the arrangement'**
+  String get equipment_arrange_saveFailed;
+
+  /// No description provided for @settings_appearance_gearArrangement.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear arrangement'**
+  String get settings_appearance_gearArrangement;
+
+  /// No description provided for @settings_appearance_gearArrangementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How equipment is grouped and sorted on a dive'**
+  String get settings_appearance_gearArrangementSubtitle;
 }
 
 class _AppLocalizationsDelegate

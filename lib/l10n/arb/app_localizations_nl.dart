@@ -37032,4 +37032,66 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automatisch)';
   }
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'Niet op type ordenen';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Alfabetisch';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'Van hoofd tot voet';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Aankleedvolgorde';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'Op functie';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Naam';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Aankoopdatum';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Datum toegevoegd';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Laatste onderhoud';
+
+  @override
+  String get equipment_arrange_title => 'Uitrusting ordenen';
+
+  @override
+  String get equipment_arrange_groupByType => 'Groeperen op type';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Toon een kop voor elk type uitrusting';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Typen ordenen op';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Daarna op';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Sorteren op';
+
+  @override
+  String get equipment_arrange_tooltip => 'Uitrusting ordenen';
+
+  @override
+  String get equipment_arrange_reset => 'Standaardwaarden herstellen';
+
+  @override
+  String get equipment_arrange_saveFailed => 'Kan de ordening niet opslaan';
+
+  @override
+  String get settings_appearance_gearArrangement => 'Ordening van uitrusting';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'Hoe uitrusting bij een duik wordt gegroepeerd en gesorteerd';
 }

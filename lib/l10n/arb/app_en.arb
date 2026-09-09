@@ -22569,5 +22569,25 @@
         "type": "String"
       }
     }
-  }
+  },
+  "enum_equipmentTypeOrder_none": "Do not order by type",
+  "enum_equipmentTypeOrder_alphabetical": "Alphabetical",
+  "enum_equipmentTypeOrder_headToToe": "Head to toe",
+  "enum_equipmentTypeOrder_dressingOrder": "Dressing order",
+  "enum_equipmentTypeOrder_canonical": "By function",
+  "enum_equipmentItemSortField_name": "Name",
+  "enum_equipmentItemSortField_purchaseDate": "Purchase date",
+  "enum_equipmentItemSortField_dateAdded": "Date added",
+  "enum_equipmentItemSortField_lastServiceDate": "Last service",
+  "equipment_arrange_title": "Arrange gear",
+  "equipment_arrange_groupByType": "Group by type",
+  "equipment_arrange_groupByTypeSubtitle": "Show a heading for each kind of gear",
+  "equipment_arrange_typeOrderLabel": "Order types by",
+  "equipment_arrange_itemOrderLabel": "Then by",
+  "equipment_arrange_itemOrderLabelFlat": "Sort by",
+  "equipment_arrange_tooltip": "Arrange gear",
+  "equipment_arrange_reset": "Reset to defaults",
+  "equipment_arrange_saveFailed": "Could not save the arrangement",
+  "settings_appearance_gearArrangement": "Gear arrangement",
+  "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive"
 }

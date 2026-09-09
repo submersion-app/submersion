@@ -36910,4 +36910,67 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (تلقائي)';
   }
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'عدم الترتيب حسب النوع';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'أبجدي';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'من الرأس إلى القدم';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'ترتيب ارتداء المعدات';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'حسب الوظيفة';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'الاسم';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'تاريخ الشراء';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'تاريخ الإضافة';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'آخر صيانة';
+
+  @override
+  String get equipment_arrange_title => 'ترتيب المعدات';
+
+  @override
+  String get equipment_arrange_groupByType => 'التجميع حسب النوع';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'إظهار عنوان لكل نوع من المعدات';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'ترتيب الأنواع حسب';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'ثم حسب';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'الترتيب حسب';
+
+  @override
+  String get equipment_arrange_tooltip => 'ترتيب المعدات';
+
+  @override
+  String get equipment_arrange_reset =>
+      'إعادة التعيين إلى الإعدادات الافتراضية';
+
+  @override
+  String get equipment_arrange_saveFailed => 'تعذر حفظ الترتيب';
+
+  @override
+  String get settings_appearance_gearArrangement => 'ترتيب المعدات';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'كيفية تجميع المعدات وترتيبها في الغوصة';
 }

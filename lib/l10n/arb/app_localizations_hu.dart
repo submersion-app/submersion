@@ -37130,4 +37130,66 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automatikus)';
   }
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'Ne rendezze típus szerint';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Betűrend';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'Tetőtől talpig';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Felöltözés sorrendje';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'Funkció szerint';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Név';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Vásárlás dátuma';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Hozzáadás dátuma';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Utolsó szerviz';
+
+  @override
+  String get equipment_arrange_title => 'Felszerelés rendezése';
+
+  @override
+  String get equipment_arrange_groupByType => 'Csoportosítás típus szerint';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Fejléc megjelenítése minden felszereléstípushoz';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Típusok rendezése';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Majd';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Rendezés';
+
+  @override
+  String get equipment_arrange_tooltip => 'Felszerelés rendezése';
+
+  @override
+  String get equipment_arrange_reset => 'Alapértelmezések visszaállítása';
+
+  @override
+  String get equipment_arrange_saveFailed => 'A rendezés mentése nem sikerült';
+
+  @override
+  String get settings_appearance_gearArrangement => 'Felszerelés elrendezése';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'Hogyan csoportosuljon és rendeződjön a felszerelés egy merülésnél';
 }
