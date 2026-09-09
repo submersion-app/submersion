@@ -26,6 +26,7 @@ import 'package:submersion/core/presentation/pages/lock_escape_dialogs.dart';
 import 'package:submersion/core/presentation/pages/lock_screen_view.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/startup_failure.dart';
+import 'package:submersion/core/presentation/startup_theme.dart';
 import 'package:submersion/core/presentation/widgets/backup_status_views.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
@@ -43,6 +44,7 @@ import 'package:submersion/core/services/security/database_security_sidecar.dart
 import 'package:submersion/core/services/security/locked_database_escape.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
@@ -1313,6 +1315,21 @@ class _StartupWrapperState extends State<StartupWrapper>
     final textColor = isDark ? Colors.white : Colors.black87;
     final subtitleColor = isDark ? Colors.white70 : Colors.black54;
 
+    // The splash paints its plain text from the palette above, but every
+    // themed descendant (the restore Card, the buttons, the progress
+    // indicators, the escape-hatch dialogs) reads Theme.of instead. A
+    // MaterialApp with no theme gets Flutter's default, which is always
+    // LIGHT: in dark mode that put a near-white card surface under white
+    // text and made the restore offer unreadable. The theme therefore has to
+    // follow the same brightness the palette does.
+    //
+    // The preset comes from the same pre-database mirror the brightness does,
+    // so a diver on Console or Deep is not handed an ocean-blue error screen.
+    final splashTheme = AppThemeRegistry.resolveTheme(
+      resolveStartupThemePreset(widget.prefs),
+      brightness,
+    );
+
     final isReady = _state == _StartupState.ready;
 
     // Splash layer: stays at full opacity while initializing/migrating/error,
@@ -1331,6 +1348,7 @@ class _StartupWrapperState extends State<StartupWrapper>
               child: MaterialApp(
                 debugShowCheckedModeBanner: false,
                 navigatorKey: _splashNavigatorKey,
+                theme: splashTheme,
                 // The splash runs before the database (and therefore the
                 // diver's saved locale preference) is readable, so it can
                 // only resolve the system locale. Without these delegates

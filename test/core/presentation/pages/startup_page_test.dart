@@ -13,9 +13,12 @@ import 'package:submersion/core/domain/entities/migration_progress.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/startup_failure.dart';
+import 'package:submersion/core/presentation/startup_theme.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
+import 'package:submersion/core/presentation/widgets/startup_restore_card.dart';
 import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart';
+import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
@@ -2228,6 +2231,99 @@ void main() {
       expect(find.text('Your Data Is Newer Than This App'), findsOneWidget);
       expect(find.text('Restore your pre-upgrade backup'), findsOneWidget);
       expect(find.textContaining('v170'), findsOneWidget);
+    });
+
+    testWidgets('restore card stays readable in dark mode', (tester) async {
+      // The splash paints its own dark palette from the cached theme mode,
+      // but the Card behind the restore offer takes its surface from the
+      // theme. When the splash MaterialApp carried no theme, that surface
+      // came from Flutter's default LIGHT ThemeData while the text stayed
+      // white, and the whole offer washed out (#1595).
+      SharedPreferences.setMockInitialValues({cachedThemeModeKey: 'dark'});
+      prefs = await SharedPreferences.getInstance();
+      locationService = _FakeLocationService(prefs);
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      final dir = Directory.systemTemp.createTempSync('startup-downgrade-d-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      await seedCopy(
+        dir,
+        id: 'old',
+        fromSchemaVersion: 170,
+        toSchemaVersion: 175,
+        timestamp: DateTime.utc(2026, 8, 1, 9),
+      );
+
+      await tester.pumpWidget(
+        wrapper(
+          storedSchemaVersion: 191,
+          supportedSchemaVersion: 175,
+          probe: (_) => 170,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StartupRestoreCard), findsOneWidget);
+
+      // The colour the card actually paints, not the colour it was asked for.
+      final surface = tester
+          .widget<Material>(
+            find
+                .descendant(
+                  of: find.byType(StartupRestoreCard),
+                  matching: find.byType(Material),
+                )
+                .first,
+          )
+          .color;
+      expect(surface, isNotNull);
+      expect(
+        ThemeData.estimateBrightnessForColor(surface!),
+        Brightness.dark,
+        reason: 'white card text needs a dark surface behind it',
+      );
+    });
+
+    testWidgets('the splash wears the diver\'s cached theme preset', (
+      tester,
+    ) async {
+      // The preset lives in the unopened database, so the settings notifier
+      // mirrors it into SharedPreferences for exactly this screen.
+      SharedPreferences.setMockInitialValues({
+        cachedThemeModeKey: 'dark',
+        cachedThemePresetKey: 'console',
+      });
+      prefs = await SharedPreferences.getInstance();
+      locationService = _FakeLocationService(prefs);
+
+      final dir = Directory.systemTemp.createTempSync('startup-downgrade-p-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      await seedCopy(
+        dir,
+        id: 'old',
+        fromSchemaVersion: 170,
+        toSchemaVersion: 175,
+        timestamp: DateTime.utc(2026, 8, 1, 9),
+      );
+
+      await tester.pumpWidget(
+        wrapper(
+          storedSchemaVersion: 191,
+          supportedSchemaVersion: 175,
+          probe: (_) => 170,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      final theme = Theme.of(tester.element(find.byType(StartupRestoreCard)));
+      final console = AppThemeRegistry.resolveTheme(
+        AppThemeRegistry.findById('console'),
+        Brightness.dark,
+      );
+      expect(theme.colorScheme.primary, console.colorScheme.primary);
     });
 
     testWidgets('shows no restore when every copy is itself too new', (
