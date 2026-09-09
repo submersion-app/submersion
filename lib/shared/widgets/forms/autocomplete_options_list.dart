@@ -67,10 +67,11 @@ class _AutocompleteOptionsListState<T extends Object>
 
   /// Brings the row at [index] on screen after the frame that highlighted it.
   ///
-  /// Keyboard navigation can land far outside the rows the [ListView] has
-  /// built (jump-to-first/last, PageUp/PageDown), and [Scrollable.ensureVisible]
-  /// needs a live context, so fall back to scrolling to the end the option
-  /// lies past and let the next frame build it.
+  /// The jump-to-first and jump-to-last intents can land outside the rows the
+  /// [ListView] has built, and [Scrollable.ensureVisible] needs a live
+  /// context, so those fall back to scrolling to that end of the list. The
+  /// stepping intents (arrow keys, PageUp/PageDown) move only a few rows at a
+  /// time, so their target is already built and takes the exact path.
   void _scrollHighlightIntoView(int index) {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       // A newer highlight has superseded this one, e.g. while an arrow key
@@ -80,6 +81,7 @@ class _AutocompleteOptionsListState<T extends Object>
 
       final rowContext = _rowKeys[index]?.currentContext;
       if (rowContext == null) {
+        // Only a jump to one end of the list can outrun the built rows.
         _scrollController.jumpTo(
           index == 0 ? 0 : _scrollController.position.maxScrollExtent,
         );
