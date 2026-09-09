@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipm
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
@@ -35,12 +36,14 @@ void main() {
     EquipmentArrangement arrangement = EquipmentArrangement.defaults,
     Set<String> selected = const {},
     List<EquipmentItem> gear = const [zeagle, faber, apeks],
+    EquipmentPickerFilter filter = EquipmentPickerFilter.none,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           activeEquipmentProvider.overrideWith((ref) async => gear),
           equipmentArrangementProvider.overrideWithValue(arrangement),
+          equipmentPickerFilterProvider.overrideWith((ref) => filter),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -122,5 +125,97 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Order types by'), findsOneWidget);
+  });
+
+  testWidgets('a type filter narrows the list and drops emptied headings', (
+    tester,
+  ) async {
+    await pumpPicker(
+      tester,
+      filter: const EquipmentPickerFilter(type: EquipmentType.regulator),
+    );
+
+    expect(find.text('Apeks'), findsOneWidget);
+    expect(find.text('Zeagle'), findsNothing);
+    expect(find.text('Faber'), findsNothing);
+    expect(
+      tester
+          .widgetList<EquipmentGroupHeader>(find.byType(EquipmentGroupHeader))
+          .map((h) => h.type),
+      [EquipmentType.regulator],
+    );
+  });
+
+  testWidgets('a status filter narrows the list', (tester) async {
+    await pumpPicker(
+      tester,
+      gear: const [
+        zeagle,
+        EquipmentItem(
+          id: 'reg-loaned',
+          name: 'Borrowed',
+          type: EquipmentType.regulator,
+          status: EquipmentStatus.loaned,
+        ),
+      ],
+      filter: const EquipmentPickerFilter(status: EquipmentStatus.loaned),
+    );
+
+    expect(find.text('Borrowed'), findsOneWidget);
+    expect(find.text('Zeagle'), findsNothing);
+  });
+
+  // Two tests rather than one re-pump: pumping again reuses the ProviderScope
+  // element, so the StateProvider keeps the value the first pump gave it and
+  // the second override never takes effect.
+  testWidgets('the filter badge is hidden when nothing is narrowed', (
+    tester,
+  ) async {
+    await pumpPicker(tester);
+
+    expect(tester.widget<Badge>(find.byType(Badge)).isLabelVisible, isFalse);
+  });
+
+  testWidgets('the filter badge shows when something is narrowed', (
+    tester,
+  ) async {
+    await pumpPicker(
+      tester,
+      filter: const EquipmentPickerFilter(type: EquipmentType.tank),
+    );
+
+    expect(tester.widget<Badge>(find.byType(Badge)).isLabelVisible, isTrue);
+  });
+
+  testWidgets('a filter that hides everything says so, not "all selected"', (
+    tester,
+  ) async {
+    // The three empty states mean different things and must not be conflated.
+    await pumpPicker(
+      tester,
+      filter: const EquipmentPickerFilter(type: EquipmentType.camera),
+    );
+
+    expect(find.text('No equipment in this category'), findsOneWidget);
+    expect(find.text('All equipment already selected'), findsNothing);
+    expect(find.text('Clear All'), findsOneWidget);
+  });
+
+  testWidgets('the filter action opens the filter sheet', (tester) async {
+    await pumpPicker(tester);
+
+    await tester.tap(find.byTooltip('Filter Equipment'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('picker_filter_apply')), findsOneWidget);
+    // Only categories actually present are offered.
+    expect(
+      find.byKey(const ValueKey('picker_filter_type_regulator')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('picker_filter_type_camera')),
+      findsNothing,
+    );
   });
 }

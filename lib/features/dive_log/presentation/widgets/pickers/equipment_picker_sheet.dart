@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -9,6 +11,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_picker_filter_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Equipment picker bottom sheet
@@ -30,6 +33,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
     // reachable from the Equipment page's Retired filter (#636).
     final equipmentAsync = ref.watch(activeEquipmentProvider);
     final arrangement = ref.watch(equipmentArrangementProvider);
+    final filter = ref.watch(equipmentPickerFilterProvider);
 
     return Column(
       children: [
@@ -45,6 +49,20 @@ class EquipmentPickerSheet extends ConsumerWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  IconButton(
+                    icon: Badge(
+                      // Only when something is narrowed, so the diver can see
+                      // at a glance why gear they own is missing from the list.
+                      isLabelVisible: filter.hasActiveFilters,
+                      child: const Icon(Icons.filter_list),
+                    ),
+                    tooltip: context.l10n.equipment_filter_title,
+                    onPressed: () => _showFilter(
+                      context,
+                      ref,
+                      equipmentAsync.value ?? const <EquipmentItem>[],
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.sort),
                     tooltip: context.l10n.equipment_arrange_tooltip,
@@ -64,44 +82,43 @@ class EquipmentPickerSheet extends ConsumerWidget {
         Expanded(
           child: equipmentAsync.when(
             data: (equipmentList) {
-              // Filter out already selected equipment
-              final available = equipmentList
+              // Selection first, then the diver's filter: an item already on
+              // the dive is gone for a different reason than one the filter
+              // hides, and the empty states below say which.
+              final unselected = equipmentList
                   .where((e) => !selectedEquipmentIds.contains(e.id))
                   .toList();
+              final available = filter.apply(unselected);
 
               if (available.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.inventory_2_outlined,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        equipmentList.isEmpty
-                            ? context.l10n.diveLog_equipmentPicker_noEquipment
-                            : context.l10n.diveLog_equipmentPicker_allSelected,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        equipmentList.isEmpty
-                            ? context.l10n.diveLog_equipmentPicker_addFromTab
-                            : context.l10n.diveLog_equipmentPicker_removeToAdd,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
+                return _EmptyState(
+                  // Distinguishes "you own none" from "all of it is already on
+                  // this dive" from "your filter hides the rest".
+                  message: equipmentList.isEmpty
+                      ? context.l10n.diveLog_equipmentPicker_noEquipment
+                      : unselected.isEmpty
+                      ? context.l10n.diveLog_equipmentPicker_allSelected
+                      : filter.type != null
+                      ? context.l10n.equipment_list_emptyState_noTypeMatch
+                      : context.l10n.equipment_list_emptyState_noStatusMatch,
+                  hint: equipmentList.isEmpty
+                      ? context.l10n.diveLog_equipmentPicker_addFromTab
+                      : unselected.isEmpty
+                      ? context.l10n.diveLog_equipmentPicker_removeToAdd
+                      : null,
+                  onClearFilter: filter.hasActiveFilters
+                      ? () =>
+                            ref
+                                .read(equipmentPickerFilterProvider.notifier)
+                                .state = EquipmentPickerFilter
+                                .none
+                      : null,
                 );
               }
 
               // Filtering happens before arranging, so a type whose every
-              // item is already on the dive contributes no empty heading.
+              // item is already on the dive (or filtered out) contributes no
+              // empty heading.
               final rows = <Widget>[
                 for (final group in arrangeEquipment(
                   available,
@@ -151,6 +168,74 @@ class EquipmentPickerSheet extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  /// Offers only the types and statuses actually present in the picker, plus
+  /// whatever is currently selected, so a filter is always clearable and no
+  /// chip matches nothing.
+  Future<void> _showFilter(
+    BuildContext context,
+    WidgetRef ref,
+    List<EquipmentItem> equipment,
+  ) async {
+    final current = ref.read(equipmentPickerFilterProvider);
+    final presentTypes = equipment.map((e) => e.type).toSet();
+    final presentStatuses = equipment.map((e) => e.status).toSet();
+
+    final chosen = await showEquipmentPickerFilterSheet(
+      context,
+      current: current,
+      availableTypes: EquipmentType.values
+          .where((t) => presentTypes.contains(t) || t == current.type)
+          .toList(),
+      availableStatuses: EquipmentStatus.values
+          .where((s) => presentStatuses.contains(s) || s == current.status)
+          .toList(),
+    );
+    if (chosen == null) return;
+    ref.read(equipmentPickerFilterProvider.notifier).state = chosen;
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.message, this.hint, this.onClearFilter});
+
+  final String message;
+  final String? hint;
+  final VoidCallback? onClearFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.inventory_2_outlined,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 16),
+          Text(message, style: Theme.of(context).textTheme.titleMedium),
+          if (hint != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              hint!,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+          if (onClearFilter != null) ...[
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: onClearFilter,
+              child: Text(context.l10n.equipment_filter_clearAll),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

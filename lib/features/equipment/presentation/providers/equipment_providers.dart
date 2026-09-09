@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
@@ -109,6 +110,17 @@ final ownedEquipmentTypesProvider = Provider<List<EquipmentType>>((ref) {
   final present = all.map((e) => e.type).toSet();
   return EquipmentType.values.where(present.contains).toList();
 });
+
+/// The Add Equipment picker's own filter (#1576).
+///
+/// Separate from [equipmentFilterProvider], which belongs to the Equipment
+/// page: sharing one would mean narrowing the gear list silently narrowed the
+/// dive picker, which is not what either control implies. Not persisted, so a
+/// narrowing applied to find one item does not quietly survive into the next
+/// dive the diver edits.
+final equipmentPickerFilterProvider = StateProvider<EquipmentPickerFilter>(
+  (ref) => EquipmentPickerFilter.none,
+);
 
 /// Equipment sort state provider
 final equipmentSortProvider = StateProvider<SortState<EquipmentSortField>>(
