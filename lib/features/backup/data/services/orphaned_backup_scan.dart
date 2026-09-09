@@ -108,6 +108,12 @@ class OrphanedBackupScan {
   /// caller. This is the last gate before an irreversible delete of what may
   /// be another device's only backup, and a UI bug upstream must not be able
   /// to reach past it.
+  ///
+  /// The freed total is measured immediately before each delete rather than
+  /// summed from [UnrecognizedBackup.sizeBytes]. That field is whatever the
+  /// listing saw, and the page it feeds can sit open for as long as the user
+  /// reads it; a cloud client rewriting a file in that window would turn the
+  /// reported figure into a number the app made up rather than one it measured.
   Future<int> reclaim(Iterable<UnrecognizedBackup> candidates) async {
     var bytes = 0;
     for (final candidate in candidates) {
@@ -115,8 +121,9 @@ class OrphanedBackupScan {
       try {
         final file = File(candidate.path);
         if (!await file.exists()) continue;
+        final size = await file.length();
         await file.delete();
-        bytes += candidate.sizeBytes;
+        bytes += size;
       } on FileSystemException catch (e) {
         _log.warning('Could not reclaim ${candidate.filename}: $e');
         continue;

@@ -52,7 +52,26 @@ class UnrecognizedBackupsNotice extends ConsumerWidget {
   /// say, and this side of the navigation is where that row lives.
   Future<void> _review(BuildContext context, WidgetRef ref) async {
     await context.push(routeLocation);
-    ref.invalidate(unrecognizedBackupsProvider);
-    ref.invalidate(storageCategorySizeProvider(StorageCategoryId.backups));
+    // Checked here as well as inside the callee: the analyzer cannot see a
+    // guard on the far side of a call, and use_build_context_synchronously is
+    // fatal in CI. The tested guard is the one in the callee.
+    if (!context.mounted) return;
+    refreshAfterUnrecognizedReview(context, ref);
   }
+}
+
+/// Refreshes the rows a reclaim can change, if this notice is still on screen.
+///
+/// Separate from the push so the guard is reachable from a test. The await on
+/// `context.push` has no bound: the sub-page stays open as long as the user
+/// reads it, and the Storage usage page underneath can be torn down in that
+/// window by a deep link or a shell navigation. A `WidgetRef` whose element has
+/// been unmounted throws `StateError` on invalidate, so without this check a
+/// tap the user made on a page they have already left surfaces as an unhandled
+/// error. There is nothing to refresh in that case either: the rows are gone.
+@visibleForTesting
+void refreshAfterUnrecognizedReview(BuildContext context, WidgetRef ref) {
+  if (!context.mounted) return;
+  ref.invalidate(unrecognizedBackupsProvider);
+  ref.invalidate(storageCategorySizeProvider(StorageCategoryId.backups));
 }

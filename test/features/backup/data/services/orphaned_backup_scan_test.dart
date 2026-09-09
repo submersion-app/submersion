@@ -136,6 +136,24 @@ void main() {
     expect(await build().find(), isEmpty);
   });
 
+  test('bytes freed are measured at delete time, not at scan time', () async {
+    // The size on an UnrecognizedBackup is whatever the listing saw, and the
+    // page it feeds can sit open for as long as the user reads it. A cloud
+    // client rewriting the file in that window would make the freed figure a
+    // number the app made up rather than one it measured.
+    final path = await writeBackup(
+      deviceId: thisDevice,
+      timestamp: '2026-09-01_1200',
+      bytes: 100,
+    );
+    final scan = build();
+    final found = await scan.find();
+
+    await File(path).writeAsBytes(List<int>.filled(4096, 0));
+
+    expect(await scan.reclaim(found), 4096);
+  });
+
   test('a directory that cannot be enumerated yields nothing', () async {
     final scan = OrphanedBackupScan(
       backupsDirectory: () async => null,
