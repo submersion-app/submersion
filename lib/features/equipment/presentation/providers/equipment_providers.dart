@@ -115,12 +115,18 @@ final ownedEquipmentTypesProvider = Provider<List<EquipmentType>>((ref) {
 ///
 /// Separate from [equipmentFilterProvider], which belongs to the Equipment
 /// page: sharing one would mean narrowing the gear list silently narrowed the
-/// dive picker, which is not what either control implies. Not persisted, so a
-/// narrowing applied to find one item does not quietly survive into the next
-/// dive the diver edits.
-final equipmentPickerFilterProvider = StateProvider<EquipmentPickerFilter>(
-  (ref) => EquipmentPickerFilter.none,
-);
+/// dive picker, which is not what either control implies.
+///
+/// autoDispose so it resets when the picker closes. A plain StateProvider
+/// lives for the whole ProviderContainer, i.e. the app session, so a
+/// narrowing applied to find one regulator would still be hiding gear the
+/// next time a dive's picker opened, with only a badge to explain the short
+/// list. The picker is the sole listener, so losing it is exactly the signal
+/// that the narrowing is done with.
+final equipmentPickerFilterProvider =
+    StateProvider.autoDispose<EquipmentPickerFilter>(
+      (ref) => EquipmentPickerFilter.none,
+    );
 
 /// Equipment sort state provider
 final equipmentSortProvider = StateProvider<SortState<EquipmentSortField>>(

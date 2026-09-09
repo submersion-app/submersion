@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
@@ -100,6 +102,35 @@ void main() {
     expect(
       const EquipmentPickerFilter(type: EquipmentType.tank),
       isNot(const EquipmentPickerFilter(type: EquipmentType.mask)),
+    );
+  });
+
+  test('the picker filter does not survive the picker closing', () async {
+    // A narrowing applied to find one regulator must not still be hiding gear
+    // the next time a dive's picker opens. StateProvider state otherwise
+    // lives for the whole ProviderContainer, i.e. the app session.
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final sub = container.listen(
+      equipmentPickerFilterProvider,
+      (_, _) {},
+      fireImmediately: true,
+    );
+    container.read(equipmentPickerFilterProvider.notifier).state =
+        const EquipmentPickerFilter(type: EquipmentType.regulator);
+    expect(
+      container.read(equipmentPickerFilterProvider).type,
+      EquipmentType.regulator,
+    );
+
+    // The picker closes: its watch goes away.
+    sub.close();
+    await pumpEventQueue();
+
+    expect(
+      container.read(equipmentPickerFilterProvider),
+      EquipmentPickerFilter.none,
     );
   });
 }
