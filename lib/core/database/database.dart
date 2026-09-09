@@ -97,6 +97,10 @@ class Trips extends Table {
   /// Return flight departure, wall-clock-as-UTC epoch ms (v142). Drives the
   /// remaining-dive-window countdown; null when the trip has no flight set.
   IntColumn get returnFlightAt => integer().nullable()();
+
+  /// v202: overrides for the scrubber trip-margin estimate (phase 4).
+  IntColumn get expectedDives => integer().nullable()();
+  IntColumn get expectedRuntimeMinutes => integer().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -975,6 +979,15 @@ class DiveTanks extends Table {
   // v200 means "same as tankOrder"; -1 (kNoSourceTankIndex) means the row
   // takes no parsed tank, which is what a reassignment leaves behind.
   IntColumn get sourceTankIndex => integer().nullable()();
+
+  /// v202: the regulator breathed from this cylinder, so high-O2 exposure
+  /// reaches the regulator's service clocks. User-authored; downloads and
+  /// re-parses never write it.
+  TextColumn get regulatorEquipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   // Which computer contributed this tank (null = primary source / manual).
   // Same null-means-primary semantics as dive_profiles.computerId; deletes
   // set null.
@@ -1019,6 +1032,16 @@ class Equipment extends Table {
       .nullable()(); // NULL = use global, true = custom, false = disabled
   TextColumn get customReminderDays =>
       text().nullable()(); // JSON array override, e.g. "[7, 30]"
+
+  /// v202: the item this one is installed in (an O2 cell in a rebreather, a
+  /// battery in a computer). A child inherits the parent's dive links from
+  /// its `installed_date` attribute. Deleting the parent orphans the child
+  /// rather than deleting its history.
+  TextColumn get parentEquipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -1268,6 +1291,11 @@ class ServiceKinds extends Table {
   IntColumn get defaultIntervalDives => integer().nullable()();
   RealColumn get defaultIntervalHours => real().nullable()();
 
+  /// v202: JSON object of ExposureUnit name to interval for the units that
+  /// have no column of their own ({"coldDives": 50}). '{}' means none.
+  TextColumn get exposureIntervals =>
+      text().withDefault(const Constant('{}'))();
+
   /// v154: default price for this maintenance, prefilled into a new service
   /// record. Nullable currency means "no opinion, use the diver's default
   /// currency"; a NOT NULL default would make every task silently claim USD.
@@ -1308,6 +1336,11 @@ class ServiceSchedules extends Table {
   IntColumn get intervalDays => integer().nullable()();
   IntColumn get intervalDives => integer().nullable()();
   RealColumn get intervalHours => real().nullable()();
+
+  /// v202: per-item overrides for the map units; a key absent here inherits
+  /// the kind's map entry.
+  TextColumn get exposureIntervals =>
+      text().withDefault(const Constant('{}'))();
 
   /// v154: per-item default price, overriding the kind's. Most specific wins,
   /// so two rebreathers serviced at different shops each keep their own
@@ -1859,6 +1892,13 @@ class DiverSettings extends Table {
   // Flying-after-diving conservatism (NoFlyPreset.dbValue, v125).
   TextColumn get noFlyPreset =>
       text().withDefault(const Constant('standard'))();
+  // v202: exposure thresholds for service clocks. Stored metric.
+  RealColumn get coldWaterThresholdC =>
+      real().withDefault(const Constant(10.0))();
+  RealColumn get deepDiveThresholdM =>
+      real().withDefault(const Constant(30.0))();
+  RealColumn get highO2ThresholdPercent =>
+      real().withDefault(const Constant(40.0))();
   // Emergency card (v126): hidden bundled chamber ids (JSON list) and a
   // manual region override (ISO country code).
   TextColumn get hiddenChamberIds => text().nullable()();
@@ -2538,41 +2578,70 @@ const String kSeedBuiltInServiceKindsSql = '''
   INSERT OR IGNORE INTO service_kinds
     (id, diver_id, name, applicable_types, default_interval_days,
      default_interval_dives, default_interval_hours, auto_attach,
-     default_category, is_built_in, created_at, updated_at)
+     default_category, exposure_intervals, is_built_in, created_at,
+     updated_at)
   SELECT t.id, NULL, t.name, t.types, t.days, t.dives, t.hours, t.auto,
-         t.category, 1, n.now_ms, n.now_ms
+         t.category, t.exposure, 1, n.now_ms, n.now_ms
   FROM (
     SELECT 'hydro' AS id, 'Hydrostatic test' AS name, '["tank"]' AS types,
            1825 AS days, NULL AS dives, NULL AS hours, 1 AS auto,
-           'inspection' AS category
+           'inspection' AS category, '{}' AS exposure
     UNION ALL SELECT 'vip', 'Visual inspection (VIP)', '["tank"]',
-           365, NULL, NULL, 1, 'inspection'
-    UNION ALL SELECT 'o2-clean', 'O2 clean', '["tank"]', 365, NULL, NULL, 0,
-           'cleaning'
+           365, NULL, NULL, 1, 'inspection', '{}'
+    -- v202: O2 cleaning applies to regulators too now that a cylinder can
+    -- name the regulator breathed from it; 50 high-O2 hours is a starting
+    -- point, not a manufacturer figure.
+    UNION ALL SELECT 'o2-clean', 'O2 clean', '["tank","regulator"]', 365,
+           NULL, NULL, 0, 'cleaning', '{"o2Hours":50}'
     UNION ALL SELECT 'regulator-service', 'Regulator service',
-           '["regulator"]', 365, 100, NULL, 1, 'annual'
-    UNION ALL SELECT 'computer-battery', 'Computer battery', '["computer"]',
-           730, NULL, NULL, 1, 'replacement'
+           '["regulator"]', 365, 100, NULL, 1, 'annual', '{"coldDives":50}'
+    UNION ALL SELECT 'computer-battery', 'Computer battery',
+           '["computer","battery"]', 730, NULL, NULL, 1, 'replacement', '{}'
+    -- v202: 250 h sits below the roughly 300 h published for common
+    -- transmitters.
     UNION ALL SELECT 'transmitter-battery', 'Transmitter battery',
-           '["transmitter"]', 365, NULL, NULL, 1, 'replacement'
+           '["transmitter","battery"]', 365, NULL, 250.0, 1, 'replacement',
+           '{}'
     UNION ALL SELECT 'bcd-inspection', 'BCD/wing inspection', '["bcd"]',
-           365, NULL, NULL, 1, 'inspection'
+           365, NULL, NULL, 1, 'inspection', '{}'
     UNION ALL SELECT 'drysuit-seals', 'Drysuit seals', '["drysuit"]',
-           730, NULL, NULL, 0, 'repair'
+           730, NULL, NULL, 0, 'repair', '{"saltHours":200}'
     -- A scrubber is consumed by loop time, not by the calendar, so this is
     -- the only built-in with an hours-only clock. 3.0 h is conservative
     -- across the 2-6 h range real units are rated for; the diver overrides
     -- it per unit via ServiceSchedule.intervalHours.
     UNION ALL SELECT 'scrubber-repack', 'Scrubber repack', '["rebreather"]',
-           NULL, NULL, 3.0, 1, 'replacement'
+           NULL, NULL, 3.0, 1, 'replacement', '{}'
     UNION ALL SELECT 'o2-cell-replacement', 'O2 cell replacement',
-           '["rebreather"]', 365, NULL, NULL, 1, 'replacement'
+           '["rebreather","o2Cell"]', 365, NULL, NULL, 1, 'replacement', '{}'
     UNION ALL SELECT 'rebreather-annual', 'Rebreather annual service',
-           '["rebreather"]', 365, NULL, NULL, 1, 'annual'
+           '["rebreather"]', 365, NULL, NULL, 1, 'annual', '{}'
     UNION ALL SELECT 'general-service', 'General service', '[]',
-           NULL, NULL, NULL, 0, 'annual'
+           NULL, NULL, NULL, 0, 'annual', '{}'
   ) t
   CROSS JOIN (SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms) n
+''';
+
+/// v202: exposure defaults for the built-in kinds on existing installs.
+/// Starting points, not manufacturer figures; a schedule overrides them.
+/// Held in step with the seed SQL by migration_v202_equipment_condition_test.
+const String kBackfillBuiltInExposureDefaultsSql = '''
+  UPDATE service_kinds SET
+    exposure_intervals = CASE id
+      WHEN 'regulator-service' THEN '{"coldDives":50}'
+      WHEN 'o2-clean' THEN '{"o2Hours":50}'
+      WHEN 'drysuit-seals' THEN '{"saltHours":200}'
+      ELSE exposure_intervals END,
+    applicable_types = CASE id
+      WHEN 'o2-clean' THEN '["tank","regulator"]'
+      WHEN 'computer-battery' THEN '["computer","battery"]'
+      WHEN 'transmitter-battery' THEN '["transmitter","battery"]'
+      WHEN 'o2-cell-replacement' THEN '["rebreather","o2Cell"]'
+      ELSE applicable_types END,
+    default_interval_hours = CASE id
+      WHEN 'transmitter-battery' THEN 250.0
+      ELSE default_interval_hours END
+  WHERE is_built_in = 1
 ''';
 
 /// A named, reusable set of cylinders. equipment_id set means "a config for
@@ -2924,6 +2993,13 @@ class Incidents extends Table {
       text().nullable().references(Divers, #id, onDelete: KeyAction.cascade)();
   TextColumn get diveId =>
       text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+
+  /// v202: the item an equipment incident attributes to.
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   IntColumn get occurredAt => integer()();
   TextColumn get category => text()();
   TextColumn get severity => text()();
@@ -2936,6 +3012,82 @@ class Incidents extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// v202: what only a profile-blob decode can produce, computed once per dive
+/// version by the sensor summary service (phase 2). Device-local, never
+/// synced; a restore rebuilds it by sweep.
+@DataClassName('DiveSensorSummaryRow')
+class DiveSensorSummaries extends Table {
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  IntColumn get engineVersion => integer()();
+  IntColumn get sourceUpdatedAt => integer()();
+  IntColumn get computedAt => integer()();
+  RealColumn get minTemperature => real().nullable()();
+  RealColumn get maxDepth => real().nullable()();
+  RealColumn get scrubberConsumedMinutes => real().nullable()();
+  TextColumn get cellMetrics => text().withDefault(const Constant('[]'))();
+  TextColumn get transmitterGaps => text().withDefault(const Constant('[]'))();
+
+  @override
+  Set<Column> get primaryKey => {diveId};
+}
+
+/// v202: a diver's post-dive gear check-in (phase 3). Synced aggregate root.
+@DataClassName('EquipmentObservationRow')
+class EquipmentObservations extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().nullable().references(Divers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+  IntColumn get observedAt => integer()();
+  TextColumn get status => text()(); // 'ok' | 'issue'
+  TextColumn get issueTags => text().withDefault(const Constant('[]'))();
+  TextColumn get note => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// v202: one condition finding per (item, rule, slot) (phase 3). Synced the
+/// way dive_safety_findings is: write-once except dismissed_at.
+@DataClassName('EquipmentFindingRow')
+class EquipmentFindings extends Table {
+  TextColumn get id => text()();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get ruleId => text()();
+  TextColumn get severity => text()();
+  RealColumn get value => real().nullable()();
+  TextColumn get evidence => text().withDefault(const Constant('{}'))();
+  TextColumn get evidenceFingerprint => text()();
+  IntColumn get engineVersion => integer()();
+  IntColumn get dismissedAt => integer().nullable()();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// v202: per-item marker that the condition engine has run over the current
+/// inputs (phase 3). Device-local.
+@DataClassName('EquipmentConditionReviewRow')
+class EquipmentConditionReviews extends Table {
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  IntColumn get engineVersion => integer()();
+  TextColumn get inputFingerprint => text()();
+  IntColumn get reviewedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {equipmentId};
 }
 
 /// Gas switches during a dive
@@ -3490,6 +3642,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveSafetyFindings,
     EmergencyChambers,
     Incidents,
+    DiveSensorSummaries,
+    EquipmentObservations,
+    EquipmentFindings,
+    EquipmentConditionReviews,
     GasSwitches,
     TankPressureSeries,
     TideRecords,
@@ -3556,7 +3712,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 200;
+  static const int currentSchemaVersion = 202;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4075,6 +4231,7 @@ class AppDatabase extends _$AppDatabase {
     // v200: transmitters registry table (issue #1365) and
     // dive_tanks.source_tank_index (issue #1314).
     200,
+    202,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4175,6 +4332,127 @@ class AppDatabase extends _$AppDatabase {
         'ALTER TABLE certifications ADD COLUMN additional_credentials TEXT',
       );
     }
+  }
+
+  Future<void> _addColumnIfMissing(
+    String table,
+    String column,
+    String ddl,
+  ) async {
+    final cols = await customSelect("PRAGMA table_info('$table')").get();
+    if (cols.isEmpty) return; // partial fixture database: table absent
+    if (cols.any((c) => c.read<String>('name') == column)) return;
+    await customStatement('ALTER TABLE $table ADD COLUMN $column $ddl');
+  }
+
+  /// v202: the exposure_intervals map on both service ledger tables. Split
+  /// out because the v122 seed (which runs in older rungs' blocks and in
+  /// the backstop) names the column and must be able to assert it first.
+  Future<void> _assertExposureIntervalColumns() async {
+    await _addColumnIfMissing(
+      'service_kinds',
+      'exposure_intervals',
+      "TEXT NOT NULL DEFAULT '{}'",
+    );
+    await _addColumnIfMissing(
+      'service_schedules',
+      'exposure_intervals',
+      "TEXT NOT NULL DEFAULT '{}'",
+    );
+  }
+
+  /// v202: equipment condition intelligence, phase 1. Idempotent; called
+  /// from the v202 onUpgrade block and the beforeOpen backstop.
+  Future<void> _assertEquipmentConditionSchema() async {
+    // The three links reference equipment. A real database always has that
+    // table; a partial-schema migration fixture may not, and with foreign
+    // keys on, SQLite refuses every later insert into a table whose FK
+    // parent is missing ("no such table: main.equipment"). Those fixtures
+    // get a plain column instead.
+    final equipmentExists = await _tableExists('equipment');
+    final equipmentRef = equipmentExists
+        ? 'TEXT REFERENCES equipment(id) ON DELETE SET NULL'
+        : 'TEXT';
+    await _addColumnIfMissing('equipment', 'parent_equipment_id', equipmentRef);
+    await _addColumnIfMissing(
+      'dive_tanks',
+      'regulator_equipment_id',
+      equipmentRef,
+    );
+    await _addColumnIfMissing('incidents', 'equipment_id', equipmentRef);
+    await _addColumnIfMissing('trips', 'expected_dives', 'INTEGER');
+    await _addColumnIfMissing('trips', 'expected_runtime_minutes', 'INTEGER');
+    await _assertExposureIntervalColumns();
+    await _addColumnIfMissing(
+      'diver_settings',
+      'cold_water_threshold_c',
+      'REAL NOT NULL DEFAULT 10.0',
+    );
+    await _addColumnIfMissing(
+      'diver_settings',
+      'deep_dive_threshold_m',
+      'REAL NOT NULL DEFAULT 30.0',
+    );
+    await _addColumnIfMissing(
+      'diver_settings',
+      'high_o2_threshold_percent',
+      'REAL NOT NULL DEFAULT 40.0',
+    );
+    // The four tables reference dives, divers and equipment. Same fixture
+    // rule as above: a child table whose FK parent is absent makes SQLite
+    // refuse cascades into it, so each is created only when its parents
+    // exist. Real databases always have all three.
+    final divesExist = await _tableExists('dives');
+    final diversExist = await _tableExists('divers');
+    final m = createMigrator();
+    if (divesExist) await m.createTable(diveSensorSummaries);
+    if (divesExist && diversExist && equipmentExists) {
+      await m.createTable(equipmentObservations);
+    }
+    if (equipmentExists) {
+      await m.createTable(equipmentFindings);
+      await m.createTable(equipmentConditionReviews);
+    }
+    // Indexes on pre-existing tables are guarded on the table being present:
+    // partial-schema migration fixtures open without equipment or dive_tanks
+    // and would otherwise fail on "no such table".
+    if (await _tableExists('equipment')) {
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_equipment_parent '
+        'ON equipment(parent_equipment_id)',
+      );
+    }
+    if (await _tableExists('dive_tanks')) {
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_dive_tanks_regulator '
+        'ON dive_tanks(regulator_equipment_id)',
+      );
+    }
+    if (await _tableExists('equipment_observations')) {
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_equipment_observations_equipment '
+        'ON equipment_observations(equipment_id)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_equipment_observations_dive '
+        'ON equipment_observations(dive_id)',
+      );
+    }
+    if (await _tableExists('equipment_findings')) {
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_equipment_findings_equipment '
+        'ON equipment_findings(equipment_id)',
+      );
+    }
+  }
+
+  /// v202 one-time backfill. Keyed on built-in ids and gated on
+  /// is_built_in, so a custom kind is never touched. Runs from the v202
+  /// onUpgrade block ONLY (fresh installs get the same values from the seed).
+  Future<void> _backfillBuiltInExposureDefaults() async {
+    final cols = await customSelect("PRAGMA table_info('service_kinds')").get();
+    if (cols.isEmpty) return;
+    await customStatement(kBackfillBuiltInExposureDefaultsSql);
   }
 
   /// Transmitter registry (issue #1365, v200). Idempotent so a database that
@@ -5326,6 +5604,10 @@ class AppDatabase extends _$AppDatabase {
         'ON service_records(equipment_id, service_kind_id)',
       );
     }
+
+    // v202: the seed names exposure_intervals, so the column must exist
+    // before it runs, including on the v122 rung of an old database.
+    await _assertExposureIntervalColumns();
 
     // Seed built-ins only when the divers FK parent exists (self-guard for
     // partial fixture databases; real databases always have divers).
@@ -10677,6 +10959,16 @@ class AppDatabase extends _$AppDatabase {
           await _assertDiveTankSourceIndexColumn();
         }
         if (from < 200) await reportProgress();
+        // v202: equipment condition intelligence, phase 1. Additive columns
+        // on six tables, the four condition tables, and a ONE-TIME backfill
+        // of exposure defaults on the built-in kinds. The backfill is not in
+        // the backstop: a diver may clear a default later. 201 is skipped:
+        // three sibling branches had claimed it when this rung was taken.
+        if (from < 202) {
+          await _assertEquipmentConditionSchema();
+          await _backfillBuiltInExposureDefaults();
+        }
+        if (from < 202) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -10874,6 +11166,9 @@ class AppDatabase extends _$AppDatabase {
         // column, same restore/sync-adopt reasoning.
         await _assertTransmitterTables();
         await _assertDiveTankSourceIndexColumn();
+
+        // v202 backstop: re-assert the condition columns and tables.
+        await _assertEquipmentConditionSchema();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).

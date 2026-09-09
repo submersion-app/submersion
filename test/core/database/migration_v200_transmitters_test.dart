@@ -22,7 +22,9 @@ void main() {
   test('v200 is the current schema version and is in the ladder', () {
     // This is the newest rung, so it owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 200);
+    // v202 (equipment condition intelligence) is the current rung; 200 stays
+    // in the ladder.
+    expect(AppDatabase.currentSchemaVersion, 202);
     expect(AppDatabase.migrationVersions, contains(200));
   });
 
