@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// One registered air-integration transmitter and the cylinder it feeds.
 ///
@@ -45,6 +46,14 @@ class Transmitter extends Equatable {
       transmitterSerial != null && transmitterSerial!.isNotEmpty;
 
   bool get hasChannel => diveComputerId != null && channelIndex != null;
+
+  /// The canonical serials of [entries], for membership checks against tank
+  /// serials that are normalized the same way. Rows can arrive raw through a
+  /// sync payload, so the repository's write-time normalization is not
+  /// enough on its own; blank and all-zero values are dropped here too.
+  static Set<String> knownSerials(Iterable<Transmitter> entries) => {
+    for (final t in entries) ?normalizeTransmitterSerial(t.transmitterSerial),
+  };
 
   Transmitter copyWith({
     String? id,

@@ -15,6 +15,7 @@ import 'package:submersion/features/data_quality/domain/entities/dive_quality_co
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 
 class QualityContextBuilder {
   QualityContextBuilder({
@@ -76,11 +77,9 @@ class QualityContextBuilder {
     if (cached != null) return cached;
     Set<String> value;
     try {
-      final entries = await _transmitterRepo.getForDiver(diverId);
-      value = {
-        for (final t in entries)
-          if (t.transmitterSerial != null) t.transmitterSerial!,
-      };
+      value = Transmitter.knownSerials(
+        await _transmitterRepo.getForDiver(diverId),
+      );
     } catch (_) {
       value = const {};
     }

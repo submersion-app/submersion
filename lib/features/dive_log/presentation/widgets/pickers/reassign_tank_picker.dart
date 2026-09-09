@@ -24,7 +24,11 @@ Future<String?> showReassignTankPicker(
         for (final t in candidates)
           SimpleDialogOption(
             onPressed: () => Navigator.of(context).pop(t.id),
-            child: Text(t.name ?? 'Tank ${t.order + 1}'),
+            child: Text(
+              t.name != null && t.name!.isNotEmpty
+                  ? t.name!
+                  : context.l10n.diveLog_tank_title(t.order + 1),
+            ),
           ),
       ],
     ),

@@ -59,12 +59,9 @@ class CylindersCard extends ConsumerWidget {
     final computerNames = _computerDisplayNames(context, dataSources);
     // Serials with a registry entry get a plain caption; the rest get an
     // Assign chip (issue #1365).
-    final knownSerials = {
-      for (final t
-          in ref.watch(transmittersProvider).valueOrNull ??
-              const <Transmitter>[])
-        if (t.transmitterSerial != null) t.transmitterSerial!,
-    };
+    final knownSerials = Transmitter.knownSerials(
+      ref.watch(transmittersProvider).valueOrNull ?? const <Transmitter>[],
+    );
 
     return Card(
       child: Padding(

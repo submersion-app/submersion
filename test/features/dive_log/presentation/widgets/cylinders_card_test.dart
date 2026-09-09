@@ -450,6 +450,28 @@ void main() {
       expect(find.text('Assign transmitter'), findsNothing);
     });
 
+    testWidgets('a registry serial with padding still counts as known', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: diveWithSerial('180777'),
+          registry: [
+            Transmitter(
+              id: 'e1',
+              transmitterSerial: ' 180777 ',
+              label: 'O2',
+              createdAt: DateTime.utc(2026, 9, 1),
+              updatedAt: DateTime.utc(2026, 9, 1),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Assign transmitter'), findsNothing);
+    });
+
     testWidgets('no caption without a serial', (tester) async {
       await tester.pumpWidget(_buildCard(dive: diveWithSerial(null)));
       await tester.pumpAndSettle();

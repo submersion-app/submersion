@@ -116,10 +116,7 @@ class TransmitterRepository {
   Future<List<UnassignedTransmitterSerial>> getUnassignedSerials(
     String? diverId,
   ) async {
-    final known = {
-      for (final t in await getForDiver(diverId))
-        if (t.hasSerial) t.transmitterSerial!,
-    };
+    final known = Transmitter.knownSerials(await getForDiver(diverId));
     final rows = await _db
         .customSelect(
           'SELECT dt.transmitter_serial AS serial, dt.dive_id AS dive_id '
@@ -151,10 +148,7 @@ class TransmitterRepository {
     String computerId, {
     String? diverId,
   }) async {
-    final knownSerials = {
-      for (final t in await getForDiver(diverId))
-        if (t.hasSerial) t.transmitterSerial!,
-    };
+    final knownSerials = Transmitter.knownSerials(await getForDiver(diverId));
     final rows = await _db
         .customSelect(
           'SELECT DISTINCT dt.transmitter_serial AS serial '
