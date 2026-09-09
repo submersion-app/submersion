@@ -15,6 +15,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 
 /// Filter sheet for dive list
 class DiveFilterSheet extends ConsumerStatefulWidget {
@@ -870,33 +871,13 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                     onSubmitted: (_) => onFieldSubmitted(),
                                   );
                                 },
-                            optionsViewBuilder: (context, onSelected, options) {
-                              return Align(
-                                alignment: Alignment.topLeft,
-                                child: Material(
-                                  elevation: 4.0,
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxHeight: 200,
+                            optionsViewBuilder:
+                                (context, onSelected, options) =>
+                                    AutocompleteOptionsList<String>(
+                                      options: options,
+                                      onSelected: onSelected,
+                                      labelFor: (option) => option,
                                     ),
-                                    child: ListView.builder(
-                                      padding: EdgeInsets.zero,
-                                      shrinkWrap: true,
-                                      itemCount: options.length,
-                                      itemBuilder:
-                                          (BuildContext context, int index) {
-                                            final String option = options
-                                                .elementAt(index);
-                                            return ListTile(
-                                              title: Text(option),
-                                              onTap: () => onSelected(option),
-                                            );
-                                          },
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
                           );
                         },
                       ),

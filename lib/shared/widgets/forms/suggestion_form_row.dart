@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/text/fuzzy_match.dart';
+import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 
 /// Row-styled autocomplete text field: label left, always-mounted bare
@@ -120,31 +121,12 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
                           onFieldSubmitted: (_) => onFieldSubmitted(),
                         );
                       },
-                  optionsViewBuilder: (context, onSelected, options) {
-                    return Align(
-                      alignment: Alignment.topLeft,
-                      child: Material(
-                        elevation: 4,
-                        borderRadius: BorderRadius.circular(8),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 200),
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            itemCount: options.length,
-                            itemBuilder: (context, index) {
-                              final option = options.elementAt(index);
-                              return ListTile(
-                                dense: true,
-                                title: Text(option),
-                                onTap: () => onSelected(option),
-                              );
-                            },
-                          ),
-                        ),
+                  optionsViewBuilder: (context, onSelected, options) =>
+                      AutocompleteOptionsList<String>(
+                        options: options,
+                        onSelected: onSelected,
+                        labelFor: (option) => option,
                       ),
-                    );
-                  },
                 ),
               ),
               if (widget.trailing != null) ...[
