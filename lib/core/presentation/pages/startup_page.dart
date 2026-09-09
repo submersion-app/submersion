@@ -58,6 +58,7 @@ import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/scanned_logs_migration.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_orphan_backlog_sweep.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -749,6 +750,28 @@ class _StartupWrapperState extends State<StartupWrapper>
       } catch (e, stackTrace) {
         debugPrint(
           'Orphaned-media backlog sweep failed (will retry): $e\n$stackTrace',
+        );
+      }
+    }());
+
+    // Scanned-page folder migration (issue #1645), every launch. The common
+    // case is one directory stat that finds nothing; on an install that
+    // still has `<documents>/scanned_logs/` it moves the pages under
+    // `Submersion` and relinks their rows. Same fire-and-forget shape as the
+    // media sweep above: a scan or a read must never wait on, or fail with,
+    // this housekeeping, and the report is the only diagnostic.
+    unawaited(() async {
+      try {
+        final report = await ScannedLogsMigration(
+          relocateRows: (from, to) =>
+              mediaRepository.relocateLocalFile(from: from, to: to),
+        ).run();
+        if (report.outcome != ScannedLogsMigrationOutcome.noLegacyData) {
+          debugPrint('Scanned logs migration: $report');
+        }
+      } catch (e, stackTrace) {
+        debugPrint(
+          'Scanned logs migration failed (will retry): $e\n$stackTrace',
         );
       }
     }());
