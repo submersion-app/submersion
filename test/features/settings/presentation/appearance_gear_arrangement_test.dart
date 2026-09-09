@@ -12,6 +12,12 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../helpers/mock_providers.dart';
 
 class _FakeSettingsRepository extends AppSettingsRepository {
+  _FakeSettingsRepository() {
+    // Self-registering so no construction site can forget it, and a new
+    // one cannot reintroduce the leak.
+    addTearDown(settingsTicks.close);
+  }
+
   final List<EquipmentArrangement> written = [];
   final StreamController<void> settingsTicks = StreamController<void>();
   EquipmentArrangement? stored;

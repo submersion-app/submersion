@@ -11,7 +11,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _FakeSettingsRepository extends AppSettingsRepository {
-  _FakeSettingsRepository({this.stored, this.failWrite = false});
+  _FakeSettingsRepository({this.stored, this.failWrite = false}) {
+    // Self-registering so no construction site can forget it, and a new
+    // one cannot reintroduce the leak.
+    addTearDown(settingsTicks.close);
+  }
 
   EquipmentArrangement? stored;
   bool failWrite;

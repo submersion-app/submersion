@@ -12,7 +12,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// Overrides only the three members the notifier touches, so nothing reaches
 /// the database.
 class _FakeSettingsRepository extends AppSettingsRepository {
-  _FakeSettingsRepository({this.stored, this.failWrite = false});
+  _FakeSettingsRepository({this.stored, this.failWrite = false}) {
+    // Self-registering so no construction site can forget it, and a new
+    // one cannot reintroduce the leak.
+    addTearDown(settingsTicks.close);
+  }
 
   EquipmentArrangement? stored;
   bool failWrite;
@@ -40,6 +44,12 @@ class _FakeSettingsRepository extends AppSettingsRepository {
 /// Hands out reads the test completes by hand, so two loads can be put in
 /// flight and finished out of order.
 class _OrderedFakeRepository extends AppSettingsRepository {
+  _OrderedFakeRepository() {
+    // Self-registering so no construction site can forget it, and a new
+    // one cannot reintroduce the leak.
+    addTearDown(settingsTicks.close);
+  }
+
   final List<Completer<EquipmentArrangement?>> pending = [];
   final StreamController<void> settingsTicks = StreamController<void>();
 

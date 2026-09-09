@@ -23,11 +23,18 @@ class EquipmentGroupHeader extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 4),
-      child: Text(
-        type.localizedName(context.l10n),
-        style: Theme.of(
-          context,
-        ).textTheme.labelLarge?.copyWith(color: colorScheme.primary),
+      // A grouped gear list is a list of sections. Without the header flag
+      // assistive tech sees one flat run of text, and a diver using a screen
+      // reader cannot jump between gear types, which is the whole point of
+      // grouping.
+      child: Semantics(
+        header: true,
+        child: Text(
+          type.localizedName(context.l10n),
+          style: Theme.of(
+            context,
+          ).textTheme.labelLarge?.copyWith(color: colorScheme.primary),
+        ),
       ),
     );
   }
