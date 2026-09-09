@@ -22,7 +22,7 @@ void main() {
           builder: (context) {
             result = formatServiceTriggerText(
               context,
-              units: UnitFormatter(const AppSettings()),
+              units: const UnitFormatter(AppSettings()),
               now: DateTime(2026, 7, 16),
               usageByUnit: usageByUnit,
             );

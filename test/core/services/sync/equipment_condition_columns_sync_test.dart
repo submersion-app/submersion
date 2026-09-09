@@ -22,7 +22,7 @@ void main() {
     'isActive': true,
     'createdAt': 1000,
     'updatedAt': 1000,
-    if (parent != null) 'parentEquipmentId': parent,
+    'parentEquipmentId': ?parent,
   };
 
   test(
