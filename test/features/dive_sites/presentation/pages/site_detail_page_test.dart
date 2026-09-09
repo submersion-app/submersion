@@ -726,7 +726,9 @@ void main() {
       expect(find.textContaining('0'), findsWidgets);
     });
 
-    testWidgets('dive count section shows singular for 1 dive', (tester) async {
+    testWidgets('the dives card offers a way through to that one dive', (
+      tester,
+    ) async {
       _setMobileTestSurfaceSize(tester);
       final overrides = await getBaseOverrides();
       await tester.pumpWidget(
@@ -744,8 +746,13 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // Should have a chevron_right when diveCount > 0.
-      expect(find.byIcon(Icons.chevron_right), findsWidgets);
+      // The whole-card tap target became a labelled footer link when the
+      // count card merged into the statistics card.
+      expect(find.text('View 1 dive'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('siteViewAllDivesButton')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('rating section shows stars', (tester) async {
@@ -967,7 +974,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Embedded Site'), findsWidgets);
-      expect(find.byIcon(Icons.location_on), findsWidgets);
+      // The header states the name and the location string in text. The
+      // decorative location avatar that used to sit beside them is gone: it
+      // repeated what the two lines already said.
+      expect(find.textContaining('Cozumel'), findsWidgets);
       expect(find.byIcon(Icons.more_vert), findsOneWidget);
       expect(find.byIcon(Icons.edit), findsWidgets);
     });

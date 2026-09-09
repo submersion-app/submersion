@@ -21,6 +21,7 @@ import 'package:submersion/features/transmitters/data/repositories/transmitter_r
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 /// Full-screen editor for one registry entry. Picking a gear cylinder or a
 /// preset copies its specs into the fields (snapshot rule); the fields stay
@@ -327,9 +328,9 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
           tooltip: l10n.common_action_close,
         ),
         actions: [
-          TextButton(
+          AppBarTextAction(
+            label: l10n.common_action_save,
             onPressed: _loading ? null : _save,
-            child: Text(l10n.common_action_save),
           ),
         ],
       ),

@@ -34,9 +34,10 @@ void main() {
     final actions = repairOptionsFor(
       f(detectorId: 'duplicate', relatedDiveId: 'd2'),
     );
+    // The pair is handed to the combine dialog, which asks the diver which
+    // recording survives; the mapping itself names no survivor (#1690).
     final c = actions.whereType<ConsolidateDuplicateRepair>().single;
-    expect(c.targetDiveId, 'd1');
-    expect(c.secondaryDiveId, 'd2');
+    expect(c.diveIds, ['d1', 'd2']);
   });
 
   test('duplicate from the SAME computer offers no consolidate', () {
@@ -63,6 +64,75 @@ void main() {
       ),
     );
     expect(actions.whereType<ConsolidateDuplicateRepair>(), hasLength(1));
+  });
+
+  group('delete-duplicate', () {
+    // A same-computer re-download cannot be consolidated, so the repair
+    // that finishes the job is deleting the redundant copy. The detector
+    // names that copy; the mapping only trusts it when it names one side
+    // of the pair, and never volunteers a second computer's recording.
+    test('offered when the detector names the related dive', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'duplicate',
+          relatedDiveId: 'd2',
+          params: {'sameComputer': true, 'redundantDiveId': 'd2'},
+        ),
+      );
+      final d = actions.whereType<DeleteDuplicateRepair>().single;
+      expect(d.keepDiveId, 'd1');
+      expect(d.deleteDiveId, 'd2');
+      expect(actions.whereType<ConsolidateDuplicateRepair>(), isEmpty);
+      expect(actions.first, isA<DeleteDuplicateRepair>());
+    });
+
+    test('offered when the detector names the finding\'s own dive', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'duplicate',
+          relatedDiveId: 'd2',
+          params: {'sameComputer': true, 'redundantDiveId': 'd1'},
+        ),
+      );
+      final d = actions.whereType<DeleteDuplicateRepair>().single;
+      expect(d.keepDiveId, 'd2');
+      expect(d.deleteDiveId, 'd1');
+    });
+
+    test('withheld when no side is clearly redundant', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'duplicate',
+          relatedDiveId: 'd2',
+          params: {'sameComputer': true},
+        ),
+      );
+      expect(actions.whereType<DeleteDuplicateRepair>(), isEmpty);
+      expect(actions.whereType<ConsolidateDuplicateRepair>(), isEmpty);
+    });
+
+    test('withheld for a pair from two different computers', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'duplicate',
+          relatedDiveId: 'd2',
+          params: {'sameComputer': false, 'redundantDiveId': 'd2'},
+        ),
+      );
+      expect(actions.whereType<DeleteDuplicateRepair>(), isEmpty);
+      expect(actions.whereType<ConsolidateDuplicateRepair>(), hasLength(1));
+    });
+
+    test('withheld when the named dive is neither side of the pair', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'duplicate',
+          relatedDiveId: 'd2',
+          params: {'sameComputer': true, 'redundantDiveId': 'd9'},
+        ),
+      );
+      expect(actions.whereType<DeleteDuplicateRepair>(), isEmpty);
+    });
   });
 
   test('split pair maps to combine', () {

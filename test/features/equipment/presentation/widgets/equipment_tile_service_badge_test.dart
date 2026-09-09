@@ -6,7 +6,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -19,8 +19,9 @@ import '../../../../helpers/mock_providers.dart';
 void main() {
   final t0 = DateTime(2025, 1, 1);
 
-  DueClock worstClock(EquipmentItem item, ServiceClockSeverity severity) => (
-    item: item,
+  RollupClock worstClock(EquipmentItem item, ServiceClockSeverity severity) => (
+    ownerId: item.id,
+    ownerName: item.name,
     status: ServiceClockStatus(
       schedule: ServiceSchedule(
         id: 's1',
@@ -44,10 +45,13 @@ void main() {
     ),
   );
 
-  Widget wrap(Widget child, {Map<String, DueClock> worst = const {}}) {
+  Widget wrap(Widget child, {Map<String, RollupClock> worst = const {}}) {
     return ProviderScope(
       overrides: [
-        equipmentWorstClockProvider.overrideWith((ref) async => worst),
+        equipmentRollupClockProvider.overrideWith((ref) async => worst),
+        equipmentComponentsIndexProvider.overrideWith(
+          (ref) async => ComponentsIndex.empty,
+        ),
         // The tile reads the color-accent toggle, so settings must be
         // stubbed: the real notifier reaches for SharedPreferences.
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),

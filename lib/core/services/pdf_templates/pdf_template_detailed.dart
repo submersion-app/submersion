@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'dart:typed_data';
 
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
@@ -40,6 +43,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     Map<String, PdfProfileSeries>? profiles,
     Uint8List? diverPhoto,
     bool includeVerificationAreas = false,
+    EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
   }) async {
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);
@@ -117,6 +121,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             profile: _seriesFor(dive, profiles),
             signatures: diveSignatures?[dive.id],
             includeVerificationAreas: includeVerificationAreas,
+            gearArrangement: gearArrangement,
           ),
         ),
       );
@@ -149,6 +154,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     PdfProfileSeries? profile,
     List<Signature>? signatures,
     required bool includeVerificationAreas,
+    required EquipmentArrangement gearArrangement,
   }) {
     final chart = profile == null
         ? null
@@ -167,7 +173,10 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       ..._section('Conditions', _conditionFields(dive, units: units)),
       ..._section('Weather', _weatherFields(dive, units: units)),
       ..._section('Team', _teamFields(dive)),
-      ..._section('Equipment', _equipmentFields(dive, units: units)),
+      ..._section(
+        'Equipment',
+        _equipmentFields(dive, units: units, arrangement: gearArrangement),
+      ),
       ..._section('Technical', _technicalFields(dive)),
       ..._marineLifeSection(dive),
       ..._notesSection(dive),
@@ -407,7 +416,40 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     ];
   }
 
-  List<_Field> _equipmentFields(Dive dive, {required UnitFormatter units}) {
+  /// The Equipment section's rows as (label, value) pairs.
+  ///
+  /// Records rather than the private `_Field`, so exposing this for tests does
+  /// not leak a private type through a public API.
+  @visibleForTesting
+  List<({String label, String value})> equipmentFieldsForTest(
+    Dive dive, {
+    required UnitFormatter units,
+    required EquipmentArrangement arrangement,
+  }) => _equipmentFields(
+    dive,
+    units: units,
+    arrangement: arrangement,
+  ).map((f) => (label: f.label, value: f.value)).toList();
+
+  List<_Field> _equipmentFields(
+    Dive dive, {
+    required UnitFormatter units,
+    required EquipmentArrangement arrangement,
+  }) {
+    // The printed logbook is a document a human reads, so it follows the
+    // diver's display arrangement (#1486, #1576). The machine-readable
+    // exports (UDDF, CSV, Excel) deliberately do not; they take the
+    // repository's deterministic baseline instead, so their output does not
+    // churn with a display preference.
+    //
+    // displayName rather than a localized label: this template has no
+    // AppLocalizations in scope, which is exactly why arrangeEquipment takes
+    // the label resolver as a parameter.
+    final groups = arrangeEquipment(
+      dive.equipment,
+      arrangement,
+      typeLabel: (type) => type.displayName,
+    );
     return [
       // The current editor writes Dive.weights; weightAmount is the legacy
       // scalar kept for older dives.
@@ -417,8 +459,9 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _Field('Weight', units.formatWeight(dive.weightAmount)),
       if (dive.weightType != null)
         _Field('Weight Type', dive.weightType!.displayName),
-      for (final item in dive.equipment)
-        _Field(item.type.displayName, item.name),
+      for (final group in groups)
+        for (final item in group.items)
+          _Field(item.type.displayName, item.name),
     ];
   }
 

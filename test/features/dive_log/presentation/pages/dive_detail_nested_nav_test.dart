@@ -53,15 +53,9 @@ void main() {
 
       // Should find SiteDetailPage (or its content)
       expect(find.byType(SiteDetailPage), findsOneWidget);
-      // Use find.descendant or a more specific finder to avoid finding multiple site names
-      // (one in the header, one in the basic info section).
-      expect(
-        find.descendant(
-          of: find.byType(Card),
-          matching: find.text('Test Site'),
-        ),
-        findsOneWidget,
-      );
+      // The embedded header names the site. The Basic Info card that used to
+      // repeat the name below it is gone, so exactly one copy is on screen.
+      expect(find.text('Test Site'), findsOneWidget);
     });
 
     testWidgets(

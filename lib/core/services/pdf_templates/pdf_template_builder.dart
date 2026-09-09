@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 
 import 'package:submersion/core/constants/pdf_templates.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -61,6 +62,7 @@ abstract class PdfTemplateBuilder {
     Map<String, PdfProfileSeries>? profiles,
     Uint8List? diverPhoto,
     bool includeVerificationAreas = false,
+    EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
   });
 
   /// Convert [PdfPageSize] to the pdf package's [PdfPageFormat].

@@ -268,9 +268,13 @@ void main() {
         'stat1': SiteField.depthRange,
         'stat2': SiteField.diveCount,
       });
+      // A diver who never opens the card settings still sees what the
+      // grouped aggregate now knows, not just the count and a personal best.
       expect(config.extraFields, [
         SiteField.lastDived,
         SiteField.maxDepthReached,
+        SiteField.averageDepthReached,
+        SiteField.averageDuration,
       ]);
       expect(
         container.read(siteDetailedCardConfigProvider.notifier),

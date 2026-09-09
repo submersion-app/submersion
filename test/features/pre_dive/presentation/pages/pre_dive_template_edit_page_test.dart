@@ -660,6 +660,252 @@ void main() {
     });
   });
 
+  group('cell linearity items (#986)', () {
+    PreDiveChecklistTemplateItem tItem({
+      required String id,
+      required String title,
+      PreDiveItemType type = PreDiveItemType.value,
+      String? valueLabel,
+      String? sourceItemId,
+      int order = 0,
+    }) => PreDiveChecklistTemplateItem(
+      id: id,
+      templateId: 'tpl-1',
+      title: title,
+      sortOrder: order,
+      itemType: type,
+      valueLabel: valueLabel,
+      sourceItemId: sourceItemId,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    testWidgets('choosing the type reveals a source picker and % labels', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(id: 'air1', title: 'Cell 1 mV in air', valueLabel: 'Cell 1'),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+      await openAddItemDialog(tester);
+
+      await tester.tap(find.byType(DropdownButtonFormField<PreDiveItemType>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cell linearity').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Air reading from'), findsOneWidget);
+      expect(find.text('Min linearity % (warning)'), findsOneWidget);
+      expect(find.text('Max linearity % (warning)'), findsOneWidget);
+      // The existing air row is offered as a source, labelled for the diver.
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      expect(find.text('Cell 1 mV in air (Cell 1)'), findsWidgets);
+    });
+
+    testWidgets('the source is required before the item can be saved', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [tItem(id: 'air1', title: 'Cell 1 mV in air')],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+      await openAddItemDialog(tester);
+
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'Cell 1 mV in O2',
+      );
+      await tester.tap(find.byType(DropdownButtonFormField<PreDiveItemType>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cell linearity').last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Choose the item holding the air reading'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('deleting a source clears its dependants and says so', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(id: 'air1', title: 'Cell 1 mV in air'),
+          tItem(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air1',
+            order: 1,
+          ),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      await tester.tap(find.byIcon(Icons.delete_outline).first);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('no longer has an air reading'),
+        findsOneWidget,
+      );
+      expect(find.text('Cell 1 mV in air'), findsNothing);
+      expect(
+        find.text('Cell 1 mV in O2'),
+        findsOneWidget,
+        reason: 'the dependant is kept, only its link is cleared',
+      );
+    });
+
+    testWidgets('a linearity row above its source carries a warning', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air1',
+          ),
+          tItem(id: 'air1', title: 'Cell 1 mV in air', order: 1),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      expect(
+        find.text('Reads a value recorded later in this list'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a dangling source opens the dialog instead of asserting', (
+      tester,
+    ) async {
+      // Reachable without sync: change the air item's type to check and its
+      // id drops out of the candidate list while the linearity item still
+      // points at it. A DropdownButtonFormField whose initialValue is absent
+      // from its items asserts, taking the whole editor down.
+      // Needs a surviving candidate as well as the dangling link: the
+      // framework assert short-circuits on an empty item list, so a template
+      // with no value items left would not have caught this.
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(id: 'air1', title: 'Cell 1 mV in air'),
+          tItem(
+            id: 'air2',
+            title: 'Was an air reading',
+            type: PreDiveItemType.check,
+            order: 1,
+          ),
+          tItem(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air2',
+            order: 2,
+          ),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      await tester.tap(find.text('Cell 1 mV in O2'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Air reading from'), findsOneWidget);
+      // The validator can then ask for a new source.
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Choose the item holding the air reading'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a stray link on a non-linearity item raises no warning', (
+      tester,
+    ) async {
+      // Malformed data: sourceItemId set on a plain value item, which the
+      // editor cannot author but sync could deliver. The warning talks about
+      // a reading this item never makes, so it must stay silent.
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(id: 'o2-1', title: 'Something else', sourceItemId: 'air1'),
+          tItem(id: 'air1', title: 'Cell 1 mV in air', order: 1),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      expect(
+        find.text('Reads a value recorded later in this list'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('the reads-later warning also shows without strict order', (
+      tester,
+    ) async {
+      // Strict order makes the trap unavoidable, but it exists either way: a
+      // diver working top to bottom hits the linearity row before the air
+      // reading exists. Pins the decision not to gate the warning.
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(strictOrder: false),
+        items: [
+          tItem(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air1',
+          ),
+          tItem(id: 'air1', title: 'Cell 1 mV in air', order: 1),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      expect(
+        find.text('Reads a value recorded later in this list'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a linearity row below its source carries no warning', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(id: 'air1', title: 'Cell 1 mV in air'),
+          tItem(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air1',
+            order: 1,
+          ),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      expect(
+        find.text('Reads a value recorded later in this list'),
+        findsNothing,
+      );
+    });
+  });
   testWidgets(
     'the Save action stays visible on the tropical app bar when creating a '
     'new template (#1231)',
