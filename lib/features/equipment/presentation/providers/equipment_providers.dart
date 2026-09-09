@@ -19,7 +19,9 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
+import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -617,11 +619,14 @@ final serviceDueSoonWindowDaysProvider = FutureProvider<int>((ref) async {
   return repository.getDueSoonWindowDays(diverId: validatedDiverId);
 });
 
-/// Evaluates every enabled clock on [item] at this moment.
+/// Evaluates every enabled clock on [item] at this moment. [siblings] is the
+/// active gear list when the caller already has it, so the parent and
+/// children lookups cost no query per item.
 Future<List<ServiceClockStatus>> _evaluateClocksFor(
   Ref ref,
   EquipmentItem item, {
   List<ServiceKind>? kinds,
+  List<EquipmentItem>? siblings,
 }) async {
   final schedules = await ref
       .watch(serviceScheduleRepositoryProvider)
@@ -632,15 +637,36 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
   final records = await ref
       .watch(serviceRecordRepositoryProvider)
       .getRecordsForEquipment(item.id);
-  final usage = await ref
-      .watch(equipmentRepositoryProvider)
-      .getExposureSamplesForEquipment(item.id);
+  final repository = ref.watch(equipmentRepositoryProvider);
+  final parentId = item.parentEquipmentId;
+  final parent = parentId == null
+      ? null
+      : siblings?.where((s) => s.id == parentId).firstOrNull ??
+            await repository.getEquipmentById(parentId);
+  final children = siblings != null
+      ? siblings.where((s) => s.parentEquipmentId == item.id).toList()
+      : await repository.getChildEquipment(item.id);
+  final isRebreather =
+      item.type == EquipmentType.rebreather ||
+      parent?.type == EquipmentType.rebreather;
+  final usage = await repository.getExposureSamplesForEquipment(
+    item.id,
+    parentEquipmentId: parentId,
+    installedSince: item.installedDate,
+    rebreatherContact: isRebreather,
+  );
+  final classifier = ExposureClassifier(
+    thresholds: ref.watch(exposureThresholdsProvider),
+    loopTimeOnly: isRebreather,
+    hasBatteryChild: children.any((c) => c.type == EquipmentType.battery),
+  );
   final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
   return const ServiceDueEngine().evaluate(
     schedules: schedules,
     kindsById: {for (final k in allKinds) k.id: k},
     records: records,
     usage: usage,
+    classifier: classifier,
     purchaseDate: item.purchaseDate,
     equipmentCreatedAt: item.createdAt ?? DateTime.now(),
     dueSoonWindowDays: window,
@@ -686,7 +712,15 @@ final activeEquipmentClocksProvider = FutureProvider<List<EquipmentClocks>>((
   final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
   return [
     for (final item in items)
-      (item: item, statuses: await _evaluateClocksFor(ref, item, kinds: kinds)),
+      (
+        item: item,
+        statuses: await _evaluateClocksFor(
+          ref,
+          item,
+          kinds: kinds,
+          siblings: items,
+        ),
+      ),
   ];
 });
 
@@ -759,7 +793,12 @@ final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
     final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
     final alerts = <DueClock>[];
     for (final item in items) {
-      final statuses = await _evaluateClocksFor(ref, item, kinds: kinds);
+      final statuses = await _evaluateClocksFor(
+        ref,
+        item,
+        kinds: kinds,
+        siblings: items,
+      );
       alerts.addAll([
         for (final s in statuses)
           if (s.severity == ServiceClockSeverity.overdue ||

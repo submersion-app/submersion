@@ -7,7 +7,10 @@ import 'package:submersion/features/equipment/data/repositories/service_schedule
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
+import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -106,8 +109,24 @@ class NotificationScheduler {
     final records = await _serviceRecordRepository.getRecordsForEquipment(
       item.id,
     );
+    final parentId = item.parentEquipmentId;
+    final parent = parentId == null
+        ? null
+        : await _equipmentRepository.getEquipmentById(parentId);
+    final children = await _equipmentRepository.getChildEquipment(item.id);
+    final isRebreather =
+        item.type == EquipmentType.rebreather ||
+        parent?.type == EquipmentType.rebreather;
     final usage = await _equipmentRepository.getExposureSamplesForEquipment(
       item.id,
+      parentEquipmentId: parentId,
+      installedSince: item.installedDate,
+      rebreatherContact: isRebreather,
+    );
+    final classifier = ExposureClassifier(
+      thresholds: exposureThresholdsFromSettings(settings),
+      loopTimeOnly: isRebreather,
+      hasBatteryChild: children.any((c) => c.type == EquipmentType.battery),
     );
     final window = settings.serviceReminderDays.isEmpty
         ? 30
@@ -117,6 +136,7 @@ class NotificationScheduler {
       kindsById: kindsById,
       records: records,
       usage: usage,
+      classifier: classifier,
       purchaseDate: item.purchaseDate,
       equipmentCreatedAt: item.createdAt ?? DateTime.now(),
       dueSoonWindowDays: window,
