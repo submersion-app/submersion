@@ -138,7 +138,7 @@ class _ReassignSheet extends ConsumerWidget {
         : l10n.diveLog_tank_title(index + 1);
     final subtitle = points.isEmpty
         ? l10n.diveLog_reassignSheet_noSeries
-        : '${units.formatPressure(points.first.pressure)} to '
+        : '${units.formatPressure(points.first.pressure)} → '
               '${units.formatPressure(points.last.pressure)}, '
               '${l10n.diveLog_reassignSheet_readings(points.length)}'
               '${serial != null ? ', ${l10n.transmitters_serial(serial)}' : ''}';
