@@ -308,6 +308,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         // through edits; only consolidation/unlink flows may change them.
         computerId: widget.tank.computerId,
         transmitterSerial: widget.tank.transmitterSerial,
+        regulatorEquipmentId: widget.tank.regulatorEquipmentId,
       ),
     );
   }
