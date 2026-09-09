@@ -30,7 +30,10 @@ void main() {
       if (p.equals(entity.path, wrapper)) continue;
 
       final source = _withoutCommentsAndStrings(entity.readAsStringSync());
-      for (final offset in _bareAppBarTextButtons(source)) {
+      for (final offset in [
+        ..._bareAppBarTextButtons(source),
+        ..._bareTextButtonsInHoistedActions(source),
+      ]) {
         final line = '\n'.allMatches(source.substring(0, offset)).length + 1;
         offenders.add('${entity.path}:$line');
       }
@@ -57,7 +60,9 @@ void main() {
 List<int> _bareAppBarTextButtons(String source) {
   final found = <int>[];
   final appBars = RegExp(r'\b(?:Sliver)?AppBar\s*\(');
-  final actions = RegExp(r'\bactions:\s*(?:\.\.\.)?\[');
+  // `const` and a generic type argument are both common in this tree, and
+  // either one silently ended the match before this was widened.
+  final actions = RegExp(r'\bactions:\s*(?:const\s*)?(?:<[^>]*>\s*)?\[');
   final textButtons = RegExp(r'\bTextButton\s*(?:\.\s*icon\s*)?\(');
 
   for (final appBar in appBars.allMatches(source)) {
@@ -72,6 +77,35 @@ List<int> _bareAppBarTextButtons(String source) {
       for (final button in textButtons.allMatches(list)) {
         found.add(open + listOpen + button.start);
       }
+    }
+  }
+  return found;
+}
+
+/// Offsets of every `TextButton(` / `TextButton.icon(` inside a list literal
+/// assigned to a local named `actions`, in a file that builds an app bar.
+///
+/// [_bareAppBarTextButtons] only sees actions written inline, so a page that
+/// hoists its list into a local to share it between an app bar and an embedded
+/// pane slips straight past it. The deco calculator did exactly that, and its
+/// invisible "Add to planner" button survived the first sweep of this bug
+/// because of it.
+///
+/// The `AppBar` requirement is what keeps this from flagging an unrelated
+/// local that happens to be called `actions`, such as a dialog's button list.
+List<int> _bareTextButtonsInHoistedActions(String source) {
+  if (!RegExp(r'\b(?:Sliver)?AppBar\s*\(').hasMatch(source)) return const [];
+
+  final found = <int>[];
+  final hoisted = RegExp(r'\bactions\s*=\s*(?:const\s*)?(?:<[^>]*>\s*)?\[');
+  final textButtons = RegExp(r'\bTextButton\s*(?:\.\s*icon\s*)?\(');
+
+  for (final match in hoisted.allMatches(source)) {
+    final open = match.end - 1;
+    final close = _matchingBracket(source, open);
+    final list = source.substring(open, close);
+    for (final button in textButtons.allMatches(list)) {
+      found.add(open + button.start);
     }
   }
   return found;
@@ -137,8 +171,12 @@ String _withoutCommentsAndStrings(String source) {
         out.write(source[i] == '\n' ? '\n' : ' ');
         i++;
       }
-      out.write(' ' * (i < source.length ? terminator.length : 0));
-      i += i < source.length ? terminator.length : 0;
+      // An unterminated literal runs to end of file; there is nothing left
+      // to blank in that case.
+      if (i < source.length) {
+        out.write(' ' * terminator.length);
+        i += terminator.length;
+      }
       continue;
     }
     out.write(source[i]);

@@ -15,6 +15,7 @@ import 'package:submersion/features/deco_calculator/presentation/widgets/gas_mix
 import 'package:submersion/features/deco_calculator/presentation/widgets/gas_warnings_display.dart';
 import 'package:submersion/features/deco_calculator/presentation/widgets/time_slider.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 /// Interactive deco calculator page with real-time calculations.
 ///
@@ -39,10 +40,10 @@ class DecoCalculatorPage extends ConsumerWidget {
       ),
       Tooltip(
         message: context.l10n.decoCalculator_createPlanTooltip,
-        child: TextButton.icon(
-          icon: const Icon(Icons.edit_calendar),
-          label: Text(context.l10n.decoCalculator_addToPlanner),
+        child: AppBarTextAction(
+          label: context.l10n.decoCalculator_addToPlanner,
           onPressed: () => _addToPlan(context, ref),
+          icon: const Icon(Icons.edit_calendar),
         ),
       ),
     ];
