@@ -1359,6 +1359,14 @@ class SyncService {
             records: data.equipmentAttributes,
             hasUpdatedAt: true,
           ),
+          // Child of equipment (issue #1487); after its parent for the same
+          // deferred-FK reason as equipmentAttributes. Both ends of the edge
+          // are equipment rows, so one ordering covers both.
+          (
+            type: 'equipmentComponents',
+            records: data.equipmentComponents,
+            hasUpdatedAt: true,
+          ),
           // After both parents (divePlans and equipment).
           (
             type: 'divePlanEquipment',
@@ -2219,6 +2227,7 @@ class SyncService {
     'cylinderConfigItems': true,
     'qualityFindings': true,
     'equipmentAttributes': true,
+    'equipmentComponents': true,
     'mediaSmartAlbums': true,
     'divePlanEquipment': false,
     'diverWeightEntries': true,
@@ -2342,6 +2351,11 @@ class SyncService {
     'diveEquipment': [
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: false),
+      // Provenance (issue #1487). Nullable by design: the schema is ON DELETE
+      // SET NULL, so a peer that deleted the assembly or the set clears the
+      // pointer instead of dropping the row.
+      (field: 'viaEquipmentId', parent: 'equipment', nullable: true),
+      (field: 'viaSetId', parent: 'equipmentSets', nullable: true),
     ],
     'diveBuddies': [
       (field: 'diveId', parent: 'dives', nullable: false),
@@ -2478,12 +2492,19 @@ class SyncService {
     'divePlanEquipment': [
       (field: 'planId', parent: 'divePlans', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: false),
+      // Provenance (issue #1487); see diveEquipment.
+      (field: 'viaEquipmentId', parent: 'equipment', nullable: true),
+      (field: 'viaSetId', parent: 'equipmentSets', nullable: true),
     ],
     'serviceRecords': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
     'equipmentAttributes': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
+    'equipmentComponents': [
+      (field: 'parentEquipmentId', parent: 'equipment', nullable: false),
+      (field: 'componentEquipmentId', parent: 'equipment', nullable: false),
     ],
     'serviceSchedules': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),

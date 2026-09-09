@@ -240,6 +240,7 @@ class SyncData {
   final List<Map<String, dynamic>> cylinderConfigItems;
   final List<Map<String, dynamic>> qualityFindings;
   final List<Map<String, dynamic>> equipmentAttributes;
+  final List<Map<String, dynamic>> equipmentComponents;
   final List<Map<String, dynamic>> mediaSmartAlbums;
   final List<Map<String, dynamic>> media;
   final List<Map<String, dynamic>> mediaEnrichment;
@@ -326,6 +327,7 @@ class SyncData {
     this.cylinderConfigItems = const [],
     this.qualityFindings = const [],
     this.equipmentAttributes = const [],
+    this.equipmentComponents = const [],
     this.mediaSmartAlbums = const [],
     this.media = const [],
     this.mediaEnrichment = const [],
@@ -407,6 +409,7 @@ class SyncData {
     'cylinderConfigItems': cylinderConfigItems,
     'qualityFindings': qualityFindings,
     'equipmentAttributes': equipmentAttributes,
+    'equipmentComponents': equipmentComponents,
     'mediaSmartAlbums': mediaSmartAlbums,
     'media': media,
     'mediaEnrichment': mediaEnrichment,
@@ -489,6 +492,7 @@ class SyncData {
       cylinderConfigItems: _parseList(json['cylinderConfigItems']),
       qualityFindings: _parseList(json['qualityFindings']),
       equipmentAttributes: _parseList(json['equipmentAttributes']),
+      equipmentComponents: _parseList(json['equipmentComponents']),
       mediaSmartAlbums: _parseList(json['mediaSmartAlbums']),
       media: _parseList(json['media']),
       mediaEnrichment: _parseList(json['mediaEnrichment']),
@@ -760,6 +764,12 @@ class SyncDataSerializer {
     (
       key: 'equipmentAttributes',
       table: _db.equipmentAttributes,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'equipmentComponents',
+      table: _db.equipmentComponents,
       blob: false,
       full: null,
     ),
@@ -1391,6 +1401,10 @@ class SyncDataSerializer {
         'equipmentAttributes',
         () => _exportEquipmentAttributes(hlcSince),
       ),
+      equipmentComponents: await _safeExport(
+        'equipmentComponents',
+        () => _exportEquipmentComponents(hlcSince),
+      ),
       mediaSmartAlbums: await _safeExport(
         'mediaSmartAlbums',
         () => _exportMediaSmartAlbums(hlcSince),
@@ -1818,6 +1832,11 @@ class SyncDataSerializer {
           _db.equipmentAttributes,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'equipmentComponents':
+        final row = await (_db.select(
+          _db.equipmentComponents,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'equipmentSetItems':
         final parts = _splitCompositeId(recordId);
         if (parts.length != 2) return null;
@@ -2225,6 +2244,11 @@ class SyncDataSerializer {
       case 'equipmentAttributes':
         final rows = await (_db.select(
           _db.equipmentAttributes,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentComponents':
+        final rows = await (_db.select(
+          _db.equipmentComponents,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'buddies':
@@ -2769,6 +2793,13 @@ class SyncDataSerializer {
             .into(_db.equipmentAttributes)
             .insertOnConflictUpdate(
               EquipmentAttributeRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'equipmentComponents':
+        await _db
+            .into(_db.equipmentComponents)
+            .insertOnConflictUpdate(
+              EquipmentComponentRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'equipmentSetItems':
@@ -3526,6 +3557,18 @@ class SyncDataSerializer {
             records
                 .map(
                   (r) => EquipmentAttributeRow.fromJson(r).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'equipmentComponents':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.equipmentComponents,
+            records
+                .map(
+                  (r) => EquipmentComponentRow.fromJson(r).toCompanion(false),
                 )
                 .toList(),
           ),
@@ -4332,6 +4375,8 @@ class SyncDataSerializer {
         return plain(_db.qualityFindings, _db.qualityFindings.id);
       case 'equipmentAttributes':
         return plain(_db.equipmentAttributes, _db.equipmentAttributes.id);
+      case 'equipmentComponents':
+        return plain(_db.equipmentComponents, _db.equipmentComponents.id);
       case 'diveTypes':
         return plain(_db.diveTypes, _db.diveTypes.id);
       case 'diveRoles':
@@ -4567,6 +4612,8 @@ class SyncDataSerializer {
         return _db.qualityFindings;
       case 'equipmentAttributes':
         return _db.equipmentAttributes;
+      case 'equipmentComponents':
+        return _db.equipmentComponents;
       case 'diveTypes':
         return _db.diveTypes;
       case 'diveRoles':
@@ -4753,6 +4800,11 @@ class SyncDataSerializer {
       case 'equipmentAttributes':
         await (_db.delete(
           _db.equipmentAttributes,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'equipmentComponents':
+        await (_db.delete(
+          _db.equipmentComponents,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipmentSetItems':
@@ -5273,6 +5325,17 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.equipmentAttributes);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportEquipmentComponents(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.equipmentComponents);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
