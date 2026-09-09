@@ -399,6 +399,61 @@ void main() {
     expect(find.text('Blue Hole'), findsOneWidget);
   });
 
+  // Jumping to the last option skips past the rows the list has built, so the
+  // scroll has to fall back to the end rather than to a row it cannot find.
+  testWidgets('jumping to the last option scrolls it into view', (
+    tester,
+  ) async {
+    final many = List.generate(
+      40,
+      (i) => FilterDropdownOption(value: 's$i', label: 'Site ${i + 1}'),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 400,
+              child: SearchableFilterDropdown<String>(
+                value: null,
+                options: many,
+                allOptionLabel: allSitesLabel,
+                searchHintText: searchHint,
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await openMenu(tester);
+
+    expect(
+      openMenuLabels(tester),
+      isNot(contains('Site 40')),
+      reason: 'the last row must start unbuilt for this to test anything',
+    );
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+    await tester.pumpAndSettle();
+
+    expect(openMenuLabels(tester), contains('Site 40'));
+  });
+
+  // A filter can outlive the thing it points at: the site is deleted, the
+  // saved id is not. The field must not present that as a live filter.
+  testWidgets('falls back to the all-options label for a vanished option', (
+    tester,
+  ) async {
+    await pumpDropdown(tester, value: 'deleted-site');
+
+    expect(find.text(allSitesLabel), findsOneWidget);
+    expect(reported, isEmpty);
+  });
+
   testWidgets('moving focus away discards an uncommitted query', (
     tester,
   ) async {
@@ -418,5 +473,47 @@ void main() {
       reason: 'the field must show the filter that is actually in force',
     );
     expect(find.text('no such site'), findsNothing);
+  });
+
+  group('FilterDropdownOption equality', () {
+    test('options with the same fields are equal and hash alike', () {
+      final a = FilterDropdownOption(
+        value: 's1',
+        label: 'Blue Hole',
+        searchText: 'Blue Hole Egypt',
+      );
+      final b = FilterDropdownOption(
+        value: 's1',
+        label: 'Blue Hole',
+        searchText: 'Blue Hole Egypt',
+      );
+
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+      expect({a, b}, hasLength(1));
+    });
+
+    test('a changed label or search text is a different option', () {
+      final base = FilterDropdownOption(value: 's1', label: 'Blue Hole');
+
+      expect(
+        base,
+        isNot(FilterDropdownOption(value: 's1', label: 'Blue Hole (north)')),
+      );
+      expect(
+        base,
+        isNot(
+          FilterDropdownOption(
+            value: 's1',
+            label: 'Blue Hole',
+            searchText: 'Blue Hole Egypt',
+          ),
+        ),
+      );
+      expect(
+        base,
+        isNot(FilterDropdownOption(value: 's2', label: 'Blue Hole')),
+      );
+    });
   });
 }
