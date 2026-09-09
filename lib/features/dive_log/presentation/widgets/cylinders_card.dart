@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -89,10 +90,39 @@ class CylindersCard extends ConsumerWidget {
                 knownSerials: knownSerials,
               ),
             ),
+            if (_canReassign(dive, tankPressures))
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.swap_vert),
+                  label: Text(context.l10n.diveLog_tank_reassignSeries),
+                  onPressed: () => showTankSeriesReassignSheet(
+                    context,
+                    ref,
+                    dive: dive,
+                    tankPressures: tankPressures ?? const {},
+                  ),
+                ),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  /// Two or more of this dive's tanks carry a series from one computer
+  /// (issue #1314): only then is there anything to move.
+  static bool _canReassign(
+    Dive dive,
+    Map<String, List<TankPressurePoint>>? tankPressures,
+  ) {
+    if (tankPressures == null) return false;
+    final byComputer = <String?, int>{};
+    for (final tank in dive.tanks) {
+      if ((tankPressures[tank.id] ?? const []).isEmpty) continue;
+      byComputer[tank.computerId] = (byComputer[tank.computerId] ?? 0) + 1;
+    }
+    return byComputer.values.any((n) => n >= 2);
   }
 
   Widget _tankRow(

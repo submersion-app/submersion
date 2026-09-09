@@ -467,4 +467,41 @@ void main() {
       expect(find.text('NEW_PAGE'), findsOneWidget);
     });
   });
+
+  group('reassign pressure series entry point', () {
+    testWidgets('shown when two tanks carry a series', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(id: 'a'), _makeTank(id: 'b')]),
+          tankPressures: {
+            'a': [
+              const TankPressurePoint(tankId: 'a', timestamp: 0, pressure: 200),
+            ],
+            'b': [
+              const TankPressurePoint(tankId: 'b', timestamp: 0, pressure: 210),
+            ],
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reassign pressure series'), findsOneWidget);
+    });
+
+    testWidgets('hidden with a single series', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(id: 'a'), _makeTank(id: 'b')]),
+          tankPressures: {
+            'a': [
+              const TankPressurePoint(tankId: 'a', timestamp: 0, pressure: 200),
+            ],
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reassign pressure series'), findsNothing);
+    });
+  });
 }
