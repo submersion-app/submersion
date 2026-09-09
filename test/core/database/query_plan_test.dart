@@ -11,8 +11,10 @@ Future<String> plan(AppDatabase db, String sql) async {
 /// Page-1 shape of DiveRepository.getDiveSummaries (default date sort, no
 /// cursor, no filters). Keep in sync with dive_repository_impl.dart.
 const _summariesPage1Sql =
-    "SELECT d.id, COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp "
+    "SELECT d.id, COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, "
+    "t.name AS trip_name "
     "FROM dives d LEFT JOIN dive_sites s ON d.site_id = s.id "
+    "LEFT JOIN trips t ON d.trip_id = t.id "
     "WHERE d.diver_id = 'x' "
     "ORDER BY sort_timestamp DESC, COALESCE(d.dive_number, 0) DESC, d.id DESC "
     "LIMIT 50";
@@ -55,6 +57,15 @@ void main() {
     final p = await plan(db, _summariesPage1Sql);
     expect(p, isNot(contains('SCAN dives')));
     expect(p, contains('USING INDEX'));
+  });
+
+  test('the trip-header join looks trips up, never scans them', () async {
+    // The list's group headers (#1193) read four scalars off trips. This is
+    // the hottest query in the app, so the join has to resolve by key: a
+    // SCAN here would cost one trips pass per page.
+    final p = await plan(db, _summariesPage1Sql);
+    expect(p, isNot(contains('SCAN trips')));
+    expect(p, contains('SEARCH t'));
   });
 
   test(

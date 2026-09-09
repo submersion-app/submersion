@@ -2047,6 +2047,10 @@ class DiveRepository {
             's.name AS site_name, s.country AS site_country, '
             's.region AS site_region, s.latitude AS site_latitude, '
             's.longitude AS site_longitude, '
+            // Trip identity for the list's group headers (#1193). Four
+            // scalars off a primary-key lookup, not a hydrated Trip.
+            't.id AS trip_id, t.name AS trip_name, '
+            't.start_date AS trip_start_date, t.end_date AS trip_end_date, '
             // Correlated count keyed by d.id so SQLite uses
             // idx_dive_safety_findings_dive_id and only counts findings for the
             // page's dives, instead of grouping the whole findings table.
@@ -2056,6 +2060,7 @@ class DiveRepository {
             'AS safety_finding_count '
             'FROM dives d '
             'LEFT JOIN dive_sites s ON d.site_id = s.id '
+            'LEFT JOIN trips t ON d.trip_id = t.id '
             '$whereClause '
             'ORDER BY $orderByClause '
             'LIMIT ? $offsetClause';
@@ -2068,6 +2073,8 @@ class DiveRepository {
               readsFrom: {
                 _db.dives,
                 _db.diveSites,
+                // Renaming a trip changes a header the list is showing.
+                _db.trips,
                 _db.diveSafetyFindings,
                 _db.diveProfileSeries,
                 _db.diveProfileEvents,
@@ -2776,6 +2783,9 @@ class DiveRepository {
           's.name AS site_name, s.country AS site_country, '
           's.region AS site_region, s.latitude AS site_latitude, '
           's.longitude AS site_longitude, '
+          // Trip identity for the list's group headers (#1193).
+          't.id AS trip_id, t.name AS trip_name, '
+          't.start_date AS trip_start_date, t.end_date AS trip_end_date, '
           // Correlated count keyed by d.id so SQLite uses
           // idx_dive_safety_findings_dive_id and only counts findings for the
           // requested dives, instead of grouping the whole findings table.
@@ -2785,6 +2795,7 @@ class DiveRepository {
           'AS safety_finding_count '
           'FROM dives d '
           'LEFT JOIN dive_sites s ON d.site_id = s.id '
+          'LEFT JOIN trips t ON d.trip_id = t.id '
           'WHERE d.id IN ($placeholders) '
           'ORDER BY sort_timestamp DESC, '
           'COALESCE(d.dive_number, 0) DESC, d.id DESC',
@@ -2792,7 +2803,12 @@ class DiveRepository {
             ...safetyCountArgs,
             for (final id in ids) Variable<String>(id),
           ],
-          readsFrom: {_db.dives, _db.diveSites, _db.diveSafetyFindings},
+          readsFrom: {
+            _db.dives,
+            _db.diveSites,
+            _db.trips,
+            _db.diveSafetyFindings,
+          },
         )
         .get();
 
@@ -2844,11 +2860,19 @@ class DiveRepository {
         siteRegion: row.readNullable<String>('site_region'),
         siteLatitude: row.readNullable<double>('site_latitude'),
         siteLongitude: row.readNullable<double>('site_longitude'),
+        tripId: row.readNullable<String>('trip_id'),
+        tripName: row.readNullable<String>('trip_name'),
+        tripStartDate: _epochOrNull(row.readNullable<int>('trip_start_date')),
+        tripEndDate: _epochOrNull(row.readNullable<int>('trip_end_date')),
         sortTimestamp: row.read<int>('sort_timestamp'),
         safetyFindingCount: row.readNullable<int>('safety_finding_count') ?? 0,
       );
     }).toList();
   }
+
+  /// Trip dates are stored as epoch milliseconds; null stays null.
+  static DateTime? _epochOrNull(int? ms) =>
+      ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
 
   // ============================================================================
   // Statistics
