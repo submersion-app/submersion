@@ -335,9 +335,16 @@ void main() {
   });
 
   /// The suggestion row offering [label], as a tile.
+  ///
+  /// Scoped to the suggestion list: the field itself carries the selected
+  /// option's label as its text, so an unscoped find.text would have two
+  /// candidates for it.
   ListTile rowTile(WidgetTester tester, String label) =>
       tester.widget<ListTile>(
-        find.ancestor(of: find.text(label), matching: find.byType(ListTile)),
+        find.descendant(
+          of: find.byKey(searchableFilterOptionsKey),
+          matching: find.widgetWithText(ListTile, label),
+        ),
       );
 
   // Enter commits whichever row the arrow keys have moved to, so a keyboard
