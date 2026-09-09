@@ -189,7 +189,10 @@ class PlanGearWeightsSection extends ConsumerWidget {
                       InputChip(
                         label: Text(switch (partCounts[id]) {
                           final n? when n > 0 =>
-                            '${itemsById[id]?.name ?? id} (+$n)',
+                            context.l10n.equipment_assemblyChip_label(
+                              n,
+                              itemsById[id]?.name ?? id,
+                            ),
                           _ => itemsById[id]?.name ?? id,
                         }),
                         onDeleted: () => _removeGear(ref, id),

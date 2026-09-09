@@ -171,6 +171,7 @@
   "diveLog_edit_geofenceSuggestion_body": "تطبيق مجموعة \"{setName}\"؟",
   "diveLog_edit_geofenceSuggestion_apply": "تطبيق",
   "common_action_dismiss": "تجاهل",
+  "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "إضافة مكوّن",
   "equipment_components_count": "{count, plural, =1{مكوّن واحد} other{{count} مكوّنات}}",
   "equipment_components_cycleError": "هذا العنصر يحتوي بالفعل على هذا، لذا لا يمكن إضافته كمكوّن.",

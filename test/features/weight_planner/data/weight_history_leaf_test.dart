@@ -55,4 +55,37 @@ void main() {
     );
     expect(observations.single.equipmentIds, [wing.id]);
   });
+
+  test('a corrupt loop still leaves one id on the observation', () async {
+    // A and B each name the other as parent. Every row is a parent, so a
+    // naive reading would drop both; the placement walk GearTree uses
+    // promotes one to a root and keeps the other as its leaf.
+    final equipment = EquipmentRepository();
+    final a = await equipment.createEquipment(
+      const EquipmentItem(id: '', name: 'A', type: EquipmentType.bcd),
+    );
+    final b = await equipment.createEquipment(
+      const EquipmentItem(id: '', name: 'B', type: EquipmentType.wing),
+    );
+    await DiveRepository().createDive(
+      Dive(
+        id: '',
+        diverId: diverId,
+        dateTime: DateTime(2026, 2, 1),
+        weightAmount: 6.0,
+        gear: gearLinksFor(
+          [a, b],
+          [
+            GearProvenance(equipmentId: a.id, viaEquipmentId: b.id),
+            GearProvenance(equipmentId: b.id, viaEquipmentId: a.id),
+          ],
+        ),
+      ),
+    );
+
+    final observations = await WeightHistoryRepository().observationsForDiver(
+      diverId,
+    );
+    expect(observations.single.equipmentIds, hasLength(1));
+  });
 }

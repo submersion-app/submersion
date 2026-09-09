@@ -171,6 +171,7 @@
   "diveLog_edit_geofenceSuggestion_body": "Alkalmazza a(z) \"{setName}\" készletet?",
   "diveLog_edit_geofenceSuggestion_apply": "Alkalmaz",
   "common_action_dismiss": "Elvetés",
+  "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Alkatrész hozzáadása",
   "equipment_components_count": "{count, plural, =1{1 alkatrész} other{{count} alkatrész}}",
   "equipment_components_cycleError": "Az a felszerelés már tartalmazza ezt, ezért nem adható hozzá alkatrészként.",

@@ -13,6 +13,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'הוספת רכיב';
 
   @override

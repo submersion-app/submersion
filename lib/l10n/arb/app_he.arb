@@ -171,6 +171,7 @@
   "diveLog_edit_geofenceSuggestion_body": "להחיל את ערכת \"{setName}\"?",
   "diveLog_edit_geofenceSuggestion_apply": "החל",
   "common_action_dismiss": "התעלם",
+  "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "הוספת רכיב",
   "equipment_components_count": "{count, plural, =1{רכיב אחד} other{{count} רכיבים}}",
   "equipment_components_cycleError": "הפריט הזה כבר מכיל את זה, ולכן אי אפשר להוסיף אותו כרכיב.",

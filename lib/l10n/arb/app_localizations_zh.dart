@@ -13,6 +13,11 @@ class AppLocalizationsZh extends AppLocalizations {
       '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name（+$count）';
+  }
+
+  @override
   String get equipment_components_add => '添加组件';
 
   @override

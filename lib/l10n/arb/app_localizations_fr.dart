@@ -13,6 +13,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'ouvrir le navigateur. Utilisez Copier le lien et collez l\'adresse dans votre navigateur.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'Ajouter un composant';
 
   @override

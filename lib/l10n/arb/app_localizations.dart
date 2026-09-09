@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Could not open your browser. Use Copy link and paste the address into your browser.'**
   String get settings_oauth_connect_browserFailed;
 
+  /// No description provided for @equipment_assemblyChip_label.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (+{count})'**
+  String equipment_assemblyChip_label(Object count, Object name);
+
   /// No description provided for @equipment_components_add.
   ///
   /// In en, this message translates to:

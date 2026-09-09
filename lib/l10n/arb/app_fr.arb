@@ -171,6 +171,7 @@
   "diveLog_edit_geofenceSuggestion_body": "Appliquer l'ensemble \"{setName}\" ?",
   "diveLog_edit_geofenceSuggestion_apply": "Appliquer",
   "common_action_dismiss": "Ignorer",
+  "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Ajouter un composant",
   "equipment_components_count": "{count, plural, =1{1 composant} other{{count} composants}}",
   "equipment_components_cycleError": "Cet équipement contient déjà celui-ci, il ne peut donc pas être ajouté comme composant.",

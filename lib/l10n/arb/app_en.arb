@@ -1,5 +1,6 @@
 {
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
+  "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Add component",
   "equipment_components_count": "{count, plural, =1{1 component} other{{count} components}}",
   "equipment_components_cycleError": "That item already contains this one, so it cannot be added as a component.",

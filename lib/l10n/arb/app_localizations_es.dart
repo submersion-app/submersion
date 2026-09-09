@@ -13,6 +13,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo abrir el navegador. Usa Copiar enlace y pega la dirección en tu navegador.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'Añadir componente';
 
   @override

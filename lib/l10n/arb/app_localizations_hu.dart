@@ -13,6 +13,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült megnyitni a böngészőt. Használd a Link másolása gombot, és illeszd be a címet a böngésződbe.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'Alkatrész hozzáadása';
 
   @override

@@ -171,6 +171,7 @@
   "diveLog_edit_geofenceSuggestion_body": "应用\"{setName}\"套装？",
   "diveLog_edit_geofenceSuggestion_apply": "应用",
   "common_action_dismiss": "忽略",
+  "equipment_assemblyChip_label": "{name}（+{count}）",
   "equipment_components_add": "添加组件",
   "equipment_components_count": "{count, plural, =1{1 个组件} other{{count} 个组件}}",
   "equipment_components_cycleError": "该装备已包含此项，因此无法将其添加为组件。",

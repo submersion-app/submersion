@@ -5,7 +5,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 
 /// Assembles weight-prediction training rows from the dive log.
 ///
@@ -56,19 +58,28 @@ class WeightHistoryRepository {
     }
     // Leaf gear only: an assembly whose parts are on the dive would be a
     // second feature for one object, and its parts carry the lead (#1487).
-    final rolledUpByDive = <String, Set<String>>{};
+    // GearTree's placement walk decides what is rolled up, so a corrupt
+    // loop still leaves one row counted rather than dropping the dive's
+    // gear entirely.
+    final provenanceByDive = <String, List<GearProvenance>>{};
     for (final row in equipmentRows) {
-      final parent = row.viaEquipmentId;
-      if (parent != null) {
-        rolledUpByDive.putIfAbsent(row.diveId, () => {}).add(parent);
-      }
+      provenanceByDive
+          .putIfAbsent(row.diveId, () => [])
+          .add(
+            GearProvenance(
+              equipmentId: row.equipmentId,
+              viaEquipmentId: row.viaEquipmentId,
+              viaSetId: row.viaSetId,
+            ),
+          );
     }
     final equipmentByDive = <String, List<String>>{};
-    for (final row in equipmentRows) {
-      if (rolledUpByDive[row.diveId]?.contains(row.equipmentId) ?? false) {
-        continue;
-      }
-      equipmentByDive.putIfAbsent(row.diveId, () => []).add(row.equipmentId);
+    for (final entry in provenanceByDive.entries) {
+      final rolledUp = GearTree.rolledUpIds(entry.value);
+      equipmentByDive[entry.key] = [
+        for (final p in entry.value)
+          if (!rolledUp.contains(p.equipmentId)) p.equipmentId,
+      ];
     }
     final leadByEquipment = await _gearCarriedLead(
       equipmentRows.map((e) => e.equipmentId).toSet(),

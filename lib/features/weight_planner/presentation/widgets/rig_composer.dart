@@ -170,7 +170,11 @@ class RigComposer extends ConsumerWidget {
                     if (!partIds.contains(item.id))
                       InputChip(
                         label: Text(switch (partCounts[item.id]) {
-                          final n? when n > 0 => '${item.name} (+$n)',
+                          final n? when n > 0 =>
+                            context.l10n.equipment_assemblyChip_label(
+                              n,
+                              item.name,
+                            ),
                           _ => item.name,
                         }),
                         onDeleted: () => onGearRemoved(item),
