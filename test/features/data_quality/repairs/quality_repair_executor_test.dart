@@ -655,4 +655,184 @@ void main() {
       expect(await statusOf('d1'), QualityStatus.resolved);
     },
   );
+
+  group('deleteDuplicate', () {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    final richProfile = [
+      for (var t = 0; t <= 600; t += 60)
+        domain.DiveProfilePoint(timestamp: t, depth: 20),
+    ];
+    const fragmentProfile = [
+      domain.DiveProfilePoint(timestamp: 0, depth: 1.7),
+      domain.DiveProfilePoint(timestamp: 13, depth: 0),
+    ];
+
+    Future<QualityFinding> seedPair({String keep = 'dA', String drop = 'dB'}) {
+      final pid = qualityPairIdentity(
+        detectorId: 'duplicate',
+        a: keep,
+        b: drop,
+      );
+      final finding = QualityFinding(
+        id: pid.id,
+        diveId: pid.diveId,
+        relatedDiveId: pid.relatedDiveId,
+        detectorId: 'duplicate',
+        detectorVersion: 3,
+        category: QualityCategory.duplicate,
+        severity: QualitySeverity.critical,
+        status: QualityStatus.open,
+        params: {'sameComputer': true, 'redundantDiveId': drop},
+        createdAt: DateTime.utc(2026, 7, 17),
+        updatedAt: DateTime.utc(2026, 7, 17),
+      );
+      return findingsRepo
+          .applyScanResults(
+            scopeDiveIds: {keep, drop},
+            ranDetectorIds: {'duplicate'},
+            produced: [finding],
+          )
+          .then((_) => finding);
+    }
+
+    Future<void> seedBoth() async {
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'dA',
+          dateTime: entry,
+          entryTime: entry,
+          runtime: const Duration(minutes: 35),
+          maxDepth: 20,
+          diveComputerSerial: 'S1',
+          profile: richProfile,
+        ),
+      );
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'dB',
+          dateTime: entry.add(const Duration(minutes: 1)),
+          entryTime: entry.add(const Duration(minutes: 1)),
+          runtime: const Duration(seconds: 13),
+          maxDepth: 1.7,
+          diveComputerSerial: 'S1',
+          profile: fragmentProfile,
+        ),
+      );
+    }
+
+    Future<bool> tombstoned(String diveId) async {
+      final rows =
+          await (DatabaseService.instance.database.select(
+                  DatabaseService.instance.database.deletionLog,
+                )
+                ..where((t) => t.entityType.equals('dives'))
+                ..where((t) => t.recordId.equals(diveId)))
+              .get();
+      return rows.isNotEmpty;
+    }
+
+    test('deletes the redundant copy, keeps the other, resolves', () async {
+      await seedBoth();
+      final finding = await seedPair();
+
+      final result = await executor.deleteDuplicate(
+        keepDiveId: 'dA',
+        deleteDiveId: 'dB',
+        findingId: finding.id,
+      );
+
+      expect(result.changed, isTrue);
+      expect(await diveRepo.getDiveById('dB'), isNull);
+      expect(await diveRepo.getDiveById('dA'), isNotNull);
+      expect(await statusOf('dA'), QualityStatus.resolved);
+    });
+
+    test('goes through the sync tombstone path', () async {
+      // A plain row delete would resurrect the copy on the next sync from
+      // any peer that still has it.
+      await seedBoth();
+      final finding = await seedPair();
+      await executor.deleteDuplicate(
+        keepDiveId: 'dA',
+        deleteDiveId: 'dB',
+        findingId: finding.id,
+      );
+      expect(await tombstoned('dB'), isTrue);
+      expect(await tombstoned('dA'), isFalse);
+    });
+
+    test('undo brings the copy back with its profile', () async {
+      await seedBoth();
+      final finding = await seedPair();
+      final result = await executor.deleteDuplicate(
+        keepDiveId: 'dA',
+        deleteDiveId: 'dB',
+        findingId: finding.id,
+      );
+
+      await result.undo!();
+
+      final restored = await diveRepo.getDiveById('dB');
+      expect(restored, isNotNull);
+      expect(restored!.maxDepth, 1.7);
+      expect(restored.diveComputerSerial, 'S1');
+      expect(
+        (await diveRepo.getDiveProfile('dB')).map((p) => p.depth).toList(),
+        [1.7, 0.0],
+      );
+    });
+
+    test('survives the finding being cascaded away with its dive', () async {
+      // The pair's one finding hangs off the lexicographically smaller id.
+      // When THAT is the redundant copy, deleting it cascades the finding
+      // row, and resolving a row that is gone must not throw.
+      await seedBoth();
+      final finding = await seedPair(keep: 'dB', drop: 'dA');
+      expect(finding.diveId, 'dA');
+
+      final result = await executor.deleteDuplicate(
+        keepDiveId: 'dB',
+        deleteDiveId: 'dA',
+        findingId: finding.id,
+      );
+
+      expect(result.changed, isTrue);
+      expect(await diveRepo.getDiveById('dA'), isNull);
+      expect(await findingsRepo.getFindings(diveId: 'dA'), isEmpty);
+    });
+
+    test('reports no change when the copy is already gone', () async {
+      // Deleted by hand between the scan and the tap; there is nothing to
+      // do, and resolving would only hide a finding the next scan would
+      // not reopen anyway. Leave it to the rescan.
+      await seedBoth();
+      final finding = await seedPair();
+      await diveRepo.deleteDive('dB');
+
+      final result = await executor.deleteDuplicate(
+        keepDiveId: 'dA',
+        deleteDiveId: 'dB',
+        findingId: finding.id,
+      );
+
+      expect(result.changed, isFalse);
+      expect(result.undo, isNull);
+      expect(await statusOf('dA'), QualityStatus.open);
+    });
+
+    test('refuses to delete the dive it was told to keep', () async {
+      // Belt and braces against a mapping bug: the two ids must differ.
+      await seedBoth();
+      final finding = await seedPair();
+      await expectLater(
+        executor.deleteDuplicate(
+          keepDiveId: 'dB',
+          deleteDiveId: 'dB',
+          findingId: finding.id,
+        ),
+        throwsArgumentError,
+      );
+      expect(await diveRepo.getDiveById('dB'), isNotNull);
+    });
+  });
 }

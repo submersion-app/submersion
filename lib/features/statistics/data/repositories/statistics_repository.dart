@@ -1389,6 +1389,42 @@ class StatisticsRepository {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
       final params = diverId != null ? [siteId, diverId] : [siteId];
 
+      // Every aggregate above reduces a whole column and throws away which
+      // row produced it, so each anchor id needs its own ordered lookup.
+      // An anchor repeats the outer site, diver and stats-scope predicate
+      // verbatim: drawn from any wider set it could name a dive that
+      // contributed nothing to the number the diver tapped. The optional
+      // [notNull] guard mirrors the aggregates, which skip NULLs - without
+      // it the deepest-dive link could land on a dive that recorded no
+      // depth at all. Ties break on id so a link does not wander between
+      // reads.
+      final anchorDiverFilter = diverId != null ? 'AND a.diver_id = ?' : '';
+      String anchor(String orderBy, {String? notNull}) =>
+          '(SELECT a.id FROM dives AS a '
+          'WHERE a.site_id = ? $anchorDiverFilter'
+          '${DiveStatsScope.and(alias: 'a')} '
+          '${notNull == null ? '' : 'AND $notNull '}'
+          'ORDER BY $orderBy, a.id ASC LIMIT 1)';
+
+      const depthNotNull = 'a.max_depth IS NOT NULL';
+      const duration = 'COALESCE(a.runtime, a.bottom_time)';
+      final deepest = anchor('a.max_depth DESC', notNull: depthNotNull);
+      final shallowest = anchor('a.max_depth ASC', notNull: depthNotNull);
+      final longest = anchor(
+        '$duration DESC',
+        notNull: '$duration IS NOT NULL',
+      );
+      // dive_date_time is NOT NULL, so the date anchors need no guard.
+      final earliest = anchor('a.dive_date_time ASC');
+      final latest = anchor('a.dive_date_time DESC');
+
+      // The anchors sit in the SELECT list, which SQLite binds before the
+      // WHERE clause, so their parameters come first: five anchors plus the
+      // outer clause is six copies of [params].
+      final variables = [
+        for (var i = 0; i < 6; i++) ...params,
+      ].map((p) => Variable(p)).toList();
+
       final result = await _db.customSelect('''
         SELECT
           COUNT(*) AS dive_count,
@@ -1397,11 +1433,16 @@ class StatisticsRepository {
           MAX(COALESCE(runtime, bottom_time)) AS longest_dive_seconds,
           AVG(COALESCE(runtime, bottom_time)) AS average_duration_seconds,
           MIN(dive_date_time) AS first_dive_at,
-          MAX(dive_date_time) AS last_dive_at
+          MAX(dive_date_time) AS last_dive_at,
+          $deepest AS deepest_dive_id,
+          $shallowest AS shallowest_dive_id,
+          $longest AS longest_dive_id,
+          $earliest AS first_dive_id,
+          $latest AS last_dive_id
         FROM dives
         WHERE site_id = ? $diverFilter
           ${DiveStatsScope.and(alias: 'dives')}
-        ''', variables: params.map((p) => Variable(p)).toList()).getSingle();
+        ''', variables: variables).getSingle();
 
       final diveCount = result.read<int>('dive_count');
       if (diveCount == 0) return SiteDiveStatistics.empty;
@@ -1427,6 +1468,11 @@ class StatisticsRepository {
         lastDiveAt: lastDiveMs != null
             ? DateTime.fromMillisecondsSinceEpoch(lastDiveMs, isUtc: true)
             : null,
+        deepestDiveId: result.read<String?>('deepest_dive_id'),
+        shallowestDiveId: result.read<String?>('shallowest_dive_id'),
+        longestDiveId: result.read<String?>('longest_dive_id'),
+        firstDiveId: result.read<String?>('first_dive_id'),
+        lastDiveId: result.read<String?>('last_dive_id'),
       );
     } catch (e, stackTrace) {
       _log.error(

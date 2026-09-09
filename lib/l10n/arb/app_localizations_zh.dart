@@ -13,6 +13,86 @@ class AppLocalizationsZh extends AppLocalizations {
       '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
 
   @override
+  String get equipment_components_add => '添加组件';
+
+  @override
+  String equipment_components_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个组件',
+      one: '1 个组件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_cycleError => '该装备已包含此项，因此无法将其添加为组件。';
+
+  @override
+  String get equipment_components_editRole => '编辑用途';
+
+  @override
+  String get equipment_components_empty => '暂无组件。请添加构成此装备的部件。';
+
+  @override
+  String equipment_components_partOf(Object name) {
+    return '属于 $name';
+  }
+
+  @override
+  String equipment_components_partOfCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '属于 $count 个组合',
+      one: '属于 1 个组合',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加 $count 项',
+      one: '添加 1 项',
+      zero: '添加',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty => '没有其他可添加的在用装备。';
+
+  @override
+  String get equipment_components_pickerTitle => '添加组件';
+
+  @override
+  String get equipment_components_remove => '移除组件';
+
+  @override
+  String get equipment_components_reorder => '调整顺序';
+
+  @override
+  String get equipment_components_role => '用途';
+
+  @override
+  String get equipment_components_roleDialogTitle => '组件用途';
+
+  @override
+  String get equipment_components_roleHint => '例如：主二级头';
+
+  @override
+  String equipment_components_rollupClock(Object component, Object kind) {
+    return '$component：$kind';
+  }
+
+  @override
+  String get equipment_components_title => '组件';
+
+  @override
   String equipment_documents_removeError(String error) {
     return '无法移除文档：$error';
   }
@@ -2210,10 +2290,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_saveTemplate_success => '模板已保存';
 
   @override
-  String get checklists_templates_pageTitle => '清单模板';
+  String get checklists_templates_pageTitle => '行程清单模板';
 
   @override
   String get checklists_templates_addTemplate => '添加模板';
+
+  @override
+  String get checklists_templates_editTemplate => '编辑模板';
 
   @override
   String get checklists_templates_empty => '暂无模板';
@@ -2329,6 +2412,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_item_valueMax => '最大值（警告）';
 
   @override
+  String get preDive_item_type_cellLinearity => '氧电池线性度';
+
+  @override
+  String get preDive_item_sourceItem => '空气读数来自';
+
+  @override
+  String get preDive_item_sourceItemRequired => '选择包含空气读数的项目';
+
+  @override
+  String get preDive_item_linearityMin => '最小线性度 %（警告）';
+
+  @override
+  String get preDive_item_linearityMax => '最大线性度 %（警告）';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return '$title 已没有可对比的空气读数';
+  }
+
+  @override
+  String get preDive_item_sourceBelow => '引用的数值在本列表中位于其后';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done/$total';
   }
@@ -2364,6 +2470,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => '输入数值';
+
+  @override
+  String get preDive_runner_cellInAir => '空气中';
+
+  @override
+  String get preDive_runner_cellInAirMissing => '尚未记录';
+
+  @override
+  String get preDive_runner_enterO2Value => '输入纯氧中的数值';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return '预期 $expected mV，线性度 $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return '空气 $air mV，预期 $expected mV，线性度 $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged => '空气读数此后已更改';
 
   @override
   String preDive_runner_flaggedBadge(int count) {
@@ -7304,6 +7436,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => '移除气瓶';
 
   @override
+  String get diveLog_tank_regulatorLabel => '调节器';
+
+  @override
+  String get diveLog_tank_regulatorNone => '无';
+
+  @override
   String get diveLog_tissue_label_ceiling => '上升限制';
 
   @override
@@ -7895,6 +8033,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_depth_maximum => '最大';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => '实际到达深度';
+
+  @override
   String get diveSites_detail_depth_minimum => '最小';
 
   @override
@@ -8016,6 +8157,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => '不可用';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '查看全部 $count 次潜水',
+      one: '查看 1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label，打开此次潜水';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9043,6 +9200,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_summary_stat_withGps => '与 GPS';
 
   @override
+  String get diveSites_summary_stat_countries => '国家';
+
+  @override
+  String get diveSites_summary_stat_notDived => '未潜过';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => '最近潜水';
+
+  @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return '最近潜水 $date';
+  }
+
+  @override
   String get diveType_builtin_altitude => '高原潜水';
 
   @override
@@ -9943,6 +10114,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentStatus_sold => '已售出';
 
   @override
+  String get enum_equipmentType_backplate => '背板';
+
+  @override
   String get enum_equipmentType_bcd => '浮力控制装置';
 
   @override
@@ -9955,6 +10129,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => '氧电池';
+
+  @override
+  String get enum_equipmentType_battery => '电池';
+
+  @override
   String get enum_equipmentType_computer => '潜水电脑';
 
   @override
@@ -9962,6 +10142,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => '基础层';
+
+  @override
+  String get enum_equipmentType_firstStage => '一级头';
+
+  @override
+  String get enum_equipmentType_harness => '背带';
+
+  @override
+  String get enum_equipmentType_hose => '软管';
+
+  @override
+  String get enum_equipmentType_housing => '防水壳';
+
+  @override
+  String get enum_equipmentType_secondStage => '二级头';
+
+  @override
+  String get enum_equipmentType_strobe => '闪光灯';
 
   @override
   String get enum_equipmentType_undersuit => '内胆保暖服';
@@ -10025,6 +10223,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => '防磨衣';
+
+  @override
+  String get enum_equipmentType_wing => '背飞气囊';
 
   @override
   String get enum_eventSeverity_alert => '警报';
@@ -10786,6 +10987,34 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return '海水小时数剩余 $remaining / $total';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return '冷水潜水剩余 $remaining / $total 次';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return '高氧小时数剩余 $remaining / $total';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return '深潜剩余 $remaining / $total 次';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return '电池循环剩余 $remaining / $total 次';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => '管理维护类型';
 
   @override
@@ -10805,6 +11034,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => '间隔（小时）';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours => '间隔（海水小时数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives => '间隔（冷水潜水次数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours => '间隔（高氧小时数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles => '间隔（深潜次数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles => '间隔（电池循环次数）';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -11140,6 +11384,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_statusLabel => '状态';
+
+  @override
+  String get equipment_edit_parentLabel => '安装于';
+
+  @override
+  String get equipment_edit_parentNone => '未安装';
 
   @override
   String get equipment_edit_thicknessDesignationHint => '例如：5, 5/4, 7/5/3';
@@ -16580,7 +16830,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => '清单模板';
+  String get settings_manage_checklistTemplates => '行程清单模板';
 
   @override
   String get settings_manage_checklistTemplates_subtitle => '用于旅行规划的可重复使用待办清单';
@@ -22688,21 +22938,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '以到达水面时的压力作为结束压力，而不是记录结束时的压力';
 
   @override
-  String get settings_cloudImportPageSize_title => '云导入分页大小';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      '每次从 Suunto Cloud 或 Garmin Connect 获取多少条最新潜水记录。「加载更多」会获取同样大小的下一批。';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => '每页潜水次数';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return '$min 到 $max 之间';
-  }
-
-  @override
   String get settings_siteMatch_strict => '严格';
 
   @override
@@ -24238,6 +24473,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_unavailablePlaceholder_accessDenied => '无照片库访问权限';
 
   @override
+  String get attrLabel_hose_length_m => '软管长度';
+
+  @override
+  String get attrLabel_plate_material => '背板材质';
+
+  @override
   String get attrLabel_size => '尺码';
 
   @override
@@ -24379,6 +24620,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_burn_time_h => '续航时间';
 
   @override
+  String get attrLabel_cell_slot => '电池槽位';
+
+  @override
+  String get attrLabel_installed_date => '安装日期';
+
+  @override
+  String get attrLabel_rechargeable => '可充电';
+
+  @override
   String get attrLabel_battery_type => '电池';
 
   @override
@@ -24428,6 +24678,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => '工具类型';
+
+  @override
+  String get attrChoice_plate_material_aluminum => '铝';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => '碳纤维';
+
+  @override
+  String get attrChoice_plate_material_steel => '钢';
 
   @override
   String get attrChoice_unit_type_eccr => '电子式 CCR (eCCR)';
@@ -24695,6 +24954,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => '铅酸';
+
+  @override
+  String get attrChoice_battery_type_alkaline => '碱性';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary => '锂（不可充电）';
 
   @override
   String get attrChoice_motor_type_brushless => '无刷';
@@ -25212,6 +25477,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_section_safety_subtitle => '回顾规则与潜水后飞行';
 
   @override
+  String get settings_section_equipmentCondition_title => '装备状况';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle => '保养计时的暴露阈值';
+
+  @override
+  String get equipmentConditionSettings_title => '装备状况';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => '暴露阈值';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      '潜水越过这些界线时，保养计时将其计为冷水、深潜或高氧。';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => '冷水低于';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => '深潜达到或超过';
+
+  @override
+  String get equipmentConditionSettings_o2Label => '高氧混合气高于（% O2）';
+
+  @override
+  String get equipmentConditionSettings_invalid => '请输入数字';
+
+  @override
+  String get equipmentConditionSettings_saveFailed => '无法保存。请重试。';
+
+  @override
   String get settings_section_security_title => '应用安全';
 
   @override
@@ -25649,6 +25945,26 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_consolidate => '整合';
+
+  @override
+  String get dataQuality_repairLabel_deleteDuplicate => '删除重复项';
+
+  @override
+  String get dataQuality_deleteDuplicate_title => '删除多余的副本？';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      '两条记录来自同一台潜水电脑。包含较少潜水数据的副本将被删除。之后可以撤销此操作。';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return '保留：$dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return '删除：$dive';
+  }
 
   @override
   String get dataQuality_repairLabel_combine => '合并为一次潜水';
@@ -26560,6 +26876,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_siteField_maxDepthReached => '你的最大深度';
 
   @override
+  String get enum_siteField_firstDived => '首次潜水';
+
+  @override
+  String get enum_siteField_firstDived_short => '首次';
+
+  @override
+  String get enum_siteField_averageDepthReached => '平均深度';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => '平均';
+
+  @override
+  String get enum_siteField_longestDive => '最长潜水';
+
+  @override
+  String get enum_siteField_longestDive_short => '最长';
+
+  @override
+  String get enum_siteField_averageDuration => '平均时长';
+
+  @override
+  String get enum_siteField_averageDuration_short => '平均时长';
+
+  @override
   String get enum_siteField_maxDepthReached_short => '你的最大';
 
   @override
@@ -26687,6 +27027,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_tripField_notes_short => '备注';
+
+  @override
+  String get enum_equipmentField_components => '组件';
+
+  @override
+  String get enum_equipmentField_components_short => '部件';
 
   @override
   String get enum_equipmentField_itemName => '名称';
@@ -35421,4 +35767,64 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_storageUsage_unrecognized_action => '查看';
+
+  @override
+  String get enum_equipmentTypeOrder_none => '不按类型排序';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => '按字母顺序';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => '从头到脚';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => '穿戴顺序';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => '按功能';
+
+  @override
+  String get enum_equipmentItemSortField_name => '名称';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => '购买日期';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => '添加日期';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => '上次保养';
+
+  @override
+  String get equipment_arrange_title => '整理装备';
+
+  @override
+  String get equipment_arrange_groupByType => '按类型分组';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle => '为每类装备显示标题';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => '类型排序方式';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => '然后按';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => '排序方式';
+
+  @override
+  String get equipment_arrange_tooltip => '整理装备';
+
+  @override
+  String get equipment_arrange_reset => '恢复默认';
+
+  @override
+  String get equipment_arrange_saveFailed => '无法保存排列方式';
+
+  @override
+  String get settings_appearance_gearArrangement => '装备排列';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle => '潜水记录中装备的分组和排序方式';
 }

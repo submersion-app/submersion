@@ -4,7 +4,10 @@
   "settings_oauth_connect_copyLink": "نسخ الرابط",
   "settings_oauth_connect_linkCopied": "تم نسخ الرابط. الصقه في متصفحك للتفويض.",
   "universalImport_action_importFromGarmin": "استيراد من جهاز Garmin",
+  "enum_equipmentType_backplate": "لوحة ظهر",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "خلية أكسجين",
+  "enum_equipmentType_battery": "بطارية",
   "diveLog_tank_saveAsPreset": "حفظ كإعداد مسبق",
   "diveLog_tank_saveAsPreset_needSpecs": "أدخل الحجم وضغط العمل أولاً",
   "diveLog_tank_saveAsPreset_nameTitle": "حفظ إعداد الأسطوانة المسبق",
@@ -162,6 +165,23 @@
   "diveLog_edit_geofenceSuggestion_body": "تطبيق مجموعة \"{setName}\"؟",
   "diveLog_edit_geofenceSuggestion_apply": "تطبيق",
   "common_action_dismiss": "تجاهل",
+  "equipment_components_add": "إضافة مكوّن",
+  "equipment_components_count": "{count, plural, =1{مكوّن واحد} other{{count} مكوّنات}}",
+  "equipment_components_cycleError": "هذا العنصر يحتوي بالفعل على هذا، لذا لا يمكن إضافته كمكوّن.",
+  "equipment_components_editRole": "تعديل الدور",
+  "equipment_components_empty": "لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.",
+  "equipment_components_partOf": "جزء من {name}",
+  "equipment_components_partOfCount": "{count, plural, =1{جزء من تجميعة واحدة} other{جزء من {count} تجميعات}}",
+  "equipment_components_pickerConfirm": "{count, plural, =0{إضافة} =1{إضافة 1} other{إضافة {count}}}",
+  "equipment_components_pickerEmpty": "لا توجد معدات نشطة أخرى يمكن إضافتها هنا.",
+  "equipment_components_pickerTitle": "إضافة مكوّنات",
+  "equipment_components_remove": "إزالة المكوّن",
+  "equipment_components_reorder": "إعادة ترتيب",
+  "equipment_components_role": "الدور",
+  "equipment_components_roleDialogTitle": "دور المكوّن",
+  "equipment_components_roleHint": "مثال: المرحلة الثانية الرئيسية",
+  "equipment_components_rollupClock": "{component}: {kind}",
+  "equipment_components_title": "المكوّنات",
   "equipment_setEdit_defaultSwitch_title": "المجموعة الافتراضية",
   "equipment_setEdit_defaultSwitch_subtitle": "تُطبَّق تلقائيًا على الغطسات الجديدة التي لا تحتوي على معدات بعد",
   "equipment_setEdit_geofencesTitle": "الأسوار الجغرافية",
@@ -937,8 +957,9 @@
   "checklists_saveTemplate_title": "حفظ كقالب",
   "checklists_saveTemplate_nameLabel": "اسم القالب",
   "checklists_saveTemplate_success": "تم حفظ القالب",
-  "checklists_templates_pageTitle": "قوالب قوائم التحقق",
+  "checklists_templates_pageTitle": "قوالب قوائم التحقق للرحلات",
   "checklists_templates_addTemplate": "إضافة قالب",
+  "checklists_templates_editTemplate": "تعديل قالب",
   "checklists_templates_empty": "لا توجد قوالب بعد",
   "checklists_templates_deleteTitle": "حذف القالب",
   "checklists_templates_deleteContent": "هل تريد حذف \"{name}\"؟ ستحتفظ الرحلات التي طبّقته مسبقًا بعناصرها.",
@@ -976,6 +997,20 @@
   "preDive_item_valueUnit": "الوحدة",
   "preDive_item_valueMin": "الحد الأدنى (تحذير)",
   "preDive_item_valueMax": "الحد الأقصى (تحذير)",
+  "preDive_item_type_cellLinearity": "خطية الخلية",
+  "preDive_item_sourceItem": "قراءة الهواء من",
+  "preDive_item_sourceItemRequired": "اختر العنصر الذي يحتوي على قراءة الهواء",
+  "preDive_item_linearityMin": "أدنى خطية % (تحذير)",
+  "preDive_item_linearityMax": "أقصى خطية % (تحذير)",
+  "preDive_item_sourceCleared": "لم يعد لدى {title} قراءة هواء للمقارنة بها",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "يقرأ قيمة مسجلة لاحقًا في هذه القائمة",
   "preDive_runner_progress": "{done} من {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1039,35 @@
   "preDive_runner_serviceOverdue": "الصيانة متأخرة",
   "preDive_runner_addNote": "إضافة ملاحظة",
   "preDive_runner_enterValue": "أدخل القيمة",
+  "preDive_runner_cellInAir": "في الهواء",
+  "preDive_runner_cellInAirMissing": "لم تُسجل بعد",
+  "preDive_runner_enterO2Value": "أدخل القيمة في الأكسجين النقي",
+  "preDive_runner_linearityReadout": "المتوقع {expected} mV، الخطية {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "الهواء {air} mV، المتوقع {expected} mV، الخطية {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "تغيرت قراءة الهواء منذ ذلك الحين",
   "preDive_runner_flaggedBadge": "{count} معلَّمة",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2633,6 +2697,8 @@
   "diveLog_tank_selectPreset": "اختر إعداداً مسبقاً...",
   "diveLog_tank_title": "أسطوانة {number}",
   "diveLog_tank_tooltip_remove": "إزالة الأسطوانة",
+  "diveLog_tank_regulatorLabel": "منظم التنفس",
+  "diveLog_tank_regulatorNone": "لا شيء",
   "diveLog_tissue_label_ceiling": "السقف",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -2832,6 +2898,7 @@
   "diveSites_detail_deleteMenu_label": "حذف",
   "diveSites_detail_deleteSnackbar": "تم حذف الموقع",
   "diveSites_detail_depth_maximum": "الأقصى",
+  "diveSites_detail_depth_reachedHeading": "العمق المُحقَّق",
   "diveSites_detail_depth_minimum": "الأدنى",
   "diveSites_detail_diveCount_one": "غوصة واحدة مسجلة",
   "diveSites_detail_diveCount_other": "{count} غوصات مسجلة",
@@ -2871,6 +2938,8 @@
   "diveSites_detail_stats_maxDepth": "أعمق غطسة",
   "diveSites_detail_stats_minDepth": "أقل غطسة عمقًا",
   "diveSites_detail_stats_notAvailable": "غير متوفر",
+  "diveSites_detail_stats_viewAllDives": "{count, plural, =1{عرض غطسة واحدة} other{عرض كل الغطسات ({count})}}",
+  "diveSites_detail_semantics_openLinkedDive": "{label}، فتح هذه الغطسة",
   "diveSites_detail_semantics_copyToClipboard": "نسخ {label} إلى الحافظة",
   "diveSites_detail_semantics_viewDivesAtSite": "عرض الغوصات في هذا الموقع",
   "diveSites_detail_semantics_viewFullscreenMap": "عرض الخريطة بملء الشاشة",
@@ -3135,6 +3204,10 @@
   "diveSites_summary_stat_totalDives": "إجمالي الغوصات",
   "diveSites_summary_stat_totalSites": "إجمالي المواقع",
   "diveSites_summary_stat_withGps": "مع GPS",
+  "diveSites_summary_stat_countries": "الدول",
+  "diveSites_summary_stat_notDived": "لم تُغطس",
+  "diveSites_summary_section_recentlyDived": "غُطست مؤخرًا",
+  "diveSites_summary_tile_lastDived": "آخر غطسة {date}",
   "diveType_builtin_altitude": "ارتفاع",
   "diveType_builtin_altitude_short": "ارتفاع",
   "diveType_builtin_boat": "من القارب",
@@ -3431,6 +3504,12 @@
   "enum_equipmentType_computer": "حاسوب غوص",
   "enum_equipmentType_drysuit": "بدلة جافة",
   "enum_equipmentType_baselayer": "طبقة أساسية",
+  "enum_equipmentType_firstStage": "المرحلة الأولى",
+  "enum_equipmentType_harness": "حزام",
+  "enum_equipmentType_hose": "خرطوم",
+  "enum_equipmentType_housing": "غلاف الكاميرا",
+  "enum_equipmentType_secondStage": "المرحلة الثانية",
+  "enum_equipmentType_strobe": "فلاش",
   "enum_equipmentType_undersuit": "بدلة داخلية",
   "enum_equipmentType_fins": "زعانف",
   "enum_equipmentType_gloves": "قفازات",
@@ -3452,6 +3531,7 @@
   "enum_equipmentType_rebreather": "جهاز إعادة التنفس",
   "enum_equipmentType_tool": "أداة",
   "enum_equipmentType_rashGuard": "قميص واقٍ من الاحتكاك",
+  "enum_equipmentType_wing": "جناح",
   "enum_eventSeverity_alert": "تنبيه",
   "enum_eventSeverity_info": "معلومات",
   "enum_eventSeverity_warning": "تحذير",
@@ -3699,6 +3779,61 @@
   "cylinderConfigs_sectionTitle": "الإعدادات",
   "equipment_serviceClocks_hoursSource": "محسوب من زمن الغوص المسجل",
   "equipment_serviceClocks_hoursLeft": "متبقٍ {remaining} من {total} ساعة",
+  "equipment_serviceClocks_saltHoursLeft": "تبقى {remaining} من {total} ساعة في الماء المالح",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "تبقى {remaining} من {total} غطسة في الماء البارد",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "تبقى {remaining} من {total} ساعة بأكسجين مرتفع",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "تبقى {remaining} من {total} غطسة عميقة",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "تبقى {remaining} من {total} دورة بطارية",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "إدارة أنواع الصيانة",
   "equipment_serviceClocks_appliesToClock": "ينطبق على العداد",
   "equipment_serviceClocks_noClockOption": "غير مرتبط بعداد",
@@ -3706,6 +3841,11 @@
   "equipment_scheduleDialog_intervalDays": "الفترة (أيام)",
   "equipment_scheduleDialog_intervalDives": "الفترة (غوصات)",
   "equipment_scheduleDialog_intervalHours": "الفترة (ساعات)",
+  "equipment_scheduleDialog_intervalSaltHours": "الفاصل (ساعات في الماء المالح)",
+  "equipment_scheduleDialog_intervalColdDives": "الفاصل (غطسات في الماء البارد)",
+  "equipment_scheduleDialog_intervalO2Hours": "الفاصل (ساعات بأكسجين مرتفع)",
+  "equipment_scheduleDialog_intervalDeepCycles": "الفاصل (غطسات عميقة)",
+  "equipment_scheduleDialog_intervalCycles": "الفاصل (دورات البطارية)",
   "equipment_scheduleDialog_inheritHint": "الافتراضي: {value}",
   "equipment_scheduleDialog_anchorDate": "تاريخ الأساس",
   "equipment_scheduleDialog_anchorHint": "يُستخدم عندما لا يوجد بعد سجل صيانة من هذا النوع",
@@ -3804,6 +3944,8 @@
   "equipment_edit_snackbar_error": "خطأ في حفظ المعدات: {error}",
   "equipment_edit_snackbar_updated": "تم تحديث المعدات",
   "equipment_edit_statusLabel": "الحالة",
+  "equipment_edit_parentLabel": "مركّب في",
+  "equipment_edit_parentNone": "غير مركّب في أي شيء",
   "equipment_edit_thicknessDesignationHint": "مثلاً 5، 5/4، 7/5/3",
   "equipment_edit_webLinkHint": "مثال: shop.example.com/product",
   "equipment_edit_thicknessHint": "مثلاً 5 مم، 7 مم",
@@ -5205,7 +5347,7 @@
   "settings_lightroom_scan_summary": "{attached} مرتبطة، {suggested} مقترحة، {skipped} مرتبطة بالفعل",
   "settings_lightroom_subtitle": "ربط الصور ومقاطع الفيديو بالغطسات تلقائيًا",
   "settings_lightroom_title": "Adobe Lightroom",
-  "settings_manage_checklistTemplates": "قوالب قوائم التحقق",
+  "settings_manage_checklistTemplates": "قوالب قوائم التحقق للرحلات",
   "settings_manage_checklistTemplates_subtitle": "قوائم مهام قابلة لإعادة الاستخدام للتخطيط للرحلات",
   "settings_manage_diveRoles": "أدوار الغوص",
   "settings_manage_diveRoles_subtitle": "إدارة أدوار الغوص المخصصة",
@@ -6585,10 +6727,6 @@
   "settings_siteMatch_subtitle": "مدى صرامة مطابقة الغوصات التي تم تنزيلها بالمواقع",
   "settings_tankPressureAtSurfacing_title": "ضغط الأسطوانة عند الصعود إلى السطح",
   "settings_tankPressureAtSurfacing_subtitle": "قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل",
-  "settings_cloudImportPageSize_title": "حجم صفحة الاستيراد السحابي",
-  "settings_cloudImportPageSize_subtitle": "عدد أحدث الغوصات التي يتم جلبها في كل مرة من Suunto Cloud أو Garmin Connect. «تحميل المزيد» يجلب الدفعة التالية بنفس الحجم.",
-  "settings_cloudImportPageSize_dialogTitle": "غوصات لكل صفحة",
-  "settings_cloudImportPageSize_range": "بين {min} و{max}",
   "settings_siteMatch_strict": "صارم",
   "settings_siteMatch_balanced": "متوازن",
   "settings_siteMatch_relaxed": "متساهل",
@@ -7411,6 +7549,8 @@
   "media_unavailablePlaceholder_volumeOffline": "وحدة التخزين غير مثبتة",
   "media_unavailablePlaceholder_stillFetching": "ما زال قيد التحميل. اضغط لإعادة المحاولة.",
   "media_unavailablePlaceholder_accessDenied": "لا يوجد وصول إلى مكتبة الصور",
+  "attrLabel_hose_length_m": "طول الخرطوم",
+  "attrLabel_plate_material": "مادة اللوحة",
   "attrLabel_size": "المقاس",
   "attrLabel_thickness_mm": "السماكة (مم)",
   "attrLabel_suit_style": "نوع البدلة",
@@ -7458,6 +7598,9 @@
   "attrLabel_o2_cylinder_l": "أسطوانة O2",
   "attrLabel_dpv_style": "النمط",
   "attrLabel_burn_time_h": "زمن التشغيل",
+  "attrLabel_cell_slot": "موضع الخلية",
+  "attrLabel_installed_date": "تاريخ التركيب",
+  "attrLabel_rechargeable": "قابلة لإعادة الشحن",
   "attrLabel_battery_type": "البطارية",
   "attrLabel_battery_capacity_wh": "سعة البطارية (واط·ساعة)",
   "attrLabel_motor_type": "المحرك",
@@ -7475,6 +7618,9 @@
   "attrLabel_balance_zone": "منطقة الاتزان",
   "attrLabel_tilt_tolerance_deg": "تحمل الميل (°)",
   "attrLabel_tool_type": "نوع الأداة",
+  "attrChoice_plate_material_aluminum": "ألومنيوم",
+  "attrChoice_plate_material_carbon_fiber": "ألياف الكربون",
+  "attrChoice_plate_material_steel": "فولاذ",
   "attrChoice_unit_type_eccr": "CCR إلكتروني (eCCR)",
   "attrChoice_unit_type_mccr": "CCR يدوي (mCCR)",
   "attrChoice_unit_type_hccr": "CCR هجين (hCCR)",
@@ -7564,6 +7710,8 @@
   "attrChoice_battery_type_lithium_ion": "ليثيوم أيون",
   "attrChoice_battery_type_nimh": "نيكل هيدريد فلزي",
   "attrChoice_battery_type_lead_acid": "حمض الرصاص",
+  "attrChoice_battery_type_alkaline": "قلوية",
+  "attrChoice_battery_type_lithium_primary": "ليثيوم (غير قابلة لإعادة الشحن)",
   "attrChoice_motor_type_brushless": "بدون فرشات",
   "attrChoice_motor_type_brushed": "بفرشات",
   "attrChoice_sleeve_length_short": "قصيرة",
@@ -8018,6 +8166,16 @@
   "planning_card_noFly_subtitle": "عدّاد إرشادي منذ آخر غطساتك",
   "settings_section_safety_title": "السلامة",
   "settings_section_safety_subtitle": "قواعد المراجعة والطيران بعد الغوص",
+  "settings_section_equipmentCondition_title": "حالة المعدات",
+  "settings_section_equipmentCondition_subtitle": "حدود التعرض لساعات الصيانة",
+  "equipmentConditionSettings_title": "حالة المعدات",
+  "equipmentConditionSettings_thresholdsHeader": "حدود التعرض",
+  "equipmentConditionSettings_thresholdsHelp": "تُحتسب الغطسة باردة أو عميقة أو بأكسجين مرتفع لساعات الصيانة عندما تتجاوز هذه الحدود.",
+  "equipmentConditionSettings_coldLabel": "ماء بارد تحت",
+  "equipmentConditionSettings_deepLabel": "غطسة عميقة من",
+  "equipmentConditionSettings_o2Label": "خليط بأكسجين مرتفع فوق (% O2)",
+  "equipmentConditionSettings_invalid": "أدخل رقمًا",
+  "equipmentConditionSettings_saveFailed": "تعذر الحفظ. حاول مرة أخرى.",
   "dataQuality_inbox_title": "جودة البيانات",
   "dataQuality_dive_unknown": "تفاصيل الغطسة غير متاحة",
   "dataQuality_dive_number": "#{number}",
@@ -8092,6 +8250,11 @@
   "dataQuality_repairLabel_shiftTime": "إزاحة الوقت بمقدار {offset}",
   "dataQuality_repairLabel_shiftImport": "إزاحة كل الغوصات من هذا الاستيراد",
   "dataQuality_repairLabel_consolidate": "توحيد",
+  "dataQuality_repairLabel_deleteDuplicate": "حذف التكرار",
+  "dataQuality_deleteDuplicate_title": "حذف النسخة الزائدة؟",
+  "dataQuality_deleteDuplicate_body": "تم تسجيل كلتيهما بواسطة كمبيوتر الغوص نفسه. سيتم حذف النسخة التي تحتوي على بيانات أقل من الغوصة. يمكنك التراجع عن ذلك لاحقًا.",
+  "dataQuality_deleteDuplicate_keep": "الاحتفاظ: {dive}",
+  "dataQuality_deleteDuplicate_delete": "الحذف: {dive}",
   "dataQuality_repairLabel_combine": "دمج في غوصة واحدة",
   "dataQuality_repairLabel_despike": "إزالة القفزة",
   "dataQuality_repairLabel_clampNegative": "تثبيت الأعماق فوق السطح",
@@ -8432,6 +8595,14 @@
   "enum_siteField_lastDived": "آخر غوص",
   "enum_siteField_lastDived_short": "الأخير",
   "enum_siteField_maxDepthReached": "أقصى عمق لك",
+  "enum_siteField_firstDived": "أول غطسة",
+  "enum_siteField_firstDived_short": "الأولى",
+  "enum_siteField_averageDepthReached": "متوسط عمقك",
+  "enum_siteField_averageDepthReached_short": "المتوسط",
+  "enum_siteField_longestDive": "أطول غطسة",
+  "enum_siteField_longestDive_short": "الأطول",
+  "enum_siteField_averageDuration": "متوسط المدة",
+  "enum_siteField_averageDuration_short": "المدة",
   "enum_siteField_maxDepthReached_short": "أقصاك",
   "enum_buddyField_buddyName": "الاسم",
   "enum_buddyField_email": "البريد الإلكتروني",
@@ -8475,6 +8646,8 @@
   "enum_tripField_maxDepth_short": "أقصى عمق",
   "enum_tripField_avgDepth_short": "متوسط عمق",
   "enum_tripField_notes_short": "ملاحظات",
+  "enum_equipmentField_components": "المكوّنات",
+  "enum_equipmentField_components_short": "أجزاء",
   "enum_equipmentField_itemName": "الاسم",
   "enum_equipmentField_fullName": "الاسم الكامل",
   "enum_equipmentField_type": "النوع",
@@ -10980,5 +11153,25 @@
   "backup_unrecognized_deleteFailed": "تعذّر حذف الملفات المحددة.",
   "backup_unrecognized_freed": "تم تحرير {size}",
   "settings_storageUsage_unrecognized_title": "{count, plural, =1{ملف واحد غير موجود في سجل النسخ الاحتياطي} other{{count} ملفات غير موجودة في سجل النسخ الاحتياطي}}",
-  "settings_storageUsage_unrecognized_action": "مراجعة"
+  "settings_storageUsage_unrecognized_action": "مراجعة",
+  "enum_equipmentTypeOrder_none": "عدم الترتيب حسب النوع",
+  "enum_equipmentTypeOrder_alphabetical": "أبجدي",
+  "enum_equipmentTypeOrder_headToToe": "من الرأس إلى القدم",
+  "enum_equipmentTypeOrder_dressingOrder": "ترتيب ارتداء المعدات",
+  "enum_equipmentTypeOrder_canonical": "حسب الوظيفة",
+  "enum_equipmentItemSortField_name": "الاسم",
+  "enum_equipmentItemSortField_purchaseDate": "تاريخ الشراء",
+  "enum_equipmentItemSortField_dateAdded": "تاريخ الإضافة",
+  "enum_equipmentItemSortField_lastServiceDate": "آخر صيانة",
+  "equipment_arrange_title": "ترتيب المعدات",
+  "equipment_arrange_groupByType": "التجميع حسب النوع",
+  "equipment_arrange_groupByTypeSubtitle": "إظهار عنوان لكل نوع من المعدات",
+  "equipment_arrange_typeOrderLabel": "ترتيب الأنواع حسب",
+  "equipment_arrange_itemOrderLabel": "ثم حسب",
+  "equipment_arrange_itemOrderLabelFlat": "الترتيب حسب",
+  "equipment_arrange_tooltip": "ترتيب المعدات",
+  "equipment_arrange_reset": "إعادة التعيين إلى الإعدادات الافتراضية",
+  "equipment_arrange_saveFailed": "تعذر حفظ الترتيب",
+  "settings_appearance_gearArrangement": "ترتيب المعدات",
+  "settings_appearance_gearArrangementSubtitle": "كيفية تجميع المعدات وترتيبها في الغوصة"
 }

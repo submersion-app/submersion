@@ -826,7 +826,15 @@ final siteDetailedCardConfigProvider =
             EntityCardSlotConfig(slotId: 'stat1', field: SiteField.depthRange),
             EntityCardSlotConfig(slotId: 'stat2', field: SiteField.diveCount),
           ],
-          extraFields: [SiteField.lastDived, SiteField.maxDepthReached],
+          // The detailed card has room for a fuller picture than a count
+          // and a personal best. All four come from the same grouped
+          // aggregate the list already loads, so this costs no extra query.
+          extraFields: [
+            SiteField.lastDived,
+            SiteField.maxDepthReached,
+            SiteField.averageDepthReached,
+            SiteField.averageDuration,
+          ],
         ),
         fieldFromName: SiteFieldAdapter.instance.fieldFromName,
       );

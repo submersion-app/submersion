@@ -1077,6 +1077,11 @@ class DiveTank extends Equatable {
   /// user edits never rewrite it.
   final int? sourceTankIndex;
 
+  /// The regulator this cylinder was breathed through (v202), so high-O2
+  /// contact reaches the regulator's service clocks. User-authored: the
+  /// tank editor sets it and downloads never touch it.
+  final String? regulatorEquipmentId;
+
   /// Deco gas-switch depth override in meters (planning only); null = auto
   /// (MOD at the deco pO2). Subsurface per-cylinder "Deco switch at", v120.
   /// Unused for logged-dive tanks.
@@ -1105,6 +1110,7 @@ class DiveTank extends Equatable {
     this.computerId,
     this.transmitterSerial,
     this.sourceTankIndex,
+    this.regulatorEquipmentId,
     this.decoSwitchDepth,
     this.isTravelGas = false,
   });
@@ -1135,6 +1141,8 @@ class DiveTank extends Equatable {
     bool clearTransmitterSerial = false,
     int? sourceTankIndex,
     bool clearSourceTankIndex = false,
+    String? regulatorEquipmentId,
+    bool clearRegulatorEquipmentId = false,
     double? decoSwitchDepth,
     bool clearDecoSwitchDepth = false,
     bool? isTravelGas,
@@ -1158,6 +1166,9 @@ class DiveTank extends Equatable {
       sourceTankIndex: clearSourceTankIndex
           ? null
           : (sourceTankIndex ?? this.sourceTankIndex),
+      regulatorEquipmentId: clearRegulatorEquipmentId
+          ? null
+          : (regulatorEquipmentId ?? this.regulatorEquipmentId),
       decoSwitchDepth: clearDecoSwitchDepth
           ? null
           : (decoSwitchDepth ?? this.decoSwitchDepth),
@@ -1181,6 +1192,7 @@ class DiveTank extends Equatable {
     computerId,
     transmitterSerial,
     sourceTankIndex,
+    regulatorEquipmentId,
     decoSwitchDepth,
     isTravelGas,
   ];

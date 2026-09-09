@@ -285,6 +285,31 @@ void main() {
         );
       });
 
+      test('sold gear is not lumped in with retired gear', () async {
+        await repository.createEquipment(
+          createTestEquipment(name: 'Retired Reg', isActive: false),
+        );
+        await repository.createEquipment(
+          createTestEquipment(
+            name: 'Sold Reg',
+            status: EquipmentStatus.sold,
+            isActive: false,
+          ),
+        );
+
+        // Sold is isActive=false too, but it is its own terminal state:
+        // it must not surface under the retired list or the Retired filter.
+        expect((await repository.getRetiredEquipment()).map((e) => e.name), [
+          'Retired Reg',
+        ]);
+        expect(
+          (await repository.getEquipmentByStatus(
+            EquipmentStatus.retired,
+          )).map((e) => e.name),
+          ['Retired Reg'],
+        );
+      });
+
       test('reactivateEquipment clears a sold status', () async {
         final item = await repository.createEquipment(
           createTestEquipment(

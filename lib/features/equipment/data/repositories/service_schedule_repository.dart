@@ -8,6 +8,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart'
     as domain;
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
@@ -61,6 +62,9 @@ class ServiceScheduleRepository {
             intervalDays: Value(schedule.intervalDays),
             intervalDives: Value(schedule.intervalDives),
             intervalHours: Value(schedule.intervalHours),
+            exposureIntervals: Value(
+              encodeExposureIntervals(schedule.exposureIntervals),
+            ),
             defaultCost: Value(schedule.defaultCost),
             defaultCurrency: Value(schedule.defaultCurrency),
             anchorDate: Value(schedule.anchorDate?.millisecondsSinceEpoch),
@@ -87,6 +91,9 @@ class ServiceScheduleRepository {
         intervalDays: Value(schedule.intervalDays),
         intervalDives: Value(schedule.intervalDives),
         intervalHours: Value(schedule.intervalHours),
+        exposureIntervals: Value(
+          encodeExposureIntervals(schedule.exposureIntervals),
+        ),
         defaultCost: Value(schedule.defaultCost),
         defaultCurrency: Value(schedule.defaultCurrency),
         anchorDate: Value(schedule.anchorDate?.millisecondsSinceEpoch),
@@ -177,6 +184,7 @@ class ServiceScheduleRepository {
       intervalDays: row.intervalDays,
       intervalDives: row.intervalDives,
       intervalHours: row.intervalHours,
+      exposureIntervals: decodeExposureIntervals(row.exposureIntervals),
       defaultCost: row.defaultCost,
       defaultCurrency: row.defaultCurrency,
       anchorDate: row.anchorDate == null

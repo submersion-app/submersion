@@ -375,4 +375,217 @@ void main() {
       expect(stats.maxDepthReached, equals(10));
     });
   });
+
+  group('getSiteDiveStatistics anchor dive ids', () {
+    test('leaves every anchor id null when the site has no dives', () async {
+      final siteId = await insertSite();
+
+      final stats = await repository.getSiteDiveStatistics(siteId: siteId);
+
+      expect(stats.deepestDiveId, isNull);
+      expect(stats.shallowestDiveId, isNull);
+      expect(stats.longestDiveId, isNull);
+      expect(stats.firstDiveId, isNull);
+      expect(stats.lastDiveId, isNull);
+    });
+
+    test('points each statistic at the dive it was taken from', () async {
+      final siteId = await insertSite();
+      // Deliberately distinct dives so a query that anchored every statistic
+      // to the same row would fail rather than coincidentally pass.
+      await insertDive(
+        id: 'dive-first-and-shallowest',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 1, 1),
+        maxDepth: 8,
+        runtime: 1200,
+      );
+      await insertDive(
+        id: 'dive-deepest',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 2, 1),
+        maxDepth: 42,
+        runtime: 1800,
+      );
+      await insertDive(
+        id: 'dive-longest',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 3, 1),
+        maxDepth: 20,
+        runtime: 4500,
+      );
+      await insertDive(
+        id: 'dive-last',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 4, 1),
+        maxDepth: 15,
+        runtime: 1500,
+      );
+
+      final stats = await repository.getSiteDiveStatistics(siteId: siteId);
+
+      expect(stats.deepestDiveId, equals('dive-deepest'));
+      expect(stats.shallowestDiveId, equals('dive-first-and-shallowest'));
+      expect(stats.longestDiveId, equals('dive-longest'));
+      expect(stats.firstDiveId, equals('dive-first-and-shallowest'));
+      expect(stats.lastDiveId, equals('dive-last'));
+    });
+
+    test('never anchors a depth statistic to a dive with no depth', () async {
+      final siteId = await insertSite();
+      // MAX/MIN(max_depth) skip NULLs, so a depthless dive contributes nothing
+      // to either depth number and must not be what the row links to.
+      await insertDive(
+        id: 'dive-no-depth',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 1, 1),
+        runtime: 1200,
+      );
+      await insertDive(
+        id: 'dive-with-depth',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 2, 1),
+        maxDepth: 25,
+        runtime: 1800,
+      );
+
+      final stats = await repository.getSiteDiveStatistics(siteId: siteId);
+
+      expect(stats.deepestDiveId, equals('dive-with-depth'));
+      expect(stats.shallowestDiveId, equals('dive-with-depth'));
+    });
+
+    test(
+      'never anchors a duration statistic to a dive with no duration',
+      () async {
+        final siteId = await insertSite();
+        await insertDive(
+          id: 'dive-no-duration',
+          siteId: siteId,
+          diveDateTime: DateTime.utc(2026, 1, 1),
+          maxDepth: 30,
+        );
+        await insertDive(
+          id: 'dive-with-duration',
+          siteId: siteId,
+          diveDateTime: DateTime.utc(2026, 2, 1),
+          maxDepth: 12,
+          runtime: 900,
+        );
+
+        final stats = await repository.getSiteDiveStatistics(siteId: siteId);
+
+        expect(stats.longestDiveId, equals('dive-with-duration'));
+      },
+    );
+
+    test('never anchors to a dive excluded from statistics', () async {
+      final siteId = await insertSite();
+      // The excluded dive is the deepest, longest and most recent, so an
+      // anchor query missing the scope filter would name it for all three.
+      await insertDive(
+        id: 'dive-excluded',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 6, 1),
+        maxDepth: 60,
+        runtime: 5400,
+        excludedFromStats: true,
+      );
+      await insertDive(
+        id: 'dive-counted',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 1, 1),
+        maxDepth: 18,
+        runtime: 1800,
+      );
+
+      final stats = await repository.getSiteDiveStatistics(siteId: siteId);
+
+      expect(stats.deepestDiveId, equals('dive-counted'));
+      expect(stats.shallowestDiveId, equals('dive-counted'));
+      expect(stats.longestDiveId, equals('dive-counted'));
+      expect(stats.firstDiveId, equals('dive-counted'));
+      expect(stats.lastDiveId, equals('dive-counted'));
+    });
+
+    test('never anchors to a planned dive that was never made', () async {
+      final siteId = await insertSite();
+      await insertDive(
+        id: 'dive-planned',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 9, 1),
+        maxDepth: 55,
+        runtime: 4800,
+        isPlanned: true,
+      );
+      await insertDive(
+        id: 'dive-logged',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 1, 1),
+        maxDepth: 22,
+        runtime: 2100,
+      );
+
+      final stats = await repository.getSiteDiveStatistics(siteId: siteId);
+
+      expect(stats.deepestDiveId, equals('dive-logged'));
+      expect(stats.longestDiveId, equals('dive-logged'));
+      expect(stats.lastDiveId, equals('dive-logged'));
+    });
+
+    test('never anchors to a dive logged at a different site', () async {
+      final siteId = await insertSite(id: 'site-a');
+      final otherSiteId = await insertSite(id: 'site-b');
+      await insertDive(
+        id: 'dive-here',
+        siteId: siteId,
+        diveDateTime: DateTime.utc(2026, 1, 1),
+        maxDepth: 10,
+        runtime: 1200,
+      );
+      await insertDive(
+        id: 'dive-elsewhere',
+        siteId: otherSiteId,
+        diveDateTime: DateTime.utc(2026, 2, 1),
+        maxDepth: 40,
+        runtime: 3600,
+      );
+
+      final stats = await repository.getSiteDiveStatistics(siteId: siteId);
+
+      expect(stats.deepestDiveId, equals('dive-here'));
+      expect(stats.lastDiveId, equals('dive-here'));
+    });
+
+    test('never anchors to another diver\'s dive at the same site', () async {
+      final siteId = await insertSite();
+      final diverId = await insertDiver(id: 'diver-mine');
+      final otherDiverId = await insertDiver(id: 'diver-theirs');
+      await insertDive(
+        id: 'dive-mine',
+        siteId: siteId,
+        diverId: diverId,
+        diveDateTime: DateTime.utc(2026, 1, 1),
+        maxDepth: 14,
+        runtime: 1500,
+      );
+      await insertDive(
+        id: 'dive-theirs',
+        siteId: siteId,
+        diverId: otherDiverId,
+        diveDateTime: DateTime.utc(2026, 2, 1),
+        maxDepth: 44,
+        runtime: 3900,
+      );
+
+      final stats = await repository.getSiteDiveStatistics(
+        siteId: siteId,
+        diverId: diverId,
+      );
+
+      expect(stats.deepestDiveId, equals('dive-mine'));
+      expect(stats.longestDiveId, equals('dive-mine'));
+      expect(stats.lastDiveId, equals('dive-mine'));
+    });
+  });
 }

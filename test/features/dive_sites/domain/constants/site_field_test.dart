@@ -1000,4 +1000,102 @@ void main() {
       expect(SiteField.maxDepthReached.sortable, isTrue);
     });
   });
+  group('richer per-site statistics fields', () {
+    const richEntity = SiteWithDiveCount(
+      site: testSite,
+      diveCount: 12,
+      firstDivedAt: null,
+      averageDepthReached: 18.5,
+      longestDiveSeconds: 4500,
+      averageDurationSeconds: 2700,
+    );
+
+    test('every new field is grouped under statistics', () {
+      for (final field in [
+        SiteField.firstDived,
+        SiteField.averageDepthReached,
+        SiteField.longestDive,
+        SiteField.averageDuration,
+      ]) {
+        expect(
+          field.categoryName,
+          equals(SiteFieldCategory.statistics.name),
+          reason: '${field.name} should be a statistics field',
+        );
+      }
+    });
+
+    test('extracts the average depth actually reached', () {
+      expect(
+        SiteFieldAdapter.instance.extractValue(
+          SiteField.averageDepthReached,
+          richEntity,
+        ),
+        equals(18.5),
+      );
+    });
+
+    test('formats the average depth in the diver depth unit', () {
+      expect(
+        SiteFieldAdapter.instance.formatValue(
+          SiteField.averageDepthReached,
+          18.5,
+          units,
+        ),
+        contains('18.5'),
+      );
+    });
+
+    test('formats a long dive as hours and minutes', () {
+      expect(
+        SiteFieldAdapter.instance.formatValue(
+          SiteField.longestDive,
+          4500,
+          units,
+        ),
+        equals('1h 15m'),
+      );
+    });
+
+    test('rounds a fractional average duration rather than truncating', () {
+      // SQLite AVG yields fractional seconds. The site detail page rounds to
+      // whole seconds before formatting, so truncating here would show a
+      // different minute for the same dive in the list and on the page.
+      expect(
+        SiteFieldAdapter.instance.formatValue(
+          SiteField.averageDuration,
+          2759.6,
+          units,
+        ),
+        equals('46min'),
+      );
+    });
+
+    test('formats a sub-hour average duration in minutes', () {
+      expect(
+        SiteFieldAdapter.instance.formatValue(
+          SiteField.averageDuration,
+          2700.0,
+          units,
+        ),
+        equals('45min'),
+      );
+    });
+
+    test('renders nothing for a site that has no dives', () {
+      const bare = SiteWithDiveCount(site: testSite, diveCount: 0);
+      for (final field in [
+        SiteField.firstDived,
+        SiteField.averageDepthReached,
+        SiteField.longestDive,
+        SiteField.averageDuration,
+      ]) {
+        expect(
+          SiteFieldAdapter.instance.extractValue(field, bare),
+          isNull,
+          reason: '${field.name} should be null without dives',
+        );
+      }
+    });
+  });
 }

@@ -3,21 +3,41 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// Per-site aggregate over the dives table: how many dives were logged at
-/// the site, when the most recent one was, and the deepest depth reached.
-/// Depths are stored in metres; convert at the display edge.
+/// the site, the span they cover, and the depths and durations they reached.
+/// Depths are stored in metres and durations in seconds; convert at the
+/// display edge.
+///
+/// Every field here comes from one grouped query over `dives`, so a list of
+/// several hundred sites costs the same single round trip it always did.
 class SiteDiveAggregate extends Equatable {
   final int diveCount;
   final DateTime? lastDivedAt;
+  final DateTime? firstDivedAt;
   final double? maxDepthReached;
+  final double? averageDepthReached;
+  final int? longestDiveSeconds;
+  final double? averageDurationSeconds;
 
   const SiteDiveAggregate({
     required this.diveCount,
     this.lastDivedAt,
+    this.firstDivedAt,
     this.maxDepthReached,
+    this.averageDepthReached,
+    this.longestDiveSeconds,
+    this.averageDurationSeconds,
   });
 
   @override
-  List<Object?> get props => [diveCount, lastDivedAt, maxDepthReached];
+  List<Object?> get props => [
+    diveCount,
+    lastDivedAt,
+    firstDivedAt,
+    maxDepthReached,
+    averageDepthReached,
+    longestDiveSeconds,
+    averageDurationSeconds,
+  ];
 }
 
 /// A [DiveSite] paired with the aggregates the list surfaces render.
@@ -30,14 +50,22 @@ class SiteWithDiveCount extends Equatable {
   final DiveSite site;
   final int diveCount;
   final DateTime? lastDivedAt;
+  final DateTime? firstDivedAt;
   final double? maxDepthReached;
+  final double? averageDepthReached;
+  final int? longestDiveSeconds;
+  final double? averageDurationSeconds;
   final List<String> featureTypes;
 
   const SiteWithDiveCount({
     required this.site,
     required this.diveCount,
     this.lastDivedAt,
+    this.firstDivedAt,
     this.maxDepthReached,
+    this.averageDepthReached,
+    this.longestDiveSeconds,
+    this.averageDurationSeconds,
     this.featureTypes = const [],
   });
 
@@ -45,14 +73,23 @@ class SiteWithDiveCount extends Equatable {
     DiveSite? site,
     int? diveCount,
     DateTime? lastDivedAt,
+    DateTime? firstDivedAt,
     double? maxDepthReached,
+    double? averageDepthReached,
+    int? longestDiveSeconds,
+    double? averageDurationSeconds,
     List<String>? featureTypes,
   }) {
     return SiteWithDiveCount(
       site: site ?? this.site,
       diveCount: diveCount ?? this.diveCount,
       lastDivedAt: lastDivedAt ?? this.lastDivedAt,
+      firstDivedAt: firstDivedAt ?? this.firstDivedAt,
       maxDepthReached: maxDepthReached ?? this.maxDepthReached,
+      averageDepthReached: averageDepthReached ?? this.averageDepthReached,
+      longestDiveSeconds: longestDiveSeconds ?? this.longestDiveSeconds,
+      averageDurationSeconds:
+          averageDurationSeconds ?? this.averageDurationSeconds,
       featureTypes: featureTypes ?? this.featureTypes,
     );
   }
@@ -62,7 +99,11 @@ class SiteWithDiveCount extends Equatable {
     site,
     diveCount,
     lastDivedAt,
+    firstDivedAt,
     maxDepthReached,
+    averageDepthReached,
+    longestDiveSeconds,
+    averageDurationSeconds,
     featureTypes,
   ];
 }

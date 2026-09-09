@@ -4,7 +4,10 @@
   "settings_oauth_connect_copyLink": "复制链接",
   "settings_oauth_connect_linkCopied": "链接已复制。请粘贴到浏览器中进行授权。",
   "universalImport_action_importFromGarmin": "从 Garmin 设备导入",
+  "enum_equipmentType_backplate": "背板",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "氧电池",
+  "enum_equipmentType_battery": "电池",
   "diveLog_tank_saveAsPreset": "另存为预设",
   "diveLog_tank_saveAsPreset_needSpecs": "请先输入容积和工作压力",
   "diveLog_tank_saveAsPreset_nameTitle": "保存气瓶预设",
@@ -162,6 +165,23 @@
   "diveLog_edit_geofenceSuggestion_body": "应用\"{setName}\"套装？",
   "diveLog_edit_geofenceSuggestion_apply": "应用",
   "common_action_dismiss": "忽略",
+  "equipment_components_add": "添加组件",
+  "equipment_components_count": "{count, plural, =1{1 个组件} other{{count} 个组件}}",
+  "equipment_components_cycleError": "该装备已包含此项，因此无法将其添加为组件。",
+  "equipment_components_editRole": "编辑用途",
+  "equipment_components_empty": "暂无组件。请添加构成此装备的部件。",
+  "equipment_components_partOf": "属于 {name}",
+  "equipment_components_partOfCount": "{count, plural, =1{属于 1 个组合} other{属于 {count} 个组合}}",
+  "equipment_components_pickerConfirm": "{count, plural, =0{添加} =1{添加 1 项} other{添加 {count} 项}}",
+  "equipment_components_pickerEmpty": "没有其他可添加的在用装备。",
+  "equipment_components_pickerTitle": "添加组件",
+  "equipment_components_remove": "移除组件",
+  "equipment_components_reorder": "调整顺序",
+  "equipment_components_role": "用途",
+  "equipment_components_roleDialogTitle": "组件用途",
+  "equipment_components_roleHint": "例如：主二级头",
+  "equipment_components_rollupClock": "{component}：{kind}",
+  "equipment_components_title": "组件",
   "equipment_setEdit_defaultSwitch_title": "默认套装",
   "equipment_setEdit_defaultSwitch_subtitle": "自动应用于尚无装备的新潜水",
   "equipment_setEdit_geofencesTitle": "地理围栏",
@@ -1031,8 +1051,9 @@
   "checklists_saveTemplate_title": "保存为模板",
   "checklists_saveTemplate_nameLabel": "模板名称",
   "checklists_saveTemplate_success": "模板已保存",
-  "checklists_templates_pageTitle": "清单模板",
+  "checklists_templates_pageTitle": "行程清单模板",
   "checklists_templates_addTemplate": "添加模板",
+  "checklists_templates_editTemplate": "编辑模板",
   "checklists_templates_empty": "暂无模板",
   "checklists_templates_deleteTitle": "删除模板",
   "checklists_templates_deleteContent": "删除“{name}”？已应用该模板的旅行仍会保留其事项。",
@@ -1070,6 +1091,20 @@
   "preDive_item_valueUnit": "单位",
   "preDive_item_valueMin": "最小值（警告）",
   "preDive_item_valueMax": "最大值（警告）",
+  "preDive_item_type_cellLinearity": "氧电池线性度",
+  "preDive_item_sourceItem": "空气读数来自",
+  "preDive_item_sourceItemRequired": "选择包含空气读数的项目",
+  "preDive_item_linearityMin": "最小线性度 %（警告）",
+  "preDive_item_linearityMax": "最大线性度 %（警告）",
+  "preDive_item_sourceCleared": "{title} 已没有可对比的空气读数",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "引用的数值在本列表中位于其后",
   "preDive_runner_progress": "{done}/{total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1098,6 +1133,35 @@
   "preDive_runner_serviceOverdue": "维护已逾期",
   "preDive_runner_addNote": "添加备注",
   "preDive_runner_enterValue": "输入数值",
+  "preDive_runner_cellInAir": "空气中",
+  "preDive_runner_cellInAirMissing": "尚未记录",
+  "preDive_runner_enterO2Value": "输入纯氧中的数值",
+  "preDive_runner_linearityReadout": "预期 {expected} mV，线性度 {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "空气 {air} mV，预期 {expected} mV，线性度 {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "空气读数此后已更改",
   "preDive_runner_flaggedBadge": "{count} 个已标记",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2766,6 +2830,8 @@
   "diveLog_tank_selectPreset": "选择预设...",
   "diveLog_tank_title": "气瓶 {number}",
   "diveLog_tank_tooltip_remove": "移除气瓶",
+  "diveLog_tank_regulatorLabel": "调节器",
+  "diveLog_tank_regulatorNone": "无",
   "diveLog_tissue_label_ceiling": "上升限制",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "免减压极限",
@@ -2965,6 +3031,7 @@
   "diveSites_detail_deleteMenu_label": "删除",
   "diveSites_detail_deleteSnackbar": "潜水点已删除",
   "diveSites_detail_depth_maximum": "最大",
+  "diveSites_detail_depth_reachedHeading": "实际到达深度",
   "diveSites_detail_depth_minimum": "最小",
   "diveSites_detail_diveCount_one": "已记录 1 次潜水",
   "diveSites_detail_diveCount_other": "已记录 {count} 次潜水",
@@ -3004,6 +3071,8 @@
   "diveSites_detail_stats_maxDepth": "最深潜水",
   "diveSites_detail_stats_minDepth": "最浅潜水",
   "diveSites_detail_stats_notAvailable": "不可用",
+  "diveSites_detail_stats_viewAllDives": "{count, plural, =1{查看 1 次潜水} other{查看全部 {count} 次潜水}}",
+  "diveSites_detail_semantics_openLinkedDive": "{label}，打开此次潜水",
   "diveSites_detail_semantics_copyToClipboard": "复制 {label} 到剪贴板",
   "diveSites_detail_semantics_viewDivesAtSite": "查看此潜水点的潜水记录",
   "diveSites_detail_semantics_viewFullscreenMap": "查看全屏地图",
@@ -3268,6 +3337,10 @@
   "diveSites_summary_stat_totalDives": "总计潜水",
   "diveSites_summary_stat_totalSites": "总计潜水点",
   "diveSites_summary_stat_withGps": "与 GPS",
+  "diveSites_summary_stat_countries": "国家",
+  "diveSites_summary_stat_notDived": "未潜过",
+  "diveSites_summary_section_recentlyDived": "最近潜水",
+  "diveSites_summary_tile_lastDived": "最近潜水 {date}",
   "diveType_builtin_altitude": "高原潜水",
   "diveType_builtin_altitude_short": "高原",
   "diveType_builtin_boat": "船潜",
@@ -3568,6 +3641,12 @@
   "enum_equipmentType_computer": "潜水电脑",
   "enum_equipmentType_drysuit": "干衣",
   "enum_equipmentType_baselayer": "基础层",
+  "enum_equipmentType_firstStage": "一级头",
+  "enum_equipmentType_harness": "背带",
+  "enum_equipmentType_hose": "软管",
+  "enum_equipmentType_housing": "防水壳",
+  "enum_equipmentType_secondStage": "二级头",
+  "enum_equipmentType_strobe": "闪光灯",
   "enum_equipmentType_undersuit": "内胆保暖服",
   "enum_equipmentType_fins": "脚蹼",
   "enum_equipmentType_gloves": "手套",
@@ -3589,6 +3668,7 @@
   "enum_equipmentType_rebreather": "循环呼吸器",
   "enum_equipmentType_tool": "工具",
   "enum_equipmentType_rashGuard": "防磨衣",
+  "enum_equipmentType_wing": "背飞气囊",
   "enum_eventSeverity_alert": "警报",
   "enum_eventSeverity_info": "信息",
   "enum_eventSeverity_warning": "警告",
@@ -3844,6 +3924,61 @@
   "cylinderConfigs_sectionTitle": "配置",
   "equipment_serviceClocks_hoursSource": "根据已记录的潜水时间计算",
   "equipment_serviceClocks_hoursLeft": "剩余 {remaining}/{total} 小时",
+  "equipment_serviceClocks_saltHoursLeft": "海水小时数剩余 {remaining} / {total}",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "冷水潜水剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "高氧小时数剩余 {remaining} / {total}",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "深潜剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "电池循环剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "管理维护类型",
   "equipment_serviceClocks_appliesToClock": "适用的倒计时",
   "equipment_serviceClocks_noClockOption": "不关联倒计时",
@@ -3851,6 +3986,11 @@
   "equipment_scheduleDialog_intervalDays": "间隔（天）",
   "equipment_scheduleDialog_intervalDives": "间隔（潜水次数）",
   "equipment_scheduleDialog_intervalHours": "间隔（小时）",
+  "equipment_scheduleDialog_intervalSaltHours": "间隔（海水小时数）",
+  "equipment_scheduleDialog_intervalColdDives": "间隔（冷水潜水次数）",
+  "equipment_scheduleDialog_intervalO2Hours": "间隔（高氧小时数）",
+  "equipment_scheduleDialog_intervalDeepCycles": "间隔（深潜次数）",
+  "equipment_scheduleDialog_intervalCycles": "间隔（电池循环次数）",
   "equipment_scheduleDialog_inheritHint": "默认：{value}",
   "equipment_scheduleDialog_anchorDate": "基准日期",
   "equipment_scheduleDialog_anchorHint": "在尚无此类维护记录时使用",
@@ -3949,6 +4089,8 @@
   "equipment_edit_snackbar_error": "保存装备出错：{error}",
   "equipment_edit_snackbar_updated": "装备已更新",
   "equipment_edit_statusLabel": "状态",
+  "equipment_edit_parentLabel": "安装于",
+  "equipment_edit_parentNone": "未安装",
   "equipment_edit_thicknessDesignationHint": "例如：5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "例如 shop.example.com/product",
   "equipment_edit_thicknessHint": "例如：5mm, 7mm",
@@ -5387,7 +5529,7 @@
   "settings_lightroom_scan_summary": "已关联 {attached} 张，建议 {suggested} 张，{skipped} 张已关联",
   "settings_lightroom_subtitle": "自动将照片和视频关联到潜水记录",
   "settings_lightroom_title": "Adobe Lightroom",
-  "settings_manage_checklistTemplates": "清单模板",
+  "settings_manage_checklistTemplates": "行程清单模板",
   "settings_manage_checklistTemplates_subtitle": "用于旅行规划的可重复使用待办清单",
   "settings_manage_diveRoles": "潜水角色",
   "settings_manage_diveRoles_subtitle": "管理自定义潜水角色",
@@ -5508,10 +5650,6 @@
   "settings_siteMatch_subtitle": "下载的潜水与潜水点匹配的积极程度",
   "settings_tankPressureAtSurfacing_title": "出水时的气瓶压力",
   "settings_tankPressureAtSurfacing_subtitle": "以到达水面时的压力作为结束压力，而不是记录结束时的压力",
-  "settings_cloudImportPageSize_title": "云导入分页大小",
-  "settings_cloudImportPageSize_subtitle": "每次从 Suunto Cloud 或 Garmin Connect 获取多少条最新潜水记录。「加载更多」会获取同样大小的下一批。",
-  "settings_cloudImportPageSize_dialogTitle": "每页潜水次数",
-  "settings_cloudImportPageSize_range": "{min} 到 {max} 之间",
   "settings_siteMatch_strict": "严格",
   "settings_siteMatch_balanced": "平衡",
   "settings_siteMatch_relaxed": "宽松",
@@ -7411,6 +7549,8 @@
   "media_unavailablePlaceholder_volumeOffline": "卷未挂载",
   "media_unavailablePlaceholder_stillFetching": "仍在加载。点按重试。",
   "media_unavailablePlaceholder_accessDenied": "无照片库访问权限",
+  "attrLabel_hose_length_m": "软管长度",
+  "attrLabel_plate_material": "背板材质",
   "attrLabel_size": "尺码",
   "attrLabel_thickness_mm": "厚度（毫米）",
   "attrLabel_suit_style": "潜水服款式",
@@ -7458,6 +7598,9 @@
   "attrLabel_o2_cylinder_l": "O2 气瓶",
   "attrLabel_dpv_style": "款式",
   "attrLabel_burn_time_h": "续航时间",
+  "attrLabel_cell_slot": "电池槽位",
+  "attrLabel_installed_date": "安装日期",
+  "attrLabel_rechargeable": "可充电",
   "attrLabel_battery_type": "电池",
   "attrLabel_battery_capacity_wh": "电池容量（瓦时）",
   "attrLabel_motor_type": "电机",
@@ -7475,6 +7618,9 @@
   "attrLabel_balance_zone": "平衡区域",
   "attrLabel_tilt_tolerance_deg": "倾斜容差（°）",
   "attrLabel_tool_type": "工具类型",
+  "attrChoice_plate_material_aluminum": "铝",
+  "attrChoice_plate_material_carbon_fiber": "碳纤维",
+  "attrChoice_plate_material_steel": "钢",
   "attrChoice_unit_type_eccr": "电子式 CCR (eCCR)",
   "attrChoice_unit_type_mccr": "手动式 CCR (mCCR)",
   "attrChoice_unit_type_hccr": "混合式 CCR (hCCR)",
@@ -7564,6 +7710,8 @@
   "attrChoice_battery_type_lithium_ion": "锂离子",
   "attrChoice_battery_type_nimh": "镍氢",
   "attrChoice_battery_type_lead_acid": "铅酸",
+  "attrChoice_battery_type_alkaline": "碱性",
+  "attrChoice_battery_type_lithium_primary": "锂（不可充电）",
   "attrChoice_motor_type_brushless": "无刷",
   "attrChoice_motor_type_brushed": "有刷",
   "attrChoice_sleeve_length_short": "短袖",
@@ -8018,6 +8166,16 @@
   "planning_card_noFly_subtitle": "基于最近潜水的指导倒计时",
   "settings_section_safety_title": "安全",
   "settings_section_safety_subtitle": "回顾规则与潜水后飞行",
+  "settings_section_equipmentCondition_title": "装备状况",
+  "settings_section_equipmentCondition_subtitle": "保养计时的暴露阈值",
+  "equipmentConditionSettings_title": "装备状况",
+  "equipmentConditionSettings_thresholdsHeader": "暴露阈值",
+  "equipmentConditionSettings_thresholdsHelp": "潜水越过这些界线时，保养计时将其计为冷水、深潜或高氧。",
+  "equipmentConditionSettings_coldLabel": "冷水低于",
+  "equipmentConditionSettings_deepLabel": "深潜达到或超过",
+  "equipmentConditionSettings_o2Label": "高氧混合气高于（% O2）",
+  "equipmentConditionSettings_invalid": "请输入数字",
+  "equipmentConditionSettings_saveFailed": "无法保存。请重试。",
   "dataQuality_inbox_title": "数据质量",
   "dataQuality_dive_unknown": "无法获取潜水详情",
   "dataQuality_dive_number": "#{number}",
@@ -8092,6 +8250,11 @@
   "dataQuality_repairLabel_shiftTime": "将时间平移 {offset}",
   "dataQuality_repairLabel_shiftImport": "平移此次导入的所有潜水",
   "dataQuality_repairLabel_consolidate": "整合",
+  "dataQuality_repairLabel_deleteDuplicate": "删除重复项",
+  "dataQuality_deleteDuplicate_title": "删除多余的副本？",
+  "dataQuality_deleteDuplicate_body": "两条记录来自同一台潜水电脑。包含较少潜水数据的副本将被删除。之后可以撤销此操作。",
+  "dataQuality_deleteDuplicate_keep": "保留：{dive}",
+  "dataQuality_deleteDuplicate_delete": "删除：{dive}",
   "dataQuality_repairLabel_combine": "合并为一次潜水",
   "dataQuality_repairLabel_despike": "移除尖峰",
   "dataQuality_repairLabel_clampNegative": "将水面以上深度归零",
@@ -8432,6 +8595,14 @@
   "enum_siteField_lastDived": "最近潜水",
   "enum_siteField_lastDived_short": "最近",
   "enum_siteField_maxDepthReached": "你的最大深度",
+  "enum_siteField_firstDived": "首次潜水",
+  "enum_siteField_firstDived_short": "首次",
+  "enum_siteField_averageDepthReached": "平均深度",
+  "enum_siteField_averageDepthReached_short": "平均",
+  "enum_siteField_longestDive": "最长潜水",
+  "enum_siteField_longestDive_short": "最长",
+  "enum_siteField_averageDuration": "平均时长",
+  "enum_siteField_averageDuration_short": "平均时长",
   "enum_siteField_maxDepthReached_short": "你的最大",
   "enum_buddyField_buddyName": "姓名",
   "enum_buddyField_email": "电子邮件",
@@ -8475,6 +8646,8 @@
   "enum_tripField_maxDepth_short": "最深",
   "enum_tripField_avgDepth_short": "均深",
   "enum_tripField_notes_short": "备注",
+  "enum_equipmentField_components": "组件",
+  "enum_equipmentField_components_short": "部件",
   "enum_equipmentField_itemName": "名称",
   "enum_equipmentField_fullName": "全称",
   "enum_equipmentField_type": "类型",
@@ -10980,5 +11153,25 @@
   "backup_unrecognized_deleteFailed": "无法删除所选文件。",
   "backup_unrecognized_freed": "已释放 {size}",
   "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 个文件不在您的备份历史记录中} other{{count} 个文件不在您的备份历史记录中}}",
-  "settings_storageUsage_unrecognized_action": "查看"
+  "settings_storageUsage_unrecognized_action": "查看",
+  "enum_equipmentTypeOrder_none": "不按类型排序",
+  "enum_equipmentTypeOrder_alphabetical": "按字母顺序",
+  "enum_equipmentTypeOrder_headToToe": "从头到脚",
+  "enum_equipmentTypeOrder_dressingOrder": "穿戴顺序",
+  "enum_equipmentTypeOrder_canonical": "按功能",
+  "enum_equipmentItemSortField_name": "名称",
+  "enum_equipmentItemSortField_purchaseDate": "购买日期",
+  "enum_equipmentItemSortField_dateAdded": "添加日期",
+  "enum_equipmentItemSortField_lastServiceDate": "上次保养",
+  "equipment_arrange_title": "整理装备",
+  "equipment_arrange_groupByType": "按类型分组",
+  "equipment_arrange_groupByTypeSubtitle": "为每类装备显示标题",
+  "equipment_arrange_typeOrderLabel": "类型排序方式",
+  "equipment_arrange_itemOrderLabel": "然后按",
+  "equipment_arrange_itemOrderLabelFlat": "排序方式",
+  "equipment_arrange_tooltip": "整理装备",
+  "equipment_arrange_reset": "恢复默认",
+  "equipment_arrange_saveFailed": "无法保存排列方式",
+  "settings_appearance_gearArrangement": "装备排列",
+  "settings_appearance_gearArrangementSubtitle": "潜水记录中装备的分组和排序方式"
 }

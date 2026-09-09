@@ -116,7 +116,9 @@ void main() {
       // Dive 3: not linked to this equipment at all.
       await insertDive('d3', 999, null);
 
-      final samples = await equipmentRepo.getUsageSamplesForEquipment(tank.id);
+      final samples = await equipmentRepo.getExposureSamplesForEquipment(
+        tank.id,
+      );
       expect(samples, hasLength(2));
       expect(samples.map((s) => s.durationSeconds).toSet(), {3600, 1800});
     },
@@ -170,9 +172,9 @@ void main() {
           );
     }
 
-    final all = await equipmentRepo.getUsageSamplesForEquipment(tank.id);
+    final all = await equipmentRepo.getExposureSamplesForEquipment(tank.id);
     expect(all, hasLength(2));
-    final recent = await equipmentRepo.getUsageSamplesForEquipment(
+    final recent = await equipmentRepo.getExposureSamplesForEquipment(
       tank.id,
       since: DateTime(2025, 1, 1),
     );

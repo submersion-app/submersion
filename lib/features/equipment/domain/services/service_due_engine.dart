@@ -1,7 +1,9 @@
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 
 /// Evaluates an equipment item's service clocks. Pure: no database, no
 /// DateTime.now() -- callers supply `now` so results are testable and
@@ -13,7 +15,8 @@ class ServiceDueEngine {
     required List<ServiceSchedule> schedules,
     required Map<String, ServiceKind> kindsById,
     required List<ServiceRecord> records,
-    required List<DiveUsageSample> usage,
+    required List<EquipmentExposureSample> usage,
+    ExposureClassifier classifier = const ExposureClassifier(),
     DateTime? purchaseDate,
     required DateTime equipmentCreatedAt,
     required int dueSoonWindowDays,
@@ -26,14 +29,12 @@ class ServiceDueEngine {
       final kind = kindsById[schedule.serviceKindId];
       if (kind == null) continue;
 
-      final intervalDays = schedule.intervalDays ?? kind.defaultIntervalDays;
-      final intervalDives = schedule.intervalDives ?? kind.defaultIntervalDives;
-      final intervalHours = schedule.intervalHours ?? kind.defaultIntervalHours;
-      if (intervalDays == null &&
-          intervalDives == null &&
-          intervalHours == null) {
-        continue; // no triggers configured
-      }
+      final intervals = <ExposureUnit, double>{
+        for (final unit in ExposureUnit.values)
+          if (schedule.intervalFor(unit, kind) case final v? when v > 0)
+            unit: v,
+      };
+      if (intervals.isEmpty) continue; // no triggers configured
 
       final anchor = _anchorFor(
         schedule: schedule,
@@ -42,25 +43,23 @@ class ServiceDueEngine {
         equipmentCreatedAt: equipmentCreatedAt,
       );
 
+      final intervalDays = intervals[ExposureUnit.days];
       final dueDate = intervalDays != null
-          ? anchor.add(Duration(days: intervalDays))
+          ? anchor.add(Duration(days: intervalDays.round()))
           : null;
 
       final usageSince = usage.where((u) => u.date.isAfter(anchor)).toList();
-      int? divesSince;
-      int? divesRemaining;
-      if (intervalDives != null) {
-        divesSince = usageSince.length;
-        divesRemaining = intervalDives - divesSince;
-      }
-      double? hoursSince;
-      double? hoursRemaining;
-      if (intervalHours != null) {
-        hoursSince =
-            usageSince.fold<int>(0, (sum, u) => sum + u.durationSeconds) /
-            3600.0;
-        hoursRemaining = intervalHours - hoursSince;
-      }
+      final usageByUnit = <ExposureUnit, ClockUsage>{
+        for (final entry in intervals.entries)
+          if (entry.key != ExposureUnit.days)
+            entry.key: ClockUsage(
+              interval: entry.value,
+              since: usageSince.fold<double>(
+                0,
+                (sum, u) => sum + classifier.contribution(u, entry.key),
+              ),
+            ),
+      };
 
       statuses.add(
         ServiceClockStatus(
@@ -68,16 +67,10 @@ class ServiceDueEngine {
           kind: kind,
           anchor: anchor,
           dueDate: dueDate,
-          divesSinceAnchor: divesSince,
-          divesRemaining: divesRemaining,
-          hoursSinceAnchor: hoursSince,
-          hoursRemaining: hoursRemaining,
+          usageByUnit: usageByUnit,
           severity: _severity(
             dueDate: dueDate,
-            divesRemaining: divesRemaining,
-            intervalDives: intervalDives,
-            hoursRemaining: hoursRemaining,
-            intervalHours: intervalHours,
+            usageByUnit: usageByUnit,
             dueSoonWindowDays: dueSoonWindowDays,
             now: now,
           ),
@@ -117,34 +110,31 @@ class ServiceDueEngine {
 
   ServiceClockSeverity _severity({
     required DateTime? dueDate,
-    required int? divesRemaining,
-    required int? intervalDives,
-    required double? hoursRemaining,
-    required double? intervalHours,
+    required Map<ExposureUnit, ClockUsage> usageByUnit,
     required int dueSoonWindowDays,
     required DateTime now,
   }) {
     // Date trigger becomes overdue strictly after the due date, matching the
     // legacy single-clock EquipmentItem.isServiceDue (now.isAfter(dueDate)).
     // At exactly the due instant the clock reads dueSoon, not overdue.
-    if ((dueDate != null && now.isAfter(dueDate)) ||
-        (divesRemaining != null && divesRemaining <= 0) ||
-        (hoursRemaining != null && hoursRemaining <= 0)) {
+    if (dueDate != null && now.isAfter(dueDate)) {
       return ServiceClockSeverity.overdue;
+    }
+    for (final u in usageByUnit.values) {
+      if (u.remaining <= 0) return ServiceClockSeverity.overdue;
     }
     if (dueDate != null &&
         dueDate.difference(now).inDays <= dueSoonWindowDays) {
       return ServiceClockSeverity.dueSoon;
     }
-    if (divesRemaining != null &&
-        intervalDives != null &&
-        divesRemaining <= (intervalDives * 0.1).ceil()) {
-      return ServiceClockSeverity.dueSoon;
-    }
-    if (hoursRemaining != null &&
-        intervalHours != null &&
-        hoursRemaining <= intervalHours * 0.1) {
-      return ServiceClockSeverity.dueSoon;
+    for (final entry in usageByUnit.entries) {
+      final u = entry.value;
+      // Counts round the 10 percent band up (the v122 dives rule); hours
+      // and other fractional units compare directly.
+      final band = entry.key.isFractional
+          ? u.interval * 0.1
+          : (u.interval * 0.1).ceilToDouble();
+      if (u.remaining <= band) return ServiceClockSeverity.dueSoon;
     }
     return ServiceClockSeverity.ok;
   }
