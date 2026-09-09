@@ -42,8 +42,11 @@ class EquipmentComponentRepository {
   static const changeTickDebounce = Duration(milliseconds: 300);
   static const entityType = 'equipmentComponents';
 
-  /// Emits on any change to the template or to the items it points at, so a
-  /// renamed part refreshes a hydrated read such as the Components card.
+  /// Emits on any write to the template or to the whole `equipment` table.
+  /// A Drift table stream cannot be scoped to particular rows, so a hydrated
+  /// read such as the Components card also refreshes on an unrelated gear
+  /// edit; that read is one parent's parts, so the cost is small. Providers
+  /// that hold only ids use [watchComponentEdgeChanges] instead.
   Stream<void> watchComponentChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
