@@ -12,6 +12,7 @@ Widget _host({
   required ValueChanged<DiveCustomField> onChanged,
 }) {
   return MaterialApp(
+    locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(

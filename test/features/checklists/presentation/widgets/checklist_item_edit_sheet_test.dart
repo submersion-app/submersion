@@ -21,6 +21,9 @@ Future<void> _openSheet(
 }) async {
   await tester.pumpWidget(
     testApp(
+      // Every finder below matches a localized label, so the UI language has
+      // to be deterministic rather than the host machine's.
+      locale: const Locale('en'),
       child: Builder(
         builder: (context) => TextButton(
           onPressed: () => showChecklistItemEditSheet(
