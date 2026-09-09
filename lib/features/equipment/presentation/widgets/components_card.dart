@@ -109,9 +109,10 @@ class ComponentsCard extends ConsumerWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   buildDefaultDragHandles: false,
-                  onReorder: (oldIndex, newIndex) {
+                  // onReorderItem already adjusts newIndex for the removed
+                  // row, unlike the deprecated onReorder.
+                  onReorderItem: (oldIndex, newIndex) {
                     final ids = parts.map((p) => p.id).toList();
-                    if (newIndex > oldIndex) newIndex -= 1;
                     final moved = ids.removeAt(oldIndex);
                     ids.insert(newIndex, moved);
                     repository.reorder(equipmentId, ids);
