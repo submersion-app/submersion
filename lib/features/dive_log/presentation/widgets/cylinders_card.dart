@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -190,7 +191,7 @@ class CylindersCard extends ConsumerWidget {
         : '--';
     final modMndText = context.l10n.diveLog_tank_modMndInfo(
       modDepth,
-      workingPpO2.toStringAsFixed(1),
+      formatFixedForDisplay(workingPpO2, 1),
       mndDepth,
     );
 
