@@ -156,7 +156,7 @@ class CylindersCard extends ConsumerWidget {
               '${units.volumeSymbol}'
         : '';
     final used = pressureUsed != null && pressureUsed > 0
-        ? ' (${units.formatPressure(pressureUsed)}$volumeUsed used)'
+        ? ' ${context.l10n.diveLog_tank_gasUsed('${units.formatPressure(pressureUsed)}$volumeUsed')}'
         : '';
 
     // Preset display name, falling back to formatted volume.
@@ -176,7 +176,11 @@ class CylindersCard extends ConsumerWidget {
         ? tank.name!
         : context.l10n.diveLog_tank_title(index + 1);
 
-    final modDepth = units.formatDepth(tank.gasMix.mod(), decimals: 0);
+    final workingPpO2 = settings.ppO2MaxWorking;
+    final modDepth = units.formatDepth(
+      tank.gasMix.mod(ppO2: workingPpO2),
+      decimals: 0,
+    );
     final mndValue = tank.gasMix.mnd(
       endLimit: settings.endLimit,
       o2Narcotic: settings.o2Narcotic,
@@ -184,7 +188,11 @@ class CylindersCard extends ConsumerWidget {
     final mndDepth = mndValue.isFinite
         ? units.formatDepth(mndValue, decimals: 0)
         : '--';
-    final modMndText = context.l10n.diveLog_tank_modMndInfo(modDepth, mndDepth);
+    final modMndText = context.l10n.diveLog_tank_modMndInfo(
+      modDepth,
+      workingPpO2.toStringAsFixed(1),
+      mndDepth,
+    );
 
     return ListTile(
       contentPadding: EdgeInsets.zero,

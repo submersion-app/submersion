@@ -791,7 +791,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     UnitFormatter units,
     AppSettings settings,
   ) {
-    final modDepth = units.formatDepth(gasMix.mod(), decimals: 0);
+    final workingPpO2 = settings.ppO2MaxWorking;
+    final modDepth = units.formatDepth(
+      gasMix.mod(ppO2: workingPpO2),
+      decimals: 0,
+    );
     final mndValue = gasMix.mnd(
       endLimit: settings.endLimit,
       o2Narcotic: settings.o2Narcotic,
@@ -818,7 +822,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                   'Maximum operating depth: $modDepth. '
                   'Maximum narcotic depth: $mndDepth',
               child: Text(
-                context.l10n.diveLog_tank_modMndInfo(modDepth, mndDepth),
+                context.l10n.diveLog_tank_modMndInfo(
+                  modDepth,
+                  workingPpO2.toStringAsFixed(1),
+                  mndDepth,
+                ),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.tertiary,
                 ),

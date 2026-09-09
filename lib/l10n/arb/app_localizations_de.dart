@@ -7639,13 +7639,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'Auf automatische He%-Berechnung setzen';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1,4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount verbraucht)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1,4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override

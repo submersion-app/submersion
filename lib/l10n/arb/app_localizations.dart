@@ -12743,17 +12743,23 @@ abstract class AppLocalizations {
   /// **'Set to auto-calculate He%'**
   String get diveLog_tank_mndHelper;
 
+  /// Trailing note on the tank pressure line: how much gas the dive consumed, e.g. "(160 bar / 1920 L used)"
+  ///
+  /// In en, this message translates to:
+  /// **'({amount} used)'**
+  String diveLog_tank_gasUsed(String amount);
+
   /// No description provided for @diveLog_tank_modInfo.
   ///
   /// In en, this message translates to:
-  /// **'MOD: {depth} (ppO2 1.4)'**
-  String diveLog_tank_modInfo(Object depth);
+  /// **'MOD: {depth} (ppO₂ {ppO2})'**
+  String diveLog_tank_modInfo(Object depth, String ppO2);
 
   /// No description provided for @diveLog_tank_modMndInfo.
   ///
   /// In en, this message translates to:
-  /// **'MOD: {mod} (ppO₂ 1.4) | MND: {mnd}'**
-  String diveLog_tank_modMndInfo(Object mod, Object mnd);
+  /// **'MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}'**
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd);
 
   /// No description provided for @diveLog_tank_section_gasMix.
   ///

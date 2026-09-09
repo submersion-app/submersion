@@ -7681,13 +7681,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Regler pour calculer automatiquement He%';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'PMU : $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount utilisés)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'PMU : $mod (ppO₂ 1.4) | PNM : $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'PMU : $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'PMU : $mod (ppO₂ $ppO2) | PNM : $mnd';
   }
 
   @override
