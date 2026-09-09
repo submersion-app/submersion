@@ -757,22 +757,16 @@ class _StartupWrapperState extends State<StartupWrapper>
     // Scanned-page folder migration (issue #1645), every launch. The common
     // case is one directory stat that finds nothing; on an install that
     // still has `<documents>/scanned_logs/` it moves the pages under
-    // `Submersion` and relinks their rows. Same fire-and-forget shape as the
-    // media sweep above: a scan or a read must never wait on, or fail with,
-    // this housekeeping, and the report is the only diagnostic.
+    // `Submersion` and relinks their rows. Fire-and-forget like the media
+    // sweep above, but with no try/catch: run() folds every failure into
+    // its report by contract, so the report is the only diagnostic.
     unawaited(() async {
-      try {
-        final report = await ScannedLogsMigration(
-          relocateRows: (from, to) =>
-              mediaRepository.relocateLocalFile(from: from, to: to),
-        ).run();
-        if (report.outcome != ScannedLogsMigrationOutcome.noLegacyData) {
-          debugPrint('Scanned logs migration: $report');
-        }
-      } catch (e, stackTrace) {
-        debugPrint(
-          'Scanned logs migration failed (will retry): $e\n$stackTrace',
-        );
+      final report = await ScannedLogsMigration(
+        relocateRows: (from, to) =>
+            mediaRepository.relocateLocalFile(from: from, to: to),
+      ).run();
+      if (report.outcome != ScannedLogsMigrationOutcome.noLegacyData) {
+        debugPrint('Scanned logs migration: $report');
       }
     }());
 
