@@ -1,0 +1,58 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/storage/storage_category.dart';
+import 'package:submersion/core/utils/byte_format.dart';
+import 'package:submersion/features/backup/presentation/providers/unrecognized_backup_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/storage_usage_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Points at backup files the history has lost track of, from the backups
+/// group of the Storage usage page.
+///
+/// Renders nothing at all unless the scan came back with something. A row that
+/// said "0 forgotten files" would be noise on every launch for every user whose
+/// backups are in order, which is nearly all of them, and the states that are
+/// not a clean folder (still scanning, failed, or a location this device cannot
+/// list) have no honest one-line summary here. The page behind the button says
+/// which of those happened.
+class UnrecognizedBackupsNotice extends ConsumerWidget {
+  const UnrecognizedBackupsNotice({super.key});
+
+  /// Where [_review] navigates. Pinned against the route tree by a test in
+  /// `app_router_test.dart`, since go_router resolves an absolute location at
+  /// push time and a rename on either side is a runtime failure otherwise.
+  static const routeLocation = '/settings/storage-usage/unrecognized-backups';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entries = ref.watch(unrecognizedBackupsProvider).valueOrNull;
+    if (entries == null || entries.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final bytes = entries.fold(0, (sum, entry) => sum + entry.sizeBytes);
+
+    return ListTile(
+      leading: Icon(Icons.help_outline, color: theme.colorScheme.primary),
+      title: Text(
+        context.l10n.settings_storageUsage_unrecognized_title(entries.length),
+      ),
+      subtitle: Text(formatBytes(bytes)),
+      trailing: TextButton(
+        onPressed: () => _review(context, ref),
+        child: Text(context.l10n.settings_storageUsage_unrecognized_action),
+      ),
+      onTap: () => _review(context, ref),
+    );
+  }
+
+  /// Re-measures on the way back rather than having the sub-page reach into
+  /// this feature's providers: a reclaim changes what the backups row should
+  /// say, and this side of the navigation is where that row lives.
+  Future<void> _review(BuildContext context, WidgetRef ref) async {
+    await context.push(routeLocation);
+    ref.invalidate(unrecognizedBackupsProvider);
+    ref.invalidate(storageCategorySizeProvider(StorageCategoryId.backups));
+  }
+}

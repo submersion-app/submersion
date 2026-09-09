@@ -36700,4 +36700,82 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (auto)';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title => 'Unrecognized Backups';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'These files are in your backups folder but not in this device\'s backup history. Only a file this device wrote can be deleted here: anything else may be another device\'s only copy.';
+
+  @override
+  String get backup_unrecognized_empty => 'No unrecognized backup files.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'Could not read the backups folder.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'This device cannot list the backup folder you chose, so unrecognized files cannot be found.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Another device';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'Unknown device';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete $count files ($size)',
+      one: 'Delete 1 file ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title => 'Delete these backup files?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count backup files will be permanently deleted. This cannot be undone.',
+      one: '1 backup file will be permanently deleted. This cannot be undone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Could not delete the selected files.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return 'Freed $size';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files not in your backup history',
+      one: '1 file not in your backup history',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Review';
 }

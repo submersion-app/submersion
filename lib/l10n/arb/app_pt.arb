@@ -10890,5 +10890,20 @@
   "startup_versionMismatch_restore_warning": "Tudo o que registaste depois da atualização existe apenas no ficheiro mais recente. Esse ficheiro fica guardado como cópia fixada, por isso instalar de novo a versão mais recente recupera-o.",
   "backup_history_preDowngradeSubtitle": "Base de dados mais recente, guardada ao recuar - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 mergulho} other{{diveCount} mergulhos}}, {siteCount, plural, =1{1 local} other{{siteCount} locais}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 mergulho} other{{diveCount} mergulhos}}, {siteCount, plural, =1{1 local} other{{siteCount} locais}} - {size} (automático)"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 mergulho} other{{diveCount} mergulhos}}, {siteCount, plural, =1{1 local} other{{siteCount} locais}} - {size} (automático)",
+  "backup_unrecognized_appBar_title": "Cópias de segurança não reconhecidas",
+  "backup_unrecognized_explanation": "Estes ficheiros estão na sua pasta de cópias de segurança mas não no histórico deste dispositivo. Só pode ser excluído aqui um ficheiro escrito por este dispositivo: qualquer outro pode ser a única cópia de outro dispositivo.",
+  "backup_unrecognized_empty": "Não há ficheiros de cópia de segurança não reconhecidos.",
+  "backup_unrecognized_loadFailed": "Não foi possível ler a pasta de cópias de segurança.",
+  "backup_unrecognized_unavailable": "Este dispositivo não consegue listar a pasta de cópias de segurança que escolheu, por isso não é possível encontrar ficheiros não reconhecidos.",
+  "backup_unrecognized_ownership_otherDevice": "Outro dispositivo",
+  "backup_unrecognized_ownership_unattributed": "Dispositivo desconhecido",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{Excluir 1 ficheiro ({size})} other{Excluir {count} ficheiros ({size})}}",
+  "backup_unrecognized_confirm_title": "Excluir estes ficheiros de cópia de segurança?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{1 ficheiro de cópia de segurança será excluído permanentemente. Não é possível anular.} other{{count} ficheiros de cópia de segurança serão excluídos permanentemente. Não é possível anular.}}",
+  "backup_unrecognized_deleteFailed": "Não foi possível excluir os ficheiros selecionados.",
+  "backup_unrecognized_freed": "{size} libertados",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 ficheiro que não está no seu histórico de cópias de segurança} other{{count} ficheiros que não estão no seu histórico de cópias de segurança}}",
+  "settings_storageUsage_unrecognized_action": "Rever"
 }

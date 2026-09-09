@@ -432,6 +432,46 @@ security-scoped bookmark lease (`resolveBackupsDirectoryLeased`, `:1166`).
 
 Backup retention counts are out of scope here; they belong to issue #1376.
 
+#### What shipped, and where it deviates
+
+Slice D landed in two parts. Part 1 (PR #1415) put the attribution in the
+filename, since an orphan is by definition a file whose record is gone and a
+device id stored in the record is the information already missing. Part 2 is
+`OrphanedBackupScan` plus `UnrecognizedBackupService`, the page, and the notice.
+
+Three decisions differ from the sketch above, all made while building it:
+
+- **The prune action is a page, not a control on the Storage usage page.** The
+  sketch put it inline. A delete button beside a size row is one tap away from
+  destroying what may be a diver's only logbook copy, and the row has no space
+  to say why two of the three files listed cannot be removed at all. The notice
+  under the backups group states the count and the bytes; the page behind it
+  carries the explanation, the per-file ownership, and the confirmation.
+- **`find()` returns null, not an empty list, when the folder cannot be
+  enumerated.** This is the same distinction `StorageCategory.measure` draws in
+  slice A, for the same reason: an Android SAF location has no `Directory`
+  behind it, and an empty list would tell that user their backup folder holds
+  nothing forgotten when it was never read.
+- **The lease wraps `reclaim` as well as `find`.** `BackupsDirectoryAccess`
+  holds `resolveBackupsDirectoryLeased` open across the whole operation and
+  releases in a `finally`. Deleting outside the lease would fail on exactly the
+  Apple custom-location configuration the lease exists for, and a mid-delete
+  throw would otherwise leak a scoped resource for the life of the process.
+
+`BackupsDirectoryAccess` also declines to inherit one behaviour of
+`resolveBackupsDirectoryLeased`: that resolver substitutes the sandbox default
+for a `content://` location because its callers need somewhere writable
+(issue #505). A scan that inherited the substitution would list the sandbox
+directory's files under a heading describing the user's Dropbox folder, and
+offer them for deletion.
+
+Pre-migration safety copies are excluded by the scan's `submersion_backup_`
+prefix gate: `LiveDatabaseCopier` names them `<timestamp>-v<from>-v<to>.db`.
+That gate is load-bearing rather than incidental, because the pre-migration
+writer logs "registration failed; .db is on disk" on its own error path, so an
+unrecorded safety copy is a state the app produces deliberately. A regression
+test pins it.
+
 ### Slice E: tombstone GC for local-only libraries
 
 Reach `clearAcknowledgedDeletions` when sync is not configured, using the

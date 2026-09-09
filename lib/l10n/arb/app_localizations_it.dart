@@ -37269,4 +37269,87 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (auto)';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title => 'Backup non riconosciuti';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Qui può essere eliminato solo un file scritto da questo dispositivo: qualsiasi altro potrebbe essere l\'unica copia di un altro dispositivo.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Nessun file di backup non riconosciuto.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'Impossibile leggere la cartella dei backup.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Questo dispositivo non può elencare la cartella dei backup che hai scelto, quindi i file non riconosciuti non possono essere trovati.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice =>
+      'Un altro dispositivo';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed =>
+      'Dispositivo sconosciuto';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Elimina $count file ($size)',
+      one: 'Elimina 1 file ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Eliminare questi file di backup?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count file di backup saranno eliminati definitivamente. L\'operazione non può essere annullata.',
+      one:
+          '1 file di backup sarà eliminato definitivamente. L\'operazione non può essere annullata.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Impossibile eliminare i file selezionati.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return 'Liberati $size';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count file non presenti nella cronologia dei backup',
+      one: '1 file non presente nella cronologia dei backup',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Esamina';
 }

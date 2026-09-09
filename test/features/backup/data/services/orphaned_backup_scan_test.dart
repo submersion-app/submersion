@@ -25,11 +25,16 @@ void main() {
     int bytes = 100,
     String extension = '.db',
   }) async {
-    final name = buildBackupFilename(
+    // buildBackupFilename always yields `.db`; BackupService names the
+    // encrypted artifact by swapping the extension on the same stem, so the
+    // fixture does the same rather than asking the generator for it.
+    final plaintext = buildBackupFilename(
       timestamp: timestamp,
       deviceId: deviceId,
-      extension: extension,
     );
+    final name = extension == '.db'
+        ? plaintext
+        : '${p.basenameWithoutExtension(plaintext)}$extension';
     final file = File(p.join(backups.path, name));
     await file.writeAsBytes(List<int>.filled(bytes, 0));
     return file.path;

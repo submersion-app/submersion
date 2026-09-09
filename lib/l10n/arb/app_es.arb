@@ -10890,5 +10890,20 @@
   "startup_versionMismatch_restore_warning": "Todo lo que registraste después de la actualización solo existe en el archivo más reciente. Ese archivo se conserva como copia fijada, así que volver a instalar la versión más reciente lo recupera.",
   "backup_history_preDowngradeSubtitle": "Base de datos más reciente, conservada al volver atrás - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 inmersión} other{{diveCount} inmersiones}}, {siteCount, plural, =1{1 punto de buceo} other{{siteCount} puntos de buceo}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 inmersión} other{{diveCount} inmersiones}}, {siteCount, plural, =1{1 punto de buceo} other{{siteCount} puntos de buceo}} - {size} (automática)"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 inmersión} other{{diveCount} inmersiones}}, {siteCount, plural, =1{1 punto de buceo} other{{siteCount} puntos de buceo}} - {size} (automática)",
+  "backup_unrecognized_appBar_title": "Copias de seguridad no reconocidas",
+  "backup_unrecognized_explanation": "Estos archivos están en tu carpeta de copias de seguridad pero no en el historial de este dispositivo. Aquí solo se puede eliminar un archivo escrito por este dispositivo: cualquier otro podría ser la única copia de otro dispositivo.",
+  "backup_unrecognized_empty": "No hay archivos de copia de seguridad no reconocidos.",
+  "backup_unrecognized_loadFailed": "No se pudo leer la carpeta de copias de seguridad.",
+  "backup_unrecognized_unavailable": "Este dispositivo no puede enumerar la carpeta de copias de seguridad que elegiste, así que no se pueden encontrar archivos no reconocidos.",
+  "backup_unrecognized_ownership_otherDevice": "Otro dispositivo",
+  "backup_unrecognized_ownership_unattributed": "Dispositivo desconocido",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{Eliminar 1 archivo ({size})} other{Eliminar {count} archivos ({size})}}",
+  "backup_unrecognized_confirm_title": "¿Eliminar estos archivos de copia de seguridad?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{Se eliminará permanentemente 1 archivo de copia de seguridad. Esta acción no se puede deshacer.} other{Se eliminarán permanentemente {count} archivos de copia de seguridad. Esta acción no se puede deshacer.}}",
+  "backup_unrecognized_deleteFailed": "No se pudieron eliminar los archivos seleccionados.",
+  "backup_unrecognized_freed": "Se liberaron {size}",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 archivo que no está en tu historial de copias de seguridad} other{{count} archivos que no están en tu historial de copias de seguridad}}",
+  "settings_storageUsage_unrecognized_action": "Revisar"
 }

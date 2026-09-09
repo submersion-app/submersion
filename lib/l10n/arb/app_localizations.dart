@@ -61115,6 +61115,96 @@ abstract class AppLocalizations {
     int siteCount,
     String size,
   );
+
+  /// No description provided for @backup_unrecognized_appBar_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Unrecognized Backups'**
+  String get backup_unrecognized_appBar_title;
+
+  /// No description provided for @backup_unrecognized_explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'These files are in your backups folder but not in this device\'s backup history. Only a file this device wrote can be deleted here: anything else may be another device\'s only copy.'**
+  String get backup_unrecognized_explanation;
+
+  /// No description provided for @backup_unrecognized_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No unrecognized backup files.'**
+  String get backup_unrecognized_empty;
+
+  /// No description provided for @backup_unrecognized_loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the backups folder.'**
+  String get backup_unrecognized_loadFailed;
+
+  /// No description provided for @backup_unrecognized_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot list the backup folder you chose, so unrecognized files cannot be found.'**
+  String get backup_unrecognized_unavailable;
+
+  /// No description provided for @backup_unrecognized_ownership_otherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device'**
+  String get backup_unrecognized_ownership_otherDevice;
+
+  /// No description provided for @backup_unrecognized_ownership_unattributed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown device'**
+  String get backup_unrecognized_ownership_unattributed;
+
+  /// No description provided for @backup_unrecognized_fileDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} • {date}'**
+  String backup_unrecognized_fileDetail(String size, String date);
+
+  /// No description provided for @backup_unrecognized_deleteSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete 1 file ({size})} other{Delete {count} files ({size})}}'**
+  String backup_unrecognized_deleteSelected(int count, String size);
+
+  /// No description provided for @backup_unrecognized_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete these backup files?'**
+  String get backup_unrecognized_confirm_title;
+
+  /// No description provided for @backup_unrecognized_confirm_message.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 backup file will be permanently deleted. This cannot be undone.} other{{count} backup files will be permanently deleted. This cannot be undone.}}'**
+  String backup_unrecognized_confirm_message(int count);
+
+  /// No description provided for @backup_unrecognized_deleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the selected files.'**
+  String get backup_unrecognized_deleteFailed;
+
+  /// No description provided for @backup_unrecognized_freed.
+  ///
+  /// In en, this message translates to:
+  /// **'Freed {size}'**
+  String backup_unrecognized_freed(String size);
+
+  /// No description provided for @settings_storageUsage_unrecognized_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file not in your backup history} other{{count} files not in your backup history}}'**
+  String settings_storageUsage_unrecognized_title(int count);
+
+  /// No description provided for @settings_storageUsage_unrecognized_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get settings_storageUsage_unrecognized_action;
 }
 
 class _AppLocalizationsDelegate

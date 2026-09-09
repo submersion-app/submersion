@@ -37116,4 +37116,86 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automatikus)';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title =>
+      'Ismeretlen biztonsági mentések';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Ezek a fájlok a biztonsági mentések mappájában vannak, de nem szerepelnek ennek az eszköznek a mentési előzményeiben. Itt csak olyan fájl törölhető, amelyet ez az eszköz írt: bármi más lehet egy másik eszköz egyetlen másolata.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Nincs ismeretlen biztonsági mentési fájl.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'A biztonsági mentések mappája nem olvasható.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Ez az eszköz nem tudja kilistázni a kiválasztott mentési mappát, ezért az ismeretlen fájlok nem találhatók meg.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Másik eszköz';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'Ismeretlen eszköz';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl törlése ($size)',
+      one: '1 fájl törlése ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Törli ezeket a biztonsági mentési fájlokat?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count biztonsági mentési fájl véglegesen törlődik. A művelet nem vonható vissza.',
+      one:
+          '1 biztonsági mentési fájl véglegesen törlődik. A művelet nem vonható vissza.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'A kiválasztott fájlok törlése nem sikerült.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size felszabadítva';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl hiányzik a mentési előzményekből',
+      one: '1 fájl hiányzik a mentési előzményekből',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Áttekintés';
 }

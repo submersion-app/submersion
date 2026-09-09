@@ -35085,4 +35085,79 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size（自动）';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title => '无法识别的备份';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      '这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此处只能删除本设备写入的文件：其他文件可能是另一台设备的唯一副本。';
+
+  @override
+  String get backup_unrecognized_empty => '没有无法识别的备份文件。';
+
+  @override
+  String get backup_unrecognized_loadFailed => '无法读取备份文件夹。';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      '本设备无法列出您选择的备份文件夹，因此找不到无法识别的文件。';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => '其他设备';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => '未知设备';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '删除 $count 个文件（$size）',
+      one: '删除 1 个文件（$size）',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title => '删除这些备份文件？';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将永久删除 $count 个备份文件。此操作无法撤销。',
+      one: '将永久删除 1 个备份文件。此操作无法撤销。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed => '无法删除所选文件。';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '已释放 $size';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件不在您的备份历史记录中',
+      one: '1 个文件不在您的备份历史记录中',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => '查看';
 }

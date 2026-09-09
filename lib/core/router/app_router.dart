@@ -115,6 +115,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
+import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
@@ -1033,6 +1034,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'storage-usage',
                 name: 'storageUsage',
                 builder: (context, state) => const StorageUsagePage(),
+                routes: [
+                  GoRoute(
+                    path: 'unrecognized-backups',
+                    name: 'unrecognizedBackups',
+                    builder: (context, state) =>
+                        const UnrecognizedBackupsPage(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'data-quality',

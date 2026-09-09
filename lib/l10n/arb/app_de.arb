@@ -10890,5 +10890,20 @@
   "startup_versionMismatch_restore_warning": "Alles, was du nach dem Upgrade eingetragen hast, liegt nur in der neueren Datei. Diese Datei wird als angeheftete Sicherung behalten; installiere die neuere Version erneut, um sie zurückzuholen.",
   "backup_history_preDowngradeSubtitle": "Neuere Datenbank, beim Zurückwechseln behalten - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size} (automatisch)"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size} (automatisch)",
+  "backup_unrecognized_appBar_title": "Nicht erkannte Sicherungen",
+  "backup_unrecognized_explanation": "Diese Dateien liegen in Ihrem Sicherungsordner, stehen aber nicht im Sicherungsverlauf dieses Geräts. Hier kann nur eine von diesem Gerät geschriebene Datei gelöscht werden: alles andere könnte die einzige Kopie eines anderen Geräts sein.",
+  "backup_unrecognized_empty": "Keine nicht erkannten Sicherungsdateien.",
+  "backup_unrecognized_loadFailed": "Der Sicherungsordner konnte nicht gelesen werden.",
+  "backup_unrecognized_unavailable": "Dieses Gerät kann den gewählten Sicherungsordner nicht auflisten, daher können nicht erkannte Dateien nicht gefunden werden.",
+  "backup_unrecognized_ownership_otherDevice": "Anderes Gerät",
+  "backup_unrecognized_ownership_unattributed": "Unbekanntes Gerät",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{1 Datei löschen ({size})} other{{count} Dateien löschen ({size})}}",
+  "backup_unrecognized_confirm_title": "Diese Sicherungsdateien löschen?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{1 Sicherungsdatei wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.} other{{count} Sicherungsdateien werden endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.}}",
+  "backup_unrecognized_deleteFailed": "Die ausgewählten Dateien konnten nicht gelöscht werden.",
+  "backup_unrecognized_freed": "{size} freigegeben",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 Datei fehlt im Sicherungsverlauf} other{{count} Dateien fehlen im Sicherungsverlauf}}",
+  "settings_storageUsage_unrecognized_action": "Prüfen"
 }

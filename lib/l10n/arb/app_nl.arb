@@ -10890,5 +10890,20 @@
   "startup_versionMismatch_restore_warning": "Alles wat je na de upgrade hebt gelogd, bestaat alleen in het nieuwere bestand. Dat bestand wordt bewaard als vastgezette back-up, dus je krijgt het terug door de nieuwere versie opnieuw te installeren.",
   "backup_history_preDowngradeSubtitle": "Nieuwere database, bewaard bij het teruggaan - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size} (automatisch)"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size} (automatisch)",
+  "backup_unrecognized_appBar_title": "Niet-herkende back-ups",
+  "backup_unrecognized_explanation": "Deze bestanden staan in je back-upmap maar niet in de back-upgeschiedenis van dit apparaat. Alleen een bestand dat dit apparaat heeft geschreven kan hier worden verwijderd: al het andere kan de enige kopie van een ander apparaat zijn.",
+  "backup_unrecognized_empty": "Geen niet-herkende back-upbestanden.",
+  "backup_unrecognized_loadFailed": "Kon de back-upmap niet lezen.",
+  "backup_unrecognized_unavailable": "Dit apparaat kan de gekozen back-upmap niet uitlezen, dus niet-herkende bestanden kunnen niet worden gevonden.",
+  "backup_unrecognized_ownership_otherDevice": "Ander apparaat",
+  "backup_unrecognized_ownership_unattributed": "Onbekend apparaat",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{1 bestand verwijderen ({size})} other{{count} bestanden verwijderen ({size})}}",
+  "backup_unrecognized_confirm_title": "Deze back-upbestanden verwijderen?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{1 back-upbestand wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.} other{{count} back-upbestanden worden permanent verwijderd. Dit kan niet ongedaan worden gemaakt.}}",
+  "backup_unrecognized_deleteFailed": "Kon de geselecteerde bestanden niet verwijderen.",
+  "backup_unrecognized_freed": "{size} vrijgemaakt",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 bestand ontbreekt in je back-upgeschiedenis} other{{count} bestanden ontbreken in je back-upgeschiedenis}}",
+  "settings_storageUsage_unrecognized_action": "Bekijken"
 }

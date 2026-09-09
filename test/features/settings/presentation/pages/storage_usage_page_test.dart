@@ -1,9 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/storage/storage_category.dart';
+import 'package:submersion/features/backup/data/services/backup_attribution.dart';
+import 'package:submersion/features/backup/data/services/orphaned_backup_scan.dart';
+import 'package:submersion/features/backup/presentation/providers/unrecognized_backup_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_usage_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -23,11 +28,20 @@ void main() {
   /// once the provider is listening. A `Future.error` built eagerly in a map
   /// literal has no listener yet and the zone reports it as unhandled, failing
   /// the test before the page ever renders it.
-  Widget harness({required Map<String, Future<int?> Function()> sizes}) {
+  Widget harness({
+    required Map<String, Future<int?> Function()> sizes,
+    Future<List<UnrecognizedBackup>?> Function()? unrecognized,
+  }) {
     return ProviderScope(
       overrides: [
         storageCategorySizeProvider.overrideWith(
           (ref, id) => sizes[id]?.call() ?? Future<int?>.value(0),
+        ),
+        // The backups group carries a notice fed by a filesystem scan. Left
+        // live it would reach SharedPreferences and the sync database, so
+        // every test here states what the scan found, defaulting to nothing.
+        unrecognizedBackupsProvider.overrideWith(
+          (ref) => unrecognized?.call() ?? Future.value(const []),
         ),
       ],
       child: const MaterialApp(
@@ -208,5 +222,78 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+  });
+
+  group('unrecognized backups notice', () {
+    UnrecognizedBackup forgotten({int bytes = 1024}) => UnrecognizedBackup(
+      path: '/backups/submersion_backup_2026-09-01_1200__d$bytes.db',
+      sizeBytes: bytes,
+      modified: DateTime(2026, 9, 1),
+      ownership: BackupOwnership.thisDevice,
+    );
+
+    testWidgets('surfaces files the backup history has lost track of', (
+      tester,
+    ) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(
+        harness(
+          sizes: {},
+          unrecognized: () async => [
+            forgotten(bytes: 1024),
+            forgotten(bytes: 3072),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 files not in your backup history'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(UnrecognizedBackupsNotice),
+          matching: find.text('4.0 KB'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('stays out of the way when the scan finds nothing', (
+      tester,
+    ) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(harness(sizes: {}, unrecognized: () async => []));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(UnrecognizedBackupsNotice), findsOneWidget);
+      expect(find.textContaining('not in your backup history'), findsNothing);
+    });
+
+    testWidgets('says nothing while the scan is still running', (tester) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(
+        harness(
+          sizes: {},
+          unrecognized: () => Completer<List<UnrecognizedBackup>?>().future,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.textContaining('not in your backup history'), findsNothing);
+    });
+
+    testWidgets('a failed scan does not claim the folder is clean', (
+      tester,
+    ) async {
+      useTallSurface(tester);
+      await tester.pumpWidget(
+        harness(
+          sizes: {},
+          unrecognized: () async => throw const FileSystemException('denied'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('not in your backup history'), findsNothing);
+    });
   });
 }

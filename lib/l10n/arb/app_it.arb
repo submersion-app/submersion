@@ -10890,5 +10890,20 @@
   "startup_versionMismatch_restore_warning": "Tutto ciò che hai registrato dopo l'aggiornamento esiste solo nel file più recente. Quel file viene conservato come backup bloccato: reinstallando la versione più recente lo recuperi.",
   "backup_history_preDowngradeSubtitle": "Database più recente, conservato tornando indietro - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 immersione} other{{diveCount} immersioni}}, {siteCount, plural, =1{1 sito} other{{siteCount} siti}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 immersione} other{{diveCount} immersioni}}, {siteCount, plural, =1{1 sito} other{{siteCount} siti}} - {size} (auto)"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 immersione} other{{diveCount} immersioni}}, {siteCount, plural, =1{1 sito} other{{siteCount} siti}} - {size} (auto)",
+  "backup_unrecognized_appBar_title": "Backup non riconosciuti",
+  "backup_unrecognized_explanation": "Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Qui può essere eliminato solo un file scritto da questo dispositivo: qualsiasi altro potrebbe essere l'unica copia di un altro dispositivo.",
+  "backup_unrecognized_empty": "Nessun file di backup non riconosciuto.",
+  "backup_unrecognized_loadFailed": "Impossibile leggere la cartella dei backup.",
+  "backup_unrecognized_unavailable": "Questo dispositivo non può elencare la cartella dei backup che hai scelto, quindi i file non riconosciuti non possono essere trovati.",
+  "backup_unrecognized_ownership_otherDevice": "Un altro dispositivo",
+  "backup_unrecognized_ownership_unattributed": "Dispositivo sconosciuto",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{Elimina 1 file ({size})} other{Elimina {count} file ({size})}}",
+  "backup_unrecognized_confirm_title": "Eliminare questi file di backup?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{1 file di backup sarà eliminato definitivamente. L'operazione non può essere annullata.} other{{count} file di backup saranno eliminati definitivamente. L'operazione non può essere annullata.}}",
+  "backup_unrecognized_deleteFailed": "Impossibile eliminare i file selezionati.",
+  "backup_unrecognized_freed": "Liberati {size}",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 file non presente nella cronologia dei backup} other{{count} file non presenti nella cronologia dei backup}}",
+  "settings_storageUsage_unrecognized_action": "Esamina"
 }
