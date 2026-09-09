@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 
 void main() {
   Dive makeDive({
@@ -17,7 +18,7 @@ void main() {
       bottomTime: bottomTime,
       tanks: const [],
       profile: const [],
-      equipment: const [],
+      gear: looseGear(const []),
       notes: '',
       photoIds: const [],
       sightings: const [],

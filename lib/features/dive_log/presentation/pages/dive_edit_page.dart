@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
@@ -5037,7 +5038,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         diveCenter: _selectedDiveCenter,
         courseId: _selectedCourse?.id,
         tanks: _tanks,
-        equipment: _selectedEquipment,
+        gear: looseGear(_selectedEquipment),
         // Conditions fields
         currentDirection: _currentDirection,
         currentStrength: _currentStrength,

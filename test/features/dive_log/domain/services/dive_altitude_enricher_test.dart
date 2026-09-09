@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/weather/data/services/elevation_service.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -32,7 +33,7 @@ void main() {
         altitude: altitude,
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         notes: '',
         photoIds: const [],
         sightings: const [],

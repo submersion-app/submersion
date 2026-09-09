@@ -265,10 +265,10 @@ class DiveMergeBuilder {
 
     // Equipment: union by item id.
     final seenEquipment = <String>{};
-    final mergedEquipment = [
+    final mergedGear = [
       for (final d in sorted)
-        for (final e in d.equipment)
-          if (seenEquipment.add(e.id)) e,
+        for (final g in d.gear)
+          if (seenEquipment.add(g.item.id)) g,
     ];
 
     // Sightings: union; same species merged (counts summed, notes joined).
@@ -376,7 +376,7 @@ class DiveMergeBuilder {
       importSource: _firstNonNull(sorted, (d) => d.importSource),
       importId: _firstNonNull(sorted, (d) => d.importId),
       diveTypeIds: mergedDiveTypeIds,
-      equipment: mergedEquipment,
+      gear: mergedGear,
       customFields: mergedCustomFields,
       windSpeed: _firstNonNull(sorted, (d) => d.windSpeed),
       windDirection: _firstNonNull(sorted, (d) => d.windDirection),

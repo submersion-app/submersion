@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 
 void main() {
   FittedWeightModel emptyModel() => WeightPredictionEngine.fit(
@@ -58,7 +59,7 @@ void main() {
     id: 'd1',
     dateTime: DateTime(2024, 1, 1),
     tanks: tanks,
-    equipment: equipment,
+    gear: looseGear(equipment),
     weights: weights,
     weightAmount: weightAmount,
     weightType: weightType,

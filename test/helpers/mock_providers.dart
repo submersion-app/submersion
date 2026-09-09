@@ -16,6 +16,7 @@ import 'package:submersion/features/data_quality/presentation/providers/quality_
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
@@ -577,7 +578,7 @@ Dive createTestDiveWithBottomTime({
     waterTemp: waterTemp,
     tanks: const [],
     profile: const [],
-    equipment: const [],
+    gear: looseGear(const []),
     notes: '',
     photoIds: const [],
     sightings: const [],

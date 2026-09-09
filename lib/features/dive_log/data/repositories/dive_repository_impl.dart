@@ -46,6 +46,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -409,7 +410,7 @@ class DiveRepository {
               (row) => _mapRowToDiveWithPreloadedData(
                 row,
                 tanks: tanksByDive[row.id] ?? [],
-                equipment: equipmentByDive[row.id] ?? [],
+                gear: looseGear(equipmentByDive[row.id] ?? const []),
                 site: row.siteId != null ? sitesById[row.siteId] : null,
                 center: row.diveCenterId != null
                     ? centersById[row.diveCenterId]
@@ -3383,7 +3384,7 @@ class DiveRepository {
   domain.Dive _mapRowToDiveWithPreloadedData(
     Dive row, {
     required List<DiveTank> tanks,
-    required List<EquipmentItem> equipment,
+    required List<GearLink> gear,
     DiveSite? site,
     DiveCenter? center,
     Trip? trip,
@@ -3609,7 +3610,7 @@ class DiveRepository {
           )
           .toList(),
       profile: const [], // Profile not loaded for list views
-      equipment: equipment,
+      gear: gear,
       weights: const [], // Weights not loaded for list views (use detail view)
       isFavorite: row.isFavorite,
       excludedFromStats: row.excludedFromStats,
@@ -4016,7 +4017,7 @@ class DiveRepository {
         );
       }).toList(),
       profile: seriesProfile,
-      equipment: hydratedEquipmentItems,
+      gear: looseGear(hydratedEquipmentItems),
       weights: weights,
       isFavorite: row.isFavorite,
       excludedFromStats: row.excludedFromStats,
@@ -5141,7 +5142,7 @@ class DiveRepository {
       return _mapRowToDiveWithPreloadedData(
         row,
         tanks: tankRows,
-        equipment: const [],
+        gear: const [],
       ).copyWith(profile: profile);
     } catch (e, stackTrace) {
       _log.error(

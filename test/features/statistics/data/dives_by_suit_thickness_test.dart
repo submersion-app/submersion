@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 
 import '../../../helpers/test_database.dart';
@@ -48,18 +49,22 @@ void main() {
       domain.Dive(
         id: 'd1',
         dateTime: DateTime(2026, 1, 1),
-        equipment: [suit54],
+        gear: looseGear([suit54]),
       ),
     );
     await diveRepo.createDive(
       domain.Dive(
         id: 'd2',
         dateTime: DateTime(2026, 1, 2),
-        equipment: [suit54],
+        gear: looseGear([suit54]),
       ),
     );
     await diveRepo.createDive(
-      domain.Dive(id: 'd3', dateTime: DateTime(2026, 1, 3), equipment: [suit3]),
+      domain.Dive(
+        id: 'd3',
+        dateTime: DateTime(2026, 1, 3),
+        gear: looseGear([suit3]),
+      ),
     );
     // A dive without a suit does not appear in any bucket.
     await diveRepo.createDive(

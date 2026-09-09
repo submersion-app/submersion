@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 
 void main() {
   group('DiveSummary', () {
@@ -58,7 +59,7 @@ void main() {
           diveTypeIds: ['recreational'],
           tanks: const [],
           profile: const [],
-          equipment: const [],
+          gear: looseGear(const []),
           notes: '',
           photoIds: const [],
           sightings: const [],
@@ -81,7 +82,7 @@ void main() {
           dateTime: now,
           tanks: const [],
           profile: const [],
-          equipment: const [],
+          gear: looseGear(const []),
           notes: '',
           photoIds: const [],
           sightings: const [],

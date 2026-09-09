@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -10,7 +11,7 @@ void main() {
       notes: '',
       tanks: const [],
       profile: const [],
-      equipment: const [],
+      gear: looseGear(const []),
       photoIds: const [],
       sightings: const [],
       diveTypeIds: [''],
