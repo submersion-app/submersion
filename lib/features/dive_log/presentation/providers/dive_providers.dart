@@ -335,6 +335,21 @@ final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
   return repository.getStatistics(diverId: currentDiverId);
 });
 
+/// Total dives per trip, keyed by trip id, for the dive list's group headers.
+///
+/// One query for the entire list rather than one per header. Takes the same
+/// dives tick as [diveStatisticsProvider] above, so assigning a dive to a
+/// trip, deleting one, or a sync pull corrects every header count without a
+/// manual invalidate.
+///
+/// Unfiltered on purpose: the header reads "6 of 14", and the 14 is the
+/// trip's real size, not its size under the current view filter (#1193).
+final tripDiveCountsProvider = FutureProvider<Map<String, int>>((ref) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  return repository.getTripDiveCounts();
+});
+
 /// Dive records (superlatives) provider (filtered by current diver).
 ///
 /// Takes the same dives tick as [diveStatisticsProvider] directly above, for

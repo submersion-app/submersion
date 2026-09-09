@@ -2820,6 +2820,28 @@ class DiveRepository {
     return _mapSummaryRows(rows, tagsByDive, diveTypesByDive);
   }
 
+  /// Total dives per trip, keyed by trip id, for the dive list's group
+  /// headers (#1193).
+  ///
+  /// One grouped count for the whole list rather than a query per header, and
+  /// deliberately unfiltered: the header contrasts how many of a trip are in
+  /// the list right now against the trip's real size, so this side of that
+  /// comparison has to ignore the view filter. Trips with no dives are absent
+  /// rather than zero, which is what the header wants anyway.
+  // stats-scope-exempt: a structural count for list chrome, not a statistic.
+  Future<Map<String, int>> getTripDiveCounts() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT trip_id, COUNT(*) AS n FROM dives '
+          'WHERE trip_id IS NOT NULL GROUP BY trip_id',
+          readsFrom: {_db.dives},
+        )
+        .get();
+    return {
+      for (final row in rows) row.read<String>('trip_id'): row.read<int>('n'),
+    };
+  }
+
   /// Shared row mapper for the summary SELECT column list (used by
   /// [getDiveSummaries] and [_summariesForIds]).
   List<DiveSummary> _mapSummaryRows(
