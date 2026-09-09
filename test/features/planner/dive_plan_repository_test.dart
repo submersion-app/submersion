@@ -40,6 +40,7 @@ domain.DivePlan _fullPlan() {
     mode: domain.PlanMode.oc,
     altitude: 700.0,
     waterType: WaterType.salt,
+    salinityPpt: 33.0,
     gfLow: 45,
     gfHigh: 80,
     descentRate: 20.0,
@@ -104,6 +105,7 @@ void main() {
       expect(loaded.mode, domain.PlanMode.oc);
       expect(loaded.altitude, 700.0);
       expect(loaded.waterType, WaterType.salt);
+      expect(loaded.salinityPpt, 33.0);
       expect(loaded.gfLow, 45);
       expect(loaded.gfHigh, 80);
       expect(loaded.descentRate, 20.0);

@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 
 /// Empty-tank buoyancy and dry mass keyed by TankPresets name.
 ///
@@ -54,12 +55,22 @@ class BuoyancyPhysics {
 
   /// Lead-equivalent shift vs the salt-water baseline, scaled by the total
   /// displaced mass (body + rig). Negative in fresh water: less lead needed.
+  ///
+  /// [salinityPpt] wins over [waterType], matching
+  /// [DiveEnvironment.forConditions]: a plan on a custom salinity must shift
+  /// by its own density rather than by the named type it fell back to.
   static double waterTermKg({
     required WaterType? waterType,
     required double totalMassKg,
+    double? salinityPpt,
   }) {
-    if (waterType == null) return 0.0;
-    return totalMassKg * (_density(waterType) / densitySaltKgL - 1.0);
+    final densityKgL = salinityPpt != null
+        ? DiveEnvironment.densityFromSalinityPpt(salinityPpt) / 1000.0
+        : waterType == null
+        ? null
+        : _density(waterType);
+    if (densityKgL == null) return 0.0;
+    return totalMassKg * (densityKgL / densitySaltKgL - 1.0);
   }
 
   /// Near-empty buoyancy of one tank: the catalog (or per-material

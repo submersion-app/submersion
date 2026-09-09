@@ -116,6 +116,9 @@ class BuoyancyTwinAssembler {
   ///
   /// [heightCm] feeds the body-composition term; null falls back to the
   /// height the model was fitted with, as [FittedWeightModel.predict] does.
+  ///
+  /// [salinityPpt] wins over [waterType] for the water term, so a plan on a
+  /// custom salinity predicts against the same density its deco uses.
   static RigTerms composeRigTerms({
     required List<EquipmentItem> items,
     required List<TwinTankInput> tanks,
@@ -123,6 +126,7 @@ class BuoyancyTwinAssembler {
     required WaterType? waterType,
     required double? bodyWeightKg,
     double? heightCm,
+    double? salinityPpt,
   }) {
     final suitItem = _exposureSuit(items);
     final bodyMass = bodyWeightKg ?? BuoyancyPhysics.defaultBodyMassKg;
@@ -204,6 +208,7 @@ class BuoyancyTwinAssembler {
         kg: BuoyancyPhysics.waterTermKg(
           waterType: waterType,
           totalMassKg: totalMass,
+          salinityPpt: salinityPpt,
         ),
         source: TermSource.physics,
       ),

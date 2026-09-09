@@ -2465,6 +2465,7 @@
   "decoCalculator_timeValueMin": "{time} min",
   "decoCalculator_title": "Deco Calculator",
   "decoCalculator_waterType": "Water type",
+  "decoCalculator_waterType_custom": "Custom",
   "decoCalculator_waterType_standard": "Standard",
   "diveCenters_accessibility_markerLabel": "Dive center: {name}",
   "diveCenters_accessibility_selected": "selected",
@@ -4836,6 +4837,7 @@
   "divePlanner_label_reserve": "Reserve:",
   "divePlanner_label_runtime": "Runtime",
   "divePlanner_label_sacRate": "RMV:",
+  "divePlanner_label_salinity": "Salinity",
   "divePlanner_label_status": "Status",
   "divePlanner_label_tanks": "Tanks",
   "divePlanner_savedTanks_title": "Saved tanks",
@@ -10458,12 +10460,14 @@
   "settings_units_dialog_depthUnit": "Depth Unit",
   "settings_units_dialog_pressureUnit": "Pressure Unit",
   "settings_units_gasModel": "Gas calculations",
+  "settings_units_waterType": "Water type",
   "settings_units_gasModel_real": "Real gas",
   "settings_units_gasModel_real_subtitle": "Accounts for compressibility. A 12 L cylinder at 200 bar holds about 2317 L.",
   "settings_units_gasModel_ideal": "Ideal gas",
   "settings_units_gasModel_ideal_subtitle": "Matches hand calculation and dive tables. A 12 L cylinder at 200 bar holds 2400 L.",
   "settings_units_gasModel_explanation": "How cylinder pressure is converted to gas volume. This affects RMV, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.",
   "settings_units_dialog_gasModel": "Gas calculations",
+  "settings_units_dialog_waterType": "Default water type",
   "settings_units_dialog_temperatureUnit": "Temperature Unit",
   "settings_units_dialog_timeFormat": "Time Format",
   "settings_units_dialog_volumeUnit": "Volume Unit",
@@ -15452,6 +15456,19 @@
   "settings_appearance_mapStyle_openStreetMap": "Street Map",
   "settings_appearance_mapStyle_openTopoMap": "Topographic",
   "settings_appearance_mapStyle_esriSatellite": "Satellite",
+  "settings_appearance_bathymetryRefresh": "Reload Map Data",
+  "settings_appearance_bathymetryRefresh_subtitle": "Check swissBATHY3D lake depth data for updates",
+  "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{1 tile updated} other{{count} tiles updated}}",
+  "@settings_appearance_bathymetryRefresh_resultUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_appearance_bathymetryRefresh_resultUpToDate": "All data is up to date",
+  "settings_appearance_bathymetryRefresh_resultFailed": "Couldn't check all data; existing values were kept",
+  "settings_appearance_bathymetryRefresh_resultNothingCached": "No lake depth data cached yet",
   "common_action_reparse": "Re-parse",
   "@common_action_reparse": {
     "description": "Generic re-parse action label"
@@ -16252,7 +16269,7 @@
       }
     }
   },
-  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM",
+  "settings_about_bathymetryCredit": "Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)",
   "@settings_about_bathymetryCredit": {},
   "dive3d_metric_depth": "Depth",
   "@dive3d_metric_depth": {},

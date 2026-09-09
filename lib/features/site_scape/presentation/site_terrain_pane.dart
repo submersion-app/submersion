@@ -178,9 +178,19 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                             axisLabels: axes.labels,
                             chromeStyle: seascapeChromeStyle(context),
                             chromeMode: SceneChromeMode.axesOnly,
-                            picker: GridHoverPicker(
-                              seascapePickGrid(grid, scene.layers.first.mesh),
-                            ),
+                            // scene.layers can legitimately be empty (e.g.
+                            // right after a source switch, before the terrain
+                            // layer has been added); hover picking has nothing
+                            // to pick against then, so this disables the
+                            // picker instead of crashing on .first.
+                            picker: scene.layers.isEmpty
+                                ? null
+                                : GridHoverPicker(
+                                    seascapePickGrid(
+                                      grid,
+                                      scene.layers.first.mesh,
+                                    ),
+                                  ),
                             hoverPick: _hoverPick,
                             onMarkerTap: _onMarkerTap,
                             terrainImagery: imagery?.image,
@@ -307,6 +317,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
     return Align(
       alignment: Alignment.topLeft,
       child: Container(
+        constraints: const BoxConstraints(maxWidth: 360),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
@@ -317,12 +328,14 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
           children: [
             const Icon(Icons.info_outline, size: 14),
             const SizedBox(width: 4),
-            Text(
-              context.l10n.dive3d_seascape_seafloorSource(
-                bathymetrySourceDisplayName(sourceId),
-                resolutionMeters.round().toString(),
+            Flexible(
+              child: Text(
+                context.l10n.dive3d_seascape_seafloorSource(
+                  bathymetrySourceDisplayName(sourceId),
+                  resolutionMeters.round().toString(),
+                ),
+                style: Theme.of(context).textTheme.labelSmall,
               ),
-              style: Theme.of(context).textTheme.labelSmall,
             ),
           ],
         ),

@@ -56,6 +56,48 @@ void main() {
     test('null water type contributes nothing', () {
       expect(BuoyancyPhysics.waterTermKg(waterType: null, totalMassKg: 90), 0);
     });
+
+    test('custom salinity wins over the water type', () {
+      // 0 ppt is fresh water, so it must match the fresh-water shift even
+      // when the caller still passes the salt default alongside it.
+      expect(
+        BuoyancyPhysics.waterTermKg(
+          waterType: WaterType.salt,
+          totalMassKg: 90,
+          salinityPpt: 0,
+        ),
+        closeTo(-2.195122, 0.001),
+      );
+      // 14 ppt is the brackish density (1.010 kg/L).
+      expect(
+        BuoyancyPhysics.waterTermKg(
+          waterType: null,
+          totalMassKg: 90,
+          salinityPpt: 14,
+        ),
+        closeTo(-1.317073, 0.001),
+      );
+      // Sea salinity is the baseline itself.
+      expect(
+        BuoyancyPhysics.waterTermKg(
+          waterType: WaterType.fresh,
+          totalMassKg: 90,
+          salinityPpt: 35,
+        ),
+        closeTo(0.0, 0.001),
+      );
+    });
+
+    test('negative salinity clamps to fresh water', () {
+      expect(
+        BuoyancyPhysics.waterTermKg(
+          waterType: null,
+          totalMassKg: 90,
+          salinityPpt: -10,
+        ),
+        closeTo(-2.195122, 0.001),
+      );
+    });
   });
 
   group('tankTermKg', () {

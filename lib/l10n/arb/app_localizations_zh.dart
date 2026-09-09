@@ -3615,6 +3615,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get decoCalculator_waterType => '水体类型';
 
   @override
+  String get decoCalculator_waterType_custom => '自定义';
+
+  @override
   String get decoCalculator_waterType_standard => '标准';
 
   @override
@@ -7641,6 +7644,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divePlanner_label_sacRate => 'RMV:';
+
+  @override
+  String get divePlanner_label_salinity => '盐度';
 
   @override
   String get divePlanner_label_status => '状态';
@@ -17161,6 +17167,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_units_gasModel => '气体计算';
 
   @override
+  String get settings_units_waterType => '水体类型';
+
+  @override
   String get settings_units_gasModel_real => '真实气体';
 
   @override
@@ -17180,6 +17189,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_units_dialog_gasModel => '气体计算';
+
+  @override
+  String get settings_units_dialog_waterType => '默认水体类型';
 
   @override
   String get settings_units_dialog_temperatureUnit => '温度单位';
@@ -22949,6 +22961,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => '卫星';
 
   @override
+  String get settings_appearance_bathymetryRefresh => '重新加载地图数据';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_subtitle =>
+      '检查 swissBATHY3D 湖泊深度数据是否有更新';
+
+  @override
+  String settings_appearance_bathymetryRefresh_resultUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已更新 $count 个图块',
+      one: '已更新 1 个图块',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultUpToDate => '所有数据均为最新';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultFailed =>
+      '无法检查所有数据；已保留现有数值';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultNothingCached =>
+      '尚未缓存湖泊深度数据';
+
+  @override
   String get common_action_reparse => '重新解析';
 
   @override
@@ -23775,7 +23816,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_about_bathymetryCredit =>
-      '水深数据：GMRT（CC BY 4.0）· EMODnet Bathymetry（CC BY 4.0）· NOAA ETOPO 2022 · NOAA NCEI DEM';
+      '水深数据：GMRT（CC BY 4.0）· EMODnet Bathymetry（CC BY 4.0）· NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D（© swisstopo）';
 
   @override
   String get dive3d_metric_depth => '深度';

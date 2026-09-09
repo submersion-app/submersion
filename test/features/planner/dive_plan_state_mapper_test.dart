@@ -66,7 +66,6 @@ void main() {
       gfLow: 30,
       gfHigh: 70,
       mode: domain.PlanMode.ccr,
-      waterType: WaterType.fresh,
       descentRate: 20.0,
       airBreaks: const AirBreakPolicy(),
       setpointHigh: 1.3,
@@ -88,11 +87,36 @@ void main() {
     expect(merged.turnPressureRule, isNull);
     expect(merged.sourceDiveId, isNull);
     // ...while aggregate-only fields survive the cycle.
-    expect(merged.waterType, WaterType.fresh);
     expect(merged.airBreaks, isNotNull);
     // descentRate is now STATE-owned (Phase 4), so the state's default wins
     // over the existing plan's value.
     expect(merged.descentRate, 18.0);
+  });
+
+  test('water type round-trips through the state', () {
+    final typed = state().copyWith(waterType: WaterType.fresh);
+    final plan = divePlanFromState(typed);
+    expect(plan.waterType, WaterType.fresh);
+
+    final restored = stateFromDivePlan(plan);
+    expect(restored.waterType, WaterType.fresh);
+
+    final cleared = restored.copyWith(clearWaterType: true);
+    final merged = divePlanFromState(cleared, existing: plan);
+    expect(merged.waterType, isNull);
+  });
+
+  test('custom salinity round-trips through the state', () {
+    final typed = state().copyWith(salinityPpt: 20.0);
+    final plan = divePlanFromState(typed);
+    expect(plan.salinityPpt, 20.0);
+
+    final restored = stateFromDivePlan(plan);
+    expect(restored.salinityPpt, 20.0);
+
+    final cleared = restored.copyWith(clearSalinityPpt: true);
+    final merged = divePlanFromState(cleared, existing: plan);
+    expect(merged.salinityPpt, isNull);
   });
 
   test('ascent and descent rate round-trip through the state', () {

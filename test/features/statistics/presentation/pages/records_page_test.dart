@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
@@ -106,6 +107,10 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setGasModel(GasModel model) async =>
       state = state.copyWith(gasModel: model);
+
+  @override
+  Future<void> setDefaultPlannerWaterType(PlannerWaterType type) async =>
+      state = state.copyWith(defaultPlannerWaterType: type);
 
   @override
   Future<void> setDefaultCurrency(String currencyCode) async =>

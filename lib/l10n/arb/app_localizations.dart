@@ -6430,6 +6430,12 @@ abstract class AppLocalizations {
   /// **'Water type'**
   String get decoCalculator_waterType;
 
+  /// No description provided for @decoCalculator_waterType_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get decoCalculator_waterType_custom;
+
   /// No description provided for @decoCalculator_waterType_standard.
   ///
   /// In en, this message translates to:
@@ -13432,6 +13438,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RMV:'**
   String get divePlanner_label_sacRate;
+
+  /// No description provided for @divePlanner_label_salinity.
+  ///
+  /// In en, this message translates to:
+  /// **'Salinity'**
+  String get divePlanner_label_salinity;
 
   /// No description provided for @divePlanner_label_status.
   ///
@@ -29927,6 +29939,12 @@ abstract class AppLocalizations {
   /// **'Gas calculations'**
   String get settings_units_gasModel;
 
+  /// No description provided for @settings_units_waterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Water type'**
+  String get settings_units_waterType;
+
   /// No description provided for @settings_units_gasModel_real.
   ///
   /// In en, this message translates to:
@@ -29962,6 +29980,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas calculations'**
   String get settings_units_dialog_gasModel;
+
+  /// No description provided for @settings_units_dialog_waterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Default water type'**
+  String get settings_units_dialog_waterType;
 
   /// No description provided for @settings_units_dialog_temperatureUnit.
   ///
@@ -39815,6 +39839,42 @@ abstract class AppLocalizations {
   /// **'Satellite'**
   String get settings_appearance_mapStyle_esriSatellite;
 
+  /// No description provided for @settings_appearance_bathymetryRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload Map Data'**
+  String get settings_appearance_bathymetryRefresh;
+
+  /// No description provided for @settings_appearance_bathymetryRefresh_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check swissBATHY3D lake depth data for updates'**
+  String get settings_appearance_bathymetryRefresh_subtitle;
+
+  /// No description provided for @settings_appearance_bathymetryRefresh_resultUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 tile updated} other{{count} tiles updated}}'**
+  String settings_appearance_bathymetryRefresh_resultUpdated(int count);
+
+  /// No description provided for @settings_appearance_bathymetryRefresh_resultUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'All data is up to date'**
+  String get settings_appearance_bathymetryRefresh_resultUpToDate;
+
+  /// No description provided for @settings_appearance_bathymetryRefresh_resultFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check all data; existing values were kept'**
+  String get settings_appearance_bathymetryRefresh_resultFailed;
+
+  /// No description provided for @settings_appearance_bathymetryRefresh_resultNothingCached.
+  ///
+  /// In en, this message translates to:
+  /// **'No lake depth data cached yet'**
+  String get settings_appearance_bathymetryRefresh_resultNothingCached;
+
   /// Generic re-parse action label
   ///
   /// In en, this message translates to:
@@ -41210,7 +41270,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_about_bathymetryCredit.
   ///
   /// In en, this message translates to:
-  /// **'Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM'**
+  /// **'Bathymetry data: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)'**
   String get settings_about_bathymetryCredit;
 
   /// No description provided for @dive3d_metric_depth.

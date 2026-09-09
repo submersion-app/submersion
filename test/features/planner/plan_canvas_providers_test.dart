@@ -94,6 +94,34 @@ void main() {
     );
   });
 
+  test('salt water lengthens the computed deco versus fresh water', () {
+    final salt = _container();
+    salt.read(divePlanNotifierProvider.notifier)
+      ..addSimplePlan(maxDepth: 45.0, bottomTimeMinutes: 25)
+      ..updateWaterType(WaterType.salt);
+
+    final fresh = _container();
+    fresh.read(divePlanNotifierProvider.notifier)
+      ..addSimplePlan(maxDepth: 45.0, bottomTimeMinutes: 25)
+      ..updateWaterType(WaterType.fresh);
+
+    expect(_totalStopSeconds(salt), greaterThan(_totalStopSeconds(fresh)));
+  });
+
+  test('custom salinity lengthens the computed deco versus fresh ppt', () {
+    final dense = _container();
+    dense.read(divePlanNotifierProvider.notifier)
+      ..addSimplePlan(maxDepth: 45.0, bottomTimeMinutes: 25)
+      ..updateSalinityPpt(40);
+
+    final fresh = _container();
+    fresh.read(divePlanNotifierProvider.notifier)
+      ..addSimplePlan(maxDepth: 45.0, bottomTimeMinutes: 25)
+      ..updateSalinityPpt(0);
+
+    expect(_totalStopSeconds(dense), greaterThan(_totalStopSeconds(fresh)));
+  });
+
   test('deco plan appends stop flats and stop markers', () {
     final container = _container();
     final notifier = container.read(divePlanNotifierProvider.notifier);

@@ -3736,6 +3736,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get decoCalculator_waterType => 'نوع الماء';
 
   @override
+  String get decoCalculator_waterType_custom => 'مخصص';
+
+  @override
   String get decoCalculator_waterType_standard => 'قياسي';
 
   @override
@@ -7867,6 +7870,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get divePlanner_label_sacRate => 'RMV:';
+
+  @override
+  String get divePlanner_label_salinity => 'الملوحة';
 
   @override
   String get divePlanner_label_status => 'الحالة';
@@ -17757,6 +17763,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_units_gasModel => 'حسابات الغاز';
 
   @override
+  String get settings_units_waterType => 'نوع الماء';
+
+  @override
   String get settings_units_gasModel_real => 'الغاز الحقيقي';
 
   @override
@@ -17776,6 +17785,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_units_dialog_gasModel => 'حسابات الغاز';
+
+  @override
+  String get settings_units_dialog_waterType => 'نوع الماء الافتراضي';
 
   @override
   String get settings_units_dialog_temperatureUnit => 'وحدة درجة الحرارة';
@@ -23763,6 +23775,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'قمر صناعي';
 
   @override
+  String get settings_appearance_bathymetryRefresh =>
+      'إعادة تحميل بيانات الخريطة';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_subtitle =>
+      'التحقق من تحديثات بيانات أعماق swissBATHY3D';
+
+  @override
+  String settings_appearance_bathymetryRefresh_resultUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count بلاطات',
+      one: 'تم تحديث بلاطة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultUpToDate =>
+      'جميع البيانات محدثة';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultFailed =>
+      'تعذر التحقق من جميع البيانات؛ تم الاحتفاظ بالقيم الحالية';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultNothingCached =>
+      'لا توجد بيانات أعماق بحيرات مخزّنة بعد';
+
+  @override
   String get common_action_reparse => 'إعادة التحليل';
 
   @override
@@ -24630,7 +24673,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_about_bathymetryCredit =>
-      'بيانات قياس الأعماق: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM';
+      'بيانات قياس الأعماق: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)';
 
   @override
   String get dive3d_metric_depth => 'العمق';

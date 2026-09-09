@@ -416,6 +416,7 @@ class DivePlanRepository {
             : null,
       ),
       waterType: Value(plan.waterType?.name),
+      salinityPpt: Value(plan.salinityPpt),
       gfLow: Value(plan.gfLow),
       gfHigh: Value(plan.gfHigh),
       descentRate: Value(plan.descentRate),
@@ -555,6 +556,7 @@ class DivePlanRepository {
       waterType: row.waterType != null
           ? WaterType.values.byName(row.waterType!)
           : null,
+      salinityPpt: row.salinityPpt,
       gfLow: row.gfLow,
       gfHigh: row.gfHigh,
       descentRate: row.descentRate,

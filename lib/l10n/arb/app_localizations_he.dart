@@ -3711,6 +3711,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get decoCalculator_waterType => 'סוג מים';
 
   @override
+  String get decoCalculator_waterType_custom => 'מותאם אישית';
+
+  @override
   String get decoCalculator_waterType_standard => 'רגיל';
 
   @override
@@ -7826,6 +7829,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get divePlanner_label_sacRate => 'RMV:';
+
+  @override
+  String get divePlanner_label_salinity => 'מליחות';
 
   @override
   String get divePlanner_label_status => 'סטטוס';
@@ -17626,6 +17632,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_units_gasModel => 'חישובי גז';
 
   @override
+  String get settings_units_waterType => 'סוג מים';
+
+  @override
   String get settings_units_gasModel_real => 'גז ממשי';
 
   @override
@@ -17645,6 +17654,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_units_dialog_gasModel => 'חישובי גז';
+
+  @override
+  String get settings_units_dialog_waterType => 'סוג מים ברירת מחדל';
 
   @override
   String get settings_units_dialog_temperatureUnit => 'יחידת טמפרטורה';
@@ -23594,6 +23606,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'לוויין';
 
   @override
+  String get settings_appearance_bathymetryRefresh => 'טען מחדש נתוני מפה';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_subtitle =>
+      'בדיקת עדכונים לנתוני עומק swissBATHY3D';
+
+  @override
+  String settings_appearance_bathymetryRefresh_resultUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אריחים עודכנו',
+      one: 'אריח אחד עודכן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultUpToDate =>
+      'כל הנתונים מעודכנים';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultFailed =>
+      'לא ניתן היה לבדוק את כל הנתונים; הערכים הקיימים נשמרו';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultNothingCached =>
+      'עדיין לא נשמרו נתוני עומק אגמים';
+
+  @override
   String get common_action_reparse => 'נתח מחדש';
 
   @override
@@ -24455,7 +24497,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_about_bathymetryCredit =>
-      'נתוני עומק: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM';
+      'נתוני עומק: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)';
 
   @override
   String get dive3d_metric_depth => 'עומק';

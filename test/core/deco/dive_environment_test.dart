@@ -63,6 +63,35 @@ void main() {
       );
     });
 
+    test('salinity ppt maps onto the engine fresh and salt densities', () {
+      expect(DiveEnvironment.densityFromSalinityPpt(0), 1000.0);
+      expect(DiveEnvironment.densityFromSalinityPpt(35), 1025.0);
+      expect(DiveEnvironment.densityFromSalinityPpt(14), 1010.0);
+      expect(
+        DiveEnvironment.salinityPptFromDensity(1025.0),
+        DiveEnvironment.typicalSeaSalinityPpt,
+      );
+    });
+
+    test('negative salinity clamps to fresh water', () {
+      expect(
+        DiveEnvironment.densityFromSalinityPpt(-5),
+        DiveEnvironment.freshWaterDensity,
+      );
+      expect(
+        DiveEnvironment.forConditions(salinityPpt: -5).waterDensityKgM3,
+        DiveEnvironment.freshWaterDensity,
+      );
+    });
+
+    test('forConditions: salinity ppt wins over water type', () {
+      final env = DiveEnvironment.forConditions(
+        waterType: WaterType.fresh,
+        salinityPpt: 35,
+      );
+      expect(env.waterDensityKgM3, DiveEnvironment.saltWaterDensity);
+    });
+
     test('forConditions: explicit surface pressure wins over altitude', () {
       final env = DiveEnvironment.forConditions(
         altitudeMeters: 2000.0,

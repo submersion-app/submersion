@@ -33,30 +33,63 @@ class DiveEnvironment extends Equatable {
   /// Sea water density (kg/m3).
   static const double saltWaterDensity = 1025.0;
 
+  /// Typical open-ocean salinity (ppt) that maps onto [saltWaterDensity].
+  static const double typicalSeaSalinityPpt = 35.0;
+
   /// Legacy-equivalent default: 1.0 bar surface, exactly 10 m/bar.
   static const DiveEnvironment standard = DiveEnvironment();
+
+  /// Density from practical salinity, pinned to this engine's fresh
+  /// (0 ppt → 1000 kg/m3) and salt (35 ppt → 1025 kg/m3) constants.
+  ///
+  /// Salinity is clamped at 0 ppt: a corrupted or imported plan carrying a
+  /// negative value would otherwise produce a density below fresh water and
+  /// cascade into unrealistic pressures and deco.
+  static double densityFromSalinityPpt(double ppt) =>
+      freshWaterDensity +
+      (saltWaterDensity - freshWaterDensity) *
+          (clampSalinityPpt(ppt) / typicalSeaSalinityPpt);
+
+  /// Salinity floored at fresh water. NaN is treated as absent salinity and
+  /// also floors, for the same reason.
+  static double clampSalinityPpt(double ppt) => ppt > 0 ? ppt : 0.0;
+
+  /// Inverse of [densityFromSalinityPpt].
+  static double salinityPptFromDensity(double densityKgM3) =>
+      (densityKgM3 - freshWaterDensity) /
+      (saltWaterDensity - freshWaterDensity) *
+      typicalSeaSalinityPpt;
 
   /// Build an environment from dive conditions.
   ///
   /// An explicit [surfacePressureBar] wins over [altitudeMeters]. A null
   /// altitude keeps the legacy 1.0 bar surface so dives without altitude
   /// data are unchanged.
+  ///
+  /// Density precedence: [waterDensityKgM3], then [salinityPpt], then
+  /// [waterType], then EN13319.
   factory DiveEnvironment.forConditions({
     double? altitudeMeters,
     WaterType? waterType,
     double? surfacePressureBar,
+    double? salinityPpt,
+    double? waterDensityKgM3,
   }) {
     final surface =
         surfacePressureBar ??
         (altitudeMeters != null
             ? AltitudeCalculator.calculateBarometricPressure(altitudeMeters)
             : 1.0);
-    final density = switch (waterType) {
-      WaterType.fresh => freshWaterDensity,
-      WaterType.brackish => brackishWaterDensity,
-      WaterType.salt => saltWaterDensity,
-      null => en13319Density,
-    };
+    final density =
+        waterDensityKgM3 ??
+        (salinityPpt != null
+            ? densityFromSalinityPpt(salinityPpt)
+            : switch (waterType) {
+                WaterType.fresh => freshWaterDensity,
+                WaterType.brackish => brackishWaterDensity,
+                WaterType.salt => saltWaterDensity,
+                null => en13319Density,
+              });
     return DiveEnvironment(
       surfacePressureBar: surface,
       waterDensityKgM3: density,

@@ -3784,6 +3784,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get decoCalculator_waterType => 'Watertype';
 
   @override
+  String get decoCalculator_waterType_custom => 'Aangepast';
+
+  @override
   String get decoCalculator_waterType_standard => 'Standaard';
 
   @override
@@ -7965,6 +7968,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get divePlanner_label_sacRate => 'RMV:';
+
+  @override
+  String get divePlanner_label_salinity => 'Zoutgehalte';
 
   @override
   String get divePlanner_label_status => 'Status';
@@ -17935,6 +17941,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_units_gasModel => 'Gasberekeningen';
 
   @override
+  String get settings_units_waterType => 'Watertype';
+
+  @override
   String get settings_units_gasModel_real => 'Reëel gas';
 
   @override
@@ -17954,6 +17963,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_units_dialog_gasModel => 'Gasberekeningen';
+
+  @override
+  String get settings_units_dialog_waterType => 'Standaard watertype';
 
   @override
   String get settings_units_dialog_temperatureUnit => 'Temperatuureenheid';
@@ -24005,6 +24017,37 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'Satelliet';
 
   @override
+  String get settings_appearance_bathymetryRefresh =>
+      'Kaartgegevens vernieuwen';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_subtitle =>
+      'Controleert swissBATHY3D-dieptegegevens op updates';
+
+  @override
+  String settings_appearance_bathymetryRefresh_resultUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tegels bijgewerkt',
+      one: '1 tegel bijgewerkt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultUpToDate =>
+      'Alle gegevens zijn actueel';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultFailed =>
+      'Niet alle gegevens konden worden gecontroleerd; bestaande waarden zijn behouden';
+
+  @override
+  String get settings_appearance_bathymetryRefresh_resultNothingCached =>
+      'Nog geen meerdieptegegevens opgeslagen';
+
+  @override
   String get common_action_reparse => 'Opnieuw verwerken';
 
   @override
@@ -24887,7 +24930,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_about_bathymetryCredit =>
-      'Bathymetriegegevens: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM';
+      'Bathymetriegegevens: GMRT (CC BY 4.0) · EMODnet Bathymetry (CC BY 4.0) · NOAA ETOPO 2022 · NOAA NCEI DEM · swissBATHY3D (© swisstopo)';
 
   @override
   String get dive3d_metric_depth => 'Diepte';

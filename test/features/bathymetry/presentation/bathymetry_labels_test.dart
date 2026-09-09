@@ -3,6 +3,7 @@ import 'package:submersion/features/bathymetry/data/sources/emodnet_source.dart'
 import 'package:submersion/features/bathymetry/data/sources/etopo_erddap_source.dart';
 import 'package:submersion/features/bathymetry/data/sources/gmrt_source.dart';
 import 'package:submersion/features/bathymetry/data/sources/noaa_dem_source.dart';
+import 'package:submersion/features/bathymetry/data/sources/swissbathy3d_source.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 
 void main() {
@@ -14,10 +15,18 @@ void main() {
       EmodnetSource.sourceId,
       EtopoErddapSource.sourceId,
       NoaaDemSource.sourceId,
+      SwissBathy3dSource.sourceId,
     ];
     for (final id in shipped) {
       expect(bathymetrySourceDisplayName(id), isNot(id), reason: id);
     }
+  });
+
+  test('swissBATHY3D carries its mandatory swisstopo attribution', () {
+    expect(
+      bathymetrySourceDisplayName(SwissBathy3dSource.sourceId),
+      'swissBATHY3D (© swisstopo)',
+    );
   });
 
   test('an unknown id falls back to itself rather than throwing', () {

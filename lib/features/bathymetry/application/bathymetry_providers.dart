@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
@@ -10,6 +11,9 @@ import 'package:submersion/features/bathymetry/data/sources/emodnet_source.dart'
 import 'package:submersion/features/bathymetry/data/sources/etopo_erddap_source.dart';
 import 'package:submersion/features/bathymetry/data/sources/gmrt_source.dart';
 import 'package:submersion/features/bathymetry/data/sources/noaa_dem_source.dart';
+import 'package:submersion/features/bathymetry/data/sources/swiss_bathy_tile_cache_repository.dart';
+import 'package:submersion/features/bathymetry/data/sources/swissbathy3d_source.dart';
+import 'package:submersion/features/bathymetry/data/swiss_lake_depth_service.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -30,13 +34,15 @@ final bathymetryRepositoryProvider = Provider<BathymetryRepository?>((ref) {
     return BathymetryRepository(
       db: db,
       resolver: BathymetryResolver(
-        // Declared order: regional survey data first, then global GMRT,
-        // then the coarse public-domain fallback. NOAA's coastal mosaic
-        // leads only where it is MATERIALLY finer, which the resolver's
-        // preemption factor decides; where the mosaic holds nothing but
-        // its ETOPO background it declines during probe and is never
-        // fetched.
+        // Tier order: swissBATHY3D first (lake-only, ~0.5-2 m, beats every
+        // other tier where it applies), then regional survey data
+        // (NOAA's coastal mosaic leads only where it is MATERIALLY finer,
+        // which the resolver's preemption factor decides; where the mosaic
+        // holds nothing but its ETOPO background it declines during probe
+        // and is never fetched), then global GMRT, then the coarse
+        // public-domain fallback.
         sources: [
+          SwissBathy3dSource(tileCache: SwissBathyTileCacheRepository(db)),
           NoaaDemSource(),
           EmodnetSource(),
           GmrtSource(),
@@ -48,6 +54,43 @@ final bathymetryRepositoryProvider = Provider<BathymetryRepository?>((ref) {
     return null;
   }
 });
+
+/// Depth queries for Swiss dive sites via swissBATHY3D directly (Part 1 of
+/// the Bathymetrie-Daten Schweiz task) — bypasses the resolver's tiered
+/// best-source-wins mosaic since this is a single-coordinate lookup, not a
+/// terrain grid for rendering. Null when the local cache database is not
+/// initialized, matching [bathymetryRepositoryProvider].
+final swissLakeDepthServiceProvider = Provider<SwissLakeDepthService?>((ref) {
+  try {
+    final db = LocalCacheDatabaseService.instance.database;
+    return SwissLakeDepthService(
+      SwissBathy3dSource(tileCache: SwissBathyTileCacheRepository(db)),
+    );
+  } on StateError {
+    return null;
+  }
+});
+
+/// Immediately revalidates every cached swissBATHY3D tile's freshness (the
+/// "reload map data" action in Settings > Appearance), instead of waiting
+/// for each tile's individual [SwissBathy3dSource.staleCheckInterval] to
+/// elapse. Null when the local cache database is not initialized, matching
+/// [bathymetryRepositoryProvider].
+final swissBathyManualRefreshProvider =
+    Provider<Future<SwissBathyRefreshSummary?> Function()>((ref) {
+      return () async {
+        final LocalCacheDatabase db;
+        try {
+          db = LocalCacheDatabaseService.instance.database;
+        } on StateError {
+          return null;
+        }
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+        );
+        return source.refreshAllCachedTiles();
+      };
+    });
 
 /// The cached/fetched grid for a QUANTIZED coordinate cell. Callers must
 /// key the family with [BathymetryRepository.quantize] so every coordinate

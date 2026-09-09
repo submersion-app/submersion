@@ -20,6 +20,7 @@ domain.DivePlan _plan() {
     mode: domain.PlanMode.ccr,
     altitude: 1200.0,
     waterType: WaterType.fresh,
+    salinityPpt: 12.0,
     gfLow: 35,
     gfHigh: 75,
     descentRate: 20.0,
@@ -92,6 +93,7 @@ void main() {
     expect(restored.mode, original.mode);
     expect(restored.altitude, original.altitude);
     expect(restored.waterType, original.waterType);
+    expect(restored.salinityPpt, original.salinityPpt);
     expect(restored.gfLow, original.gfLow);
     expect(restored.gfHigh, original.gfHigh);
     expect(restored.descentRate, original.descentRate);

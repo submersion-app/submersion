@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -146,6 +147,8 @@ void main() {
       double shallowAscentRate = 3.0,
       double finalAscentRate = 1.0,
       double lastStopDepth = 3.0,
+      WaterType? waterType,
+      double? salinityPpt,
     }) => DivePlanState(
       id: 'plan-1',
       name: 'Plan',
@@ -155,6 +158,8 @@ void main() {
       shallowAscentRate: shallowAscentRate,
       finalAscentRate: finalAscentRate,
       lastStopDepth: lastStopDepth,
+      waterType: waterType,
+      salinityPpt: salinityPpt,
       createdAt: createdAt,
       updatedAt: createdAt,
     );
@@ -197,6 +202,14 @@ void main() {
 
     test('a different lastStopDepth breaks equality', () {
       expect(state(), isNot(equals(state(lastStopDepth: 6.0))));
+    });
+
+    test('a different waterType breaks equality', () {
+      expect(state(), isNot(equals(state(waterType: WaterType.salt))));
+    });
+
+    test('a different salinityPpt breaks equality', () {
+      expect(state(), isNot(equals(state(salinityPpt: 20))));
     });
   });
 }

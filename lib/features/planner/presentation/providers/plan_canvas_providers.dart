@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -43,6 +44,8 @@ final planOutcomeProvider = Provider<PlanOutcome>((ref) {
     // is off-gassed at the same surface pressure the plan is computed at.
     environment: DiveEnvironment.forConditions(
       altitudeMeters: (state.altitude ?? 0) > 0 ? state.altitude : null,
+      waterType: state.waterType ?? WaterType.salt,
+      salinityPpt: state.salinityPpt,
     ),
   );
   return engine.compute(divePlanFromState(state), startState: startState);

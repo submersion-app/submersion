@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v197 adds certifications.additional_credentials -- the JSON array of extra
+/// v199 adds certifications.additional_credentials -- the JSON array of extra
 /// (agency, level) pairs one card grants (e.g. an FFESSM N1 that is also a
 /// CMAS 1-star).
 
@@ -13,9 +13,12 @@ Future<Set<String>> _columns(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v197 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 197);
-    expect(AppDatabase.migrationVersions, contains(197));
+  test('v199 is the current schema version and is in the ladder', () {
+    // Renumbered from 197: main landed the planner salinity (197) and
+    // planner water-type (198) rungs while this branch was open, and a
+    // rung at or below the shipped version never runs its onUpgrade step.
+    expect(AppDatabase.currentSchemaVersion, 199);
+    expect(AppDatabase.migrationVersions, contains(199));
   });
 
   test('a fresh database has certifications.additional_credentials', () async {
@@ -28,10 +31,10 @@ void main() {
     );
   });
 
-  test('a database stranded before v197 gains the column', () async {
+  test('a database stranded before v199 gains the column', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 196');
+        rawDb.execute('PRAGMA user_version = 198');
         rawDb.execute('''
           CREATE TABLE certifications (
             id TEXT NOT NULL PRIMARY KEY,

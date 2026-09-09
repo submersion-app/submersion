@@ -549,6 +549,9 @@ class DivePlans extends Table {
 
   /// WaterType enum name; null = unspecified (EN13319 density).
   TextColumn get waterType => text().nullable()();
+
+  /// Custom salinity in ppt. When set, deco uses this instead of [waterType].
+  RealColumn get salinityPpt => real().nullable()();
   IntColumn get gfLow => integer()();
   IntColumn get gfHigh => integer()();
   RealColumn get descentRate => real().withDefault(const Constant(18.0))();
@@ -1729,6 +1732,10 @@ class DiverSettings extends Table {
   /// unconditionally before the preference existed, so upgrading changes
   /// nobody's numbers; 'ideal' matches hand calculation (issue #828).
   TextColumn get gasModel => text().withDefault(const Constant('real'))();
+
+  /// v193: default water type for a new dive plan (salt, fresh, custom).
+  TextColumn get defaultPlannerWaterType =>
+      text().withDefault(const Constant('salt'))();
   TextColumn get defaultCurrency => text().withDefault(const Constant('USD'))();
 
   /// v144: per-diver calibration deciding which measured distances count as
@@ -3501,7 +3508,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 197;
+  static const int currentSchemaVersion = 199;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4001,11 +4008,22 @@ class AppDatabase extends _$AppDatabase {
     // from 192 then 195 -- main also landed the media-species-clock rung (195)
     // while this branch was open (192 and 193 are held by other branches).
     196,
-    // v197: certifications.additional_credentials -- extra (agency, level)
+    // v197: dive_plans.salinity_ppt, custom planner water salinity for deco.
+    // Renumbered from 192: main landed the transmitter-serial, media-species
+    // clock and weight-preset rungs (194 through 196) while this branch was
+    // open, and a rung at or below the shipped version never runs its
+    // onUpgrade step.
+    197,
+    // v198: diver_settings.default_planner_water_type (salt/fresh/custom).
+    // Renumbered from 193 for the same reason as 197.
+    198,
+    // v199: certifications.additional_credentials -- extra (agency, level)
     // pairs the same physical card grants (e.g. an FFESSM N1 that is also a
     // CMAS 1-star). Additive nullable TEXT (a JSON array); no backfill, a
-    // null reads back as "just the primary agency/level".
-    197,
+    // null reads back as "just the primary agency/level". Renumbered from
+    // 197: main landed the planner salinity and water-type rungs (197, 198)
+    // while this branch was open.
+    199,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4090,8 +4108,8 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v197: certifications.additional_credentials (JSON array of extra
-  /// agency/level pairs). PRAGMA-guarded, idempotent -- called from the v197
+  /// v199: certifications.additional_credentials (JSON array of extra
+  /// agency/level pairs). PRAGMA-guarded, idempotent -- called from the v199
   /// onUpgrade step and the beforeOpen backstop.
   Future<void> _assertCertificationCredentialsColumn() async {
     final cols = await customSelect(
@@ -6655,6 +6673,33 @@ class AppDatabase extends _$AppDatabase {
     final names = cols.map((c) => c.read<String>('name')).toSet();
     if (names.contains('hlc')) return;
     await customStatement('ALTER TABLE media_species ADD COLUMN hlc TEXT');
+  }
+
+  /// Idempotent DDL for dive_plans.salinity_ppt (v197). Nullable: existing
+  /// plans keep EN13319 / water-type density until the diver picks Custom.
+  Future<void> _assertPlanSalinityPptColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_plans')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('salinity_ppt')) return;
+    await customStatement(
+      'ALTER TABLE dive_plans ADD COLUMN salinity_ppt REAL',
+    );
+  }
+
+  /// Idempotent DDL for diver_settings.default_planner_water_type (v198).
+  /// Existing rows get salt, matching the new-plan default.
+  Future<void> _assertDefaultPlannerWaterTypeColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('default_planner_water_type')) return;
+    await customStatement(
+      "ALTER TABLE diver_settings ADD COLUMN default_planner_water_type "
+      "TEXT NOT NULL DEFAULT 'salt'",
+    );
   }
 
   /// Owning-source FK on dive_profiles (issue #1149). PRAGMA-guarded so a
@@ -10514,12 +10559,25 @@ class AppDatabase extends _$AppDatabase {
           await _assertWeightPresetTables();
         }
         if (from < 196) await reportProgress();
-        // v197: certifications.additional_credentials (dual credentials).
-        // Column-only rung, no backfill.
+        // v197: custom planner salinity (ppt) for deco density. Renumbered
+        // from 192: main took 194 through 196 while this branch was open.
         if (from < 197) {
-          await _assertCertificationCredentialsColumn();
+          await _assertPlanSalinityPptColumn();
         }
         if (from < 197) await reportProgress();
+        // v198: default planner water type on diver_settings. Renumbered
+        // from 193 for the same reason as 197.
+        if (from < 198) {
+          await _assertDefaultPlannerWaterTypeColumn();
+        }
+        if (from < 198) await reportProgress();
+        // v199: certifications.additional_credentials (dual credentials).
+        // Column-only rung, no backfill. Renumbered from 197: main took 197
+        // and 198 while this branch was open.
+        if (from < 199) {
+          await _assertCertificationCredentialsColumn();
+        }
+        if (from < 199) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -10571,7 +10629,6 @@ class AppDatabase extends _$AppDatabase {
         // resurrect a user-deleted buddy cert from the still-present inline
         // column (dropped in v110).
         await _assertCertificationBuddyOwnerColumn();
-        await _assertCertificationCredentialsColumn();
 
         // v111 backstop: re-assert equipment_sets.is_default + the
         // equipment_set_geofences table (parallel-branch collision self-heal).
@@ -10704,6 +10761,15 @@ class AppDatabase extends _$AppDatabase {
         // v196 backstop: re-assert the weight-preset tables (issue #1609),
         // same restore/sync-adopt reasoning.
         await _assertWeightPresetTables();
+
+        // v197 backstop: re-assert dive_plans.salinity_ppt.
+        await _assertPlanSalinityPptColumn();
+
+        // v198 backstop: re-assert diver_settings.default_planner_water_type.
+        await _assertDefaultPlannerWaterTypeColumn();
+
+        // v199 backstop: re-assert certifications.additional_credentials.
+        await _assertCertificationCredentialsColumn();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).
