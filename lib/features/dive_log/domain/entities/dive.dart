@@ -508,14 +508,16 @@ class Dive extends Equatable {
   /// ascent (US Navy convention): the descent counts; stops shallower
   /// than the depth threshold (safety stops, shallow deco) do not, while
   /// deeper stops still count. See [BottomTimeCalculator] for the
-  /// threshold rule.
+  /// threshold rule. The result is bounded by [runtime] when one is set,
+  /// so a profile that outlasts the dive cannot report a bottom time longer
+  /// than the dive itself.
   ///
   /// Returns null if profile data is insufficient for calculation.
   Duration? calculateBottomTimeFromProfile() {
     final seconds = BottomTimeCalculator.secondsFromSamples([
       for (final point in profile)
         (timestamp: point.timestamp, depth: point.depth),
-    ]);
+    ], totalDurationSeconds: runtime?.inSeconds);
     return seconds == null ? null : Duration(seconds: seconds);
   }
 
