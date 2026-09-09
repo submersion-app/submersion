@@ -65,10 +65,11 @@ void main() {
   Widget build(
     _FakeComponentRepository repo, {
     Future<ComponentsIndex>? index,
+    List<EquipmentItem>? gear,
   }) => ProviderScope(
     overrides: [
       equipmentComponentRepositoryProvider.overrideWithValue(repo),
-      activeEquipmentProvider.overrideWith((ref) async => active),
+      activeEquipmentProvider.overrideWith((ref) async => gear ?? active),
       equipmentComponentsIndexProvider.overrideWith(
         (ref) => index ?? Future.value(ComponentsIndex.fromRows(edges)),
       ),
@@ -111,6 +112,26 @@ void main() {
     await tester.tap(find.text('Add 2'));
     await tester.pumpAndSettle();
     expect(repo.added, unorderedEquals([('reg', 'hose'), ('reg', 'fins')]));
+  });
+
+  testWidgets('type groups follow the declared enum order', (tester) async {
+    // Fins arrive first, but Hose is declared earlier in EquipmentType, so
+    // its group renders above Fins, matching the type dropdown.
+    await tester.pumpWidget(
+      build(
+        _FakeComponentRepository(),
+        gear: [
+          item('reg', EquipmentType.regulator),
+          item('fins', EquipmentType.fins),
+          item('hose', EquipmentType.hose),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getTopLeft(find.text('Hose')).dy,
+      lessThan(tester.getTopLeft(find.text('Fins')).dy),
+    );
   });
 
   testWidgets('offers nothing while the index is still loading', (

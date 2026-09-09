@@ -152,11 +152,18 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
               for (final item in candidates) {
                 grouped.putIfAbsent(item.type, () => []).add(item);
               }
+              // Groups follow the enum's declared order, the same order the
+              // type dropdown and filter chips use, not the order the rows
+              // happened to arrive in.
+              final groups = [
+                for (final type in EquipmentType.values)
+                  if (grouped[type] case final items?) (type, items),
+              ];
               return ListView(
                 controller: widget.scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                 children: [
-                  for (final entry in grouped.entries)
+                  for (final (type, items) in groups)
                     Card(
                       margin: const EdgeInsets.only(bottom: 8),
                       child: Column(
@@ -165,7 +172,7 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                             child: Text(
-                              entry.key.localizedName(l10n),
+                              type.localizedName(l10n),
                               style: Theme.of(context).textTheme.labelLarge
                                   ?.copyWith(
                                     color: Theme.of(
@@ -174,7 +181,7 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
                                   ),
                             ),
                           ),
-                          for (final item in entry.value)
+                          for (final item in items)
                             CheckboxListTile(
                               value: _selected.contains(item.id),
                               onChanged: (value) => setState(() {
