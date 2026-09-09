@@ -274,6 +274,39 @@ void main() {
     expect(find.text('All equipment already selected'), findsNothing);
   });
 
+  testWidgets('the status axis is blamed when the category is not empty', (
+    tester,
+  ) async {
+    // Regulators exist, but none are loaned. The category is populated, so
+    // blaming it would be factually wrong: the status axis is what emptied
+    // the list.
+    await pumpPicker(
+      tester,
+      filter: const EquipmentPickerFilter(
+        type: EquipmentType.regulator,
+        status: EquipmentStatus.loaned,
+      ),
+    );
+
+    expect(find.text('No equipment with this status'), findsOneWidget);
+    expect(find.text('No equipment in this category'), findsNothing);
+  });
+
+  testWidgets('the category is blamed when it really holds nothing', (
+    tester,
+  ) async {
+    await pumpPicker(
+      tester,
+      filter: const EquipmentPickerFilter(
+        type: EquipmentType.camera,
+        status: EquipmentStatus.loaned,
+      ),
+    );
+
+    expect(find.text('No equipment in this category'), findsOneWidget);
+    expect(find.text('No equipment with this status'), findsNothing);
+  });
+
   testWidgets('the filter action opens the filter sheet', (tester) async {
     await pumpPicker(tester);
 

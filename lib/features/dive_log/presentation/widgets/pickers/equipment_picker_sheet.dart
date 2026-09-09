@@ -100,13 +100,23 @@ class EquipmentPickerSheet extends ConsumerWidget {
                   : unselected.where((e) => e.type == typeFilter).toList();
               final available = filter.apply(offerable);
 
+              // Which axis to blame when nothing is left. Applying the type
+              // axis alone says whether the category really holds nothing:
+              // if it does hold something, the status axis is what emptied
+              // the list and blaming the category would be a lie. This also
+              // covers the caller's own typeFilter, since offerable is
+              // already narrowed by it.
+              final typeMatches = EquipmentPickerFilter(
+                type: filter.type,
+              ).apply(offerable);
+
               if (available.isEmpty) {
                 return _EmptyState(
                   message: equipmentList.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_noEquipment
                       : unselected.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_allSelected
-                      : offerable.isEmpty || filter.type != null
+                      : typeMatches.isEmpty
                       ? context.l10n.equipment_list_emptyState_noTypeMatch
                       : context.l10n.equipment_list_emptyState_noStatusMatch,
                   hint: equipmentList.isEmpty
