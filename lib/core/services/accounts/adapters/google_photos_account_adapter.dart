@@ -3,6 +3,8 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:http/http.dart' as http;
+
 import 'package:submersion/core/services/google_photos/google_photos_auth_manager.dart';
 import 'package:submersion/core/services/google_photos/google_photos_auth_store.dart';
 
@@ -21,11 +23,18 @@ class GooglePhotosAccountAdapter extends AccountProviderAdapter
     implements MediaSourceCapable {
   GooglePhotosAccountAdapter({
     GooglePhotosAuthStore Function(String storageKey)? authStoreFactory,
+    http.Client Function()? httpClientFactory,
   }) : _authStoreFactory =
            authStoreFactory ??
-           ((key) => GooglePhotosAuthStore(storageKey: key));
+           ((key) => GooglePhotosAuthStore(storageKey: key)),
+       _httpClientFactory = httpClientFactory;
 
   final GooglePhotosAuthStore Function(String storageKey) _authStoreFactory;
+
+  /// Injected so a test can supply a `MockClient` to the per-account auth
+  /// managers this adapter builds; production leaves it null and each
+  /// manager creates its own real client.
+  final http.Client Function()? _httpClientFactory;
 
   final Map<String, GooglePhotosAuthManager> _managers = {};
 
@@ -38,7 +47,10 @@ class GooglePhotosAccountAdapter extends AccountProviderAdapter
   GooglePhotosAuthManager authManagerFor(domain.ConnectedAccount account) =>
       _managers.putIfAbsent(
         account.id,
-        () => GooglePhotosAuthManager(store: _storeFor(account)),
+        () => GooglePhotosAuthManager(
+          store: _storeFor(account),
+          httpClient: _httpClientFactory?.call(),
+        ),
       );
 
   @override
