@@ -2481,6 +2481,8 @@
   "siteMatchReview_noNearbySite": "Geen stek in de buurt",
   "importSummary_matchSitesButton": "{count} duiken aan stekken koppelen",
   "diveLog_listPage_searchFieldLabel": "Duiken zoeken...",
+  "diveLog_listPage_groupingPausedBySort": "Groeperen op reis staat uit bij sorteren op {sortName}",
+  "diveLog_listPage_groupingPausedAction": "Sorteren op datum",
   "diveLog_listPage_menuGroupTrips": "Reizen groeperen",
   "diveLog_listPage_menuExpandAllTrips": "Alle reizen uitklappen",
   "diveLog_listPage_menuCollapseAllTrips": "Alle reizen inklappen",

@@ -11673,6 +11673,18 @@ abstract class AppLocalizations {
   /// **'Search dives...'**
   String get diveLog_listPage_searchFieldLabel;
 
+  /// Shown above the dive list when the Group trips toggle is on but the active sort scatters a trip's dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip grouping is off while sorted by {sortName}'**
+  String diveLog_listPage_groupingPausedBySort(String sortName);
+
+  /// No description provided for @diveLog_listPage_groupingPausedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by date'**
+  String get diveLog_listPage_groupingPausedAction;
+
   /// No description provided for @diveLog_listPage_menuGroupTrips.
   ///
   /// In en, this message translates to:

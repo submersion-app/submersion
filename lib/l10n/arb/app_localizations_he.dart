@@ -6881,6 +6881,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'חיפוש צלילות...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'קיבוץ טיולים כבוי בזמן מיון לפי $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'מיין לפי תאריך';
+
+  @override
   String get diveLog_listPage_menuGroupTrips => 'קבץ טיולים';
 
   @override

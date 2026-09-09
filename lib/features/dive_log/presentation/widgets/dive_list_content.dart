@@ -1690,6 +1690,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             child: CustomScrollView(
               controller: _scrollController,
               slivers: [
+                if (ref.watch(diveListGroupTripsProvider) && !groupingEnabled)
+                  SliverToBoxAdapter(
+                    child: _buildGroupingPausedNotice(context),
+                  ),
                 for (final section in sections)
                   if (section is TripSection)
                     _buildTripSectionSliver(context, section, sliverForEntries)
@@ -1719,6 +1723,49 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ref.read(paginatedDiveListProvider).value?.dives ??
         const <DiveSummary>[];
     return dives.map((d) => d.tripId).whereType<String>().toSet().toList();
+  }
+
+  /// Explains why the trip headers are missing while the toggle is on.
+  ///
+  /// Not folded into the active-filters bar: that bar only exists when a
+  /// filter is active, and a paused grouping is not a filter. The toggle stays
+  /// on and stays checked, so nothing the diver set reverts behind their back
+  /// (#1193).
+  Widget _buildGroupingPausedNotice(BuildContext context) {
+    final theme = Theme.of(context);
+    final sort = ref.watch(diveSortProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 16,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              context.l10n.diveLog_listPage_groupingPausedBySort(
+                sort.field.localizedName(context.l10n),
+              ),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(diveSortProvider.notifier).state = const SortState(
+                field: DiveSortField.date,
+                direction: SortDirection.descending,
+              );
+            },
+            child: Text(context.l10n.diveLog_listPage_groupingPausedAction),
+          ),
+        ],
+      ),
+    );
   }
 
   /// The trailing loader or retry row.

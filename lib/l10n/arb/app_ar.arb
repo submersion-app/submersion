@@ -2481,6 +2481,8 @@
   "siteMatchReview_noNearbySite": "لا يوجد موقع قريب",
   "importSummary_matchSitesButton": "مطابقة {count} غوصات بالمواقع",
   "diveLog_listPage_searchFieldLabel": "البحث في الغوصات...",
+  "diveLog_listPage_groupingPausedBySort": "تجميع الرحلات متوقف أثناء الترتيب حسب {sortName}",
+  "diveLog_listPage_groupingPausedAction": "الترتيب حسب التاريخ",
   "diveLog_listPage_menuGroupTrips": "تجميع الرحلات",
   "diveLog_listPage_menuExpandAllTrips": "توسيع كل الرحلات",
   "diveLog_listPage_menuCollapseAllTrips": "طي كل الرحلات",

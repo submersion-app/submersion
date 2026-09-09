@@ -7044,6 +7044,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Merulesek keresese...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Az utak szerinti csoportositas ki van kapcsolva $sortName szerinti rendezeskor';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Rendezes datum szerint';
+
+  @override
   String get diveLog_listPage_menuGroupTrips => 'Utak csoportositasa';
 
   @override

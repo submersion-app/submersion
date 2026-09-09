@@ -7009,6 +7009,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Duiken zoeken...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Groeperen op reis staat uit bij sorteren op $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Sorteren op datum';
+
+  @override
   String get diveLog_listPage_menuGroupTrips => 'Reizen groeperen';
 
   @override

@@ -6935,6 +6935,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Search dives...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Trip grouping is off while sorted by $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Sort by date';
+
+  @override
   String get diveLog_listPage_menuGroupTrips => 'Group trips';
 
   @override

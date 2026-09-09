@@ -7066,6 +7066,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Buscar inmersiones...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'La agrupación por viaje está desactivada al ordenar por $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Ordenar por fecha';
+
+  @override
   String get diveLog_listPage_menuGroupTrips => 'Agrupar viajes';
 
   @override

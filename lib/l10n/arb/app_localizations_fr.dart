@@ -7100,6 +7100,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Rechercher des plongées...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Le groupement par voyage est désactivé lors du tri par $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Trier par date';
+
+  @override
   String get diveLog_listPage_menuGroupTrips => 'Grouper les voyages';
 
   @override

@@ -2481,6 +2481,8 @@
   "siteMatchReview_noNearbySite": "Kein Tauchplatz in der Nähe",
   "importSummary_matchSitesButton": "{count} Tauchgänge Tauchplätzen zuordnen",
   "diveLog_listPage_searchFieldLabel": "Tauchgänge suchen...",
+  "diveLog_listPage_groupingPausedBySort": "Reisegruppierung ist bei Sortierung nach {sortName} deaktiviert",
+  "diveLog_listPage_groupingPausedAction": "Nach Datum sortieren",
   "diveLog_listPage_menuGroupTrips": "Reisen gruppieren",
   "diveLog_listPage_menuExpandAllTrips": "Alle Reisen aufklappen",
   "diveLog_listPage_menuCollapseAllTrips": "Alle Reisen zuklappen",

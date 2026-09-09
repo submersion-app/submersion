@@ -6918,6 +6918,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'البحث في الغوصات...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'تجميع الرحلات متوقف أثناء الترتيب حسب $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'الترتيب حسب التاريخ';
+
+  @override
   String get diveLog_listPage_menuGroupTrips => 'تجميع الرحلات';
 
   @override

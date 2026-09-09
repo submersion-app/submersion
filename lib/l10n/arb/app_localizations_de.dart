@@ -7065,6 +7065,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Tauchgänge suchen...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'Reisegruppierung ist bei Sortierung nach $sortName deaktiviert';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Nach Datum sortieren';
+
+  @override
   String get diveLog_listPage_menuGroupTrips => 'Reisen gruppieren';
 
   @override

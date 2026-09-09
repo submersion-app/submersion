@@ -2481,6 +2481,8 @@
   "siteMatchReview_noNearbySite": "Nenhum ponto próximo",
   "importSummary_matchSitesButton": "Associar {count} mergulhos a pontos",
   "diveLog_listPage_searchFieldLabel": "Buscar mergulhos...",
+  "diveLog_listPage_groupingPausedBySort": "O agrupamento por viagem está desativado ao ordenar por {sortName}",
+  "diveLog_listPage_groupingPausedAction": "Ordenar por data",
   "diveLog_listPage_menuGroupTrips": "Agrupar viagens",
   "diveLog_listPage_menuExpandAllTrips": "Expandir todas as viagens",
   "diveLog_listPage_menuCollapseAllTrips": "Recolher todas as viagens",

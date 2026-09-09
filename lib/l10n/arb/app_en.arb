@@ -3932,6 +3932,8 @@
     }
   },
   "diveLog_listPage_searchFieldLabel": "Search dives...",
+  "diveLog_listPage_groupingPausedBySort": "Trip grouping is off while sorted by {sortName}",
+  "diveLog_listPage_groupingPausedAction": "Sort by date",
   "diveLog_listPage_menuGroupTrips": "Group trips",
   "diveLog_listPage_menuExpandAllTrips": "Expand all trips",
   "diveLog_listPage_menuCollapseAllTrips": "Collapse all trips",
@@ -4658,6 +4660,14 @@
     "placeholders": {
       "error": {
         "type": "Object"
+      }
+    }
+  },
+  "@diveLog_listPage_groupingPausedBySort": {
+    "description": "Shown above the dive list when the Group trips toggle is on but the active sort scatters a trip's dives.",
+    "placeholders": {
+      "sortName": {
+        "type": "String"
       }
     }
   },

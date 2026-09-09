@@ -2614,6 +2614,8 @@
   "siteMatchReview_noNearbySite": "附近没有潜水点",
   "importSummary_matchSitesButton": "将 {count} 次潜水匹配到潜水点",
   "diveLog_listPage_searchFieldLabel": "搜索潜水...",
+  "diveLog_listPage_groupingPausedBySort": "按 {sortName} 排序时，旅行分组已关闭",
+  "diveLog_listPage_groupingPausedAction": "按日期排序",
   "diveLog_listPage_menuGroupTrips": "按旅行分组",
   "diveLog_listPage_menuExpandAllTrips": "展开所有旅行",
   "diveLog_listPage_menuCollapseAllTrips": "折叠所有旅行",

@@ -6704,6 +6704,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => '搜索潜水...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return '按 $sortName 排序时，旅行分组已关闭';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => '按日期排序';
+
+  @override
   String get diveLog_listPage_menuGroupTrips => '按旅行分组';
 
   @override
