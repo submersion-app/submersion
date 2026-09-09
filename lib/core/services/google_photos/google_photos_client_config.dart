@@ -39,6 +39,19 @@ class GooglePhotosClientConfig {
     'GOOGLE_PHOTOS_MOBILE_CLIENT_ID',
   );
 
+  /// Custom URL scheme the OAuth redirect lands on, captured by
+  /// `flutter_web_auth_2`. For a Google "iOS" OAuth client this is the
+  /// reversed client id (`com.googleusercontent.apps.NNNN-XXXX`); supplied
+  /// at build time so it tracks whichever client the build ships.
+  static const String redirectScheme = String.fromEnvironment(
+    'GOOGLE_PHOTOS_REDIRECT_SCHEME',
+  );
+
+  /// The full redirect URI built from [redirectScheme], registered on the
+  /// OAuth client. Empty when the scheme is unset.
+  static String get redirectUri =>
+      redirectScheme.isEmpty ? '' : '$redirectScheme:/oauth2redirect';
+
   /// Secret for [desktopClientId], supplied at build time by
   /// `--dart-define=GOOGLE_PHOTOS_CLIENT_SECRET=...` and never committed.
   ///
@@ -70,4 +83,12 @@ class GooglePhotosClientConfig {
       (Platform.isWindows || Platform.isLinux)
       ? hasDesktopClient
       : mobileClientId.isNotEmpty || hasDesktopClient;
+
+  /// Whether the in-app "Connect Google Photos" flow can actually run on
+  /// this build: it needs a client id, its secret (Google authenticates the
+  /// token exchange with it) and a registered redirect scheme.
+  static bool get connectFlowConfigured =>
+      desktopClientId.isNotEmpty &&
+      desktopClientSecret.isNotEmpty &&
+      redirectScheme.isNotEmpty;
 }

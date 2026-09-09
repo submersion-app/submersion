@@ -10174,6 +10174,30 @@
       }
     }
   },
+  "settings_googlePhotos_title": "Google Photos",
+  "settings_googlePhotos_subtitle": "Import photos from Google Photos and link them to dives",
+  "settings_googlePhotos_connect": "Connect Google Photos",
+  "settings_googlePhotos_connected": "Connected as {name}",
+  "@settings_googlePhotos_connected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_googlePhotos_connectFailed": "Could not connect to Google Photos: {error}",
+  "@settings_googlePhotos_connectFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_googlePhotos_needsReauth": "Reconnect needed",
+  "settings_googlePhotos_disconnect": "Disconnect",
+  "settings_googlePhotos_disconnect_confirmTitle": "Disconnect Google Photos?",
+  "settings_googlePhotos_disconnect_confirmBody": "Photos you have already imported stay on your dives and keep displaying from the media store. You can reconnect any time to import more.",
+  "settings_googlePhotos_unconfigured": "Google Photos is not available in this build.",
   "settings_lightroom_clientId_label": "Adobe client ID",
   "settings_lightroom_clientSecret_label": "Client secret (optional)",
   "settings_lightroom_redirectUri_label": "Redirect URI (optional)",

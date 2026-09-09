@@ -223,6 +223,20 @@ class MediaSourcesPage extends ConsumerWidget {
               ),
             ),
           ],
+          // Google Photos entry point, hidden until the OAuth client exists
+          // (googlePhotosUiEnabled).
+          if (googlePhotosUiEnabled) ...[
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.add_a_photo_outlined),
+                title: Text(context.l10n.settings_googlePhotos_title),
+                subtitle: Text(context.l10n.settings_googlePhotos_subtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/settings/google-photos'),
+              ),
+            ),
+          ],
         ],
       ),
     );

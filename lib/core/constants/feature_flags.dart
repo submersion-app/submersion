@@ -33,3 +33,17 @@ library;
 /// Lightroom" actions. If Adobe permanently rejects the integration, the
 /// Lightroom code and this flag can be deleted together in a follow-up cleanup.
 bool lightroomUiEnabled = false;
+
+/// Whether the Google Photos connector is surfaced in the UI.
+///
+/// The connect flow needs an OAuth client in a Google Cloud project with the
+/// Photos Picker API enabled (`GOOGLE_PHOTOS_*` dart-defines, see
+/// `GooglePhotosClientConfig`); until one exists, every entry point is hidden
+/// so we do not advertise a connection users cannot complete. Like
+/// [lightroomUiEnabled] this gates UI ONLY -- the services, auth manager, and
+/// picker client under `lib/core/services/google_photos/` stay intact.
+///
+/// A mutable top-level variable rather than a `const` so widget tests can
+/// toggle it; production code only reads it. Tests that set it must reset it
+/// (e.g. via `addTearDown`).
+bool googlePhotosUiEnabled = false;
