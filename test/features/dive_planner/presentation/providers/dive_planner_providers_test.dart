@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_planner/data/services/plan_calculator_s
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -589,6 +590,32 @@ void main() {
 
       notifier.setLinkedDive(null);
       expect(notifier.state.linkedDiveId, isNull);
+    });
+
+    test('setEquipmentIds keeps provenance in step with the ids (#1487)', () {
+      final notifier = DivePlanNotifier(PlanCalculatorService());
+      addTearDown(notifier.dispose);
+
+      notifier.setGear(
+        const ['reg', 'hose'],
+        const [
+          GearProvenance(equipmentId: 'reg', viaSetId: 'winter'),
+          GearProvenance(
+            equipmentId: 'hose',
+            viaEquipmentId: 'reg',
+            viaSetId: 'winter',
+          ),
+        ],
+      );
+      // The id-only setter: a surviving id keeps its row, a new id starts
+      // loose, a dropped id takes its row with it.
+      notifier.setEquipmentIds(const ['reg', 'mask']);
+
+      final rows = notifier.state.gearProvenance;
+      expect(rows.map((p) => p.equipmentId), ['reg', 'mask']);
+      expect(rows[0].viaSetId, 'winter');
+      expect(rows[1].isTopLevel, isTrue);
+      expect(rows[1].viaSetId, isNull);
     });
   });
 }

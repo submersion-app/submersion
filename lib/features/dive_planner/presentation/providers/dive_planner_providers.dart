@@ -395,12 +395,15 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Replace the equipment attached to the plan (Gear & Weights, v104).
+  ///
+  /// Provenance follows the ids so the two never drift (#1487): an id that
+  /// survives keeps its row, a new id starts as a loose row, and a dropped
+  /// id takes its row with it.
   void setEquipmentIds(List<String> ids) {
-    state = state.copyWith(
-      equipmentIds: ids,
-      isDirty: true,
-      updatedAt: DateTime.now(),
-    );
+    final byId = {for (final p in state.gearProvenance) p.equipmentId: p};
+    setGear(ids, [
+      for (final id in ids) byId[id] ?? GearProvenance(equipmentId: id),
+    ]);
   }
 
   /// Replace the gear and its provenance in one step, so the ids and their
