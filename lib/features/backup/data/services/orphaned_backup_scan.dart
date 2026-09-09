@@ -127,11 +127,15 @@ class OrphanedBackupScan {
   }
 
   /// A backup this app wrote: our prefix, and a plaintext or encrypted
-  /// extension. The hidden `.db.tmp` in-progress files are already swept by
-  /// the pre-migration service and must not be double-handled here.
+  /// extension.
+  ///
+  /// The prefix must be at the START of the name, which is also what excludes
+  /// an in-progress write. `LiveDatabaseCopier` writes to `.<filename>.tmp`, so
+  /// a partial backup carries the real prefix one character in; the pre-migration
+  /// service sweeps those, and claiming one here would offer a file that is
+  /// still being written. The `.tmp` extension excludes it a second time.
   static bool _isBackupFile(String name) {
     if (!name.startsWith(_prefix)) return false;
-    if (name.startsWith('.')) return false;
     final extension = p.extension(name);
     return extension == '.db' || extension == BackupCrypto.fileExtension;
   }

@@ -123,6 +123,19 @@ void main() {
     expect(found, isEmpty);
   });
 
+  test('an in-progress write is not mistaken for a finished backup', () async {
+    // LiveDatabaseCopier writes to `.<filename>.tmp` beside the target, so a
+    // partially written backup carries the real prefix one character in. The
+    // name must not start with the prefix for the scan to claim it, and the
+    // extension is `.tmp` rather than `.db`, so two independent gates exclude
+    // it. Listing one would offer a backup that is still being written.
+    await writeRaw(
+      '.${buildBackupFilename(timestamp: '2026-09-01_1200', deviceId: thisDevice)}.tmp',
+    );
+
+    expect(await build().find(), isEmpty);
+  });
+
   test('a directory that cannot be enumerated yields nothing', () async {
     final scan = OrphanedBackupScan(
       backupsDirectory: () async => null,
