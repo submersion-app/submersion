@@ -11,9 +11,11 @@ import 'package:flutter/scheduler.dart';
 /// highlighted row and keeps it scrolled into view, so arrow keys move a
 /// visible selection and Enter commits it.
 ///
-/// The field paired with this list must forward its submit callback
-/// (`onSubmitted: (_) => onFieldSubmitted()`), otherwise Enter has no way to
-/// commit the highlighted option.
+/// The field paired with this list must forward the `onFieldSubmitted`
+/// callback that [RawAutocomplete] hands to its `fieldViewBuilder`:
+/// `onFieldSubmitted: (_) => onFieldSubmitted()` on a [TextFormField], or
+/// `onSubmitted: (_) => onFieldSubmitted()` on a [TextField]. Without it,
+/// Enter has no way to commit the highlighted option.
 class AutocompleteOptionsList<T extends Object> extends StatelessWidget {
   const AutocompleteOptionsList({
     super.key,
@@ -52,6 +54,9 @@ class AutocompleteOptionsList<T extends Object> extends StatelessWidget {
       child: Material(
         elevation: 4,
         borderRadius: BorderRadius.circular(8),
+        // Without a clip the rows' ink splashes paint past the rounded
+        // corners of the overlay.
+        clipBehavior: Clip.antiAlias,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: maxHeight),
           child: ListView.builder(
