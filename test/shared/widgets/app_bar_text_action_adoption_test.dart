@@ -79,6 +79,39 @@ class Foo {
     );
   });
 
+  // A `${...}` interpolation can hold string literals of the SAME quote as the
+  // string enclosing it, and they do not end it. Terminating at the first
+  // matching quote hands the inner literal's CONTENT to the scan as code; when
+  // that content is a bracket, the span matcher closes the app bar early and
+  // the actions list falls outside it, so a real offender goes unreported.
+  // 103 files under lib/ interpolate an expression holding a bracketed
+  // literal, `readableTextSql('tank_id')` and friends among them.
+  test(
+    'interpolation holding a same-quote literal does not blind the scan',
+    () {
+      const source = r'''
+class Foo {
+  PreferredSizeWidget build(BuildContext context) {
+    return AppBar(
+      title: Text('${name.replaceAll(')', '')} trip'),
+      actions: [
+        TextButton(onPressed: () {}, child: const Text('Save')),
+      ],
+    );
+  }
+}
+''';
+
+      expect(
+        _bareAppBarTextButtons(_withoutCommentsAndStrings(source)),
+        hasLength(1),
+        reason:
+            'quotes inside an interpolation must not close the string that '
+            'contains them, or its bracket leaks into the scanned code',
+      );
+    },
+  );
+
   // The other half of the same branch: a NON-raw literal does process
   // escapes, so an escaped quote must not be mistaken for the terminator.
   test('an escaped quote inside a normal string does not blind the scan', () {
@@ -208,53 +241,96 @@ String _withoutCommentsAndStrings(String source) {
       }
       continue;
     }
-
-    // A leading `r` makes the literal raw, and raw strings have no escape
-    // processing. The backslash in `r'\'` therefore does NOT protect the
-    // quote after it: reading it as an escape swallows the terminator and
-    // inverts the parity of every literal further down the file, blanking
-    // real code and hiding offenders inside it.
-    final raw =
-        source[i] == 'r' &&
-        i + 1 < source.length &&
-        (source[i + 1] == "'" || source[i + 1] == '"') &&
-        (i == 0 || !_isIdentifierPart(source[i - 1]));
-    final quoteAt = raw ? i + 1 : i;
-    final quote = source[quoteAt];
-
-    if (quote == "'" || quote == '"') {
-      final triple = source.startsWith(quote * 3, quoteAt);
-      final terminator = triple ? quote * 3 : quote;
-      // The blanked width covers the `r` prefix as well as the opening quote.
-      out.write(' ' * (quoteAt - i + terminator.length));
-      i = quoteAt + terminator.length;
-      while (i < source.length && !source.startsWith(terminator, i)) {
-        if (!raw && source[i] == r'\' && i + 1 < source.length) {
-          out.write('  ');
-          i += 2;
-          continue;
-        }
-        out.write(source[i] == '\n' ? '\n' : ' ');
-        i++;
-      }
-      // An unterminated literal runs to end of file; there is nothing left
-      // to blank in that case.
-      if (i < source.length) {
-        out.write(' ' * terminator.length);
-        i += terminator.length;
-      }
+    if (_literalBeginsAt(source, i)) {
+      i = _blankLiteral(source, i, out);
       continue;
     }
-
     out.write(source[i]);
     i++;
   }
   return out.toString();
 }
 
-/// Whether [char] can appear inside a Dart identifier.
+/// Whether a string literal begins at [i], counting an `r` prefix as part of
+/// it.
 ///
-/// This is what tells the `r` prefix of a raw string from the last letter of
-/// a name, so a variable such as `ctr` followed by a string cannot be read as
-/// a raw literal.
+/// The character before an `r` is checked so that the tail of a name such as
+/// `ctr` cannot be read as a raw prefix.
+bool _literalBeginsAt(String source, int i) {
+  final char = source[i];
+  if (char == "'" || char == '"') return true;
+  return char == 'r' &&
+      i + 1 < source.length &&
+      (source[i + 1] == "'" || source[i + 1] == '"') &&
+      (i == 0 || !_isIdentifierPart(source[i - 1]));
+}
+
+/// Blanks the string literal starting at [start] into [out], returning the
+/// index just past it. Newlines are preserved so reported line numbers stay
+/// true to the file.
+///
+/// Two Dart rules make this more than a scan to the next quote:
+///
+/// - A raw literal has no escape processing, so the backslash in `r'\'` does
+///   not protect the quote after it.
+/// - A `${...}` interpolation may contain literals quoted the SAME way as the
+///   string enclosing it, and they do not end it. Those nest arbitrarily, so
+///   the interpolation is walked with this function recursing on each literal
+///   it holds.
+///
+/// Getting either wrong does not merely mis-blank one string: it inverts the
+/// parity of the literals that follow, or leaks their content into the scanned
+/// code, where a stray bracket moves where the enclosing widget appears to
+/// end.
+int _blankLiteral(String source, int start, StringBuffer out) {
+  var i = start;
+  final raw = source[i] == 'r';
+  if (raw) {
+    out.write(' ');
+    i++;
+  }
+
+  final quote = source[i];
+  final triple = source.startsWith(quote * 3, i);
+  final terminator = triple ? quote * 3 : quote;
+  out.write(' ' * terminator.length);
+  i += terminator.length;
+
+  while (i < source.length && !source.startsWith(terminator, i)) {
+    if (!raw && source[i] == r'\' && i + 1 < source.length) {
+      out.write('  ');
+      i += 2;
+      continue;
+    }
+    if (!raw && source.startsWith(r'${', i)) {
+      out.write('  ');
+      i += 2;
+      var depth = 1;
+      while (i < source.length && depth > 0) {
+        if (_literalBeginsAt(source, i)) {
+          i = _blankLiteral(source, i, out);
+          continue;
+        }
+        final char = source[i];
+        if (char == '{') depth++;
+        if (char == '}') depth--;
+        out.write(char == '\n' ? '\n' : ' ');
+        i++;
+      }
+      continue;
+    }
+    out.write(source[i] == '\n' ? '\n' : ' ');
+    i++;
+  }
+
+  // An unterminated literal runs to end of file; there is nothing left to
+  // blank in that case.
+  if (i < source.length) {
+    out.write(' ' * terminator.length);
+    i += terminator.length;
+  }
+  return i;
+}
+
+/// Whether [char] can appear inside a Dart identifier.
 bool _isIdentifierPart(String char) => RegExp(r'[A-Za-z0-9_$]').hasMatch(char);
