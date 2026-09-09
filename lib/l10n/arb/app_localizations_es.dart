@@ -2789,6 +2789,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get preDive_start_begin => 'Comenzar';
 
   @override
+  String get diveLog_gear_collapse => 'Ocultar piezas';
+
+  @override
+  String get diveLog_gear_expand => 'Mostrar piezas';
+
+  @override
+  String get diveLog_gear_removeAssembly => 'Quitar el conjunto y sus piezas';
+
+  @override
+  String get diveLog_gear_removePart => 'Quitar pieza';
+
+  @override
+  String get diveLog_gear_removeSet => 'Quitar el equipo de esta inmersión';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Equipo';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Iniciar lista previa a la inmersión';
 

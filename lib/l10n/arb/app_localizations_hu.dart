@@ -2776,6 +2776,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get preDive_start_begin => 'Kezdés';
 
   @override
+  String get diveLog_gear_collapse => 'Részek elrejtése';
+
+  @override
+  String get diveLog_gear_expand => 'Részek megjelenítése';
+
+  @override
+  String get diveLog_gear_removeAssembly =>
+      'Összeállítás és részei eltávolítása';
+
+  @override
+  String get diveLog_gear_removePart => 'Rész eltávolítása';
+
+  @override
+  String get diveLog_gear_removeSet =>
+      'Készlet eltávolítása erről a merülésről';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Készlet';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Merülés előtti ellenőrzőlista indítása';
 

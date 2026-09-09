@@ -2630,6 +2630,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_start_begin => '开始';
 
   @override
+  String get diveLog_gear_collapse => '隐藏部件';
+
+  @override
+  String get diveLog_gear_expand => '显示部件';
+
+  @override
+  String get diveLog_gear_removeAssembly => '移除组合及其部件';
+
+  @override
+  String get diveLog_gear_removePart => '移除部件';
+
+  @override
+  String get diveLog_gear_removeSet => '从本次潜水移除套装';
+
+  @override
+  String get diveLog_gear_unknownSet => '套装';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist => '开始潜前检查清单';
 
   @override

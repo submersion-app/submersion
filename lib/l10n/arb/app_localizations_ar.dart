@@ -2733,6 +2733,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_start_begin => 'بدء';
 
   @override
+  String get diveLog_gear_collapse => 'إخفاء الأجزاء';
+
+  @override
+  String get diveLog_gear_expand => 'إظهار الأجزاء';
+
+  @override
+  String get diveLog_gear_removeAssembly => 'إزالة التجميعة وأجزائها';
+
+  @override
+  String get diveLog_gear_removePart => 'إزالة الجزء';
+
+  @override
+  String get diveLog_gear_removeSet => 'إزالة الطقم من هذه الغطسة';
+
+  @override
+  String get diveLog_gear_unknownSet => 'طقم';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'بدء قائمة تحقق ما قبل الغوص';
 

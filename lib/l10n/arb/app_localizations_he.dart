@@ -2710,6 +2710,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_start_begin => 'התחל';
 
   @override
+  String get diveLog_gear_collapse => 'הסתרת חלקים';
+
+  @override
+  String get diveLog_gear_expand => 'הצגת חלקים';
+
+  @override
+  String get diveLog_gear_removeAssembly => 'הסרת המכלול וחלקיו';
+
+  @override
+  String get diveLog_gear_removePart => 'הסרת חלק';
+
+  @override
+  String get diveLog_gear_removeSet => 'הסרת הסט מהצלילה הזו';
+
+  @override
+  String get diveLog_gear_unknownSet => 'סט';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'התחל רשימת בדיקה לפני צלילה';
 

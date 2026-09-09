@@ -2793,6 +2793,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get preDive_start_begin => 'Beginnen';
 
   @override
+  String get diveLog_gear_collapse => 'Teile ausblenden';
+
+  @override
+  String get diveLog_gear_expand => 'Teile anzeigen';
+
+  @override
+  String get diveLog_gear_removeAssembly =>
+      'Baugruppe und ihre Teile entfernen';
+
+  @override
+  String get diveLog_gear_removePart => 'Teil entfernen';
+
+  @override
+  String get diveLog_gear_removeSet => 'Set von diesem Tauchgang entfernen';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Set';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Checkliste vor dem Tauchgang starten';
 

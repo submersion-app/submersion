@@ -2768,6 +2768,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get preDive_start_begin => 'Beginnen';
 
   @override
+  String get diveLog_gear_collapse => 'Onderdelen verbergen';
+
+  @override
+  String get diveLog_gear_expand => 'Onderdelen tonen';
+
+  @override
+  String get diveLog_gear_removeAssembly =>
+      'Samenstel en onderdelen verwijderen';
+
+  @override
+  String get diveLog_gear_removePart => 'Onderdeel verwijderen';
+
+  @override
+  String get diveLog_gear_removeSet => 'Set van deze duik verwijderen';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Set';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Pre-dive checklist starten';
 

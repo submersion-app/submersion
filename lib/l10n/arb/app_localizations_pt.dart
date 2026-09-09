@@ -2785,6 +2785,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get preDive_start_begin => 'Começar';
 
   @override
+  String get diveLog_gear_collapse => 'Ocultar peças';
+
+  @override
+  String get diveLog_gear_expand => 'Mostrar peças';
+
+  @override
+  String get diveLog_gear_removeAssembly =>
+      'Remover o conjunto e as suas peças';
+
+  @override
+  String get diveLog_gear_removePart => 'Remover peça';
+
+  @override
+  String get diveLog_gear_removeSet => 'Remover o conjunto deste mergulho';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Conjunto';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Iniciar lista de verificação pré-mergulho';
 

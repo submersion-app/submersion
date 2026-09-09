@@ -4647,6 +4647,42 @@ abstract class AppLocalizations {
   /// **'Begin'**
   String get preDive_start_begin;
 
+  /// No description provided for @diveLog_gear_collapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide parts'**
+  String get diveLog_gear_collapse;
+
+  /// No description provided for @diveLog_gear_expand.
+  ///
+  /// In en, this message translates to:
+  /// **'Show parts'**
+  String get diveLog_gear_expand;
+
+  /// No description provided for @diveLog_gear_removeAssembly.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove assembly and its parts'**
+  String get diveLog_gear_removeAssembly;
+
+  /// No description provided for @diveLog_gear_removePart.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove part'**
+  String get diveLog_gear_removePart;
+
+  /// No description provided for @diveLog_gear_removeSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove set from this dive'**
+  String get diveLog_gear_removeSet;
+
+  /// No description provided for @diveLog_gear_unknownSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get diveLog_gear_unknownSet;
+
   /// No description provided for @diveLog_listPage_bottomSheet_preDiveChecklist.
   ///
   /// In en, this message translates to:
