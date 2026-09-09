@@ -5988,6 +5988,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filter_searchTypesHint => 'Digita per cercare i tipi';
 
   @override
+  String get diveLog_filter_searchCentersHint =>
+      'Digita per cercare i diving center';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Digita per cercare i campi';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Digita per cercare i viaggi';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Compagno';
 
   @override

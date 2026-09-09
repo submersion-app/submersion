@@ -5943,6 +5943,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_searchTypesHint => 'Typ om types te zoeken';
 
   @override
+  String get diveLog_filter_searchCentersHint => 'Typ om duikcentra te zoeken';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Typ om velden te zoeken';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Typ om reizen te zoeken';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override

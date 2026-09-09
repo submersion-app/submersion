@@ -61,6 +61,7 @@ class SearchableFilterDropdown<T> extends StatefulWidget {
     required this.allOptionLabel,
     required this.searchHintText,
     required this.onChanged,
+    this.labelText,
     this.icon,
   });
 
@@ -74,6 +75,10 @@ class SearchableFilterDropdown<T> extends StatefulWidget {
 
   /// Hint shown while the field is empty and the diver is typing a query.
   final String searchHintText;
+
+  /// Optional floating label, for forms that name their fields rather than
+  /// relying on a section heading above them.
+  final String? labelText;
 
   final IconData? icon;
 
@@ -190,6 +195,7 @@ class _SearchableFilterDropdownState<T>
             controller: controller,
             focusNode: focusNode,
             decoration: InputDecoration(
+              labelText: widget.labelText,
               hintText: widget.searchHintText,
               prefixIcon: widget.icon == null ? null : Icon(widget.icon),
               suffixIcon: const Icon(Icons.arrow_drop_down),

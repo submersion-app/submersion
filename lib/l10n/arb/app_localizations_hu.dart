@@ -5971,6 +5971,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gépelj a merüléstípusok kereséséhez';
 
   @override
+  String get diveLog_filter_searchCentersHint =>
+      'Gépelj a búvárközpontok kereséséhez';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Gépelj a mezők kereséséhez';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Gépelj az utak kereséséhez';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override

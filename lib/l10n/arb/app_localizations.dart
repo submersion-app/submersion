@@ -9899,6 +9899,24 @@ abstract class AppLocalizations {
   /// **'Type to search dive types'**
   String get diveLog_filter_searchTypesHint;
 
+  /// No description provided for @diveLog_filter_searchCentersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search dive centers'**
+  String get diveLog_filter_searchCentersHint;
+
+  /// No description provided for @diveLog_filter_searchFieldsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search fields'**
+  String get diveLog_filter_searchFieldsHint;
+
+  /// No description provided for @diveLog_filter_searchTripsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search trips'**
+  String get diveLog_filter_searchTripsHint;
+
   /// No description provided for @diveLog_filter_sectionBuddy.
   ///
   /// In en, this message translates to:

@@ -5990,6 +5990,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_filter_searchTypesHint => 'Escribe para buscar tipos';
 
   @override
+  String get diveLog_filter_searchCentersHint =>
+      'Escribe para buscar centros de buceo';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Escribe para buscar campos';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Escribe para buscar viajes';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Compañero';
 
   @override

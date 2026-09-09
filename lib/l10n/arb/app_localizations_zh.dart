@@ -5685,6 +5685,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_searchTypesHint => '输入以搜索类型';
 
   @override
+  String get diveLog_filter_searchCentersHint => '输入以搜索潜水中心';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => '输入以搜索字段';
+
+  @override
+  String get diveLog_filter_searchTripsHint => '输入以搜索行程';
+
+  @override
   String get diveLog_filter_sectionBuddy => '潜伴';
 
   @override

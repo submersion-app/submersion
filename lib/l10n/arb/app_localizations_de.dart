@@ -5987,6 +5987,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tippen, um Tauchgangstypen zu suchen';
 
   @override
+  String get diveLog_filter_searchCentersHint =>
+      'Tippen, um Tauchbasen zu suchen';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Tippen, um Felder zu suchen';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Tippen, um Reisen zu suchen';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Tauchpartner';
 
   @override

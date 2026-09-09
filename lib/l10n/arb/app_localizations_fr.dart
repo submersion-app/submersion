@@ -6016,6 +6016,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Saisissez pour rechercher des types';
 
   @override
+  String get diveLog_filter_searchCentersHint =>
+      'Saisissez pour rechercher des centres de plongée';
+
+  @override
+  String get diveLog_filter_searchFieldsHint =>
+      'Saisissez pour rechercher des champs';
+
+  @override
+  String get diveLog_filter_searchTripsHint =>
+      'Saisissez pour rechercher des voyages';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Binôme';
 
   @override

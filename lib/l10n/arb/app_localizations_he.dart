@@ -5832,6 +5832,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_searchTypesHint => 'הקלד כדי לחפש סוגים';
 
   @override
+  String get diveLog_filter_searchCentersHint => 'הקלד כדי לחפש מרכזי צלילה';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'הקלד כדי לחפש שדות';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'הקלד כדי לחפש טיולים';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'שותף';
 
   @override
