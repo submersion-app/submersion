@@ -8,6 +8,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 
 class EquipmentSetDetailPage extends ConsumerWidget {
   final String setId;
@@ -212,7 +215,18 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                 ),
               )
             else
-              ...set.items!.map((item) => _buildEquipmentTile(context, item)),
+              // Arranged the same way as the gear lists on a dive, so a set
+              // reads the way the diver reads their rig (#1486, #1576).
+              for (final group in arrangeEquipment(
+                set.items!,
+                ref.watch(equipmentArrangementProvider),
+                typeLabel: (type) => type.localizedName(context.l10n),
+              )) ...[
+                if (group.type != null) EquipmentGroupHeader(type: group.type!),
+                ...group.items.map(
+                  (item) => _buildEquipmentTile(context, item),
+                ),
+              ],
             const SizedBox(height: 24),
             Text(
               context.l10n.equipment_setDetail_geofencesTitle,
