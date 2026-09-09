@@ -36,7 +36,7 @@ final equipmentArrangementProvider = Provider<EquipmentArrangement>((ref) {
 class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   EquipmentArrangementNotifier(this._repository)
     : super(EquipmentArrangement.defaults) {
-    loaded = _load();
+    _load();
     // A change arriving from sync ticks the settings table. Re-read so an
     // arrangement chosen on a phone reaches an open desktop without a
     // restart. The tick fires for every settings key, not just this one, so
@@ -63,18 +63,34 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   /// value with a stale one.
   int _loadSeq = 0;
 
-  /// Completes when the stored value has first been read.
+  final Completer<void> _firstLoad = Completer<void>();
+
+  /// Completes once a load has actually DECIDED the arrangement.
+  ///
+  /// Not simply the first `_load()` future: the sequence guard makes a
+  /// superseded load return without publishing, so binding to that future
+  /// would let an awaiting caller resume while the state was still the
+  /// defaults. It settles when a load publishes, when a read fails and the
+  /// current state therefore stands, or on dispose so nobody hangs.
   ///
   /// Screens do not await it: they start on the defaults and rebuild when the
   /// stored value lands, which is invisible. A one-shot consumer must await
   /// it, because for them "not loaded yet" is indistinguishable from "the
   /// diver chose the defaults" and the difference is baked into the output.
   /// The PDF export path does exactly that.
-  late final Future<void> loaded;
+  Future<void> get loaded => _firstLoad.future;
+
+  /// Marks the first load decided. Idempotent: later loads settle nothing new.
+  void _settleFirstLoad() {
+    if (!_firstLoad.isCompleted) _firstLoad.complete();
+  }
 
   @override
   void dispose() {
     _settingsSubscription?.cancel();
+    // Nothing further will publish, so release anyone still awaiting rather
+    // than leaving them hanging on a notifier that is gone.
+    _settleFirstLoad();
     super.dispose();
   }
 
@@ -93,10 +109,15 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
         error: e,
         stackTrace: stackTrace,
       );
+      // Decisive for an awaiting caller: no value is coming from this read,
+      // and whatever is already published stands.
+      _settleFirstLoad();
       return;
     }
     // A newer read started while this one was in flight; that one owns the
-    // outcome, whether or not it has landed yet.
+    // outcome, whether or not it has landed yet, and it is the one that will
+    // settle [loaded]. Settling here would resume an awaiting caller on a
+    // value this load is not allowed to publish.
     if (seq != _loadSeq) return;
     // A successful read of null means the key is absent or its blob was
     // unreadable, which is exactly what a fresh launch would find, and a
@@ -106,6 +127,7 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
     // is different and returned above: "could not read" is not "nothing
     // stored", so that path keeps what is already loaded.
     if (mounted) state = stored ?? EquipmentArrangement.defaults;
+    _settleFirstLoad();
   }
 
   /// Persists [arrangement] and updates state.

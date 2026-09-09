@@ -299,4 +299,94 @@ void main() {
       );
     },
   );
+
+  test('loaded settles only when a load actually publishes', () async {
+    // The sequence guard makes a superseded load return without publishing.
+    // If `loaded` is simply the first call's future it completes anyway, so a
+    // one-shot consumer awaiting it (the PDF export) resumes while the state
+    // is still the defaults, which is the whole thing the await was added to
+    // prevent.
+    final fake = _OrderedFakeRepository();
+    final container = ProviderContainer(
+      overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+    );
+    addTearDown(container.dispose);
+
+    final notifier = container.read(
+      equipmentArrangementNotifierProvider.notifier,
+    );
+    var settled = false;
+    unawaited(notifier.loaded.then((_) => settled = true));
+    await pumpEventQueue();
+    expect(fake.pending, hasLength(1), reason: 'the constructor read');
+
+    // A tick supersedes the constructor's read before it lands.
+    fake.settingsTicks.add(null);
+    await pumpEventQueue();
+    expect(fake.pending, hasLength(2));
+
+    // The stale read finishes first and must neither publish nor settle.
+    fake.pending[0].complete(
+      EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.headToToe,
+      ),
+    );
+    await pumpEventQueue();
+    expect(
+      settled,
+      isFalse,
+      reason: 'a superseded load has not decided anything',
+    );
+    expect(
+      container.read(equipmentArrangementProvider),
+      EquipmentArrangement.defaults,
+    );
+
+    // The winner publishes, and only then does the await resume.
+    fake.pending[1].complete(
+      EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.dressingOrder,
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(settled, isTrue);
+    expect(
+      container.read(equipmentArrangementProvider).typeOrder,
+      EquipmentTypeOrder.dressingOrder,
+    );
+  });
+
+  test('loaded settles when the read fails, so a caller cannot hang', () async {
+    final fake = _FakeSettingsRepository()..failRead = true;
+    final container = containerWith(fake);
+
+    await container
+        .read(equipmentArrangementNotifierProvider.notifier)
+        .loaded
+        .timeout(const Duration(seconds: 5));
+
+    expect(
+      container.read(equipmentArrangementProvider),
+      EquipmentArrangement.defaults,
+    );
+  });
+
+  test('disposing releases anyone awaiting loaded', () async {
+    // Otherwise a one-shot consumer whose container goes away mid-read waits
+    // forever on a notifier that no longer exists.
+    final fake = _OrderedFakeRepository();
+    final container = ProviderContainer(
+      overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+    );
+    final loaded = container
+        .read(equipmentArrangementNotifierProvider.notifier)
+        .loaded;
+    await pumpEventQueue();
+    expect(fake.pending, hasLength(1), reason: 'the read is still in flight');
+
+    container.dispose();
+
+    await loaded.timeout(const Duration(seconds: 5));
+  });
 }
