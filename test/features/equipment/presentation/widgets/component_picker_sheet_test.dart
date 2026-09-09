@@ -17,6 +17,9 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
   bool throwCycle = false;
   Object? throwOther;
 
+  /// When set, every add waits on it, so a test can act mid-save.
+  Completer<void>? gate;
+
   @override
   Future<EquipmentComponent> addComponent({
     required String parentId,
@@ -27,6 +30,7 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
       throw EquipmentComponentCycleException(parentId, componentId);
     }
     if (throwOther != null) throw throwOther!;
+    if (gate != null) await gate!.future;
     added.add((parentId, componentId));
     return EquipmentComponent(
       id: 'new-$componentId',
@@ -166,6 +170,69 @@ void main() {
     expect(find.textContaining('boom'), findsOneWidget);
     final button = tester.widget<FilledButton>(find.byType(FilledButton));
     expect(button.onPressed, isNotNull);
+  });
+
+  testWidgets('checkboxes are frozen while the adds run', (tester) async {
+    final repo = _FakeComponentRepository()..gate = Completer<void>();
+    await tester.pumpWidget(build(repo));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Add 1'));
+    await tester.pump();
+    for (final tile in tester.widgetList<CheckboxListTile>(
+      find.byType(CheckboxListTile),
+    )) {
+      expect(tile.onChanged, isNull);
+    }
+    repo.gate!.complete();
+    await tester.pumpAndSettle();
+    expect(repo.added, [('reg', 'hose')]);
+  });
+
+  testWidgets('a sheet dismissed mid-save does not pop the page beneath', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository()..gate = Completer<void>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          equipmentComponentRepositoryProvider.overrideWithValue(repo),
+          activeEquipmentProvider.overrideWith((ref) async => active),
+          equipmentComponentsIndexProvider.overrideWith(
+            (ref) async => ComponentsIndex.fromRows(edges),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showComponentPicker(context, parentId: 'reg'),
+                child: const Text('PAGE BENEATH'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('PAGE BENEATH'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Add 1'));
+    await tester.pump();
+    // Dismiss the sheet by tapping the barrier while the add is pending.
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    expect(find.byType(ComponentPickerSheet), findsNothing);
+    repo.gate!.complete();
+    await tester.pumpAndSettle();
+    // The save finished, and the page under the sheet is still there.
+    expect(repo.added, [('reg', 'hose')]);
+    expect(find.text('PAGE BENEATH'), findsOneWidget);
   });
 
   testWidgets('a cycle refused by the repository shows the explanation', (

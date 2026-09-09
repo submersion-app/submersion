@@ -76,18 +76,21 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
     setState(() => _saving = true);
     final repository = ref.read(equipmentComponentRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
     final cycleText = context.l10n.equipment_components_cycleError;
     var popped = false;
     try {
-      for (final id in _selected) {
+      // A snapshot: the checkboxes are disabled while saving, but a copy
+      // keeps the loop safe regardless of what mutates the set later.
+      for (final id in _selected.toList()) {
         await repository.addComponent(
           parentId: widget.parentId,
           componentId: id,
         );
       }
       popped = true;
-      navigator.pop();
+      // The sheet may have been swiped away or dismissed during the awaits;
+      // popping then would take the page underneath instead.
+      if (mounted) Navigator.of(context).pop();
     } on EquipmentComponentCycleException {
       messenger.showSnackBar(SnackBar(content: Text(cycleText)));
     } catch (e) {
@@ -184,13 +187,17 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
                           for (final item in items)
                             CheckboxListTile(
                               value: _selected.contains(item.id),
-                              onChanged: (value) => setState(() {
-                                if (value == true) {
-                                  _selected.add(item.id);
-                                } else {
-                                  _selected.remove(item.id);
-                                }
-                              }),
+                              // Frozen while the adds run, so the selection
+                              // being saved is the one that was confirmed.
+                              onChanged: _saving
+                                  ? null
+                                  : (value) => setState(() {
+                                      if (value == true) {
+                                        _selected.add(item.id);
+                                      } else {
+                                        _selected.remove(item.id);
+                                      }
+                                    }),
                               title: Text(item.name),
                               subtitle: item.fullName != item.name
                                   ? Text(item.fullName)
