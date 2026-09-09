@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:submersion/core/text/fuzzy_match.dart';
 
@@ -281,7 +282,6 @@ class _FilterOptionsView<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entries = options.toList();
     return Align(
       key: searchableFilterOptionsKey,
       alignment: AlignmentDirectional.topStart,
@@ -289,26 +289,94 @@ class _FilterOptionsView<T> extends StatelessWidget {
         elevation: 4,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 240),
-          child: ListView.builder(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            itemCount: entries.length,
-            itemBuilder: (context, index) {
-              final entry = entries[index];
-              return InkWell(
-                onTap: () => onSelected(entry),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Text(entry.label),
-                ),
-              );
-            },
+          child: _FilterOptionsList<T>(
+            onSelected: onSelected,
+            options: options.toList(),
+            // RawAutocomplete tracks which row the arrow keys have moved to,
+            // and Enter commits that row, so it has to be visible.
+            highlightedIndex: AutocompleteHighlightedOption.of(context),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The rows themselves, following Material's own autocomplete list: the
+/// highlighted row is tinted and kept scrolled into view as the arrow keys
+/// move it.
+class _FilterOptionsList<T> extends StatefulWidget {
+  const _FilterOptionsList({
+    required this.onSelected,
+    required this.options,
+    required this.highlightedIndex,
+  });
+
+  final void Function(_FilterEntry<T>) onSelected;
+  final List<_FilterEntry<T>> options;
+  final int highlightedIndex;
+
+  @override
+  State<_FilterOptionsList<T>> createState() => _FilterOptionsListState<T>();
+}
+
+class _FilterOptionsListState<T> extends State<_FilterOptionsList<T>> {
+  final _scrollController = ScrollController();
+
+  @override
+  void didUpdateWidget(covariant _FilterOptionsList<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.highlightedIndex == oldWidget.highlightedIndex) return;
+    if (widget.highlightedIndex >= widget.options.length) return;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final highlightedContext = GlobalObjectKey(
+        widget.options[widget.highlightedIndex],
+      ).currentContext;
+      if (highlightedContext == null) {
+        // The row is not built yet, so jump to the end it moved towards.
+        _scrollController.jumpTo(
+          widget.highlightedIndex == 0
+              ? 0.0
+              : _scrollController.position.maxScrollExtent,
+        );
+      } else {
+        Scrollable.ensureVisible(highlightedContext, alignment: 0.5);
+      }
+    }, debugLabel: 'SearchableFilterDropdown.ensureVisible');
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      controller: _scrollController,
+      itemCount: widget.options.length,
+      itemBuilder: (context, index) {
+        final entry = widget.options[index];
+        final highlighted = index == widget.highlightedIndex;
+        return Semantics(
+          button: true,
+          selected: highlighted,
+          child: InkWell(
+            key: GlobalObjectKey(entry),
+            onTap: () => widget.onSelected(entry),
+            child: Container(
+              color: highlighted ? Theme.of(context).focusColor : null,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Text(entry.label),
+            ),
+          ),
+        );
+      },
     );
   }
 }

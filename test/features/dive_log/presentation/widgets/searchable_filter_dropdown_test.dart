@@ -1,4 +1,7 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
@@ -329,6 +332,71 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(openMenuLabels(tester), contains('Late Arrival'));
+  });
+
+  /// The background colour of the suggestion row offering [label].
+  Color? rowColor(WidgetTester tester, String label) => tester
+      .widget<Container>(
+        find.descendant(
+          of: suggestion(label),
+          matching: find.byType(Container),
+        ),
+      )
+      .color;
+
+  // Enter commits whichever row the arrow keys have moved to, so a keyboard
+  // user has to be able to see which one that is.
+  testWidgets('marks the row the arrow keys moved to', (tester) async {
+    await pumpDropdown(tester);
+    await openMenu(tester);
+
+    final focusColor = Theme.of(
+      tester.element(find.byType(SearchableFilterDropdown<String>)),
+    ).focusColor;
+
+    // The all-options row starts highlighted; one press moves to the first site.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+
+    expect(rowColor(tester, 'Blue Hole'), focusColor);
+    expect(rowColor(tester, allSitesLabel), isNull);
+    expect(rowColor(tester, 'Thistlegorm'), isNull);
+  });
+
+  testWidgets('the highlighted row is exposed as selected to semantics', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pumpDropdown(tester);
+    await openMenu(tester);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getSemantics(suggestion('Blue Hole')).flagsCollection.isSelected,
+      Tristate.isTrue,
+    );
+    expect(
+      tester.getSemantics(suggestion('Thistlegorm')).flagsCollection.isSelected,
+      isNot(Tristate.isTrue),
+    );
+    handle.dispose();
+  });
+
+  testWidgets('enter commits the row the arrow keys moved to', (tester) async {
+    await pumpDropdown(tester);
+    await openMenu(tester);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    // Enter reaches a TextField through the text input channel, not as a raw
+    // key event, so a sendKeyEvent here would prove nothing.
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(reported, ['s1']);
+    expect(find.text('Blue Hole'), findsOneWidget);
   });
 
   testWidgets('moving focus away discards an uncommitted query', (
