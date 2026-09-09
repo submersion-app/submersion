@@ -82,6 +82,56 @@ void main() {
       expect(container.read(diveListGroupingEnabledProvider), isFalse);
     });
 
+    test('table mode does not count as paused by the sort', () {
+      // The notice blames the sort by name. Table mode ignores grouping by
+      // design, so saying "grouping is off while sorted by Date" there would
+      // be wrong twice over.
+      final container = makeContainer(
+        toggle: true,
+        sortField: DiveSortField.date,
+        viewMode: ListViewMode.table,
+      );
+
+      expect(container.read(diveListGroupingEnabledProvider), isFalse);
+      expect(container.read(diveListGroupingPausedBySortProvider), isFalse);
+    });
+
+    test('a depth sort in table mode is still not paused by the sort', () {
+      final container = makeContainer(
+        toggle: true,
+        sortField: DiveSortField.depth,
+        viewMode: ListViewMode.table,
+      );
+
+      expect(
+        container.read(diveListGroupingPausedBySortProvider),
+        isTrue,
+        reason:
+            'the sort really is the blocker here; table mode never renders '
+            'the notice because it never builds the list body',
+      );
+    });
+
+    test('a depth sort in a card mode is paused by the sort', () {
+      final container = makeContainer(
+        toggle: true,
+        sortField: DiveSortField.depth,
+        viewMode: ListViewMode.detailed,
+      );
+
+      expect(container.read(diveListGroupingPausedBySortProvider), isTrue);
+    });
+
+    test('the toggle being off is never "paused by sort"', () {
+      final container = makeContainer(
+        toggle: false,
+        sortField: DiveSortField.depth,
+        viewMode: ListViewMode.detailed,
+      );
+
+      expect(container.read(diveListGroupingPausedBySortProvider), isFalse);
+    });
+
     test('an ascending date sort still groups', () {
       final container = ProviderContainer(
         overrides: [

@@ -1,8 +1,10 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+
 import 'package:submersion/features/dive_log/presentation/providers/trip_group_collapse_provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
@@ -10,14 +12,24 @@ void main() {
 
   late SharedPreferences prefs;
 
-  Future<ProviderContainer> makeContainer() async {
-    SharedPreferences.setMockInitialValues({});
-    prefs = await SharedPreferences.getInstance();
+  ProviderContainer containerOver(
+    SharedPreferences existing, {
+    String? diverId,
+  }) {
     final container = ProviderContainer(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(existing),
+        currentDiverIdProvider.overrideWith((ref) => _FixedDiverId(diverId)),
+      ],
     );
     addTearDown(container.dispose);
     return container;
+  }
+
+  Future<ProviderContainer> makeContainer({String? diverId}) async {
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+    return containerOver(prefs, diverId: diverId);
   }
 
   group('collapsedTripIdsProvider', () {
@@ -62,6 +74,37 @@ void main() {
       expect(container.read(collapsedTripIdsProvider), {'t1', 't2', 't3'});
     });
 
+    test('one diver\'s collapsed trips do not fold them for another', () async {
+      final first = await makeContainer(diverId: 'diver-a');
+      first.read(collapsedTripIdsProvider.notifier).toggle('t1');
+      expect(first.read(collapsedTripIdsProvider), {'t1'});
+
+      final second = containerOver(prefs, diverId: 'diver-b');
+
+      expect(
+        second.read(collapsedTripIdsProvider),
+        isEmpty,
+        reason: 'collapse state is scoped to the diver who folded the trip',
+      );
+    });
+
+    test('each diver keeps their own collapsed set', () async {
+      final a = await makeContainer(diverId: 'diver-a');
+      a.read(collapsedTripIdsProvider.notifier).toggle('t1');
+
+      final b = containerOver(prefs, diverId: 'diver-b');
+      b.read(collapsedTripIdsProvider.notifier).toggle('t2');
+
+      expect(
+        containerOver(prefs, diverId: 'diver-a').read(collapsedTripIdsProvider),
+        {'t1'},
+      );
+      expect(
+        containerOver(prefs, diverId: 'diver-b').read(collapsedTripIdsProvider),
+        {'t2'},
+      );
+    });
+
     test('expandAll clears everything', () async {
       final container = await makeContainer();
       final notifier = container.read(collapsedTripIdsProvider.notifier);
@@ -72,4 +115,13 @@ void main() {
       expect(container.read(collapsedTripIdsProvider), isEmpty);
     });
   });
+}
+
+/// Pins the active diver for a container, standing in for the real notifier.
+class _FixedDiverId extends StateNotifier<String?>
+    implements CurrentDiverIdNotifier {
+  _FixedDiverId(super.state);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

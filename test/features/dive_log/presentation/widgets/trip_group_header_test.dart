@@ -50,6 +50,7 @@ void main() {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: overrides,
         child: TripGroupHeader(
           section: value,

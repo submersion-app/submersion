@@ -359,6 +359,21 @@ final diveListGroupingEnabledProvider = Provider<bool>((ref) {
   return ref.watch(diveListViewModeProvider) != ListViewMode.table;
 });
 
+/// Whether grouping is off *because of the sort*, rather than for any other
+/// reason.
+///
+/// Deliberately independent of the view mode. The paused notice blames the
+/// sort by name, so it must not appear when the real reason is something else:
+/// table mode ignores grouping by design, and saying "grouping is off while
+/// sorted by Date" there would be wrong twice over. Today the table never
+/// reaches the list body at all, but that is an early return in another
+/// method, which is too far away to rely on.
+final diveListGroupingPausedBySortProvider = Provider<bool>((ref) {
+  if (!ref.watch(diveListGroupTripsProvider)) return false;
+  final sort = ref.watch(diveSortProvider);
+  return !kChronologicalDiveSortFields.contains(sort.field);
+});
+
 /// Total dives per trip, keyed by trip id, for the dive list's group headers.
 ///
 /// One query for the entire list rather than one per header. Takes the same

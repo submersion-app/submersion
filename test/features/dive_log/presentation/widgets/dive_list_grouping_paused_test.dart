@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
@@ -23,6 +24,7 @@ void main() {
 
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           ...base,
           diveSortProvider.overrideWith(

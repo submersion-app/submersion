@@ -23,6 +23,7 @@ void main() {
 
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: overrides,
         child: const DiveListContent(showAppBar: true),
       ),

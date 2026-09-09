@@ -1690,7 +1690,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             child: CustomScrollView(
               controller: _scrollController,
               slivers: [
-                if (ref.watch(diveListGroupTripsProvider) && !groupingEnabled)
+                if (ref.watch(diveListGroupingPausedBySortProvider))
                   SliverToBoxAdapter(
                     child: _buildGroupingPausedNotice(context),
                   ),
