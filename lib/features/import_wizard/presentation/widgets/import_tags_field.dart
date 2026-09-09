@@ -163,12 +163,16 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
                     contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   ),
                   onSubmitted: (text) {
-                    // With suggestions open, Enter commits the highlighted
-                    // one; adding the typed text too would add two tags.
-                    if (_filteredSuggestions(text).isEmpty) {
-                      _submitTag(text);
-                    }
+                    // Give RawAutocomplete first refusal: it commits the
+                    // highlighted suggestion, but only while the options
+                    // overlay is actually showing. Whether suggestions merely
+                    // exist is not the same question, since Escape closes the
+                    // overlay and leaves them matching.
                     onSubmitted();
+                    // Committing a suggestion clears the field via onSelected,
+                    // so text still standing means nothing was committed and
+                    // the typed tag is what the user meant.
+                    if (controller.text == text) _submitTag(text);
                   },
                 ),
               ),

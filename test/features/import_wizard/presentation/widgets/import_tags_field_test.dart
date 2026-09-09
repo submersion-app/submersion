@@ -513,5 +513,50 @@ void main() {
       expect(added.single.existingTagId, isNull);
       expect(added.single.name, equals('Night dives'));
     });
+
+    testWidgets('submitting after dismissing the suggestions adds the typed '
+        'tag', (tester) async {
+      final added = <TagSelection>[];
+      final existingTags = [
+        Tag(
+          id: 'tag-1',
+          name: 'Vacation',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ImportTagsField(
+              tags: const [],
+              existingTags: existingTags,
+              onAdd: added.add,
+              onRemove: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), 'Vac');
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(ListTile, 'Vacation'), findsOneWidget);
+
+      // Escape closes the overlay, so RawAutocomplete will not commit a
+      // suggestion; the typed text must still be added.
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(ListTile, 'Vacation'), findsNothing);
+
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      expect(added, hasLength(1));
+      expect(added.single.name, equals('Vac'));
+      expect(added.single.existingTagId, isNull);
+    });
   });
 }
