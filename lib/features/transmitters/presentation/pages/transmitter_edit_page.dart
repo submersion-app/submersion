@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -327,9 +328,9 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
           tooltip: l10n.common_action_close,
         ),
         actions: [
-          TextButton(
+          AppBarTextAction(
+            label: l10n.common_action_save,
             onPressed: _loading ? null : _save,
-            child: Text(l10n.common_action_save),
           ),
         ],
       ),
