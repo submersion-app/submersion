@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_category_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -178,9 +179,9 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
     );
   }
 
-  Future<void> _confirmAndDeleteSelected() async {
+  Future<BulkActionOutcome> _confirmAndDeleteSelected() async {
     final ids = _selectedIds.toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -202,7 +203,7 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return BulkActionOutcome.cancelled;
 
     final messenger = ScaffoldMessenger.of(context);
     final repo = ref.read(serviceKindRepositoryProvider);
@@ -210,7 +211,7 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
     for (final id in ids) {
       await repo.deleteKind(id);
     }
-    if (!mounted) return;
+    if (!mounted) return BulkActionOutcome.completed;
     // Mirrors the per-row delete: the kind list and the equipment clocks that
     // reference cascaded schedules both need re-reading.
     ref.invalidate(serviceKindsProvider);
@@ -220,6 +221,7 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
         content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
       ),
     );
+    return BulkActionOutcome.completed;
   }
 
   Future<void> _confirmDelete(

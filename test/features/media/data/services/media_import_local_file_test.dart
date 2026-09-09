@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -35,26 +36,35 @@ void main() {
     await sourceDir.delete(recursive: true);
   });
 
-  test(
-    'copies file into scanned_logs and creates localFile media row',
-    () async {
-      final source = File('${sourceDir.path}/page.jpg')
-        ..writeAsBytesSync([0xFF, 0xD8, 0xFF, 0xE0]); // JPEG magic bytes
+  test('copies file into <documents>/Submersion/scanned_logs and creates '
+      'localFile media row', () async {
+    final source = File('${sourceDir.path}/page.jpg')
+      ..writeAsBytesSync([0xFF, 0xD8, 0xFF, 0xE0]); // JPEG magic bytes
 
-      final item = await service.importLocalFileForDive(
-        sourceFile: source,
-        diveId: 'dive-1',
-      );
+    final item = await service.importLocalFileForDive(
+      sourceFile: source,
+      diveId: 'dive-1',
+    );
 
-      expect(item.sourceType, MediaSourceType.localFile);
-      expect(item.diveId, 'dive-1');
-      expect(item.mediaType, MediaType.photo);
-      expect(item.filePath, contains('scanned_logs'));
-      expect(item.originalFilename, 'page.jpg');
-      expect(File(item.filePath!).existsSync(), isTrue);
-      verify(mockMediaRepository.createMedia(any)).called(1);
-    },
-  );
+    expect(item.sourceType, MediaSourceType.localFile);
+    expect(item.diveId, 'dive-1');
+    expect(item.mediaType, MediaType.photo);
+    // Issue #1645: on Windows and Linux the documents directory is the
+    // user's own Documents folder, so anything written directly under it
+    // lands among their personal files. Every other file the app owns
+    // sits one level down in `Submersion`, and scans must too.
+    expect(
+      p.dirname(item.filePath!),
+      p.join(docsDir.path, 'Submersion', 'scanned_logs'),
+    );
+    expect(
+      Directory(p.join(docsDir.path, 'scanned_logs')).existsSync(),
+      isFalse,
+    );
+    expect(item.originalFilename, 'page.jpg');
+    expect(File(item.filePath!).existsSync(), isTrue);
+    verify(mockMediaRepository.createMedia(any)).called(1);
+  });
 
   test('extensionless source defaults to .jpg', () async {
     final source = File('${sourceDir.path}/scan')
@@ -86,8 +96,10 @@ void main() {
         expect(item.latitude, closeTo(18.465562, 1e-6));
         expect(item.longitude, closeTo(-66.084902, 1e-6));
         expect(item.takenAt, DateTime.utc(2025, 1, 15, 10, 3, 20));
-        expect(item.filePath, contains('imported_photos'));
-        expect(item.filePath, isNot(contains('scanned_logs')));
+        expect(
+          p.dirname(item.filePath!),
+          p.join(docsDir.path, 'Submersion', 'imported_photos'),
+        );
       },
     );
 

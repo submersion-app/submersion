@@ -41,11 +41,7 @@ class TripChecklistSection extends ConsumerWidget {
       );
     }
 
-    final categorySuggestions = items
-        .map((i) => i.category)
-        .whereType<String>()
-        .toSet()
-        .toList();
+    final categorySuggestions = _distinctCategories(items);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,9 +203,14 @@ class TripChecklistSection extends ConsumerWidget {
     final theme = Theme.of(context);
     final repository = ref.read(tripChecklistRepositoryProvider);
     // Group by category preserving first-seen order; null category last.
+    // Keyed case-insensitively so 'diving' and 'Diving' are one group,
+    // labelled with the casing that appeared first.
+    final labels = <String, String>{};
     final grouped = <String?, List<TripChecklistItem>>{};
     for (final item in items.where((i) => i.category != null)) {
-      grouped.putIfAbsent(item.category, () => []).add(item);
+      final key = item.category!.toLowerCase();
+      final label = labels.putIfAbsent(key, () => item.category!);
+      grouped.putIfAbsent(label, () => []).add(item);
     }
     final uncategorized = items.where((i) => i.category == null).toList();
     if (uncategorized.isNotEmpty) grouped[null] = uncategorized;
@@ -248,4 +249,16 @@ class TripChecklistSection extends ConsumerWidget {
     });
     return widgets;
   }
+}
+
+/// Distinct categories in first-seen order, folding entries that differ only
+/// in case so the suggestion list offers 'Diving' once rather than once per
+/// casing a diver has typed.
+List<String> _distinctCategories(List<TripChecklistItem> items) {
+  final seen = <String>{};
+  final categories = <String>[];
+  for (final category in items.map((i) => i.category).whereType<String>()) {
+    if (seen.add(category.toLowerCase())) categories.add(category);
+  }
+  return categories;
 }

@@ -15,15 +15,25 @@ import '../../../../helpers/test_app.dart';
 void main() {
   final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
 
-  // The tile formats its numbers through number_input.dart, which resolves
-  // Intl.defaultLocale: a mutable process global the app sets from the diver's
-  // language at lib/app.dart. Setting only the MaterialApp locale leaves the
-  // formatter on intl's implicit fallback, so a locale test that skipped this
-  // would pass against unfixed code. Restored per test so nothing leaks.
+  // The value line formats through Intl.getCurrentLocale(), which resolves the
+  // Intl.defaultLocale process global rather than the MaterialApp locale. The
+  // app assigns it from the diver's locale (lib/app.dart); a widget test that
+  // pumps the tile alone never runs that.
+  //
+  // Pinned rather than merely saved. Left unset, getCurrentLocale falls back to
+  // Intl.systemLocale, and the assertions below that spell out a '.' would then
+  // rest on that fallback happening to be en_US: a default owned by intl, not
+  // by this file. Tests that need another locale set it in the test body.
   late String? previousLocale;
 
-  setUp(() => previousLocale = Intl.defaultLocale);
-  tearDown(() => Intl.defaultLocale = previousLocale);
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
 
   PreDiveSession session({bool locked = false, bool strict = false}) =>
       PreDiveSession(
@@ -206,6 +216,26 @@ void main() {
         ),
       );
       expect(find.text('SPG: 200.0 bar'), findsOneWidget);
+    });
+
+    testWidgets('value line follows a comma-decimal locale', (tester) async {
+      // double.toString() always emits '.', so the recorded reading read
+      // "200.0 bar" to a German diver while every number they typed used a
+      // comma. Both the process global and the MaterialApp locale are set:
+      // the first drives the separator, the second the surrounding strings.
+      Intl.defaultLocale = 'de';
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(
+          type: PreDiveItemType.value,
+          valueLabel: 'SPG',
+          valueNumber: 200,
+          valueUnit: 'bar',
+        ),
+        locale: const Locale('de'),
+      );
+      expect(find.text('SPG: 200,0 bar'), findsOneWidget);
     });
 
     testWidgets('out-of-range value line is bold', (tester) async {
@@ -610,29 +640,35 @@ void main() {
       expect(find.textContaining('linearity 99%'), findsOneWidget);
     });
 
-    testWidgets('renders every number in the diver separator under de (#1682)', (
+    testWidgets('the working uses the diver\'s decimal separator', (
       tester,
     ) async {
-      // The value line and the working line are formatted independently, so
-      // both are pinned here: a diver who types "48,0" must not read "48.0".
+      // Same bug #1684 fixed on the value line above, on the same tile
+      // (#1682). Pins the process global the formatter actually reads, not
+      // just the MaterialApp locale, or this passes against unfixed code.
       Intl.defaultLocale = 'de';
+      await pumpTile(tester, s: session(), it: linearity());
 
-      await pumpTile(
-        tester,
-        s: session(),
-        it: linearity(),
-        locale: const Locale('de'),
-      );
-
-      expect(find.textContaining('Cell 1: 48,0 mV'), findsOneWidget);
-      expect(find.textContaining('Luft 10,1 mV'), findsOneWidget);
-      expect(find.textContaining('erwartet 48,3 mV'), findsOneWidget);
-
-      // toStringAsFixed and raw interpolation both emit ASCII '.', which under
-      // de is the grouping separator and reads as a thousand times too large.
-      expect(find.textContaining('48.0'), findsNothing);
+      // The sentence stays English because pumpTile pins the MaterialApp to
+      // 'en'; only the numbers follow Intl.defaultLocale. The two locales are
+      // deliberately independent, which is why pinning the widget locale
+      // alone would not catch this.
+      expect(find.textContaining('Air 10,1 mV'), findsOneWidget);
+      expect(find.textContaining('expected 48,3 mV'), findsOneWidget);
       expect(find.textContaining('10.1'), findsNothing);
       expect(find.textContaining('48.3'), findsNothing);
+    });
+
+    testWidgets('the air reading keeps the precision the diver entered', (
+      tester,
+    ) async {
+      // The air value is the diver's own input, so it is never rounded: a
+      // check that exists so they can redo the sum must not show a figure
+      // they did not type. Only the derived expected value is pinned to 1 dp.
+      await pumpTile(tester, s: session(), it: linearity(air: 10.15));
+
+      expect(find.textContaining('Air 10.15 mV'), findsOneWidget);
+      expect(find.textContaining('expected 48.6 mV'), findsOneWidget);
     });
 
     testWidgets('a low reading is styled as out of range', (tester) async {
@@ -640,6 +676,48 @@ void main() {
 
       final line = tester.widget<Text>(find.textContaining('linearity 83%'));
       expect(line.style?.fontWeight, FontWeight.bold);
+    });
+
+    testWidgets('the warning marks the percentage, not the O2 millivolts', (
+      tester,
+    ) async {
+      // The threshold on a linearity item is a percentage, so the amber has
+      // to point at the figure that actually breached it. Highlighting
+      // "Cell 1: 40.0 mV" would claim the millivolt reading was out of
+      // range, which is the same category error valueOutOfRange itself had.
+      await pumpTile(tester, s: session(), it: linearity(o2: 40.0));
+
+      final working = tester.widget<Text>(find.textContaining('linearity 83%'));
+      expect(working.style?.fontWeight, FontWeight.bold);
+
+      final primary = tester.widget<Text>(find.textContaining('Cell 1: 40.0'));
+      expect(
+        primary.style?.fontWeight,
+        isNot(FontWeight.bold),
+        reason: 'no threshold applies to the recorded millivolts',
+      );
+    });
+
+    testWidgets('a plain value item still warns on its own line', (
+      tester,
+    ) async {
+      // The other side of the split: for a value item the recorded number is
+      // exactly what the threshold measures, so it keeps the warning.
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(
+          type: PreDiveItemType.value,
+          state: PreDiveItemState.done,
+          valueLabel: 'Cell 1',
+          valueUnit: 'mV',
+          valueNumber: 8.0,
+          valueMin: 8.5,
+        ),
+      );
+
+      final primary = tester.widget<Text>(find.textContaining('Cell 1: 8'));
+      expect(primary.style?.fontWeight, FontWeight.bold);
     });
 
     testWidgets('a healthy reading is not styled as out of range', (

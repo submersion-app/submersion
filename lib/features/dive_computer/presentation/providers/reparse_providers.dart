@@ -5,6 +5,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 /// Provider for the [ReparseService] singleton.
 ///
@@ -17,6 +18,7 @@ final reparseServiceProvider = Provider<ReparseService>((ref) {
     trimTankPressureAtSurfacing: ref.watch(
       settingsProvider.select((s) => s.trimTankPressureAtSurfacing),
     ),
+    transmitterMatcherLoader: () => loadTransmitterMatcher(ref),
   );
 });
 

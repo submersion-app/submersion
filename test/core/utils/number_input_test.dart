@@ -158,6 +158,56 @@ void main() {
     });
   });
 
+  group('formatDecimalForDisplay', () {
+    test('uses the locale decimal separator', () {
+      Intl.defaultLocale = 'de';
+      expect(formatDecimalForDisplay(200.0), '200,0');
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(200.0), '200.0');
+    });
+
+    test('keeps a trailing zero where the input form drops it', () {
+      // Asserted as a pair on purpose: these two differ in exactly one way,
+      // and it is load bearing. A field seeded "200.0" reads as a
+      // half-finished edit, so the input form strips it; a recorded reading
+      // of 200.0 bar states a precision the diver logged, so the display form
+      // keeps it. Routing a display through the input helper silently drops
+      // a decimal the tile was claiming.
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(200.0), '200.0');
+      expect(formatDecimalForInput(200.0), '200');
+    });
+
+    test('localises a negative value', () {
+      Intl.defaultLocale = 'de';
+      expect(formatDecimalForDisplay(-3.5), '-3,5');
+    });
+
+    test('omits grouping separators, matching the input form', () {
+      Intl.defaultLocale = 'de';
+      expect(formatDecimalForDisplay(1250.5), '1250,5');
+    });
+
+    test('does not silently truncate precision', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(12.345678), '12.345678');
+    });
+
+    test('spells out a magnitude that stringifies in exponent notation', () {
+      // No diver can read "1e+21" off a checklist tile.
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(1e21), isNot(contains('e')));
+    });
+
+    test('renders nothing for a non-finite value', () {
+      // Unreachable through parseUserDecimal, which rejects both, but the
+      // display form must not put "NaN" in front of a diver either way.
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(double.nan), '');
+      expect(formatDecimalForDisplay(double.infinity), '');
+    });
+  });
+
   group('formatRoundedForInput', () {
     test('rounds to the requested precision and drops trailing zeros', () {
       Intl.defaultLocale = 'en_US';
@@ -205,46 +255,6 @@ void main() {
           reason: 'locale $locale',
         );
       }
-    });
-  });
-
-  group('formatDecimalForDisplay', () {
-    test('uses the locale decimal separator', () {
-      Intl.defaultLocale = 'fr';
-      expect(formatDecimalForDisplay(12.5), '12,5');
-      Intl.defaultLocale = 'en_US';
-      expect(formatDecimalForDisplay(12.5), '12.5');
-    });
-
-    test('keeps a trailing zero the input twin would drop (#1682)', () {
-      // The display twin renders a value the diver is reading, not editing, so
-      // "48.0 mV" stays "48,0 mV" under de rather than collapsing to "48 mV".
-      Intl.defaultLocale = 'en_US';
-      expect(formatDecimalForDisplay(48), '48.0');
-      Intl.defaultLocale = 'de';
-      expect(formatDecimalForDisplay(48), '48,0');
-    });
-
-    test('omits grouping separators, matching the input twin', () {
-      Intl.defaultLocale = 'de';
-      expect(formatDecimalForDisplay(1250.5), '1250,5');
-    });
-
-    test('preserves the precision of the value', () {
-      Intl.defaultLocale = 'en_US';
-      expect(formatDecimalForDisplay(12.345678), '12.345678');
-      expect(formatDecimalForDisplay(12.05), '12.05');
-    });
-
-    test('localises the minus sign', () {
-      Intl.defaultLocale = 'fr';
-      expect(formatDecimalForDisplay(-12.5), '-12,5');
-    });
-
-    test('returns empty for non-finite input', () {
-      Intl.defaultLocale = 'en_US';
-      expect(formatDecimalForDisplay(double.nan), '');
-      expect(formatDecimalForDisplay(double.infinity), '');
     });
   });
 

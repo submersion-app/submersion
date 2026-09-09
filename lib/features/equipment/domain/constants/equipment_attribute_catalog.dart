@@ -65,6 +65,11 @@ abstract final class EquipmentAttrKeys {
   static const insulationLevel = 'insulation_level';
   static const fillMaterial = 'fill_material';
 
+  // Cylinder specs (issue #1365): read by the transmitter registry editor.
+  static const volumeL = 'volume_l';
+  static const workingPressureBar = 'working_pressure_bar';
+  static const tankMaterial = 'tank_material';
+
   // Purchase record (issue #1517).
   static const sku = 'sku';
   static const retailer = 'retailer';
@@ -220,17 +225,17 @@ abstract final class EquipmentAttributeCatalog {
     ],
     EquipmentType.tank: [
       EquipmentAttributeDef(
-        key: 'volume_l',
+        key: EquipmentAttrKeys.volumeL,
         kind: AttributeKind.number,
         dimension: AttributeDimension.volumeL,
       ),
       EquipmentAttributeDef(
-        key: 'working_pressure_bar',
+        key: EquipmentAttrKeys.workingPressureBar,
         kind: AttributeKind.number,
         dimension: AttributeDimension.pressureBar,
       ),
       EquipmentAttributeDef(
-        key: 'tank_material',
+        key: EquipmentAttrKeys.tankMaterial,
         kind: AttributeKind.choice,
         choiceKeys: ['aluminum', 'steel', 'carbon_composite'],
       ),

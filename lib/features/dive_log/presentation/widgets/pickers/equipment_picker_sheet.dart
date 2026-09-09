@@ -6,17 +6,23 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 /// Equipment picker bottom sheet
 class EquipmentPickerSheet extends ConsumerWidget {
   final ScrollController scrollController;
   final Set<String> selectedEquipmentIds;
+
+  /// When set, only gear of this type is offered (the transmitter registry
+  /// editor lists cylinders only).
+  final EquipmentType? typeFilter;
   final void Function(EquipmentItem) onEquipmentSelected;
 
   const EquipmentPickerSheet({
     super.key,
     required this.scrollController,
     required this.selectedEquipmentIds,
+    this.typeFilter,
     required this.onEquipmentSelected,
   });
 
@@ -52,6 +58,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
               // Filter out already selected equipment
               final available = equipmentList
                   .where((e) => !selectedEquipmentIds.contains(e.id))
+                  .where((e) => typeFilter == null || e.type == typeFilter)
                   .toList();
 
               if (available.isEmpty) {

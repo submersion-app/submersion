@@ -133,6 +133,15 @@ class SessionItemTile extends ConsumerWidget {
     final percent = item.linearityPercent;
     final expected = item.expectedO2Millivolts;
     final air = item.sourceValueNumber;
+    // Both numbers go through formatDecimalForDisplay so the diver reads
+    // their own decimal separator (#1684 did the value line above; this is
+    // the same bug on the same tile, tracked as #1682).
+    //
+    // The air reading keeps the precision the diver entered, because it is
+    // their input and rounding it would show a figure they never typed. The
+    // expected value is derived, so it is rounded to 1 dp first, which is
+    // what formatDecimalForDisplay asks callers wanting pinned decimals to
+    // do.
     final linearityLine = (percent != null && expected != null && air != null)
         ? l10n.preDive_runner_linearityLine(
             formatDecimalForDisplay(air),
@@ -141,15 +150,22 @@ class SessionItemTile extends ConsumerWidget {
           )
         : null;
 
+    // The advisory warning has to mark the number that actually breached its
+    // threshold. On a value item that is the recorded number itself, but on a
+    // linearity item the threshold is a percentage, so the amber belongs on
+    // the working line rather than on the O2 millivolts, which no threshold
+    // applies to.
+    final primaryOutOfRange = item.valueOutOfRange && !item.isCellLinearity;
+
     final subtitleChildren = <Widget>[
       if (valueLine != null && valueLine.isNotEmpty)
         Text(
           valueLine,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: item.valueOutOfRange
+            color: primaryOutOfRange
                 ? Colors.amber.shade700
                 : theme.colorScheme.onSurfaceVariant,
-            fontWeight: item.valueOutOfRange ? FontWeight.bold : null,
+            fontWeight: primaryOutOfRange ? FontWeight.bold : null,
           ),
         ),
       if (linearityLine != null)

@@ -754,6 +754,65 @@ void main() {
       expect(find.text('OK'), findsOneWidget);
     });
 
+    testWidgets('a resolved linearity item cannot be re-edited in place', (
+      tester,
+    ) async {
+      // The frozen air reading cannot be silently rewritten by correcting the
+      // O2 value, because a resolved item is not actionable at all
+      // (ChecklistSessionEngine.isItemActionable gates on pending). Reaching
+      // the dialog requires Reset first, and Reset clears the frozen reading,
+      // so the next resolve legitimately freezes the current source.
+      final repo = await pumpRunner(
+        tester,
+        s: session(strict: false),
+        items: pair(
+          o2Value: 48.0,
+          o2State: PreDiveItemState.done,
+          frozenAir: 9.4,
+        ),
+      );
+
+      await tester.tap(find.text('Item 1'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byType(TextField),
+        findsNothing,
+        reason: 'no entry dialog opens for a resolved item',
+      );
+      expect(
+        repo.calls,
+        isEmpty,
+        reason: 'nothing was written, so the frozen reading stands',
+      );
+      // The hint is still there, still reporting the original basis.
+      expect(find.textContaining('has changed since'), findsOneWidget);
+      expect(find.textContaining('Air 9.4 mV'), findsOneWidget);
+    });
+
+    testWidgets('resetting clears the frozen reading', (tester) async {
+      // The other half of the invariant: Reset is the only route back into
+      // the dialog, and it wipes the frozen value first.
+      final repo = await pumpRunner(
+        tester,
+        s: session(strict: false),
+        items: pair(
+          o2Value: 48.0,
+          o2State: PreDiveItemState.done,
+          frozenAir: 9.4,
+        ),
+      );
+
+      await tester.tap(find.byType(PopupMenuButton<String>).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Reset to pending'));
+      await tester.pumpAndSettle();
+
+      final call = repo.calls.single;
+      expect(call.itemId, 'i1');
+      expect(call.state, PreDiveItemState.pending);
+    });
+
     testWidgets('the stale hint appears when the source has moved on', (
       tester,
     ) async {

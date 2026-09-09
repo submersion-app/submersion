@@ -5725,6 +5725,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_presetThisYear => '今年';
 
   @override
+  String get diveLog_filter_searchComputersHint => '输入以搜索潜水电脑';
+
+  @override
+  String get diveLog_filter_searchSitesHint => '输入以搜索潜水点';
+
+  @override
+  String get diveLog_filter_searchTypesHint => '输入以搜索类型';
+
+  @override
+  String get diveLog_filter_searchCentersHint => '输入以搜索潜水中心';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => '输入以搜索字段';
+
+  @override
+  String get diveLog_filter_searchTripsHint => '输入以搜索行程';
+
+  @override
   String get diveLog_filter_sectionBuddy => '潜伴';
 
   @override
@@ -20807,6 +20825,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_certificate_thisCertifies => '特此证明';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => '应用设置：关';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => '应用设置：开';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => '时钟同步';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => '重新检查';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      '每次下载后将时钟设为本设备的时间。仅适用于本设备。';
+
+  @override
+  String get diveComputer_clockSync_globalTitle => '同步潜水电脑时钟';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => '总是';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => '应用设置';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => '从不';
+
+  @override
+  String get diveComputer_clockSync_supported => '此型号支持';
+
+  @override
+  String get diveComputer_clockSync_unsupported => '此型号不支持时钟同步';
+
+  @override
   String get diveComputer_connectionType_ble => '蓝牙 LE';
 
   @override
@@ -21004,6 +21056,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => '下载已取消';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => '时钟同步失败';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported => '此型号不支持时钟同步';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => '时钟已同步';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -35148,4 +35209,262 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size（自动）';
   }
+
+  @override
+  String get settings_manage_transmitters => '发射器';
+
+  @override
+  String get settings_manage_transmitters_subtitle => '将气瓶压力发射器关联到气瓶';
+
+  @override
+  String get transmitters_title => '发射器';
+
+  @override
+  String get transmitters_add => '添加发射器';
+
+  @override
+  String get transmitters_header_assigned => '已分配的发射器';
+
+  @override
+  String get transmitters_header_unassigned => '下载中出现但未分配';
+
+  @override
+  String get transmitters_empty => '还没有发射器。添加一个，或在下次下载后分配序列号。';
+
+  @override
+  String get transmitters_action_assign => '分配';
+
+  @override
+  String get transmitters_action_edit => '编辑发射器';
+
+  @override
+  String get transmitters_action_delete => '删除发射器';
+
+  @override
+  String get transmitters_action_apply => '应用到现有潜水';
+
+  @override
+  String get transmitters_apply_title => '应用到现有潜水？';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$dives 次潜水中的 $tanks 个气瓶带有此发射器。空白的容量、材质、名称和装备字段将被填充，仍为背气的用途将被替换。';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return '已更新 $dives 次潜水中的 $tanks 个气瓶';
+  }
+
+  @override
+  String get transmitters_apply_nothing => '没有气瓶带有此发射器';
+
+  @override
+  String get transmitters_delete_title => '删除发射器？';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return '今后从 $label 的下载将重新使用默认预设。';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer，通道 $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return '发射器 $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => '编辑发射器';
+
+  @override
+  String get transmitters_new_title => '新发射器';
+
+  @override
+  String get transmitters_field_label => '标签';
+
+  @override
+  String get transmitters_field_serial => '发射器序列号';
+
+  @override
+  String get transmitters_field_computer => '潜水电脑（未报告序列号时使用）';
+
+  @override
+  String get transmitters_field_channel => '通道';
+
+  @override
+  String get transmitters_field_role => '用途';
+
+  @override
+  String get transmitters_field_gear => '来自装备的气瓶';
+
+  @override
+  String get transmitters_field_material => '材质';
+
+  @override
+  String get transmitters_gear_none => '无';
+
+  @override
+  String get transmitters_validation_key => '请输入发射器序列号，或选择潜水电脑和通道';
+
+  @override
+  String get transmitters_validation_positive => '请输入大于零的值';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return '已分配给 $label';
+  }
+
+  @override
+  String get transmitters_saved => '发射器已保存';
+
+  @override
+  String get diveComputer_detail_transmitters => '发射器';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known 个已知，$unassigned 个未分配';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => '分配发射器';
+
+  @override
+  String get diveLog_tank_reassignSeries => '重新分配压力曲线';
+
+  @override
+  String get diveLog_reassignSheet_title => '压力曲线';
+
+  @override
+  String get diveLog_reassignSheet_swap => '交换';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => '移动到';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个读数',
+      one: '1 个读数',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => '没有压力曲线';
+
+  @override
+  String get diveLog_reassignSheet_applied => '压力曲线已重新分配';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle => '未分配的发射器';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      '此次下载中有一个或多个发射器未分配到气瓶。分配后，今后的下载将获得正确的容量和用途。';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters => '分配发射器';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter => '未分配的发射器';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return '发射器 $serial 未分配到气瓶';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter => '分配发射器';
+
+  @override
+  String get backup_unrecognized_appBar_title => '无法识别的备份';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      '这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此处只能删除本设备写入的文件：其他文件可能是另一台设备的唯一副本。';
+
+  @override
+  String get backup_unrecognized_empty => '没有无法识别的备份文件。';
+
+  @override
+  String get backup_unrecognized_loadFailed => '无法读取备份文件夹。';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      '本设备无法列出您选择的备份文件夹，因此找不到无法识别的文件。';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => '其他设备';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => '未知设备';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '删除 $count 个文件（$size）',
+      one: '删除 1 个文件（$size）',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title => '删除这些备份文件？';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将永久删除 $count 个备份文件。此操作无法撤销。',
+      one: '将永久删除 1 个备份文件。此操作无法撤销。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed => '无法删除所选文件。';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '已释放 $size';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件不在您的备份历史记录中',
+      one: '1 个文件不在您的备份历史记录中',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => '查看';
 }

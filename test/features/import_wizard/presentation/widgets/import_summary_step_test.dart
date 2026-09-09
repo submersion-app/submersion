@@ -1274,6 +1274,65 @@ void main() {
       expect(find.byKey(const Key('import_summary_notices')), findsNothing);
     });
 
+    testWidgets('explains unassigned transmitters with an action', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 3},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          notices: [
+            ImportNotice(
+              kind: ImportNoticeKind.unknownTransmitter,
+              affectedDives: 3,
+            ),
+          ],
+        ),
+      );
+      // The action pushes a route, so this test hosts the step in a router.
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => Scaffold(
+              body: ImportSummaryStep(onDone: () {}, onViewDives: () {}),
+            ),
+          ),
+          GoRoute(
+            path: '/transmitters',
+            builder: (context, state) =>
+                const Scaffold(body: Text('TRANSMITTERS_PAGE')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            importWizardNotifierProvider.overrideWith((_) => notifier),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Unassigned transmitters'), findsOneWidget);
+      expect(find.textContaining('not assigned to a cylinder'), findsOneWidget);
+      expect(find.text('Affects 3 dives'), findsOneWidget);
+
+      await tester.tap(find.text('Assign transmitters'));
+      await tester.pumpAndSettle();
+      expect(find.text('TRANSMITTERS_PAGE'), findsOneWidget);
+    });
+
     testWidgets('still reports the import as successful', (tester) async {
       await pumpWithNotices(tester, const [
         ImportNotice(kind: ImportNoticeKind.noTankPressure, affectedDives: 12),

@@ -51,9 +51,18 @@ class SerialDownloadClient(
                 flutterApi.onError(DiveComputerError(code = code, message = message)) { }
             }
         }
-        override fun onComplete(totalDives: Long) {
+        override fun onComplete(
+            totalDives: Long,
+            serialNumber: String?,
+            firmwareVersion: String?,
+            clockSyncStatus: String?,
+        ) {
             finish()
-            mainHandler.post { flutterApi.onDownloadComplete(totalDives, null, null) { } }
+            mainHandler.post {
+                flutterApi.onDownloadComplete(
+                    totalDives, serialNumber, firmwareVersion, clockSyncStatus
+                ) { }
+            }
         }
     }
 

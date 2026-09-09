@@ -48,6 +48,7 @@ String detectorTitle(AppLocalizations l10n, String detectorId) =>
       'pressure_anomaly' => l10n.dataQuality_detector_pressure_anomaly,
       'gas_mod' => l10n.dataQuality_detector_gas_mod,
       'tank_assignment' => l10n.dataQuality_detector_tank_assignment,
+      'unknown_transmitter' => l10n.dataQuality_detector_unknown_transmitter,
       'source_conflict' => l10n.dataQuality_detector_source_conflict,
       _ => detectorId,
     };
@@ -166,6 +167,10 @@ QualityFindingMessage buildFindingMessage(
       } else {
         detail = l10n.dataQuality_msg_hypoxic('${d('o2Percent').round()}%');
       }
+    case 'unknown_transmitter':
+      detail = l10n.dataQuality_msg_unknownTransmitter(
+        (p['serial'] as String?) ?? '',
+      );
     case 'tank_assignment':
       detail = p.containsKey('inactiveDropBar')
           ? l10n.dataQuality_msg_tankInactive(

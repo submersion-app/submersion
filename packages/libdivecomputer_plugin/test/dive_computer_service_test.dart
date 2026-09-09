@@ -16,6 +16,7 @@ class MockDiveComputerHostApi implements DiveComputerHostApi {
   TransportType? lastDiscoveryTransport;
   DiscoveredDevice? lastDownloadDevice;
   String? lastDownloadFingerprint;
+  bool? lastDownloadSyncClock;
 
   @override
   Future<List<DeviceDescriptor>> getDeviceDescriptors() async {
@@ -37,10 +38,12 @@ class MockDiveComputerHostApi implements DiveComputerHostApi {
   Future<void> startDownload(
     DiscoveredDevice device,
     String? fingerprint,
+    bool syncClock,
   ) async {
     startDownloadCalled = true;
     lastDownloadDevice = device;
     lastDownloadFingerprint = fingerprint;
+    lastDownloadSyncClock = syncClock;
   }
 
   @override
@@ -190,7 +193,38 @@ void main() {
     test('downloadEvents stream emits completion', () async {
       expectLater(service.downloadEvents, emits(isA<DownloadCompleteEvent>()));
 
-      service.onDownloadComplete(5, null, null);
+      service.onDownloadComplete(5, null, null, null);
+    });
+
+    test('startDownload forwards syncClock and defaults it to false', () async {
+      final device = DiscoveredDevice(
+        vendor: 'Shearwater',
+        product: 'Perdix',
+        model: 1,
+        address: '00:11:22:33:44:55',
+        transport: TransportType.ble,
+      );
+
+      await service.startDownload(device);
+      expect(mockHostApi.lastDownloadSyncClock, isFalse);
+
+      await service.startDownload(device, syncClock: true);
+      expect(mockHostApi.lastDownloadSyncClock, isTrue);
+    });
+
+    test('completion carries the clock sync status', () async {
+      expectLater(
+        service.downloadEvents,
+        emits(
+          isA<DownloadCompleteEvent>().having(
+            (e) => e.clockSyncStatus,
+            'clockSyncStatus',
+            'synced',
+          ),
+        ),
+      );
+
+      service.onDownloadComplete(5, null, null, 'synced');
     });
 
     test('downloadEvents stream emits errors', () async {

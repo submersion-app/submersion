@@ -154,12 +154,12 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
 
     // MARK: - Download
 
-    func startDownload(device: DiscoveredDevice, fingerprint: String?, completion: @escaping (Result<Void, Error>) -> Void) {
+    func startDownload(device: DiscoveredDevice, fingerprint: String?, syncClock: Bool, completion: @escaping (Result<Void, Error>) -> Void) {
         completion(.success(()))
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
-            self.performDownload(device: device, fingerprint: fingerprint)
+            self.performDownload(device: device, fingerprint: fingerprint, syncClock: syncClock)
         }
     }
 
@@ -181,10 +181,12 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         let rc: Int32
         let serial: UInt32
         let firmware: UInt32
+        /// Wire name from libdc_clock_sync_status_name (issue #1216).
+        let clockSyncStatus: String
         let errorMessage: String
     }
 
-    private func performDownload(device: DiscoveredDevice, fingerprint: String?) {
+    private func performDownload(device: DiscoveredDevice, fingerprint: String?, syncClock: Bool) {
         // Create download session.
         guard let session = libdc_download_session_new() else {
             reportError(code: "session_failed", message: "Failed to create download session")
@@ -225,14 +227,16 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         case .ble:
             performBleDownload(
                 device: device, session: session,
-                downloadCallbacks: downloadCallbacks, fingerprint: fingerprintBytes)
+                downloadCallbacks: downloadCallbacks, fingerprint: fingerprintBytes,
+                syncClock: syncClock)
         case .serial, .usb:
             // Serial-over-USB (e.g. Mares Puck Pro on an FTDI cable). The Dart
             // layer folds libdivecomputer's serial transport into `.usb`, so both
             // route here and download over LIBDC_TRANSPORT_SERIAL.
             performSerialDownload(
                 device: device, session: session,
-                downloadCallbacks: downloadCallbacks, fingerprint: fingerprintBytes)
+                downloadCallbacks: downloadCallbacks, fingerprint: fingerprintBytes,
+                syncClock: syncClock)
         case .infrared:
             reportError(
                 code: "unsupported_transport",
@@ -304,13 +308,16 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         transportValue: UInt32,
         ioCallbacks: libdc_io_callbacks_t,
         fingerprint: [UInt8]?,
-        downloadCallbacks: libdc_download_callbacks_t
+        downloadCallbacks: libdc_download_callbacks_t,
+        syncClock: Bool
     ) -> RunResult {
         var io = ioCallbacks
         var dl = downloadCallbacks
         var serial: UInt32 = 0
         var firmware: UInt32 = 0
+        var clockSync = LIBDC_CLOCK_SYNC_NOT_REQUESTED
         var errorBuf = [CChar](repeating: 0, count: 256)
+        let syncFlag: Int32 = syncClock ? 1 : 0
         let result: Int32
         if let fp = fingerprint, !fp.isEmpty {
             result = fp.withUnsafeBufferPointer { buf in
@@ -320,8 +327,9 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                     transportValue,
                     &io,
                     buf.baseAddress, UInt32(buf.count),
+                    syncFlag,
                     &dl,
-                    &serial, &firmware,
+                    &serial, &firmware, &clockSync,
                     &errorBuf, errorBuf.count
                 )
             }
@@ -332,13 +340,15 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                 transportValue,
                 &io,
                 nil, 0,
+                syncFlag,
                 &dl,
-                &serial, &firmware,
+                &serial, &firmware, &clockSync,
                 &errorBuf, errorBuf.count
             )
         }
         return RunResult(
             rc: result, serial: serial, firmware: firmware,
+            clockSyncStatus: String(cString: libdc_clock_sync_status_name(clockSync)),
             errorMessage: String(cString: errorBuf))
     }
 
@@ -347,6 +357,11 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     private func reportDownloadResult(_ result: RunResult) {
         let serialStr: String? = result.serial > 0 ? String(result.serial) : nil
         let firmwareStr: String? = result.firmware > 0 ? String(result.firmware) : nil
+        // Null means "nothing was asked", so the Dart side shows no line.
+        let clockSyncStr: String? =
+            result.clockSyncStatus == "not_requested" ? nil : result.clockSyncStatus
+        NativeLogger.i("DiveComputerHost", category: "LDC",
+            "Clock sync: \(result.clockSyncStatus)")
         NativeLogger.i("DiveComputerHost", category: "LDC",
             "Device info: serial=\(result.serial), firmware=\(result.firmware)")
         NativeLogger.d("DiveComputerHost", category: "LDC",
@@ -356,7 +371,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             NativeLogger.i("DiveComputerHost", category: "LDC", "Download succeeded, sending onDownloadComplete")
             DispatchQueue.main.async { [weak self] in
                 self?.flutterApi.onDownloadComplete(
-                    totalDives: 0, serialNumber: serialStr, firmwareVersion: firmwareStr) { _ in }
+                    totalDives: 0, serialNumber: serialStr, firmwareVersion: firmwareStr,
+                    clockSyncStatus: clockSyncStr) { _ in }
             }
         } else if result.rc == Int32(LIBDC_STATUS_CANCELLED) {
             NativeLogger.i("DiveComputerHost", category: "LDC", "Download cancelled, sending onDownloadComplete")
@@ -364,7 +380,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             // that were downloaded before cancellation.
             DispatchQueue.main.async { [weak self] in
                 self?.flutterApi.onDownloadComplete(
-                    totalDives: 0, serialNumber: serialStr, firmwareVersion: firmwareStr) { _ in }
+                    totalDives: 0, serialNumber: serialStr, firmwareVersion: firmwareStr,
+                    clockSyncStatus: clockSyncStr) { _ in }
             }
         } else {
             NativeLogger.e("DiveComputerHost", category: "LDC",
@@ -376,14 +393,15 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     /// BLE download: resolve/connect the peripheral, then run once.
     private func performBleDownload(
         device: DiscoveredDevice, session: OpaquePointer,
-        downloadCallbacks: libdc_download_callbacks_t, fingerprint: [UInt8]?
+        downloadCallbacks: libdc_download_callbacks_t, fingerprint: [UInt8]?,
+        syncClock: Bool
     ) {
         guard let ioCallbacks = connectBle(device: device) else { return }
         let result = runOnce(
             session: session, device: device,
             transportValue: UInt32(LIBDC_TRANSPORT_BLE),
             ioCallbacks: ioCallbacks, fingerprint: fingerprint,
-            downloadCallbacks: downloadCallbacks)
+            downloadCallbacks: downloadCallbacks, syncClock: syncClock)
         reportDownloadResult(result)
     }
 
@@ -521,7 +539,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     /// buffering dives so a wrong candidate cannot leak phantom dives.
     private func performSerialDownload(
         device: DiscoveredDevice, session: OpaquePointer,
-        downloadCallbacks: libdc_download_callbacks_t, fingerprint: [UInt8]?
+        downloadCallbacks: libdc_download_callbacks_t, fingerprint: [UInt8]?,
+        syncClock: Bool
     ) {
         let transports = libdc_descriptor_transports(
             device.vendor, device.product, UInt32(device.model))
@@ -592,7 +611,7 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                 session: session, device: device,
                 transportValue: candidate.transportValue,
                 ioCallbacks: opened.callbacks, fingerprint: fingerprint,
-                downloadCallbacks: downloadCallbacks)
+                downloadCallbacks: downloadCallbacks, syncClock: syncClock)
             opened.close()
             self.activeSerialStream = nil
             reportDownloadResult(result)
@@ -608,7 +627,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         var probeLog = ""
         var anyOpened = false
         var lastResult = RunResult(
-            rc: Int32(LIBDC_STATUS_IO), serial: 0, firmware: 0, errorMessage: "")
+            rc: Int32(LIBDC_STATUS_IO), serial: 0, firmware: 0,
+            clockSyncStatus: "not_requested", errorMessage: "")
 
         for candidate in candidates {
             diveBufferLock.lock()
@@ -628,7 +648,7 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                 session: session, device: device,
                 transportValue: candidate.transportValue,
                 ioCallbacks: opened.callbacks, fingerprint: fingerprint,
-                downloadCallbacks: downloadCallbacks)
+                downloadCallbacks: downloadCallbacks, syncClock: syncClock)
             lastResult = result
             opened.close()
             self.activeSerialStream = nil

@@ -1165,8 +1165,13 @@ class DiveComputerRepository {
                 : null);
 
         // durationSeconds from the dive computer is total runtime,
-        // not bottom time. Calculate bottom time from the profile.
-        final bottomTimeSeconds = _calculateBottomTimeFromPoints(points);
+        // not bottom time. Calculate bottom time from the profile, bounded
+        // by that runtime so a sample stream that outlasts the dive cannot
+        // produce a bottom time longer than the dive (issue #1642).
+        final bottomTimeSeconds = _calculateBottomTimeFromPoints(
+          points,
+          totalDurationSeconds: durationSeconds,
+        );
 
         // Downloaded profiles carry no dive type, so every dive used to land
         // on 'recreational', including dives whose samples show mandatory
@@ -1432,6 +1437,11 @@ class DiveComputerRepository {
                 tankOrder: Value(tank.index),
                 tankRole: Value(tank.role ?? 'backGas'),
                 transmitterSerial: Value(tank.transmitterSerial),
+                equipmentId: Value.absentIfNull(tank.equipmentId),
+                tankName: Value.absentIfNull(tank.tankName),
+                // The parsed index this row's computer data comes from
+                // (issue #1314); re-parse keys on it.
+                sourceTankIndex: Value(tank.index),
               ),
             );
             _log.info(
@@ -2034,14 +2044,18 @@ class DiveComputerRepository {
   ///
   /// Delegates to [BottomTimeCalculator]: bottom time runs from surface
   /// departure to the start of the final ascent, so multilevel dives
-  /// count their shallower segments.
+  /// count their shallower segments. The result never exceeds
+  /// [totalDurationSeconds], the computer's own reported runtime.
   ///
   /// Returns null if profile data is insufficient for calculation.
-  int? _calculateBottomTimeFromPoints(List<ProfilePointData> points) {
+  int? _calculateBottomTimeFromPoints(
+    List<ProfilePointData> points, {
+    required int totalDurationSeconds,
+  }) {
     return BottomTimeCalculator.secondsFromSamples([
       for (final point in points)
         (timestamp: point.timestamp, depth: point.depth),
-    ]);
+    ], totalDurationSeconds: totalDurationSeconds);
   }
 
   /// Raw libdivecomputer event types that [_mapEventTypeString] folds into a
@@ -2317,6 +2331,12 @@ class TankData {
   /// from, or null when it reported none.
   final String? transmitterSerial;
 
+  /// Gear cylinder the transmitter registry linked this tank to, if any.
+  final String? equipmentId;
+
+  /// Display name from the transmitter registry's label, if any.
+  final String? tankName;
+
   const TankData({
     required this.index,
     required this.o2Percent,
@@ -2329,7 +2349,39 @@ class TankData {
     this.presetName,
     this.role,
     this.transmitterSerial,
+    this.equipmentId,
+    this.tankName,
   });
+
+  TankData copyWith({
+    int? index,
+    double? o2Percent,
+    double? hePercent,
+    double? startPressure,
+    double? endPressure,
+    double? volumeLiters,
+    double? workingPressure,
+    String? material,
+    String? presetName,
+    String? role,
+    String? transmitterSerial,
+    String? equipmentId,
+    String? tankName,
+  }) => TankData(
+    index: index ?? this.index,
+    o2Percent: o2Percent ?? this.o2Percent,
+    hePercent: hePercent ?? this.hePercent,
+    startPressure: startPressure ?? this.startPressure,
+    endPressure: endPressure ?? this.endPressure,
+    volumeLiters: volumeLiters ?? this.volumeLiters,
+    workingPressure: workingPressure ?? this.workingPressure,
+    material: material ?? this.material,
+    presetName: presetName ?? this.presetName,
+    role: role ?? this.role,
+    transmitterSerial: transmitterSerial ?? this.transmitterSerial,
+    equipmentId: equipmentId ?? this.equipmentId,
+    tankName: tankName ?? this.tankName,
+  );
 }
 
 /// Data class for importing a gas switch (a change to the cylinder at [toTankIndex]).

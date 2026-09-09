@@ -362,6 +362,7 @@ class BulkDiveEditService {
         presetName: r.presetName,
         computerId: r.computerId,
         transmitterSerial: r.transmitterSerial,
+        sourceTankIndex: r.sourceTankIndex,
       ),
   ];
 

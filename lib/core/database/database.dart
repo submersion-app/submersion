@@ -993,6 +993,12 @@ class DiveTanks extends Table {
   // none. Two computers paired to one transmitter logged the same cylinder,
   // so consolidation matches tanks on this before falling back to gas mix.
   TextColumn get transmitterSerial => text().nullable()();
+  // Which parsed tank index this row's computer-owned data (pressure series,
+  // serial, start and end pressure) comes from (v200, issue #1314). Download
+  // and re-parse write it equal to the index; null on rows written before
+  // v200 means "same as tankOrder"; -1 (kNoSourceTankIndex) means the row
+  // takes no parsed tank, which is what a reassignment leaves behind.
+  IntColumn get sourceTankIndex => integer().nullable()();
   // Which computer contributed this tank (null = primary source / manual).
   // Same null-means-primary semantics as dive_profiles.computerId; deletes
   // set null.
@@ -2709,6 +2715,47 @@ class TankPresets extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Air-integration transmitter registry (issue #1365, v200). One row per
+/// physical transmitter the diver owns or regularly rents, keyed on the serial
+/// the computer reports, or on (dive computer, channel index) for parsers that
+/// report no serial. The spec columns are a SNAPSHOT, like
+/// [CylinderConfigItems]: picking a preset or a gear cylinder in the editor
+/// copies its values here, and there is deliberately no FK to tank_presets.
+/// Synced entity with its own hlc.
+@DataClassName('TransmitterRow')
+class Transmitters extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  // Normalized through normalizeTransmitterSerial before every write.
+  TextColumn get transmitterSerial => text().nullable()();
+  TextColumn get diveComputerId => text().nullable().references(
+    DiveComputers,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  IntColumn get channelIndex => integer().nullable()();
+  TextColumn get label => text()();
+  TextColumn get tankRole => text()(); // TankRole.name
+  RealColumn get volumeL => real().nullable()();
+  RealColumn get workingPressureBar => real().nullable()();
+  TextColumn get tankMaterial => text().nullable()(); // TankMaterial.name
+  TextColumn get presetName => text().nullable()();
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Dive computers (devices that record dive data)
 class DiveComputers extends Table {
   TextColumn get id => text()();
@@ -3497,6 +3544,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TankPresets,
     WeightPresets,
     WeightPresetEntries,
+    Transmitters,
     DiveComputers,
     DiveDataSources,
     DiveProfileEvents,
@@ -4086,9 +4134,12 @@ class AppDatabase extends _$AppDatabase {
     // 197: main landed the planner salinity and water-type rungs (197, 198)
     // while this branch was open.
     199,
-    // 200 is taken by the transmitter registry branch (issue #1365), which
-    // is unmerged while this branch is open, so the cell linearity link
-    // (issue #986) takes 201 rather than colliding with it.
+    // v200: transmitters registry table (issue #1365) and
+    // dive_tanks.source_tank_index (issue #1314).
+    200,
+    // v201: the O2 cell linearity link (issue #986). Took 201 rather than
+    // 200 because #1365 held 200 on its own branch while this one was open;
+    // #1365 has since landed, so the two sit in order.
     201,
   ];
 
@@ -4190,6 +4241,45 @@ class AppDatabase extends _$AppDatabase {
         'ALTER TABLE certifications ADD COLUMN additional_credentials TEXT',
       );
     }
+  }
+
+  /// Transmitter registry (issue #1365, v200). Idempotent so a database that
+  /// arrives by restore or sync-adopt (never runs onUpgrade) also gets it.
+  Future<void> _assertTransmitterTables() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS transmitters (
+        id TEXT NOT NULL PRIMARY KEY,
+        diver_id TEXT REFERENCES divers(id),
+        transmitter_serial TEXT,
+        dive_computer_id TEXT REFERENCES dive_computers(id) ON DELETE SET NULL,
+        channel_index INTEGER,
+        label TEXT NOT NULL,
+        tank_role TEXT NOT NULL,
+        volume_l REAL,
+        working_pressure_bar REAL,
+        tank_material TEXT,
+        preset_name TEXT,
+        equipment_id TEXT REFERENCES equipment(id) ON DELETE SET NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        hlc TEXT
+      )
+    ''');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_transmitters_serial '
+      'ON transmitters(transmitter_serial)',
+    );
+  }
+
+  /// Idempotent DDL for dive_tanks.source_tank_index (v200, issue #1314).
+  Future<void> _assertDiveTankSourceIndexColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('source_tank_index')) return;
+    await customStatement(
+      'ALTER TABLE dive_tanks ADD COLUMN source_tank_index INTEGER',
+    );
   }
 
   /// v124: equipment_attributes table + indexes. Idempotent so it is safe to
@@ -7001,6 +7091,7 @@ class AppDatabase extends _$AppDatabase {
     'dive_roles',
     'tank_presets',
     'weight_presets',
+    'transmitters',
     'dive_computers',
     'tags',
     'courses',
@@ -10684,11 +10775,17 @@ class AppDatabase extends _$AppDatabase {
           await _assertCertificationCredentialsColumn();
         }
         if (from < 199) await reportProgress();
+        // v200: transmitter registry (issue #1365) and the parsed-tank source
+        // index on dive_tanks (issue #1314). No backfill: null means
+        // "same as tank_order".
+        if (from < 200) {
+          await _assertTransmitterTables();
+          await _assertDiveTankSourceIndexColumn();
+        }
+        if (from < 200) await reportProgress();
         // v201: the O2 cell linearity link (issue #986). Column-only rung,
         // no backfill: no existing item is a linearity item, and null is the
-        // correct value for all three columns. Numbered 201 rather than 200
-        // because the transmitter registry branch (issue #1365) holds v200
-        // while this branch is open.
+        // correct value for all three columns.
         if (from < 201) {
           await _assertTemplateItemSourceIdColumn();
           await _assertSessionItemSourceColumns();
@@ -10890,6 +10987,11 @@ class AppDatabase extends _$AppDatabase {
 
         // v199 backstop: re-assert certifications.additional_credentials.
         await _assertCertificationCredentialsColumn();
+
+        // v200 backstop: re-assert the transmitter table and the source index
+        // column, same restore/sync-adopt reasoning.
+        await _assertTransmitterTables();
+        await _assertDiveTankSourceIndexColumn();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).

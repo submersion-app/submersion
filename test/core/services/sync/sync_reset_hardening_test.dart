@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -156,10 +158,104 @@ void main() {
       },
     );
 
+    test(
+      'keeps the retired log when no other device publishes a library',
+      () async {
+        // The install that owns the whole cloud library under this id -- the
+        // reinstall of #1541, or any single-device user. Deleting here would
+        // shred the only copy (#1551).
+        final cloud = FakeCloudStorageProvider();
+        final oldId = await repository.getDeviceId();
+        await seedPeerManifest(cloud, oldId);
+
+        final prefs = await SharedPreferences.getInstance();
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            cloudStorageProviderProvider.overrideWithValue(cloud),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await container.read(syncStateProvider.notifier).resetSyncState();
+
+        expect(await repository.getDeviceId(), isNot(oldId));
+        expect(
+          await hasPublishedLog(cloud, oldId),
+          isTrue,
+          reason:
+              'the retired id was the account\'s only publisher, so its log '
+              'is the whole library -- kept as an orphaned peer log, which '
+              'the freshly minted identity can now pull',
+        );
+      },
+    );
+
+    test('keeps the retired log when the only other device never finished '
+        'publishing', () async {
+      // Base parts but no manifest: a publish that died partway is not a
+      // library anyone can pull, so it cannot license the delete.
+      final cloud = FakeCloudStorageProvider();
+      final oldId = await repository.getDeviceId();
+      await seedPeerManifest(cloud, oldId);
+      final folder = await cloud.getOrCreateSyncFolder();
+      await cloud.uploadFile(
+        Uint8List.fromList(const [1, 2, 3]),
+        ChangesetLogLayout.basePartName('half-published-peer', 1, 0),
+        folderId: folder,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudStorageProviderProvider.overrideWithValue(cloud),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(syncStateProvider.notifier).resetSyncState();
+
+      expect(await hasPublishedLog(cloud, oldId), isTrue);
+    });
+
+    test(
+      'keeps the retired log when a retirement marker is the only other file',
+      () async {
+        // A retired peer's tombstone is not a second copy of the library.
+        final cloud = FakeCloudStorageProvider();
+        final oldId = await repository.getDeviceId();
+        await seedPeerManifest(cloud, oldId);
+        final folder = await cloud.getOrCreateSyncFolder();
+        await cloud.uploadFile(
+          Uint8List.fromList(utf8.encode('{}')),
+          ChangesetLogLayout.retiredMarkerName('retired-peer'),
+          folderId: folder,
+        );
+
+        final prefs = await SharedPreferences.getInstance();
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            cloudStorageProviderProvider.overrideWithValue(cloud),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await container.read(syncStateProvider.notifier).resetSyncState();
+
+        expect(await hasPublishedLog(cloud, oldId), isTrue);
+      },
+    );
+
     test('reset succeeds even when the cloud delete fails', () async {
       final cloud = FakeCloudStorageProvider()..failDeletes = true;
       final oldId = await repository.getDeviceId();
       await seedPeerManifest(cloud, oldId);
+      // A live peer, so the retirement cleanup is actually attempted: with
+      // no other publisher the guard would skip the delete and the failure
+      // this test is about would never happen.
+      await seedPeerManifest(cloud, 'peer-device');
 
       final prefs = await SharedPreferences.getInstance();
       final container = ProviderContainer(
