@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - **Dive cards must never narrow.** Every dive card keeps `EdgeInsets.symmetric(horizontal: 16, vertical: 4)` (detailed) / `vertical: 2` (compact). No indent, no rail, no inset. Task 9 asserts this with a width test.
-- **Schema version claimed: 202.** Current `AppDatabase.currentSchemaVersion` is 199; 200 and 201 are claimed by open programs (PR #1677 transmitter registry, equipment assemblies). Re-check both before writing Task 4; if either has landed, take the next free number and update every reference in this plan.
+- **Schema version claimed: 201.** Settled 2026-09-09 during execution: PR #1677 (transmitter registry) MERGED, so `origin/main` shipped v200 and this branch was rebased onto it. 201 is the next free rung. If the equipment-assemblies program lands 201 first, renumber this rung to the next free number, which is the convention every recent rung comment in `database.dart` documents: a rung at or below the shipped version never runs its onUpgrade step.
 - **Do not raise `minimumCompatibleSchemaVersion`** (currently 183). An additive defaulted column does not require it.
 - **No em-dash characters (U+2014) anywhere**, including code, comments, commit messages and ARB strings. Use commas, colons, semicolons or separate sentences.
 - **No mention of Claude, Claude Code or Anthropic** in any commit message, code comment, or anything else written to the repository.
@@ -496,7 +496,7 @@ git commit -m "feat(dive-log): count dives per trip for list group headers (#119
 
 ---
 
-### Task 4: The `groupTripsInDiveList` setting (schema v202)
+### Task 4: The `groupTripsInDiveList` setting (schema v201)
 
 **Files:**
 - Modify: `lib/core/database/database.dart` (column, `currentSchemaVersion`, `migrationVersions`, `_assertGroupTripsInDiveListColumn`, `onUpgrade` rung, `beforeOpen` backstop)
@@ -504,24 +504,24 @@ git commit -m "feat(dive-log): count dives per trip for list group headers (#119
 - Modify: `lib/features/settings/data/repositories/diver_settings_repository.dart` (create + update + row mapping)
 - Modify: `lib/core/services/sync/sync_data_serializer.dart` (`_applyDiverSettingDefaults`)
 - Modify: `test/helpers/mock_providers.dart` (`MockSettingsNotifier` setter)
-- Test: `test/core/database/migration_v202_group_trips_test.dart` (create)
+- Test: `test/core/database/migration_v201_group_trips_test.dart` (create)
 
 **Interfaces:**
 - Consumes: nothing from earlier tasks.
 - Produces: `AppSettings.groupTripsInDiveList` (`bool`, default `false`), `SettingsNotifier.setGroupTripsInDiveList(bool)`, and `final diveListGroupTripsProvider = StateProvider<bool>(...)` (runtime-scoped, seeded by `ref.read`). Task 7 reads the provider; Task 11 writes both.
 
-**Before starting:** confirm 202 is still free.
+**Before starting:** confirm 201 is still free.
 
 ```bash
 grep -n "currentSchemaVersion = " lib/core/database/database.dart
 gh pr view 1677 --json state,title 2>/dev/null | head -5
 ```
 
-If `currentSchemaVersion` is no longer 199, use `currentSchemaVersion + 1` and substitute that number everywhere `202` appears below.
+Settled during execution: main is at 200, this branch rebased onto it, so this rung is 201. If main has moved again, use `currentSchemaVersion + 1`.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `test/core/database/migration_v202_group_trips_test.dart`, mirroring `migration_v198_planner_water_type_test.dart`:
+Create `test/core/database/migration_v201_group_trips_test.dart`, mirroring `migration_v198_planner_water_type_test.dart`:
 
 ```dart
 import 'package:drift/drift.dart';
@@ -531,10 +531,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  group('v202 group trips in dive list', () {
-    test('v202 is at or below the current version and is in the ladder', () {
-      expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(202));
-      expect(AppDatabase.migrationVersions, contains(202));
+  group('v201 group trips in dive list', () {
+    test('v201 is at or below the current version and is in the ladder', () {
+      expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(201));
+      expect(AppDatabase.migrationVersions, contains(201));
     });
 
     test('a fresh database has the column, defaulting to off', () async {
@@ -578,8 +578,8 @@ Match the exact structure of `test/core/database/migration_v198_planner_water_ty
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `flutter test test/core/database/migration_v202_group_trips_test.dart`
-Expected: FAIL on the ladder assertion (199 is not >= 202).
+Run: `flutter test test/core/database/migration_v201_group_trips_test.dart`
+Expected: FAIL on the ladder assertion (200 is not >= 201).
 
 - [ ] **Step 3: Add the column and the rung**
 
@@ -587,7 +587,7 @@ In `lib/core/database/database.dart`, in `class DiverSettings extends Table`, af
 
 ```dart
   /// Fold consecutive same-trip dives under a trip header in the dive list
-  /// (v202, issue #1193). Off by default: grouping changes list structure, so
+  /// (v201, issue #1193). Off by default: grouping changes list structure, so
   /// existing divers opt in.
   BoolColumn get groupTripsInDiveList =>
       boolean().withDefault(const Constant(false))();
@@ -596,23 +596,23 @@ In `lib/core/database/database.dart`, in `class DiverSettings extends Table`, af
 Bump the version:
 
 ```dart
-  static const int currentSchemaVersion = 202;
+  static const int currentSchemaVersion = 201;
 ```
 
 Append to `migrationVersions`, after `199,`:
 
 ```dart
-    // v202: diver_settings.group_trips_in_dive_list -- inline collapsible trip
+    // v201: diver_settings.group_trips_in_dive_list -- inline collapsible trip
     // groups in the dive list (#1193). Additive defaulted boolean, no
-    // backfill. 200 and 201 are claimed by the transmitter registry and
-    // equipment assembly programs.
-    202,
+    // backfill. 200 shipped with the transmitter
+    // registry; the equipment assembly program may take 202.
+    201,
 ```
 
 Add the idempotent helper beside `_assertDefaultPlannerWaterTypeColumn`:
 
 ```dart
-  /// Idempotent DDL for diver_settings.group_trips_in_dive_list (v202).
+  /// Idempotent DDL for diver_settings.group_trips_in_dive_list (v201).
   /// Existing rows default to off, matching a fresh install.
   Future<void> _assertGroupTripsInDiveListColumn() async {
     final cols = await customSelect(
@@ -627,7 +627,7 @@ Add the idempotent helper beside `_assertDefaultPlannerWaterTypeColumn`:
     );
   }
 
-  /// Test hook for the v202 rung, so a stranded-database case can drive the
+  /// Test hook for the v201 rung, so a stranded-database case can drive the
   /// assert directly.
   @visibleForTesting
   Future<void> assertGroupTripsInDiveListColumnForTesting() =>
@@ -637,18 +637,18 @@ Add the idempotent helper beside `_assertDefaultPlannerWaterTypeColumn`:
 In `onUpgrade`, after the v199 pair:
 
 ```dart
-        // v202: diver_settings.group_trips_in_dive_list (#1193). Column-only
+        // v201: diver_settings.group_trips_in_dive_list (#1193). Column-only
         // rung, no backfill.
-        if (from < 202) {
+        if (from < 201) {
           await _assertGroupTripsInDiveListColumn();
         }
-        if (from < 202) await reportProgress();
+        if (from < 201) await reportProgress();
 ```
 
 In `beforeOpen`, after the v199 backstop:
 
 ```dart
-        // v202 backstop: re-assert diver_settings.group_trips_in_dive_list.
+        // v201 backstop: re-assert diver_settings.group_trips_in_dive_list.
         await _assertGroupTripsInDiveListColumn();
 ```
 
@@ -660,7 +660,7 @@ Run:
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
-flutter test test/core/database/migration_v202_group_trips_test.dart
+flutter test test/core/database/migration_v201_group_trips_test.dart
 ```
 
 Expected: PASS.
@@ -756,8 +756,8 @@ Expected: PASS.
 
 ```bash
 dart format .
-git add lib/core/database/database.dart lib/features/settings lib/core/services/sync/sync_data_serializer.dart test/core/database/migration_v202_group_trips_test.dart test/helpers/mock_providers.dart
-git commit -m "feat(settings): add the group-trips dive list setting (schema v202) (#1193)"
+git add lib/core/database/database.dart lib/features/settings lib/core/services/sync/sync_data_serializer.dart test/core/database/migration_v201_group_trips_test.dart test/helpers/mock_providers.dart
+git commit -m "feat(settings): add the group-trips dive list setting (schema v201) (#1193)"
 ```
 
 ---
