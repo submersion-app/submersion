@@ -4,6 +4,8 @@ import 'package:submersion/features/data_quality/domain/detectors/duplicate_dete
 import 'package:submersion/features/data_quality/domain/detectors/split_pair_detector.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 
 import '../../helpers/quality_test_helpers.dart';
@@ -305,6 +307,54 @@ void main() {
           det.detect(ctx).single.params.containsKey('redundantDiveId'),
           isFalse,
         );
+      });
+
+      test('a runtime the scanned side only computes does not decide', () {
+        // The neighbor query reads the STORED runtime (else bottom time).
+        // The scanned dive must read the same columns: effectiveRuntime
+        // would fall back to exit minus entry, or to the profile, and the
+        // two contexts of one pair would then disagree on that dive's
+        // duration, making the choice depend on scan order.
+        final dive = domain.Dive(
+          id: 'dA',
+          dateTime: entry,
+          entryTime: entry,
+          exitTime: entry.add(const Duration(minutes: 35)),
+          maxDepth: 20,
+          diveComputerSerial: 'S1',
+        );
+        expect(dive.runtime, isNull);
+        expect(dive.effectiveRuntime, const Duration(minutes: 35));
+        final ctx = makeContext(
+          dive: dive,
+          primarySampleCount: 420,
+          neighbors: [
+            neighbor(id: 'dB', samples: 3, durationSeconds: 13, maxDepth: 1.7),
+          ],
+        );
+        final out = det.detect(ctx);
+        expect(out, hasLength(1), reason: 'still a duplicate candidate');
+        expect(out.single.params.containsKey('redundantDiveId'), isFalse);
+      });
+
+      test('a stored bottom time stands in for a missing runtime', () {
+        // Mirrors the neighbor query's `runtime ?? bottom_time`.
+        final dive = domain.Dive(
+          id: 'dA',
+          dateTime: entry,
+          entryTime: entry,
+          bottomTime: const Duration(minutes: 35),
+          maxDepth: 20,
+          diveComputerSerial: 'S1',
+        );
+        final ctx = makeContext(
+          dive: dive,
+          primarySampleCount: 420,
+          neighbors: [
+            neighbor(id: 'dB', samples: 3, durationSeconds: 13, maxDepth: 1.7),
+          ],
+        );
+        expect(det.detect(ctx).single.params['redundantDiveId'], 'dB');
       });
 
       test('is not recorded for a pair from two different computers', () {

@@ -48,12 +48,18 @@ class DuplicateDetector extends QualityDetector {
       if (!_matcher.isPossibleDuplicate(score)) continue;
       final sameComputer =
           serial != null && serial.isNotEmpty && serial == n.computerSerial;
+      // Stored runtime, else stored bottom time: the same two columns the
+      // neighbor query reads. Not `duration` (effectiveRuntime), which falls
+      // back to exit minus entry and then to the profile; the pair's two
+      // contexts would then disagree on one dive's duration and the choice
+      // would depend on scan order.
+      final storedDuration = (dive.runtime ?? dive.bottomTime)?.inSeconds;
       final redundant = sameComputer
           ? redundantDuplicate(
               a: (
                 id: dive.id,
                 sampleCount: ctx.primarySampleCount,
-                durationSeconds: duration,
+                durationSeconds: storedDuration,
                 maxDepth: maxDepth,
               ),
               b: (
