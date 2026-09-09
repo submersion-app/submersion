@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 
 class EquipmentSetDetailPage extends ConsumerWidget {
   final String setId;
@@ -265,10 +266,17 @@ class EquipmentSetDetailPage extends ConsumerWidget {
           ),
         ),
         title: Text(item.name),
-        subtitle: Text(
-          item.fullName != item.name
-              ? item.fullName
-              : item.type.localizedName(context.l10n),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              item.fullName != item.name
+                  ? item.fullName
+                  : item.type.localizedName(context.l10n),
+            ),
+            AssemblyChips(itemId: item.id),
+          ],
         ),
         trailing: const Icon(Icons.chevron_right),
       ),

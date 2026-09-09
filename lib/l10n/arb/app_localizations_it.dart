@@ -16,6 +16,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_components_add => 'Aggiungi componente';
 
   @override
+  String equipment_components_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count componenti',
+      one: '1 componente',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'Quell\'articolo contiene già questo, quindi non può essere aggiunto come componente.';
 
@@ -25,6 +36,22 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Nessun componente. Aggiungi le parti che compongono questo articolo.';
+
+  @override
+  String equipment_components_partOf(Object name) {
+    return 'Parte di $name';
+  }
+
+  @override
+  String equipment_components_partOfCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Parte di $count assiemi',
+      one: 'Parte di 1 assieme',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipment_components_pickerConfirm(num count) {
@@ -59,6 +86,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_components_roleHint => 'es. Secondo stadio principale';
+
+  @override
+  String equipment_components_rollupClock(Object component, Object kind) {
+    return '$component: $kind';
+  }
 
   @override
   String get equipment_components_title => 'Componenti';
@@ -28131,6 +28163,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_tripField_notes_short => 'Note';
+
+  @override
+  String get enum_equipmentField_components => 'Componenti';
+
+  @override
+  String get enum_equipmentField_components_short => 'Parti';
 
   @override
   String get enum_equipmentField_itemName => 'Nome';

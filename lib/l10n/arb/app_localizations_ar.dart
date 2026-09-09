@@ -16,6 +16,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_components_add => 'إضافة مكوّن';
 
   @override
+  String equipment_components_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مكوّنات',
+      one: 'مكوّن واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'هذا العنصر يحتوي بالفعل على هذا، لذا لا يمكن إضافته كمكوّن.';
 
@@ -25,6 +36,22 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.';
+
+  @override
+  String equipment_components_partOf(Object name) {
+    return 'جزء من $name';
+  }
+
+  @override
+  String equipment_components_partOfCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'جزء من $count تجميعات',
+      one: 'جزء من تجميعة واحدة',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipment_components_pickerConfirm(num count) {
@@ -59,6 +86,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_components_roleHint => 'مثال: المرحلة الثانية الرئيسية';
+
+  @override
+  String equipment_components_rollupClock(Object component, Object kind) {
+    return '$component: $kind';
+  }
 
   @override
   String get equipment_components_title => 'المكوّنات';
@@ -27649,6 +27681,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_tripField_notes_short => 'ملاحظات';
+
+  @override
+  String get enum_equipmentField_components => 'المكوّنات';
+
+  @override
+  String get enum_equipmentField_components_short => 'أجزاء';
 
   @override
   String get enum_equipmentField_itemName => 'الاسم';

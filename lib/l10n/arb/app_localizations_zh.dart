@@ -16,6 +16,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_components_add => '添加组件';
 
   @override
+  String equipment_components_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个组件',
+      one: '1 个组件',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError => '该装备已包含此项，因此无法将其添加为组件。';
 
   @override
@@ -23,6 +34,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_components_empty => '暂无组件。请添加构成此装备的部件。';
+
+  @override
+  String equipment_components_partOf(Object name) {
+    return '属于 $name';
+  }
+
+  @override
+  String equipment_components_partOfCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '属于 $count 个组合',
+      one: '属于 1 个组合',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipment_components_pickerConfirm(num count) {
@@ -56,6 +83,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_components_roleHint => '例如：主二级头';
+
+  @override
+  String equipment_components_rollupClock(Object component, Object kind) {
+    return '$component：$kind';
+  }
 
   @override
   String get equipment_components_title => '组件';
@@ -26710,6 +26742,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_tripField_notes_short => '备注';
+
+  @override
+  String get enum_equipmentField_components => '组件';
+
+  @override
+  String get enum_equipmentField_components_short => '部件';
 
   @override
   String get enum_equipmentField_itemName => '名称';

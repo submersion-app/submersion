@@ -16,6 +16,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_components_add => 'הוספת רכיב';
 
   @override
+  String equipment_components_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count רכיבים',
+      one: 'רכיב אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'הפריט הזה כבר מכיל את זה, ולכן אי אפשר להוסיף אותו כרכיב.';
 
@@ -25,6 +36,22 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'אין רכיבים. הוסיפו את החלקים שמהם מורכב הפריט.';
+
+  @override
+  String equipment_components_partOf(Object name) {
+    return 'חלק מ-$name';
+  }
+
+  @override
+  String equipment_components_partOfCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'חלק מ-$count מכלולים',
+      one: 'חלק ממכלול אחד',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipment_components_pickerConfirm(num count) {
@@ -59,6 +86,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_components_roleHint => 'לדוגמה: שלב שני ראשי';
+
+  @override
+  String equipment_components_rollupClock(Object component, Object kind) {
+    return '$component: $kind';
+  }
 
   @override
   String get equipment_components_title => 'רכיבים';
@@ -27454,6 +27486,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_tripField_notes_short => 'הערות';
+
+  @override
+  String get enum_equipmentField_components => 'רכיבים';
+
+  @override
+  String get enum_equipmentField_components_short => 'חלקים';
 
   @override
   String get enum_equipmentField_itemName => 'שם';

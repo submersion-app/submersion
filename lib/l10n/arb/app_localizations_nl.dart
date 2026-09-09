@@ -16,6 +16,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_components_add => 'Onderdeel toevoegen';
 
   @override
+  String equipment_components_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count onderdelen',
+      one: '1 onderdeel',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'Dat item bevat dit item al, dus het kan niet als onderdeel worden toegevoegd.';
 
@@ -25,6 +36,22 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Geen onderdelen. Voeg de delen toe waaruit dit item is opgebouwd.';
+
+  @override
+  String equipment_components_partOf(Object name) {
+    return 'Onderdeel van $name';
+  }
+
+  @override
+  String equipment_components_partOfCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Onderdeel van $count samenstellen',
+      one: 'Onderdeel van 1 samenstel',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipment_components_pickerConfirm(num count) {
@@ -59,6 +86,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_components_roleHint => 'bijv. Primaire tweede trap';
+
+  @override
+  String equipment_components_rollupClock(Object component, Object kind) {
+    return '$component: $kind';
+  }
 
   @override
   String get equipment_components_title => 'Onderdelen';
@@ -27927,6 +27959,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_tripField_notes_short => 'Notities';
+
+  @override
+  String get enum_equipmentField_components => 'Onderdelen';
+
+  @override
+  String get enum_equipmentField_components_short => 'Delen';
 
   @override
   String get enum_equipmentField_itemName => 'Naam';

@@ -16,6 +16,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_components_add => 'Alkatrész hozzáadása';
 
   @override
+  String equipment_components_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alkatrész',
+      one: '1 alkatrész',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'Az a felszerelés már tartalmazza ezt, ezért nem adható hozzá alkatrészként.';
 
@@ -25,6 +36,22 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Nincsenek alkatrészek. Add hozzá azokat a részeket, amelyekből ez a felszerelés áll.';
+
+  @override
+  String equipment_components_partOf(Object name) {
+    return '$name része';
+  }
+
+  @override
+  String equipment_components_partOfCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count összeállítás része',
+      one: '1 összeállítás része',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipment_components_pickerConfirm(num count) {
@@ -59,6 +86,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_components_roleHint => 'pl. Fő második fokozat';
+
+  @override
+  String equipment_components_rollupClock(Object component, Object kind) {
+    return '$component: $kind';
+  }
 
   @override
   String get equipment_components_title => 'Alkatrészek';
@@ -28018,6 +28050,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_tripField_notes_short => 'Jegyz.';
+
+  @override
+  String get enum_equipmentField_components => 'Alkatrészek';
+
+  @override
+  String get enum_equipmentField_components_short => 'Részek';
 
   @override
   String get enum_equipmentField_itemName => 'Név';

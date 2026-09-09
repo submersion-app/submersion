@@ -39,7 +39,11 @@ enum EquipmentField implements EntityField {
   serviceIntervalDays,
 
   // Other
-  notes;
+  notes,
+
+  // Assemblies (issue #1487). Last so persisted column layouts keep their
+  // order.
+  components;
 
   @override
   String get name => toString().split('.').last;
@@ -62,6 +66,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.daysUntilService => 'Days Until Service',
     EquipmentField.serviceIntervalDays => 'Service Interval',
     EquipmentField.notes => 'Notes',
+    EquipmentField.components => 'Components',
   };
 
   @override
@@ -82,6 +87,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.daysUntilService => 'Days Left',
     EquipmentField.serviceIntervalDays => 'Interval',
     EquipmentField.notes => 'Notes',
+    EquipmentField.components => 'Parts',
   };
 
   @override
@@ -104,6 +110,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.serviceIntervalDays =>
       l10n.enum_equipmentField_serviceIntervalDays,
     EquipmentField.notes => l10n.enum_equipmentField_notes,
+    EquipmentField.components => l10n.enum_equipmentField_components,
   };
 
   @override
@@ -129,6 +136,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.serviceIntervalDays =>
       l10n.enum_equipmentField_serviceIntervalDays_short,
     EquipmentField.notes => l10n.enum_equipmentField_notes_short,
+    EquipmentField.components => l10n.enum_equipmentField_components_short,
   };
 
   @override
@@ -149,6 +157,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.daysUntilService => Icons.timelapse,
     EquipmentField.serviceIntervalDays => Icons.repeat,
     EquipmentField.notes => Icons.notes,
+    EquipmentField.components => Icons.account_tree_outlined,
   };
 
   @override
@@ -169,6 +178,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.daysUntilService => 80,
     EquipmentField.serviceIntervalDays => 80,
     EquipmentField.notes => 150,
+    EquipmentField.components => 90,
   };
 
   @override
@@ -189,6 +199,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.daysUntilService => 60,
     EquipmentField.serviceIntervalDays => 60,
     EquipmentField.notes => 80,
+    EquipmentField.components => 60,
   };
 
   @override
@@ -209,6 +220,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.daysUntilService => true,
     EquipmentField.serviceIntervalDays => true,
     EquipmentField.notes => false,
+    EquipmentField.components => true,
   };
 
   @override
@@ -229,12 +241,14 @@ enum EquipmentField implements EntityField {
     EquipmentField.daysUntilService => 'service',
     EquipmentField.serviceIntervalDays => 'service',
     EquipmentField.notes => 'other',
+    EquipmentField.components => 'details',
   };
 
   @override
   bool get isRightAligned => switch (this) {
     EquipmentField.purchasePrice => true,
     EquipmentField.daysUntilService => true,
+    EquipmentField.components => true,
     _ => false,
   };
 }
@@ -248,7 +262,14 @@ class EquipmentFieldAdapter
   /// deserialization; views construct their own instance with the current map.
   final Map<String, ServiceClockStatus> worstClocks;
 
-  EquipmentFieldAdapter({this.worstClocks = const {}});
+  /// Component count per assembly id (from equipmentComponentsIndexProvider);
+  /// absent means zero. Same lifecycle as [worstClocks].
+  final Map<String, int> componentCounts;
+
+  EquipmentFieldAdapter({
+    this.worstClocks = const {},
+    this.componentCounts = const {},
+  });
 
   static final instance = EquipmentFieldAdapter();
 
@@ -288,6 +309,7 @@ class EquipmentFieldAdapter
       EquipmentField.daysUntilService => worstClocks[entity.id]?.daysUntilDue,
       EquipmentField.serviceIntervalDays => entity.serviceIntervalDays,
       EquipmentField.notes => entity.notes,
+      EquipmentField.components => componentCounts[entity.id] ?? 0,
     };
   }
 
@@ -311,6 +333,7 @@ class EquipmentFieldAdapter
       EquipmentField.daysUntilService => _formatDaysUntilService(value as int),
       EquipmentField.serviceIntervalDays => '${value as int} days',
       EquipmentField.notes => value as String,
+      EquipmentField.components => '${value as int}',
     };
   }
 

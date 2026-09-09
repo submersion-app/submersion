@@ -128,6 +128,12 @@ abstract class AppLocalizations {
   /// **'Add component'**
   String get equipment_components_add;
 
+  /// No description provided for @equipment_components_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 component} other{{count} components}}'**
+  String equipment_components_count(num count);
+
   /// No description provided for @equipment_components_cycleError.
   ///
   /// In en, this message translates to:
@@ -145,6 +151,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No components. Add the parts this item is assembled from.'**
   String get equipment_components_empty;
+
+  /// No description provided for @equipment_components_partOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of {name}'**
+  String equipment_components_partOf(Object name);
+
+  /// No description provided for @equipment_components_partOfCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Part of 1 assembly} other{Part of {count} assemblies}}'**
+  String equipment_components_partOfCount(num count);
 
   /// No description provided for @equipment_components_pickerConfirm.
   ///
@@ -193,6 +211,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. Primary second stage'**
   String get equipment_components_roleHint;
+
+  /// No description provided for @equipment_components_rollupClock.
+  ///
+  /// In en, this message translates to:
+  /// **'{component}: {kind}'**
+  String equipment_components_rollupClock(Object component, Object kind);
 
   /// No description provided for @equipment_components_title.
   ///
@@ -46576,6 +46600,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get enum_tripField_notes_short;
+
+  /// No description provided for @enum_equipmentField_components.
+  ///
+  /// In en, this message translates to:
+  /// **'Components'**
+  String get enum_equipmentField_components;
+
+  /// No description provided for @enum_equipmentField_components_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Parts'**
+  String get enum_equipmentField_components_short;
 
   /// No description provided for @enum_equipmentField_itemName.
   ///

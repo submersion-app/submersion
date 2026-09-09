@@ -27,7 +27,9 @@ import 'package:submersion/features/equipment/domain/constants/equipment_field.d
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -534,13 +536,25 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         final notifier = ref.read(equipmentTableConfigProvider.notifier);
         final settings = ref.watch(settingsProvider);
         final units = UnitFormatter(settings);
-        final serviceUrgency =
-            ref.watch(equipmentServiceUrgencyProvider).value ?? const {};
+        // Table columns read the rollup (issue #1487) so an assembly's next
+        // service date is its earliest part's, and gain a components count.
+        final rollup =
+            ref.watch(equipmentRollupClockProvider).value ?? const {};
+        final index =
+            ref.watch(equipmentComponentsIndexProvider).value ??
+            ComponentsIndex.empty;
 
         return EntityTableView<EquipmentItem, EquipmentField>(
           entities: equipment,
           idExtractor: (e) => e.id,
-          adapter: EquipmentFieldAdapter(worstClocks: serviceUrgency),
+          adapter: EquipmentFieldAdapter(
+            worstClocks: {
+              for (final e in rollup.entries) e.key: e.value.status,
+            },
+            componentCounts: {
+              for (final e in index.byParent.entries) e.key: e.value.length,
+            },
+          ),
           config: config,
           units: units,
           onSortFieldChanged: notifier.setSortField,
@@ -932,7 +946,13 @@ class EquipmentListTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final worstClock = ref.watch(equipmentWorstClockProvider).value?[item.id];
+    // The rollup (issue #1487): a due part lights its assembly, and the
+    // badge names the part. An ok rollup is no badge, as before.
+    final rollup = ref.watch(equipmentRollupClockProvider).value?[item.id];
+    final worstClock =
+        rollup == null || rollup.status.severity == ServiceClockSeverity.ok
+        ? null
+        : rollup;
     final isOverdue =
         worstClock?.status.severity == ServiceClockSeverity.overdue;
     final accent = resolveFeatureAccent(
@@ -970,13 +990,20 @@ class EquipmentListTile extends ConsumerWidget {
           ),
         ),
         title: Text(item.name),
-        subtitle: item.fullName != item.name ? Text(item.fullName) : null,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (item.fullName != item.name) Text(item.fullName),
+            AssemblyChips(itemId: item.id),
+          ],
+        ),
         trailing: _buildTrailing(context, worstClock),
       ),
     );
   }
 
-  Widget _buildTrailing(BuildContext context, DueClock? worstClock) {
+  Widget _buildTrailing(BuildContext context, RollupClock? worstClock) {
     final theme = Theme.of(context);
 
     final typeLabel = Text(
@@ -989,6 +1016,12 @@ class EquipmentListTile extends ConsumerWidget {
     if (worstClock != null) {
       final overdue =
           worstClock.status.severity == ServiceClockSeverity.overdue;
+      final kindLabel = worstClock.ownerId == item.id
+          ? worstClock.status.kind.name
+          : context.l10n.equipment_components_rollupClock(
+              worstClock.ownerName,
+              worstClock.status.kind.name,
+            );
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -997,10 +1030,8 @@ class EquipmentListTile extends ConsumerWidget {
           const SizedBox(height: 2),
           Text(
             overdue
-                ? context.l10n.equipment_list_worstClock(
-                    worstClock.status.kind.name,
-                  )
-                : worstClock.status.kind.name,
+                ? context.l10n.equipment_list_worstClock(kindLabel)
+                : kindLabel,
             style: theme.textTheme.labelSmall?.copyWith(
               color: overdue
                   ? theme.colorScheme.error
