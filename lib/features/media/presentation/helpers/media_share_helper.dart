@@ -16,7 +16,14 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// [anchor] is the iPad share popover's origin; pass the share button's rect
 /// (see `shareAnchorFrom`). Ignored on every other platform.
-Future<void> shareMediaItems(
+///
+/// Returns whether the sheet was opened with at least one file. The library's
+/// selection bar turns that into a [BulkActionOutcome], which is what makes
+/// Share leave multi-select the way every other bulk action does (#1262).
+/// Opening the sheet counts as done even if the diver then dismisses it:
+/// share_plus only reports a dismissal on mobile, so trusting the status
+/// would make the bar behave differently on desktop for no gain.
+Future<bool> shareMediaItems(
   BuildContext context,
   WidgetRef ref,
   List<MediaItem> items, {
@@ -54,16 +61,18 @@ Future<void> shareMediaItems(
       if (context.mounted) {
         _showError(context, l10n.media_photoViewer_cannotShare);
       }
-      return;
+      return false;
     }
     await SharePlus.instance.share(
       ShareParams(files: files, sharePositionOrigin: sharePositionOrigin),
     );
+    return true;
   } catch (e) {
     if (context.mounted) {
       Navigator.of(context, rootNavigator: true).pop();
       _showError(context, l10n.media_photoViewer_failedToShare(e.toString()));
     }
+    return false;
   }
 }
 

@@ -253,6 +253,94 @@ void main() {
     expect(platform.calls, isEmpty);
   });
 
+  group('what the share reports back', () {
+    // The library's selection bar leaves multi-select only when its action
+    // says it finished (#1262), so this return value is what stops Share
+    // being the one bulk action that strands the diver in the mode.
+    Widget recordingHost({
+      required ResolvedAssetResult Function(MediaItem) resolve,
+      required List<bool?> log,
+    }) {
+      return ProviderScope(
+        overrides: [
+          resolvedFullResolutionProvider.overrideWith(
+            (ref, MediaItem arg) async => resolve(arg),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) => TextButton(
+                onPressed: () async =>
+                    log.add(await shareMediaItems(context, ref, [item('a')])),
+                child: const Text('SHARE'),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('an opened share sheet reports success', (tester) async {
+      final log = <bool?>[];
+      await tester.pumpWidget(
+        recordingHost(resolve: (_) => resolved(), log: log),
+      );
+      // Real temp-file I/O on the success path, so this needs runAsync the
+      // same way the other success assertions do.
+      await tapShareAndDrain(tester);
+
+      expect(platform.calls, hasLength(1));
+      expect(log, [true]);
+    });
+
+    testWidgets('nothing resolvable reports failure', (tester) async {
+      final log = <bool?>[];
+      await tester.pumpWidget(
+        recordingHost(resolve: (_) => unavailable, log: log),
+      );
+      await tester.tap(find.text('SHARE'));
+      await tester.pumpAndSettle();
+
+      expect(platform.calls, isEmpty);
+      expect(log, [false]);
+    });
+
+    testWidgets('a throwing resolve reports failure', (tester) async {
+      final log = <bool?>[];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            resolvedFullResolutionProvider.overrideWith(
+              (ref, MediaItem arg) async => throw StateError('disk gone'),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => TextButton(
+                  onPressed: () async =>
+                      log.add(await shareMediaItems(context, ref, [item('a')])),
+                  child: const Text('SHARE'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('SHARE'));
+      await tester.pumpAndSettle();
+
+      expect(log, [false]);
+    });
+  });
+
   group('iPad share popover anchor', () {
     // On iPad the share sheet is a popover and must point at the control that
     // opened it. share_plus takes that as ShareParams.sharePositionOrigin;

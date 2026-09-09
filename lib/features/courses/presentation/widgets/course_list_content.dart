@@ -266,9 +266,9 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
   }
 
   /// Mark every checked course complete, mirroring the per-course action.
-  Future<void> _markSelectedComplete() async {
+  Future<BulkActionOutcome> _markSelectedComplete() async {
     final ids = _selectedIds.toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
     final courses = (ref.read(courseListNotifierProvider).value ?? const [])
         .where((c) => ids.contains(c.id))
         .toList();
@@ -279,11 +279,12 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     for (final course in courses) {
       await notifier.updateCourse(course.copyWith(completionDate: now));
     }
+    return BulkActionOutcome.completed;
   }
 
-  Future<void> _confirmAndDelete() async {
+  Future<BulkActionOutcome> _confirmAndDelete() async {
     final ids = _selectedIds.toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -305,7 +306,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return BulkActionOutcome.cancelled;
 
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(courseListNotifierProvider.notifier);
@@ -313,12 +314,13 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     for (final id in ids) {
       await notifier.deleteCourse(id);
     }
-    if (!mounted) return;
+    if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(
       SnackBar(
         content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
       ),
     );
+    return BulkActionOutcome.completed;
   }
 
   Widget _buildTableModeScaffold(

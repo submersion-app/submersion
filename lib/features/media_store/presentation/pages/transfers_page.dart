@@ -153,10 +153,12 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
   /// Retry every checked entry, lifting the per-row retry wholesale -- the
   /// negative-cache clear included, or the requeue drains straight back into
   /// the same failure.
-  Future<void> _retrySelected(List<MediaTransferQueueEntry> rows) async {
+  Future<BulkActionOutcome> _retrySelected(
+    List<MediaTransferQueueEntry> rows,
+  ) async {
     final ids = _selectedIds.map(int.parse).toSet();
     final checked = rows.where((e) => ids.contains(e.id)).toList();
-    if (checked.isEmpty) return;
+    if (checked.isEmpty) return BulkActionOutcome.cancelled;
 
     final assetCache = ref.read(localAssetCacheRepositoryProvider);
     final queue = ref.read(mediaTransferQueueRepositoryProvider);
@@ -168,11 +170,14 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
     }
     final runtime = await ref.read(mediaStoreRuntimeProvider.future);
     await runtime?.worker?.drain();
+    return BulkActionOutcome.completed;
   }
 
-  Future<void> _confirmAndDelete(List<MediaTransferQueueEntry> rows) async {
+  Future<BulkActionOutcome> _confirmAndDelete(
+    List<MediaTransferQueueEntry> rows,
+  ) async {
     final ids = _selectedIds.map(int.parse).toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -194,7 +199,7 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return BulkActionOutcome.cancelled;
 
     final messenger = ScaffoldMessenger.of(context);
     final queue = ref.read(mediaTransferQueueRepositoryProvider);
@@ -202,11 +207,12 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
     for (final id in ids) {
       await queue.delete(id);
     }
-    if (!mounted) return;
+    if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(
       SnackBar(
         content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
       ),
     );
+    return BulkActionOutcome.completed;
   }
 }
