@@ -452,11 +452,23 @@ Three decisions differ from the sketch above, all made while building it:
   slice A, for the same reason: an Android SAF location has no `Directory`
   behind it, and an empty list would tell that user their backup folder holds
   nothing forgotten when it was never read.
-- **The lease wraps `reclaim` as well as `find`.** `BackupsDirectoryAccess`
-  holds `resolveBackupsDirectoryLeased` open across the whole operation and
-  releases in a `finally`. Deleting outside the lease would fail on exactly the
-  Apple custom-location configuration the lease exists for, and a mid-delete
+- **The lease wraps `reclaim` as well as `find`, and it is a read-only lease.**
+  `BackupsDirectoryAccess` holds the directory open across the whole operation
+  and releases in a `finally`. Deleting outside the lease would fail on exactly
+  the Apple custom-location configuration the lease exists for, and a mid-delete
   throw would otherwise leak a scoped resource for the life of the process.
+
+  It does NOT use `BackupService.resolveBackupsDirectoryLeased`, which mutates
+  on three paths that are all correct for a writer and all wrong for a scan that
+  runs whenever the Storage usage page is opened: it creates the directory it
+  returns, creates a missing custom directory, and self-heals an unreachable
+  custom location by clearing it. The clearing is the one that bites. An
+  unmounted share is unreachable for as long as it is unmounted, so opening a
+  settings page in that window would point every future backup at the sandbox
+  instead of the folder the diver chose, silently and permanently. This is the
+  same trap slice A hit when `resolveDefaultBackupsDirectory()` was passed by
+  value and a measurement page minted a Backups folder; sharing a resolver with
+  a writer imports the writer's willingness to change things.
 
 `BackupsDirectoryAccess` also declines to inherit one behaviour of
 `resolveBackupsDirectoryLeased`: that resolver substitutes the sandbox default

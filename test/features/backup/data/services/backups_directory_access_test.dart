@@ -140,6 +140,35 @@ void main() {
       },
     );
 
+    test('scanning does not create the sandbox backups folder', () async {
+      // The scan runs whenever the Storage usage page is opened. Slice A
+      // already learned this one: resolveDefaultBackupsDirectory CREATES the
+      // directory, so a measurement surface that resolves it by value mints a
+      // Submersion/Backups folder for users whose backups live elsewhere.
+      await BackupsDirectoryAccess.live(await preferences()).use((_) async {});
+
+      expect(
+        Directory(p.join(documents.path, 'Submersion', 'Backups')).existsSync(),
+        isFalse,
+      );
+    });
+
+    test('an unreachable custom location is not cleared', () async {
+      // resolveBackupsDirectoryLeased self-heals a dead location by clearing
+      // it, which is right for the write path: a backup has to land somewhere.
+      // Reading must not do it. An unmounted share is unreachable for as long
+      // as it is unmounted, and opening a settings page in that window would
+      // silently point every future backup at the sandbox instead of the
+      // folder the diver chose.
+      final prefs = await preferences();
+      final unreachable = p.join(documents.path, 'unmounted-share', 'Backups');
+      await prefs.setBackupLocation(unreachable);
+
+      await BackupsDirectoryAccess.live(prefs).use((_) async {});
+
+      expect(prefs.getSettings().backupLocation, unreachable);
+    });
+
     test('a SAF location resolves to no directory', () async {
       final prefs = await preferences();
       await prefs.setBackupLocation('content://com.android.providers/tree/x');

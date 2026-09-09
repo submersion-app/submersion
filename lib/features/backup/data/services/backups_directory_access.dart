@@ -1,3 +1,4 @@
+import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
@@ -21,7 +22,7 @@ class BackupsDirectoryAccess {
   }) : _configuredLocation = configuredLocation,
        _acquireLease = acquireLease;
 
-  /// Wired to the live preferences and the leased resolver.
+  /// Wired to the live preferences and a resolver that only reads.
   ///
   /// [bookmarks] exists only so a test can exercise the Apple branch without a
   /// native channel, mirroring the seam `resolveBackupsDirectoryLeased` already
@@ -31,10 +32,7 @@ class BackupsDirectoryAccess {
     BackupBookmarkPort? bookmarks,
   }) => BackupsDirectoryAccess(
     configuredLocation: () async => preferences.getSettings().backupLocation,
-    acquireLease: () => BackupService.resolveBackupsDirectoryLeased(
-      preferences,
-      bookmarks: bookmarks,
-    ),
+    acquireLease: () => _leaseForReading(preferences, bookmarks: bookmarks),
   );
 
   final Future<String?> Function() _configuredLocation;
@@ -62,4 +60,52 @@ class BackupsDirectoryAccess {
       await lease.release();
     }
   }
+
+  /// Resolves the backups directory for reading, changing nothing.
+  ///
+  /// Deliberately NOT `BackupService.resolveBackupsDirectoryLeased`, which
+  /// mutates on three paths that are all correct for a writer and all wrong
+  /// here. It creates the directory it returns, it creates a missing custom
+  /// directory, and it self-heals an unreachable custom location by clearing
+  /// it. A backup has to land somewhere, so a writer is right to insist; a scan
+  /// that runs whenever the Storage usage page is opened is not.
+  ///
+  /// The clearing is the one that bites. An unmounted share is unreachable for
+  /// as long as it is unmounted, and opening a settings page in that window
+  /// would point every future backup at the sandbox instead of the folder the
+  /// diver chose, silently and permanently.
+  ///
+  /// A SAF location never reaches here: [use] returns before taking a lease.
+  static Future<BackupDirLease> _leaseForReading(
+    BackupPreferences preferences, {
+    BackupBookmarkPort? bookmarks,
+  }) async {
+    final custom = preferences.getSettings().backupLocation;
+    if (custom == null || custom.isEmpty) {
+      return BackupDirLease(
+        await BackupService.defaultBackupsDirectoryPath(),
+        _noRelease,
+      );
+    }
+    if (!BackupBookmarkService.isSupported) {
+      return BackupDirLease(custom, _noRelease);
+    }
+
+    // Apple: the folder is reachable only while its bookmark is armed. A
+    // missing or unresolvable bookmark yields the bare path rather than a
+    // reset; the listing then finds nothing, which is the honest outcome for a
+    // folder this process cannot open.
+    final bytes = preferences.getBackupLocationBookmark();
+    if (bytes == null) return BackupDirLease(custom, _noRelease);
+
+    final port = bookmarks ?? BackupService.defaultBookmarkPort;
+    final lease = await port.resolve(bytes);
+    if (lease == null) return BackupDirLease(custom, _noRelease);
+
+    // A stale bookmark is used as resolved and not re-minted: re-minting is a
+    // write, and the writer already re-mints it on its own next run.
+    return BackupDirLease(lease.path, () => port.release(lease.ref));
+  }
+
+  static Future<void> _noRelease() async {}
 }
