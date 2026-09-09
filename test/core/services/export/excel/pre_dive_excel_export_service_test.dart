@@ -282,6 +282,37 @@ void main() {
     expect(cell('Linearity %'), '99');
   });
 
+  test('a stray frozen reading on another type stays out of the export', () {
+    // Malformed data the editor cannot author but sync could deliver. The
+    // header says these columns belong to linearity items, so the gate is on
+    // the type rather than merely on the value being present.
+    final bytes = service.generateBytes(
+      sessions: [session()],
+      itemsBySession: {
+        's1': [
+          item(
+            id: 'odd',
+            title: 'Not a linearity item',
+            type: PreDiveItemType.value,
+            state: PreDiveItemState.done,
+            valueNumber: 10.1,
+            valueUnit: 'mV',
+            sourceValueNumber: 9.9,
+            completedAt: completed,
+          ),
+        ],
+      },
+      dateFormat: DateFormatPreference.yyyymmdd,
+    );
+
+    final rows = rowsOf(decode(bytes), PreDiveExcelExportService.itemsSheet);
+    final header = rows.first;
+    String cell(String column) => rows[1][header.indexOf(column)];
+
+    expect(cell('Air Value'), isEmpty);
+    expect(cell('Linearity %'), isEmpty);
+  });
+
   test('a plain value item leaves the two linearity columns empty', () {
     final bytes = service.generateBytes(
       sessions: [session()],
