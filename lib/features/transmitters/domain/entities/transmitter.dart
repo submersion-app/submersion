@@ -42,8 +42,10 @@ class Transmitter extends Equatable {
     required this.updatedAt,
   });
 
-  bool get hasSerial =>
-      transmitterSerial != null && transmitterSerial!.isNotEmpty;
+  /// Whether the entry carries a usable serial in the canonical sense: a
+  /// whitespace-only or all-zero value counts as none, matching how the
+  /// matcher and the repository treat it.
+  bool get hasSerial => normalizeTransmitterSerial(transmitterSerial) != null;
 
   bool get hasChannel => diveComputerId != null && channelIndex != null;
 

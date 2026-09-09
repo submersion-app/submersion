@@ -21,4 +21,11 @@ void main() {
 
     expect(set, {'180777', '109623'});
   });
+
+  test('hasSerial is false for whitespace or all-zero values', () {
+    expect(_entry('a', '180777').hasSerial, isTrue);
+    expect(_entry('b', '   ').hasSerial, isFalse);
+    expect(_entry('c', '000').hasSerial, isFalse);
+    expect(_entry('d', null).hasSerial, isFalse);
+  });
 }

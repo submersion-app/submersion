@@ -186,12 +186,16 @@ class TankPressureRepository {
     required String tankIdB,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final a = await (_db.select(
-      _db.diveTanks,
-    )..where((t) => t.id.equals(tankIdA))).getSingle();
-    final b = await (_db.select(
-      _db.diveTanks,
-    )..where((t) => t.id.equals(tankIdB))).getSingle();
+    // Both rows must belong to [diveId]: a mismatched id fails here rather
+    // than silently swapping fields across dives.
+    final a =
+        await (_db.select(_db.diveTanks)
+              ..where((t) => t.id.equals(tankIdA) & t.diveId.equals(diveId)))
+            .getSingle();
+    final b =
+        await (_db.select(_db.diveTanks)
+              ..where((t) => t.id.equals(tankIdB) & t.diveId.equals(diveId)))
+            .getSingle();
     final aHasSeries = await _hasSeries(diveId, tankIdA);
     final bHasSeries = await _hasSeries(diveId, tankIdB);
     final aIndex = effectiveSourceTankIndex(
@@ -205,7 +209,9 @@ class TankPressureRepository {
       hasSeries: bHasSeries,
     );
 
-    await (_db.update(_db.diveTanks)..where((t) => t.id.equals(tankIdA))).write(
+    await (_db.update(
+      _db.diveTanks,
+    )..where((t) => t.id.equals(tankIdA) & t.diveId.equals(diveId))).write(
       DiveTanksCompanion(
         sourceTankIndex: Value(bIndex),
         transmitterSerial: Value(b.transmitterSerial),
@@ -213,7 +219,9 @@ class TankPressureRepository {
         endPressure: Value(b.endPressure),
       ),
     );
-    await (_db.update(_db.diveTanks)..where((t) => t.id.equals(tankIdB))).write(
+    await (_db.update(
+      _db.diveTanks,
+    )..where((t) => t.id.equals(tankIdB) & t.diveId.equals(diveId))).write(
       DiveTanksCompanion(
         sourceTankIndex: Value(aIndex),
         transmitterSerial: Value(a.transmitterSerial),

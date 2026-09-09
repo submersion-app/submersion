@@ -141,6 +141,33 @@ void main() {
     },
   );
 
+  test('refuses a tank from another dive', () async {
+    await seed();
+    await diveRepo.createDive(
+      domain.Dive(
+        id: 'd2',
+        dateTime: DateTime.utc(2026, 7, 2, 10),
+        tanks: const [
+          domain.DiveTank(
+            id: 'other',
+            gasMix: domain.GasMix(o2: 21, he: 0),
+            order: 0,
+          ),
+        ],
+      ),
+    );
+
+    await expectLater(
+      tankRepo.exchangeTankSources(
+        diveId: 'd1',
+        tankIdA: 'tA',
+        tankIdB: 'other',
+      ),
+      throwsA(isA<StateError>()),
+    );
+    expect((await row('tA'))['serial'], '111', reason: 'nothing written');
+  });
+
   test('exchange is its own inverse', () async {
     await seed();
     await tankRepo.exchangeTankSources(

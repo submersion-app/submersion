@@ -718,7 +718,9 @@ class ReparseService {
 
     // Which existing row takes parsed tank [index]. A row's source index wins
     // (a reassignment, issue #1314); rows from before v200 carry null and
-    // fall back to their order, as the old path did. A row marked
+    // fall back to their order, as the old path did. The fallback accepts
+    // rows attributed to this computer or to none (legacy and manual rows),
+    // never another computer's row on a multi-source dive. A row marked
     // kNoSourceTankIndex takes nothing.
     final matchedIds = <String>{};
     DiveTank? existingFor(int index) {
@@ -729,6 +731,7 @@ class ReparseService {
       }
       for (final t in existingTanks) {
         if (matchedIds.contains(t.id)) continue;
+        if (t.computerId != null && t.computerId != computerId) continue;
         if (t.sourceTankIndex == null && t.tankOrder == index) return t;
       }
       return null;

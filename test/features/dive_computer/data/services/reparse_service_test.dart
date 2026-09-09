@@ -1465,6 +1465,70 @@ void main() {
       expect(await service.hasRawData('dive-nonexistent'), isFalse);
     });
 
+    test('DiveTanks carry-over: the order fallback never takes another '
+        "computer's row", () async {
+      // A multi-source dive: comp-2 owns a legacy row (no source index) at
+      // order 0. Re-parsing comp-1's strand must insert its own row rather
+      // than rewrite comp-2's, while an unattributed legacy row at that
+      // order would still be adopted as before v200.
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertComputer('comp-2');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(
+              id: Value('tank-other'),
+              diveId: Value('dive-1'),
+              computerId: Value('comp-2'),
+              o2Percent: Value(50.0),
+              tankOrder: Value(0),
+              tankName: Value('Deco on comp-2'),
+            ),
+          );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: makeParsedDive(
+          tanks: [
+            pigeon.TankInfo(
+              index: 0,
+              gasMixIndex: 0,
+              startPressureBar: 200.0,
+              endPressureBar: 100.0,
+              transmitterSerial: 111111,
+            ),
+          ],
+          gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+        ),
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final other = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('tank-other'))).getSingle();
+      expect(other.transmitterSerial, isNull);
+      expect(other.o2Percent, 50.0);
+      final mine =
+          await (db.select(db.diveTanks)..where(
+                (t) =>
+                    t.diveId.equals('dive-1') & t.computerId.equals('comp-1'),
+              ))
+              .getSingle();
+      expect(mine.transmitterSerial, '111111');
+      expect(mine.sourceTankIndex, 0);
+    });
+
     test(
       'DiveTanks carry-over: a swapped row keeps the swapped transmitter',
       () async {
