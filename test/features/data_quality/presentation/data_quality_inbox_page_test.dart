@@ -1069,33 +1069,65 @@ void main() {
     expect((await DiveRepository().getDiveById('d1'))!.waterTemp, 78);
   });
 
-  testWidgets('consolidate-duplicate repair reports through a SnackBar', (
-    tester,
-  ) async {
-    final prefs = await _prefs();
-    await tester.pumpWidget(
-      _scope(
-        prefs,
-        findings: [
-          _f(
-            id: 'r-dup',
-            diveId: 'd1',
-            relatedDiveId: 'd2',
-            detectorId: 'duplicate',
-            category: QualityCategory.duplicate,
-            params: const {'score': 0.9, 'timeDiffMinutes': 5},
-          ),
-        ],
-      ),
-    );
-    await tester.pumpAndSettle();
+  testWidgets(
+    'consolidate-duplicate repair opens the combine dialog with the primary '
+    'selector instead of merging on the spot',
+    (tester) async {
+      // Which recording survives a consolidation decides whose notes, site
+      // and edits are kept. The one-tap path used to pick the smaller UUID;
+      // it now defers to the dialog's primary-computer selector (#1690).
+      final t = DateTime.utc(2026, 7, 1, 10);
+      await DiveRepository().createDive(
+        domain.Dive(
+          id: 'd1',
+          dateTime: t,
+          entryTime: t,
+          runtime: const Duration(minutes: 30),
+          diveComputerModel: 'Perdix',
+          diveComputerSerial: 'serial-1',
+        ),
+      );
+      await DiveRepository().createDive(
+        domain.Dive(
+          id: 'd2',
+          dateTime: t.add(const Duration(minutes: 5)),
+          entryTime: t.add(const Duration(minutes: 5)),
+          runtime: const Duration(minutes: 25),
+          diveComputerModel: 'Teric',
+          diveComputerSerial: 'serial-2',
+        ),
+      );
+      final prefs = await _prefs();
+      await tester.pumpWidget(
+        _scope(
+          prefs,
+          findings: [
+            _f(
+              id: 'r-dup',
+              diveId: 'd1',
+              relatedDiveId: 'd2',
+              detectorId: 'duplicate',
+              category: QualityCategory.duplicate,
+              params: const {'score': 0.9, 'timeDiffMinutes': 5},
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(FilledButton).first);
-    await tester.pumpAndSettle();
+      await tester.tap(find.byType(FilledButton).first);
+      await tester.pumpAndSettle();
 
-    expect(find.byType(SnackBar), findsWidgets);
-    await tester.pumpAndSettle(const Duration(seconds: 6));
-  });
+      expect(find.byType(CombineDivesDialog), findsOneWidget);
+      expect(find.text('Primary dive computer'), findsOneWidget);
+      expect(find.byType(RadioListTile<String>), findsNWidgets(2));
+      // Nothing was merged: both rows are still live.
+      expect(await DiveRepository().getDiveById('d2'), isNotNull);
+      // Dismiss the barrier so the dialog route closes cleanly.
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets('a same-computer duplicate offers no Consolidate button', (
     tester,

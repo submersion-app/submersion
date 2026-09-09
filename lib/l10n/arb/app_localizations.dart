@@ -3908,7 +3908,7 @@ abstract class AppLocalizations {
   /// No description provided for @checklists_templates_pageTitle.
   ///
   /// In en, this message translates to:
-  /// **'Checklist Templates'**
+  /// **'Trip Checklist Templates'**
   String get checklists_templates_pageTitle;
 
   /// No description provided for @checklists_templates_addTemplate.
@@ -3916,6 +3916,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Template'**
   String get checklists_templates_addTemplate;
+
+  /// No description provided for @checklists_templates_editTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Template'**
+  String get checklists_templates_editTemplate;
 
   /// No description provided for @checklists_templates_empty.
   ///
@@ -29030,7 +29036,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_manage_checklistTemplates.
   ///
   /// In en, this message translates to:
-  /// **'Checklist Templates'**
+  /// **'Trip Checklist Templates'**
   String get settings_manage_checklistTemplates;
 
   /// No description provided for @settings_manage_checklistTemplates_subtitle.
