@@ -214,4 +214,37 @@ void main() {
     expect(find.textContaining('cannot list'), findsOneWidget);
     expect(find.textContaining('No unrecognized'), findsNothing);
   });
+
+  testWidgets('a tick is dropped when the file stops being this device\'s', (
+    tester,
+  ) async {
+    // A sync reset changes the device id, so the next scan classifies the same
+    // file as another device's. Pruning only paths that VANISHED leaves this
+    // one ticked: the bar counts a file whose tile now shows "Another device"
+    // and no checkbox, and confirming would report "Freed 0 B" after the
+    // service correctly refused it.
+    var listed = [entry(name: 'mine.db')];
+
+    await tester.pumpWidget(harness(entries: () async => listed));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(Checkbox));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+    );
+
+    listed = [entry(name: 'mine.db', ownership: BackupOwnership.otherDevice)];
+    ProviderScope.containerOf(
+      tester.element(find.byType(UnrecognizedBackupsPage)),
+    ).invalidate(unrecognizedBackupsProvider);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Checkbox), findsNothing);
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNull,
+    );
+  });
 }

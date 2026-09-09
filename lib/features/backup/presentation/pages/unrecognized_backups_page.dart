@@ -39,11 +39,19 @@ class _UnrecognizedBackupsPageState
     final l10n = context.l10n;
     final scan = ref.watch(unrecognizedBackupsProvider);
 
-    // A rescan can remove a file that was ticked, so drop selections the list
-    // no longer offers before anything reads them.
+    // Drop ticks the list no longer offers, before anything reads them. That
+    // means gone, and it also means still listed but no longer this device's:
+    // a sync reset changes the device id, so the next scan classifies the same
+    // file as another device's. Pruning on presence alone would leave it ticked
+    // behind a tile that shows "Another device" and no checkbox, with the bar
+    // still counting it and a confirm reporting "Freed 0 B" once the service
+    // refused it.
     if (scan.valueOrNull case final entries?) {
-      final present = {for (final entry in entries) entry.path};
-      _selected.removeWhere((path) => !present.contains(path));
+      final selectable = {
+        for (final entry in entries)
+          if (entry.isReclaimable) entry.path,
+      };
+      _selected.removeWhere((path) => !selectable.contains(path));
     }
 
     return Scaffold(
