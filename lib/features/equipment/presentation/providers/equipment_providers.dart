@@ -152,6 +152,12 @@ List<EquipmentItem> applyEquipmentSorting(
   int urgencyRank(EquipmentItem e) =>
       serviceUrgency[e.id]?.severity.index ?? -1;
 
+  // Resolved once rather than inside the comparator: the fallback is a
+  // closure literal, so building it per comparison allocated one on every
+  // O(n log n) call for no benefit.
+  final resolveTypeLabel =
+      typeLabel ?? (EquipmentType type) => type.displayName;
+
   sorted.sort((a, b) {
     int comparison;
     // For text fields, invert direction (user expects descending = A→Z)
@@ -163,8 +169,9 @@ List<EquipmentItem> applyEquipmentSorting(
       case EquipmentSortField.name:
         comparison = a.name.compareTo(b.name);
       case EquipmentSortField.type:
-        final label = typeLabel ?? (EquipmentType t) => t.displayName;
-        comparison = label(a.type).compareTo(label(b.type));
+        comparison = resolveTypeLabel(
+          a.type,
+        ).compareTo(resolveTypeLabel(b.type));
       case EquipmentSortField.purchaseDate:
         comparison = (a.purchaseDate ?? DateTime(1900)).compareTo(
           b.purchaseDate ?? DateTime(1900),
