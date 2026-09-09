@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_detai
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -71,6 +72,10 @@ void main() {
               equipmentTripCountProvider(
                 equipment.id,
               ).overrideWith((ref) async => 0),
+              equipmentComponentsProvider(
+                equipment.id,
+              ).overrideWith((ref) async => const []),
+              equipmentWorstClockProvider.overrideWith((ref) async => {}),
               serviceRecordNotifierProvider(
                 equipment.id,
               ).overrideWith((ref) => _MockServiceRecordNotifier()),
@@ -131,6 +136,10 @@ void main() {
             equipmentTripCountProvider(
               equipment.id,
             ).overrideWith((ref) async => 0),
+            equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentWorstClockProvider.overrideWith((ref) async => {}),
             serviceRecordNotifierProvider(
               equipment.id,
             ).overrideWith((ref) => _MockServiceRecordNotifier()),
@@ -198,6 +207,10 @@ void main() {
             equipmentTripCountProvider(
               equipment.id,
             ).overrideWith((ref) async => 0),
+            equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentWorstClockProvider.overrideWith((ref) async => {}),
             serviceRecordNotifierProvider(
               equipment.id,
             ).overrideWith((ref) => _MockServiceRecordNotifier()),
@@ -250,6 +263,10 @@ void main() {
             equipmentTripCountProvider(
               equipment.id,
             ).overrideWith((ref) async => 0),
+            equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentWorstClockProvider.overrideWith((ref) async => {}),
             serviceRecordNotifierProvider(
               equipment.id,
             ).overrideWith((ref) => _MockServiceRecordNotifier()),
@@ -425,6 +442,10 @@ void main() {
             equipmentTripCountProvider(
               equipment.id,
             ).overrideWith((ref) async => 0),
+            equipmentComponentsProvider(
+              equipment.id,
+            ).overrideWith((ref) async => const []),
+            equipmentWorstClockProvider.overrideWith((ref) async => {}),
             serviceRecordNotifierProvider(
               equipment.id,
             ).overrideWith((ref) => _MockServiceRecordNotifier()),

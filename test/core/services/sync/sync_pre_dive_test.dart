@@ -127,5 +127,96 @@ void main() {
       expect(roundTripped.preDiveSessionItems, hasLength(1));
       expect(roundTripped.preDiveSessions.single['id'], session.id);
     });
+
+    test('the cell linearity link and frozen reading survive the '
+        'export and JSON round-trip', () async {
+      // The columns ride along on Drift's generated fromJson/toJson, so this
+      // pins the generated mapping rather than hand-written serializer code:
+      // a future hand-rolled branch cannot drop the fields unnoticed.
+      final templateRepository = PreDiveTemplateRepository();
+      final sessionRepository = PreDiveSessionRepository();
+
+      final template = await templateRepository.createTemplate(
+        PreDiveChecklistTemplate(
+          id: '',
+          name: 'CCR Build',
+          strictOrder: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await templateRepository.saveItems(template.id, [
+        PreDiveChecklistTemplateItem(
+          id: 'air1',
+          templateId: template.id,
+          title: 'Cell 1 mV in air',
+          itemType: PreDiveItemType.value,
+          valueLabel: 'Cell 1',
+          valueUnit: 'mV',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        PreDiveChecklistTemplateItem(
+          id: 'o2-1',
+          templateId: template.id,
+          title: 'Cell 1 mV in O2',
+          sortOrder: 1,
+          itemType: PreDiveItemType.cellLinearity,
+          valueLabel: 'Cell 1',
+          valueUnit: 'mV',
+          valueMin: 95,
+          sourceItemId: 'air1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+
+      final session = await sessionRepository.startSession(
+        template: template,
+        items: [
+          PreDiveSessionItem(
+            id: 'sess-o2-1',
+            sessionId: '',
+            title: 'Cell 1 mV in O2',
+            itemType: PreDiveItemType.cellLinearity,
+            valueUnit: 'mV',
+            sourceItemId: 'sess-air1',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ],
+      );
+      await sessionRepository.updateItemState(
+        sessionId: session.id,
+        itemId: 'sess-o2-1',
+        state: PreDiveItemState.done,
+        valueNumber: 48.0,
+        sourceValueNumber: 10.1,
+      );
+
+      final serializer = SyncDataSerializer();
+      final syncRepository = SyncRepository();
+      final payload = await serializer.exportData(
+        deviceId: await syncRepository.getDeviceId(),
+        lastSyncTimestamp: null,
+        deletions: await syncRepository.getAllDeletions(),
+      );
+
+      final roundTripped = SyncData.fromJson(
+        jsonDecode(jsonEncode(payload.data.toJson())) as Map<String, dynamic>,
+      );
+
+      final linearityTemplateItem = roundTripped.preDiveChecklistTemplateItems
+          .firstWhere((r) => r['id'] == 'o2-1');
+      expect(linearityTemplateItem['itemType'], 'cellLinearity');
+      expect(linearityTemplateItem['sourceItemId'], 'air1');
+
+      final linearitySessionItem = roundTripped.preDiveSessionItems.firstWhere(
+        (r) => r['id'] == 'sess-o2-1',
+      );
+      expect(linearitySessionItem['sourceItemId'], 'sess-air1');
+      expect(linearitySessionItem['sourceValueNumber'], 10.1);
+      expect(linearitySessionItem['valueNumber'], 48.0);
+    });
   });
 }

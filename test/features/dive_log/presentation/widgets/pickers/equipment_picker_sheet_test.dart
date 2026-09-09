@@ -16,7 +16,11 @@ Future<void> _pump(
   Set<String> selectedIds = const {},
   void Function(EquipmentItem)? onSelected,
 }) async {
-  tester.view.physicalSize = const Size(900, 2400);
+  // Tall enough to render every row without scrolling. The picker groups
+  // by type (#1486, #1576) and this fixture gives every type exactly one
+  // item, so the list is one heading plus one tile per type; the assembly
+  // part types (#1487) brought the enum to 36.
+  tester.view.physicalSize = const Size(900, 6400);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -25,6 +29,7 @@ Future<void> _pump(
         activeEquipmentProvider.overrideWith((ref) async => equipment),
       ],
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(

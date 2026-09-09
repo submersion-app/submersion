@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -610,7 +611,10 @@ void main() {
       return ProviderScope(
         overrides: [
           // Ledger map resolved but empty -> worstClock is null for this item.
-          equipmentWorstClockProvider.overrideWith((ref) async => {}),
+          equipmentRollupClockProvider.overrideWith((ref) async => {}),
+          equipmentComponentsIndexProvider.overrideWith(
+            (ref) async => ComponentsIndex.empty,
+          ),
           // The tile reads the color-accent toggle, so settings must be
           // stubbed: the real notifier reaches for SharedPreferences.
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),

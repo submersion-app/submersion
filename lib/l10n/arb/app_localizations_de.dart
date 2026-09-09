@@ -13,6 +13,89 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Browser konnte nicht geöffnet werden. Verwenden Sie „Link kopieren“ und fügen Sie die Adresse in Ihren Browser ein.';
 
   @override
+  String get equipment_components_add => 'Komponente hinzufügen';
+
+  @override
+  String equipment_components_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Komponenten',
+      one: '1 Komponente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_cycleError =>
+      'Dieser Gegenstand enthält diesen bereits, daher kann er nicht als Komponente hinzugefügt werden.';
+
+  @override
+  String get equipment_components_editRole => 'Rolle bearbeiten';
+
+  @override
+  String get equipment_components_empty =>
+      'Keine Komponenten. Füge die Teile hinzu, aus denen dieser Gegenstand besteht.';
+
+  @override
+  String equipment_components_partOf(Object name) {
+    return 'Teil von $name';
+  }
+
+  @override
+  String equipment_components_partOfCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Teil von $count Baugruppen',
+      one: 'Teil von 1 Baugruppe',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hinzufügen',
+      one: '1 hinzufügen',
+      zero: 'Hinzufügen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty =>
+      'Keine weitere aktive Ausrüstung kann hier hinzugefügt werden.';
+
+  @override
+  String get equipment_components_pickerTitle => 'Komponenten hinzufügen';
+
+  @override
+  String get equipment_components_remove => 'Komponente entfernen';
+
+  @override
+  String get equipment_components_reorder => 'Neu anordnen';
+
+  @override
+  String get equipment_components_role => 'Rolle';
+
+  @override
+  String get equipment_components_roleDialogTitle => 'Rolle der Komponente';
+
+  @override
+  String get equipment_components_roleHint => 'z. B. Primäre zweite Stufe';
+
+  @override
+  String equipment_components_rollupClock(Object component, Object kind) {
+    return '$component: $kind';
+  }
+
+  @override
+  String get equipment_components_title => 'Komponenten';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Dokument konnte nicht entfernt werden: $error';
   }
@@ -2356,10 +2439,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get checklists_saveTemplate_success => 'Vorlage gespeichert';
 
   @override
-  String get checklists_templates_pageTitle => 'Checklistenvorlagen';
+  String get checklists_templates_pageTitle => 'Reise-Checklistenvorlagen';
 
   @override
   String get checklists_templates_addTemplate => 'Vorlage hinzufügen';
+
+  @override
+  String get checklists_templates_editTemplate => 'Vorlage bearbeiten';
 
   @override
   String get checklists_templates_empty => 'Noch keine Vorlagen vorhanden';
@@ -2480,6 +2566,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get preDive_item_valueMax => 'Max. (Warnung)';
 
   @override
+  String get preDive_item_type_cellLinearity => 'Zellenlinearität';
+
+  @override
+  String get preDive_item_sourceItem => 'Luftmesswert von';
+
+  @override
+  String get preDive_item_sourceItemRequired =>
+      'Wähle das Element mit dem Luftmesswert';
+
+  @override
+  String get preDive_item_linearityMin => 'Min. Linearität % (Warnung)';
+
+  @override
+  String get preDive_item_linearityMax => 'Max. Linearität % (Warnung)';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return '$title hat keinen Luftmesswert mehr zum Vergleich';
+  }
+
+  @override
+  String get preDive_item_sourceBelow =>
+      'Verwendet einen Wert, der später in dieser Liste erfasst wird';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done von $total';
   }
@@ -2516,6 +2627,33 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => 'Wert eingeben';
+
+  @override
+  String get preDive_runner_cellInAir => 'In Luft';
+
+  @override
+  String get preDive_runner_cellInAirMissing => 'Noch nicht erfasst';
+
+  @override
+  String get preDive_runner_enterO2Value => 'Wert in O2 eingeben';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return 'Erwartet $expected mV, Linearität $percent %';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return 'Luft $air mV, erwartet $expected mV, Linearität $percent %';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged =>
+      'Luftmesswert wurde seitdem geändert';
 
   @override
   String preDive_runner_flaggedBadge(int count) {
@@ -7681,6 +7819,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'Flasche entfernen';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'Atemregler';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'Keiner';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'Ceiling';
 
   @override
@@ -8289,6 +8433,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_detail_depth_maximum => 'Maximum';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => 'Erreichte Tiefe';
+
+  @override
   String get diveSites_detail_depth_minimum => 'Minimum';
 
   @override
@@ -8413,6 +8560,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => 'Nicht verfügbar';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Alle $count Tauchgänge anzeigen',
+      one: '1 Tauchgang anzeigen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label, diesen Tauchgang öffnen';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9512,6 +9675,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_summary_stat_withGps => 'Mit GPS';
 
   @override
+  String get diveSites_summary_stat_countries => 'Länder';
+
+  @override
+  String get diveSites_summary_stat_notDived => 'Nicht getaucht';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => 'Zuletzt getaucht';
+
+  @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'Zuletzt getaucht $date';
+  }
+
+  @override
   String get diveType_builtin_altitude => 'Bergseetauchen';
 
   @override
@@ -10429,6 +10606,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Ausgemustert';
 
   @override
+  String get enum_equipmentType_backplate => 'Backplate';
+
+  @override
   String get enum_equipmentType_bcd => 'Tarierjacket';
 
   @override
@@ -10441,6 +10621,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'O2-Zelle';
+
+  @override
+  String get enum_equipmentType_battery => 'Batterie';
+
+  @override
   String get enum_equipmentType_computer => 'Tauchcomputer';
 
   @override
@@ -10448,6 +10634,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'Basisschicht';
+
+  @override
+  String get enum_equipmentType_firstStage => 'Erste Stufe';
+
+  @override
+  String get enum_equipmentType_harness => 'Harness';
+
+  @override
+  String get enum_equipmentType_hose => 'Schlauch';
+
+  @override
+  String get enum_equipmentType_housing => 'Gehäuse';
+
+  @override
+  String get enum_equipmentType_secondStage => 'Zweite Stufe';
+
+  @override
+  String get enum_equipmentType_strobe => 'Blitz';
 
   @override
   String get enum_equipmentType_undersuit => 'Unterzieher';
@@ -10511,6 +10715,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'Rashguard';
+
+  @override
+  String get enum_equipmentType_wing => 'Wing';
 
   @override
   String get enum_eventSeverity_alert => 'Alarm';
@@ -11288,6 +11495,34 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return '$remaining von $total Salzwasserstunden übrig';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return '$remaining von $total Kaltwassertauchgängen übrig';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return '$remaining von $total Stunden mit hohem O2 übrig';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return '$remaining von $total tiefen Tauchgängen übrig';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return '$remaining von $total Batteriezyklen übrig';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'Wartungsarten verwalten';
 
   @override
@@ -11308,6 +11543,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'Intervall (Stunden)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'Intervall (Salzwasserstunden)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'Intervall (Kaltwassertauchgänge)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'Intervall (Stunden mit hohem O2)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'Intervall (tiefe Tauchgänge)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles =>
+      'Intervall (Batteriezyklen)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -11664,6 +11919,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_edit_statusLabel => 'Status';
+
+  @override
+  String get equipment_edit_parentLabel => 'Eingebaut in';
+
+  @override
+  String get equipment_edit_parentNone => 'Nirgends eingebaut';
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'z.B. 5, 5/4, 7/5/3';
@@ -17429,7 +17690,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'Checklistenvorlagen';
+  String get settings_manage_checklistTemplates => 'Reise-Checklistenvorlagen';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>
@@ -23874,22 +24135,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Enddruck beim Erreichen der Oberfläche übernehmen, nicht am Ende der Aufzeichnung';
 
   @override
-  String get settings_cloudImportPageSize_title =>
-      'Seitengröße für Cloud-Import';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'Wie viele der neuesten Tauchgänge jeweils von Suunto Cloud oder Garmin Connect geladen werden. „Mehr laden“ holt den nächsten Stapel derselben Größe.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Tauchgänge pro Seite';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'Zwischen $min und $max';
-  }
-
-  @override
   String get settings_siteMatch_strict => 'Streng';
 
   @override
@@ -25522,6 +25767,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Zugriff auf die Fotomediathek';
 
   @override
+  String get attrLabel_hose_length_m => 'Schlauchlänge';
+
+  @override
+  String get attrLabel_plate_material => 'Plattenmaterial';
+
+  @override
   String get attrLabel_size => 'Größe';
 
   @override
@@ -25663,6 +25914,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_burn_time_h => 'Laufzeit';
 
   @override
+  String get attrLabel_cell_slot => 'Zellenplatz';
+
+  @override
+  String get attrLabel_installed_date => 'Eingebaut am';
+
+  @override
+  String get attrLabel_rechargeable => 'Wiederaufladbar';
+
+  @override
   String get attrLabel_battery_type => 'Akku';
 
   @override
@@ -25712,6 +25972,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'Werkzeugart';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'Aluminium';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'Kohlefaser';
+
+  @override
+  String get attrChoice_plate_material_steel => 'Stahl';
 
   @override
   String get attrChoice_unit_type_eccr => 'Elektronischer CCR (eCCR)';
@@ -25981,6 +26250,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'Blei-Säure';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'Alkali';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary =>
+      'Lithium (nicht wiederaufladbar)';
 
   @override
   String get attrChoice_motor_type_brushless => 'Bürstenlos';
@@ -26527,6 +26803,40 @@ class AppLocalizationsDe extends AppLocalizations {
       'Überprüfungsregeln & Fliegen nach dem Tauchen';
 
   @override
+  String get settings_section_equipmentCondition_title => 'Ausrüstungszustand';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Belastungsgrenzen für Wartungsuhren';
+
+  @override
+  String get equipmentConditionSettings_title => 'Ausrüstungszustand';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => 'Belastungsgrenzen';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Ein Tauchgang zählt für Wartungsuhren als kalt, tief oder O2-reich, wenn er diese Grenzen überschreitet.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Kaltwasser unter';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'Tiefer Tauchgang ab';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'O2-reiches Gemisch über (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Bitte eine Zahl eingeben';
+
+  @override
+  String get equipmentConditionSettings_saveFailed =>
+      'Speichern fehlgeschlagen. Bitte erneut versuchen.';
+
+  @override
   String get settings_section_security_title => 'App-Sicherheit';
 
   @override
@@ -26992,6 +27302,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Konsolidieren';
+
+  @override
+  String get dataQuality_repairLabel_deleteDuplicate => 'Duplikat löschen';
+
+  @override
+  String get dataQuality_deleteDuplicate_title => 'Redundante Kopie löschen?';
+
+  @override
+  String get dataQuality_deleteDuplicate_body =>
+      'Beide wurden vom selben Tauchcomputer aufgezeichnet. Die Kopie mit weniger Tauchgangsdaten wird gelöscht. Sie können dies anschließend rückgängig machen.';
+
+  @override
+  String dataQuality_deleteDuplicate_keep(String dive) {
+    return 'Behalten: $dive';
+  }
+
+  @override
+  String dataQuality_deleteDuplicate_delete(String dive) {
+    return 'Löschen: $dive';
+  }
 
   @override
   String get dataQuality_repairLabel_combine =>
@@ -27934,6 +28264,30 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_siteField_maxDepthReached => 'Deine max. Tiefe';
 
   @override
+  String get enum_siteField_firstDived => 'Erster Tauchgang';
+
+  @override
+  String get enum_siteField_firstDived_short => 'Erster TG';
+
+  @override
+  String get enum_siteField_averageDepthReached => 'Deine Ø-Tiefe';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => 'Ø Tiefe';
+
+  @override
+  String get enum_siteField_longestDive => 'Längster Tauchgang';
+
+  @override
+  String get enum_siteField_longestDive_short => 'Längster';
+
+  @override
+  String get enum_siteField_averageDuration => 'Ø-Dauer';
+
+  @override
+  String get enum_siteField_averageDuration_short => 'Ø Dauer';
+
+  @override
   String get enum_siteField_maxDepthReached_short => 'Dein Max.';
 
   @override
@@ -28061,6 +28415,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_tripField_notes_short => 'Notizen';
+
+  @override
+  String get enum_equipmentField_components => 'Komponenten';
+
+  @override
+  String get enum_equipmentField_components_short => 'Teile';
 
   @override
   String get enum_equipmentField_itemName => 'Name';
@@ -37558,4 +37918,67 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_storageUsage_unrecognized_action => 'Prüfen';
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'Nicht nach Typ ordnen';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Alphabetisch';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'Von Kopf bis Fuß';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Anziehreihenfolge';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'Nach Funktion';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Name';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Kaufdatum';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Hinzugefügt am';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Letzte Wartung';
+
+  @override
+  String get equipment_arrange_title => 'Ausrüstung anordnen';
+
+  @override
+  String get equipment_arrange_groupByType => 'Nach Typ gruppieren';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Für jede Ausrüstungsart eine Überschrift anzeigen';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Typen ordnen nach';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Danach nach';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Sortieren nach';
+
+  @override
+  String get equipment_arrange_tooltip => 'Ausrüstung anordnen';
+
+  @override
+  String get equipment_arrange_reset => 'Auf Standard zurücksetzen';
+
+  @override
+  String get equipment_arrange_saveFailed =>
+      'Anordnung konnte nicht gespeichert werden';
+
+  @override
+  String get settings_appearance_gearArrangement => 'Ausrüstungsanordnung';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'Wie Ausrüstung bei einem Tauchgang gruppiert und sortiert wird';
 }

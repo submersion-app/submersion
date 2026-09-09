@@ -10,6 +10,22 @@ import 'package:submersion/shared/constants/entity_field.dart';
 /// the table view and the list cards share one type with no conversion.
 typedef SiteWithCount = SiteWithDiveCount;
 
+/// "Xh Ym" for a duration of an hour or more, "Xmin" otherwise.
+///
+/// Mirrors how the site detail page renders its duration statistics, so the
+/// same dive reads the same way in the list and on the page.
+///
+/// Rounds to whole seconds first. SQLite's AVG returns fractional seconds,
+/// and the detail page rounds before formatting; truncating here instead
+/// would report a different minute for the same dive.
+String _formatDurationSeconds(num seconds) {
+  final totalMinutes = seconds.round() ~/ 60;
+  final hours = totalMinutes ~/ 60;
+  final minutes = totalMinutes % 60;
+  if (hours > 0) return '${hours}h ${minutes}m';
+  return '${minutes}min';
+}
+
 /// Categories grouping related site fields together.
 enum SiteFieldCategory {
   core,
@@ -65,9 +81,16 @@ enum SiteField implements EntityField {
   longitude,
 
   // Statistics (aggregated over the dives logged at the site)
+  //
+  // Appended, never reordered or renamed: saved table and card layouts store
+  // these members by name.
   depthRange,
   lastDived,
-  maxDepthReached;
+  maxDepthReached,
+  firstDived,
+  averageDepthReached,
+  longestDive,
+  averageDuration;
 
   @override
   String get name => toString().split('.').last;
@@ -129,6 +152,14 @@ enum SiteField implements EntityField {
         return 'Last Dived';
       case SiteField.maxDepthReached:
         return 'Your Max Depth';
+      case SiteField.firstDived:
+        return 'First Dived';
+      case SiteField.averageDepthReached:
+        return 'Your Avg Depth';
+      case SiteField.longestDive:
+        return 'Longest Dive';
+      case SiteField.averageDuration:
+        return 'Avg Duration';
     }
   }
 
@@ -189,6 +220,14 @@ enum SiteField implements EntityField {
         return 'Last dived';
       case SiteField.maxDepthReached:
         return 'Your max';
+      case SiteField.firstDived:
+        return 'First dived';
+      case SiteField.averageDepthReached:
+        return 'Your avg';
+      case SiteField.longestDive:
+        return 'Longest';
+      case SiteField.averageDuration:
+        return 'Avg time';
     }
   }
 
@@ -221,6 +260,10 @@ enum SiteField implements EntityField {
     SiteField.depthRange => l10n.enum_siteField_depthRange,
     SiteField.lastDived => l10n.enum_siteField_lastDived,
     SiteField.maxDepthReached => l10n.enum_siteField_maxDepthReached,
+    SiteField.firstDived => l10n.enum_siteField_firstDived,
+    SiteField.averageDepthReached => l10n.enum_siteField_averageDepthReached,
+    SiteField.longestDive => l10n.enum_siteField_longestDive,
+    SiteField.averageDuration => l10n.enum_siteField_averageDuration,
   };
 
   @override
@@ -252,6 +295,11 @@ enum SiteField implements EntityField {
     SiteField.depthRange => l10n.enum_siteField_depthRange_short,
     SiteField.lastDived => l10n.enum_siteField_lastDived_short,
     SiteField.maxDepthReached => l10n.enum_siteField_maxDepthReached_short,
+    SiteField.firstDived => l10n.enum_siteField_firstDived_short,
+    SiteField.averageDepthReached =>
+      l10n.enum_siteField_averageDepthReached_short,
+    SiteField.longestDive => l10n.enum_siteField_longestDive_short,
+    SiteField.averageDuration => l10n.enum_siteField_averageDuration_short,
   };
 
   @override
@@ -311,6 +359,14 @@ enum SiteField implements EntityField {
         return Icons.history;
       case SiteField.maxDepthReached:
         return Icons.vertical_align_bottom;
+      case SiteField.firstDived:
+        return Icons.event;
+      case SiteField.averageDepthReached:
+        return Icons.straighten;
+      case SiteField.longestDive:
+        return Icons.timer;
+      case SiteField.averageDuration:
+        return Icons.hourglass_bottom;
     }
   }
 
@@ -371,6 +427,14 @@ enum SiteField implements EntityField {
         return 110;
       case SiteField.maxDepthReached:
         return 90;
+      case SiteField.firstDived:
+        return 110;
+      case SiteField.averageDepthReached:
+        return 90;
+      case SiteField.longestDive:
+        return 100;
+      case SiteField.averageDuration:
+        return 100;
     }
   }
 
@@ -431,6 +495,14 @@ enum SiteField implements EntityField {
         return 70;
       case SiteField.maxDepthReached:
         return 50;
+      case SiteField.firstDived:
+        return 70;
+      case SiteField.averageDepthReached:
+        return 50;
+      case SiteField.longestDive:
+        return 60;
+      case SiteField.averageDuration:
+        return 60;
     }
   }
 
@@ -453,6 +525,10 @@ enum SiteField implements EntityField {
       case SiteField.longitude:
       case SiteField.lastDived:
       case SiteField.maxDepthReached:
+      case SiteField.firstDived:
+      case SiteField.averageDepthReached:
+      case SiteField.longestDive:
+      case SiteField.averageDuration:
         return true;
       case SiteField.location:
       case SiteField.waterType:
@@ -504,6 +580,10 @@ enum SiteField implements EntityField {
       case SiteField.depthRange:
       case SiteField.lastDived:
       case SiteField.maxDepthReached:
+      case SiteField.firstDived:
+      case SiteField.averageDepthReached:
+      case SiteField.longestDive:
+      case SiteField.averageDuration:
         return SiteFieldCategory.statistics.name;
     }
   }
@@ -519,6 +599,9 @@ enum SiteField implements EntityField {
       case SiteField.latitude:
       case SiteField.longitude:
       case SiteField.maxDepthReached:
+      case SiteField.averageDepthReached:
+      case SiteField.longestDive:
+      case SiteField.averageDuration:
         return true;
       case SiteField.siteName:
       case SiteField.location:
@@ -539,6 +622,7 @@ enum SiteField implements EntityField {
       case SiteField.notes:
       case SiteField.depthRange:
       case SiteField.lastDived:
+      case SiteField.firstDived:
         return false;
     }
   }
@@ -626,6 +710,14 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
         return entity.lastDivedAt;
       case SiteField.maxDepthReached:
         return entity.maxDepthReached;
+      case SiteField.firstDived:
+        return entity.firstDivedAt;
+      case SiteField.averageDepthReached:
+        return entity.averageDepthReached;
+      case SiteField.longestDive:
+        return entity.longestDiveSeconds;
+      case SiteField.averageDuration:
+        return entity.averageDurationSeconds;
     }
   }
 
@@ -680,6 +772,13 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
         return units.formatDate(value as DateTime);
       case SiteField.maxDepthReached:
         return units.formatDepth(value as double, decimals: 0);
+      case SiteField.firstDived:
+        return units.formatDate(value as DateTime);
+      case SiteField.averageDepthReached:
+        return units.formatDepth(value as double, decimals: 1);
+      case SiteField.longestDive:
+      case SiteField.averageDuration:
+        return _formatDurationSeconds(value as num);
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/services/cell_linearity.dart';
 
 /// Lifecycle of a pre-dive checklist run.
 enum PreDiveSessionStatus {
@@ -177,6 +178,19 @@ class PreDiveSessionItem extends Equatable {
   /// the time", distinct from "never computed" (e.g. rows resolved before
   /// this field existed).
   final List<OverdueServiceEntry>? overdueServices;
+
+  /// For a [PreDiveItemType.cellLinearity] item, the id of the session item
+  /// holding this cell's air reading, remapped from the template item id by
+  /// SessionItemComposer. Tolerated as dangling.
+  final String? sourceItemId;
+
+  /// The air millivolts, frozen the moment the diver resolved this item.
+  ///
+  /// Frozen rather than re-read for the same reason [overdueServices] is: a
+  /// completed run is an audit record, and a later correction to the air
+  /// reading must not silently rewrite what the diver saw when they made the
+  /// call. Cleared back to null on reset.
+  final double? sourceValueNumber;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -200,15 +214,40 @@ class PreDiveSessionItem extends Equatable {
     this.completedAt,
     this.equipmentId,
     this.overdueServices,
+    this.sourceItemId,
+    this.sourceValueNumber,
     required this.createdAt,
     required this.updatedAt,
   });
 
   bool get isResolved => state != PreDiveItemState.pending;
 
+  bool get isCellLinearity => itemType == PreDiveItemType.cellLinearity;
+
+  /// Millivolts this cell should produce at a ppO2 of 1.0, derived from the
+  /// frozen air reading. Null on any other item type, and before the air
+  /// reading is known.
+  double? get expectedO2Millivolts => isCellLinearity
+      ? CellLinearity.expectedO2Millivolts(sourceValueNumber)
+      : null;
+
+  /// This cell's linearity as a percentage, or null when it cannot be
+  /// derived yet.
+  double? get linearityPercent => isCellLinearity
+      ? CellLinearity.percent(
+          airMillivolts: sourceValueNumber,
+          o2Millivolts: valueNumber,
+        )
+      : null;
+
   /// Advisory range warning for recorded values (never blocking).
+  ///
+  /// [valueMin] and [valueMax] mean millivolts on a `value` item but a
+  /// percentage on a `cellLinearity` item, so the figure they are compared
+  /// against differs by type. Comparing a 95% floor against a 48 mV reading
+  /// would light the warning on every healthy cell.
   bool get valueOutOfRange {
-    final v = valueNumber;
+    final v = isCellLinearity ? linearityPercent : valueNumber;
     if (v == null) return false;
     final belowMin = valueMin != null && v < valueMin!;
     final aboveMax = valueMax != null && v > valueMax!;
@@ -235,6 +274,8 @@ class PreDiveSessionItem extends Equatable {
     Object? completedAt = _undefined,
     Object? equipmentId = _undefined,
     Object? overdueServices = _undefined,
+    Object? sourceItemId = _undefined,
+    Object? sourceValueNumber = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -272,6 +313,12 @@ class PreDiveSessionItem extends Equatable {
       overdueServices: overdueServices == _undefined
           ? this.overdueServices
           : overdueServices as List<OverdueServiceEntry>?,
+      sourceItemId: sourceItemId == _undefined
+          ? this.sourceItemId
+          : sourceItemId as String?,
+      sourceValueNumber: sourceValueNumber == _undefined
+          ? this.sourceValueNumber
+          : sourceValueNumber as double?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -298,6 +345,8 @@ class PreDiveSessionItem extends Equatable {
     completedAt,
     equipmentId,
     overdueServices,
+    sourceItemId,
+    sourceValueNumber,
     createdAt,
     updatedAt,
   ];

@@ -1,4 +1,4 @@
-import 'package:intl/intl.dart';
+import 'package:submersion/core/utils/locale_number_symbols.dart';
 
 /// Locale-aware conversion between a number and the text a diver types into a
 /// form field.
@@ -18,31 +18,11 @@ import 'package:intl/intl.dart';
 /// is worse than the original bug: under de/es/it, '.' is the GROUPING
 /// separator, so "12.5" parses as 125. Always pair [formatDecimalForInput]
 /// with [parseUserDecimal].
-
-/// The active locale's decimal format, rebuilt only when the locale changes.
 ///
-/// These helpers run from `onChanged`, so they are on the keystroke path, and
-/// building a NumberFormat means a locale lookup plus a pattern parse every
-/// time. The cache is keyed on the locale because `Intl.defaultLocale` is a
-/// MUTABLE process global: the app sets it when the diver switches language,
-/// and tests reassign it freely, so a cache that ignored it would silently
-/// format and parse against the previous locale.
-///
-/// Callers must treat the returned instance as read-only. `parse` and `symbols`
-/// do not mutate it; anything that needs `turnOffGrouping` or a different digit
-/// count must build its own.
-String? _cachedLocale;
-NumberFormat? _cachedFormat;
-
-NumberFormat _localeFormat() {
-  final locale = Intl.getCurrentLocale();
-  final cached = _cachedFormat;
-  if (cached != null && _cachedLocale == locale) return cached;
-  final format = NumberFormat.decimalPattern(locale);
-  _cachedLocale = locale;
-  _cachedFormat = format;
-  return format;
-}
+/// Read-only text is the other half of the problem and lives in
+/// `number_display.dart`. Do not seed a field with a display helper or
+/// render with a seeding one: the two differ on trailing zeros, which is
+/// information in a rendered reading and noise in an editable field.
 
 /// The number [text] represents in the active locale, or null when [text] is
 /// blank or cannot be read as a finite number.
@@ -55,7 +35,7 @@ double? parseUserDecimal(String text) {
   if (trimmed.isEmpty) return null;
   if (!_groupingIsWellFormed(trimmed)) return null;
   try {
-    final value = _localeFormat().parse(trimmed);
+    final value = localeNumberFormat().parse(trimmed);
     // intl parses "NaN" and "Infinity" under some locales; neither survives a
     // round trip through the database as a meaningful quantity.
     return value.isFinite ? value.toDouble() : null;
@@ -73,7 +53,7 @@ double? parseUserDecimal(String text) {
 /// instead of guessed. A diver in a comma-decimal locale using an
 /// English-language device would otherwise log 64 m of visibility for "6,4".
 bool _groupingIsWellFormed(String text) {
-  final symbols = _localeFormat().symbols;
+  final symbols = localeNumberFormat().symbols;
   final groupSep = symbols.GROUP_SEP;
   if (groupSep.isEmpty) return true;
 
@@ -123,24 +103,7 @@ int? parseUserInt(String text) {
 /// "12.050000000000001"). Callers wanting fewer decimals round before calling.
 String formatDecimalForInput(double value) {
   if (!value.isFinite) return '';
-  return _localiseDouble(value, stripTrailingZero: true);
-}
-
-/// [value] rendered for display in the active locale, keeping whatever
-/// precision the value itself carries: 200.0 renders "200,0" under de, not
-/// "200".
-///
-/// The display twin of [formatDecimalForInput]. The two differ only in that
-/// trailing ".0", and the difference is load bearing: the input form strips it
-/// because a field seeded "1250.0" reads as a half-finished edit, while a
-/// recorded reading is not an edit. A diver who logged 200.0 bar logged one
-/// decimal of precision, so dropping it changes what the value claims.
-///
-/// Use this for anything a diver only reads. Callers wanting a pinned number
-/// of decimals should round before calling.
-String formatDecimalForDisplay(double value) {
-  if (!value.isFinite) return '';
-  return _localiseDouble(value, stripTrailingZero: false);
+  return localiseDoubleText(value, stripTrailingZero: true);
 }
 
 /// [value] rounded to [fractionDigits] and rendered for seeding, with trailing
@@ -165,36 +128,5 @@ String formatRoundedForInput(double value, int fractionDigits) {
 /// copies from drifting apart.
 String formatFixedForInput(double value, int fractionDigits) {
   if (!value.isFinite) return '';
-  return _localiseSeparators(value.toStringAsFixed(fractionDigits));
-}
-
-/// The shared body of [formatDecimalForInput] and [formatDecimalForDisplay].
-///
-/// [stripTrailingZero] is applied here rather than by either caller because it
-/// matches on the ASCII '.' that [double.toString] emits; once the text has
-/// been localised it carries the locale's separator instead, and under de the
-/// '.' it would then match is the grouping separator.
-String _localiseDouble(double value, {required bool stripTrailingZero}) {
-  var text = value.toString();
-  // Very large or very small magnitudes stringify in exponent notation, which
-  // no diver can meaningfully read or edit and no parser here reads back.
-  if (text.contains('e') || text.contains('E')) {
-    final format = NumberFormat.decimalPattern()
-      ..turnOffGrouping()
-      ..maximumFractionDigits = 15;
-    return format.format(value);
-  }
-  if (stripTrailingZero && text.endsWith('.0')) {
-    text = text.substring(0, text.length - 2);
-  }
-  return _localiseSeparators(text);
-}
-
-/// Swaps the ASCII '.' and '-' produced by Dart's own number formatting for the
-/// active locale's decimal separator and minus sign.
-String _localiseSeparators(String text) {
-  final symbols = _localeFormat().symbols;
-  return text
-      .replaceFirst('.', symbols.DECIMAL_SEP)
-      .replaceFirst('-', symbols.MINUS_SIGN);
+  return localiseNumberSeparators(value.toStringAsFixed(fractionDigits));
 }

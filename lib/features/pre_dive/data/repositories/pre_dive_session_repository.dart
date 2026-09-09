@@ -31,8 +31,10 @@ class PreDiveSessionRepository {
   );
 
   /// Inserts the session plus its item snapshots in one transaction. Items
-  /// arrive with blank id/sessionId (from SessionItemComposer); ids are
-  /// assigned here. Sync bookkeeping runs after the transaction commits.
+  /// arrive with a blank sessionId, and either a blank id (assigned here) or
+  /// one the caller already minted. SessionItemComposer mints its own so it
+  /// can write the cell-linearity link between two items it builds in the
+  /// same pass. Sync bookkeeping runs after the transaction commits.
   Future<domain.PreDiveSession> startSession({
     required domain.PreDiveChecklistTemplate template,
     required List<domain.PreDiveSessionItem> items,
@@ -67,7 +69,10 @@ class PreDiveSessionRepository {
               ),
             );
         for (final item in items) {
-          final itemId = _uuid.v4();
+          // Honour an id the caller already minted, so a cell-linearity
+          // item's sourceItemId still names a row that exists. Matches the
+          // shape saveItems uses for template items.
+          final itemId = item.id.isEmpty ? _uuid.v4() : item.id;
           itemIds.add(itemId);
           await _db
               .into(_db.preDiveSessionItems)
@@ -92,6 +97,8 @@ class PreDiveSessionRepository {
                   overdueServices: Value(
                     _encodeOverdueServices(item.overdueServices),
                   ),
+                  sourceItemId: Value(item.sourceItemId),
+                  sourceValueNumber: Value(item.sourceValueNumber),
                   createdAt: Value(now),
                   updatedAt: Value(now),
                 ),
@@ -367,6 +374,7 @@ class PreDiveSessionRepository {
     String? valueText,
     String? note,
     List<OverdueServiceEntry>? overdueServices,
+    double? sourceValueNumber,
   }) async {
     try {
       await _assertMutable(sessionId);
@@ -388,6 +396,15 @@ class PreDiveSessionRepository {
               overdueServices: Value(
                 isPending ? null : _encodeOverdueServices(overdueServices),
               ),
+              // Frozen alongside overdueServices and cleared by the same
+              // rule: a reset returns the item to pending, where a stale
+              // frozen reading would be a lie. A call that passes nothing
+              // (a note edit, say) leaves the existing figure untouched.
+              sourceValueNumber: isPending
+                  ? const Value(null)
+                  : (sourceValueNumber == null
+                        ? const Value.absent()
+                        : Value(sourceValueNumber)),
               updatedAt: Value(now),
             ),
           );
@@ -562,6 +579,8 @@ class PreDiveSessionRepository {
             : DateTime.fromMillisecondsSinceEpoch(row.completedAt!),
         equipmentId: row.equipmentId,
         overdueServices: _decodeOverdueServices(row.overdueServices),
+        sourceItemId: row.sourceItemId,
+        sourceValueNumber: row.sourceValueNumber,
         createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       );

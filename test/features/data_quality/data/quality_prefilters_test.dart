@@ -46,7 +46,7 @@ void main() {
     // raises the "new checks are available" banner, so an existing library
     // gets the flag on a rescan instead of keeping a Consolidate button that
     // cannot work.
-    expect(qualityDetectorVersions()['duplicate'], 2);
+    expect(qualityDetectorVersions()['duplicate'], 3);
   });
 
   test('profile detectors only get dives that have profiles', () async {
