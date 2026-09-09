@@ -18,6 +18,10 @@ const String cachedThemePresetKey = 'cached_theme_preset';
 /// Resolves the theme preset for surfaces that render before the database
 /// opens. A missing key, or one naming a preset this build no longer ships,
 /// falls back to the default preset.
+///
+/// Resolution deliberately happens here rather than at the write, so the
+/// mirror keeps the diver's actual choice even while a build that cannot
+/// honour it is running.
 AppThemePreset resolveStartupThemePreset(SharedPreferences prefs) {
   final id = prefs.getString(cachedThemePresetKey);
   return id == null

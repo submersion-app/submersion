@@ -872,6 +872,19 @@ void main() {
       await notifier.setThemePresetId('deep');
       expect(prefs.getString(cachedThemePresetKey), 'deep');
     });
+
+    test('a preset this build cannot resolve is mirrored unchanged', () async {
+      // A database written by a beta build can name a preset the running
+      // build does not ship. The mirror keeps the diver's actual choice, so
+      // a build that ships it again honours it on its first launch; the
+      // splash resolves the fallback at read time instead.
+      final notifier = container.read(settingsProvider.notifier);
+      final prefs = container.read(sharedPreferencesProvider);
+
+      await notifier.setThemePresetId('kelp');
+
+      expect(prefs.getString(cachedThemePresetKey), 'kelp');
+    });
   });
 }
 

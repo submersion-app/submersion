@@ -1314,6 +1314,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       cachedThemeModeKey,
       cachedThemeModeValue(state.themeMode),
     );
+    // Mirrored raw, not normalised through AppThemeRegistry. Normalising on
+    // write would be lossy in the one case that matters: a database written
+    // by a beta build can name a preset this build does not ship, and the
+    // splash renders before hydration, so a build that ships that preset
+    // again would meet a default already burned into the mirror. Reading is
+    // where an unknown id is resolved; see [resolveStartupThemePreset].
     await prefs.setString(cachedThemePresetKey, state.themePresetId);
   }
 
