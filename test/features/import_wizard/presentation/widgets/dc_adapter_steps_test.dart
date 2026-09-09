@@ -44,6 +44,7 @@ class _FakeDiveComputerService implements pigeon.DiveComputerService {
   Future<void> startDownload(
     pigeon.DiscoveredDevice device, {
     String? fingerprint,
+    bool syncClock = false,
   }) async {}
   @override
   Future<void> cancelDownload() async {}
@@ -62,6 +63,7 @@ class _FakeDiveComputerService implements pigeon.DiveComputerService {
     int totalDives,
     String? serialNumber,
     String? firmwareVersion,
+    String? clockSyncStatus,
   ) {}
   @override
   void onError(pigeon.DiveComputerError error) {}
