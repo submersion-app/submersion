@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
@@ -225,6 +226,9 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
             (downloadState.progress!.percentage * 100).toStringAsFixed(0),
           )
         : '';
+    final clockSyncText = downloadState.isComplete
+        ? _clockSyncText(context, downloadState.clockSyncStatus)
+        : null;
 
     return Semantics(
       label: context.l10n.diveComputer_downloadStep_progressSemanticLabel(
@@ -255,6 +259,18 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.primary,
+                ),
+              ),
+            if (clockSyncText != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  clockSyncText,
+                  key: const ValueKey('clock_sync_result'),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             const SizedBox(height: 16),
@@ -334,6 +350,21 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
   /// when the diver's log already has dives. Lets them skip re-downloading
   /// dives they already logged by hand or from another source, instead of
   /// silently pulling the device's full history.
+  /// One line about the clock sync that ran after the download (issue
+  /// #1216), or null when none was requested so the layout reserves no
+  /// space for it.
+  String? _clockSyncText(BuildContext context, ClockSyncStatus? status) {
+    return switch (status) {
+      ClockSyncStatus.synced =>
+        context.l10n.diveComputer_downloadStep_clockSynced,
+      ClockSyncStatus.unsupported =>
+        context.l10n.diveComputer_downloadStep_clockSyncUnsupported,
+      ClockSyncStatus.failed =>
+        context.l10n.diveComputer_downloadStep_clockSyncFailed,
+      ClockSyncStatus.notRequested || null => null,
+    };
+  }
+
   Widget _buildCutoffPrompt(BuildContext context) {
     final theme = Theme.of(context);
     final cutoff = _cutoff!;
