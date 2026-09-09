@@ -855,7 +855,7 @@ class ReparseService {
   /// Calculate bottom time from profile samples.
   ///
   /// Delegates to [BottomTimeCalculator], mirroring
-  /// DiveComputerRepositoryImpl._calculateBottomTimeFromPoints: bottom time
+  /// DiveComputerRepository._calculateBottomTimeFromPoints: bottom time
   /// runs from surface departure to the start of the final ascent, so
   /// multilevel dives count their shallower segments, and never exceeds
   /// [totalDurationSeconds], the computer's own reported runtime. Returns
