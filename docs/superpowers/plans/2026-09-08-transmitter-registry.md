@@ -712,7 +712,7 @@ void main() {
     await repo.create(_entry());
 
     expect(
-      () => repo.create(_entry(id: 't2', serial: '0180777')),
+      () => repo.create(_entry(id: 't2', serial: ' 180777')),
       throwsA(isA<TransmitterConflictException>()),
     );
   });
@@ -1707,9 +1707,9 @@ void main() {
     expect(out.single.o2Percent, 100, reason: 'gas untouched');
   });
 
-  test('a serial the computer wrote with leading zeros still matches', () {
+  test('a serial padded with whitespace still matches', () {
     final matcher = TransmitterMatcher.fromEntries([_entry()]);
-    const tank = TankData(index: 0, o2Percent: 21, transmitterSerial: '0180777');
+    const tank = TankData(index: 0, o2Percent: 21, transmitterSerial: ' 180777 ');
 
     final out = applyTransmitterRegistry([tank], matcher, computerId: null);
 
