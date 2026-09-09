@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/dive_search.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
@@ -333,6 +334,29 @@ final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
   final currentDiverId = ref.watch(currentDiverIdProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
   return repository.getStatistics(diverId: currentDiverId);
+});
+
+/// Sort fields under which a trip's dives stay contiguous.
+///
+/// Both are chronological in practice, so a trip forms a single run whichever
+/// direction the sort runs in. Under any other sort a trip scatters, and
+/// grouping would fragment a 14-dive trip into a dozen one-dive headers, which
+/// is noisier than no grouping at all (issue #1193).
+const Set<DiveSortField> kChronologicalDiveSortFields = {
+  DiveSortField.date,
+  DiveSortField.diveNumber,
+};
+
+/// Whether the dive list should render trip group headers right now.
+///
+/// The toggle alone is not enough: grouping also needs a chronological sort
+/// and a card view mode. One place to reason about it, rather than the same
+/// three conditions repeated at every call site.
+final diveListGroupingEnabledProvider = Provider<bool>((ref) {
+  if (!ref.watch(diveListGroupTripsProvider)) return false;
+  final sort = ref.watch(diveSortProvider);
+  if (!kChronologicalDiveSortFields.contains(sort.field)) return false;
+  return ref.watch(diveListViewModeProvider) != ListViewMode.table;
 });
 
 /// Total dives per trip, keyed by trip id, for the dive list's group headers.
