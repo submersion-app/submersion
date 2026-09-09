@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -93,39 +94,53 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
                     ),
                   ],
                 ),
-          body: computersAsync.when(
-            data: (computers) {
-              if (computers.isEmpty) {
-                return _buildEmptyState(context, colorScheme);
-              }
-              return _buildComputerList(context, ref, computers);
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-                  const SizedBox(height: 16),
-                  Text(
-                    context.l10n.diveComputer_list_loadFailed,
-                    style: theme.textTheme.titleMedium,
+          body: Column(
+            children: [
+              _buildClockSyncSwitch(context, ref),
+              const Divider(height: 1),
+              Expanded(
+                child: computersAsync.when(
+                  data: (computers) {
+                    if (computers.isEmpty) {
+                      return _buildEmptyState(context, colorScheme);
+                    }
+                    return _buildComputerList(context, ref, computers);
+                  },
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: colorScheme.error,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          context.l10n.diveComputer_list_loadFailed,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          error.toString(),
+                          style: theme.textTheme.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: () =>
+                              ref.invalidate(allDiveComputersProvider),
+                          icon: const Icon(Icons.refresh),
+                          label: Text(context.l10n.diveComputer_list_retry),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.toString(),
-                    style: theme.textTheme.bodySmall,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () => ref.invalidate(allDiveComputersProvider),
-                    icon: const Icon(Icons.refresh),
-                    label: Text(context.l10n.diveComputer_list_retry),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
           floatingActionButton: selection.isActive
               ? null
@@ -205,6 +220,25 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
       SnackBar(
         content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
       ),
+    );
+  }
+
+  /// Installation-local: whether downloads from THIS device set each
+  /// computer's clock (issue #1216). Lives here rather than in Settings so it
+  /// sits beside the per-computer override on the detail page.
+  Widget _buildClockSyncSwitch(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      clockSyncSettingsNotifierProvider.select((s) => s.globalEnabled),
+    );
+    return SwitchListTile(
+      key: const ValueKey('clock_sync_global_switch'),
+      secondary: const Icon(Icons.schedule),
+      title: Text(context.l10n.diveComputer_clockSync_globalTitle),
+      subtitle: Text(context.l10n.diveComputer_clockSync_globalSubtitle),
+      value: enabled,
+      onChanged: (value) => ref
+          .read(clockSyncSettingsNotifierProvider.notifier)
+          .setGlobalEnabled(value),
     );
   }
 
