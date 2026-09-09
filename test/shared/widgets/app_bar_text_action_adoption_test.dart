@@ -48,6 +48,59 @@ void main() {
           'themes whose primary color matches their app bar background.',
     );
   });
+
+  // A raw string has no escape processing, so the backslash in `r'\'` does
+  // NOT protect the quote that follows it. Treating it as an escape swallows
+  // the terminator, and every string literal after it in the file is read
+  // with inverted parity: real code gets blanked, and an offender inside it
+  // becomes invisible to the scan. `lib/features/universal_import/domain/
+  // services/import_media_resolver.dart` writes exactly this literal.
+  test('a raw string holding a backslash does not blind the scan', () {
+    const source = r'''
+class Foo {
+  String normalize(String path) => path.replaceAll(r'\', '/');
+
+  PreferredSizeWidget build(BuildContext context) {
+    return AppBar(
+      actions: [
+        TextButton(onPressed: () {}, child: const Text('Save')),
+      ],
+    );
+  }
+}
+''';
+
+    expect(
+      _bareAppBarTextButtons(_withoutCommentsAndStrings(source)),
+      hasLength(1),
+      reason:
+          'the bare TextButton sits after a raw string with a trailing '
+          'backslash, which must not be read as an escape',
+    );
+  });
+
+  // The other half of the same branch: a NON-raw literal does process
+  // escapes, so an escaped quote must not be mistaken for the terminator.
+  test('an escaped quote inside a normal string does not blind the scan', () {
+    const source = '''
+class Foo {
+  String get label => 'it\\'s here';
+
+  PreferredSizeWidget build(BuildContext context) {
+    return AppBar(
+      actions: [
+        TextButton(onPressed: () {}, child: const Text('Save')),
+      ],
+    );
+  }
+}
+''';
+
+    expect(
+      _bareAppBarTextButtons(_withoutCommentsAndStrings(source)),
+      hasLength(1),
+    );
+  });
 }
 
 /// Offsets of every `TextButton(` / `TextButton.icon(` that sits inside the
@@ -137,15 +190,14 @@ String _withoutCommentsAndStrings(String source) {
   final out = StringBuffer();
   var i = 0;
   while (i < source.length) {
-    final rest = source.length - i;
-    if (rest >= 2 && source.startsWith('//', i)) {
+    if (source.startsWith('//', i)) {
       while (i < source.length && source[i] != '\n') {
         out.write(' ');
         i++;
       }
       continue;
     }
-    if (rest >= 2 && source.startsWith('/*', i)) {
+    if (source.startsWith('/*', i)) {
       while (i < source.length && !source.startsWith('*/', i)) {
         out.write(source[i] == '\n' ? '\n' : ' ');
         i++;
@@ -156,14 +208,28 @@ String _withoutCommentsAndStrings(String source) {
       }
       continue;
     }
-    final quote = source[i];
+
+    // A leading `r` makes the literal raw, and raw strings have no escape
+    // processing. The backslash in `r'\'` therefore does NOT protect the
+    // quote after it: reading it as an escape swallows the terminator and
+    // inverts the parity of every literal further down the file, blanking
+    // real code and hiding offenders inside it.
+    final raw =
+        source[i] == 'r' &&
+        i + 1 < source.length &&
+        (source[i + 1] == "'" || source[i + 1] == '"') &&
+        (i == 0 || !_isIdentifierPart(source[i - 1]));
+    final quoteAt = raw ? i + 1 : i;
+    final quote = source[quoteAt];
+
     if (quote == "'" || quote == '"') {
-      final triple = rest >= 3 && source.startsWith(quote * 3, i);
+      final triple = source.startsWith(quote * 3, quoteAt);
       final terminator = triple ? quote * 3 : quote;
-      out.write(' ' * terminator.length);
-      i += terminator.length;
+      // The blanked width covers the `r` prefix as well as the opening quote.
+      out.write(' ' * (quoteAt - i + terminator.length));
+      i = quoteAt + terminator.length;
       while (i < source.length && !source.startsWith(terminator, i)) {
-        if (source[i] == r'\' && i + 1 < source.length) {
+        if (!raw && source[i] == r'\' && i + 1 < source.length) {
           out.write('  ');
           i += 2;
           continue;
@@ -179,8 +245,16 @@ String _withoutCommentsAndStrings(String source) {
       }
       continue;
     }
+
     out.write(source[i]);
     i++;
   }
   return out.toString();
 }
+
+/// Whether [char] can appear inside a Dart identifier.
+///
+/// This is what tells the `r` prefix of a raw string from the last letter of
+/// a name, so a variable such as `ctr` followed by a string cannot be read as
+/// a raw literal.
+bool _isIdentifierPart(String char) => RegExp(r'[A-Za-z0-9_$]').hasMatch(char);
