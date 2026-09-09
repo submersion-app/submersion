@@ -8140,6 +8140,7 @@
   "equipmentConditionSettings_deepLabel": "深潜达到或超过",
   "equipmentConditionSettings_o2Label": "高氧混合气高于（% O2）",
   "equipmentConditionSettings_invalid": "请输入数字",
+  "equipmentConditionSettings_saveFailed": "无法保存。请重试。",
   "dataQuality_inbox_title": "数据质量",
   "dataQuality_dive_unknown": "无法获取潜水详情",
   "dataQuality_dive_number": "#{number}",

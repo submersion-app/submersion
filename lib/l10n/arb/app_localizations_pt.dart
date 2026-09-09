@@ -26737,6 +26737,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipmentConditionSettings_invalid => 'Introduza um número';
 
   @override
+  String get equipmentConditionSettings_saveFailed =>
+      'Não foi possível guardar. Tente novamente.';
+
+  @override
   String get settings_section_security_title => 'Segurança do app';
 
   @override

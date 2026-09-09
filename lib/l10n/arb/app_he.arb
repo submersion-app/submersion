@@ -8140,6 +8140,7 @@
   "equipmentConditionSettings_deepLabel": "צלילה עמוקה החל מ",
   "equipmentConditionSettings_o2Label": "תערובת בחמצן גבוה מעל (% O2)",
   "equipmentConditionSettings_invalid": "יש להזין מספר",
+  "equipmentConditionSettings_saveFailed": "השמירה נכשלה. נסו שוב.",
   "dataQuality_inbox_title": "איכות הנתונים",
   "dataQuality_dive_unknown": "פרטי הצלילה אינם זמינים",
   "dataQuality_dive_number": "#{number}",

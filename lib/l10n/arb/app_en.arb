@@ -17087,6 +17087,7 @@
   "equipmentConditionSettings_deepLabel": "Deep dive at or beyond",
   "equipmentConditionSettings_o2Label": "High-O2 mix above (% O2)",
   "equipmentConditionSettings_invalid": "Enter a number",
+  "equipmentConditionSettings_saveFailed": "Could not save. Try again.",
   "settings_section_security_title": "App Security",
   "settings_section_security_subtitle": "App lock & database encryption",
   "settings_section_trimixMixer_title": "Trimix Mixer",

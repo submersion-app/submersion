@@ -26634,6 +26634,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipmentConditionSettings_invalid => 'Adjon meg egy számot';
 
   @override
+  String get equipmentConditionSettings_saveFailed =>
+      'A mentés nem sikerült. Próbálja újra.';
+
+  @override
   String get settings_section_security_title => 'Alkalmazásbiztonság';
 
   @override

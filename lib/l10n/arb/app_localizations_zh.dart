@@ -25362,6 +25362,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_invalid => '请输入数字';
 
   @override
+  String get equipmentConditionSettings_saveFailed => '无法保存。请重试。';
+
+  @override
   String get settings_section_security_title => '应用安全';
 
   @override

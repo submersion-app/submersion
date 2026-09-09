@@ -92,6 +92,11 @@ void main() {
       find.byKey(const Key('service-schedule-exposure-saltHours')),
       '150.5',
     );
+    // A count unit takes whole numbers only; a fraction reads as no trigger.
+    await tester.enterText(
+      find.byKey(const Key('service-schedule-exposure-deepCycles')),
+      '2.5',
+    );
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 

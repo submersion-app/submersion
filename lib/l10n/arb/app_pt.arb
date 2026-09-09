@@ -8140,6 +8140,7 @@
   "equipmentConditionSettings_deepLabel": "Mergulho profundo a partir de",
   "equipmentConditionSettings_o2Label": "Mistura com O2 elevado acima de (% O2)",
   "equipmentConditionSettings_invalid": "Introduza um número",
+  "equipmentConditionSettings_saveFailed": "Não foi possível guardar. Tente novamente.",
   "dataQuality_inbox_title": "Qualidade dos dados",
   "dataQuality_dive_unknown": "Detalhes do mergulho indisponíveis",
   "dataQuality_dive_number": "#{number}",

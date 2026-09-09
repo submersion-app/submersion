@@ -8140,6 +8140,7 @@
   "equipmentConditionSettings_deepLabel": "Mély merülés ettől",
   "equipmentConditionSettings_o2Label": "Magas O2-tartalmú keverék e felett (% O2)",
   "equipmentConditionSettings_invalid": "Adjon meg egy számot",
+  "equipmentConditionSettings_saveFailed": "A mentés nem sikerült. Próbálja újra.",
   "dataQuality_inbox_title": "Adatminőség",
   "dataQuality_dive_unknown": "A merülés adatai nem érhetők el",
   "dataQuality_dive_number": "#{number}.",

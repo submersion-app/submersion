@@ -26264,6 +26264,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentConditionSettings_invalid => 'أدخل رقمًا';
 
   @override
+  String get equipmentConditionSettings_saveFailed =>
+      'تعذر الحفظ. حاول مرة أخرى.';
+
+  @override
   String get settings_section_security_title => 'أمان التطبيق';
 
   @override

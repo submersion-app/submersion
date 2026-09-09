@@ -134,7 +134,7 @@ class _ThresholdFieldState extends State<_ThresholdField> {
     super.dispose();
   }
 
-  void _commit() {
+  Future<void> _commit() async {
     final text = _controller.text;
     if (text == _committed) return;
     final parsed = parseUserDecimal(text);
@@ -142,9 +142,21 @@ class _ThresholdFieldState extends State<_ThresholdField> {
       setState(() => _error = context.l10n.equipmentConditionSettings_invalid);
       return;
     }
+    // Claim the text before awaiting so the Done action, which reaches both
+    // the submit and the focus-loss path, writes once; give it back on
+    // failure so the next Done or blur retries.
+    final previous = _committed;
     _committed = text;
     setState(() => _error = null);
-    widget.onSubmit(parsed);
+    try {
+      await widget.onSubmit(parsed);
+    } catch (_) {
+      if (!mounted) return;
+      _committed = previous;
+      setState(
+        () => _error = context.l10n.equipmentConditionSettings_saveFailed,
+      );
+    }
   }
 
   @override

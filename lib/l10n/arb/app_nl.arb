@@ -8140,6 +8140,7 @@
   "equipmentConditionSettings_deepLabel": "Diepe duik vanaf",
   "equipmentConditionSettings_o2Label": "Mengsel met hoog O2 boven (% O2)",
   "equipmentConditionSettings_invalid": "Voer een getal in",
+  "equipmentConditionSettings_saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
   "dataQuality_inbox_title": "Datakwaliteit",
   "dataQuality_dive_unknown": "Duikgegevens niet beschikbaar",
   "dataQuality_dive_number": "#{number}",

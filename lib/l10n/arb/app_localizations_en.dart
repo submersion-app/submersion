@@ -26294,6 +26294,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipmentConditionSettings_invalid => 'Enter a number';
 
   @override
+  String get equipmentConditionSettings_saveFailed =>
+      'Could not save. Try again.';
+
+  @override
   String get settings_section_security_title => 'App Security';
 
   @override

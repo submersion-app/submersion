@@ -44145,6 +44145,12 @@ abstract class AppLocalizations {
   /// **'Enter a number'**
   String get equipmentConditionSettings_invalid;
 
+  /// No description provided for @equipmentConditionSettings_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save. Try again.'**
+  String get equipmentConditionSettings_saveFailed;
+
   /// No description provided for @settings_section_security_title.
   ///
   /// In en, this message translates to:

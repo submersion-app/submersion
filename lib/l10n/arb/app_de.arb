@@ -8140,6 +8140,7 @@
   "equipmentConditionSettings_deepLabel": "Tiefer Tauchgang ab",
   "equipmentConditionSettings_o2Label": "O2-reiches Gemisch über (% O2)",
   "equipmentConditionSettings_invalid": "Bitte eine Zahl eingeben",
+  "equipmentConditionSettings_saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
   "dataQuality_inbox_title": "Datenqualität",
   "dataQuality_dive_unknown": "Tauchgangsdetails nicht verfügbar",
   "dataQuality_dive_number": "#{number}",

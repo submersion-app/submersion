@@ -8140,6 +8140,7 @@
   "equipmentConditionSettings_deepLabel": "Plongée profonde à partir de",
   "equipmentConditionSettings_o2Label": "Mélange à haut O2 au-dessus de (% O2)",
   "equipmentConditionSettings_invalid": "Saisissez un nombre",
+  "equipmentConditionSettings_saveFailed": "Enregistrement impossible. Réessayez.",
   "dataQuality_inbox_title": "Qualité des données",
   "dataQuality_dive_unknown": "Détails de la plongée indisponibles",
   "dataQuality_dive_number": "n°{number}",

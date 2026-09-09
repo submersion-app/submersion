@@ -26839,6 +26839,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipmentConditionSettings_invalid => 'Saisissez un nombre';
 
   @override
+  String get equipmentConditionSettings_saveFailed =>
+      'Enregistrement impossible. Réessayez.';
+
+  @override
   String get settings_section_security_title => 'Sécurité de l\'application';
 
   @override

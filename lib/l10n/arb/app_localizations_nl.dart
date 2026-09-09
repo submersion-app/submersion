@@ -26540,6 +26540,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipmentConditionSettings_invalid => 'Voer een getal in';
 
   @override
+  String get equipmentConditionSettings_saveFailed =>
+      'Opslaan mislukt. Probeer het opnieuw.';
+
+  @override
   String get settings_section_security_title => 'App-beveiliging';
 
   @override

@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/exposure_interval_input.dart';
 import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_category_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -584,11 +585,9 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
           defaultIntervalDays: parseUserInt(_days.text),
           defaultIntervalDives: parseUserInt(_dives.text),
           defaultIntervalHours: parseUserDecimal(_hours.text),
-          exposureIntervals: {
-            for (final e in _exposure.entries)
-              if (parseUserDecimal(e.value.text) case final v? when v > 0)
-                e.key: v,
-          },
+          exposureIntervals: parseExposureIntervals({
+            for (final e in _exposure.entries) e.key: e.value.text,
+          }),
           defaultCost: parseUserDecimal(_defaultCost.text),
           defaultCurrency: _defaultCurrency,
           defaultCategory: _defaultCategory,
@@ -608,11 +607,9 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
           defaultIntervalDays: parseUserInt(_days.text),
           defaultIntervalDives: parseUserInt(_dives.text),
           defaultIntervalHours: parseUserDecimal(_hours.text),
-          exposureIntervals: {
-            for (final e in _exposure.entries)
-              if (parseUserDecimal(e.value.text) case final v? when v > 0)
-                e.key: v,
-          },
+          exposureIntervals: parseExposureIntervals({
+            for (final e in _exposure.entries) e.key: e.value.text,
+          }),
           defaultCost: parseUserDecimal(_defaultCost.text),
           defaultCurrency: _defaultCurrency,
           defaultCategory: _defaultCategory,

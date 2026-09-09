@@ -26078,6 +26078,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipmentConditionSettings_invalid => 'יש להזין מספר';
 
   @override
+  String get equipmentConditionSettings_saveFailed => 'השמירה נכשלה. נסו שוב.';
+
+  @override
   String get settings_section_security_title => 'אבטחת האפליקציה';
 
   @override

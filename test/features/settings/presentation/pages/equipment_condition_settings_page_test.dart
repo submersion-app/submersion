@@ -12,9 +12,16 @@ import '../../../../helpers/mock_providers.dart';
 class _CountingSettingsNotifier extends MockSettingsNotifier {
   int coldWrites = 0;
 
+  /// When set, the next cold write throws instead of saving.
+  bool failNextColdWrite = false;
+
   @override
   Future<void> setColdWaterThresholdC(double value) async {
     coldWrites++;
+    if (failNextColdWrite) {
+      failNextColdWrite = false;
+      throw StateError('write failed');
+    }
     return super.setColdWaterThresholdC(value);
   }
 }
@@ -48,6 +55,28 @@ void main() {
     expect(notifier.state.coldWaterThresholdC, 8.0);
     // Done reaches both the submit and the focus-loss path; one write.
     expect(notifier.coldWrites, 1);
+  });
+
+  testWidgets('a failed write shows an error and the next Done retries', (
+    tester,
+  ) async {
+    final notifier = _CountingSettingsNotifier()..failNextColdWrite = true;
+    await tester.pumpWidget(_build(notifier));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('threshold-cold')), '8');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.text('Could not save. Try again.'), findsOneWidget);
+    expect(notifier.state.coldWaterThresholdC, 10.0);
+    expect(notifier.coldWrites, 1);
+
+    await tester.tap(find.byKey(const Key('threshold-cold')));
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.text('Could not save. Try again.'), findsNothing);
+    expect(notifier.state.coldWaterThresholdC, 8.0);
+    expect(notifier.coldWrites, 2);
   });
 
   testWidgets('imperial divers edit in their units and store metric', (

@@ -8140,6 +8140,7 @@
   "equipmentConditionSettings_deepLabel": "غطسة عميقة من",
   "equipmentConditionSettings_o2Label": "خليط بأكسجين مرتفع فوق (% O2)",
   "equipmentConditionSettings_invalid": "أدخل رقمًا",
+  "equipmentConditionSettings_saveFailed": "تعذر الحفظ. حاول مرة أخرى.",
   "dataQuality_inbox_title": "جودة البيانات",
   "dataQuality_dive_unknown": "تفاصيل الغطسة غير متاحة",
   "dataQuality_dive_number": "#{number}",

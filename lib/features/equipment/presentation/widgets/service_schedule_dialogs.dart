@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/exposure_interval_input.dart';
 import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -393,11 +394,9 @@ class _ScheduleOverrideDialogState
               intervalDays: parseUserInt(_days.text),
               intervalDives: parseUserInt(_dives.text),
               intervalHours: parseUserDecimal(_hours.text),
-              exposureIntervals: {
-                for (final e in _exposure.entries)
-                  if (parseUserDecimal(e.value.text) case final v? when v > 0)
-                    e.key: v,
-              },
+              exposureIntervals: parseExposureIntervals({
+                for (final e in _exposure.entries) e.key: e.value.text,
+              }),
               defaultCost: parseUserDecimal(_defaultCost.text),
               defaultCurrency: _defaultCurrency,
               anchorDate: _anchorDate,

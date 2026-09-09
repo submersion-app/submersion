@@ -23,9 +23,13 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<void> linkDive(String id, String equipmentId) async {
+  Future<void> linkDive(
+    String id,
+    String equipmentId, {
+    int daysAgo = 1,
+  }) async {
     final ms = DateTime.now()
-        .subtract(const Duration(days: 1))
+        .subtract(Duration(days: daysAgo))
         .millisecondsSinceEpoch;
     await db
         .into(db.dives)
@@ -131,6 +135,69 @@ void main() {
           (r) => r.reminderDaysBefore == kUsageReminderDaysBefore,
         ),
         isEmpty,
+      );
+    },
+  );
+
+  test(
+    'a record that leaves the clock still due replaces the old reminder',
+    () async {
+      final reg = await EquipmentRepository().createEquipment(
+        EquipmentItem(
+          id: '',
+          name: 'Reg',
+          type: EquipmentType.regulator,
+          purchaseDate: DateTime(2025, 1, 1),
+        ),
+      );
+      final scheduleRepo = ServiceScheduleRepository();
+      final regService = (await scheduleRepo.getSchedulesForEquipment(
+        reg.id,
+      )).firstWhere((s) => s.serviceKindId == 'regulator-service');
+      await scheduleRepo.updateSchedule(
+        regService.copyWith(intervalDays: 3650, intervalDives: 1),
+      );
+      await linkDive('d1', reg.id, daysAgo: 3);
+      await NotificationScheduler().scheduleAll(settings: const AppSettings());
+      final first = (await db.select(db.scheduledNotifications).get())
+          .where((r) => r.reminderDaysBefore == kUsageReminderDaysBefore)
+          .single;
+      // The reminder was armed two days ago, in wall-clock terms.
+      await db.customStatement(
+        'UPDATE scheduled_notifications SET created_at = ? WHERE id = ?',
+        [
+          DateTime.now()
+              .subtract(const Duration(days: 2))
+              .millisecondsSinceEpoch,
+          first.id,
+        ],
+      );
+
+      // Today's record moves the anchor past that reminder, and a dive after
+      // the record keeps the one-dive clock overdue: the old reminder must
+      // go and exactly one new one must stand.
+      await linkDive('d2', reg.id, daysAgo: -1);
+      final now = DateTime.now();
+      await ServiceRecordRepository().createRecord(
+        domain.ServiceRecord(
+          id: '',
+          equipmentId: reg.id,
+          serviceCategory: ServiceCategory.annual,
+          serviceKindId: 'regulator-service',
+          serviceDate: now,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await NotificationScheduler().scheduleAll(settings: const AppSettings());
+      final rows = (await db.select(db.scheduledNotifications).get())
+          .where((r) => r.reminderDaysBefore == kUsageReminderDaysBefore)
+          .toList();
+      expect(rows, hasLength(1));
+      expect(rows.single.id, isNot(first.id));
+      expect(
+        rows.single.createdAt,
+        greaterThanOrEqualTo(now.millisecondsSinceEpoch),
       );
     },
   );

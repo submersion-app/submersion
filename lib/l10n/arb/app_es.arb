@@ -8140,6 +8140,7 @@
   "equipmentConditionSettings_deepLabel": "Inmersión profunda a partir de",
   "equipmentConditionSettings_o2Label": "Mezcla con alto O2 por encima de (% O2)",
   "equipmentConditionSettings_invalid": "Introduce un número",
+  "equipmentConditionSettings_saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
   "dataQuality_inbox_title": "Calidad de datos",
   "dataQuality_dive_unknown": "Detalles de la inmersión no disponibles",
   "dataQuality_dive_number": "#{number}",
