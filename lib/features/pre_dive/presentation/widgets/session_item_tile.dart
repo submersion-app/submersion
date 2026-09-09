@@ -133,19 +133,19 @@ class SessionItemTile extends ConsumerWidget {
     final percent = item.linearityPercent;
     final expected = item.expectedO2Millivolts;
     final air = item.sourceValueNumber;
-    // Both numbers go through formatDecimalForDisplay so the diver reads
-    // their own decimal separator (#1684 did the value line above; this is
-    // the same bug on the same tile, tracked as #1682).
+    // Both numbers are localised so the diver reads their own decimal
+    // separator (#1684 did the value line above; this is the same bug on the
+    // same tile, tracked as #1682), but through different helpers, because
+    // they pin their precision differently.
     //
     // The air reading keeps the precision the diver entered, because it is
-    // their input and rounding it would show a figure they never typed. The
-    // expected value is derived, so it is rounded to 1 dp first, which is
-    // what formatDecimalForDisplay asks callers wanting pinned decimals to
-    // do.
+    // their input and rounding it would show a figure they never typed, so it
+    // takes formatDecimalForDisplay. The expected value is derived and shown
+    // to a fixed 1 dp, which is formatFixedForDisplay's whole purpose.
     final linearityLine = (percent != null && expected != null && air != null)
         ? l10n.preDive_runner_linearityLine(
             formatDecimalForDisplay(air),
-            formatDecimalForDisplay(double.parse(expected.toStringAsFixed(1))),
+            formatFixedForDisplay(expected, 1),
             percent.round().toString(),
           )
         : null;

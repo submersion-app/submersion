@@ -4010,7 +4010,7 @@ abstract class AppLocalizations {
   /// No description provided for @checklists_templates_pageTitle.
   ///
   /// In en, this message translates to:
-  /// **'Checklist Templates'**
+  /// **'Trip Checklist Templates'**
   String get checklists_templates_pageTitle;
 
   /// No description provided for @checklists_templates_addTemplate.
@@ -4018,6 +4018,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Template'**
   String get checklists_templates_addTemplate;
+
+  /// No description provided for @checklists_templates_editTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Template'**
+  String get checklists_templates_editTemplate;
 
   /// No description provided for @checklists_templates_empty.
   ///
@@ -14068,6 +14074,12 @@ abstract class AppLocalizations {
   /// **'Maximum'**
   String get diveSites_detail_depth_maximum;
 
+  /// No description provided for @diveSites_detail_depth_reachedHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth Reached'**
+  String get diveSites_detail_depth_reachedHeading;
+
   /// No description provided for @diveSites_detail_depth_minimum.
   ///
   /// In en, this message translates to:
@@ -14301,6 +14313,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not available'**
   String get diveSites_detail_stats_notAvailable;
+
+  /// No description provided for @diveSites_detail_stats_viewAllDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{View 1 dive} other{View all {count} dives}}'**
+  String diveSites_detail_stats_viewAllDives(int count);
+
+  /// No description provided for @diveSites_detail_semantics_openLinkedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, open this dive'**
+  String diveSites_detail_semantics_openLinkedDive(Object label);
 
   /// No description provided for @diveSites_detail_semantics_copyToClipboard.
   ///
@@ -15999,6 +16023,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'With GPS'**
   String get diveSites_summary_stat_withGps;
+
+  /// No description provided for @diveSites_summary_stat_countries.
+  ///
+  /// In en, this message translates to:
+  /// **'Countries'**
+  String get diveSites_summary_stat_countries;
+
+  /// No description provided for @diveSites_summary_stat_notDived.
+  ///
+  /// In en, this message translates to:
+  /// **'Not dived'**
+  String get diveSites_summary_stat_notDived;
+
+  /// No description provided for @diveSites_summary_section_recentlyDived.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Dived'**
+  String get diveSites_summary_section_recentlyDived;
+
+  /// No description provided for @diveSites_summary_tile_lastDived.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived {date}'**
+  String diveSites_summary_tile_lastDived(Object date);
 
   /// No description provided for @diveType_builtin_altitude.
   ///
@@ -29180,7 +29228,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_manage_checklistTemplates.
   ///
   /// In en, this message translates to:
-  /// **'Checklist Templates'**
+  /// **'Trip Checklist Templates'**
   String get settings_manage_checklistTemplates;
 
   /// No description provided for @settings_manage_checklistTemplates_subtitle.
@@ -46707,6 +46755,54 @@ abstract class AppLocalizations {
   /// **'Your Max Depth'**
   String get enum_siteField_maxDepthReached;
 
+  /// No description provided for @enum_siteField_firstDived.
+  ///
+  /// In en, this message translates to:
+  /// **'First Dived'**
+  String get enum_siteField_firstDived;
+
+  /// No description provided for @enum_siteField_firstDived_short.
+  ///
+  /// In en, this message translates to:
+  /// **'First dived'**
+  String get enum_siteField_firstDived_short;
+
+  /// No description provided for @enum_siteField_averageDepthReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Avg Depth'**
+  String get enum_siteField_averageDepthReached;
+
+  /// No description provided for @enum_siteField_averageDepthReached_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Your avg'**
+  String get enum_siteField_averageDepthReached_short;
+
+  /// No description provided for @enum_siteField_longestDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest Dive'**
+  String get enum_siteField_longestDive;
+
+  /// No description provided for @enum_siteField_longestDive_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest'**
+  String get enum_siteField_longestDive_short;
+
+  /// No description provided for @enum_siteField_averageDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Duration'**
+  String get enum_siteField_averageDuration;
+
+  /// No description provided for @enum_siteField_averageDuration_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg time'**
+  String get enum_siteField_averageDuration_short;
+
   /// No description provided for @enum_siteField_maxDepthReached_short.
   ///
   /// In en, this message translates to:
@@ -62085,6 +62181,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Review'**
   String get settings_storageUsage_unrecognized_action;
+
+  /// No description provided for @enum_equipmentTypeOrder_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not order by type'**
+  String get enum_equipmentTypeOrder_none;
+
+  /// No description provided for @enum_equipmentTypeOrder_alphabetical.
+  ///
+  /// In en, this message translates to:
+  /// **'Alphabetical'**
+  String get enum_equipmentTypeOrder_alphabetical;
+
+  /// No description provided for @enum_equipmentTypeOrder_headToToe.
+  ///
+  /// In en, this message translates to:
+  /// **'Head to toe'**
+  String get enum_equipmentTypeOrder_headToToe;
+
+  /// No description provided for @enum_equipmentTypeOrder_dressingOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Dressing order'**
+  String get enum_equipmentTypeOrder_dressingOrder;
+
+  /// No description provided for @enum_equipmentTypeOrder_canonical.
+  ///
+  /// In en, this message translates to:
+  /// **'By function'**
+  String get enum_equipmentTypeOrder_canonical;
+
+  /// No description provided for @enum_equipmentItemSortField_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get enum_equipmentItemSortField_name;
+
+  /// No description provided for @enum_equipmentItemSortField_purchaseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase date'**
+  String get enum_equipmentItemSortField_purchaseDate;
+
+  /// No description provided for @enum_equipmentItemSortField_dateAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Date added'**
+  String get enum_equipmentItemSortField_dateAdded;
+
+  /// No description provided for @enum_equipmentItemSortField_lastServiceDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Last service'**
+  String get enum_equipmentItemSortField_lastServiceDate;
+
+  /// No description provided for @equipment_arrange_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange gear'**
+  String get equipment_arrange_title;
+
+  /// No description provided for @equipment_arrange_groupByType.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by type'**
+  String get equipment_arrange_groupByType;
+
+  /// No description provided for @equipment_arrange_groupByTypeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a heading for each kind of gear'**
+  String get equipment_arrange_groupByTypeSubtitle;
+
+  /// No description provided for @equipment_arrange_typeOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order types by'**
+  String get equipment_arrange_typeOrderLabel;
+
+  /// No description provided for @equipment_arrange_itemOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Then by'**
+  String get equipment_arrange_itemOrderLabel;
+
+  /// No description provided for @equipment_arrange_itemOrderLabelFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get equipment_arrange_itemOrderLabelFlat;
+
+  /// No description provided for @equipment_arrange_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange gear'**
+  String get equipment_arrange_tooltip;
+
+  /// No description provided for @equipment_arrange_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get equipment_arrange_reset;
+
+  /// No description provided for @equipment_arrange_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the arrangement'**
+  String get equipment_arrange_saveFailed;
+
+  /// No description provided for @settings_appearance_gearArrangement.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear arrangement'**
+  String get settings_appearance_gearArrangement;
+
+  /// No description provided for @settings_appearance_gearArrangementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How equipment is grouped and sorted on a dive'**
+  String get settings_appearance_gearArrangementSubtitle;
 }
 
 class _AppLocalizationsDelegate

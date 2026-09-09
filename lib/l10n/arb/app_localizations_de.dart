@@ -2439,10 +2439,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get checklists_saveTemplate_success => 'Vorlage gespeichert';
 
   @override
-  String get checklists_templates_pageTitle => 'Checklistenvorlagen';
+  String get checklists_templates_pageTitle => 'Reise-Checklistenvorlagen';
 
   @override
   String get checklists_templates_addTemplate => 'Vorlage hinzufügen';
+
+  @override
+  String get checklists_templates_editTemplate => 'Vorlage bearbeiten';
 
   @override
   String get checklists_templates_empty => 'Noch keine Vorlagen vorhanden';
@@ -8430,6 +8433,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_detail_depth_maximum => 'Maximum';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => 'Erreichte Tiefe';
+
+  @override
   String get diveSites_detail_depth_minimum => 'Minimum';
 
   @override
@@ -8554,6 +8560,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => 'Nicht verfügbar';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Alle $count Tauchgänge anzeigen',
+      one: '1 Tauchgang anzeigen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label, diesen Tauchgang öffnen';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9651,6 +9673,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'Mit GPS';
+
+  @override
+  String get diveSites_summary_stat_countries => 'Länder';
+
+  @override
+  String get diveSites_summary_stat_notDived => 'Nicht getaucht';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => 'Zuletzt getaucht';
+
+  @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'Zuletzt getaucht $date';
+  }
 
   @override
   String get diveType_builtin_altitude => 'Bergseetauchen';
@@ -17654,7 +17690,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'Checklistenvorlagen';
+  String get settings_manage_checklistTemplates => 'Reise-Checklistenvorlagen';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>
@@ -28208,6 +28244,30 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_siteField_maxDepthReached => 'Deine max. Tiefe';
 
   @override
+  String get enum_siteField_firstDived => 'Erster Tauchgang';
+
+  @override
+  String get enum_siteField_firstDived_short => 'Erster TG';
+
+  @override
+  String get enum_siteField_averageDepthReached => 'Deine Ø-Tiefe';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => 'Ø Tiefe';
+
+  @override
+  String get enum_siteField_longestDive => 'Längster Tauchgang';
+
+  @override
+  String get enum_siteField_longestDive_short => 'Längster';
+
+  @override
+  String get enum_siteField_averageDuration => 'Ø-Dauer';
+
+  @override
+  String get enum_siteField_averageDuration_short => 'Ø Dauer';
+
+  @override
   String get enum_siteField_maxDepthReached_short => 'Dein Max.';
 
   @override
@@ -37838,4 +37898,67 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_storageUsage_unrecognized_action => 'Prüfen';
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'Nicht nach Typ ordnen';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Alphabetisch';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'Von Kopf bis Fuß';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Anziehreihenfolge';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'Nach Funktion';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Name';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Kaufdatum';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Hinzugefügt am';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Letzte Wartung';
+
+  @override
+  String get equipment_arrange_title => 'Ausrüstung anordnen';
+
+  @override
+  String get equipment_arrange_groupByType => 'Nach Typ gruppieren';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Für jede Ausrüstungsart eine Überschrift anzeigen';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Typen ordnen nach';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Danach nach';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Sortieren nach';
+
+  @override
+  String get equipment_arrange_tooltip => 'Ausrüstung anordnen';
+
+  @override
+  String get equipment_arrange_reset => 'Auf Standard zurücksetzen';
+
+  @override
+  String get equipment_arrange_saveFailed =>
+      'Anordnung konnte nicht gespeichert werden';
+
+  @override
+  String get settings_appearance_gearArrangement => 'Ausrüstungsanordnung';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'Wie Ausrüstung bei einem Tauchgang gruppiert und sortiert wird';
 }

@@ -2438,10 +2438,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get checklists_templates_pageTitle =>
-      'Plantillas de listas de verificación';
+      'Plantillas de listas de verificación de viaje';
 
   @override
   String get checklists_templates_addTemplate => 'Agregar plantilla';
+
+  @override
+  String get checklists_templates_editTemplate => 'Editar plantilla';
 
   @override
   String get checklists_templates_empty => 'Aún no hay plantillas';
@@ -8437,6 +8440,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_detail_depth_maximum => 'Maxima';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => 'Profundidad alcanzada';
+
+  @override
   String get diveSites_detail_depth_minimum => 'Minima';
 
   @override
@@ -8561,6 +8567,22 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => 'No disponible';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ver las $count inmersiones',
+      one: 'Ver 1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label, abrir esta inmersión';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9652,6 +9674,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'Con GPS';
+
+  @override
+  String get diveSites_summary_stat_countries => 'Países';
+
+  @override
+  String get diveSites_summary_stat_notDived => 'Sin bucear';
+
+  @override
+  String get diveSites_summary_section_recentlyDived =>
+      'Buceados recientemente';
+
+  @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'Buceado $date';
+  }
 
   @override
   String get diveType_builtin_altitude => 'Altitud';
@@ -17682,7 +17719,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_manage_checklistTemplates =>
-      'Plantillas de listas de verificación';
+      'Plantillas de listas de verificación de viaje';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>
@@ -28276,6 +28313,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_siteField_maxDepthReached => 'Tu prof. máxima';
 
   @override
+  String get enum_siteField_firstDived => 'Primera inmersión';
+
+  @override
+  String get enum_siteField_firstDived_short => 'Primera';
+
+  @override
+  String get enum_siteField_averageDepthReached => 'Tu prof. media';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => 'Media';
+
+  @override
+  String get enum_siteField_longestDive => 'Inmersión más larga';
+
+  @override
+  String get enum_siteField_longestDive_short => 'Más larga';
+
+  @override
+  String get enum_siteField_averageDuration => 'Duración media';
+
+  @override
+  String get enum_siteField_averageDuration_short => 'Duración';
+
+  @override
   String get enum_siteField_maxDepthReached_short => 'Tu máx.';
 
   @override
@@ -37957,4 +38018,67 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_storageUsage_unrecognized_action => 'Revisar';
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'No ordenar por tipo';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Alfabético';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'De la cabeza a los pies';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Orden de equipamiento';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'Por función';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Nombre';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Fecha de compra';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Fecha de alta';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Última revisión';
+
+  @override
+  String get equipment_arrange_title => 'Organizar el equipo';
+
+  @override
+  String get equipment_arrange_groupByType => 'Agrupar por tipo';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Mostrar un encabezado para cada tipo de equipo';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Ordenar tipos por';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Luego por';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Ordenar por';
+
+  @override
+  String get equipment_arrange_tooltip => 'Organizar el equipo';
+
+  @override
+  String get equipment_arrange_reset => 'Restablecer valores predeterminados';
+
+  @override
+  String get equipment_arrange_saveFailed =>
+      'No se pudo guardar la organización';
+
+  @override
+  String get settings_appearance_gearArrangement => 'Organización del equipo';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'Cómo se agrupa y ordena el equipo en una inmersión';
 }

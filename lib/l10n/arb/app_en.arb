@@ -1525,8 +1525,9 @@
   "checklists_saveTemplate_title": "Save as template",
   "checklists_saveTemplate_nameLabel": "Template name",
   "checklists_saveTemplate_success": "Template saved",
-  "checklists_templates_pageTitle": "Checklist Templates",
+  "checklists_templates_pageTitle": "Trip Checklist Templates",
   "checklists_templates_addTemplate": "Add Template",
+  "checklists_templates_editTemplate": "Edit Template",
   "checklists_templates_empty": "No templates yet",
   "checklists_templates_deleteTitle": "Delete Template",
   "checklists_templates_deleteContent": "Delete \"{name}\"? Trips that already applied it keep their items.",
@@ -4976,6 +4977,7 @@
   "diveSites_detail_deleteMenu_label": "Delete",
   "diveSites_detail_deleteSnackbar": "Site deleted",
   "diveSites_detail_depth_maximum": "Maximum",
+  "diveSites_detail_depth_reachedHeading": "Depth Reached",
   "diveSites_detail_depth_minimum": "Minimum",
   "diveSites_detail_diveCount_one": "1 dive logged",
   "diveSites_detail_diveCount_other": "{count} dives logged",
@@ -5015,6 +5017,8 @@
   "diveSites_detail_stats_maxDepth": "Deepest Dive",
   "diveSites_detail_stats_minDepth": "Shallowest Dive",
   "diveSites_detail_stats_notAvailable": "Not available",
+  "diveSites_detail_stats_viewAllDives": "{count, plural, =1{View 1 dive} other{View all {count} dives}}",
+  "diveSites_detail_semantics_openLinkedDive": "{label}, open this dive",
   "diveSites_detail_semantics_copyToClipboard": "Copy {label} to clipboard",
   "diveSites_detail_semantics_viewDivesAtSite": "View dives at this site",
   "diveSites_detail_semantics_viewFullscreenMap": "View fullscreen map",
@@ -5396,6 +5400,10 @@
   "diveSites_summary_stat_totalDives": "Total Dives",
   "diveSites_summary_stat_totalSites": "Total Sites",
   "diveSites_summary_stat_withGps": "With GPS",
+  "diveSites_summary_stat_countries": "Countries",
+  "diveSites_summary_stat_notDived": "Not dived",
+  "diveSites_summary_section_recentlyDived": "Recently Dived",
+  "diveSites_summary_tile_lastDived": "Last dived {date}",
   "@diveSites_detail_diveCount_other": {
     "placeholders": {
       "count": {
@@ -5420,6 +5428,27 @@
   "@diveSites_detail_semantics_copyToClipboard": {
     "placeholders": {
       "label": {
+        "type": "Object"
+      }
+    }
+  },
+  "@diveSites_detail_semantics_openLinkedDive": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
+  "@diveSites_detail_stats_viewAllDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveSites_summary_tile_lastDived": {
+    "placeholders": {
+      "date": {
         "type": "Object"
       }
     }
@@ -10372,7 +10401,7 @@
   },
   "settings_lightroom_subtitle": "Auto-link photos and videos to dives",
   "settings_lightroom_title": "Adobe Lightroom",
-  "settings_manage_checklistTemplates": "Checklist Templates",
+  "settings_manage_checklistTemplates": "Trip Checklist Templates",
   "settings_manage_checklistTemplates_subtitle": "Reusable to-do lists for trip planning",
   "settings_manage_diveRoles": "Dive Roles",
   "settings_manage_diveRoles_subtitle": "Manage custom dive roles",
@@ -17932,6 +17961,14 @@
   "enum_siteField_lastDived": "Last Dived",
   "enum_siteField_lastDived_short": "Last dived",
   "enum_siteField_maxDepthReached": "Your Max Depth",
+  "enum_siteField_firstDived": "First Dived",
+  "enum_siteField_firstDived_short": "First dived",
+  "enum_siteField_averageDepthReached": "Your Avg Depth",
+  "enum_siteField_averageDepthReached_short": "Your avg",
+  "enum_siteField_longestDive": "Longest Dive",
+  "enum_siteField_longestDive_short": "Longest",
+  "enum_siteField_averageDuration": "Avg Duration",
+  "enum_siteField_averageDuration_short": "Avg time",
   "enum_siteField_maxDepthReached_short": "Your max",
   "enum_buddyField_buddyName": "Name",
   "enum_buddyField_email": "Email",
@@ -22852,5 +22889,25 @@
   "@backup_unrecognized_freed": { "placeholders": { "size": { "type": "String" } } },
   "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 file not in your backup history} other{{count} files not in your backup history}}",
   "@settings_storageUsage_unrecognized_title": { "placeholders": { "count": { "type": "int" } } },
-  "settings_storageUsage_unrecognized_action": "Review"
+  "settings_storageUsage_unrecognized_action": "Review",
+  "enum_equipmentTypeOrder_none": "Do not order by type",
+  "enum_equipmentTypeOrder_alphabetical": "Alphabetical",
+  "enum_equipmentTypeOrder_headToToe": "Head to toe",
+  "enum_equipmentTypeOrder_dressingOrder": "Dressing order",
+  "enum_equipmentTypeOrder_canonical": "By function",
+  "enum_equipmentItemSortField_name": "Name",
+  "enum_equipmentItemSortField_purchaseDate": "Purchase date",
+  "enum_equipmentItemSortField_dateAdded": "Date added",
+  "enum_equipmentItemSortField_lastServiceDate": "Last service",
+  "equipment_arrange_title": "Arrange gear",
+  "equipment_arrange_groupByType": "Group by type",
+  "equipment_arrange_groupByTypeSubtitle": "Show a heading for each kind of gear",
+  "equipment_arrange_typeOrderLabel": "Order types by",
+  "equipment_arrange_itemOrderLabel": "Then by",
+  "equipment_arrange_itemOrderLabelFlat": "Sort by",
+  "equipment_arrange_tooltip": "Arrange gear",
+  "equipment_arrange_reset": "Reset to defaults",
+  "equipment_arrange_saveFailed": "Could not save the arrangement",
+  "settings_appearance_gearArrangement": "Gear arrangement",
+  "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive"
 }

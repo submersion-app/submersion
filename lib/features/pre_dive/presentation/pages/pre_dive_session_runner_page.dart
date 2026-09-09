@@ -466,7 +466,7 @@ class _ValueEntryDialogState extends State<_ValueEntryDialog> {
     );
     if (expected == null || percent == null) return null;
     return context.l10n.preDive_runner_linearityReadout(
-      formatDecimalForDisplay(double.parse(expected.toStringAsFixed(1))),
+      formatFixedForDisplay(expected, 1),
       percent.round().toString(),
     );
   }

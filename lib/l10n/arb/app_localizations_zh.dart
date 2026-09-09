@@ -2290,10 +2290,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_saveTemplate_success => '模板已保存';
 
   @override
-  String get checklists_templates_pageTitle => '清单模板';
+  String get checklists_templates_pageTitle => '行程清单模板';
 
   @override
   String get checklists_templates_addTemplate => '添加模板';
+
+  @override
+  String get checklists_templates_editTemplate => '编辑模板';
 
   @override
   String get checklists_templates_empty => '暂无模板';
@@ -8030,6 +8033,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_depth_maximum => '最大';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => '实际到达深度';
+
+  @override
   String get diveSites_detail_depth_minimum => '最小';
 
   @override
@@ -8151,6 +8157,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => '不可用';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '查看全部 $count 次潜水',
+      one: '查看 1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label，打开此次潜水';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9176,6 +9198,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => '与 GPS';
+
+  @override
+  String get diveSites_summary_stat_countries => '国家';
+
+  @override
+  String get diveSites_summary_stat_notDived => '未潜过';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => '最近潜水';
+
+  @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return '最近潜水 $date';
+  }
 
   @override
   String get diveType_builtin_altitude => '高原潜水';
@@ -16791,7 +16827,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => '清单模板';
+  String get settings_manage_checklistTemplates => '行程清单模板';
 
   @override
   String get settings_manage_checklistTemplates_subtitle => '用于旅行规划的可重复使用待办清单';
@@ -26817,6 +26853,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_siteField_maxDepthReached => '你的最大深度';
 
   @override
+  String get enum_siteField_firstDived => '首次潜水';
+
+  @override
+  String get enum_siteField_firstDived_short => '首次';
+
+  @override
+  String get enum_siteField_averageDepthReached => '平均深度';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => '平均';
+
+  @override
+  String get enum_siteField_longestDive => '最长潜水';
+
+  @override
+  String get enum_siteField_longestDive_short => '最长';
+
+  @override
+  String get enum_siteField_averageDuration => '平均时长';
+
+  @override
+  String get enum_siteField_averageDuration_short => '平均时长';
+
+  @override
   String get enum_siteField_maxDepthReached_short => '你的最大';
 
   @override
@@ -35684,4 +35744,64 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_storageUsage_unrecognized_action => '查看';
+
+  @override
+  String get enum_equipmentTypeOrder_none => '不按类型排序';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => '按字母顺序';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => '从头到脚';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => '穿戴顺序';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => '按功能';
+
+  @override
+  String get enum_equipmentItemSortField_name => '名称';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => '购买日期';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => '添加日期';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => '上次保养';
+
+  @override
+  String get equipment_arrange_title => '整理装备';
+
+  @override
+  String get equipment_arrange_groupByType => '按类型分组';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle => '为每类装备显示标题';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => '类型排序方式';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => '然后按';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => '排序方式';
+
+  @override
+  String get equipment_arrange_tooltip => '整理装备';
+
+  @override
+  String get equipment_arrange_reset => '恢复默认';
+
+  @override
+  String get equipment_arrange_saveFailed => '无法保存排列方式';
+
+  @override
+  String get settings_appearance_gearArrangement => '装备排列';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle => '潜水记录中装备的分组和排序方式';
 }

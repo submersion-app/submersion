@@ -2363,10 +2363,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_saveTemplate_success => 'התבנית נשמרה';
 
   @override
-  String get checklists_templates_pageTitle => 'תבניות רשימות משימות';
+  String get checklists_templates_pageTitle => 'תבניות רשימות משימות לטיול';
 
   @override
   String get checklists_templates_addTemplate => 'הוסף תבנית';
+
+  @override
+  String get checklists_templates_editTemplate => 'עריכת תבנית';
 
   @override
   String get checklists_templates_empty => 'עדיין אין תבניות';
@@ -8225,6 +8228,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_depth_maximum => 'מקסימום';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => 'עומק שהושג';
+
+  @override
   String get diveSites_detail_depth_minimum => 'מינימום';
 
   @override
@@ -8346,6 +8352,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => 'לא זמין';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצג את כל $count הצלילות',
+      one: 'הצג צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label, פתח צלילה זו';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9408,6 +9430,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'עם GPS';
+
+  @override
+  String get diveSites_summary_stat_countries => 'מדינות';
+
+  @override
+  String get diveSites_summary_stat_notDived => 'לא נצללו';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => 'נצללו לאחרונה';
+
+  @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'נצלל לאחרונה $date';
+  }
 
   @override
   String get diveType_builtin_altitude => 'גובה רב';
@@ -17232,7 +17268,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'תבניות רשימות משימות';
+  String get settings_manage_checklistTemplates => 'תבניות רשימות משימות לטיול';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>
@@ -27570,6 +27606,30 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_siteField_maxDepthReached => 'העומק המרבי שלך';
 
   @override
+  String get enum_siteField_firstDived => 'צלילה ראשונה';
+
+  @override
+  String get enum_siteField_firstDived_short => 'ראשונה';
+
+  @override
+  String get enum_siteField_averageDepthReached => 'עומק ממוצע';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => 'ממוצע';
+
+  @override
+  String get enum_siteField_longestDive => 'הצלילה הארוכה';
+
+  @override
+  String get enum_siteField_longestDive_short => 'הארוכה';
+
+  @override
+  String get enum_siteField_averageDuration => 'משך ממוצע';
+
+  @override
+  String get enum_siteField_averageDuration_short => 'משך';
+
+  @override
   String get enum_siteField_maxDepthReached_short => 'המרבי שלך';
 
   @override
@@ -37149,4 +37209,65 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_storageUsage_unrecognized_action => 'בדיקה';
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'אל תמיין לפי סוג';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'לפי א-ב';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'מהראש ועד כף הרגל';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'סדר הלבישה';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'לפי תפקיד';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'שם';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'תאריך רכישה';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'תאריך הוספה';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'טיפול אחרון';
+
+  @override
+  String get equipment_arrange_title => 'סידור הציוד';
+
+  @override
+  String get equipment_arrange_groupByType => 'קיבוץ לפי סוג';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle => 'הצגת כותרת לכל סוג ציוד';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'מיון סוגים לפי';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'ולאחר מכן לפי';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'מיון לפי';
+
+  @override
+  String get equipment_arrange_tooltip => 'סידור הציוד';
+
+  @override
+  String get equipment_arrange_reset => 'איפוס לברירת המחדל';
+
+  @override
+  String get equipment_arrange_saveFailed => 'לא ניתן לשמור את הסידור';
+
+  @override
+  String get settings_appearance_gearArrangement => 'סידור הציוד';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'כיצד הציוד מקובץ וממוין בצלילה';
 }

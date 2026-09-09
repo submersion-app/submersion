@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
@@ -115,6 +116,23 @@ final ownedEquipmentTypesProvider = Provider<List<EquipmentType>>((ref) {
   return EquipmentType.values.where(present.contains).toList();
 });
 
+/// The Add Equipment picker's own filter (#1576).
+///
+/// Separate from [equipmentFilterProvider], which belongs to the Equipment
+/// page: sharing one would mean narrowing the gear list silently narrowed the
+/// dive picker, which is not what either control implies.
+///
+/// autoDispose so it resets when the picker closes. A plain StateProvider
+/// lives for the whole ProviderContainer, i.e. the app session, so a
+/// narrowing applied to find one regulator would still be hiding gear the
+/// next time a dive's picker opened, with only a badge to explain the short
+/// list. The picker is the sole listener, so losing it is exactly the signal
+/// that the narrowing is done with.
+final equipmentPickerFilterProvider =
+    StateProvider.autoDispose<EquipmentPickerFilter>(
+      (ref) => EquipmentPickerFilter.none,
+    );
+
 /// Equipment sort state provider
 final equipmentSortProvider = StateProvider<SortState<EquipmentSortField>>(
   (ref) => const SortState(
@@ -132,6 +150,11 @@ List<EquipmentItem> applyEquipmentSorting(
   List<EquipmentItem> equipment,
   SortState<EquipmentSortField> sort, {
   Map<String, ServiceClockStatus> serviceUrgency = const {},
+  // Sorting by type compared the hardcoded English displayName while the UI
+  // rendered the localized label, so on a non-English build the list ordered
+  // by names the diver could not see. Callers with localizations in scope
+  // pass the resolver; the default keeps the old behaviour for those without.
+  String Function(EquipmentType)? typeLabel,
 }) {
   final sorted = List<EquipmentItem>.from(equipment);
 
@@ -139,6 +162,12 @@ List<EquipmentItem> applyEquipmentSorting(
   // with no clock rank -1 so they sort last on ascending (most-urgent first).
   int urgencyRank(EquipmentItem e) =>
       serviceUrgency[e.id]?.severity.index ?? -1;
+
+  // Resolved once rather than inside the comparator: the fallback is a
+  // closure literal, so building it per comparison allocated one on every
+  // O(n log n) call for no benefit.
+  final resolveTypeLabel =
+      typeLabel ?? (EquipmentType type) => type.displayName;
 
   sorted.sort((a, b) {
     int comparison;
@@ -151,7 +180,9 @@ List<EquipmentItem> applyEquipmentSorting(
       case EquipmentSortField.name:
         comparison = a.name.compareTo(b.name);
       case EquipmentSortField.type:
-        comparison = a.type.displayName.compareTo(b.type.displayName);
+        comparison = resolveTypeLabel(
+          a.type,
+        ).compareTo(resolveTypeLabel(b.type));
       case EquipmentSortField.purchaseDate:
         comparison = (a.purchaseDate ?? DateTime(1900)).compareTo(
           b.purchaseDate ?? DateTime(1900),

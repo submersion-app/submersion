@@ -2420,10 +2420,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_saveTemplate_success => 'Sablon mentve';
 
   @override
-  String get checklists_templates_pageTitle => 'Ellenőrzőlista-sablonok';
+  String get checklists_templates_pageTitle =>
+      'Utazási ellenőrzőlista-sablonok';
 
   @override
   String get checklists_templates_addTemplate => 'Sablon hozzáadása';
+
+  @override
+  String get checklists_templates_editTemplate => 'Sablon szerkesztése';
 
   @override
   String get checklists_templates_empty => 'Még nincsenek sablonok';
@@ -8419,6 +8423,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_detail_depth_maximum => 'Maximum';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => 'Elért mélység';
+
+  @override
   String get diveSites_detail_depth_minimum => 'Minimum';
 
   @override
@@ -8542,6 +8549,22 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => 'Nem elerheto';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mind a(z) $count merülés megtekintése',
+      one: '1 merülés megtekintése',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label, merülés megnyitása';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9628,6 +9651,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'GPS-szel';
+
+  @override
+  String get diveSites_summary_stat_countries => 'Országok';
+
+  @override
+  String get diveSites_summary_stat_notDived => 'Nem merült';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => 'Nemrég merülve';
+
+  @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'Utoljára merülve: $date';
+  }
 
   @override
   String get diveType_builtin_altitude => 'Magaslati';
@@ -17625,7 +17662,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'Ellenőrzőlista-sablonok';
+  String get settings_manage_checklistTemplates =>
+      'Utazási ellenőrzőlista-sablonok';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>
@@ -28146,6 +28184,30 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_siteField_maxDepthReached => 'Saját max. mélység';
 
   @override
+  String get enum_siteField_firstDived => 'Első merülés';
+
+  @override
+  String get enum_siteField_firstDived_short => 'Első';
+
+  @override
+  String get enum_siteField_averageDepthReached => 'Átlagmélység';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => 'Átlag';
+
+  @override
+  String get enum_siteField_longestDive => 'Leghosszabb merülés';
+
+  @override
+  String get enum_siteField_longestDive_short => 'Leghosszabb';
+
+  @override
+  String get enum_siteField_averageDuration => 'Átlagos időtartam';
+
+  @override
+  String get enum_siteField_averageDuration_short => 'Átlag idő';
+
+  @override
   String get enum_siteField_maxDepthReached_short => 'Saját max.';
 
   @override
@@ -37757,4 +37819,66 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_storageUsage_unrecognized_action => 'Áttekintés';
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'Ne rendezze típus szerint';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Betűrend';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'Tetőtől talpig';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Felöltözés sorrendje';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'Funkció szerint';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Név';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Vásárlás dátuma';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Hozzáadás dátuma';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Utolsó szerviz';
+
+  @override
+  String get equipment_arrange_title => 'Felszerelés rendezése';
+
+  @override
+  String get equipment_arrange_groupByType => 'Csoportosítás típus szerint';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Fejléc megjelenítése minden felszereléstípushoz';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Típusok rendezése';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Majd';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Rendezés';
+
+  @override
+  String get equipment_arrange_tooltip => 'Felszerelés rendezése';
+
+  @override
+  String get equipment_arrange_reset => 'Alapértelmezések visszaállítása';
+
+  @override
+  String get equipment_arrange_saveFailed => 'A rendezés mentése nem sikerült';
+
+  @override
+  String get settings_appearance_gearArrangement => 'Felszerelés elrendezése';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'Hogyan csoportosuljon és rendeződjön a felszerelés egy merülésnél';
 }

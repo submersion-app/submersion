@@ -2419,10 +2419,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_saveTemplate_success => 'Sjabloon opgeslagen';
 
   @override
-  String get checklists_templates_pageTitle => 'Checklistsjablonen';
+  String get checklists_templates_pageTitle => 'Reis-checklistsjablonen';
 
   @override
   String get checklists_templates_addTemplate => 'Sjabloon toevoegen';
+
+  @override
+  String get checklists_templates_editTemplate => 'Sjabloon bewerken';
 
   @override
   String get checklists_templates_empty => 'Nog geen sjablonen';
@@ -8370,6 +8373,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_detail_depth_maximum => 'Maximum';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => 'Bereikte diepte';
+
+  @override
   String get diveSites_detail_depth_minimum => 'Minimum';
 
   @override
@@ -8491,6 +8497,22 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => 'Niet beschikbaar';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Alle $count duiken bekijken',
+      one: '1 duik bekijken',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label, deze duik openen';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9575,6 +9597,20 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'Met GPS';
+
+  @override
+  String get diveSites_summary_stat_countries => 'Landen';
+
+  @override
+  String get diveSites_summary_stat_notDived => 'Niet gedoken';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => 'Recent gedoken';
+
+  @override
+  String diveSites_summary_tile_lastDived(Object date) {
+    return 'Laatst gedoken $date';
+  }
 
   @override
   String get diveType_builtin_altitude => 'Hoogte';
@@ -17537,7 +17573,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
-  String get settings_manage_checklistTemplates => 'Checklistsjablonen';
+  String get settings_manage_checklistTemplates => 'Reis-checklistsjablonen';
 
   @override
   String get settings_manage_checklistTemplates_subtitle =>
@@ -28051,6 +28087,30 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_siteField_maxDepthReached => 'Jouw max. diepte';
 
   @override
+  String get enum_siteField_firstDived => 'Eerste duik';
+
+  @override
+  String get enum_siteField_firstDived_short => 'Eerste';
+
+  @override
+  String get enum_siteField_averageDepthReached => 'Gem. diepte';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => 'Gem.';
+
+  @override
+  String get enum_siteField_longestDive => 'Langste duik';
+
+  @override
+  String get enum_siteField_longestDive_short => 'Langste';
+
+  @override
+  String get enum_siteField_averageDuration => 'Gem. duur';
+
+  @override
+  String get enum_siteField_averageDuration_short => 'Gem. duur';
+
+  @override
   String get enum_siteField_maxDepthReached_short => 'Jouw max.';
 
   @override
@@ -37652,4 +37712,66 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_storageUsage_unrecognized_action => 'Bekijken';
+
+  @override
+  String get enum_equipmentTypeOrder_none => 'Niet op type ordenen';
+
+  @override
+  String get enum_equipmentTypeOrder_alphabetical => 'Alfabetisch';
+
+  @override
+  String get enum_equipmentTypeOrder_headToToe => 'Van hoofd tot voet';
+
+  @override
+  String get enum_equipmentTypeOrder_dressingOrder => 'Aankleedvolgorde';
+
+  @override
+  String get enum_equipmentTypeOrder_canonical => 'Op functie';
+
+  @override
+  String get enum_equipmentItemSortField_name => 'Naam';
+
+  @override
+  String get enum_equipmentItemSortField_purchaseDate => 'Aankoopdatum';
+
+  @override
+  String get enum_equipmentItemSortField_dateAdded => 'Datum toegevoegd';
+
+  @override
+  String get enum_equipmentItemSortField_lastServiceDate => 'Laatste onderhoud';
+
+  @override
+  String get equipment_arrange_title => 'Uitrusting ordenen';
+
+  @override
+  String get equipment_arrange_groupByType => 'Groeperen op type';
+
+  @override
+  String get equipment_arrange_groupByTypeSubtitle =>
+      'Toon een kop voor elk type uitrusting';
+
+  @override
+  String get equipment_arrange_typeOrderLabel => 'Typen ordenen op';
+
+  @override
+  String get equipment_arrange_itemOrderLabel => 'Daarna op';
+
+  @override
+  String get equipment_arrange_itemOrderLabelFlat => 'Sorteren op';
+
+  @override
+  String get equipment_arrange_tooltip => 'Uitrusting ordenen';
+
+  @override
+  String get equipment_arrange_reset => 'Standaardwaarden herstellen';
+
+  @override
+  String get equipment_arrange_saveFailed => 'Kan de ordening niet opslaan';
+
+  @override
+  String get settings_appearance_gearArrangement => 'Ordening van uitrusting';
+
+  @override
+  String get settings_appearance_gearArrangementSubtitle =>
+      'Hoe uitrusting bij een duik wordt gegroepeerd en gesorteerd';
 }
