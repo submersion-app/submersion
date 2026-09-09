@@ -158,7 +158,12 @@ void main() {
     await setUpTestDatabase();
     addTearDown(tearDownTestDatabase);
 
-    await tester.pumpWidget(testApp(child: const ChecklistTemplateEditPage()));
+    await tester.pumpWidget(
+      testApp(
+        child: const ChecklistTemplateEditPage(),
+        locale: const Locale('en'),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.widgetWithText(AppBar, 'Add Template'), findsOneWidget);
 
@@ -173,7 +178,10 @@ void main() {
     );
 
     await tester.pumpWidget(
-      testApp(child: ChecklistTemplateEditPage(templateId: created.id)),
+      testApp(
+        child: ChecklistTemplateEditPage(templateId: created.id),
+        locale: const Locale('en'),
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.widgetWithText(AppBar, 'Edit Template'), findsOneWidget);
@@ -205,7 +213,10 @@ void main() {
     ]);
 
     await tester.pumpWidget(
-      testApp(child: ChecklistTemplateEditPage(templateId: created.id)),
+      testApp(
+        child: ChecklistTemplateEditPage(templateId: created.id),
+        locale: const Locale('en'),
+      ),
     );
     await tester.pumpAndSettle();
 
