@@ -26,6 +26,15 @@ class SessionItemTile extends ConsumerWidget {
   final VoidCallback onAddNote;
   final VoidCallback onReset;
 
+  /// The source item's current value, when this is a cell linearity item
+  /// whose frozen air reading no longer matches it. Null means there is no
+  /// discrepancy to report.
+  ///
+  /// Supplied by the page, because a tile cannot see its siblings. The
+  /// frozen figure is never recomputed from this; a resolved item is an
+  /// audit record and only the diver may redo it.
+  final double? staleSourceValue;
+
   const SessionItemTile({
     super.key,
     required this.session,
@@ -37,6 +46,7 @@ class SessionItemTile extends ConsumerWidget {
     required this.onEditValue,
     required this.onAddNote,
     required this.onReset,
+    this.staleSourceValue,
   });
 
   /// The item's overdue-service entries to display, paired with the instant
@@ -102,12 +112,31 @@ class SessionItemTile extends ConsumerWidget {
       PreDiveItemState.flagged => (Icons.flag, theme.colorScheme.error),
     };
 
-    final valueLine = item.itemType == PreDiveItemType.value
+    // A cell linearity item records a number just as a value item does, so
+    // it renders the same primary line and takes the same tap route.
+    final isValueLike =
+        item.itemType == PreDiveItemType.value || item.isCellLinearity;
+
+    final valueLine = isValueLike
         ? [
             if (item.valueLabel != null) item.valueLabel!,
             if (item.valueNumber != null)
               '${item.valueNumber}${item.valueUnit == null ? '' : ' ${item.valueUnit}'}',
           ].join(': ')
+        : null;
+
+    // The full working, so the linearity result is readable from the list
+    // without opening the item. Rounding is applied here and nowhere else:
+    // the percentage itself is derived from the exact expected value.
+    final percent = item.linearityPercent;
+    final expected = item.expectedO2Millivolts;
+    final air = item.sourceValueNumber;
+    final linearityLine = (percent != null && expected != null && air != null)
+        ? l10n.preDive_runner_linearityLine(
+            '$air',
+            expected.toStringAsFixed(1),
+            percent.round().toString(),
+          )
         : null;
 
     final subtitleChildren = <Widget>[
@@ -119,6 +148,24 @@ class SessionItemTile extends ConsumerWidget {
                 ? Colors.amber.shade700
                 : theme.colorScheme.onSurfaceVariant,
             fontWeight: item.valueOutOfRange ? FontWeight.bold : null,
+          ),
+        ),
+      if (linearityLine != null)
+        Text(
+          linearityLine,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: item.valueOutOfRange
+                ? Colors.amber.shade700
+                : theme.colorScheme.onSurfaceVariant,
+            fontWeight: item.valueOutOfRange ? FontWeight.bold : null,
+          ),
+        ),
+      if (staleSourceValue != null)
+        Text(
+          l10n.preDive_runner_sourceChanged,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontStyle: FontStyle.italic,
           ),
         ),
       if (item.note.isNotEmpty)
@@ -209,9 +256,7 @@ class SessionItemTile extends ConsumerWidget {
               ],
             ),
       enabled: actionable,
-      onTap: actionable
-          ? (item.itemType == PreDiveItemType.value ? onEditValue : onDone)
-          : null,
+      onTap: actionable ? (isValueLike ? onEditValue : onDone) : null,
     );
 
     return dimmed ? Opacity(opacity: 0.4, child: tile) : tile;

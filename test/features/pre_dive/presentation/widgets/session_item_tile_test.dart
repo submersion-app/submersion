@@ -43,6 +43,8 @@ void main() {
     DateTime? completedAt,
     String? equipmentId,
     List<OverdueServiceEntry>? overdueServices,
+    String? sourceItemId,
+    double? sourceValueNumber,
   }) => PreDiveSessionItem(
     id: id,
     sessionId: 's1',
@@ -60,6 +62,8 @@ void main() {
     completedAt: completedAt,
     equipmentId: equipmentId,
     overdueServices: overdueServices,
+    sourceItemId: sourceItemId,
+    sourceValueNumber: sourceValueNumber,
     createdAt: now,
     updatedAt: now,
   );
@@ -564,6 +568,104 @@ void main() {
         it: item(state: PreDiveItemState.done),
       );
       expect(find.byType(PopupMenuButton<String>), findsNothing);
+    });
+  });
+
+  group('cell linearity (#986)', () {
+    PreDiveSessionItem linearity({
+      PreDiveItemState state = PreDiveItemState.done,
+      double? o2 = 48.0,
+      double? air = 10.1,
+      double? min = 95,
+    }) => item(
+      title: 'Cell 1 mV in O2',
+      type: PreDiveItemType.cellLinearity,
+      state: state,
+      valueLabel: 'Cell 1',
+      valueUnit: 'mV',
+      valueNumber: o2,
+      valueMin: min,
+      sourceItemId: 'air1',
+      sourceValueNumber: air,
+    );
+
+    testWidgets('shows the working and the percentage', (tester) async {
+      await pumpTile(tester, s: session(), it: linearity());
+
+      expect(find.textContaining('Cell 1: 48.0 mV'), findsOneWidget);
+      expect(find.textContaining('Air 10.1 mV'), findsOneWidget);
+      expect(find.textContaining('expected 48.3 mV'), findsOneWidget);
+      expect(find.textContaining('linearity 99%'), findsOneWidget);
+    });
+
+    testWidgets('a low reading is styled as out of range', (tester) async {
+      await pumpTile(tester, s: session(), it: linearity(o2: 40.0));
+
+      final line = tester.widget<Text>(find.textContaining('linearity 83%'));
+      expect(line.style?.fontWeight, FontWeight.bold);
+    });
+
+    testWidgets('a healthy reading is not styled as out of range', (
+      tester,
+    ) async {
+      await pumpTile(tester, s: session(), it: linearity());
+
+      final line = tester.widget<Text>(find.textContaining('linearity 99%'));
+      expect(line.style?.fontWeight, isNot(FontWeight.bold));
+    });
+
+    testWidgets('no air reading means no percentage line', (tester) async {
+      await pumpTile(
+        tester,
+        s: session(),
+        it: linearity(air: null, o2: null, state: PreDiveItemState.pending),
+      );
+
+      expect(find.textContaining('linearity'), findsNothing);
+    });
+
+    testWidgets('tapping opens value entry, not done', (tester) async {
+      var editCalls = 0;
+      var doneCalls = 0;
+      await pumpTile(
+        tester,
+        s: session(),
+        it: linearity(state: PreDiveItemState.pending, o2: null, air: null),
+        onEditValue: () => editCalls++,
+        onDone: () => doneCalls++,
+      );
+
+      await tester.tap(find.text('Cell 1 mV in O2'));
+      await tester.pump();
+      expect(editCalls, 1);
+      expect(doneCalls, 0);
+    });
+
+    testWidgets('the stale-source hint appears only when asked', (
+      tester,
+    ) async {
+      await pumpTile(tester, s: session(), it: linearity());
+      expect(find.textContaining('has changed since'), findsNothing);
+
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          child: SessionItemTile(
+            session: session(),
+            sortedItems: [linearity()],
+            item: linearity(),
+            staleSourceValue: 9.4,
+            onDone: () {},
+            onSkip: () {},
+            onFlag: () {},
+            onEditValue: () {},
+            onAddNote: () {},
+            onReset: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('has changed since'), findsOneWidget);
     });
   });
 }

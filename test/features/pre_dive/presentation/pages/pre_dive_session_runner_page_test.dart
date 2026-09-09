@@ -93,6 +93,8 @@ void main() {
     String note = '',
     String? equipmentId,
     List<OverdueServiceEntry>? overdueServices,
+    String? sourceItemId,
+    double? sourceValueNumber,
   }) => PreDiveSessionItem(
     id: 'i$order',
     sessionId: 's1',
@@ -111,6 +113,8 @@ void main() {
     completedAt: state == PreDiveItemState.pending ? null : now,
     equipmentId: equipmentId,
     overdueServices: overdueServices,
+    sourceItemId: sourceItemId,
+    sourceValueNumber: sourceValueNumber,
     createdAt: now,
     updatedAt: now,
   );
@@ -625,5 +629,129 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.aborted, isEmpty);
+  });
+
+  group('cell linearity entry (#986)', () {
+    List<PreDiveSessionItem> pair({
+      double? airValue = 10.1,
+      double? o2Value,
+      PreDiveItemState o2State = PreDiveItemState.pending,
+      double? frozenAir,
+    }) => [
+      item(
+        0,
+        itemType: PreDiveItemType.value,
+        state: PreDiveItemState.done,
+        valueLabel: 'Cell 1',
+        valueUnit: 'mV',
+        valueNumber: airValue,
+      ),
+      item(
+        1,
+        itemType: PreDiveItemType.cellLinearity,
+        state: o2State,
+        valueLabel: 'Cell 1 O2',
+        valueUnit: 'mV',
+        valueNumber: o2Value,
+        valueMin: 95,
+        sourceItemId: 'i0',
+        sourceValueNumber: frozenAir,
+      ),
+    ];
+
+    testWidgets('the dialog shows the air reading and a live readout', (
+      tester,
+    ) async {
+      await pumpRunner(tester, s: session(strict: false), items: pair());
+
+      await tester.tap(find.text('Item 1'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('In air: 10.1'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).first, '48.0');
+      await tester.pump();
+
+      expect(find.textContaining('Expected 48.3 mV'), findsOneWidget);
+      expect(find.textContaining('linearity 99%'), findsOneWidget);
+    });
+
+    testWidgets('confirming freezes the air reading on the item', (
+      tester,
+    ) async {
+      final repo = await pumpRunner(
+        tester,
+        s: session(strict: false),
+        items: pair(),
+      );
+
+      await tester.tap(find.text('Item 1'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '48.0');
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      final call = repo.calls.single;
+      expect(call.itemId, 'i1');
+      expect(call.valueNumber, 48.0);
+      expect(
+        call.sourceValueNumber,
+        10.1,
+        reason: 'the air reading must be frozen onto the linearity row',
+      );
+    });
+
+    testWidgets('an unanswered air reading still allows entry', (tester) async {
+      await pumpRunner(
+        tester,
+        s: session(strict: false),
+        items: pair(airValue: null),
+      );
+
+      await tester.tap(find.text('Item 1'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Not yet recorded'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, '48.0');
+      await tester.pump();
+      // No air reading means no expectation, so no readout, but the O2 value
+      // is still recordable and OK is still live.
+      expect(find.textContaining('linearity'), findsNothing);
+      expect(find.text('OK'), findsOneWidget);
+    });
+
+    testWidgets('the stale hint appears when the source has moved on', (
+      tester,
+    ) async {
+      // Frozen at 9.4, but the air row now reads 10.1.
+      await pumpRunner(
+        tester,
+        s: session(strict: false),
+        items: pair(
+          o2Value: 48.0,
+          o2State: PreDiveItemState.done,
+          frozenAir: 9.4,
+        ),
+      );
+
+      expect(find.textContaining('has changed since'), findsOneWidget);
+      // The frozen figure is what is reported, not a recomputation.
+      expect(find.textContaining('Air 9.4 mV'), findsOneWidget);
+    });
+
+    testWidgets('no hint while the source still matches', (tester) async {
+      await pumpRunner(
+        tester,
+        s: session(strict: false),
+        items: pair(
+          o2Value: 48.0,
+          o2State: PreDiveItemState.done,
+          frozenAir: 10.1,
+        ),
+      );
+
+      expect(find.textContaining('has changed since'), findsNothing);
+      expect(find.textContaining('linearity 99%'), findsOneWidget);
+    });
   });
 }
