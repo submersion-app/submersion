@@ -20564,16 +20564,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'קרובים';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'מהחוף';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'סירת שהייה';
 
   @override
-  String get trips_type_resort => 'Resort';
+  String get trips_type_resort => 'ריזורט';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'טיול יום';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

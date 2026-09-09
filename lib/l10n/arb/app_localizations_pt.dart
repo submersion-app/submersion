@@ -21109,7 +21109,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'Proximas';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Costa';
 
   @override
   String get trips_type_liveaboard => 'Liveaboard';
@@ -21118,7 +21118,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_type_resort => 'Resort';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Bate-volta';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

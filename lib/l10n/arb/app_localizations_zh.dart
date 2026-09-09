@@ -20015,7 +20015,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_type_resort => '度假村';
 
   @override
-  String get trips_type_dayTrip => '天旅行';
+  String get trips_type_dayTrip => '一日游';
 
   @override
   String get trips_edit_label_tripType => '旅行类型';

@@ -21198,16 +21198,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'A venir';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Bord';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'Croisière';
 
   @override
   String get trips_type_resort => 'Resort';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Sortie journée';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

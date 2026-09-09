@@ -21125,16 +21125,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'Proximos';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Costa';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'Crucero';
 
   @override
   String get trips_type_resort => 'Resort';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Salida de un día';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

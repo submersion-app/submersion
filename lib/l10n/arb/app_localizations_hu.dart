@@ -21041,16 +21041,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'Kozelgo';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Partról';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'Hajós';
 
   @override
-  String get trips_type_resort => 'Resort';
+  String get trips_type_resort => 'Üdülő';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Napi túra';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
