@@ -7,11 +7,10 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
-import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings → Management → Weight Presets (issue #1609). Lists the diver's
-/// rigs; create, edit, rename and delete them here or save one from the dive
+/// rigs; create, edit and delete them here or save one from the dive
 /// editor (issue #1663 added the on-page create/edit).
 class WeightPresetsPage extends ConsumerWidget {
   const WeightPresetsPage({super.key});
@@ -30,13 +29,12 @@ class WeightPresetsPage extends ConsumerWidget {
           onPressed: () => context.pop(),
           tooltip: l10n.common_action_back,
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: l10n.weightPresets_action_new,
-            onPressed: () => context.pushNamed('newWeightPreset'),
-          ),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.pushNamed('newWeightPreset'),
+        tooltip: l10n.weightPresets_action_new,
+        icon: const Icon(Icons.add),
+        label: Text(l10n.weightPresets_action_new),
       ),
       body: presetsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -74,31 +72,21 @@ class WeightPresetsPage extends ConsumerWidget {
                   'editWeightPreset',
                   pathParameters: {'presetId': preset.id},
                 ),
-                trailing: PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      context.pushNamed(
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined),
+                      tooltip: l10n.weightPresets_action_edit,
+                      onPressed: () => context.pushNamed(
                         'editWeightPreset',
                         pathParameters: {'presetId': preset.id},
-                      );
-                    } else if (value == 'rename') {
-                      _rename(context, ref, preset);
-                    } else if (value == 'delete') {
-                      _confirmDelete(context, ref, preset);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: Text(l10n.weightPresets_action_edit),
+                      ),
                     ),
-                    PopupMenuItem(
-                      value: 'rename',
-                      child: Text(l10n.weightPresets_action_rename),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Text(l10n.common_action_delete),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      tooltip: l10n.common_action_delete,
+                      onPressed: () => _confirmDelete(context, ref, preset),
                     ),
                   ],
                 ),
@@ -108,24 +96,6 @@ class WeightPresetsPage extends ConsumerWidget {
         },
       ),
     );
-  }
-
-  Future<void> _rename(
-    BuildContext context,
-    WidgetRef ref,
-    WeightPreset preset,
-  ) async {
-    final name = await NamePromptDialog.show(
-      context,
-      title: context.l10n.weightPresets_rename_title,
-      label: context.l10n.diveLog_edit_weightPreset_nameLabel,
-      confirmLabel: context.l10n.common_action_save,
-      initialValue: preset.displayName,
-    );
-    if (name == null || name == preset.displayName) return;
-    await ref
-        .read(weightPresetRepositoryProvider)
-        .renamePreset(id: preset.id, displayName: name);
   }
 
   Future<void> _confirmDelete(
