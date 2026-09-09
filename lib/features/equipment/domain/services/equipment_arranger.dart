@@ -42,20 +42,27 @@ List<EquipmentGroup> arrangeEquipment(
   // sequence would recreate the very complaint this feature answers.
   final grouped = arrangement.groupByType && orderingByType;
 
+  // Resolved once per call rather than per comparison. When the diver is not
+  // grouping, compareTypes runs inside the ITEM comparator, so it is called
+  // O(n log n) times across the whole inventory: resolving and lowercasing a
+  // label in there allocated two Strings on every one of them, which is
+  // exactly the large-inventory case #1576 is about. At most 28 entries.
+  final rankTable = equipmentTypeRankTable(arrangement.typeOrder);
+  final lowerLabels = <EquipmentType, String>{};
+  String lowerLabel(EquipmentType type) =>
+      lowerLabels[type] ??= typeLabel(type).toLowerCase();
+
   int compareTypes(EquipmentType a, EquipmentType b) {
     if (a == b) return 0;
     final int ordered;
-    final table = equipmentTypeRankTable(arrangement.typeOrder);
-    if (table != null) {
+    if (rankTable != null) {
       ordered = equipmentTypeRank(
         a,
-        table,
-      ).compareTo(equipmentTypeRank(b, table));
+        rankTable,
+      ).compareTo(equipmentTypeRank(b, rankTable));
     } else {
       // Alphabetical, on what the reader actually sees.
-      final byLabel = typeLabel(
-        a,
-      ).toLowerCase().compareTo(typeLabel(b).toLowerCase());
+      final byLabel = lowerLabel(a).compareTo(lowerLabel(b));
       // Fall back to the stable enum name so two types sharing a translation
       // still order consistently.
       ordered = byLabel != 0 ? byLabel : a.name.compareTo(b.name);

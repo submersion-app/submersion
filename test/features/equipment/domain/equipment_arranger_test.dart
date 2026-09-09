@@ -273,6 +273,35 @@ void main() {
     ]);
   });
 
+  test('resolves each type label at most once, not per comparison', () {
+    // compareTypes runs inside the ITEM comparator when not grouping, so a
+    // label resolved in there costs O(n log n) calls and two String
+    // allocations each. Pinned so a refactor cannot silently undo it.
+    final calls = <EquipmentType>[];
+    String counting(EquipmentType t) {
+      calls.add(t);
+      return t.displayName;
+    }
+
+    final many = [
+      for (var i = 0; i < 40; i++)
+        item('i\$i', 'Item \$i', EquipmentType.values[i % 6]),
+    ];
+
+    arrangeEquipment(
+      many,
+      EquipmentArrangement.defaults.copyWith(groupByType: false),
+      typeLabel: counting,
+    );
+
+    expect(calls.toSet(), hasLength(6), reason: 'six distinct types present');
+    expect(
+      calls,
+      hasLength(6),
+      reason: 'resolved once each, not once per comparison',
+    );
+  });
+
   test('does not mutate the caller list', () {
     final input = List<EquipmentItem>.from(gear);
 

@@ -65,6 +65,44 @@ void main() {
     expect(changed.itemSortField, EquipmentArrangement.defaults.itemSortField);
   });
 
+  test('equal arrangements hash equally', () {
+    // Load-bearing rather than boilerplate: the arrangement is compared by
+    // value to decide provider rebuilds, and a broken hashCode would silently
+    // misbehave the moment one is used as a Set or Map key.
+    const a = EquipmentArrangement(
+      typeOrder: EquipmentTypeOrder.dressingOrder,
+      typeOrderDescending: true,
+      groupByType: false,
+      itemSortField: EquipmentItemSortField.dateAdded,
+      itemSortDirection: SortDirection.descending,
+    );
+    const b = EquipmentArrangement(
+      typeOrder: EquipmentTypeOrder.dressingOrder,
+      typeOrderDescending: true,
+      groupByType: false,
+      itemSortField: EquipmentItemSortField.dateAdded,
+      itemSortDirection: SortDirection.descending,
+    );
+
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    // Every axis participates, so a difference in any one is distinguishable.
+    expect({
+      EquipmentArrangement.defaults,
+      EquipmentArrangement.defaults.copyWith(typeOrderDescending: true),
+      EquipmentArrangement.defaults.copyWith(groupByType: false),
+      EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.canonical,
+      ),
+      EquipmentArrangement.defaults.copyWith(
+        itemSortField: EquipmentItemSortField.dateAdded,
+      ),
+      EquipmentArrangement.defaults.copyWith(
+        itemSortDirection: SortDirection.descending,
+      ),
+    }, hasLength(6));
+  });
+
   test('equality is by value, so provider rebuilds are not spurious', () {
     expect(
       EquipmentArrangement.defaults,

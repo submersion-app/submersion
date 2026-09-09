@@ -72,6 +72,26 @@ void main() {
     expect(filter.copyWith(clearType: true).type, isNull);
   });
 
+  test('equal filters hash equally, and every axis participates', () {
+    const a = EquipmentPickerFilter(
+      status: EquipmentStatus.loaned,
+      type: EquipmentType.tank,
+    );
+    const b = EquipmentPickerFilter(
+      status: EquipmentStatus.loaned,
+      type: EquipmentType.tank,
+    );
+
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    expect({
+      EquipmentPickerFilter.none,
+      const EquipmentPickerFilter(status: EquipmentStatus.loaned),
+      const EquipmentPickerFilter(type: EquipmentType.tank),
+      a,
+    }, hasLength(4));
+  });
+
   test('equality is by value', () {
     expect(
       const EquipmentPickerFilter(type: EquipmentType.tank),
