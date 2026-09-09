@@ -18,7 +18,7 @@
 - TDD: write the failing test first, run it, watch it fail, then implement.
 - Every user-facing string goes through `context.l10n` and is added to all 11 ARB files (`lib/l10n/arb/app_{ar,de,en,es,fr,he,hu,it,nl,pt,zh}.arb`). Only `app_en.arb` is alphabetical; in the other ten files insert each key next to the same neighbouring key it sits beside in English. Regenerate with `flutter gen-l10n` after editing ARB files.
 - Anything displaying units respects the active diver's unit settings (`UnitFormatter`).
-- Schema rung: this plan writes **v201**. Task 0 verifies the rung is free. PR #1677 (transmitter registry) holds v200; if anything else has claimed 201 by execution time, renumber every `201`/`200` in this plan and in the migration test.
+- Schema rung: this plan writes **v202**. Task 0 verified on 2026-09-09: PR #1677 merged (main is v200) and three open sibling branches claim 201, so this branch takes 202. If 202 is claimed by execution time, renumber every `202` in this plan and in the migration test.
 - Stored values are metric (Celsius, metres, O2 fraction 0 to 1). Conversion happens at the edges only.
 - The word `build` alone in a Bash command can be refused by the harness's read-deny rule. If `dart run build_runner build --delete-conflicting-outputs` is refused, write it into a script under the scratchpad directory and run that script.
 - Commit after every task with the message given in the task. Never `git add -A`; stage the listed paths.
@@ -36,7 +36,7 @@ New files:
 | `lib/features/settings/presentation/pages/equipment_condition_settings_page.dart` | Threshold editing in the diver's units |
 | `test/features/equipment/domain/entities/exposure_unit_test.dart` | Codec tests |
 | `test/features/equipment/domain/services/exposure_classifier_test.dart` | Boundary tests |
-| `test/core/database/migration_v201_equipment_condition_test.dart` | Rung test |
+| `test/core/database/migration_v202_equipment_condition_test.dart` | Rung test |
 | `test/core/services/sync/equipment_condition_columns_sync_test.dart` | Round-trip of the new columns |
 | `test/features/equipment/data/exposure_samples_query_test.dart` | Union query and statement count |
 | `test/features/settings/presentation/pages/equipment_condition_settings_page_test.dart` | Threshold page |
@@ -60,14 +60,14 @@ git submodule update --init --recursive && flutter pub get
 Run: `flutter analyze`
 Expected: `No issues found!`
 
-- [ ] **Step 3: Confirm v201 is free**
+- [ ] **Step 3: Confirm v202 is free**
 
 ```bash
 grep -n "currentSchemaVersion = " lib/core/database/database.dart
 gh pr list --state open --json number,headRefName,title --limit 50
 ```
 
-Expected: local is `199`. For every open PR branch run `git fetch origin <headRefName> && git show origin/<headRefName>:lib/core/database/database.dart | grep -n "currentSchemaVersion = "`. PR #1677 shows `200`. If any branch shows `201`, pick the next unclaimed number and replace every `201` in this plan and in Task 6 before continuing.
+Expected: local is `200`. For every open PR branch run `git fetch origin <headRefName> && git show origin/<headRefName>:lib/core/database/database.dart | grep -n "currentSchemaVersion = "`. PR #1677 shows `200`. If any branch shows `202`, pick the next unclaimed number and replace every `202` in this plan and in Task 6 before continuing.
 
 - [ ] **Step 4: Confirm the branch**
 
@@ -1262,11 +1262,11 @@ git commit -m "feat(equipment): service due engine evaluates exposure units"
 
 ---
 
-### Task 6: Schema rung v201
+### Task 6: Schema rung v202
 
 **Files:**
 - Modify: `lib/core/database/database.dart` (tables `Equipment`, `DiveTanks`, `Incidents`, `Trips`, `ServiceKinds`, `ServiceSchedules`, `DiverSettings`; four new tables; `currentSchemaVersion`; `migrationVersions`; `onUpgrade`; `beforeOpen`; `_assertServiceLedgerSchema`; `kSeedBuiltInServiceKindsSql`)
-- Test: `test/core/database/migration_v201_equipment_condition_test.dart`
+- Test: `test/core/database/migration_v202_equipment_condition_test.dart`
 - Test: `test/core/database/migration_v160_service_category_test.dart` (unchanged, must still pass)
 
 **Interfaces:**
@@ -1275,7 +1275,7 @@ git commit -m "feat(equipment): service due engine evaluates exposure units"
 - [ ] **Step 1: Write the failing test**
 
 ```dart
-// test/core/database/migration_v201_equipment_condition_test.dart
+// test/core/database/migration_v202_equipment_condition_test.dart
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1283,7 +1283,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 
-/// v201: equipment condition intelligence, phase 1. Additive columns on six
+/// v202: equipment condition intelligence, phase 1. Additive columns on six
 /// tables, four new tables, and a one-time backfill of exposure defaults on
 /// the built-in service kinds.
 
@@ -1302,7 +1302,7 @@ Future<bool> _tableExists(AppDatabase db, String table) async {
   return rows.isNotEmpty;
 }
 
-/// Every table the v201 block or the beforeOpen seed touches, as a v200
+/// Every table the v202 block or the beforeOpen seed touches, as a v200
 /// database would carry them.
 void _createV200Fixture(dynamic rawDb) {
   rawDb.execute('PRAGMA user_version = 200');
@@ -1390,12 +1390,12 @@ void _createV200Fixture(dynamic rawDb) {
 }
 
 void main() {
-  test('v201 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 201);
-    expect(AppDatabase.migrationVersions, contains(201));
+  test('v202 is the current schema version and is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, 202);
+    expect(AppDatabase.migrationVersions, contains(202));
   });
 
-  test('a fresh database has every v201 column and table', () async {
+  test('a fresh database has every v202 column and table', () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
 
@@ -1478,7 +1478,7 @@ void main() {
     expect(hours.read<double>('h'), 250.0);
   });
 
-  test('a database stranded at v200 gains the columns and the backfill',
+  test('a database stranded before v202 gains the columns and the backfill',
       () async {
     final db = AppDatabase(NativeDatabase.memory(setup: _createV200Fixture));
     addTearDown(db.close);
@@ -1548,7 +1548,7 @@ Note the fixture's `diver_settings` table is minimal; the settings backstops are
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `flutter test test/core/database/migration_v201_equipment_condition_test.dart`
+Run: `flutter test test/core/database/migration_v202_equipment_condition_test.dart`
 Expected: the version test fails with `199`; the column tests fail.
 
 - [ ] **Step 3: Add the columns and tables**
@@ -1556,7 +1556,7 @@ Expected: the version test fails with `199`; the column tests fail.
 In `class Equipment` after `customReminderDays`:
 
 ```dart
-  /// v201: the item this one is installed in (an O2 cell in a rebreather, a
+  /// v202: the item this one is installed in (an O2 cell in a rebreather, a
   /// battery in a computer). A child inherits the parent's dive links from
   /// its `installed_date` attribute. Deleting the parent orphans the child
   /// rather than deleting its history.
@@ -1570,7 +1570,7 @@ In `class Equipment` after `customReminderDays`:
 In `class DiveTanks` after `transmitterSerial`:
 
 ```dart
-  /// v201: the regulator breathed from this cylinder, so high-O2 exposure
+  /// v202: the regulator breathed from this cylinder, so high-O2 exposure
   /// reaches the regulator's service clocks. User-authored; downloads and
   /// re-parses never write it.
   TextColumn get regulatorEquipmentId => text().nullable().references(
@@ -1583,7 +1583,7 @@ In `class DiveTanks` after `transmitterSerial`:
 In `class Incidents` after `diveId`:
 
 ```dart
-  /// v201: the item an equipment incident attributes to.
+  /// v202: the item an equipment incident attributes to.
   TextColumn get equipmentId => text().nullable().references(
     Equipment,
     #id,
@@ -1594,7 +1594,7 @@ In `class Incidents` after `diveId`:
 In `class Trips` after `returnFlightAt`:
 
 ```dart
-  /// v201: overrides for the scrubber trip-margin estimate (phase 4).
+  /// v202: overrides for the scrubber trip-margin estimate (phase 4).
   IntColumn get expectedDives => integer().nullable()();
   IntColumn get expectedRuntimeMinutes => integer().nullable()();
 ```
@@ -1602,7 +1602,7 @@ In `class Trips` after `returnFlightAt`:
 In `class ServiceKinds` after `defaultIntervalHours` and in `class ServiceSchedules` after `intervalHours`:
 
 ```dart
-  /// v201: JSON object of ExposureUnit name to interval for the units that
+  /// v202: JSON object of ExposureUnit name to interval for the units that
   /// have no column of their own ({"coldDives": 50}). '{}' means none.
   TextColumn get exposureIntervals =>
       text().withDefault(const Constant('{}'))();
@@ -1611,7 +1611,7 @@ In `class ServiceKinds` after `defaultIntervalHours` and in `class ServiceSchedu
 In `class DiverSettings` after `noFlyPreset`:
 
 ```dart
-  // v201: exposure thresholds for service clocks. Stored metric.
+  // v202: exposure thresholds for service clocks. Stored metric.
   RealColumn get coldWaterThresholdC =>
       real().withDefault(const Constant(10.0))();
   RealColumn get deepDiveThresholdM =>
@@ -1623,7 +1623,7 @@ In `class DiverSettings` after `noFlyPreset`:
 Four new tables, placed after `class Incidents`:
 
 ```dart
-/// v201: what only a profile-blob decode can produce, computed once per dive
+/// v202: what only a profile-blob decode can produce, computed once per dive
 /// version by the sensor summary service (phase 2). Device-local, never
 /// synced; a restore rebuilds it by sweep.
 @DataClassName('DiveSensorSummaryRow')
@@ -1643,7 +1643,7 @@ class DiveSensorSummaries extends Table {
   Set<Column> get primaryKey => {diveId};
 }
 
-/// v201: a diver's post-dive gear check-in (phase 3). Synced aggregate root.
+/// v202: a diver's post-dive gear check-in (phase 3). Synced aggregate root.
 @DataClassName('EquipmentObservationRow')
 class EquipmentObservations extends Table {
   TextColumn get id => text()();
@@ -1665,7 +1665,7 @@ class EquipmentObservations extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// v201: one condition finding per (item, rule, slot) (phase 3). Synced the
+/// v202: one condition finding per (item, rule, slot) (phase 3). Synced the
 /// way dive_safety_findings is: write-once except dismissed_at.
 @DataClassName('EquipmentFindingRow')
 class EquipmentFindings extends Table {
@@ -1685,7 +1685,7 @@ class EquipmentFindings extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// v201: per-item marker that the condition engine has run over the current
+/// v202: per-item marker that the condition engine has run over the current
 /// inputs (phase 3). Device-local.
 @DataClassName('EquipmentConditionReviewRow')
 class EquipmentConditionReviews extends Table {
@@ -1704,26 +1704,26 @@ Register the four tables in the `@DriftDatabase(tables: [...])` list.
 
 - [ ] **Step 4: Bump the version, add the block, the backstop and the helpers**
 
-`currentSchemaVersion = 201`; append `201` to `migrationVersions`.
+`currentSchemaVersion = 202`; append `202` to `migrationVersions`.
 
-After the `if (from < 199) await reportProgress();` line in `onUpgrade`:
+After the `if (from < 200) await reportProgress();` line in `onUpgrade`:
 
 ```dart
-        // v201: equipment condition intelligence, phase 1. Additive columns
+        // v202: equipment condition intelligence, phase 1. Additive columns
         // on six tables, the four condition tables, and a ONE-TIME backfill
         // of exposure defaults on the built-in kinds. The backfill is not in
         // the backstop: a diver may clear a default later.
-        if (from < 201) {
+        if (from < 202) {
           await _assertEquipmentConditionSchema();
           await _backfillBuiltInExposureDefaults();
         }
-        if (from < 201) await reportProgress();
+        if (from < 202) await reportProgress();
 ```
 
-In `beforeOpen`, after the v199 backstop call `await _assertCertificationCredentialsColumn();`:
+In `beforeOpen`, after the v200 backstop calls (`_assertTransmitterTables` and `_assertDiveTankSourceIndexColumn`):
 
 ```dart
-        // v201 backstop: re-assert the condition columns and tables.
+        // v202 backstop: re-assert the condition columns and tables.
         await _assertEquipmentConditionSchema();
 ```
 
@@ -1741,7 +1741,7 @@ Helpers, placed after `_assertCertificationCredentialsColumn`:
     await customStatement('ALTER TABLE $table ADD COLUMN $column $ddl');
   }
 
-  /// v201: the exposure_intervals map on both service ledger tables. Split
+  /// v202: the exposure_intervals map on both service ledger tables. Split
   /// out because the v122 seed (which runs in older rungs' blocks and in
   /// the backstop) names the column and must be able to assert it first.
   Future<void> _assertExposureIntervalColumns() async {
@@ -1757,8 +1757,8 @@ Helpers, placed after `_assertCertificationCredentialsColumn`:
     );
   }
 
-  /// v201: equipment condition intelligence, phase 1. Idempotent; called
-  /// from the v201 onUpgrade block and the beforeOpen backstop.
+  /// v202: equipment condition intelligence, phase 1. Idempotent; called
+  /// from the v202 onUpgrade block and the beforeOpen backstop.
   Future<void> _assertEquipmentConditionSchema() async {
     await _addColumnIfMissing(
       'equipment',
@@ -1820,8 +1820,8 @@ Helpers, placed after `_assertCertificationCredentialsColumn`:
     );
   }
 
-  /// v201 one-time backfill. Keyed on built-in ids and gated on
-  /// is_built_in, so a custom kind is never touched. Runs from the v201
+  /// v202 one-time backfill. Keyed on built-in ids and gated on
+  /// is_built_in, so a custom kind is never touched. Runs from the v202
   /// onUpgrade block ONLY (fresh installs get the same values from the seed).
   Future<void> _backfillBuiltInExposureDefaults() async {
     final cols = await customSelect(
@@ -1835,9 +1835,9 @@ Helpers, placed after `_assertCertificationCredentialsColumn`:
 Add this constant next to `kSeedBuiltInServiceKindsSql`:
 
 ```dart
-/// v201: exposure defaults for the built-in kinds on existing installs.
+/// v202: exposure defaults for the built-in kinds on existing installs.
 /// Starting points, not manufacturer figures; a schedule overrides them.
-/// Held in step with the seed SQL by migration_v201_equipment_condition_test.
+/// Held in step with the seed SQL by migration_v202_equipment_condition_test.
 const String kBackfillBuiltInExposureDefaultsSql = '''
   UPDATE service_kinds SET
     exposure_intervals = CASE id
@@ -1875,7 +1875,7 @@ const String kSeedBuiltInServiceKindsSql = '''
            'inspection' AS category, '{}' AS exposure
     UNION ALL SELECT 'vip', 'Visual inspection (VIP)', '["tank"]',
            365, NULL, NULL, 1, 'inspection', '{}'
-    -- v201: O2 cleaning applies to regulators too now that a cylinder can
+    -- v202: O2 cleaning applies to regulators too now that a cylinder can
     -- name the regulator breathed from it; 50 high-O2 hours is a starting
     -- point, not a manufacturer figure.
     UNION ALL SELECT 'o2-clean', 'O2 clean', '["tank","regulator"]', 365,
@@ -1884,7 +1884,7 @@ const String kSeedBuiltInServiceKindsSql = '''
            '["regulator"]', 365, 100, NULL, 1, 'annual', '{"coldDives":50}'
     UNION ALL SELECT 'computer-battery', 'Computer battery',
            '["computer","battery"]', 730, NULL, NULL, 1, 'replacement', '{}'
-    -- v201: 250 h sits below the roughly 300 h published for common
+    -- v202: 250 h sits below the roughly 300 h published for common
     -- transmitters.
     UNION ALL SELECT 'transmitter-battery', 'Transmitter battery',
            '["transmitter","battery"]', 365, NULL, 250.0, 1, 'replacement',
@@ -1913,7 +1913,7 @@ const String kSeedBuiltInServiceKindsSql = '''
 In `_assertServiceLedgerSchema`, immediately before the `// Seed built-ins only when the divers FK parent exists` comment, add:
 
 ```dart
-    // v201: the seed names exposure_intervals, so the column must exist
+    // v202: the seed names exposure_intervals, so the column must exist
     // before it runs, including on the v122 rung of an old database.
     await _assertExposureIntervalColumns();
 ```
@@ -1925,15 +1925,15 @@ Expected: `database.g.dart` regenerated without errors.
 
 - [ ] **Step 6: Run the rung tests and the ledger tests**
 
-Run: `flutter test test/core/database/migration_v201_equipment_condition_test.dart test/core/database/migration_v160_service_category_test.dart test/core/database/migration_v122_service_ledger_test.dart test/features/equipment/data`
+Run: `flutter test test/core/database/migration_v202_equipment_condition_test.dart test/core/database/migration_v160_service_category_test.dart test/core/database/migration_v122_service_ledger_test.dart test/features/equipment/data`
 Expected: PASS. (If `migration_v122_service_ledger_test.dart` does not exist, run `flutter test test/core/database` instead.)
 
 - [ ] **Step 7: Commit**
 
 ```bash
 dart format lib test
-git add lib/core/database/database.dart lib/core/database/database.g.dart test/core/database/migration_v201_equipment_condition_test.dart
-git commit -m "feat(db): v201 equipment condition schema and exposure defaults"
+git add lib/core/database/database.dart lib/core/database/database.g.dart test/core/database/migration_v202_equipment_condition_test.dart
+git commit -m "feat(db): v202 equipment condition schema and exposure defaults"
 ```
 
 ---
@@ -2077,7 +2077,7 @@ Expected: compile errors (`parentEquipmentId`, `getChildEquipment`), then map as
 `equipment_item.dart`: add the field, constructor parameter, `copyWith` handling with a clear flag, `props` entry and the getter:
 
 ```dart
-  /// The item this one is installed in (v201). Null for a standalone item.
+  /// The item this one is installed in (v202). Null for a standalone item.
   final String? parentEquipmentId;
 ```
 
@@ -2208,7 +2208,7 @@ Expected: compile error, `regulatorEquipmentId` is not a named parameter.
 `dive.dart`, in `DiveTank`, after `transmitterSerial`:
 
 ```dart
-  /// The regulator this cylinder was breathed through (v201), so high-O2
+  /// The regulator this cylinder was breathed through (v202), so high-O2
   /// contact reaches the regulator's service clocks. User-authored: the
   /// tank editor sets it and downloads never touch it.
   final String? regulatorEquipmentId;
@@ -2727,7 +2727,7 @@ Expected: compile errors on the new named parameters and the missing provider fi
 `settings_providers.dart`, `AppSettings`: after `final NoFlyPreset noFlyPreset;` add
 
 ```dart
-  /// Exposure thresholds for service clocks (v201), stored metric.
+  /// Exposure thresholds for service clocks (v202), stored metric.
   final double coldWaterThresholdC;
   final double deepDiveThresholdM;
   final double highO2ThresholdPercent;
@@ -2810,7 +2810,7 @@ the same three lines with `settings.` at the update mapping (near 292), and at t
 `sync_data_serializer.dart:6454`, after `'noFlyPreset': 'standard',`:
 
 ```dart
-      // v201: non-nullable; seed them so payloads predating the columns
+      // v202: non-nullable; seed them so payloads predating the columns
       // hydrate instead of throwing in DiverSetting.fromJson.
       'coldWaterThresholdC': 10.0,
       'deepDiveThresholdM': 30.0,
@@ -4102,7 +4102,7 @@ Expected: compile error, `kUsageReminderDaysBefore` undefined.
 `scheduled_notification_repository.dart`, top level:
 
 ```dart
-/// reminder_days_before value that marks a usage-clock reminder (v201).
+/// reminder_days_before value that marks a usage-clock reminder (v202).
 /// Date reminders use the positive days-before values from settings.
 const int kUsageReminderDaysBefore = -1;
 ```
@@ -4621,7 +4621,7 @@ Expected: PASS on the first run (the columns already exist). If a key is missing
 ```bash
 dart format test
 git add test/core/services/sync/equipment_condition_columns_sync_test.dart
-git commit -m "test(sync): pin the v201 equipment columns through the serializer"
+git commit -m "test(sync): pin the v202 equipment columns through the serializer"
 ```
 
 ---
@@ -4672,7 +4672,7 @@ git push -u origin ericgriffin/equipment-condition-intelligence-e9b61e
 
 Then open the PR with the summary below as its body. No attribution lines.
 
-PR summary: Phase 1 of the equipment condition intelligence spec. Service clocks now read a per-dive exposure sample and can count salt-water hours, cold dives, high-O2 hours, deep cycles and battery cycles, with thresholds per diver. Adds O2 cell and battery child items, a regulator link on dive tanks, the v201 schema every later phase needs, seeded exposure defaults on built-in kinds, and a notification when a usage clock comes due.
+PR summary: Phase 1 of the equipment condition intelligence spec. Service clocks now read a per-dive exposure sample and can count salt-water hours, cold dives, high-O2 hours, deep cycles and battery cycles, with thresholds per diver. Adds O2 cell and battery child items, a regulator link on dive tanks, the v202 schema every later phase needs, seeded exposure defaults on built-in kinds, and a notification when a usage clock comes due.
 
 ---
 
