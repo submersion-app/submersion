@@ -370,6 +370,78 @@ void main() {
     });
   });
 
+  // Reset Sync State retires an identity and then deletes its cloud files.
+  // That is only safe while someone else still holds the library (#1551).
+  group('anotherDevicePublishesLibrary', () {
+    test('is true when a peer publishes a manifest', () async {
+      final ownId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName(ownId));
+      await provider.uploadFile(_payload, peerFileName('deviceB'));
+
+      expect(
+        await initializer.anotherDevicePublishesLibrary(ownId, provider),
+        isTrue,
+      );
+    });
+
+    test('is false when the retired id is the only publisher', () async {
+      final ownId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName(ownId));
+      await provider.uploadFile(
+        _payload,
+        ChangesetLogLayout.basePartName(ownId, 1, 0),
+      );
+
+      expect(
+        await initializer.anotherDevicePublishesLibrary(ownId, provider),
+        isFalse,
+      );
+    });
+
+    test('is false when the other device has no manifest yet', () async {
+      final ownId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName(ownId));
+      await provider.uploadFile(
+        _payload,
+        ChangesetLogLayout.basePartName('deviceB', 1, 0),
+      );
+
+      expect(
+        await initializer.anotherDevicePublishesLibrary(ownId, provider),
+        isFalse,
+      );
+    });
+
+    test('is false when the only other file is a retirement marker', () async {
+      final ownId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName(ownId));
+      await provider.uploadFile(
+        _payload,
+        ChangesetLogLayout.retiredMarkerName('deviceB'),
+      );
+
+      expect(
+        await initializer.anotherDevicePublishesLibrary(ownId, provider),
+        isFalse,
+      );
+    });
+
+    test('is false when the listing cannot be read', () async {
+      final ownId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName(ownId));
+      await provider.uploadFile(_payload, peerFileName('deviceB'));
+      provider.failLists = true;
+
+      expect(
+        await initializer.anotherDevicePublishesLibrary(ownId, provider),
+        isFalse,
+        reason:
+            'an unreadable listing is not evidence of a second copy, and the '
+            'caller deletes on a true',
+      );
+    });
+  });
+
   group('checkSyncOnLaunch provider persistence', () {
     test('saveProvider then getLastProvider round-trips', () async {
       expect(initializer.getLastProvider(), isNull);
