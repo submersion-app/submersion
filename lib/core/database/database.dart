@@ -4229,18 +4229,30 @@ class AppDatabase extends _$AppDatabase {
   /// database no-ops and a partial fixture does not throw. Nothing writes
   /// them until the dive side lands; adding them here keeps the ladder to
   /// one rung for the feature.
+  ///
+  /// Each column is added only once the table it references exists. SQLite
+  /// accepts a REFERENCES clause naming a table that is not there, but with
+  /// foreign keys on it checks that clause at the next DML on the junction
+  /// and fails with "no such table". Older rungs' minimal-fixture tests hold
+  /// a junction without its parents, and the beforeOpen backstop re-runs
+  /// this on every open, so a real database always gets both columns.
   Future<void> _assertGearProvenanceColumns() async {
+    final tables = (await customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table'",
+    ).get()).map((r) => r.read<String>('name')).toSet();
+    final hasEquipment = tables.contains('equipment');
+    final hasSets = tables.contains('equipment_sets');
     for (final table in ['dive_equipment', 'dive_plan_equipment']) {
       final cols = await customSelect("PRAGMA table_info('$table')").get();
       if (cols.isEmpty) continue;
       final names = cols.map((c) => c.read<String>('name')).toSet();
-      if (!names.contains('via_equipment_id')) {
+      if (hasEquipment && !names.contains('via_equipment_id')) {
         await customStatement(
           'ALTER TABLE $table ADD COLUMN via_equipment_id TEXT '
           'REFERENCES equipment (id) ON DELETE SET NULL',
         );
       }
-      if (!names.contains('via_set_id')) {
+      if (hasSets && !names.contains('via_set_id')) {
         await customStatement(
           'ALTER TABLE $table ADD COLUMN via_set_id TEXT '
           'REFERENCES equipment_sets (id) ON DELETE SET NULL',

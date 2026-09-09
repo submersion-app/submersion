@@ -81,6 +81,12 @@ void main() {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 200');
+        // The helper adds each column only once its parent table exists,
+        // so the fixture carries both parents.
+        rawDb.execute('CREATE TABLE equipment (id TEXT NOT NULL PRIMARY KEY)');
+        rawDb.execute(
+          'CREATE TABLE equipment_sets (id TEXT NOT NULL PRIMARY KEY)',
+        );
         rawDb.execute('''
           CREATE TABLE dive_equipment (
             dive_id TEXT NOT NULL,

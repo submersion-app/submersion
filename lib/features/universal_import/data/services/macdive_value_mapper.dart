@@ -150,14 +150,16 @@ class MacDiveValueMapper {
         s.contains('analyzer')) {
       return EquipmentType.instrument;
     }
-    // Regulator parts (issue #1487) win over the regulator family: a long
-    // hose is a hose, and a second stage is not the whole regulator.
-    if (s.contains('hose')) return EquipmentType.hose;
+    // Regulator parts (issue #1487). The stage words are more specific than
+    // the regulator family and win even beside "reg"; a bare hose word wins
+    // only when nothing names the regulator, so "Reg - Longhose", which a
+    // real library uses for its whole regulator, stays a regulator.
     if (s.contains('first stage')) return EquipmentType.firstStage;
     if (s.contains('second stage')) return EquipmentType.secondStage;
     if (s.contains('octo') || s.contains('regulator') || s.startsWith('reg')) {
       return EquipmentType.regulator;
     }
+    if (s.contains('hose')) return EquipmentType.hose;
     if (s.contains('bcd') || s.contains('bc ') || s == 'bc') {
       return EquipmentType.bcd;
     }

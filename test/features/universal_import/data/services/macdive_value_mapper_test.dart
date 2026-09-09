@@ -110,7 +110,9 @@ void main() {
     // `other` (#912).
     const cases = <String, EquipmentType>{
       'Regulator': EquipmentType.regulator,
-      'Reg - Longhose': EquipmentType.hose,
+      'Reg - Longhose': EquipmentType.regulator,
+      'Long hose': EquipmentType.hose,
+      'LP inflator hose': EquipmentType.hose,
       'reg': EquipmentType.regulator,
       'Octopus': EquipmentType.regulator,
       'Second Stage': EquipmentType.secondStage,

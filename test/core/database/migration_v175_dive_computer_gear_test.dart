@@ -133,6 +133,12 @@ void main() {
               updated_at INTEGER NOT NULL
             )
           ''');
+          // v201 rebuilds dive_plan_equipment from the Drift definition,
+          // whose via_set_id references equipment_sets; SQLite checks that
+          // parent on the cascade below, so the fixture carries it.
+          rawDb.execute(
+            'CREATE TABLE equipment_sets (id TEXT NOT NULL PRIMARY KEY)',
+          );
           rawDb.execute(
             "INSERT INTO equipment (id, name, type, created_at, updated_at) "
             "VALUES ('gear-1', 'gear-1', 'computer', 1, 1)",
