@@ -240,9 +240,9 @@ universal attributes for a missing entry), and a substring rule in
 `macdive_value_mapper.dart` so MacDive imports stop mapping them to
 `other`. Catalog additions stay small: first stage reuses the regulator's
 connection attribute, wing reuses lift capacity, backplate gets a material
-choice (steel, aluminium, carbon), hose gets a length stored in
-centimetres and shown in the diver's length unit, using a new catalog kind
-if none of the existing ones converts. Service kinds need nothing: `general-service` has an empty
+choice (steel, aluminium, carbon fibre), hose gets a length stored in
+metres and shown in the diver's length unit through the catalog's existing
+length dimension, the same path an SMB or a reel line uses. Service kinds need nothing: `general-service` has an empty
 type list, which means every type.
 
 ### 3. Attaching to dives and plans
