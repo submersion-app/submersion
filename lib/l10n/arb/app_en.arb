@@ -22590,6 +22590,110 @@
       }
     }
   },
+  "settings_manage_transmitters": "Transmitters",
+  "settings_manage_transmitters_subtitle": "Link air-integration transmitters to cylinders",
+  "transmitters_title": "Transmitters",
+  "transmitters_add": "Add transmitter",
+  "transmitters_header_assigned": "Assigned transmitters",
+  "transmitters_header_unassigned": "Seen in downloads, not assigned",
+  "transmitters_empty": "No transmitters yet. Add one, or assign a serial after your next download.",
+  "transmitters_action_assign": "Assign",
+  "transmitters_action_edit": "Edit transmitter",
+  "transmitters_action_delete": "Delete transmitter",
+  "transmitters_action_apply": "Apply to existing dives",
+  "transmitters_apply_title": "Apply to existing dives?",
+  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas will be replaced.",
+  "@transmitters_apply_content": {
+    "placeholders": {
+      "tanks": { "type": "int" },
+      "dives": { "type": "int" }
+    }
+  },
+  "transmitters_apply_done": "Updated {tanks} cylinders on {dives} dives",
+  "@transmitters_apply_done": {
+    "placeholders": {
+      "tanks": { "type": "int" },
+      "dives": { "type": "int" }
+    }
+  },
+  "transmitters_apply_nothing": "No cylinders carry this transmitter",
+  "transmitters_delete_title": "Delete transmitter?",
+  "transmitters_delete_content": "Future downloads from {label} will use the default preset again.",
+  "@transmitters_delete_content": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "transmitters_channel": "{computer}, channel {channel}",
+  "@transmitters_channel": {
+    "placeholders": {
+      "computer": { "type": "String" },
+      "channel": { "type": "int" }
+    }
+  },
+  "transmitters_serial": "Transmitter {serial}",
+  "@transmitters_serial": {
+    "placeholders": {
+      "serial": { "type": "String" }
+    }
+  },
+  "transmitters_dives": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@transmitters_dives": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transmitters_edit_title": "Edit transmitter",
+  "transmitters_new_title": "New transmitter",
+  "transmitters_field_label": "Label",
+  "transmitters_field_serial": "Transmitter serial",
+  "transmitters_field_computer": "Dive computer (when no serial is reported)",
+  "transmitters_field_channel": "Channel",
+  "transmitters_field_role": "Role",
+  "transmitters_field_gear": "Cylinder from gear",
+  "transmitters_field_material": "Material",
+  "transmitters_gear_none": "None",
+  "transmitters_validation_key": "Enter a transmitter serial, or pick a dive computer and channel",
+  "transmitters_validation_positive": "Enter a value greater than zero",
+  "transmitters_validation_duplicate": "Already assigned to {label}",
+  "@transmitters_validation_duplicate": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "transmitters_saved": "Transmitter saved",
+  "diveComputer_detail_transmitters": "Transmitters",
+  "diveComputer_detail_transmittersSummary": "{known} known, {unassigned} unassigned",
+  "@diveComputer_detail_transmittersSummary": {
+    "placeholders": {
+      "known": { "type": "int" },
+      "unassigned": { "type": "int" }
+    }
+  },
+  "diveLog_tank_assignTransmitter": "Assign transmitter",
+  "diveLog_tank_reassignSeries": "Reassign pressure series",
+  "diveLog_reassignSheet_title": "Pressure series",
+  "diveLog_reassignSheet_swap": "Swap",
+  "diveLog_reassignSheet_moveTo": "Move to",
+  "diveLog_reassignSheet_readings": "{count, plural, =1{1 reading} other{{count} readings}}",
+  "@diveLog_reassignSheet_readings": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "diveLog_reassignSheet_noSeries": "No pressure series",
+  "diveLog_reassignSheet_applied": "Pressure series reassigned",
+  "universalImport_summary_noticeUnknownTransmitterTitle": "Unassigned transmitters",
+  "universalImport_summary_noticeUnknownTransmitterBody": "One or more transmitters in this download are not assigned to a cylinder. Assign them so future downloads get the right size and role.",
+  "universalImport_summary_noticeAssignTransmitters": "Assign transmitters",
+  "dataQuality_detector_unknown_transmitter": "Unassigned transmitter",
+  "dataQuality_msg_unknownTransmitter": "Transmitter {serial} is not assigned to a cylinder",
+  "@dataQuality_msg_unknownTransmitter": {
+    "placeholders": {
+      "serial": { "type": "String" }
+    }
+  },
+  "dataQuality_repairLabel_assignTransmitter": "Assign transmitter",
   "backup_unrecognized_appBar_title": "Unrecognized Backups",
   "backup_unrecognized_explanation": "These files are in your backups folder but not in this device's backup history. Only a file this device wrote can be deleted here: anything else may be another device's only copy.",
   "backup_unrecognized_empty": "No unrecognized backup files.",

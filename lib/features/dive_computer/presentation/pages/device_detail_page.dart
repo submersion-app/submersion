@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 /// Page displaying details about a specific dive computer.
 class DeviceDetailPage extends ConsumerWidget {
@@ -267,6 +268,7 @@ class DeviceDetailPage extends ConsumerWidget {
             ),
             if (computer.equipmentId != null)
               _LinkedGearRow(equipmentId: computer.equipmentId!),
+            _TransmittersRow(computerId: computer.id),
           ],
         ),
       ),
@@ -958,6 +960,64 @@ class DeviceDetailPage extends ConsumerWidget {
 /// Absent when the computer has no `equipmentId`, which is what deleting the
 /// gear item leaves behind and is permanent by design: only a genuine
 /// registration mints a twin.
+/// Known versus unassigned transmitter serials seen on this computer's dives,
+/// linking to the registry (issue #1365). Absent until the computer has
+/// reported a serial.
+class _TransmittersRow extends ConsumerWidget {
+  const _TransmittersRow({required this.computerId});
+
+  final String computerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    // `.value` keeps the last counts through a dependency reload instead of
+    // collapsing the row for a frame.
+    final summary = ref
+        .watch(transmitterComputerSummaryProvider(computerId))
+        .value;
+    if (summary == null || summary.known + summary.unassigned == 0) {
+      return const SizedBox.shrink();
+    }
+
+    return InkWell(
+      onTap: () => context.push('/transmitters'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              context.l10n.diveComputer_detail_transmitters,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  context.l10n.diveComputer_detail_transmittersSummary(
+                    summary.known,
+                    summary.unassigned,
+                  ),
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _LinkedGearRow extends ConsumerWidget {
   const _LinkedGearRow({required this.equipmentId});
 

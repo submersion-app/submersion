@@ -136,6 +136,8 @@ import 'package:submersion/features/tank_presets/presentation/pages/tank_presets
 import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_page.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitters_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
@@ -1332,6 +1334,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dive-roles',
             name: 'diveRoles',
             builder: (context, state) => const DiveRolesPage(),
+          ),
+
+          // Transmitter registry (issue #1365)
+          GoRoute(
+            path: '/transmitters',
+            name: 'transmitters',
+            builder: (context, state) => const TransmittersPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newTransmitter',
+                builder: (context, state) => TransmitterEditPage(
+                  initialSerial: state.uri.queryParameters['serial'],
+                ),
+              ),
+              GoRoute(
+                path: ':transmitterId/edit',
+                name: 'editTransmitter',
+                builder: (context, state) => TransmitterEditPage(
+                  transmitterId: state.pathParameters['transmitterId'],
+                ),
+              ),
+            ],
           ),
 
           // Tank Presets Management

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_analysis
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -26,6 +29,7 @@ DiveTank _makeTank({
   double? endPressure = 50,
   GasMix gasMix = const GasMix(o2: 32),
   String? computerId,
+  String? transmitterSerial,
 }) {
   return DiveTank(
     id: id,
@@ -35,6 +39,7 @@ DiveTank _makeTank({
     endPressure: endPressure,
     gasMix: gasMix,
     computerId: computerId,
+    transmitterSerial: transmitterSerial,
   );
 }
 
@@ -97,6 +102,7 @@ Widget _buildCard({
   AppSettings settings = _settings,
   GasConsumptionDisplay display = GasConsumptionDisplay.sac,
   VisualDensity? visualDensity,
+  List<Transmitter> registry = const [],
 }) {
   final card = CylindersCard(
     dive: dive,
@@ -104,20 +110,35 @@ Widget _buildCard({
     settings: settings,
     display: display,
   );
-  return testApp(
+  final body = SingleChildScrollView(
+    child: visualDensity == null
+        ? card
+        : Theme(
+            data: ThemeData(visualDensity: visualDensity),
+            child: card,
+          ),
+  );
+  // A router host: the Assign chip pushes the transmitter editor.
+  final router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => Scaffold(body: body),
+      ),
+      GoRoute(
+        path: '/transmitters/new',
+        builder: (context, state) => const Scaffold(body: Text('NEW_PAGE')),
+      ),
+    ],
+  );
+  return testAppRouter(
+    router: router,
     overrides: [
       cylinderSacProvider.overrideWith((ref, id) async => cylinderSacs),
       tankPressuresProvider.overrideWith((ref, id) async => tankPressures),
       diveDataSourcesProvider.overrideWith((ref, id) async => dataSources),
+      transmittersProvider.overrideWith((ref) async => registry),
     ],
-    child: SingleChildScrollView(
-      child: visualDensity == null
-          ? card
-          : Theme(
-              data: ThemeData(visualDensity: visualDensity),
-              child: card,
-            ),
-    ),
   );
 }
 
@@ -393,6 +414,116 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Perdix 2'), findsOneWidget);
+    });
+  });
+
+  group('transmitter caption', () {
+    Dive diveWithSerial(String? serial) =>
+        _makeDive([_makeTank(transmitterSerial: serial)]);
+
+    testWidgets('shows the serial under a downloaded tank', (tester) async {
+      await tester.pumpWidget(_buildCard(dive: diveWithSerial('180777')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Transmitter 180777'), findsOneWidget);
+      expect(find.text('Assign transmitter'), findsOneWidget);
+    });
+
+    testWidgets('no chip once the serial has a registry entry', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: diveWithSerial('180777'),
+          registry: [
+            Transmitter(
+              id: 'e1',
+              transmitterSerial: '180777',
+              label: 'O2',
+              createdAt: DateTime.utc(2026, 9, 1),
+              updatedAt: DateTime.utc(2026, 9, 1),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Transmitter 180777'), findsOneWidget);
+      expect(find.text('Assign transmitter'), findsNothing);
+    });
+
+    testWidgets('a registry serial with padding still counts as known', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: diveWithSerial('180777'),
+          registry: [
+            Transmitter(
+              id: 'e1',
+              transmitterSerial: ' 180777 ',
+              label: 'O2',
+              createdAt: DateTime.utc(2026, 9, 1),
+              updatedAt: DateTime.utc(2026, 9, 1),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Assign transmitter'), findsNothing);
+    });
+
+    testWidgets('no caption without a serial', (tester) async {
+      await tester.pumpWidget(_buildCard(dive: diveWithSerial(null)));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Transmitter '), findsNothing);
+    });
+
+    testWidgets('the chip opens the editor with the serial', (tester) async {
+      await tester.pumpWidget(_buildCard(dive: diveWithSerial('180777')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Assign transmitter'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('NEW_PAGE'), findsOneWidget);
+    });
+  });
+
+  group('reassign pressure series entry point', () {
+    testWidgets('shown when two tanks carry a series', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(id: 'a'), _makeTank(id: 'b')]),
+          tankPressures: {
+            'a': [
+              const TankPressurePoint(tankId: 'a', timestamp: 0, pressure: 200),
+            ],
+            'b': [
+              const TankPressurePoint(tankId: 'b', timestamp: 0, pressure: 210),
+            ],
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reassign pressure series'), findsOneWidget);
+    });
+
+    testWidgets('hidden with a single series', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(id: 'a'), _makeTank(id: 'b')]),
+          tankPressures: {
+            'a': [
+              const TankPressurePoint(tankId: 'a', timestamp: 0, pressure: 200),
+            ],
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reassign pressure series'), findsNothing);
     });
   });
 }

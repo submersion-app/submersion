@@ -148,6 +148,12 @@ class GoToDiveRepair extends QualityRepairAction {
   final String diveId;
 }
 
+/// Navigate to the transmitter editor prefilled with [serial].
+class AssignTransmitterRepair extends QualityRepairAction {
+  const AssignTransmitterRepair(this.serial);
+  final String serial;
+}
+
 double? _num(Map<String, Object?> p, String k) => (p[k] as num?)?.toDouble();
 
 /// Pure mapping from a finding to its offered repairs (spec's repair table).
@@ -189,8 +195,15 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       return [GoToDiveRepair(diveId)];
 
     case 'duplicate':
+      // Consolidation folds a SECOND computer's recording into the dive.
+      // DiveConsolidationBuilder rejects a pair that shares one physical
+      // computer, so offering the repair there is a button that can only
+      // ever fail; the card falls back to its no-automatic-fix row instead.
+      // Findings written before the detector reported this (no key at all)
+      // stay repairable until a rescan fills the fact in.
+      final consolidatable = p['sameComputer'] != true;
       return [
-        if (related != null)
+        if (related != null && consolidatable)
           ConsolidateDuplicateRepair(
             targetDiveId: diveId,
             secondaryDiveId: related,
@@ -302,6 +315,13 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
 
     case 'gas_mod':
       return [GoToDiveRepair(diveId)];
+
+    case 'unknown_transmitter':
+      final serial = p['serial'] as String?;
+      return [
+        if (serial != null) AssignTransmitterRepair(serial),
+        GoToDiveRepair(diveId),
+      ];
 
     case 'tank_assignment':
       final a = p['tankIdA'] as String?;

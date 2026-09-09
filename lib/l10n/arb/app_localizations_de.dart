@@ -37287,6 +37287,198 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_transmitters => 'Sender';
+
+  @override
+  String get settings_manage_transmitters_subtitle =>
+      'Luftintegrations-Sender mit Flaschen verknüpfen';
+
+  @override
+  String get transmitters_title => 'Sender';
+
+  @override
+  String get transmitters_add => 'Sender hinzufügen';
+
+  @override
+  String get transmitters_header_assigned => 'Zugewiesene Sender';
+
+  @override
+  String get transmitters_header_unassigned =>
+      'In Downloads gesehen, nicht zugewiesen';
+
+  @override
+  String get transmitters_empty =>
+      'Noch keine Sender. Füge einen hinzu oder weise nach dem nächsten Download eine Seriennummer zu.';
+
+  @override
+  String get transmitters_action_assign => 'Zuweisen';
+
+  @override
+  String get transmitters_action_edit => 'Sender bearbeiten';
+
+  @override
+  String get transmitters_action_delete => 'Sender löschen';
+
+  @override
+  String get transmitters_action_apply => 'Auf vorhandene Tauchgänge anwenden';
+
+  @override
+  String get transmitters_apply_title => 'Auf vorhandene Tauchgänge anwenden?';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks Flaschen in $dives Tauchgängen tragen diesen Sender. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte Rolle wird ersetzt.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return '$tanks Flaschen in $dives Tauchgängen aktualisiert';
+  }
+
+  @override
+  String get transmitters_apply_nothing => 'Keine Flasche trägt diesen Sender';
+
+  @override
+  String get transmitters_delete_title => 'Sender löschen?';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'Künftige Downloads von $label verwenden wieder die Standardvorlage.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer, Kanal $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return 'Sender $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'Sender bearbeiten';
+
+  @override
+  String get transmitters_new_title => 'Neuer Sender';
+
+  @override
+  String get transmitters_field_label => 'Bezeichnung';
+
+  @override
+  String get transmitters_field_serial => 'Seriennummer des Senders';
+
+  @override
+  String get transmitters_field_computer =>
+      'Tauchcomputer (wenn keine Seriennummer gemeldet wird)';
+
+  @override
+  String get transmitters_field_channel => 'Kanal';
+
+  @override
+  String get transmitters_field_role => 'Rolle';
+
+  @override
+  String get transmitters_field_gear => 'Flasche aus der Ausrüstung';
+
+  @override
+  String get transmitters_field_material => 'Material';
+
+  @override
+  String get transmitters_gear_none => 'Keine';
+
+  @override
+  String get transmitters_validation_key =>
+      'Gib eine Seriennummer ein oder wähle Tauchcomputer und Kanal';
+
+  @override
+  String get transmitters_validation_positive =>
+      'Gib einen Wert größer als null ein';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'Bereits $label zugewiesen';
+  }
+
+  @override
+  String get transmitters_saved => 'Sender gespeichert';
+
+  @override
+  String get diveComputer_detail_transmitters => 'Sender';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known bekannt, $unassigned nicht zugewiesen';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'Sender zuweisen';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'Druckverlauf neu zuordnen';
+
+  @override
+  String get diveLog_reassignSheet_title => 'Druckverläufe';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'Tauschen';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'Verschieben nach';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Messwerte',
+      one: '1 Messwert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'Kein Druckverlauf';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'Druckverlauf neu zugeordnet';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'Nicht zugewiesene Sender';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'Ein oder mehrere Sender in diesem Download sind keiner Flasche zugewiesen. Weise sie zu, damit künftige Downloads die richtige Größe und Rolle erhalten.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters =>
+      'Sender zuweisen';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter =>
+      'Nicht zugewiesener Sender';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'Sender $serial ist keiner Flasche zugewiesen';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter => 'Sender zuweisen';
+
+  @override
   String get backup_unrecognized_appBar_title => 'Nicht erkannte Sicherungen';
 
   @override

@@ -6,6 +6,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
 import 'package:submersion/features/dive_computer/data/services/downloaded_tank_defaults.dart';
+import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
@@ -180,6 +183,11 @@ class ImportResult {
   /// Error message if import failed
   final String? errorMessage;
 
+  /// Normalized transmitter serials on the imported tanks that matched no
+  /// registry entry, distinct and sorted, so the wizard can point the diver
+  /// at the registry (issue #1365).
+  final List<String> unmatchedTransmitterSerials;
+
   const ImportResult({
     required this.imported,
     required this.skipped,
@@ -189,6 +197,7 @@ class ImportResult {
     this.importedDives = const [],
     this.duplicateCandidates = const [],
     this.errorMessage,
+    this.unmatchedTransmitterSerials = const [],
   });
 
   /// Create a successful result
@@ -200,6 +209,7 @@ class ImportResult {
     required List<DownloadedDive> importedDives,
     List<ImportConflict> conflicts = const [],
     List<DuplicateCandidate> duplicateCandidates = const [],
+    List<String> unmatchedTransmitterSerials = const [],
   }) => ImportResult(
     imported: imported,
     skipped: skipped,
@@ -208,6 +218,7 @@ class ImportResult {
     importedDiveIds: importedDiveIds,
     importedDives: importedDives,
     duplicateCandidates: duplicateCandidates,
+    unmatchedTransmitterSerials: unmatchedTransmitterSerials,
   );
 
   /// Create a failed result
@@ -243,6 +254,9 @@ class DiveImportService {
   final DiveParser _parser;
   final GpsTrackMatchService? _gpsTrackMatchService;
   final DefaultTankPresetLoader? _defaultTankPresetForImports;
+  final TransmitterMatcherLoader? _transmitterMatcherForImports;
+  final Set<String> _unmatchedSerials = {};
+  static final _log = LoggerService.forClass(DiveImportService);
 
   DiveImportService({
     required DiveComputerRepository repository,
@@ -250,11 +264,43 @@ class DiveImportService {
     DiveParser? parser,
     GpsTrackMatchService? gpsTrackMatchService,
     DefaultTankPresetLoader? defaultTankPresetForImports,
+    TransmitterMatcherLoader? transmitterMatcherForImports,
   }) : _repository = repository,
        _diveRepository = diveRepository,
        _parser = parser ?? const DiveParser(),
        _gpsTrackMatchService = gpsTrackMatchService,
-       _defaultTankPresetForImports = defaultTankPresetForImports;
+       _defaultTankPresetForImports = defaultTankPresetForImports,
+       _transmitterMatcherForImports = transmitterMatcherForImports;
+
+  /// Serials seen on tanks imported through this service that matched no
+  /// registry entry. Accumulated across the per-dive entry points so the
+  /// wizard can report them once at the end of a run; [importDives] and the
+  /// wizard adapter call [resetUnmatchedTransmitterSerials] first, since the
+  /// service is a long-lived provider and a stale serial from an earlier
+  /// session must not surface in a later notice.
+  List<String> get unmatchedTransmitterSerials =>
+      _unmatchedSerials.toList()..sort();
+
+  /// Start a fresh accumulation for the next import run.
+  void resetUnmatchedTransmitterSerials() => _unmatchedSerials.clear();
+
+  /// The diver's transmitter registry, or an empty matcher when none is
+  /// configured or the load fails: a download must never fail because the
+  /// registry could not be read.
+  Future<TransmitterMatcher> _loadTransmitterMatcher() async {
+    final loader = _transmitterMatcherForImports;
+    if (loader == null) return const TransmitterMatcher.empty();
+    try {
+      return await loader();
+    } catch (e, st) {
+      _log.warning(
+        'Transmitter registry unavailable, importing without it',
+        error: e,
+        stackTrace: st,
+      );
+      return const TransmitterMatcher.empty();
+    }
+  }
 
   /// The preset to fill downloaded cylinders with.
   ///
@@ -313,6 +359,8 @@ class DiveImportService {
         : null;
 
     final defaultTankPreset = await _loadDefaultTankPreset();
+    final transmitterMatcher = await _loadTransmitterMatcher();
+    resetUnmatchedTransmitterSerials();
 
     for (final dive in sortedDives) {
       try {
@@ -368,6 +416,7 @@ class DiveImportService {
                 diverId,
                 forceNew: true,
                 defaultTankPreset: defaultTankPreset,
+                transmitterMatcher: transmitterMatcher,
                 descriptorVendor: descriptorVendor,
                 descriptorProduct: descriptorProduct,
                 descriptorModel: descriptorModel,
@@ -398,6 +447,7 @@ class DiveImportService {
               diverId,
               forceNew: true,
               defaultTankPreset: defaultTankPreset,
+              transmitterMatcher: transmitterMatcher,
               descriptorVendor: descriptorVendor,
               descriptorProduct: descriptorProduct,
               descriptorModel: descriptorModel,
@@ -414,6 +464,7 @@ class DiveImportService {
             computer.id,
             diverId,
             defaultTankPreset: defaultTankPreset,
+            transmitterMatcher: transmitterMatcher,
             descriptorVendor: descriptorVendor,
             descriptorProduct: descriptorProduct,
             descriptorModel: descriptorModel,
@@ -448,6 +499,7 @@ class DiveImportService {
       importedDives: importedDives,
       conflicts: conflicts,
       duplicateCandidates: duplicateCandidates,
+      unmatchedTransmitterSerials: unmatchedTransmitterSerials,
     );
   }
 
@@ -535,6 +587,7 @@ class DiveImportService {
     String? diverId, {
     bool forceNew = false,
     TankPresetEntity? defaultTankPreset,
+    TransmitterMatcher? transmitterMatcher,
     String? descriptorVendor,
     String? descriptorProduct,
     int? descriptorModel,
@@ -554,10 +607,31 @@ class DiveImportService {
 
     // Convert tanks to TankData, filling the cylinder size from the default
     // preset when the diver opted in (computers report pressure, not size).
+    // Registry first so a matched entry claims its tank; the default preset
+    // then fills only the back-gas tanks nobody claimed.
     final parsedTanks = _parser.parseTanks(dive);
-    final tanks = defaultTankPreset == null
+    final matchedTanks = transmitterMatcher == null
         ? parsedTanks
-        : applyDefaultPresetToTanks(parsedTanks, defaultTankPreset);
+        : applyTransmitterRegistry(
+            parsedTanks,
+            transmitterMatcher,
+            computerId: computerId,
+          );
+    if (transmitterMatcher != null) {
+      for (final tank in parsedTanks) {
+        final serial = normalizeTransmitterSerial(tank.transmitterSerial);
+        if (serial == null) continue;
+        final hit = transmitterMatcher.match(
+          serial: serial,
+          computerId: computerId,
+          index: tank.index,
+        );
+        if (hit == null) _unmatchedSerials.add(serial);
+      }
+    }
+    final tanks = defaultTankPreset == null
+        ? matchedTanks
+        : applyDefaultPresetToTanks(matchedTanks, defaultTankPreset);
 
     // Convert events to EventData
     final events = _convertEvents(dive.events);
@@ -624,6 +698,7 @@ class DiveImportService {
       diverId,
       forceNew: true,
       defaultTankPreset: await _loadDefaultTankPreset(),
+      transmitterMatcher: await _loadTransmitterMatcher(),
       descriptorVendor: descriptorVendor,
       descriptorProduct: descriptorProduct,
       descriptorModel: descriptorModel,
@@ -730,6 +805,7 @@ class DiveImportService {
           computerId,
           diverId,
           defaultTankPreset: await _loadDefaultTankPreset(),
+          transmitterMatcher: await _loadTransmitterMatcher(),
           descriptorVendor: descriptorVendor,
           descriptorProduct: descriptorProduct,
           descriptorModel: descriptorModel,

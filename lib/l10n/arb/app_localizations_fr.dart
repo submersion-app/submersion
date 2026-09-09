@@ -37466,6 +37466,199 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_transmitters => 'Émetteurs';
+
+  @override
+  String get settings_manage_transmitters_subtitle =>
+      'Associer les émetteurs de pression aux bouteilles';
+
+  @override
+  String get transmitters_title => 'Émetteurs';
+
+  @override
+  String get transmitters_add => 'Ajouter un émetteur';
+
+  @override
+  String get transmitters_header_assigned => 'Émetteurs associés';
+
+  @override
+  String get transmitters_header_unassigned =>
+      'Vus dans les téléchargements, non associés';
+
+  @override
+  String get transmitters_empty =>
+      'Aucun émetteur pour le moment. Ajoutez-en un, ou associez un numéro de série après votre prochain téléchargement.';
+
+  @override
+  String get transmitters_action_assign => 'Associer';
+
+  @override
+  String get transmitters_action_edit => 'Modifier l\'émetteur';
+
+  @override
+  String get transmitters_action_delete => 'Supprimer l\'émetteur';
+
+  @override
+  String get transmitters_action_apply => 'Appliquer aux plongées existantes';
+
+  @override
+  String get transmitters_apply_title => 'Appliquer aux plongées existantes ?';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks bouteilles sur $dives plongées portent cet émetteur. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond sera remplacé.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return '$tanks bouteilles mises à jour sur $dives plongées';
+  }
+
+  @override
+  String get transmitters_apply_nothing =>
+      'Aucune bouteille ne porte cet émetteur';
+
+  @override
+  String get transmitters_delete_title => 'Supprimer l\'émetteur ?';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'Les prochains téléchargements de $label utiliseront de nouveau le préréglage par défaut.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer, canal $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return 'Émetteur $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées',
+      one: '1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'Modifier l\'émetteur';
+
+  @override
+  String get transmitters_new_title => 'Nouvel émetteur';
+
+  @override
+  String get transmitters_field_label => 'Libellé';
+
+  @override
+  String get transmitters_field_serial => 'Numéro de série de l\'émetteur';
+
+  @override
+  String get transmitters_field_computer =>
+      'Ordinateur de plongée (si aucun numéro de série n\'est transmis)';
+
+  @override
+  String get transmitters_field_channel => 'Canal';
+
+  @override
+  String get transmitters_field_role => 'Rôle';
+
+  @override
+  String get transmitters_field_gear => 'Bouteille de l\'équipement';
+
+  @override
+  String get transmitters_field_material => 'Matériau';
+
+  @override
+  String get transmitters_gear_none => 'Aucune';
+
+  @override
+  String get transmitters_validation_key =>
+      'Saisissez un numéro de série, ou choisissez un ordinateur et un canal';
+
+  @override
+  String get transmitters_validation_positive =>
+      'Saisissez une valeur supérieure à zéro';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'Déjà associé à $label';
+  }
+
+  @override
+  String get transmitters_saved => 'Émetteur enregistré';
+
+  @override
+  String get diveComputer_detail_transmitters => 'Émetteurs';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known connus, $unassigned non associés';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'Associer l\'émetteur';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'Réattribuer la courbe de pression';
+
+  @override
+  String get diveLog_reassignSheet_title => 'Courbes de pression';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'Échanger';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'Déplacer vers';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mesures',
+      one: '1 mesure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'Aucune courbe de pression';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'Courbe de pression réattribuée';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'Émetteurs non associés';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'Un ou plusieurs émetteurs de ce téléchargement ne sont associés à aucune bouteille. Associez-les pour que les prochains téléchargements aient la bonne taille et le bon rôle.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters =>
+      'Associer les émetteurs';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter => 'Émetteur non associé';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'L\'émetteur $serial n\'est associé à aucune bouteille';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter =>
+      'Associer l\'émetteur';
+
+  @override
   String get backup_unrecognized_appBar_title => 'Sauvegardes non reconnues';
 
   @override

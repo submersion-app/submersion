@@ -37366,6 +37366,200 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_transmitters => 'Transmissores';
+
+  @override
+  String get settings_manage_transmitters_subtitle =>
+      'Associar transmissores de pressão a cilindros';
+
+  @override
+  String get transmitters_title => 'Transmissores';
+
+  @override
+  String get transmitters_add => 'Adicionar transmissor';
+
+  @override
+  String get transmitters_header_assigned => 'Transmissores atribuídos';
+
+  @override
+  String get transmitters_header_unassigned =>
+      'Vistos em downloads, não atribuídos';
+
+  @override
+  String get transmitters_empty =>
+      'Ainda não há transmissores. Adicione um ou atribua um número de série após o próximo download.';
+
+  @override
+  String get transmitters_action_assign => 'Atribuir';
+
+  @override
+  String get transmitters_action_edit => 'Editar transmissor';
+
+  @override
+  String get transmitters_action_delete => 'Excluir transmissor';
+
+  @override
+  String get transmitters_action_apply => 'Aplicar a mergulhos existentes';
+
+  @override
+  String get transmitters_apply_title => 'Aplicar a mergulhos existentes?';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks cilindros em $dives mergulhos carregam este transmissor. Campos vazios de tamanho, material, nome e equipamento serão preenchidos, e uma função ainda definida como Gás de fundo será substituída.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return '$tanks cilindros atualizados em $dives mergulhos';
+  }
+
+  @override
+  String get transmitters_apply_nothing =>
+      'Nenhum cilindro carrega este transmissor';
+
+  @override
+  String get transmitters_delete_title => 'Excluir transmissor?';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'Os próximos downloads de $label voltarão a usar a predefinição padrão.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer, canal $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return 'Transmissor $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '1 mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'Editar transmissor';
+
+  @override
+  String get transmitters_new_title => 'Novo transmissor';
+
+  @override
+  String get transmitters_field_label => 'Rótulo';
+
+  @override
+  String get transmitters_field_serial => 'Número de série do transmissor';
+
+  @override
+  String get transmitters_field_computer =>
+      'Computador de mergulho (quando nenhum número de série é informado)';
+
+  @override
+  String get transmitters_field_channel => 'Canal';
+
+  @override
+  String get transmitters_field_role => 'Função';
+
+  @override
+  String get transmitters_field_gear => 'Cilindro do equipamento';
+
+  @override
+  String get transmitters_field_material => 'Material';
+
+  @override
+  String get transmitters_gear_none => 'Nenhum';
+
+  @override
+  String get transmitters_validation_key =>
+      'Informe um número de série ou escolha um computador e um canal';
+
+  @override
+  String get transmitters_validation_positive =>
+      'Informe um valor maior que zero';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'Já atribuído a $label';
+  }
+
+  @override
+  String get transmitters_saved => 'Transmissor salvo';
+
+  @override
+  String get diveComputer_detail_transmitters => 'Transmissores';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known conhecidos, $unassigned não atribuídos';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'Atribuir transmissor';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'Reatribuir série de pressão';
+
+  @override
+  String get diveLog_reassignSheet_title => 'Séries de pressão';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'Trocar';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'Mover para';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count leituras',
+      one: '1 leitura',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'Sem série de pressão';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'Série de pressão reatribuída';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'Transmissores não atribuídos';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'Um ou mais transmissores deste download não estão atribuídos a um cilindro. Atribua-os para que os próximos downloads tenham o tamanho e a função corretos.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters =>
+      'Atribuir transmissores';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter =>
+      'Transmissor não atribuído';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'O transmissor $serial não está atribuído a nenhum cilindro';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter =>
+      'Atribuir transmissor';
+
+  @override
   String get backup_unrecognized_appBar_title =>
       'Cópias de segurança não reconhecidas';
 
