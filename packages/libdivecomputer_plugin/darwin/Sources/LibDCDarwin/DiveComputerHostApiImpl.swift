@@ -320,8 +320,9 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                     transportValue,
                     &io,
                     buf.baseAddress, UInt32(buf.count),
+                    0,
                     &dl,
-                    &serial, &firmware,
+                    &serial, &firmware, nil,
                     &errorBuf, errorBuf.count
                 )
             }
@@ -332,8 +333,9 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                 transportValue,
                 &io,
                 nil, 0,
+                0,
                 &dl,
-                &serial, &firmware,
+                &serial, &firmware, nil,
                 &errorBuf, errorBuf.count
             )
         }

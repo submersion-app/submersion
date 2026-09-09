@@ -388,8 +388,9 @@ static gpointer download_thread_func(gpointer data) {
         transport_flag,
         &io_callbacks,
         fp_data, fp_size,
+        0,
         &dl_callbacks,
-        &serial_number, &firmware_version,
+        &serial_number, &firmware_version, nullptr,
         error_buf, sizeof(error_buf));
   } else {
     // Serial or USB transport.
@@ -446,8 +447,9 @@ static gpointer download_thread_func(gpointer data) {
             LIBDC_TRANSPORT_USBHID,
             &io_callbacks,
             fp_data, fp_size,
+            0,
             &dl_callbacks,
-            &serial_number, &firmware_version,
+            &serial_number, &firmware_version, nullptr,
             error_buf, sizeof(error_buf));
 
         usbhid_io_stream_free(ctx->usbhid_stream);
@@ -494,8 +496,9 @@ static gpointer download_thread_func(gpointer data) {
             transport_flag,
             &io_callbacks,
             fp_data, fp_size,
+            0,
             &dl_callbacks,
-            &serial_number, &firmware_version,
+            &serial_number, &firmware_version, nullptr,
             error_buf, sizeof(error_buf));
         found = TRUE;
       } else {
@@ -534,8 +537,9 @@ static gpointer download_thread_func(gpointer data) {
               transport_flag,
               &io_callbacks,
               fp_data, fp_size,
+              0,
               &dl_callbacks,
-              &serial_number, &firmware_version,
+              &serial_number, &firmware_version, nullptr,
               error_buf, sizeof(error_buf));
 
           serial_io_stream_free(ctx->serial_stream);

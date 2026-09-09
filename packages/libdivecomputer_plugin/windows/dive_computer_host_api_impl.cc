@@ -420,8 +420,9 @@ void DiveComputerHostApiImpl::PerformDownload(
                 &io_callbacks,
                 fp_bytes.empty() ? nullptr : fp_bytes.data(),
                 static_cast<unsigned int>(fp_bytes.size()),
+                0,
                 &dl_callbacks,
-                &serial, &firmware,
+                &serial, &firmware, nullptr,
                 error_buf, sizeof(error_buf));
 
             serial_stream_.reset();
@@ -513,8 +514,9 @@ void DiveComputerHostApiImpl::PerformDownload(
             &io_callbacks,
             fp_bytes.empty() ? nullptr : fp_bytes.data(),
             static_cast<unsigned int>(fp_bytes.size()),
+            0,
             &dl_callbacks,
-            &serial, &firmware,
+            &serial, &firmware, nullptr,
             error_buf, sizeof(error_buf));
 
         ble_stream_.reset();

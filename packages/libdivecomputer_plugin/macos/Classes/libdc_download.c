@@ -904,9 +904,11 @@ int libdc_download_run(
     unsigned int transport,
     const libdc_io_callbacks_t *io_callbacks,
     const unsigned char *fingerprint, unsigned int fsize,
+    int sync_clock,
     const libdc_download_callbacks_t *callbacks,
     unsigned int *serial_out,
     unsigned int *firmware_out,
+    libdc_clock_sync_status_t *clock_sync_out,
     char *error_buf, size_t error_buf_size)
 {
     if (session == NULL || vendor == NULL || product == NULL ||
@@ -993,6 +995,14 @@ int libdc_download_run(
     // 7. Download dives.
     status = dc_device_foreach(device, dive_callback, &state);
 
+    // 7b. Optional clock sync, only after a fully successful download so a
+    // slow or failing timesync can never cost the diver their dives, and
+    // never after a cancel (issue #1216). Its outcome is reported separately
+    // and never changes `result` or the error buffer.
+    libdc_clock_sync_status_t clock_sync = libdc_sync_device_clock(
+        device, sync_clock,
+        status == DC_STATUS_SUCCESS && !session->cancelled);
+
     int result = 0;
     if (status != DC_STATUS_SUCCESS) {
         if (session->cancelled) {
@@ -1018,6 +1028,9 @@ int libdc_download_run(
     }
     if (firmware_out != NULL) {
         *firmware_out = state.firmware;
+    }
+    if (clock_sync_out != NULL) {
+        *clock_sync_out = clock_sync;
     }
 
     // 9. Cleanup.

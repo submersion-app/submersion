@@ -831,8 +831,9 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
         static_cast<unsigned int>(transport),
         &io_callbacks,
         fp_data, fp_size,
+        0,
         &dl_callbacks,
-        nullptr, nullptr,
+        nullptr, nullptr, nullptr,
         error_buf, sizeof(error_buf));
 
     // Cleanup fingerprint.
