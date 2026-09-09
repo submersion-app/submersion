@@ -51,7 +51,8 @@ class Certification extends Equatable {
 
   /// Extra recognitions the same card grants beyond [agency]/[level] (e.g. a
   /// CMAS 1-star equivalence on an FFESSM N1). Empty for a single-agency card.
-  /// [credentials] is the full, order-agnostic list.
+  /// None of them outranks [agency]/[level]; the card simply is all of them.
+  /// [credentials] is the full list, in the stable display order the UI uses.
   final List<CertificationCredential> additionalCredentials;
 
   final String? cardNumber;
@@ -87,8 +88,11 @@ class Certification extends Equatable {
     required this.updatedAt,
   });
 
-  /// Every (agency, level) this card grants, with no primary: the row's own
-  /// [agency]/[level] first, then [additionalCredentials]. Always at least one.
+  /// Every (agency, level) this card grants. No entry is the primary one --
+  /// they are equal recognitions -- but the list order is stable and is what
+  /// the list tile, detail page and wallet card render: the row's own
+  /// [agency]/[level] first, then [additionalCredentials] in stored order.
+  /// Always at least one entry.
   List<CertificationCredential> get credentials => [
     CertificationCredential(agency: agency, level: level),
     ...additionalCredentials,

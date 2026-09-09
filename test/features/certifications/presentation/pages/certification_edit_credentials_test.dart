@@ -43,6 +43,10 @@ void main() {
         certificationRepositoryProvider.overrideWithValue(repository),
       ],
       child: MaterialApp(
+        // Pinned: this test asserts English literals, and flutter_test
+        // forwards the HOST machine's locale list, so an unpinned
+        // MaterialApp renders translated on a non-English dev machine.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
