@@ -173,6 +173,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           filter.applyType(equipment),
           sort,
           serviceUrgency: serviceUrgency,
+          typeLabel: (t) => t.localizedName(context.l10n),
         ),
       );
       return _buildTableModeScaffold(
@@ -190,6 +191,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       filter.applyType(equipmentAsync.value ?? const <EquipmentItem>[]),
       sort,
       serviceUrgency: serviceUrgency,
+      typeLabel: (t) => t.localizedName(context.l10n),
     );
     final visibleIds = sortedVisible.map((e) => e.id).toList();
 
@@ -206,6 +208,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             filter.applyType(equipment),
             sort,
             serviceUrgency: serviceUrgency,
+            typeLabel: (t) => t.localizedName(context.l10n),
           );
           return sorted.isEmpty
               ? _buildEmptyState(

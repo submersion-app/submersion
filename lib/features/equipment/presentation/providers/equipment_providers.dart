@@ -127,6 +127,11 @@ List<EquipmentItem> applyEquipmentSorting(
   List<EquipmentItem> equipment,
   SortState<EquipmentSortField> sort, {
   Map<String, ServiceClockStatus> serviceUrgency = const {},
+  // Sorting by type compared the hardcoded English displayName while the UI
+  // rendered the localized label, so on a non-English build the list ordered
+  // by names the diver could not see. Callers with localizations in scope
+  // pass the resolver; the default keeps the old behaviour for those without.
+  String Function(EquipmentType)? typeLabel,
 }) {
   final sorted = List<EquipmentItem>.from(equipment);
 
@@ -146,7 +151,8 @@ List<EquipmentItem> applyEquipmentSorting(
       case EquipmentSortField.name:
         comparison = a.name.compareTo(b.name);
       case EquipmentSortField.type:
-        comparison = a.type.displayName.compareTo(b.type.displayName);
+        final label = typeLabel ?? (EquipmentType t) => t.displayName;
+        comparison = label(a.type).compareTo(label(b.type));
       case EquipmentSortField.purchaseDate:
         comparison = (a.purchaseDate ?? DateTime(1900)).compareTo(
           b.purchaseDate ?? DateTime(1900),
