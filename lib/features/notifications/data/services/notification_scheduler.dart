@@ -5,6 +5,7 @@ import 'package:submersion/features/equipment/data/repositories/service_kind_rep
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -152,6 +153,16 @@ class NotificationScheduler {
     required ServiceClockStatus status,
     required AppSettings globalSettings,
   }) async {
+    // Usage triggers first: a clock that is due because of dives, hours or
+    // an exposure unit gets its one-off reminder whether or not it also
+    // carries a calendar trigger.
+    if (_usageDue(status)) {
+      await _scheduleUsageReminder(
+        item: item,
+        status: status,
+        globalSettings: globalSettings,
+      );
+    }
     final dueDate = status.dueDate;
     if (dueDate == null) return;
 
@@ -221,6 +232,67 @@ class NotificationScheduler {
         scheduleId: status.schedule.id,
       );
     }
+  }
+
+  /// Whether any usage unit is within its due-soon band or past it. Mirrors
+  /// the engine's band: counts round the 10 percent band up, fractional
+  /// units compare directly.
+  bool _usageDue(ServiceClockStatus status) {
+    for (final entry in status.usageByUnit.entries) {
+      final u = entry.value;
+      final band = entry.key.isFractional
+          ? u.interval * 0.1
+          : (u.interval * 0.1).ceilToDouble();
+      if (u.remaining <= band) return true;
+    }
+    return false;
+  }
+
+  /// One local notification when a usage clock reaches due-soon or
+  /// overdue, deduplicated per (schedule, anchor). Fires at the next
+  /// reminder time. Rescheduling everything (settings change) re-arms it
+  /// once, which is acceptable for a clock that is still due.
+  Future<void> _scheduleUsageReminder({
+    required EquipmentItem item,
+    required ServiceClockStatus status,
+    required AppSettings globalSettings,
+  }) async {
+    if (item.customReminderEnabled == false) return;
+    final already = await _scheduledNotificationRepository.hasUsageReminder(
+      scheduleId: status.schedule.id,
+      since: status.anchor,
+    );
+    if (already) return;
+
+    final now = DateTime.now();
+    var fireAt = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      globalSettings.reminderTime.hour,
+      globalSettings.reminderTime.minute,
+    );
+    if (!fireAt.isAfter(now)) fireAt = fireAt.add(const Duration(days: 1));
+
+    final brandModel = item.brand != null || item.model != null
+        ? '${item.brand ?? ''} ${item.model ?? ''}'.trim()
+        : null;
+    final notificationId = await _notificationService.scheduleServiceReminder(
+      scheduleId: status.schedule.id,
+      equipmentId: item.id,
+      equipmentName: item.name,
+      kindName: status.kind.name,
+      brandModel: brandModel,
+      scheduledDate: fireAt,
+      daysBefore: kUsageReminderDaysBefore,
+    );
+    await _scheduledNotificationRepository.recordScheduled(
+      equipmentId: item.id,
+      scheduledDate: fireAt,
+      reminderDaysBefore: kUsageReminderDaysBefore,
+      notificationId: notificationId,
+      scheduleId: status.schedule.id,
+    );
   }
 
   /// One notification per upcoming trip with service alerts, at trip start

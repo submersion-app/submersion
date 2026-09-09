@@ -5,6 +5,10 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
+/// reminder_days_before value that marks a usage-clock reminder (v202).
+/// Date reminders use the positive days-before values from settings.
+const int kUsageReminderDaysBefore = -1;
+
 /// Repository for tracking scheduled notifications
 class ScheduledNotificationRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -57,6 +61,29 @@ class ScheduledNotificationRepository {
       );
       return false;
     }
+  }
+
+  /// Whether a usage-clock reminder for [scheduleId] has been recorded
+  /// since [since] (the clock's anchor). One reminder per anchor: logging a
+  /// service record moves the anchor and re-arms it.
+  Future<bool> hasUsageReminder({
+    required String scheduleId,
+    required DateTime since,
+  }) async {
+    final row =
+        await (_db.select(_db.scheduledNotifications)
+              ..where((t) => t.scheduleId.equals(scheduleId))
+              ..where(
+                (t) => t.reminderDaysBefore.equals(kUsageReminderDaysBefore),
+              )
+              ..where(
+                (t) => t.createdAt.isBiggerOrEqualValue(
+                  since.millisecondsSinceEpoch,
+                ),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
   }
 
   /// Record a scheduled notification
@@ -149,9 +176,14 @@ class ScheduledNotificationRepository {
   Future<void> deleteExpired() async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.delete(
-        _db.scheduledNotifications,
-      )..where((t) => t.scheduledDate.isSmallerThanValue(now))).go();
+      // Usage-clock rows are the dedupe record for their anchor and outlive
+      // their fire date; the equipment-level cancel paths delete them.
+      await (_db.delete(_db.scheduledNotifications)..where(
+            (t) =>
+                t.scheduledDate.isSmallerThanValue(now) &
+                t.reminderDaysBefore.isBiggerOrEqualValue(0),
+          ))
+          .go();
       _log.info('Deleted expired scheduled notification records');
     } catch (e, stackTrace) {
       _log.error(
