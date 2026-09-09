@@ -14,7 +14,7 @@ class DuplicateDetector extends QualityDetector {
   @override
   String get id => 'duplicate';
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   QualityCategory get category => QualityCategory.duplicate;
 
@@ -27,6 +27,7 @@ class DuplicateDetector extends QualityDetector {
     if (maxDepth == null || duration == null || duration <= 0) {
       return const [];
     }
+    final serial = dive.diveComputerSerial;
     final out = <QualityFinding>[];
     for (final n in ctx.neighbors) {
       final nDepth = n.maxDepth;
@@ -57,6 +58,17 @@ class DuplicateDetector extends QualityDetector {
             'timeDiffMinutes': entry.difference(n.entryTime).inMinutes.abs(),
             'thisMaxDepth': maxDepth,
             'otherMaxDepth': nDepth,
+            // Two records from one physical computer are a re-download, not
+            // a second computer's view of the dive, and
+            // DiveConsolidationBuilder refuses to merge them. Recorded here
+            // so the inbox can withhold a Consolidate button that could only
+            // ever fail. An unknown serial on either side stays false: the
+            // pair may well be consolidatable, and the service is the one
+            // that decides.
+            'sameComputer':
+                serial != null &&
+                serial.isNotEmpty &&
+                serial == n.computerSerial,
           },
         ),
       );

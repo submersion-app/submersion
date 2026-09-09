@@ -7,6 +7,11 @@ enum ImportNoticeKind {
   /// No tank pressure in the source, so gas consumption and SAC are
   /// unavailable for the affected dives.
   noTankPressure,
+
+  /// A downloaded tank carried a transmitter serial with no registry entry,
+  /// so size and role came from the default preset rather than the diver's
+  /// own cylinder (issue #1365).
+  unknownTransmitter,
 }
 
 /// One grouped notice for the import summary screen.

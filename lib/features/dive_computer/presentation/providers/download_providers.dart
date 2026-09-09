@@ -24,6 +24,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
@@ -41,6 +42,7 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
     // Read at import time, not provider build time, so a toggle flipped in
     // Settings applies to the very next download (issue #386).
     defaultTankPresetForImports: () => loadDefaultTankPresetForDownloads(ref),
+    transmitterMatcherForImports: () => loadTransmitterMatcher(ref),
   );
 });
 

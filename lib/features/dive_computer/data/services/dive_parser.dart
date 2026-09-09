@@ -66,26 +66,21 @@ class DiveParser {
   /// Convert a downloaded dive's tank data to TankData.
   ///
   /// This extracts tank information including gas mix and pressures.
-  List<TankData> parseTanks(DownloadedDive dive) {
-    final tanks = <TankData>[];
+  List<TankData> parseTanks(DownloadedDive dive) =>
+      dive.tanks.map(tankDataFrom).toList();
 
-    for (final tank in dive.tanks) {
-      tanks.add(
-        TankData(
-          index: tank.index,
-          o2Percent: tank.o2Percent,
-          hePercent: tank.hePercent,
-          startPressure: tank.startPressure,
-          endPressure: tank.endPressure,
-          volumeLiters: tank.volumeLiters,
-          role: tank.role,
-          transmitterSerial: tank.transmitterSerial,
-        ),
-      );
-    }
-
-    return tanks;
-  }
+  /// One [DownloadedTank] as the repository's [TankData]. Shared with the
+  /// re-parse path so both apply the transmitter registry to the same shape.
+  static TankData tankDataFrom(DownloadedTank tank) => TankData(
+    index: tank.index,
+    o2Percent: tank.o2Percent,
+    hePercent: tank.hePercent,
+    startPressure: tank.startPressure,
+    endPressure: tank.endPressure,
+    volumeLiters: tank.volumeLiters,
+    role: tank.role,
+    transmitterSerial: tank.transmitterSerial,
+  );
 
   /// Convert a downloaded dive's gas switches to GasSwitchData.
   List<GasSwitchData> parseGasSwitches(DownloadedDive dive) {

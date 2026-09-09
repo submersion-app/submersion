@@ -37201,6 +37201,200 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_transmitters => 'Jeladók';
+
+  @override
+  String get settings_manage_transmitters_subtitle =>
+      'Nyomásjeladók hozzárendelése palackokhoz';
+
+  @override
+  String get transmitters_title => 'Jeladók';
+
+  @override
+  String get transmitters_add => 'Jeladó hozzáadása';
+
+  @override
+  String get transmitters_header_assigned => 'Hozzárendelt jeladók';
+
+  @override
+  String get transmitters_header_unassigned =>
+      'Letöltésekben látott, nincs hozzárendelve';
+
+  @override
+  String get transmitters_empty =>
+      'Még nincs jeladó. Adj hozzá egyet, vagy rendelj hozzá sorozatszámot a következő letöltés után.';
+
+  @override
+  String get transmitters_action_assign => 'Hozzárendelés';
+
+  @override
+  String get transmitters_action_edit => 'Jeladó szerkesztése';
+
+  @override
+  String get transmitters_action_delete => 'Jeladó törlése';
+
+  @override
+  String get transmitters_action_apply => 'Alkalmazás meglévő merülésekre';
+
+  @override
+  String get transmitters_apply_title => 'Alkalmazod a meglévő merülésekre?';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks palack $dives merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított szerep lecserélődik.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return '$tanks palack frissítve $dives merülésben';
+  }
+
+  @override
+  String get transmitters_apply_nothing =>
+      'Egyetlen palack sem viseli ezt a jeladót';
+
+  @override
+  String get transmitters_delete_title => 'Törlöd a jeladót?';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'A(z) $label jövőbeli letöltései ismét az alapértelmezett sablont használják.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer, $channel. csatorna';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return '$serial jeladó';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'Jeladó szerkesztése';
+
+  @override
+  String get transmitters_new_title => 'Új jeladó';
+
+  @override
+  String get transmitters_field_label => 'Címke';
+
+  @override
+  String get transmitters_field_serial => 'Jeladó sorozatszáma';
+
+  @override
+  String get transmitters_field_computer =>
+      'Búvárkomputer (ha nincs sorozatszám)';
+
+  @override
+  String get transmitters_field_channel => 'Csatorna';
+
+  @override
+  String get transmitters_field_role => 'Szerep';
+
+  @override
+  String get transmitters_field_gear => 'Palack a felszerelésből';
+
+  @override
+  String get transmitters_field_material => 'Anyag';
+
+  @override
+  String get transmitters_gear_none => 'Nincs';
+
+  @override
+  String get transmitters_validation_key =>
+      'Adj meg egy sorozatszámot, vagy válassz komputert és csatornát';
+
+  @override
+  String get transmitters_validation_positive =>
+      'Nullánál nagyobb értéket adj meg';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'Már hozzá van rendelve: $label';
+  }
+
+  @override
+  String get transmitters_saved => 'Jeladó mentve';
+
+  @override
+  String get diveComputer_detail_transmitters => 'Jeladók';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known ismert, $unassigned nincs hozzárendelve';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'Jeladó hozzárendelése';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'Nyomásgörbe áthelyezése';
+
+  @override
+  String get diveLog_reassignSheet_title => 'Nyomásgörbék';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'Csere';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'Áthelyezés ide';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mérés',
+      one: '1 mérés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'Nincs nyomásgörbe';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'Nyomásgörbe áthelyezve';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'Hozzá nem rendelt jeladók';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'A letöltés egy vagy több jeladója nincs palackhoz rendelve. Rendeld hozzá őket, hogy a jövőbeli letöltések a helyes méretet és szerepet kapják.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters =>
+      'Jeladók hozzárendelése';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter =>
+      'Hozzá nem rendelt jeladó';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'A(z) $serial jeladó nincs palackhoz rendelve';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter =>
+      'Jeladó hozzárendelése';
+
+  @override
   String get backup_unrecognized_appBar_title =>
       'Ismeretlen biztonsági mentések';
 

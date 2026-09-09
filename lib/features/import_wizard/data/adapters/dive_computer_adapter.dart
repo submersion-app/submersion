@@ -25,7 +25,9 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 
@@ -490,6 +492,10 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     );
     final diveActions = duplicateActions[ImportEntityType.dives] ?? {};
 
+    // The import service outlives this run; start its unmatched-serial
+    // accumulator fresh so an earlier session cannot leak into this notice.
+    _importService.resetUnmatchedTransmitterSerials();
+
     // Build the final set of indices and track actions.
     final indicesToImport = <int>{};
     final indicesToConsolidate = <int>{};
@@ -541,6 +547,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     var consolidated = 0;
     var updated = 0;
     final processedDives = <DownloadedDive>[];
+    // Dives this run actually wrote (new, consolidated, kept standalone or
+    // source-replaced); skipped duplicates never count toward a notice.
+    final writtenDives = <DownloadedDive>[];
     final importedDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
@@ -560,11 +569,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           switch (result.outcome) {
             case _ConsolidateOutcome.consolidated:
               consolidated++;
+              writtenDives.add(dive);
             case _ConsolidateOutcome.keptStandalone:
               // The fold refused, but the download survived as its own dive,
               // so it counts as imported. Reporting it as skipped would hide
               // a dive the fingerprint is about to advance past.
               imported++;
+              writtenDives.add(dive);
               final keptId = result.diveId;
               if (keptId != null) importedDiveIds.add(keptId);
             case _ConsolidateOutcome.skippedSameComputer:
@@ -598,6 +609,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             libdivecomputerVersion: _libdivecomputerVersion,
           );
           updated++;
+          writtenDives.add(dive);
         }
       } else {
         // Import as new dive. Use importSingleDiveAsNew to bypass the
@@ -614,6 +626,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         );
         imported++;
         importedDiveIds.add(diveId);
+        writtenDives.add(dive);
       }
 
       processedDives.add(dive);
@@ -636,13 +649,35 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(importedDiveIds);
 
+    final unmatched = _importService.unmatchedTransmitterSerials;
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
       updatedCount: updated,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
+      notices: [
+        if (unmatched.isNotEmpty && writtenDives.isNotEmpty)
+          ImportNotice(
+            kind: ImportNoticeKind.unknownTransmitter,
+            affectedDives: _divesCarrying(unmatched, writtenDives),
+          ),
+      ],
     );
+  }
+
+  /// How many of the dives this run wrote carry an unmatched serial. Skipped
+  /// duplicates are not in [written], so they cannot inflate the count.
+  int _divesCarrying(List<String> unmatched, List<DownloadedDive> written) {
+    final set = unmatched.toSet();
+    return written
+        .where(
+          (dive) => dive.tanks.any(
+            (t) =>
+                set.contains(normalizeTransmitterSerial(t.transmitterSerial)),
+          ),
+        )
+        .length;
   }
 
   // ---------------------------------------------------------------------------

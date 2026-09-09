@@ -1070,6 +1070,13 @@ class DiveTank extends Equatable {
   /// transmitter, whatever gas mix each computer had programmed.
   final String? transmitterSerial;
 
+  /// Parsed tank index this row's computer-owned data comes from (v200). Null
+  /// on rows from before v200 means "same as order"; -1 (kNoSourceTankIndex
+  /// in tank_source_index.dart) means the row takes no parsed tank.
+  /// Computer-owned identity, like [computerId] and [transmitterSerial]:
+  /// user edits never rewrite it.
+  final int? sourceTankIndex;
+
   /// Deco gas-switch depth override in meters (planning only); null = auto
   /// (MOD at the deco pO2). Subsurface per-cylinder "Deco switch at", v120.
   /// Unused for logged-dive tanks.
@@ -1097,6 +1104,7 @@ class DiveTank extends Equatable {
     this.presetName,
     this.computerId,
     this.transmitterSerial,
+    this.sourceTankIndex,
     this.decoSwitchDepth,
     this.isTravelGas = false,
   });
@@ -1125,6 +1133,8 @@ class DiveTank extends Equatable {
     String? computerId,
     String? transmitterSerial,
     bool clearTransmitterSerial = false,
+    int? sourceTankIndex,
+    bool clearSourceTankIndex = false,
     double? decoSwitchDepth,
     bool clearDecoSwitchDepth = false,
     bool? isTravelGas,
@@ -1145,6 +1155,9 @@ class DiveTank extends Equatable {
       transmitterSerial: clearTransmitterSerial
           ? null
           : (transmitterSerial ?? this.transmitterSerial),
+      sourceTankIndex: clearSourceTankIndex
+          ? null
+          : (sourceTankIndex ?? this.sourceTankIndex),
       decoSwitchDepth: clearDecoSwitchDepth
           ? null
           : (decoSwitchDepth ?? this.decoSwitchDepth),
@@ -1167,6 +1180,7 @@ class DiveTank extends Equatable {
     presetName,
     computerId,
     transmitterSerial,
+    sourceTankIndex,
     decoSwitchDepth,
     isTravelGas,
   ];

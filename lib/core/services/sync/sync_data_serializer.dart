@@ -282,6 +282,7 @@ class SyncData {
   final List<Map<String, dynamic>> weightPresets;
   final List<Map<String, dynamic>> weightPresetEntries;
   final List<Map<String, dynamic>> diveComputers;
+  final List<Map<String, dynamic>> transmitters;
 
   /// Inbound only since v182: older peers still send row-per-sample arrays;
   /// they apply into the legacy tables and are packed into series by
@@ -368,6 +369,7 @@ class SyncData {
     this.weightPresets = const [],
     this.weightPresetEntries = const [],
     this.diveComputers = const [],
+    this.transmitters = const [],
     this.tankPressureProfiles = const [],
     this.tideRecords = const [],
     this.settings = const [],
@@ -449,6 +451,7 @@ class SyncData {
     'weightPresets': weightPresets,
     'weightPresetEntries': weightPresetEntries,
     'diveComputers': diveComputers,
+    'transmitters': transmitters,
     'tideRecords': tideRecords,
     'settings': settings,
     'species': species,
@@ -533,6 +536,7 @@ class SyncData {
       weightPresets: _parseList(json['weightPresets']),
       weightPresetEntries: _parseList(json['weightPresetEntries']),
       diveComputers: _parseList(json['diveComputers']),
+      transmitters: _parseList(json['transmitters']),
       tankPressureProfiles: _parseList(json['tankPressureProfiles']),
       tideRecords: _parseList(json['tideRecords']),
       settings: _parseList(json['settings']),
@@ -929,6 +933,7 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'diveComputers', table: _db.diveComputers, blob: false, full: null),
+    (key: 'transmitters', table: _db.transmitters, blob: false, full: null),
     (key: 'tideRecords', table: _db.tideRecords, blob: false, full: null),
     (
       key: 'settings',
@@ -1541,6 +1546,10 @@ class SyncDataSerializer {
         'diveComputers',
         () => _exportDiveComputers(hlcSince),
       ),
+      transmitters: await _safeExport(
+        'transmitters',
+        () => _exportTransmitters(hlcSince),
+      ),
       tideRecords: await _safeExport(
         'tideRecords',
         () => _exportTideRecords(hlcSince),
@@ -2040,6 +2049,11 @@ class SyncDataSerializer {
           _db.diveComputers,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row == null ? null : _withoutDeviceLocalFields(row.toJson());
+      case 'transmitters':
+        final row = await (_db.select(
+          _db.transmitters,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'tideRecords':
         final row = await (_db.select(
           _db.tideRecords,
@@ -2366,6 +2380,11 @@ class SyncDataSerializer {
         return {
           for (final r in rows) r.id: _withoutDeviceLocalFields(r.toJson()),
         };
+      case 'transmitters':
+        final rows = await (_db.select(
+          _db.transmitters,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'tags':
         final rows = await (_db.select(
           _db.tags,
@@ -3043,6 +3062,13 @@ class SyncDataSerializer {
             .into(_db.diveComputers)
             .insertOnConflictUpdate(
               DiveComputer.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'transmitters':
+        await _db
+            .into(_db.transmitters)
+            .insertOnConflictUpdate(
+              TransmitterRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'tankPressureProfiles':
@@ -3964,6 +3990,16 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'transmitters':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.transmitters,
+            records
+                .map((r) => TransmitterRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'tankPressureProfiles':
         // See upsertRecord's 'tankPressureProfiles' case: stages into a TEMP
         // table and packs after the merge.
@@ -4344,6 +4380,8 @@ class SyncDataSerializer {
         return plain(_db.weightPresetEntries, _db.weightPresetEntries.id);
       case 'diveComputers':
         return plain(_db.diveComputers, _db.diveComputers.id);
+      case 'transmitters':
+        return plain(_db.transmitters, _db.transmitters.id);
       case 'species':
         return plain(_db.species, _db.species.id);
       case 'tags':
@@ -4579,6 +4617,8 @@ class SyncDataSerializer {
         return _db.weightPresetEntries;
       case 'diveComputers':
         return _db.diveComputers;
+      case 'transmitters':
+        return _db.transmitters;
       case 'species':
         return _db.species;
       case 'tags':
@@ -4951,6 +4991,11 @@ class SyncDataSerializer {
       case 'diveComputers':
         await (_db.delete(
           _db.diveComputers,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'transmitters':
+        await (_db.delete(
+          _db.transmitters,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'tideRecords':
@@ -5858,6 +5903,17 @@ class SyncDataSerializer {
     }
     final rows = await query.get();
     return rows.map((r) => _withoutDeviceLocalFields(r.toJson())).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportTransmitters(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.transmitters);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
   }
 
   /// Removes fields that describe this host's connection to a device rather

@@ -37099,6 +37099,199 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_transmitters => 'Zenders';
+
+  @override
+  String get settings_manage_transmitters_subtitle =>
+      'Koppel drukzenders aan flessen';
+
+  @override
+  String get transmitters_title => 'Zenders';
+
+  @override
+  String get transmitters_add => 'Zender toevoegen';
+
+  @override
+  String get transmitters_header_assigned => 'Toegewezen zenders';
+
+  @override
+  String get transmitters_header_unassigned =>
+      'Gezien in downloads, niet toegewezen';
+
+  @override
+  String get transmitters_empty =>
+      'Nog geen zenders. Voeg er een toe, of wijs na je volgende download een serienummer toe.';
+
+  @override
+  String get transmitters_action_assign => 'Toewijzen';
+
+  @override
+  String get transmitters_action_edit => 'Zender bewerken';
+
+  @override
+  String get transmitters_action_delete => 'Zender verwijderen';
+
+  @override
+  String get transmitters_action_apply => 'Toepassen op bestaande duiken';
+
+  @override
+  String get transmitters_apply_title => 'Toepassen op bestaande duiken?';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks flessen in $dives duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat wordt vervangen.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return '$tanks flessen bijgewerkt in $dives duiken';
+  }
+
+  @override
+  String get transmitters_apply_nothing =>
+      'Geen enkele fles draagt deze zender';
+
+  @override
+  String get transmitters_delete_title => 'Zender verwijderen?';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'Toekomstige downloads van $label gebruiken weer de standaardvoorinstelling.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer, kanaal $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return 'Zender $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'Zender bewerken';
+
+  @override
+  String get transmitters_new_title => 'Nieuwe zender';
+
+  @override
+  String get transmitters_field_label => 'Label';
+
+  @override
+  String get transmitters_field_serial => 'Serienummer van de zender';
+
+  @override
+  String get transmitters_field_computer =>
+      'Duikcomputer (als er geen serienummer wordt gemeld)';
+
+  @override
+  String get transmitters_field_channel => 'Kanaal';
+
+  @override
+  String get transmitters_field_role => 'Rol';
+
+  @override
+  String get transmitters_field_gear => 'Fles uit uitrusting';
+
+  @override
+  String get transmitters_field_material => 'Materiaal';
+
+  @override
+  String get transmitters_gear_none => 'Geen';
+
+  @override
+  String get transmitters_validation_key =>
+      'Voer een serienummer in, of kies een duikcomputer en kanaal';
+
+  @override
+  String get transmitters_validation_positive =>
+      'Voer een waarde groter dan nul in';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'Al toegewezen aan $label';
+  }
+
+  @override
+  String get transmitters_saved => 'Zender opgeslagen';
+
+  @override
+  String get diveComputer_detail_transmitters => 'Zenders';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known bekend, $unassigned niet toegewezen';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'Zender toewijzen';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'Drukreeks opnieuw toewijzen';
+
+  @override
+  String get diveLog_reassignSheet_title => 'Drukreeksen';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'Wisselen';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'Verplaatsen naar';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count metingen',
+      one: '1 meting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'Geen drukreeks';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'Drukreeks opnieuw toegewezen';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'Niet-toegewezen zenders';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'Een of meer zenders in deze download zijn niet aan een fles toegewezen. Wijs ze toe zodat toekomstige downloads de juiste inhoud en rol krijgen.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters =>
+      'Zenders toewijzen';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter =>
+      'Niet-toegewezen zender';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'Zender $serial is niet aan een fles toegewezen';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter => 'Zender toewijzen';
+
+  @override
   String get backup_unrecognized_appBar_title => 'Niet-herkende back-ups';
 
   @override

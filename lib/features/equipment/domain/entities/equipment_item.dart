@@ -83,6 +83,21 @@ class EquipmentItem extends Equatable {
   /// demand comparison; null when unspecified.
   double? get liftCapacityKg => attrNum(EquipmentAttrKeys.liftCapacityKg);
 
+  /// Cylinder specs (curated tank attributes). Null when unspecified.
+  double? get volumeL => attrNum(EquipmentAttrKeys.volumeL);
+  double? get workingPressureBar =>
+      attrNum(EquipmentAttrKeys.workingPressureBar);
+
+  /// The catalog stores the choice key ('aluminum', 'steel',
+  /// 'carbon_composite'); the enum name for the last one differs.
+  TankMaterial? get tankMaterial =>
+      switch (attrText(EquipmentAttrKeys.tankMaterial)) {
+        'aluminum' => TankMaterial.aluminum,
+        'steel' => TankMaterial.steel,
+        'carbon_composite' => TankMaterial.carbonFiber,
+        _ => null,
+      };
+
   /// Purchase record (issue #1517): the manufacturer or retailer SKU, who it
   /// was bought from, and the product/receipt listing. Null when unrecorded.
   String? get sku => attrText(EquipmentAttrKeys.sku);
