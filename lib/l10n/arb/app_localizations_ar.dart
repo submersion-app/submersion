@@ -6918,6 +6918,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'البحث في الغوصات...';
 
   @override
+  String get diveLog_listPage_menuGroupTrips => 'تجميع الرحلات';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'توسيع كل الرحلات';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'طي كل الرحلات';
+
+  @override
   String get diveLog_listPage_tripGroupLabel => 'رحلة';
 
   @override

@@ -7009,6 +7009,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Duiken zoeken...';
 
   @override
+  String get diveLog_listPage_menuGroupTrips => 'Reizen groeperen';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Alle reizen uitklappen';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'Alle reizen inklappen';
+
+  @override
   String get diveLog_listPage_tripGroupLabel => 'REIS';
 
   @override

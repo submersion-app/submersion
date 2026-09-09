@@ -6881,6 +6881,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'חיפוש צלילות...';
 
   @override
+  String get diveLog_listPage_menuGroupTrips => 'קבץ טיולים';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'הרחב את כל הטיולים';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'כווץ את כל הטיולים';
+
+  @override
   String get diveLog_listPage_tripGroupLabel => 'טיול';
 
   @override

@@ -7100,6 +7100,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Rechercher des plongées...';
 
   @override
+  String get diveLog_listPage_menuGroupTrips => 'Grouper les voyages';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips =>
+      'Développer tous les voyages';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips =>
+      'Réduire tous les voyages';
+
+  @override
   String get diveLog_listPage_tripGroupLabel => 'VOYAGE';
 
   @override

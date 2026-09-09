@@ -6704,6 +6704,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => '搜索潜水...';
 
   @override
+  String get diveLog_listPage_menuGroupTrips => '按旅行分组';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => '展开所有旅行';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => '折叠所有旅行';
+
+  @override
   String get diveLog_listPage_tripGroupLabel => '旅行';
 
   @override

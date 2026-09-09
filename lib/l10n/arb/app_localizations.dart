@@ -11673,6 +11673,24 @@ abstract class AppLocalizations {
   /// **'Search dives...'**
   String get diveLog_listPage_searchFieldLabel;
 
+  /// No description provided for @diveLog_listPage_menuGroupTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Group trips'**
+  String get diveLog_listPage_menuGroupTrips;
+
+  /// No description provided for @diveLog_listPage_menuExpandAllTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all trips'**
+  String get diveLog_listPage_menuExpandAllTrips;
+
+  /// No description provided for @diveLog_listPage_menuCollapseAllTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all trips'**
+  String get diveLog_listPage_menuCollapseAllTrips;
+
   /// No description provided for @diveLog_listPage_tripGroupLabel.
   ///
   /// In en, this message translates to:

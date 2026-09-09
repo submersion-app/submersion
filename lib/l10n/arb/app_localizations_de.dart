@@ -7065,6 +7065,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Tauchgänge suchen...';
 
   @override
+  String get diveLog_listPage_menuGroupTrips => 'Reisen gruppieren';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Alle Reisen aufklappen';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'Alle Reisen zuklappen';
+
+  @override
   String get diveLog_listPage_tripGroupLabel => 'REISE';
 
   @override

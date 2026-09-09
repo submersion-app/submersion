@@ -7066,6 +7066,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Buscar inmersiones...';
 
   @override
+  String get diveLog_listPage_menuGroupTrips => 'Agrupar viajes';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Expandir todos los viajes';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips =>
+      'Contraer todos los viajes';
+
+  @override
   String get diveLog_listPage_tripGroupLabel => 'VIAJE';
 
   @override

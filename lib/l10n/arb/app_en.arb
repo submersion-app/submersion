@@ -3932,6 +3932,9 @@
     }
   },
   "diveLog_listPage_searchFieldLabel": "Search dives...",
+  "diveLog_listPage_menuGroupTrips": "Group trips",
+  "diveLog_listPage_menuExpandAllTrips": "Expand all trips",
+  "diveLog_listPage_menuCollapseAllTrips": "Collapse all trips",
   "diveLog_listPage_tripGroupLabel": "TRIP",
   "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "diveLog_listPage_tripGroupDiveCountPartial": "{loaded} of {total} dives",

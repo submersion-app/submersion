@@ -1048,6 +1048,16 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               context.push('/dives/match-sites');
             } else if (value == 'data_quality') {
               context.push('/dives/quality');
+            } else if (value == 'group_trips') {
+              final next = !ref.read(diveListGroupTripsProvider);
+              ref.read(diveListGroupTripsProvider.notifier).state = next;
+              ref.read(settingsProvider.notifier).setGroupTripsInDiveList(next);
+            } else if (value == 'expand_all_trips') {
+              ref.read(collapsedTripIdsProvider.notifier).expandAll();
+            } else if (value == 'collapse_all_trips') {
+              ref
+                  .read(collapsedTripIdsProvider.notifier)
+                  .collapseAll(_visibleTripIds());
             } else if (value.startsWith('view_')) {
               final mode = ListViewMode.fromName(
                 value.replaceFirst('view_', ''),
@@ -1067,6 +1077,24 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   ListViewMode.table,
                 ],
               ),
+              const PopupMenuDivider(),
+              CheckedPopupMenuItem(
+                value: 'group_trips',
+                checked: ref.watch(diveListGroupTripsProvider),
+                child: Text(context.l10n.diveLog_listPage_menuGroupTrips),
+              ),
+              if (ref.watch(diveListGroupingEnabledProvider)) ...[
+                PopupMenuItem(
+                  value: 'expand_all_trips',
+                  child: Text(context.l10n.diveLog_listPage_menuExpandAllTrips),
+                ),
+                PopupMenuItem(
+                  value: 'collapse_all_trips',
+                  child: Text(
+                    context.l10n.diveLog_listPage_menuCollapseAllTrips,
+                  ),
+                ),
+              ],
               const PopupMenuDivider(),
               PopupMenuItem(
                 value: 'advanced_search',
@@ -1216,6 +1244,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 context.push('/dives/match-sites');
               } else if (value == 'data_quality') {
                 context.push('/dives/quality');
+              } else if (value == 'group_trips') {
+                final next = !ref.read(diveListGroupTripsProvider);
+                ref.read(diveListGroupTripsProvider.notifier).state = next;
+                ref
+                    .read(settingsProvider.notifier)
+                    .setGroupTripsInDiveList(next);
+              } else if (value == 'expand_all_trips') {
+                ref.read(collapsedTripIdsProvider.notifier).expandAll();
+              } else if (value == 'collapse_all_trips') {
+                ref
+                    .read(collapsedTripIdsProvider.notifier)
+                    .collapseAll(_visibleTripIds());
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -1235,6 +1275,26 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     ListViewMode.table,
                   ],
                 ),
+                const PopupMenuDivider(),
+                CheckedPopupMenuItem(
+                  value: 'group_trips',
+                  checked: ref.watch(diveListGroupTripsProvider),
+                  child: Text(context.l10n.diveLog_listPage_menuGroupTrips),
+                ),
+                if (ref.watch(diveListGroupingEnabledProvider)) ...[
+                  PopupMenuItem(
+                    value: 'expand_all_trips',
+                    child: Text(
+                      context.l10n.diveLog_listPage_menuExpandAllTrips,
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'collapse_all_trips',
+                    child: Text(
+                      context.l10n.diveLog_listPage_menuCollapseAllTrips,
+                    ),
+                  ),
+                ],
                 const PopupMenuDivider(),
                 PopupMenuItem(
                   value: 'advanced_search',
@@ -1647,6 +1707,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ],
       ),
     );
+  }
+
+  /// Trip ids present in the loaded list.
+  ///
+  /// Collapse all folds what is on screen, not every trip the diver has ever
+  /// logged: folding away trips they cannot see would be invisible work with
+  /// a surprising effect later.
+  List<String> _visibleTripIds() {
+    final dives =
+        ref.read(paginatedDiveListProvider).value?.dives ??
+        const <DiveSummary>[];
+    return dives.map((d) => d.tripId).whereType<String>().toSet().toList();
   }
 
   /// The trailing loader or retry row.

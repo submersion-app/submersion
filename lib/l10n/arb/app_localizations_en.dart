@@ -6935,6 +6935,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Search dives...';
 
   @override
+  String get diveLog_listPage_menuGroupTrips => 'Group trips';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Expand all trips';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'Collapse all trips';
+
+  @override
   String get diveLog_listPage_tripGroupLabel => 'TRIP';
 
   @override

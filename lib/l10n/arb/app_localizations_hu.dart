@@ -7044,6 +7044,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Merulesek keresese...';
 
   @override
+  String get diveLog_listPage_menuGroupTrips => 'Utak csoportositasa';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Minden ut kibontasa';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'Minden ut osszecsukasa';
+
+  @override
   String get diveLog_listPage_tripGroupLabel => 'UT';
 
   @override

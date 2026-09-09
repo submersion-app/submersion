@@ -7064,6 +7064,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Buscar mergulhos...';
 
   @override
+  String get diveLog_listPage_menuGroupTrips => 'Agrupar viagens';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Expandir todas as viagens';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips =>
+      'Recolher todas as viagens';
+
+  @override
   String get diveLog_listPage_tripGroupLabel => 'VIAGEM';
 
   @override
