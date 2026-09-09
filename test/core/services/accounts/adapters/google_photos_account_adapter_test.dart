@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/google_photos_account_adapter.dart';
@@ -73,5 +75,27 @@ void main() {
 
     expect(await store.load(), isNull);
     expect(identical(adapter.authManagerFor(account), before), isFalse);
+  });
+
+  test('an injected http client factory reaches the per-account auth '
+      'manager', () async {
+    final keychain = InMemoryKeychain();
+    await GooglePhotosAuthStore(
+      storage: keychain,
+      storageKey: 'account_${account.id}_credentials',
+    ).save(const GooglePhotosAuthData(refreshToken: 'rt'));
+
+    var revokeHit = false;
+    final adapter = GooglePhotosAccountAdapter(
+      authStoreFactory: (key) =>
+          GooglePhotosAuthStore(storage: keychain, storageKey: key),
+      httpClientFactory: () => MockClient((req) async {
+        if (req.url.path == '/revoke') revokeHit = true;
+        return http.Response('', 200);
+      }),
+    );
+
+    await adapter.disconnect(account);
+    expect(revokeHit, isTrue);
   });
 }
