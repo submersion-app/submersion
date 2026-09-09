@@ -17573,38 +17573,38 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_googlePhotos_subtitle =>
-      'Import photos from Google Photos and link them to dives';
+      'Fotók importálása a Google Photosból és merülésekhez rendelése';
 
   @override
-  String get settings_googlePhotos_connect => 'Connect Google Photos';
+  String get settings_googlePhotos_connect => 'Google Photos csatlakoztatása';
 
   @override
   String settings_googlePhotos_connected(String name) {
-    return 'Connected as $name';
+    return 'Csatlakozva mint $name';
   }
 
   @override
   String settings_googlePhotos_connectFailed(String error) {
-    return 'Could not connect to Google Photos: $error';
+    return 'Nem sikerült csatlakozni a Google Photoshoz: $error';
   }
 
   @override
-  String get settings_googlePhotos_needsReauth => 'Reconnect needed';
+  String get settings_googlePhotos_needsReauth => 'Újracsatlakozás szükséges';
 
   @override
-  String get settings_googlePhotos_disconnect => 'Disconnect';
+  String get settings_googlePhotos_disconnect => 'Leválasztás';
 
   @override
   String get settings_googlePhotos_disconnect_confirmTitle =>
-      'Disconnect Google Photos?';
+      'Leválasztod a Google Photost?';
 
   @override
   String get settings_googlePhotos_disconnect_confirmBody =>
-      'Photos you have already imported stay on your dives and keep displaying from the media store. You can reconnect any time to import more.';
+      'A már importált fotók a merüléseidnél maradnak, és továbbra is a médiatárolóból jelennek meg. Bármikor újracsatlakozhatsz, hogy továbbiakat importálj.';
 
   @override
   String get settings_googlePhotos_unconfigured =>
-      'Google Photos is not available in this build.';
+      'A Google Photos nem érhető el ebben a buildben.';
 
   @override
   String get settings_lightroom_clientId_label => 'Adobe kliensazonosító';

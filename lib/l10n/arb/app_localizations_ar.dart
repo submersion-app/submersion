@@ -17309,38 +17309,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_googlePhotos_subtitle =>
-      'Import photos from Google Photos and link them to dives';
+      'استيراد الصور من Google Photos وربطها بالغطسات';
 
   @override
-  String get settings_googlePhotos_connect => 'Connect Google Photos';
+  String get settings_googlePhotos_connect => 'ربط Google Photos';
 
   @override
   String settings_googlePhotos_connected(String name) {
-    return 'Connected as $name';
+    return 'متصل باسم $name';
   }
 
   @override
   String settings_googlePhotos_connectFailed(String error) {
-    return 'Could not connect to Google Photos: $error';
+    return 'تعذّر الاتصال بـ Google Photos: $error';
   }
 
   @override
-  String get settings_googlePhotos_needsReauth => 'Reconnect needed';
+  String get settings_googlePhotos_needsReauth => 'يلزم إعادة الاتصال';
 
   @override
-  String get settings_googlePhotos_disconnect => 'Disconnect';
+  String get settings_googlePhotos_disconnect => 'قطع الاتصال';
 
   @override
   String get settings_googlePhotos_disconnect_confirmTitle =>
-      'Disconnect Google Photos?';
+      'قطع الاتصال بـ Google Photos؟';
 
   @override
   String get settings_googlePhotos_disconnect_confirmBody =>
-      'Photos you have already imported stay on your dives and keep displaying from the media store. You can reconnect any time to import more.';
+      'تبقى الصور التي استوردتها بالفعل في غطساتك وتستمر في الظهور من مخزن الوسائط. يمكنك إعادة الاتصال في أي وقت لاستيراد المزيد.';
 
   @override
   String get settings_googlePhotos_unconfigured =>
-      'Google Photos is not available in this build.';
+      '‏Google Photos غير متاح في هذا الإصدار.';
 
   @override
   String get settings_lightroom_clientId_label => 'معرّف عميل Adobe';

@@ -6,6 +6,7 @@ import 'package:submersion/core/services/accounts/adapters/google_photos_account
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/google_photos/google_photos_auth_manager.dart';
+import 'package:submersion/core/services/google_photos/google_photos_connect.dart';
 import 'package:submersion/core/services/google_photos/google_photos_picker_client.dart';
 import 'package:submersion/core/services/google_photos/google_photos_redirect_capture.dart';
 
@@ -23,6 +24,16 @@ final googlePhotosRedirectCaptureProvider =
     Provider<GooglePhotosRedirectCapture>(
       (ref) => const FlutterWebAuthGooglePhotosRedirectCapture(),
     );
+
+/// The OAuth connect step behind a seam. Overridden with a fake in widget
+/// tests so the settings page can be driven without a browser or a
+/// build-time OAuth client.
+final googlePhotosConnectProvider = Provider<GooglePhotosConnect>(
+  (ref) => DefaultGooglePhotosConnect(
+    authManager: ref.watch(googlePhotosAuthManagerProvider),
+    capture: ref.watch(googlePhotosRedirectCaptureProvider),
+  ),
+);
 
 /// The library's Google Photos account (synced roster row), or null when
 /// none exists. Invalidate after connect/disconnect.

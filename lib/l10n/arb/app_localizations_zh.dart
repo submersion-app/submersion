@@ -16744,39 +16744,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_googlePhotos_title => 'Google Photos';
 
   @override
-  String get settings_googlePhotos_subtitle =>
-      'Import photos from Google Photos and link them to dives';
+  String get settings_googlePhotos_subtitle => '从 Google Photos 导入照片并关联到潜水记录';
 
   @override
-  String get settings_googlePhotos_connect => 'Connect Google Photos';
+  String get settings_googlePhotos_connect => '连接 Google Photos';
 
   @override
   String settings_googlePhotos_connected(String name) {
-    return 'Connected as $name';
+    return '已连接为 $name';
   }
 
   @override
   String settings_googlePhotos_connectFailed(String error) {
-    return 'Could not connect to Google Photos: $error';
+    return '无法连接到 Google Photos：$error';
   }
 
   @override
-  String get settings_googlePhotos_needsReauth => 'Reconnect needed';
+  String get settings_googlePhotos_needsReauth => '需要重新连接';
 
   @override
-  String get settings_googlePhotos_disconnect => 'Disconnect';
+  String get settings_googlePhotos_disconnect => '断开连接';
 
   @override
   String get settings_googlePhotos_disconnect_confirmTitle =>
-      'Disconnect Google Photos?';
+      '断开 Google Photos 连接？';
 
   @override
   String get settings_googlePhotos_disconnect_confirmBody =>
-      'Photos you have already imported stay on your dives and keep displaying from the media store. You can reconnect any time to import more.';
+      '已导入的照片会保留在你的潜水记录中，并继续从媒体存储中显示。你可以随时重新连接以导入更多照片。';
 
   @override
-  String get settings_googlePhotos_unconfigured =>
-      'Google Photos is not available in this build.';
+  String get settings_googlePhotos_unconfigured => '此版本不支持 Google Photos。';
 
   @override
   String get settings_lightroom_clientId_label => 'Adobe 客户端 ID';

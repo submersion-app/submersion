@@ -17626,38 +17626,38 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_googlePhotos_subtitle =>
-      'Import photos from Google Photos and link them to dives';
+      'Importar fotos do Google Photos e vinculá-las aos mergulhos';
 
   @override
-  String get settings_googlePhotos_connect => 'Connect Google Photos';
+  String get settings_googlePhotos_connect => 'Conectar o Google Photos';
 
   @override
   String settings_googlePhotos_connected(String name) {
-    return 'Connected as $name';
+    return 'Conectado como $name';
   }
 
   @override
   String settings_googlePhotos_connectFailed(String error) {
-    return 'Could not connect to Google Photos: $error';
+    return 'Não foi possível conectar ao Google Photos: $error';
   }
 
   @override
-  String get settings_googlePhotos_needsReauth => 'Reconnect needed';
+  String get settings_googlePhotos_needsReauth => 'Reconexão necessária';
 
   @override
-  String get settings_googlePhotos_disconnect => 'Disconnect';
+  String get settings_googlePhotos_disconnect => 'Desconectar';
 
   @override
   String get settings_googlePhotos_disconnect_confirmTitle =>
-      'Disconnect Google Photos?';
+      'Desconectar o Google Photos?';
 
   @override
   String get settings_googlePhotos_disconnect_confirmBody =>
-      'Photos you have already imported stay on your dives and keep displaying from the media store. You can reconnect any time to import more.';
+      'As fotos que você já importou permanecem nos seus mergulhos e continuam sendo exibidas a partir do armazenamento de mídia. Você pode reconectar a qualquer momento para importar mais.';
 
   @override
   String get settings_googlePhotos_unconfigured =>
-      'Google Photos is not available in this build.';
+      'O Google Photos não está disponível nesta versão.';
 
   @override
   String get settings_lightroom_clientId_label => 'ID de cliente da Adobe';

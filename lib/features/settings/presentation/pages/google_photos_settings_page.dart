@@ -7,8 +7,6 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/google_photos/google_photos_auth_manager.dart';
 import 'package:submersion/core/services/google_photos/google_photos_auth_store.dart';
-import 'package:submersion/core/services/google_photos/google_photos_client_config.dart';
-import 'package:submersion/core/services/google_photos/google_photos_connect.dart';
 import 'package:submersion/features/media/presentation/providers/google_photos_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -34,11 +32,8 @@ class _GooglePhotosSettingsPageState
   Future<void> _connect() async {
     setState(() => _busy = true);
     try {
-      await signInWithGooglePhotos(
-        authManager: ref.read(googlePhotosAuthManagerProvider),
-        capture: ref.read(googlePhotosRedirectCaptureProvider),
-      );
-      await _finishConnect();
+      final auth = await ref.read(googlePhotosConnectProvider).run();
+      await _finishConnect(auth);
     } on Exception catch (e) {
       if (!mounted) return;
       final message = e is GooglePhotosAuthException ? e.message : e.toString();
@@ -54,11 +49,10 @@ class _GooglePhotosSettingsPageState
   }
 
   /// Shared post-sign-in work: create or reuse the roster row, then move
-  /// the connect-time tokens onto the account's own key.
-  Future<void> _finishConnect() async {
-    final authManager = ref.read(googlePhotosAuthManagerProvider);
-    final auth = await authManager.loadAuth();
-    final label = auth?.displayName ?? auth?.email ?? 'Google account';
+  /// the connect-time tokens ([GooglePhotosConnect.run] wrote them under the
+  /// default store key) onto the account's own key.
+  Future<void> _finishConnect(GooglePhotosAuthData auth) async {
+    final label = auth.displayName ?? auth.email ?? 'Google account';
 
     final repo = ref.read(connectedAccountsRepositoryProvider);
     final existing = await repo.getByKind(AccountKind.googlePhotos);
@@ -133,7 +127,7 @@ class _GooglePhotosSettingsPageState
   }
 
   Widget _disconnectedBody(AppLocalizations l10n, GooglePhotosDeviceStatus s) {
-    final configured = GooglePhotosClientConfig.connectFlowConfigured;
+    final configured = ref.watch(googlePhotosConnectProvider).isConfigured;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
