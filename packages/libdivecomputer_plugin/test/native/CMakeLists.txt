@@ -236,6 +236,26 @@ if(WIN32)
     target_link_libraries(test_event_type_names PRIVATE SetupAPI.lib ws2_32.lib)
 endif()
 
+# The clock sync step after a download (issue #1216) is shared by every
+# binding, so its gating and status mapping are pinned here once.
+add_executable(test_download_clock_sync
+    test_download_clock_sync.c
+    ${WRAPPER_DIR}/libdc_wrapper.c
+    ${WRAPPER_DIR}/libdc_download.c
+    ${LIBDC_ALL_SOURCES}
+)
+target_include_directories(test_download_clock_sync PRIVATE
+    ${WRAPPER_DIR}
+    ${LIBDC_DIR}/include
+    ${LIBDC_DIR}/src
+    ${PLATFORM_CONFIG_DIR}
+)
+target_compile_definitions(test_download_clock_sync PRIVATE HAVE_CONFIG_H)
+if(WIN32)
+    target_compile_definitions(test_download_clock_sync PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_link_libraries(test_download_clock_sync PRIVATE SetupAPI.lib ws2_32.lib)
+endif()
+
 # Regression test for issue #810: the Shearwater parser must report the raw O2
 # cell output even when the logged calibration value cannot be trusted. Exercises
 # the parser through the public API only, so it needs the full library but not
@@ -352,6 +372,7 @@ add_test(NAME test_shearwater_petrel_foreach COMMAND test_shearwater_petrel_fore
 add_test(NAME test_shearwater_common_download COMMAND test_shearwater_common_download)
 add_test(NAME test_uwatec_smart_ble_download COMMAND test_uwatec_smart_ble_download)
 add_test(NAME test_event_type_names COMMAND test_event_type_names)
+add_test(NAME test_download_clock_sync COMMAND test_download_clock_sync)
 add_test(NAME test_parse_raw_dive COMMAND test_parse_raw_dive
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )

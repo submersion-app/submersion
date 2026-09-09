@@ -235,6 +235,32 @@ typedef struct {
 // "unknown" for codes outside the enum. Statically allocated (do not free).
 const char *libdc_event_type_name(unsigned int type);
 
+// Outcome of the optional clock sync that runs after a successful download
+// (issue #1216). NOT_REQUESTED also covers a download that failed or was
+// cancelled, because the sync never runs then.
+typedef enum {
+    LIBDC_CLOCK_SYNC_NOT_REQUESTED = 0,
+    LIBDC_CLOCK_SYNC_SYNCED = 1,
+    LIBDC_CLOCK_SYNC_UNSUPPORTED = 2,
+    LIBDC_CLOCK_SYNC_FAILED = 3,
+} libdc_clock_sync_status_t;
+
+// Wire name for a clock sync status: "not_requested", "synced",
+// "unsupported" or "failed" ("unknown" outside the enum). This is the single
+// table every binding must report through; the Dart side switches on it.
+// Statically allocated (do not free).
+const char *libdc_clock_sync_status_name(libdc_clock_sync_status_t status);
+
+// Sets the device clock to the host's current local time (with the host UTC
+// offset) when `requested` and `download_succeeded` are both non-zero.
+// Returns NOT_REQUESTED without touching the device otherwise, SYNCED on
+// success, UNSUPPORTED when the backend has no timesync, FAILED (and logs a
+// warning through the log callback) for any other libdivecomputer status.
+struct dc_device_t;
+libdc_clock_sync_status_t libdc_sync_device_clock(struct dc_device_t *device,
+                                                   int requested,
+                                                   int download_succeeded);
+
 #define LIBDC_MAX_EVENTS 256
 
 typedef struct {
