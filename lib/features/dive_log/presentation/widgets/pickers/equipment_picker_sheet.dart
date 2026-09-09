@@ -11,12 +11,17 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 class EquipmentPickerSheet extends ConsumerWidget {
   final ScrollController scrollController;
   final Set<String> selectedEquipmentIds;
+
+  /// When set, only gear of this type is offered (the transmitter registry
+  /// editor lists cylinders only).
+  final EquipmentType? typeFilter;
   final void Function(EquipmentItem) onEquipmentSelected;
 
   const EquipmentPickerSheet({
     super.key,
     required this.scrollController,
     required this.selectedEquipmentIds,
+    this.typeFilter,
     required this.onEquipmentSelected,
   });
 
@@ -52,6 +57,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
               // Filter out already selected equipment
               final available = equipmentList
                   .where((e) => !selectedEquipmentIds.contains(e.id))
+                  .where((e) => typeFilter == null || e.type == typeFilter)
                   .toList();
 
               if (available.isEmpty) {
