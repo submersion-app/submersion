@@ -194,4 +194,71 @@ void main() {
       },
     );
   });
+  group('the dives card degrades honestly when the count fails', () {
+    testWidgets('a failed count shows a stable message, not a spinner', (
+      tester,
+    ) async {
+      setMobileSurface(tester);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(site.id).overrideWith((_) async => site),
+            siteDiveCountProvider(
+              site.id,
+            ).overrideWith((_) async => throw Exception('count unavailable')),
+            siteDiveStatisticsProvider(
+              site.id,
+            ).overrideWith((_) async => SiteDiveStatistics.empty),
+          ].cast<Override>(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: 'site-1', embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // A spinner here would never resolve: the provider has already failed.
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.text('Not available'), findsWidgets);
+    });
+
+    testWidgets('a count still in flight does show a spinner', (tester) async {
+      setMobileSurface(tester);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(site.id).overrideWith((_) async => site),
+            siteDiveCountProvider(site.id).overrideWith(
+              (_) => Future.delayed(const Duration(seconds: 5), () => 3),
+            ),
+            siteDiveStatisticsProvider(
+              site.id,
+            ).overrideWith((_) async => SiteDiveStatistics.empty),
+          ].cast<Override>(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: 'site-1', embedded: true),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+      // Drain the pending timer before teardown.
+      await tester.pump(const Duration(seconds: 6));
+    });
+  });
 }

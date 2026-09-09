@@ -1079,27 +1079,44 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     // excluded a dive from statistics.
     // `.value` for the same reason as the depth card: it retains the last
     // known count across a reload instead of dropping to the placeholder.
-    final totalDiveCount = ref.watch(siteDiveCountProvider(site.id)).value;
+    final countAsync = ref.watch(siteDiveCountProvider(site.id));
+    final totalDiveCount = countAsync.value;
 
     // Null while the count is still in flight. Defaulting it to 0 would make
     // a site with dives read "No dives logged yet" for a frame, which is a
     // wrong answer rather than a missing one.
-    Widget countLine() => totalDiveCount == null
-        ? const SizedBox(
-            height: 20,
-            width: 100,
-            child: LinearProgressIndicator(),
-          )
-        : Text(
-            totalDiveCount == 0
-                ? context.l10n.diveSites_detail_diveCount_zero
-                : totalDiveCount == 1
-                ? context.l10n.diveSites_detail_diveCount_one
-                : context.l10n.diveSites_detail_diveCount_other(totalDiveCount),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
+    // A null count is not the same as a count of zero, and a failed count is
+    // not the same as one still arriving. A retained value wins over both, so
+    // a reload keeps showing the last known count; a failure that left
+    // nothing cached says so, because a spinner there would never resolve.
+    Widget countLine() {
+      final style = Theme.of(
+        context,
+      ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant);
+
+      if (totalDiveCount == null) {
+        if (countAsync.hasError) {
+          return Text(
+            context.l10n.diveSites_detail_stats_notAvailable,
+            style: style?.copyWith(fontStyle: FontStyle.italic),
           );
+        }
+        return const SizedBox(
+          height: 20,
+          width: 100,
+          child: LinearProgressIndicator(),
+        );
+      }
+
+      return Text(
+        totalDiveCount == 0
+            ? context.l10n.diveSites_detail_diveCount_zero
+            : totalDiveCount == 1
+            ? context.l10n.diveSites_detail_diveCount_one
+            : context.l10n.diveSites_detail_diveCount_other(totalDiveCount),
+        style: style,
+      );
+    }
 
     Widget footer() => Align(
       alignment: AlignmentDirectional.centerEnd,
