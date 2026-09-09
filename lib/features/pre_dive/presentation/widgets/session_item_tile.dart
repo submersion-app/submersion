@@ -150,15 +150,22 @@ class SessionItemTile extends ConsumerWidget {
           )
         : null;
 
+    // The advisory warning has to mark the number that actually breached its
+    // threshold. On a value item that is the recorded number itself, but on a
+    // linearity item the threshold is a percentage, so the amber belongs on
+    // the working line rather than on the O2 millivolts, which no threshold
+    // applies to.
+    final primaryOutOfRange = item.valueOutOfRange && !item.isCellLinearity;
+
     final subtitleChildren = <Widget>[
       if (valueLine != null && valueLine.isNotEmpty)
         Text(
           valueLine,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: item.valueOutOfRange
+            color: primaryOutOfRange
                 ? Colors.amber.shade700
                 : theme.colorScheme.onSurfaceVariant,
-            fontWeight: item.valueOutOfRange ? FontWeight.bold : null,
+            fontWeight: primaryOutOfRange ? FontWeight.bold : null,
           ),
         ),
       if (linearityLine != null)

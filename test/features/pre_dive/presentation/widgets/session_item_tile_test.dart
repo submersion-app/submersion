@@ -678,6 +678,48 @@ void main() {
       expect(line.style?.fontWeight, FontWeight.bold);
     });
 
+    testWidgets('the warning marks the percentage, not the O2 millivolts', (
+      tester,
+    ) async {
+      // The threshold on a linearity item is a percentage, so the amber has
+      // to point at the figure that actually breached it. Highlighting
+      // "Cell 1: 40.0 mV" would claim the millivolt reading was out of
+      // range, which is the same category error valueOutOfRange itself had.
+      await pumpTile(tester, s: session(), it: linearity(o2: 40.0));
+
+      final working = tester.widget<Text>(find.textContaining('linearity 83%'));
+      expect(working.style?.fontWeight, FontWeight.bold);
+
+      final primary = tester.widget<Text>(find.textContaining('Cell 1: 40.0'));
+      expect(
+        primary.style?.fontWeight,
+        isNot(FontWeight.bold),
+        reason: 'no threshold applies to the recorded millivolts',
+      );
+    });
+
+    testWidgets('a plain value item still warns on its own line', (
+      tester,
+    ) async {
+      // The other side of the split: for a value item the recorded number is
+      // exactly what the threshold measures, so it keeps the warning.
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(
+          type: PreDiveItemType.value,
+          state: PreDiveItemState.done,
+          valueLabel: 'Cell 1',
+          valueUnit: 'mV',
+          valueNumber: 8.0,
+          valueMin: 8.5,
+        ),
+      );
+
+      final primary = tester.widget<Text>(find.textContaining('Cell 1: 8'));
+      expect(primary.style?.fontWeight, FontWeight.bold);
+    });
+
     testWidgets('a healthy reading is not styled as out of range', (
       tester,
     ) async {
