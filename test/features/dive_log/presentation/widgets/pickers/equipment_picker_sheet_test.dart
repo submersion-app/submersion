@@ -28,6 +28,7 @@ Future<void> _pump(
         activeEquipmentProvider.overrideWith((ref) async => equipment),
       ],
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(

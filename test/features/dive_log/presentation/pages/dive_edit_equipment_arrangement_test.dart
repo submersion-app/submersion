@@ -86,6 +86,7 @@ void main() {
         equipmentArrangementProvider.overrideWithValue(headToToe),
       ],
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: DiveEditPage(diveId: dive.id, embedded: true)),

@@ -47,6 +47,7 @@ void main() {
           appSettingsRepositoryProvider.overrideWithValue(fake),
         ],
         child: const MaterialApp(
+          locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: AppearancePage(),

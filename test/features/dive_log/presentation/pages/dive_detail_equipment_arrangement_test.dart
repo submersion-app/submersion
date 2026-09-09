@@ -74,6 +74,7 @@ void main() {
         equipmentArrangementProvider.overrideWithValue(arrangement),
       ],
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: DiveDetailPage(diveId: dive.id, embedded: true),

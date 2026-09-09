@@ -41,6 +41,7 @@ void main() {
       ProviderScope(
         overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
         child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
