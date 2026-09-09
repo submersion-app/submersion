@@ -159,4 +159,20 @@ void main() {
     expect(find.byTooltip('Remove assembly and its parts'), findsNothing);
     expect(find.byTooltip('Remove equipment'), findsNothing);
   });
+
+  testWidgets('each row shows a control only for the callback it would call', (
+    tester,
+  ) async {
+    await tester.pumpWidget(build(arrangement: flat, onRemoveSubtree: (_) {}));
+    await tester.pumpAndSettle();
+    // Top-level rows remove through onRemoveSubtree, so they get a control.
+    expect(find.byTooltip('Remove assembly and its parts'), findsOneWidget);
+    expect(find.byTooltip('Remove equipment'), findsNWidgets(2));
+    // A part removes through onRemovePart, which was not provided, so it
+    // gets no control rather than a dead one.
+    await tester.tap(find.byTooltip('Show parts'));
+    await tester.pumpAndSettle();
+    expect(find.text('Long hose'), findsOneWidget);
+    expect(find.byTooltip('Remove part'), findsNothing);
+  });
 }

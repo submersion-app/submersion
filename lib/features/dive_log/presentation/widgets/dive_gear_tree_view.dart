@@ -46,11 +46,6 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
 class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
   final _expanded = <String>{};
 
-  /// Row controls appear only when a row removal can do something; the set
-  /// header owns its own button, so a set-only caller gets no dead icons.
-  bool get _editable =>
-      widget.onRemoveSubtree != null || widget.onRemovePart != null;
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -129,9 +124,13 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
         : depth == 0
         ? l10n.diveLog_edit_tooltip_removeEquipment
         : l10n.diveLog_gear_removePart;
-    void remove() => hasParts || depth == 0
-        ? widget.onRemoveSubtree?.call(item.id)
-        : widget.onRemovePart?.call(item.id);
+    // A row gets a control only when the callback it would call is there:
+    // top-level rows and assemblies remove through onRemoveSubtree, a part
+    // through onRemovePart. The set header owns its own button, so no row
+    // ever shows a dead icon.
+    final remove = hasParts || depth == 0
+        ? widget.onRemoveSubtree
+        : widget.onRemovePart;
 
     return [
       Padding(
@@ -169,11 +168,11 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
                     if (!_expanded.remove(item.id)) _expanded.add(item.id);
                   }),
                 ),
-              if (_editable)
+              if (remove != null)
                 IconButton(
                   icon: const Icon(Icons.close, size: 20),
                   tooltip: removeTooltip,
-                  onPressed: remove,
+                  onPressed: () => remove(item.id),
                 )
               else if (widget.onTap != null)
                 const Icon(Icons.chevron_right, size: 20),
