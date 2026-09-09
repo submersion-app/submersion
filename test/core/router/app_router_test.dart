@@ -17,6 +17,7 @@ import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -75,6 +76,33 @@ List<String> _orderedRoutePaths(List<RouteBase> routes) => [
     ..._orderedRoutePaths(route.routes),
   ],
 ];
+
+/// The location a named route resolves to, assembled from its ancestors.
+///
+/// A nested GoRoute stores only its own segment, so a widget that pushes a
+/// hand-written absolute path can drift from the tree without any test
+/// noticing until the push fails at runtime.
+String? _locationOfRoute(
+  List<RouteBase> routes,
+  String name, [
+  String prefix = '',
+]) {
+  for (final route in routes) {
+    if (route is GoRoute) {
+      final here = route.path.startsWith('/')
+          ? route.path
+          : '${prefix == '/' ? '' : prefix}/${route.path}';
+      if (route.name == name) return here;
+      final found = _locationOfRoute(route.routes, name, here);
+      if (found != null) return found;
+    }
+    if (route is ShellRoute) {
+      final found = _locationOfRoute(route.routes, name, prefix);
+      if (found != null) return found;
+    }
+  }
+  return null;
+}
 
 void main() {
   late GoRouter router;
@@ -1189,6 +1217,18 @@ void main() {
             'it must not animate the way a pushed page does.',
       );
       expect((page as NoTransitionPage).child, isA<SpeciesPage>());
+    });
+  });
+
+  group('storage usage', () {
+    test('the unrecognized backups page is reachable at the pushed path', () {
+      // UnrecognizedBackupsNotice pushes an absolute location. Nothing else
+      // ties that string to the route tree, so a rename on either side is a
+      // runtime "no routes for location" and nothing before that.
+      expect(
+        _locationOfRoute(router.configuration.routes, 'unrecognizedBackups'),
+        UnrecognizedBackupsNotice.routeLocation,
+      );
     });
   });
 }

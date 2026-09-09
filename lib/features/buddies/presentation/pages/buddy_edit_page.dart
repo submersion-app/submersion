@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:submersion/features/buddies/data/services/contact_photo_loader.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_photo_picker.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/shared/utils/contact_import_support.dart';
@@ -300,22 +301,11 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                 : context.l10n.buddies_title_add,
           ),
           actions: [
-            if (_isSaving)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              )
-            else
-              TextButton(
-                onPressed: _saveBuddy,
-                child: Text(context.l10n.common_action_save),
-              ),
+            AppBarTextAction(
+              label: context.l10n.common_action_save,
+              onPressed: _isSaving ? null : _saveBuddy,
+              busy: _isSaving,
+            ),
           ],
         ),
         body: body,

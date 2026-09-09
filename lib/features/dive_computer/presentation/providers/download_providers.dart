@@ -12,9 +12,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_mapper.dart';
+import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/domain/services/first_sync_cutoff.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
@@ -77,6 +79,11 @@ class DownloadState {
   final String? firmwareVersion;
   final DateTime? sinceCutoff;
 
+  /// Outcome of the clock sync that ran after this download (issue #1216).
+  /// Null until a completion event arrives; [ClockSyncStatus.notRequested]
+  /// when the download completed without asking for one.
+  final ClockSyncStatus? clockSyncStatus;
+
   const DownloadState({
     this.phase = DownloadPhase.initializing,
     this.progress,
@@ -87,6 +94,7 @@ class DownloadState {
     this.serialNumber,
     this.firmwareVersion,
     this.sinceCutoff,
+    this.clockSyncStatus,
   });
 
   DownloadState copyWith({
@@ -99,7 +107,9 @@ class DownloadState {
     String? serialNumber,
     String? firmwareVersion,
     DateTime? sinceCutoff,
+    ClockSyncStatus? clockSyncStatus,
     bool clearError = false,
+    bool clearClockSyncStatus = false,
   }) {
     return DownloadState(
       phase: phase ?? this.phase,
@@ -111,6 +121,9 @@ class DownloadState {
       serialNumber: serialNumber ?? this.serialNumber,
       firmwareVersion: firmwareVersion ?? this.firmwareVersion,
       sinceCutoff: sinceCutoff ?? this.sinceCutoff,
+      clockSyncStatus: clearClockSyncStatus
+          ? null
+          : (clockSyncStatus ?? this.clockSyncStatus),
     );
   }
 
@@ -164,13 +177,22 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   /// the default, on.
   final bool Function()? _trimTankPressureAtSurfacing;
 
+  /// Whether a download should set the computer's clock afterwards, given
+  /// the saved computer's id (null for a device not saved yet). A callback
+  /// rather than a value so a switch flipped between downloads applies to
+  /// the next one without rebuilding the notifier. Null means never
+  /// (issue #1216).
+  final bool Function(String? computerId)? _resolveClockSync;
+
   DownloadNotifier({
     required pigeon.DiveComputerService service,
     required DiveComputerRepository repository,
     bool Function()? trimTankPressureAtSurfacing,
+    bool Function(String? computerId)? resolveClockSync,
   }) : _service = service,
        _repository = repository,
        _trimTankPressureAtSurfacing = trimTankPressureAtSurfacing,
+       _resolveClockSync = resolveClockSync,
        super(const DownloadState());
 
   /// Set whether to download new dives only.
@@ -208,6 +230,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       state = state.copyWith(
         phase: DownloadPhase.connecting,
         clearError: true,
+        clearClockSyncStatus: true,
         downloadedDives: [],
         progress: DownloadProgress.connecting(),
       );
@@ -236,7 +259,12 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         }
       }
 
-      await _service.startDownload(device.toPigeon(), fingerprint: fingerprint);
+      final syncClock = _resolveClockSync?.call(computer?.id) ?? false;
+      await _service.startDownload(
+        device.toPigeon(),
+        fingerprint: fingerprint,
+        syncClock: syncClock,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Download failed',
@@ -280,12 +308,14 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         :final totalDives,
         :final serialNumber,
         :final firmwareVersion,
+        :final clockSyncStatus,
       ):
         state = state.copyWith(
           phase: DownloadPhase.complete,
           progress: DownloadProgress.complete(totalDives),
           serialNumber: serialNumber,
           firmwareVersion: firmwareVersion,
+          clockSyncStatus: ClockSyncStatus.fromWireName(clockSyncStatus),
         );
         _downloadSubscription?.cancel();
         _downloadSubscription = null;
@@ -460,6 +490,10 @@ final downloadNotifierProvider =
         repository: repository,
         trimTankPressureAtSurfacing: () =>
             ref.read(settingsProvider).trimTankPressureAtSurfacing,
+        // Read at download time, not provider build time, so a switch flipped
+        // on the computers list applies to the very next download.
+        resolveClockSync: (computerId) =>
+            ref.read(clockSyncSettingsNotifierProvider).resolve(computerId),
       );
     });
 

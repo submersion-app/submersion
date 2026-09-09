@@ -9,6 +9,7 @@ import 'package:submersion/features/marine_life/domain/entities/species_lookup.d
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_lookup_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 class SpeciesEditPage extends ConsumerStatefulWidget {
   final String? speciesId;
@@ -104,15 +105,10 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
           onPressed: () => context.pop(),
         ),
         actions: [
-          TextButton(
+          AppBarTextAction(
+            label: context.l10n.marineLife_speciesEdit_saveButton,
             onPressed: _isSaving ? null : _save,
-            child: _isSaving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(context.l10n.marineLife_speciesEdit_saveButton),
+            busy: _isSaving,
           ),
         ],
       ),

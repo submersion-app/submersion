@@ -13,6 +13,7 @@ import 'package:submersion/features/weight_presets/domain/entities/weight_preset
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 /// Create or edit a weighting rig from Settings → Management → Weight Presets
 /// (issue #1663). Editing a preset never touches dives that already used it --
@@ -178,9 +179,9 @@ class _WeightPresetEditorPageState
           tooltip: l10n.common_action_cancel,
         ),
         actions: [
-          TextButton(
+          AppBarTextAction(
+            label: l10n.common_action_save,
             onPressed: _saving ? null : _save,
-            child: Text(l10n.common_action_save),
           ),
         ],
       ),

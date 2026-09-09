@@ -1,4 +1,28 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
+/// What a bulk action's handler reports once it finishes.
+///
+/// Leaving selection mode afterwards is decided centrally in SelectionAppBar
+/// from this value, not by each handler calling `exit()` for itself. That is
+/// deliberate: the ad-hoc version drifted, and the media library's Share
+/// shipped as the one bulk action that finished and left the diver stranded
+/// in multi-select (#1262), inline beside two siblings that both exited.
+/// Returning an outcome is not optional, so a new action cannot repeat that
+/// omission without failing to compile.
+enum BulkActionOutcome {
+  /// The action ran. The selection has served its purpose and the mode ends.
+  completed,
+
+  /// The diver backed out of a dialog, sheet or page before anything
+  /// happened, so the selection they built is left intact to act on again.
+  cancelled,
+
+  /// The action was attempted and failed. The selection survives so the
+  /// diver can retry after reading the error, rather than rebuilding it.
+  failed,
+}
 
 /// One bulk operation a surface offers on the current selection.
 ///
@@ -38,7 +62,20 @@ class BulkAction {
   /// instead of contorting [maxCount].
   final bool Function(Set<String> checkedIds)? isEnabled;
 
-  final VoidCallback onInvoke;
+  /// Whether completing this action should leave selection mode.
+  ///
+  /// False only for actions that *build* a selection rather than consume one
+  /// -- select-by-date-range feeds the checked set and would be useless if it
+  /// closed the bar it just populated. Every action that acts on the checked
+  /// items leaves the default alone.
+  final bool exitsSelectionOnComplete;
+
+  /// Runs the action and reports what happened.
+  ///
+  /// Awaited by SelectionAppBar, so a handler that shows a dialog must return
+  /// only once the dialog is resolved; returning early would exit the mode
+  /// out from under a modal the diver is still reading.
+  final FutureOr<BulkActionOutcome> Function() onInvoke;
 
   const BulkAction({
     required this.id,
@@ -50,6 +87,7 @@ class BulkAction {
     this.isDestructive = false,
     this.alwaysEnabled = false,
     this.isEnabled,
+    this.exitsSelectionOnComplete = true,
   });
 
   /// Whether this action can run against a selection of [count] items.

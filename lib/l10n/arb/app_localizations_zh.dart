@@ -5725,6 +5725,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_presetThisYear => '今年';
 
   @override
+  String get diveLog_filter_searchComputersHint => '输入以搜索潜水电脑';
+
+  @override
+  String get diveLog_filter_searchSitesHint => '输入以搜索潜水点';
+
+  @override
+  String get diveLog_filter_searchTypesHint => '输入以搜索类型';
+
+  @override
+  String get diveLog_filter_searchCentersHint => '输入以搜索潜水中心';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => '输入以搜索字段';
+
+  @override
+  String get diveLog_filter_searchTripsHint => '输入以搜索行程';
+
+  @override
   String get diveLog_filter_sectionBuddy => '潜伴';
 
   @override
@@ -20807,6 +20825,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_certificate_thisCertifies => '特此证明';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => '应用设置：关';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => '应用设置：开';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => '时钟同步';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => '重新检查';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      '每次下载后将时钟设为本设备的时间。仅适用于本设备。';
+
+  @override
+  String get diveComputer_clockSync_globalTitle => '同步潜水电脑时钟';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => '总是';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => '应用设置';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => '从不';
+
+  @override
+  String get diveComputer_clockSync_supported => '此型号支持';
+
+  @override
+  String get diveComputer_clockSync_unsupported => '此型号不支持时钟同步';
+
+  @override
   String get diveComputer_connectionType_ble => '蓝牙 LE';
 
   @override
@@ -21004,6 +21056,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => '下载已取消';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => '时钟同步失败';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported => '此型号不支持时钟同步';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => '时钟已同步';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -35148,4 +35209,79 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size（自动）';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title => '无法识别的备份';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      '这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此处只能删除本设备写入的文件：其他文件可能是另一台设备的唯一副本。';
+
+  @override
+  String get backup_unrecognized_empty => '没有无法识别的备份文件。';
+
+  @override
+  String get backup_unrecognized_loadFailed => '无法读取备份文件夹。';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      '本设备无法列出您选择的备份文件夹，因此找不到无法识别的文件。';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => '其他设备';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => '未知设备';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '删除 $count 个文件（$size）',
+      one: '删除 1 个文件（$size）',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title => '删除这些备份文件？';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将永久删除 $count 个备份文件。此操作无法撤销。',
+      one: '将永久删除 1 个备份文件。此操作无法撤销。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed => '无法删除所选文件。';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '已释放 $size';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件不在您的备份历史记录中',
+      one: '1 个文件不在您的备份历史记录中',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => '查看';
 }

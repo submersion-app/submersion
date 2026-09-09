@@ -2611,6 +2611,52 @@ void main() {
       expect(dive.bottomTime, 1800);
     });
 
+    test('bottomTime never exceeds durationSeconds when the sample stream '
+        'outlasts the dive (issue #1642)', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      // 13 s dive to 1.77 m; surface logging continues and a 1.55 m noise
+      // sample at t=368 clears the 1.50 m threshold. Unclamped, bottom time
+      // would be 368 s.
+      final parsed = makeParsedDive(
+        durationSeconds: 13,
+        maxDepthMeters: 1.77,
+        avgDepthMeters: 0.5,
+        samples: [
+          pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0),
+          pigeon.ProfileSample(timeSeconds: 5, depthMeters: 1.77),
+          pigeon.ProfileSample(timeSeconds: 10, depthMeters: 1.6),
+          pigeon.ProfileSample(timeSeconds: 13, depthMeters: 0.3),
+          pigeon.ProfileSample(timeSeconds: 60, depthMeters: 0.2),
+          pigeon.ProfileSample(timeSeconds: 120, depthMeters: 0.4),
+          pigeon.ProfileSample(timeSeconds: 240, depthMeters: 0.9),
+          pigeon.ProfileSample(timeSeconds: 368, depthMeters: 1.55),
+          pigeon.ProfileSample(timeSeconds: 400, depthMeters: 0.0),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final dive = await getDive('dive-1');
+      expect(dive.runtime, 13);
+      expect(dive.bottomTime, 13);
+    });
+
     test(
       'bottomTime falls back to durationSeconds when maxDepth is 0',
       () async {

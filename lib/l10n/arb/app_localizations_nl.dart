@@ -5986,6 +5986,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'Dit jaar';
 
   @override
+  String get diveLog_filter_searchComputersHint => 'Typ om computers te zoeken';
+
+  @override
+  String get diveLog_filter_searchSitesHint => 'Typ om stekken te zoeken';
+
+  @override
+  String get diveLog_filter_searchTypesHint => 'Typ om types te zoeken';
+
+  @override
+  String get diveLog_filter_searchCentersHint => 'Typ om duikcentra te zoeken';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Typ om velden te zoeken';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Typ om reizen te zoeken';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override
@@ -21774,6 +21792,42 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hierbij wordt verklaard dat';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'App-instelling: uit';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'App-instelling: aan';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Kloksynchronisatie';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Opnieuw controleren';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Zet de klok na elke download op de tijd van dit apparaat. Geldt alleen voor dit apparaat.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Klok van duikcomputers synchroniseren';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Altijd';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'App-instelling';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Nooit';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Ondersteund door dit model';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Dit model ondersteunt geen kloksynchronisatie';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21982,6 +22036,17 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download geannuleerd';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Kloksynchronisatie mislukt';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'Kloksynchronisatie wordt niet ondersteund door dit model';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Klok gesynchroniseerd';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -37084,4 +37149,84 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automatisch)';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title => 'Niet-herkende back-ups';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Deze bestanden staan in je back-upmap maar niet in de back-upgeschiedenis van dit apparaat. Alleen een bestand dat dit apparaat heeft geschreven kan hier worden verwijderd: al het andere kan de enige kopie van een ander apparaat zijn.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Geen niet-herkende back-upbestanden.';
+
+  @override
+  String get backup_unrecognized_loadFailed => 'Kon de back-upmap niet lezen.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Dit apparaat kan de gekozen back-upmap niet uitlezen, dus niet-herkende bestanden kunnen niet worden gevonden.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Ander apparaat';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'Onbekend apparaat';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden verwijderen ($size)',
+      one: '1 bestand verwijderen ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Deze back-upbestanden verwijderen?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count back-upbestanden worden permanent verwijderd. Dit kan niet ongedaan worden gemaakt.',
+      one:
+          '1 back-upbestand wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Kon de geselecteerde bestanden niet verwijderen.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size vrijgemaakt';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden ontbreken in je back-upgeschiedenis',
+      one: '1 bestand ontbreekt in je back-upgeschiedenis',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Bekijken';
 }

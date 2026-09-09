@@ -377,9 +377,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   /// Retire or reactivate every checked item, mirroring the per-item actions
   /// on the detail page.
-  Future<void> _applyRetirement({required bool retire}) async {
+  Future<BulkActionOutcome> _applyRetirement({required bool retire}) async {
     final ids = _selectedIds.toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
 
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
@@ -393,7 +393,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       }
     }
 
-    if (!mounted) return;
+    if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(
       SnackBar(
         content: Text(
@@ -403,11 +403,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         ),
       ),
     );
+    return BulkActionOutcome.completed;
   }
 
-  Future<void> _confirmAndDelete() async {
+  Future<BulkActionOutcome> _confirmAndDelete() async {
     final ids = _selectedIds.toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -429,7 +430,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return BulkActionOutcome.cancelled;
 
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
@@ -439,12 +440,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       await notifier.deleteEquipment(id);
     }
 
-    if (!mounted) return;
+    if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(
       SnackBar(
         content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
       ),
     );
+    return BulkActionOutcome.completed;
   }
 
   /// One tap policy for every equipment row.

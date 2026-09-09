@@ -33,6 +33,8 @@ object LibdcWrapper {
     external fun nativeDownloadSessionNew(): Long
     external fun nativeDownloadCancel(sessionPtr: Long)
     external fun nativeDownloadSessionFree(sessionPtr: Long)
+    // infoOut receives three slots after the run: device serial, firmware
+    // version, and the clock sync status code (libdc_clock_sync_status_t).
     external fun nativeDownloadRun(
         sessionPtr: Long,
         vendor: String,
@@ -42,8 +44,10 @@ object LibdcWrapper {
         ioHandler: IoHandler,
         devName: String?,
         fingerprint: ByteArray?,
+        syncClock: Boolean,
         downloadCallback: DownloadCallback,
-        errorBuf: ByteArray
+        errorBuf: ByteArray,
+        infoOut: IntArray
     ): Int
 
     // Debug-only: deliberately crash the current process natively (issue #318

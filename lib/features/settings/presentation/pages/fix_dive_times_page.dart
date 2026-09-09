@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/data/services/dive_time_migration_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class FixDiveTimesPage extends ConsumerStatefulWidget {
@@ -250,13 +251,11 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
         title: Text(context.l10n.settings_fixDiveTimes_title),
         actions: [
           if (_dives.isNotEmpty)
-            TextButton(
+            AppBarTextAction(
+              label: allSelected
+                  ? context.l10n.settings_fixDiveTimes_deselectAll
+                  : context.l10n.settings_fixDiveTimes_selectAll,
               onPressed: _toggleSelectAll,
-              child: Text(
-                allSelected
-                    ? context.l10n.settings_fixDiveTimes_deselectAll
-                    : context.l10n.settings_fixDiveTimes_selectAll,
-              ),
             ),
         ],
       ),

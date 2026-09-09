@@ -186,6 +186,7 @@ class DiveComputerHostApiImpl(
     override fun startDownload(
         device: DiscoveredDevice,
         fingerprint: String?,
+        syncClock: Boolean,
         callback: (Result<Unit>) -> Unit
     ) {
         callback(Result.success(Unit))
@@ -202,6 +203,7 @@ class DiveComputerHostApiImpl(
                     model = device.model,
                     name = device.name,
                     fingerprint = decodeFingerprint(fingerprint),
+                    syncClock = syncClock,
                 )
             )
             return
@@ -213,7 +215,7 @@ class DiveComputerHostApiImpl(
             // instead of an uncaught Throwable that kills the executor thread
             // and the app (issue #318).
             try {
-                performDownload(device, fingerprint)
+                performDownload(device, fingerprint, syncClock)
             } catch (t: Throwable) {
                 NativeLogger.e(
                     TAG, "LDC",
@@ -246,7 +248,12 @@ class DiveComputerHostApiImpl(
         activeBleStream?.submitPinCode(pinCode)
     }
 
-    private fun performDownload(device: DiscoveredDevice, fingerprint: String? = null, isRetry: Boolean = false) {
+    private fun performDownload(
+        device: DiscoveredDevice,
+        fingerprint: String? = null,
+        syncClock: Boolean = false,
+        isRetry: Boolean = false
+    ) {
         // Fail clearly if the native library never loaded, rather than crashing
         // on the first native call below (issue #318).
         if (!nativeLibraryReady()) return
@@ -264,7 +271,7 @@ class DiveComputerHostApiImpl(
         // Each branch owns its own session cleanup.
         when (device.transport) {
             TransportType.BLE ->
-                performBleDownload(device, sessionPtr, fingerprint, isRetry)
+                performBleDownload(device, sessionPtr, fingerprint, syncClock, isRetry)
             TransportType.SERIAL, TransportType.USB -> {
                 // Unreachable: serial/USB downloads are intercepted in
                 // startDownload and run in the :dc process (issue #318). Guard
@@ -320,6 +327,7 @@ class DiveComputerHostApiImpl(
         device: DiscoveredDevice,
         sessionPtr: Long,
         fingerprint: String?,
+        syncClock: Boolean,
         isRetry: Boolean
     ) {
         // Connect BLE.
@@ -375,7 +383,7 @@ class DiveComputerHostApiImpl(
                     // (status 147). Give both sides a moment to settle
                     // before the retry.
                     Thread.sleep(BOND_REPAIR_SETTLE_MS)
-                    performDownload(device, fingerprint, isRetry = true)
+                    performDownload(device, fingerprint, syncClock, isRetry = true)
                     return
                 }
                 NativeLogger.e(
@@ -438,15 +446,16 @@ class DiveComputerHostApiImpl(
 
         // Run the download.
         val errorBuf = ByteArray(256)
-        NativeLogger.d(TAG, "LDC", "nativeDownloadRun: vendor=${device.vendor} product=${device.product} model=${device.model} name=${device.name}")
+        val infoOut = IntArray(3)
+        NativeLogger.d(TAG, "LDC", "nativeDownloadRun: vendor=${device.vendor} product=${device.product} model=${device.model} name=${device.name} syncClock=$syncClock")
         val result = try {
             LibdcWrapper.nativeDownloadRun(
                 sessionPtr,
                 device.vendor, device.product,
                 device.model.toInt(), LIBDC_TRANSPORT_BLE,
                 bleStream, device.name,
-                fingerprintBytes,
-                downloadCallback, errorBuf
+                fingerprintBytes, syncClock,
+                downloadCallback, errorBuf, infoOut
             )
         } catch (e: Throwable) {
             NativeLogger.e(TAG, "LDC", "nativeDownloadRun threw: ${e.message}")
@@ -471,7 +480,16 @@ class DiveComputerHostApiImpl(
 
         // Report completion or error.
         if (result == 0) {
-            mainHandler.post { flutterApi.onDownloadComplete(0, null, null) { } }
+            // Serial and firmware were never reported from Android before
+            // this; they ride the same out-array as the clock sync outcome.
+            val serial = libdcUnsignedOrNull(infoOut[0])
+            val firmware = libdcUnsignedOrNull(infoOut[1])
+            val clockSync = libdcClockSyncStatusName(infoOut[2])
+                .takeIf { it != "not_requested" }
+            NativeLogger.i(TAG, "LDC", "Device info: serial=$serial firmware=$firmware clockSync=${clockSync ?: "not_requested"}")
+            mainHandler.post {
+                flutterApi.onDownloadComplete(0, serial, firmware, clockSync) { }
+            }
         } else if (result != LIBDC_STATUS_CANCELLED) {
             // If the download failed because the remote device rejected our
             // encryption keys (GATT status 5), the bond is stale. Remove
@@ -488,7 +506,7 @@ class DiveComputerHostApiImpl(
                     // immediate reconnect after removeBond fails to
                     // establish (status 147).
                     Thread.sleep(BOND_REPAIR_SETTLE_MS)
-                    performDownload(device, fingerprint, isRetry = true)
+                    performDownload(device, fingerprint, syncClock, isRetry = true)
                     return
                 }
                 // Bond removal failed; fall through and surface the
@@ -518,7 +536,8 @@ class DiveComputerHostApiImpl(
     private fun performUsbSerialDownload(
         device: DiscoveredDevice,
         sessionPtr: Long,
-        fingerprint: String?
+        fingerprint: String?,
+        syncClock: Boolean = false
     ) {
         val usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager
         val drivers: List<UsbSerialDriver> = usbManager?.let {
@@ -574,6 +593,7 @@ class DiveComputerHostApiImpl(
             NativeLogger.d(TAG, "SER", "nativeDownloadRun (serial): ${driver.device.deviceName}")
 
             val errorBuf = ByteArray(256)
+            val infoOut = IntArray(3)
             var thrownMsg: String? = null
             NativeTrace.d(
                 "nativeDownloadRun begin vendor=${device.vendor} " +
@@ -585,8 +605,8 @@ class DiveComputerHostApiImpl(
                     device.vendor, device.product,
                     device.model.toInt(), LIBDC_TRANSPORT_SERIAL,
                     stream, device.name,
-                    fingerprintBytes,
-                    downloadCallback, errorBuf
+                    fingerprintBytes, syncClock,
+                    downloadCallback, errorBuf, infoOut
                 )
             } catch (e: Throwable) {
                 NativeTrace.e("nativeDownloadRun threw: ${e.message}")
@@ -632,7 +652,7 @@ class DiveComputerHostApiImpl(
             !anyOpened ->
                 reportError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
             lastResult == 0 || lastResult == LIBDC_STATUS_CANCELLED ->
-                mainHandler.post { flutterApi.onDownloadComplete(0, null, null) { } }
+                mainHandler.post { flutterApi.onDownloadComplete(0, null, null, null) { } }
             drivers.size > 1 ->
                 reportError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
             else ->

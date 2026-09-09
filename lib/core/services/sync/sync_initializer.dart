@@ -426,6 +426,55 @@ class SyncInitializer {
     CloudStorageProvider provider,
   ) async => classifyPeerFiles(await peerLogFiles(provider));
 
+  /// Whether some device OTHER than [deviceId] publishes a pullable library on
+  /// [provider]. The licence for deleting [deviceId]'s cloud files when this
+  /// install retires that identity (Reset Sync State, and the Repair Sync that
+  /// wraps it): those files are only redundant while a second copy exists.
+  ///
+  /// Without this check the retirement cleanup is destructive exactly where
+  /// the user is most likely to reach for it. An install that inherited an
+  /// earlier install's device id owns the whole cloud library under that id
+  /// (issue #1541, routine on macOS where replacing the .app leaves the
+  /// device-id anchor in ~/Library/Preferences), and the screen it lands on --
+  /// "No library found" -- is the one that points at Repair Sync. The same
+  /// exposure covers any single-device user whose local library is empty or
+  /// damaged. Leaving the files behind instead costs one stale peer log, which
+  /// the freshly minted identity simply pulls; deleting them costs the library
+  /// (issue #1551).
+  ///
+  /// Only a manifest counts, and only one filed under a device id that parses.
+  /// A half-finished publish (base parts, no manifest) is not a library anyone
+  /// can pull, and a retirement marker is a tombstone, so [classifyPeerFiles]
+  /// rules both out. A listing we could not read is not evidence of a second
+  /// copy either, so a failure answers false -- as does one that stalls past
+  /// [timeout], which also keeps reset from hanging behind its non-dismissible
+  /// progress dialog.
+  Future<bool> anotherDevicePublishesLibrary(
+    String deviceId,
+    CloudStorageProvider provider, {
+    @visibleForTesting Duration timeout = const Duration(seconds: 8),
+  }) async {
+    try {
+      final files = await _changesetLogFiles(provider).timeout(timeout);
+      final others = files.where((f) {
+        final id = ChangesetLogLayout.deviceIdOf(f.name);
+        // A name that parses to no device id was published by no device.
+        // isManifest matches on prefix and suffix alone, so "ssv1..manifest
+        // .json" would otherwise pass as a peer's library and license the
+        // delete. Elsewhere an unparseable name is merely pulled and ignored;
+        // here it would cost the library, so it is dropped.
+        return id != null && id != deviceId;
+      }).toList();
+      return classifyPeerFiles(others) == PeerLibraryState.pullable;
+    } catch (e) {
+      _log.warning(
+        'Could not list the account while retiring $deviceId; keeping its '
+        'cloud files: $e',
+      );
+      return false;
+    }
+  }
+
   /// What the account holds, from the point of view of an install that has no
   /// library of its own yet, i.e. the setup wizard's Connect step.
   ///

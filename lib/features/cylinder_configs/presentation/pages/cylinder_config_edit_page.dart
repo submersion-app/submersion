@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 /// Creates or edits one configuration. Cylinders are a reorderable list;
 /// their sortOrder is derived from list position on save.
@@ -142,9 +143,9 @@ class _CylinderConfigEditPageState
               : l10n.cylinderConfigs_title,
         ),
         actions: [
-          TextButton(
+          AppBarTextAction(
+            label: MaterialLocalizations.of(context).saveButtonLabel,
             onPressed: _saving ? null : _save,
-            child: Text(MaterialLocalizations.of(context).saveButtonLabel),
           ),
         ],
       ),

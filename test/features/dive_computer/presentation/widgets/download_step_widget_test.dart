@@ -7,6 +7,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:libdivecomputer_plugin/src/dive_computer_service.dart'
     show DownloadEvent;
 
+import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
@@ -39,6 +40,7 @@ class _FakeDiveComputerService implements pigeon.DiveComputerService {
   Future<void> startDownload(
     pigeon.DiscoveredDevice device, {
     String? fingerprint,
+    bool syncClock = false,
   }) async {}
   @override
   Future<void> cancelDownload() async {}
@@ -57,6 +59,7 @@ class _FakeDiveComputerService implements pigeon.DiveComputerService {
     int totalDives,
     String? serialNumber,
     String? firmwareVersion,
+    String? clockSyncStatus,
   ) {}
   @override
   void onError(pigeon.DiveComputerError error) {}
@@ -412,6 +415,70 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Cancel'), findsNothing);
+    });
+
+    // -----------------------------------------------------------------------
+    // Clock sync result (issue #1216)
+    // -----------------------------------------------------------------------
+
+    Future<void> pumpComplete(
+      WidgetTester tester,
+      ClockSyncStatus? status,
+    ) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: DownloadState(
+            phase: DownloadPhase.complete,
+            progress: DownloadProgress.complete(1),
+            clockSyncStatus: status,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('reports a synced clock on completion', (tester) async {
+      await pumpComplete(tester, ClockSyncStatus.synced);
+      expect(find.byKey(const ValueKey('clock_sync_result')), findsOneWidget);
+      expect(find.text('Clock synced'), findsOneWidget);
+    });
+
+    testWidgets('reports an unsupported model on completion', (tester) async {
+      await pumpComplete(tester, ClockSyncStatus.unsupported);
+      expect(
+        find.text('Clock sync is not supported by this model'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('reports a failed sync on completion', (tester) async {
+      await pumpComplete(tester, ClockSyncStatus.failed);
+      expect(find.text('Clock sync failed'), findsOneWidget);
+    });
+
+    testWidgets('shows nothing when no sync was requested', (tester) async {
+      await pumpComplete(tester, ClockSyncStatus.notRequested);
+      expect(find.byKey(const ValueKey('clock_sync_result')), findsNothing);
+    });
+
+    testWidgets('shows nothing before a completion arrives', (tester) async {
+      await pumpComplete(tester, null);
+      expect(find.byKey(const ValueKey('clock_sync_result')), findsNothing);
+    });
+
+    testWidgets('shows nothing while still downloading', (tester) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: DownloadState(
+            phase: DownloadPhase.downloading,
+            progress: DownloadProgress.downloading(1, 2),
+            clockSyncStatus: ClockSyncStatus.synced,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const ValueKey('clock_sync_result')), findsNothing);
     });
 
     testWidgets('shows downloaded dives list when dives are present', (

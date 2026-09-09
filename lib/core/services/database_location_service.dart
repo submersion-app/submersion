@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 
@@ -131,13 +132,13 @@ class DatabaseLocationService {
   /// Get the default database path (app documents directory)
   Future<String> getDefaultDatabasePath() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    return p.join(dbFolder.path, 'Submersion', databaseFilename);
+    return p.join(dbFolder.path, kAppDocumentsFolder, databaseFilename);
   }
 
   /// Get the default database directory
   Future<String> getDefaultDatabaseDirectory() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    return p.join(dbFolder.path, 'Submersion');
+    return p.join(dbFolder.path, kAppDocumentsFolder);
   }
 
   /// Check if custom folder mode is supported on this platform
@@ -479,7 +480,7 @@ Future<String?> resolveAndroidDbDir(
     // primary internal volume.
     chosen = options.first;
   }
-  final dbDir = p.join(chosen.path, 'Submersion');
+  final dbDir = p.join(chosen.path, kAppDocumentsFolder);
   await Directory(dbDir).create(recursive: true);
   return dbDir;
 }

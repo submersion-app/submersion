@@ -5905,6 +5905,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'هذا العام';
 
   @override
+  String get diveLog_filter_searchComputersHint => 'اكتب للبحث عن حواسيب الغوص';
+
+  @override
+  String get diveLog_filter_searchSitesHint => 'اكتب للبحث عن المواقع';
+
+  @override
+  String get diveLog_filter_searchTypesHint => 'اكتب للبحث عن الأنواع';
+
+  @override
+  String get diveLog_filter_searchCentersHint => 'اكتب للبحث عن مراكز الغوص';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'اكتب للبحث عن الحقول';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'اكتب للبحث عن الرحلات';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'زميل الغوص';
 
   @override
@@ -21551,6 +21569,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'يشهد هذا بأن';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'إعداد التطبيق: معطّل';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'إعداد التطبيق: مفعّل';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'مزامنة الساعة';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'التحقق مرة أخرى';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'يضبط الساعة على وقت هذا الجهاز بعد كل تنزيل. ينطبق على هذا الجهاز فقط.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'مزامنة ساعات كمبيوترات الغوص';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'دائمًا';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'إعداد التطبيق';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'أبدًا';
+
+  @override
+  String get diveComputer_clockSync_supported => 'مدعومة في هذا الطراز';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'هذا الطراز لا يدعم مزامنة الساعة';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21756,6 +21810,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'تم إلغاء التنزيل';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => 'فشلت مزامنة الساعة';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'مزامنة الساعة غير مدعومة في هذا الطراز';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'تمت مزامنة الساعة';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -36961,4 +37025,83 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (تلقائي)';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title => 'نسخ احتياطية غير معروفة';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. لا يمكن حذف سوى ملف كتبه هذا الجهاز هنا: أي ملف آخر قد يكون النسخة الوحيدة لجهاز آخر.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'لا توجد ملفات نسخ احتياطي غير معروفة.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'تعذّرت قراءة مجلد النسخ الاحتياطي.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'لا يستطيع هذا الجهاز سرد مجلد النسخ الاحتياطي الذي اخترته، لذا لا يمكن العثور على الملفات غير المعروفة.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'جهاز آخر';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'جهاز غير معروف';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف $count ملفات ($size)',
+      one: 'حذف ملف واحد ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'حذف ملفات النسخ الاحتياطي هذه؟';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ستُحذف $count من ملفات النسخ الاحتياطي نهائيًا. لا يمكن التراجع عن ذلك.',
+      one: 'سيُحذف ملف نسخ احتياطي واحد نهائيًا. لا يمكن التراجع عن ذلك.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed => 'تعذّر حذف الملفات المحددة.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return 'تم تحرير $size';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملفات غير موجودة في سجل النسخ الاحتياطي',
+      one: 'ملف واحد غير موجود في سجل النسخ الاحتياطي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'مراجعة';
 }

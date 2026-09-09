@@ -1,5 +1,11 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -19,12 +25,38 @@ import 'package:submersion/features/media/presentation/pages/media_viewer_page.d
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart'
+    show ResolutionStatus;
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+/// writeShareTempFile calls getTemporaryDirectory(), a platform channel with
+/// no implementation under flutter_test.
+class _FakePathProvider extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
+  _FakePathProvider(this.tempPath);
+  final String tempPath;
+
+  @override
+  Future<String?> getTemporaryPath() async => tempPath;
+}
+
+/// Records what reached the platform so the share can be asserted without a
+/// real share sheet.
+class _FakeSharePlatform extends SharePlatform {
+  final List<ShareParams> calls = [];
+
+  @override
+  Future<ShareResult> share(ShareParams params) async {
+    calls.add(params);
+    return const ShareResult('ok', ShareResultStatus.success);
+  }
+}
 
 class _UnavailableResolver implements MediaSourceResolver {
   @override
@@ -454,6 +486,165 @@ void main() {
         find.byKey(const ValueKey('selection_exit')),
         findsNothing,
         reason: 'a completed bulk action leaves selection mode',
+      );
+    });
+  });
+
+  group('the library Share leaves selection mode', () {
+    // #1262: Share was the one bulk action in the app that finished and left
+    // the diver stranded in multi-select, inline beside two siblings that both
+    // exited. The bar now decides from the action's outcome, so this is the
+    // regression guard for the whole rule on a real surface.
+    final platform = _FakeSharePlatform();
+    late Directory tempDir;
+    late PathProviderPlatform originalPathProvider;
+
+    setUpAll(() => SharePlatform.instance = platform);
+
+    setUp(() async {
+      platform.calls.clear();
+      tempDir = await Directory.systemTemp.createTemp('library-share-test');
+      // PathProviderPlatform is read per call, so a fake left installed points
+      // later tests in this isolate at a temp directory that tearDown has
+      // already deleted. Put the real one back.
+      originalPathProvider = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
+    });
+
+    tearDown(() async {
+      PathProviderPlatform.instance = originalPathProvider;
+      await tempDir.delete(recursive: true);
+    });
+
+    Widget host(List<MediaLibraryEntry> entries) => ProviderScope(
+      overrides: [
+        mediaLibraryNotifierProvider.overrideWith(
+          (ref) => _SeededLibraryNotifier(MediaLibraryState(entries: entries)),
+        ),
+        appSettingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
+        mediaDeletionCoordinatorProvider.overrideWithValue(
+          _RecordingDeletionCoordinator(),
+        ),
+        mediaRepositoryProvider.overrideWithValue(_RecordingMediaRepo()),
+        diveRepositoryProvider.overrideWithValue(_FakeDiveRepo()),
+        currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier()),
+        mediaSourceResolverRegistryProvider.overrideWithValue(
+          MediaSourceResolverRegistry({
+            MediaSourceType.localFile: _UnavailableResolver(),
+          }),
+        ),
+        // The grid's thumbnails stay unresolvable; only the share's
+        // full-resolution read has to succeed.
+        resolvedFullResolutionProvider.overrideWith(
+          (ref, MediaItem arg) async => ResolvedAssetResult(
+            bytes: Uint8List.fromList([1, 2, 3, 4]),
+            status: ResolutionStatus.resolved,
+          ),
+        ),
+      ],
+      child: const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: MediaLibraryView()),
+      ),
+    );
+
+    testWidgets('a completed share ends the mode', (tester) async {
+      await tester.pumpWidget(
+        host([entry('a', diveId: 'd1'), entry('b', diveId: 'd1')]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MediaLibraryTile).at(0));
+      await tester.pumpAndSettle();
+      expect(find.text('1 selected'), findsOneWidget);
+
+      // Writing the share temp file is real I/O, which deadlocks under the
+      // test zone's fake async unless it runs through runAsync. Wait for the
+      // platform call rather than a fixed span: how long the resolve and the
+      // write take belongs to the filesystem, so any constant is a race a
+      // slow runner eventually loses. The deadline only bounds a share that
+      // never arrives, and the assertions below are what fail when it does
+      // not.
+      await tester.runAsync(() async {
+        await tester.tap(find.byKey(const ValueKey('selection_action_share')));
+        final deadline = DateTime.now().add(const Duration(seconds: 10));
+        while (platform.calls.isEmpty && DateTime.now().isBefore(deadline)) {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+        }
+        // The call is recorded on entry to the fake's share(); one more turn
+        // lets the bar's handler resume and report its outcome.
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+
+      expect(platform.calls, hasLength(1));
+      expect(
+        find.byKey(const ValueKey('selection_exit')),
+        findsNothing,
+        reason: 'a completed share must return the diver to the normal list',
+      );
+    });
+
+    testWidgets('a share that resolves nothing keeps the selection', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mediaLibraryNotifierProvider.overrideWith(
+              (ref) => _SeededLibraryNotifier(
+                MediaLibraryState(entries: [entry('a', diveId: 'd1')]),
+              ),
+            ),
+            appSettingsRepositoryProvider.overrideWithValue(
+              _FakeSettingsRepo(),
+            ),
+            mediaDeletionCoordinatorProvider.overrideWithValue(
+              _RecordingDeletionCoordinator(),
+            ),
+            mediaRepositoryProvider.overrideWithValue(_RecordingMediaRepo()),
+            diveRepositoryProvider.overrideWithValue(_FakeDiveRepo()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _FixedDiverIdNotifier(),
+            ),
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.localFile: _UnavailableResolver(),
+              }),
+            ),
+            resolvedFullResolutionProvider.overrideWith(
+              (ref, MediaItem arg) async => const ResolvedAssetResult(
+                status: ResolutionStatus.unavailable,
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: MediaLibraryView()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MediaLibraryTile).at(0));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('selection_action_share')));
+      await tester.pumpAndSettle();
+
+      expect(platform.calls, isEmpty);
+      expect(
+        find.text('1 selected'),
+        findsOneWidget,
+        reason: 'a share that shared nothing must keep the selection',
       );
     });
   });

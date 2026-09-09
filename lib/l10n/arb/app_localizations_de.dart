@@ -6027,6 +6027,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'Dieses Jahr';
 
   @override
+  String get diveLog_filter_searchComputersHint =>
+      'Tippen, um Computer zu suchen';
+
+  @override
+  String get diveLog_filter_searchSitesHint =>
+      'Tippen, um Tauchplätze zu suchen';
+
+  @override
+  String get diveLog_filter_searchTypesHint =>
+      'Tippen, um Tauchgangstypen zu suchen';
+
+  @override
+  String get diveLog_filter_searchCentersHint =>
+      'Tippen, um Tauchbasen zu suchen';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Tippen, um Felder zu suchen';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Tippen, um Reisen zu suchen';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Tauchpartner';
 
   @override
@@ -21903,6 +21925,43 @@ class AppLocalizationsDe extends AppLocalizations {
       'Hiermit wird bescheinigt, dass';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'App-Einstellung: aus';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'App-Einstellung: ein';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Uhrzeit-Abgleich';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Erneut prüfen';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Stellt die Uhr nach jedem Download auf die Zeit dieses Geräts. Gilt nur für dieses Gerät.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Uhren der Tauchcomputer abgleichen';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Immer';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'App-Einstellung';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Nie';
+
+  @override
+  String get diveComputer_clockSync_supported =>
+      'Von diesem Modell unterstützt';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Dieses Modell unterstützt keinen Uhrzeit-Abgleich';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -22112,6 +22171,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download abgebrochen';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Uhrzeit-Abgleich fehlgeschlagen';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'Uhrzeit-Abgleich wird von diesem Modell nicht unterstützt';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Uhrzeit abgeglichen';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -37267,4 +37337,85 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automatisch)';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title => 'Nicht erkannte Sicherungen';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Diese Dateien liegen in Ihrem Sicherungsordner, stehen aber nicht im Sicherungsverlauf dieses Geräts. Hier kann nur eine von diesem Gerät geschriebene Datei gelöscht werden: alles andere könnte die einzige Kopie eines anderen Geräts sein.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Keine nicht erkannten Sicherungsdateien.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'Der Sicherungsordner konnte nicht gelesen werden.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Dieses Gerät kann den gewählten Sicherungsordner nicht auflisten, daher können nicht erkannte Dateien nicht gefunden werden.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Anderes Gerät';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'Unbekanntes Gerät';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien löschen ($size)',
+      one: '1 Datei löschen ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Diese Sicherungsdateien löschen?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Sicherungsdateien werden endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.',
+      one:
+          '1 Sicherungsdatei wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Die ausgewählten Dateien konnten nicht gelöscht werden.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size freigegeben';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien fehlen im Sicherungsverlauf',
+      one: '1 Datei fehlt im Sicherungsverlauf',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Prüfen';
 }

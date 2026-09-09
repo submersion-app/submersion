@@ -6030,6 +6030,26 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'Quest\'anno';
 
   @override
+  String get diveLog_filter_searchComputersHint =>
+      'Digita per cercare i computer';
+
+  @override
+  String get diveLog_filter_searchSitesHint => 'Digita per cercare i siti';
+
+  @override
+  String get diveLog_filter_searchTypesHint => 'Digita per cercare i tipi';
+
+  @override
+  String get diveLog_filter_searchCentersHint =>
+      'Digita per cercare i diving center';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Digita per cercare i campi';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Digita per cercare i viaggi';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Compagno';
 
   @override
@@ -21950,6 +21970,43 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'Si certifica che';
 
   @override
+  String get diveComputer_clockSync_appSettingOff =>
+      'Impostazione app: disattivata';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'Impostazione app: attiva';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Sincronizzazione orologio';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Controlla di nuovo';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Imposta l\'orologio sull\'ora di questo dispositivo dopo ogni download. Vale solo per questo dispositivo.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Sincronizza l\'orologio dei computer subacquei';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Sempre';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'Impostazione app';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Mai';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Supportata da questo modello';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Questo modello non supporta la sincronizzazione dell\'orologio';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -22160,6 +22217,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download annullato';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Sincronizzazione dell\'orologio non riuscita';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'La sincronizzazione dell\'orologio non è supportata da questo modello';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Orologio sincronizzato';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -37335,4 +37403,87 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (auto)';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title => 'Backup non riconosciuti';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Qui può essere eliminato solo un file scritto da questo dispositivo: qualsiasi altro potrebbe essere l\'unica copia di un altro dispositivo.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Nessun file di backup non riconosciuto.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'Impossibile leggere la cartella dei backup.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Questo dispositivo non può elencare la cartella dei backup che hai scelto, quindi i file non riconosciuti non possono essere trovati.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice =>
+      'Un altro dispositivo';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed =>
+      'Dispositivo sconosciuto';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Elimina $count file ($size)',
+      one: 'Elimina 1 file ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Eliminare questi file di backup?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count file di backup saranno eliminati definitivamente. L\'operazione non può essere annullata.',
+      one:
+          '1 file di backup sarà eliminato definitivamente. L\'operazione non può essere annullata.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Impossibile eliminare i file selezionati.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return 'Liberati $size';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count file non presenti nella cronologia dei backup',
+      one: '1 file non presente nella cronologia dei backup',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Esamina';
 }

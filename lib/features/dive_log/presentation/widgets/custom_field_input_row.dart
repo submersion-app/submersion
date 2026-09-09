@@ -58,6 +58,8 @@ class CustomFieldInputRow extends StatelessWidget {
                   onChanged: (value) {
                     onChanged(field.copyWith(key: value));
                   },
+                  // Commits the arrow-key highlight from the suggestion list.
+                  onFieldSubmitted: (_) => onSubmitted(),
                 );
               },
             ),

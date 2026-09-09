@@ -6011,6 +6011,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'Idén';
 
   @override
+  String get diveLog_filter_searchComputersHint =>
+      'Gépelj a búvárcomputerek kereséséhez';
+
+  @override
+  String get diveLog_filter_searchSitesHint =>
+      'Gépelj a merülőhelyek kereséséhez';
+
+  @override
+  String get diveLog_filter_searchTypesHint =>
+      'Gépelj a merüléstípusok kereséséhez';
+
+  @override
+  String get diveLog_filter_searchCentersHint =>
+      'Gépelj a búvárközpontok kereséséhez';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Gépelj a mezők kereséséhez';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Gépelj az utak kereséséhez';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override
@@ -21882,6 +21904,42 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezennel tanusitjuk, hogy';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'Alkalmazásbeállítás: ki';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'Alkalmazásbeállítás: be';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Óraszinkronizálás';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Ellenőrzés újra';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Minden letöltés után ennek az eszköznek az idejére állítja az órát. Csak erre az eszközre vonatkozik.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Búvárkomputerek órájának szinkronizálása';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Mindig';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'Alkalmazásbeállítás';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Soha';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Ez a modell támogatja';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Ez a modell nem támogatja az óraszinkronizálást';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -22091,6 +22149,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Letoltes megszakitva';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Az óraszinkronizálás nem sikerült';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'Az óraszinkronizálást ez a modell nem támogatja';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Óra szinkronizálva';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -37182,4 +37251,86 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automatikus)';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title =>
+      'Ismeretlen biztonsági mentések';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Ezek a fájlok a biztonsági mentések mappájában vannak, de nem szerepelnek ennek az eszköznek a mentési előzményeiben. Itt csak olyan fájl törölhető, amelyet ez az eszköz írt: bármi más lehet egy másik eszköz egyetlen másolata.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Nincs ismeretlen biztonsági mentési fájl.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'A biztonsági mentések mappája nem olvasható.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Ez az eszköz nem tudja kilistázni a kiválasztott mentési mappát, ezért az ismeretlen fájlok nem találhatók meg.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Másik eszköz';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'Ismeretlen eszköz';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl törlése ($size)',
+      one: '1 fájl törlése ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Törli ezeket a biztonsági mentési fájlokat?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count biztonsági mentési fájl véglegesen törlődik. A művelet nem vonható vissza.',
+      one:
+          '1 biztonsági mentési fájl véglegesen törlődik. A művelet nem vonható vissza.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'A kiválasztott fájlok törlése nem sikerült.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size felszabadítva';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl hiányzik a mentési előzményekből',
+      one: '1 fájl hiányzik a mentési előzményekből',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Áttekintés';
 }

@@ -1165,8 +1165,13 @@ class DiveComputerRepository {
                 : null);
 
         // durationSeconds from the dive computer is total runtime,
-        // not bottom time. Calculate bottom time from the profile.
-        final bottomTimeSeconds = _calculateBottomTimeFromPoints(points);
+        // not bottom time. Calculate bottom time from the profile, bounded
+        // by that runtime so a sample stream that outlasts the dive cannot
+        // produce a bottom time longer than the dive (issue #1642).
+        final bottomTimeSeconds = _calculateBottomTimeFromPoints(
+          points,
+          totalDurationSeconds: durationSeconds,
+        );
 
         // Downloaded profiles carry no dive type, so every dive used to land
         // on 'recreational', including dives whose samples show mandatory
@@ -2034,14 +2039,18 @@ class DiveComputerRepository {
   ///
   /// Delegates to [BottomTimeCalculator]: bottom time runs from surface
   /// departure to the start of the final ascent, so multilevel dives
-  /// count their shallower segments.
+  /// count their shallower segments. The result never exceeds
+  /// [totalDurationSeconds], the computer's own reported runtime.
   ///
   /// Returns null if profile data is insufficient for calculation.
-  int? _calculateBottomTimeFromPoints(List<ProfilePointData> points) {
+  int? _calculateBottomTimeFromPoints(
+    List<ProfilePointData> points, {
+    required int totalDurationSeconds,
+  }) {
     return BottomTimeCalculator.secondsFromSamples([
       for (final point in points)
         (timestamp: point.timestamp, depth: point.depth),
-    ]);
+    ], totalDurationSeconds: totalDurationSeconds);
   }
 
   /// Raw libdivecomputer event types that [_mapEventTypeString] folds into a
