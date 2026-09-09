@@ -976,6 +976,20 @@
   "preDive_item_valueUnit": "יחידה",
   "preDive_item_valueMin": "מינימום (אזהרה)",
   "preDive_item_valueMax": "מקסימום (אזהרה)",
+  "preDive_item_type_cellLinearity": "ליניאריות התא",
+  "preDive_item_sourceItem": "קריאת אוויר מתוך",
+  "preDive_item_sourceItemRequired": "בחר את הפריט שמכיל את קריאת האוויר",
+  "preDive_item_linearityMin": "ליניאריות מזערית % (אזהרה)",
+  "preDive_item_linearityMax": "ליניאריות מרבית % (אזהרה)",
+  "preDive_item_sourceCleared": "ל־{title} אין יותר קריאת אוויר להשוואה",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "קורא ערך שנרשם בהמשך הרשימה",
   "preDive_runner_progress": "{done} מתוך {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1018,35 @@
   "preDive_runner_serviceOverdue": "פג תוקף הטיפול",
   "preDive_runner_addNote": "הוסף הערה",
   "preDive_runner_enterValue": "הזן ערך",
+  "preDive_runner_cellInAir": "באוויר",
+  "preDive_runner_cellInAirMissing": "טרם נרשם",
+  "preDive_runner_enterO2Value": "הזן ערך בחמצן טהור",
+  "preDive_runner_linearityReadout": "צפוי {expected} mV, ליניאריות {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "אוויר {air} mV, צפוי {expected} mV, ליניאריות {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "קריאת האוויר השתנתה מאז",
   "preDive_runner_flaggedBadge": "{count} מסומנים בדגל",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {

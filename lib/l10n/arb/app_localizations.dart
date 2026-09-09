@@ -4139,6 +4139,48 @@ abstract class AppLocalizations {
   /// **'Max (warning)'**
   String get preDive_item_valueMax;
 
+  /// No description provided for @preDive_item_type_cellLinearity.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell linearity'**
+  String get preDive_item_type_cellLinearity;
+
+  /// No description provided for @preDive_item_sourceItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Air reading from'**
+  String get preDive_item_sourceItem;
+
+  /// No description provided for @preDive_item_sourceItemRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the item holding the air reading'**
+  String get preDive_item_sourceItemRequired;
+
+  /// No description provided for @preDive_item_linearityMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Min linearity % (warning)'**
+  String get preDive_item_linearityMin;
+
+  /// No description provided for @preDive_item_linearityMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max linearity % (warning)'**
+  String get preDive_item_linearityMax;
+
+  /// No description provided for @preDive_item_sourceCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} no longer has an air reading to compare against'**
+  String preDive_item_sourceCleared(String title);
+
+  /// No description provided for @preDive_item_sourceBelow.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads a value recorded later in this list'**
+  String get preDive_item_sourceBelow;
+
   /// No description provided for @preDive_runner_progress.
   ///
   /// In en, this message translates to:
@@ -4204,6 +4246,46 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter value'**
   String get preDive_runner_enterValue;
+
+  /// No description provided for @preDive_runner_cellInAir.
+  ///
+  /// In en, this message translates to:
+  /// **'In air'**
+  String get preDive_runner_cellInAir;
+
+  /// No description provided for @preDive_runner_cellInAirMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet recorded'**
+  String get preDive_runner_cellInAirMissing;
+
+  /// No description provided for @preDive_runner_enterO2Value.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter value in O2'**
+  String get preDive_runner_enterO2Value;
+
+  /// No description provided for @preDive_runner_linearityReadout.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected {expected} mV, linearity {percent}%'**
+  String preDive_runner_linearityReadout(String expected, String percent);
+
+  /// No description provided for @preDive_runner_linearityLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Air {air} mV, expected {expected} mV, linearity {percent}%'**
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  );
+
+  /// No description provided for @preDive_runner_sourceChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Air reading has changed since'**
+  String get preDive_runner_sourceChanged;
 
   /// No description provided for @preDive_runner_flaggedBadge.
   ///

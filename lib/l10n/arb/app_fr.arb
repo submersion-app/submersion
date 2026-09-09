@@ -976,6 +976,20 @@
   "preDive_item_valueUnit": "Unité",
   "preDive_item_valueMin": "Min (avertissement)",
   "preDive_item_valueMax": "Max (avertissement)",
+  "preDive_item_type_cellLinearity": "Linéarité de la cellule",
+  "preDive_item_sourceItem": "Mesure dans l'air de",
+  "preDive_item_sourceItemRequired": "Choisis l'élément contenant la mesure dans l'air",
+  "preDive_item_linearityMin": "Linéarité min. % (alerte)",
+  "preDive_item_linearityMax": "Linéarité max. % (alerte)",
+  "preDive_item_sourceCleared": "{title} n'a plus de mesure dans l'air à laquelle se comparer",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Utilise une valeur enregistrée plus loin dans cette liste",
   "preDive_runner_progress": "{done} sur {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1018,35 @@
   "preDive_runner_serviceOverdue": "Entretien en retard",
   "preDive_runner_addNote": "Ajouter une note",
   "preDive_runner_enterValue": "Saisir une valeur",
+  "preDive_runner_cellInAir": "Dans l'air",
+  "preDive_runner_cellInAirMissing": "Pas encore enregistré",
+  "preDive_runner_enterO2Value": "Saisir la valeur en O2",
+  "preDive_runner_linearityReadout": "Attendu {expected} mV, linéarité {percent} %",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Air {air} mV, attendu {expected} mV, linéarité {percent} %",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "La mesure dans l'air a changé depuis",
   "preDive_runner_flaggedBadge": "{count} signalés",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {

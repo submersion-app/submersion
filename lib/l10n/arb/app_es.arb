@@ -976,6 +976,20 @@
   "preDive_item_valueUnit": "Unidad",
   "preDive_item_valueMin": "Mín. (aviso)",
   "preDive_item_valueMax": "Máx. (aviso)",
+  "preDive_item_type_cellLinearity": "Linealidad de la célula",
+  "preDive_item_sourceItem": "Lectura en aire de",
+  "preDive_item_sourceItemRequired": "Elige el elemento con la lectura en aire",
+  "preDive_item_linearityMin": "Linealidad mín. % (aviso)",
+  "preDive_item_linearityMax": "Linealidad máx. % (aviso)",
+  "preDive_item_sourceCleared": "{title} ya no tiene una lectura en aire con la que compararse",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Usa un valor registrado más adelante en esta lista",
   "preDive_runner_progress": "{done} de {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1018,35 @@
   "preDive_runner_serviceOverdue": "Mantenimiento vencido",
   "preDive_runner_addNote": "Agregar nota",
   "preDive_runner_enterValue": "Introducir valor",
+  "preDive_runner_cellInAir": "En aire",
+  "preDive_runner_cellInAirMissing": "Aún no registrado",
+  "preDive_runner_enterO2Value": "Introduce el valor en O2",
+  "preDive_runner_linearityReadout": "Esperado {expected} mV, linealidad {percent} %",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Aire {air} mV, esperado {expected} mV, linealidad {percent} %",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "La lectura en aire ha cambiado desde entonces",
   "preDive_runner_flaggedBadge": "{count} marcados",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {

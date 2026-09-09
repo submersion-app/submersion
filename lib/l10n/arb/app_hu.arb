@@ -976,6 +976,20 @@
   "preDive_item_valueUnit": "Mértékegység",
   "preDive_item_valueMin": "Minimum (figyelmeztetés)",
   "preDive_item_valueMax": "Maximum (figyelmeztetés)",
+  "preDive_item_type_cellLinearity": "Cella linearitása",
+  "preDive_item_sourceItem": "Levegős mérés innen",
+  "preDive_item_sourceItemRequired": "Válaszd ki a levegős mérést tartalmazó elemet",
+  "preDive_item_linearityMin": "Min. linearitás % (figyelmeztetés)",
+  "preDive_item_linearityMax": "Max. linearitás % (figyelmeztetés)",
+  "preDive_item_sourceCleared": "{title} elemhez már nincs összehasonlítható levegős mérés",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "A listában később rögzített értéket használ",
   "preDive_runner_progress": "{done} / {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1018,35 @@
   "preDive_runner_serviceOverdue": "A karbantartás lejárt",
   "preDive_runner_addNote": "Megjegyzés hozzáadása",
   "preDive_runner_enterValue": "Érték megadása",
+  "preDive_runner_cellInAir": "Levegőben",
+  "preDive_runner_cellInAirMissing": "Még nincs rögzítve",
+  "preDive_runner_enterO2Value": "Add meg az O2-ben mért értéket",
+  "preDive_runner_linearityReadout": "Várt {expected} mV, linearitás {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Levegő {air} mV, várt {expected} mV, linearitás {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "A levegős mérés azóta megváltozott",
   "preDive_runner_flaggedBadge": "{count} megjelölve",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {

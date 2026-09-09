@@ -976,6 +976,20 @@
   "preDive_item_valueUnit": "الوحدة",
   "preDive_item_valueMin": "الحد الأدنى (تحذير)",
   "preDive_item_valueMax": "الحد الأقصى (تحذير)",
+  "preDive_item_type_cellLinearity": "خطية الخلية",
+  "preDive_item_sourceItem": "قراءة الهواء من",
+  "preDive_item_sourceItemRequired": "اختر العنصر الذي يحتوي على قراءة الهواء",
+  "preDive_item_linearityMin": "أدنى خطية % (تحذير)",
+  "preDive_item_linearityMax": "أقصى خطية % (تحذير)",
+  "preDive_item_sourceCleared": "لم يعد لدى {title} قراءة هواء للمقارنة بها",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "يقرأ قيمة مسجلة لاحقًا في هذه القائمة",
   "preDive_runner_progress": "{done} من {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1018,35 @@
   "preDive_runner_serviceOverdue": "الصيانة متأخرة",
   "preDive_runner_addNote": "إضافة ملاحظة",
   "preDive_runner_enterValue": "أدخل القيمة",
+  "preDive_runner_cellInAir": "في الهواء",
+  "preDive_runner_cellInAirMissing": "لم تُسجل بعد",
+  "preDive_runner_enterO2Value": "أدخل القيمة في الأكسجين النقي",
+  "preDive_runner_linearityReadout": "المتوقع {expected} mV، الخطية {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "الهواء {air} mV، المتوقع {expected} mV، الخطية {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "تغيرت قراءة الهواء منذ ذلك الحين",
   "preDive_runner_flaggedBadge": "{count} معلَّمة",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {

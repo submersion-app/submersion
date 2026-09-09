@@ -2427,6 +2427,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preDive_item_valueMax => 'Max (warning)';
 
   @override
+  String get preDive_item_type_cellLinearity => 'Cell linearity';
+
+  @override
+  String get preDive_item_sourceItem => 'Air reading from';
+
+  @override
+  String get preDive_item_sourceItemRequired =>
+      'Choose the item holding the air reading';
+
+  @override
+  String get preDive_item_linearityMin => 'Min linearity % (warning)';
+
+  @override
+  String get preDive_item_linearityMax => 'Max linearity % (warning)';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return '$title no longer has an air reading to compare against';
+  }
+
+  @override
+  String get preDive_item_sourceBelow =>
+      'Reads a value recorded later in this list';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done of $total';
   }
@@ -2463,6 +2488,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => 'Enter value';
+
+  @override
+  String get preDive_runner_cellInAir => 'In air';
+
+  @override
+  String get preDive_runner_cellInAirMissing => 'Not yet recorded';
+
+  @override
+  String get preDive_runner_enterO2Value => 'Enter value in O2';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return 'Expected $expected mV, linearity $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return 'Air $air mV, expected $expected mV, linearity $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged => 'Air reading has changed since';
 
   @override
   String preDive_runner_flaggedBadge(int count) {

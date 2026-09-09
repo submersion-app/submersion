@@ -976,6 +976,20 @@
   "preDive_item_valueUnit": "Einheit",
   "preDive_item_valueMin": "Min. (Warnung)",
   "preDive_item_valueMax": "Max. (Warnung)",
+  "preDive_item_type_cellLinearity": "Zellenlinearität",
+  "preDive_item_sourceItem": "Luftmesswert von",
+  "preDive_item_sourceItemRequired": "Wähle das Element mit dem Luftmesswert",
+  "preDive_item_linearityMin": "Min. Linearität % (Warnung)",
+  "preDive_item_linearityMax": "Max. Linearität % (Warnung)",
+  "preDive_item_sourceCleared": "{title} hat keinen Luftmesswert mehr zum Vergleich",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Verwendet einen Wert, der später in dieser Liste erfasst wird",
   "preDive_runner_progress": "{done} von {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1018,35 @@
   "preDive_runner_serviceOverdue": "Wartung überfällig",
   "preDive_runner_addNote": "Notiz hinzufügen",
   "preDive_runner_enterValue": "Wert eingeben",
+  "preDive_runner_cellInAir": "In Luft",
+  "preDive_runner_cellInAirMissing": "Noch nicht erfasst",
+  "preDive_runner_enterO2Value": "Wert in O2 eingeben",
+  "preDive_runner_linearityReadout": "Erwartet {expected} mV, Linearität {percent} %",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Luft {air} mV, erwartet {expected} mV, Linearität {percent} %",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "Luftmesswert wurde seitdem geändert",
   "preDive_runner_flaggedBadge": "{count} markiert",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {

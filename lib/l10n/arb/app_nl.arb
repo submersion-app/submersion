@@ -976,6 +976,20 @@
   "preDive_item_valueUnit": "Eenheid",
   "preDive_item_valueMin": "Min (waarschuwing)",
   "preDive_item_valueMax": "Max (waarschuwing)",
+  "preDive_item_type_cellLinearity": "Cellineariteit",
+  "preDive_item_sourceItem": "Luchtmeting van",
+  "preDive_item_sourceItemRequired": "Kies het item met de luchtmeting",
+  "preDive_item_linearityMin": "Min. lineariteit % (waarschuwing)",
+  "preDive_item_linearityMax": "Max. lineariteit % (waarschuwing)",
+  "preDive_item_sourceCleared": "{title} heeft geen luchtmeting meer om mee te vergelijken",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Gebruikt een waarde die verderop in deze lijst wordt vastgelegd",
   "preDive_runner_progress": "{done} van {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1018,35 @@
   "preDive_runner_serviceOverdue": "Onderhoud verlopen",
   "preDive_runner_addNote": "Notitie toevoegen",
   "preDive_runner_enterValue": "Waarde invoeren",
+  "preDive_runner_cellInAir": "In lucht",
+  "preDive_runner_cellInAirMissing": "Nog niet vastgelegd",
+  "preDive_runner_enterO2Value": "Voer de waarde in O2 in",
+  "preDive_runner_linearityReadout": "Verwacht {expected} mV, lineariteit {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Lucht {air} mV, verwacht {expected} mV, lineariteit {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "Luchtmeting is sindsdien gewijzigd",
   "preDive_runner_flaggedBadge": "{count} gemarkeerd",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
