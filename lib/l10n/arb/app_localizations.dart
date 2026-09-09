@@ -17532,6 +17532,18 @@ abstract class AppLocalizations {
   /// **'DPV'**
   String get enum_equipmentType_dpv;
 
+  /// No description provided for @enum_equipmentType_o2Cell.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 cell'**
+  String get enum_equipmentType_o2Cell;
+
+  /// No description provided for @enum_equipmentType_battery.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery'**
+  String get enum_equipmentType_battery;
+
   /// No description provided for @enum_equipmentType_computer.
   ///
   /// In en, this message translates to:
@@ -42341,6 +42353,24 @@ abstract class AppLocalizations {
   /// **'Burn time'**
   String get attrLabel_burn_time_h;
 
+  /// No description provided for @attrLabel_cell_slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell slot'**
+  String get attrLabel_cell_slot;
+
+  /// No description provided for @attrLabel_installed_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get attrLabel_installed_date;
+
+  /// No description provided for @attrLabel_rechargeable.
+  ///
+  /// In en, this message translates to:
+  /// **'Rechargeable'**
+  String get attrLabel_rechargeable;
+
   /// No description provided for @attrLabel_battery_type.
   ///
   /// In en, this message translates to:
@@ -42976,6 +43006,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lead-acid'**
   String get attrChoice_battery_type_lead_acid;
+
+  /// No description provided for @attrChoice_battery_type_alkaline.
+  ///
+  /// In en, this message translates to:
+  /// **'Alkaline'**
+  String get attrChoice_battery_type_alkaline;
+
+  /// No description provided for @attrChoice_battery_type_lithium_primary.
+  ///
+  /// In en, this message translates to:
+  /// **'Lithium (non-rechargeable)'**
+  String get attrChoice_battery_type_lithium_primary;
 
   /// No description provided for @attrChoice_motor_type_brushless.
   ///

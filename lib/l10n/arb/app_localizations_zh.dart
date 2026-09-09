@@ -9952,6 +9952,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => '氧电池';
+
+  @override
+  String get enum_equipmentType_battery => '电池';
+
+  @override
   String get enum_equipmentType_computer => '潜水电脑';
 
   @override
@@ -24376,6 +24382,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_burn_time_h => '续航时间';
 
   @override
+  String get attrLabel_cell_slot => '电池槽位';
+
+  @override
+  String get attrLabel_installed_date => '安装日期';
+
+  @override
+  String get attrLabel_rechargeable => '可充电';
+
+  @override
   String get attrLabel_battery_type => '电池';
 
   @override
@@ -24692,6 +24707,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => '铅酸';
+
+  @override
+  String get attrChoice_battery_type_alkaline => '碱性';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary => '锂（不可充电）';
 
   @override
   String get attrChoice_motor_type_brushless => '无刷';

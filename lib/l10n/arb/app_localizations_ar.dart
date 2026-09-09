@@ -10250,6 +10250,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'خلية أكسجين';
+
+  @override
+  String get enum_equipmentType_battery => 'بطارية';
+
+  @override
   String get enum_equipmentType_computer => 'حاسوب غوص';
 
   @override
@@ -25249,6 +25255,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_burn_time_h => 'زمن التشغيل';
 
   @override
+  String get attrLabel_cell_slot => 'موضع الخلية';
+
+  @override
+  String get attrLabel_installed_date => 'تاريخ التركيب';
+
+  @override
+  String get attrLabel_rechargeable => 'قابلة لإعادة الشحن';
+
+  @override
   String get attrLabel_battery_type => 'البطارية';
 
   @override
@@ -25565,6 +25580,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'حمض الرصاص';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'قلوية';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary =>
+      'ليثيوم (غير قابلة لإعادة الشحن)';
 
   @override
   String get attrChoice_motor_type_brushless => 'بدون فرشات';

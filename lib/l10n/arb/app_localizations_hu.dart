@@ -10414,6 +10414,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'O2-cella';
+
+  @override
+  String get enum_equipmentType_battery => 'Akkumulátor';
+
+  @override
   String get enum_equipmentType_computer => 'Merulesszamitogep';
 
   @override
@@ -25608,6 +25614,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_burn_time_h => 'Üzemidő';
 
   @override
+  String get attrLabel_cell_slot => 'Cellahely';
+
+  @override
+  String get attrLabel_installed_date => 'Beszerelve';
+
+  @override
+  String get attrLabel_rechargeable => 'Újratölthető';
+
+  @override
   String get attrLabel_battery_type => 'Akkumulátor';
 
   @override
@@ -25924,6 +25939,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'Ólom-savas';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'Alkáli';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary =>
+      'Lítium (nem újratölthető)';
 
   @override
   String get attrChoice_motor_type_brushless => 'Szénkefe nélküli';

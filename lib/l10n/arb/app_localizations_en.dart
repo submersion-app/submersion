@@ -10270,6 +10270,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'O2 cell';
+
+  @override
+  String get enum_equipmentType_battery => 'Battery';
+
+  @override
   String get enum_equipmentType_computer => 'Dive Computer';
 
   @override
@@ -25275,6 +25281,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_burn_time_h => 'Burn time';
 
   @override
+  String get attrLabel_cell_slot => 'Cell slot';
+
+  @override
+  String get attrLabel_installed_date => 'Installed';
+
+  @override
+  String get attrLabel_rechargeable => 'Rechargeable';
+
+  @override
   String get attrLabel_battery_type => 'Battery';
 
   @override
@@ -25591,6 +25606,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'Lead-acid';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'Alkaline';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary =>
+      'Lithium (non-rechargeable)';
 
   @override
   String get attrChoice_motor_type_brushless => 'Brushless';

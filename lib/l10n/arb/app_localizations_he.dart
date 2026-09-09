@@ -10192,6 +10192,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'תא חמצן';
+
+  @override
+  String get enum_equipmentType_battery => 'סוללה';
+
+  @override
   String get enum_equipmentType_computer => 'מחשב צלילה';
 
   @override
@@ -25069,6 +25075,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_burn_time_h => 'זמן פעולה';
 
   @override
+  String get attrLabel_cell_slot => 'מיקום התא';
+
+  @override
+  String get attrLabel_installed_date => 'תאריך התקנה';
+
+  @override
+  String get attrLabel_rechargeable => 'נטענת';
+
+  @override
   String get attrLabel_battery_type => 'סוללה';
 
   @override
@@ -25385,6 +25400,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'עופרת-חומצה';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'אלקליין';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary => 'ליתיום (לא נטענת)';
 
   @override
   String get attrChoice_motor_type_brushless => 'ללא מברשות';
