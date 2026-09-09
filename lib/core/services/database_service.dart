@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
+import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/database/background_database_connection.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_connection_setup.dart';
@@ -745,7 +746,7 @@ class DatabaseService {
   /// Get the default database path
   Future<String> _getDefaultPath() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    return p.join(dbFolder.path, 'Submersion', 'submersion.db');
+    return p.join(dbFolder.path, kAppDocumentsFolder, 'submersion.db');
   }
 
   /// Get the current database path (async version for external use)

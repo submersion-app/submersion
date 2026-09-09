@@ -909,7 +909,7 @@ class MediaRepository {
     }
   }
 
-  /// Points every row that references the local file at [from] at [to]
+  /// Points every row that references the local file at [from] to [to]
   /// instead, in `file_path` and, where it mirrors the same path, in
   /// `local_path`.
   ///

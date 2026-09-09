@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -37,16 +38,6 @@ class ImportResult {
   bool get allSucceeded => failures.isEmpty;
 }
 
-/// The folder under the platform documents directory that holds everything
-/// the app owns there: the database, its backups, and the scanned-page
-/// copies written by [MediaImportService.importLocalFileForDive].
-///
-/// On Windows and Linux `getApplicationDocumentsDirectory()` is the user's
-/// own Documents folder, so a file written directly under it sits among
-/// their personal files (issue #1645). Keep this in step with the literal in
-/// `DatabaseLocationService.getDefaultDatabaseDirectory`.
-const String kAppDocumentsFolder = 'Submersion';
-
 /// Where the OCR scan flow files its logbook-page copies, relative to
 /// [kAppDocumentsFolder].
 const String kScannedLogsSubdirectory = 'scanned_logs';
@@ -79,7 +70,8 @@ class MediaImportService {
   final void Function(String mediaId)? onMediaCreated;
 
   /// The directory [importLocalFileForDive] writes into for [subdirectory]:
-  /// `<documents>/Submersion/<subdirectory>`.
+  /// `<documents>/Submersion/<subdirectory>`, the same [kAppDocumentsFolder]
+  /// the database lives in.
   ///
   /// Public so the one-time folder migration can name the same destination
   /// without a second copy of the layout.

@@ -13,8 +13,9 @@ enum ScannedLogsMigrationOutcome {
   /// platform, or a machine that already migrated on an earlier launch.
   noLegacyData,
 
-  /// The legacy folder was found and at least one page was moved, skipped,
-  /// or left for a retry. Look at the counts for the detail.
+  /// The legacy folder was found and processed. The counts say what
+  /// happened to each page; all zero means the folder held no pages and has
+  /// simply been removed.
   migrated,
 
   /// Nothing was moved: the documents directory could not be resolved, the
