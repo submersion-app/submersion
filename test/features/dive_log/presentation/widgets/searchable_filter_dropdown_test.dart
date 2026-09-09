@@ -73,7 +73,7 @@ void main() {
     return tester
         .widgetList<Text>(
           find.descendant(
-            of: find.byType(InkWell),
+            of: find.byKey(searchableFilterOptionsKey),
             matching: find.byType(Text),
           ),
         )
