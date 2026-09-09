@@ -320,10 +320,13 @@ class _PreDiveTemplateEditPageState
                                     l10n.preDive_item_required,
                                 ].join(' - '),
                               ),
-                              // A linearity row that sorts above its source
-                              // only bites in a strict-order template, where
-                              // the diver would reach it before the air
-                              // reading exists. Warn, never block.
+                              // A linearity row that sorts above its
+                              // source is worth flagging in either mode:
+                              // strict order makes it unavoidable, and
+                              // without it a diver working top to bottom
+                              // still meets the row before the air reading
+                              // exists. See _readsLaterValue. Warn, never
+                              // block.
                               if (_readsLaterValue(i))
                                 Text(
                                   l10n.preDive_item_sourceBelow,

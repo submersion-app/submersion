@@ -272,6 +272,36 @@ void main() {
       );
     });
 
+    test('a source that is not a value item degrades the same way', () {
+      // Reachable by retyping the air item from value to check: the id still
+      // resolves, so an existence check alone leaves the item typed
+      // cellLinearity while its source can never carry a number.
+      final out = SessionItemComposer.compose(
+        templateItems: [
+          tItem(0),
+          linearityTItem(1, sourceItemId: 't0', min: 95),
+        ],
+        now: now,
+      );
+      expect(out[1].itemType, PreDiveItemType.value);
+      expect(out[1].sourceItemId, isNull);
+      expect(out[1].valueMin, isNull);
+      expect(out[1].valueMax, isNull);
+    });
+
+    test('an equipment-set source is not usable either', () {
+      final out = SessionItemComposer.compose(
+        templateItems: [
+          tItem(0, type: PreDiveItemType.equipmentSet),
+          linearityTItem(1, sourceItemId: 't0', min: 95),
+        ],
+        now: now,
+      );
+      final linearity = out.firstWhere((i) => i.title == 'Cell mV in O2');
+      expect(linearity.itemType, PreDiveItemType.value);
+      expect(linearity.sourceItemId, isNull);
+    });
+
     test('an intact link keeps its thresholds', () {
       final out = SessionItemComposer.compose(
         templateItems: [

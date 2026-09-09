@@ -53,6 +53,7 @@ class SessionItemComposer {
     final sessionIdByTemplateId = <String, String>{
       for (final t in sorted) t.id: _uuid.v4(),
     };
+    final templateItemById = {for (final t in sorted) t.id: t};
 
     final out = <PreDiveSessionItem>[];
     var order = 0;
@@ -106,13 +107,22 @@ class SessionItemComposer {
           ? PreDiveItemType.check
           : t.itemType;
 
-      // A cellLinearity item whose source is missing degrades to a plain
-      // value item rather than a check: the diver is standing there with a
-      // meter, so the oxygen reading is still worth recording even though
-      // the ratio cannot be computed.
-      final sourceSessionId = t.sourceItemId == null
+      // A usable source is one that actually records a number, so the id
+      // resolving is not enough: retyping the air item from value to check
+      // leaves the link pointing at a row that can never carry a reading.
+      // Anything but a value item is treated exactly like a missing source.
+      final sourceTemplateItem = t.sourceItemId == null
           ? null
-          : sessionIdByTemplateId[t.sourceItemId];
+          : templateItemById[t.sourceItemId];
+      final sourceSessionId =
+          sourceTemplateItem?.itemType == PreDiveItemType.value
+          ? sessionIdByTemplateId[t.sourceItemId]
+          : null;
+
+      // A cellLinearity item whose source is missing or unusable degrades to
+      // a plain value item rather than a check: the diver is standing there
+      // with a meter, so the oxygen reading is still worth recording even
+      // though the ratio cannot be computed.
       final degraded =
           effectiveType == PreDiveItemType.cellLinearity &&
           sourceSessionId == null;
