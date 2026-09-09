@@ -442,19 +442,29 @@ class SyncInitializer {
   /// the freshly minted identity simply pulls; deleting them costs the library
   /// (issue #1551).
   ///
-  /// Only a manifest counts. A half-finished publish (base parts, no manifest)
-  /// is not a library anyone can pull, and a retirement marker is a tombstone,
-  /// so [classifyPeerFiles] rules both out. A listing we could not read is not
-  /// evidence of a second copy either, so a failure answers false.
+  /// Only a manifest counts, and only one filed under a device id that parses.
+  /// A half-finished publish (base parts, no manifest) is not a library anyone
+  /// can pull, and a retirement marker is a tombstone, so [classifyPeerFiles]
+  /// rules both out. A listing we could not read is not evidence of a second
+  /// copy either, so a failure answers false -- as does one that stalls past
+  /// [timeout], which also keeps reset from hanging behind its non-dismissible
+  /// progress dialog.
   Future<bool> anotherDevicePublishesLibrary(
     String deviceId,
-    CloudStorageProvider provider,
-  ) async {
+    CloudStorageProvider provider, {
+    @visibleForTesting Duration timeout = const Duration(seconds: 8),
+  }) async {
     try {
-      final files = await _changesetLogFiles(provider);
-      final others = files
-          .where((f) => ChangesetLogLayout.deviceIdOf(f.name) != deviceId)
-          .toList();
+      final files = await _changesetLogFiles(provider).timeout(timeout);
+      final others = files.where((f) {
+        final id = ChangesetLogLayout.deviceIdOf(f.name);
+        // A name that parses to no device id was published by no device.
+        // isManifest matches on prefix and suffix alone, so "ssv1..manifest
+        // .json" would otherwise pass as a peer's library and license the
+        // delete. Elsewhere an unparseable name is merely pulled and ignored;
+        // here it would cost the library, so it is dropped.
+        return id != null && id != deviceId;
+      }).toList();
       return classifyPeerFiles(others) == PeerLibraryState.pullable;
     } catch (e) {
       _log.warning(

@@ -426,6 +426,43 @@ void main() {
       );
     });
 
+    test('is false when a manifest-shaped name carries no device id', () async {
+      // isManifest() matches on prefix and suffix alone, so a malformed name
+      // passes it while deviceIdOf() yields null. Counting that as a peer
+      // would license deleting the retired id's files -- possibly the only
+      // library -- on the strength of a file no device ever published.
+      final ownId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName(ownId));
+      await provider.uploadFile(
+        _payload,
+        '${ChangesetLogLayout.prefix}.manifest.json',
+      );
+
+      expect(
+        await initializer.anotherDevicePublishesLibrary(ownId, provider),
+        isFalse,
+      );
+    });
+
+    test('is false when the listing stalls', () async {
+      // resetSyncState runs behind a non-dismissible progress dialog, so an
+      // unbounded listing would strand the user; and a listing that never
+      // answered is not evidence of a second copy.
+      final ownId = await repository.getDeviceId();
+      await provider.uploadFile(_payload, peerFileName(ownId));
+      await provider.uploadFile(_payload, peerFileName('deviceB'));
+      provider.hangOperations = true;
+
+      expect(
+        await initializer.anotherDevicePublishesLibrary(
+          ownId,
+          provider,
+          timeout: const Duration(milliseconds: 20),
+        ),
+        isFalse,
+      );
+    });
+
     test('is false when the listing cannot be read', () async {
       final ownId = await repository.getDeviceId();
       await provider.uploadFile(_payload, peerFileName(ownId));
