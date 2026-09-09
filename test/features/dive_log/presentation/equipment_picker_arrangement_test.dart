@@ -201,6 +201,43 @@ void main() {
     expect(find.text('Clear All'), findsOneWidget);
   });
 
+  testWidgets('a fully-selected type is not offered as a filter chip', (
+    tester,
+  ) async {
+    // Chips come from what the picker can show, not from everything the diver
+    // owns. Offering Tank here would give a chip that could only ever produce
+    // an empty list, and an empty state blaming the filter.
+    await pumpPicker(tester, selected: {'tank-1'});
+
+    await tester.tap(find.byTooltip('Filter Equipment'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('picker_filter_type_tank')), findsNothing);
+    expect(
+      find.byKey(const ValueKey('picker_filter_type_regulator')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the current filter stays offered even once nothing matches', (
+    tester,
+  ) async {
+    // Otherwise an active filter would become unclearable from the sheet.
+    await pumpPicker(
+      tester,
+      selected: {'tank-1'},
+      filter: const EquipmentPickerFilter(type: EquipmentType.tank),
+    );
+
+    await tester.tap(find.byTooltip('Filter Equipment'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('picker_filter_type_tank')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('the filter action opens the filter sheet', (tester) async {
     await pumpPicker(tester);
 

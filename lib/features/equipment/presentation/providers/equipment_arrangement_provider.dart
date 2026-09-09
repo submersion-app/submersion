@@ -70,9 +70,9 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
       stored = await _repository.getEquipmentArrangement();
     } catch (e, stackTrace) {
       // The repository logs and swallows its own read errors, so this only
-      // fires when the read could not be attempted at all. Keep the defaults:
-      // an unreadable preference should cost the diver their customization,
-      // not their gear list.
+      // fires when the read could not be attempted at all. Keep the defaults
+      // rather than failing: the diver falls back to the default arrangement,
+      // which is a far better outcome than a gear list that will not render.
       _log.error(
         'Failed to load equipment arrangement',
         error: e,

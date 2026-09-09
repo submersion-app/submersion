@@ -180,8 +180,15 @@ class EquipmentPickerSheet extends ConsumerWidget {
     List<EquipmentItem> equipment,
   ) async {
     final current = ref.read(equipmentPickerFilterProvider);
-    final presentTypes = equipment.map((e) => e.type).toSet();
-    final presentStatuses = equipment.map((e) => e.status).toSet();
+    // Derived from what the picker can actually show, which excludes gear
+    // already on the dive. Deriving them from the full active list would
+    // offer a chip for a type whose every item is already selected, and
+    // choosing it could only ever produce an empty list.
+    final selectable = equipment
+        .where((e) => !selectedEquipmentIds.contains(e.id))
+        .toList();
+    final presentTypes = selectable.map((e) => e.type).toSet();
+    final presentStatuses = selectable.map((e) => e.status).toSet();
 
     final chosen = await showEquipmentPickerFilterSheet(
       context,
