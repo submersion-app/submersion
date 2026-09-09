@@ -17,7 +17,9 @@ void main() {
     // Renumbered from 197: main landed the planner salinity (197) and
     // planner water-type (198) rungs while this branch was open, and a
     // rung at or below the shipped version never runs its onUpgrade step.
-    expect(AppDatabase.currentSchemaVersion, 199);
+    // Relaxed once v201 (equipment assemblies) landed on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(199));
     expect(AppDatabase.migrationVersions, contains(199));
   });
 
