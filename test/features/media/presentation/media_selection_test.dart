@@ -497,16 +497,24 @@ void main() {
     // regression guard for the whole rule on a real surface.
     final platform = _FakeSharePlatform();
     late Directory tempDir;
+    late PathProviderPlatform originalPathProvider;
 
     setUpAll(() => SharePlatform.instance = platform);
 
     setUp(() async {
       platform.calls.clear();
       tempDir = await Directory.systemTemp.createTemp('library-share-test');
+      // PathProviderPlatform is read per call, so a fake left installed points
+      // later tests in this isolate at a temp directory that tearDown has
+      // already deleted. Put the real one back.
+      originalPathProvider = PathProviderPlatform.instance;
       PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
     });
 
-    tearDown(() => tempDir.delete(recursive: true));
+    tearDown(() async {
+      PathProviderPlatform.instance = originalPathProvider;
+      await tempDir.delete(recursive: true);
+    });
 
     Widget host(List<MediaLibraryEntry> entries) => ProviderScope(
       overrides: [

@@ -33,9 +33,14 @@ class _FakePathProvider extends PathProviderPlatform
 class _FakeSharePlatform extends SharePlatform {
   final List<ShareParams> calls = [];
 
+  /// Makes the platform call fail after it has been recorded, which is how a
+  /// real share sheet fails: invoked, then thrown out of.
+  bool throwOnShare = false;
+
   @override
   Future<ShareResult> share(ShareParams params) async {
     calls.add(params);
+    if (throwOnShare) throw StateError('share sheet unavailable');
     return const ShareResult('ok', ShareResultStatus.success);
   }
 }
@@ -59,16 +64,24 @@ void main() {
   // is exactly one, reset between tests.
   final platform = _FakeSharePlatform();
   late Directory tempDir;
+  late PathProviderPlatform originalPathProvider;
 
   setUpAll(() => SharePlatform.instance = platform);
 
   setUp(() async {
     platform.calls.clear();
     tempDir = await Directory.systemTemp.createTemp('share-helper-test');
+    // Unlike SharePlatform above, PathProviderPlatform is read per call, so
+    // leaving the fake installed points later tests in this isolate at a temp
+    // directory tearDown has already deleted.
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
   });
 
-  tearDown(() => tempDir.delete(recursive: true));
+  tearDown(() async {
+    PathProviderPlatform.instance = originalPathProvider;
+    await tempDir.delete(recursive: true);
+  });
 
   Widget host({
     required List<MediaItem> items,
@@ -390,6 +403,73 @@ void main() {
       // TextButton, not just its label.
       expect(origin, tester.getRect(find.byType(TextButton)));
       expect(origin!.isEmpty, isFalse);
+    });
+  });
+
+  group('a failing share leaves the page it was opened from', () {
+    // The progress dialog is popped before the platform call, and the catch
+    // popped again. A throwing share therefore took the route UNDERNEATH the
+    // dialog with it, dropping the diver out of the page they shared from.
+    testWidgets('a throwing share sheet does not pop the page underneath', (
+      tester,
+    ) async {
+      platform.throwOnShare = true;
+      addTearDown(() => platform.throwOnShare = false);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            resolvedFullResolutionProvider.overrideWith(
+              (ref, MediaItem arg) async => resolved(),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => Scaffold(
+                        body: Consumer(
+                          builder: (context, ref, _) => Column(
+                            children: [
+                              const Text('DETAIL'),
+                              TextButton(
+                                onPressed: () =>
+                                    shareMediaItems(context, ref, [item('a')]),
+                                child: const Text('SHARE'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: const Text('OPEN'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('OPEN'));
+      await tester.pumpAndSettle();
+      expect(find.text('DETAIL'), findsOneWidget);
+
+      await tapShareAndDrain(tester);
+      await tester.pumpAndSettle();
+
+      expect(platform.calls, hasLength(1));
+      expect(
+        find.text('DETAIL'),
+        findsOneWidget,
+        reason: 'a failed share must dismiss its own dialog, nothing else',
+      );
+      expect(find.textContaining('Failed to share'), findsOneWidget);
     });
   });
 }

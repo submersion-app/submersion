@@ -43,6 +43,17 @@ Future<bool> shareMediaItems(
         const Center(child: CircularProgressIndicator(color: Colors.white)),
   );
 
+  // The dialog is popped before the platform call so the share sheet is not
+  // raised behind a modal, which leaves the catch below with nothing of its
+  // own to dismiss. Without this flag a throwing share popped a second time
+  // and took the page the diver shared FROM with it.
+  var dialogVisible = true;
+  void dismissDialog() {
+    if (!dialogVisible || !context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+    dialogVisible = false;
+  }
+
   try {
     final files = <XFile>[];
     for (final item in items) {
@@ -54,9 +65,7 @@ Future<bool> shareMediaItems(
       files.add(XFile(file.path, mimeType: item.shareMimeType));
     }
 
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-    }
+    dismissDialog();
     if (files.isEmpty) {
       if (context.mounted) {
         _showError(context, l10n.media_photoViewer_cannotShare);
@@ -68,8 +77,8 @@ Future<bool> shareMediaItems(
     );
     return true;
   } catch (e) {
+    dismissDialog();
     if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
       _showError(context, l10n.media_photoViewer_failedToShare(e.toString()));
     }
     return false;
