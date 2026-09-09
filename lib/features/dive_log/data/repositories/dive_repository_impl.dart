@@ -2829,11 +2829,22 @@ class DiveRepository {
   /// comparison has to ignore the view filter. Trips with no dives are absent
   /// rather than zero, which is what the header wants anyway.
   // stats-scope-exempt: a structural count for list chrome, not a statistic.
-  Future<Map<String, int>> getTripDiveCounts() async {
+  Future<Map<String, int>> getTripDiveCounts({String? diverId}) async {
+    // Scoped to the active diver like every other list query: without it a
+    // shared library counts other divers' dives into the header and reads
+    // more rows than the list will ever show.
+    final whereClauses = <String>['trip_id IS NOT NULL'];
+    final args = <Variable<Object>>[];
+    if (diverId != null) {
+      whereClauses.add('diver_id = ?');
+      args.add(Variable(diverId));
+    }
+
     final rows = await _db
         .customSelect(
           'SELECT trip_id, COUNT(*) AS n FROM dives '
-          'WHERE trip_id IS NOT NULL GROUP BY trip_id',
+          'WHERE ${whereClauses.join(' AND ')} GROUP BY trip_id',
+          variables: args,
           readsFrom: {_db.dives},
         )
         .get();

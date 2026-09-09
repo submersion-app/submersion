@@ -385,8 +385,9 @@ final diveListGroupingPausedBySortProvider = Provider<bool>((ref) {
 /// trip's real size, not its size under the current view filter (#1193).
 final tripDiveCountsProvider = FutureProvider<Map<String, int>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
+  final diverId = ref.watch(currentDiverIdProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
-  return repository.getTripDiveCounts();
+  return repository.getTripDiveCounts(diverId: diverId);
 });
 
 /// Dive records (superlatives) provider (filtered by current diver).

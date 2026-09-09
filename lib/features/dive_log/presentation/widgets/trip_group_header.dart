@@ -219,13 +219,11 @@ class TripGroupHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(TripGroupHeaderDelegate oldDelegate) {
-    return oldDelegate.section.tripId != section.tripId ||
-        oldDelegate.section.tripName != section.tripName ||
-        oldDelegate.section.collapsed != section.collapsed ||
-        oldDelegate.section.loadedCount != section.loadedCount ||
-        oldDelegate.section.totalCount != section.totalCount ||
-        oldDelegate.extent != extent ||
-        oldDelegate.isSelectionMode != isSelectionMode ||
-        oldDelegate.groupChecked != groupChecked;
+    // Always. Every callback here is a fresh closure built by the list, and
+    // the selection one captures the group's dive ids by value. Comparing
+    // only the visible fields would let a stale closure survive a rebuild
+    // and act on an outdated group, which is a correctness bug for the sake
+    // of skipping the rebuild of one small row.
+    return true;
   }
 }

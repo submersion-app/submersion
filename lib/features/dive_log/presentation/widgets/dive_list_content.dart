@@ -1810,10 +1810,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     return DecoratedSliver(
       decoration: BoxDecoration(
-        color: scheme.secondaryContainer.withValues(alpha: 0.14),
+        // The band is the only thing besides the header marking the group,
+        // now that the side rail was dropped, so it has to be legible rather
+        // than merely present. The original 0.14 fill read as almost nothing
+        // on a real library.
+        color: scheme.secondaryContainer.withValues(alpha: 0.38),
         border: Border(
-          top: BorderSide(color: scheme.secondary.withValues(alpha: 0.22)),
-          bottom: BorderSide(color: scheme.secondary.withValues(alpha: 0.22)),
+          top: BorderSide(
+            color: scheme.secondary.withValues(alpha: 0.55),
+            width: 1.5,
+          ),
+          bottom: BorderSide(
+            color: scheme.secondary.withValues(alpha: 0.55),
+            width: 1.5,
+          ),
         ),
       ),
       sliver: SliverMainAxisGroup(

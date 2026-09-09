@@ -34,7 +34,20 @@ void main() {
         );
   }
 
-  Future<void> insertDive(String id, {String? tripId}) async {
+  Future<void> insertDiver(String id) async {
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion(
+            id: Value(id),
+            name: Value('Diver $id'),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  Future<void> insertDive(String id, {String? tripId, String? diverId}) async {
     await db
         .into(db.dives)
         .insert(
@@ -44,6 +57,7 @@ void main() {
               asWallClockUtc(DateTime(2026, 6, 8)).millisecondsSinceEpoch,
             ),
             tripId: Value(tripId),
+            diverId: Value(diverId),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
@@ -71,6 +85,37 @@ void main() {
 
       expect(await repository.getTripDiveCounts(), isEmpty);
     });
+
+    test('counts only the named diver\'s dives', () async {
+      await insertDiver('diver-a');
+      await insertDiver('diver-b');
+      await insertTrip('t1');
+      await insertDive('d1', tripId: 't1', diverId: 'diver-a');
+      await insertDive('d2', tripId: 't1', diverId: 'diver-a');
+      await insertDive('d3', tripId: 't1', diverId: 'diver-b');
+
+      final counts = await repository.getTripDiveCounts(diverId: 'diver-a');
+
+      expect(
+        counts['t1'],
+        2,
+        reason:
+            "a shared library must not count another diver's dives "
+            'into this diver\'s trip header',
+      );
+    });
+
+    test(
+      'a null diver id counts every dive, as the unscoped call did',
+      () async {
+        await insertDiver('diver-a');
+        await insertTrip('t1');
+        await insertDive('d1', tripId: 't1', diverId: 'diver-a');
+        await insertDive('d2', tripId: 't1');
+
+        expect((await repository.getTripDiveCounts())['t1'], 2);
+      },
+    );
 
     test('a trip with no dives is absent rather than zero', () async {
       await insertTrip('t1');

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -254,6 +255,87 @@ void main() {
 
       expect(find.byType(TripGroupHeader), findsNothing);
       expect(find.text('Site d1'), findsOneWidget);
+    });
+
+    testWidgets('a collapsed trip auto-expands when it holds the open dive', (
+      tester,
+    ) async {
+      // The list must never fold away the dive the diver is looking at, even
+      // when that dive's trip is in the collapsed set.
+      final overrides = await groupingOverrides(
+        [makeDive('d1', tripId: 't1', tripName: 'Tassie')],
+        tripTotals: const {'t1': 1},
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: const DiveListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(TripGroupHeader));
+      await tester.pumpAndSettle();
+      expect(find.text('Site d1'), findsNothing);
+
+      // Re-pump with that dive selected, as the master-detail pane would.
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: const DiveListContent(showAppBar: false, selectedId: 'd1'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Site d1'),
+        findsOneWidget,
+        reason: 'the open dive forces its trip back open',
+      );
+    });
+
+    testWidgets('the open-trip button navigates to the trip', (tester) async {
+      final overrides = await groupingOverrides(
+        [makeDive('d1', tripId: 't1', tripName: 'Tassie')],
+        tripTotals: const {'t1': 1},
+      );
+
+      String? visited;
+      final router = GoRouter(
+        initialLocation: '/dives',
+        routes: [
+          GoRoute(
+            path: '/dives',
+            builder: (_, _) =>
+                const Scaffold(body: DiveListContent(showAppBar: false)),
+          ),
+          GoRoute(
+            path: '/trips/:id',
+            builder: (_, state) {
+              visited = state.pathParameters['id'];
+              return const Scaffold(body: Text('trip page'));
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        testAppRouter(
+          router: router,
+          locale: const Locale('en'),
+          overrides: overrides,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.open_in_new));
+      await tester.pumpAndSettle();
+
+      expect(visited, 't1');
+      expect(find.text('trip page'), findsOneWidget);
     });
 
     testWidgets('a fully collapsed page still asks for the next one', (
