@@ -86,6 +86,14 @@ class ScheduledNotificationRepository {
     return row != null;
   }
 
+  /// Delete one ledger row by its id (used when a usage reminder is
+  /// reconciled away because its clock is no longer due).
+  Future<void> deleteById(String id) async {
+    await (_db.delete(
+      _db.scheduledNotifications,
+    )..where((t) => t.id.equals(id))).go();
+  }
+
   /// Record a scheduled notification
   Future<void> recordScheduled({
     required String equipmentId,

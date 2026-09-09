@@ -3,8 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart'
+    as domain;
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
 import 'package:submersion/features/notifications/data/services/notification_scheduler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -78,6 +81,59 @@ void main() {
       hasLength(1),
     );
   });
+
+  test(
+    'a service record logged before the reminder fires cancels it',
+    () async {
+      final reg = await EquipmentRepository().createEquipment(
+        EquipmentItem(
+          id: '',
+          name: 'Reg',
+          type: EquipmentType.regulator,
+          purchaseDate: DateTime(2025, 1, 1),
+        ),
+      );
+      final scheduleRepo = ServiceScheduleRepository();
+      final regService = (await scheduleRepo.getSchedulesForEquipment(
+        reg.id,
+      )).firstWhere((s) => s.serviceKindId == 'regulator-service');
+      // Two dives against a two-dive interval: overdue now, and after the
+      // record the full interval remains, well outside the due-soon band.
+      await scheduleRepo.updateSchedule(
+        regService.copyWith(intervalDays: 3650, intervalDives: 2),
+      );
+      await linkDive('d1', reg.id);
+      await linkDive('d2', reg.id);
+      await NotificationScheduler().scheduleAll(settings: const AppSettings());
+      expect(
+        (await db.select(db.scheduledNotifications).get()).where(
+          (r) => r.reminderDaysBefore == kUsageReminderDaysBefore,
+        ),
+        hasLength(1),
+      );
+
+      // Servicing the regulator today moves the anchor past the dive.
+      final now = DateTime.now();
+      await ServiceRecordRepository().createRecord(
+        domain.ServiceRecord(
+          id: '',
+          equipmentId: reg.id,
+          serviceCategory: ServiceCategory.annual,
+          serviceKindId: 'regulator-service',
+          serviceDate: now,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await NotificationScheduler().scheduleAll(settings: const AppSettings());
+      expect(
+        (await db.select(db.scheduledNotifications).get()).where(
+          (r) => r.reminderDaysBefore == kUsageReminderDaysBefore,
+        ),
+        isEmpty,
+      );
+    },
+  );
 
   test('an ok usage clock schedules nothing', () async {
     final reg = await EquipmentRepository().createEquipment(

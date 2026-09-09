@@ -8,6 +8,17 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
+/// Counts threshold writes so a single Done action is proven to commit once.
+class _CountingSettingsNotifier extends MockSettingsNotifier {
+  int coldWrites = 0;
+
+  @override
+  Future<void> setColdWaterThresholdC(double value) async {
+    coldWrites++;
+    return super.setColdWaterThresholdC(value);
+  }
+}
+
 Widget _build(MockSettingsNotifier notifier) => ProviderScope(
   overrides: [settingsProvider.overrideWith((ref) => notifier)],
   child: const MaterialApp(
@@ -22,7 +33,7 @@ void main() {
   testWidgets('shows the defaults in metric and saves a new cold line', (
     tester,
   ) async {
-    final notifier = MockSettingsNotifier();
+    final notifier = _CountingSettingsNotifier();
     await tester.pumpWidget(_build(notifier));
     await tester.pumpAndSettle();
 
@@ -35,6 +46,8 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     expect(notifier.state.coldWaterThresholdC, 8.0);
+    // Done reaches both the submit and the focus-loss path; one write.
+    expect(notifier.coldWrites, 1);
   });
 
   testWidgets('imperial divers edit in their units and store metric', (

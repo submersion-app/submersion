@@ -95,18 +95,31 @@ class _ThresholdField extends StatefulWidget {
 
 class _ThresholdFieldState extends State<_ThresholdField> {
   late final TextEditingController _controller;
+  final _focus = FocusNode();
   String? _error;
+
+  /// The text last handed to [widget.onSubmit], so the Done action (which
+  /// reaches both the submit and the focus-loss path) and a tap elsewhere
+  /// write once per edit.
+  String? _committed;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: _seed());
+    _committed = _controller.text;
+    _focus.addListener(() {
+      if (!_focus.hasFocus) _commit();
+    });
   }
 
   @override
   void didUpdateWidget(_ThresholdField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.seedKey != widget.seedKey) _controller.text = _seed();
+    if (oldWidget.seedKey != widget.seedKey) {
+      _controller.text = _seed();
+      _committed = _controller.text;
+    }
   }
 
   /// One decimal, then the diver's decimal separator; a whole number reads
@@ -116,16 +129,20 @@ class _ThresholdFieldState extends State<_ThresholdField> {
 
   @override
   void dispose() {
+    _focus.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   void _commit() {
-    final parsed = parseUserDecimal(_controller.text);
+    final text = _controller.text;
+    if (text == _committed) return;
+    final parsed = parseUserDecimal(text);
     if (parsed == null) {
       setState(() => _error = context.l10n.equipmentConditionSettings_invalid);
       return;
     }
+    _committed = text;
     setState(() => _error = null);
     widget.onSubmit(parsed);
   }
@@ -134,6 +151,7 @@ class _ThresholdFieldState extends State<_ThresholdField> {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: _controller,
+      focusNode: _focus,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       textInputAction: TextInputAction.done,
       decoration: InputDecoration(
@@ -142,7 +160,6 @@ class _ThresholdFieldState extends State<_ThresholdField> {
         errorText: _error,
       ),
       onFieldSubmitted: (_) => _commit(),
-      onEditingComplete: _commit,
     );
   }
 }

@@ -77,6 +77,7 @@ class NotificationScheduler {
         settings: settings,
       );
       statusesByItem[item.id] = statuses;
+      await _reconcileUsageReminders(item: item, statuses: statuses);
       for (final status in statuses) {
         await _scheduleForClock(
           item: item,
@@ -230,6 +231,29 @@ class NotificationScheduler {
         notificationId: notificationId,
         scheduleId: status.schedule.id,
       );
+    }
+  }
+
+  /// Cancel usage reminders whose clock is no longer due: a service record
+  /// logged before the reminder fired moved the anchor, or the schedule was
+  /// removed or paused. The platform notification is cancelled by its
+  /// recorded id and the ledger row dropped, so the next evaluation can arm
+  /// a fresh one against the new anchor.
+  Future<void> _reconcileUsageReminders({
+    required EquipmentItem item,
+    required List<ServiceClockStatus> statuses,
+  }) async {
+    final recorded = await _scheduledNotificationRepository.getForEquipment(
+      item.id,
+    );
+    final dueBySchedule = {
+      for (final s in statuses) s.schedule.id: _usageDue(s),
+    };
+    for (final row in recorded) {
+      if (row.reminderDaysBefore != kUsageReminderDaysBefore) continue;
+      if (dueBySchedule[row.scheduleId] ?? false) continue;
+      await _notificationService.cancelNotification(row.notificationId);
+      await _scheduledNotificationRepository.deleteById(row.id);
     }
   }
 
