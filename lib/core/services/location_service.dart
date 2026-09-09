@@ -394,12 +394,22 @@ class LocationService {
       if (address == null) return const PlaceLookup.empty();
 
       final country = address['country'] as String?;
-      final region = normalizeGeocodedRegion(
-        address['state'] as String? ??
-            address['province'] as String? ??
+      // Normalize each candidate, not just the first non-null one: if
+      // `state` is a pseudo-region it is dropped and `province` / `region`
+      // still get their turn.
+      final region =
+          normalizeGeocodedRegion(
+            address['state'] as String?,
+            country: country,
+          ) ??
+          normalizeGeocodedRegion(
+            address['province'] as String?,
+            country: country,
+          ) ??
+          normalizeGeocodedRegion(
             address['region'] as String?,
-        country: country,
-      );
+            country: country,
+          );
       final locality =
           address['city'] as String? ??
           address['town'] as String? ??
@@ -530,12 +540,21 @@ class LocationService {
               final addressDetails =
                   result['address'] as Map<String, dynamic>? ?? {};
               final country = addressDetails['country'] as String?;
-              final region = normalizeGeocodedRegion(
-                addressDetails['state'] as String? ??
-                    addressDetails['province'] as String? ??
+              // Normalize each candidate so a pseudo-region `state` falls
+              // through to `province` / `region` (same as the reverse path).
+              final region =
+                  normalizeGeocodedRegion(
+                    addressDetails['state'] as String?,
+                    country: country,
+                  ) ??
+                  normalizeGeocodedRegion(
+                    addressDetails['province'] as String?,
+                    country: country,
+                  ) ??
+                  normalizeGeocodedRegion(
                     addressDetails['region'] as String?,
-                country: country,
-              );
+                    country: country,
+                  );
               final locality =
                   addressDetails['city'] as String? ??
                   addressDetails['town'] as String? ??

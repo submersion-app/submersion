@@ -177,6 +177,25 @@ void main() {
       expect(result.region, isNull);
     });
 
+    test('a pseudo-region state falls through to a real province', () async {
+      final server = FakeNominatim(
+        body: jsonEncode(<String, dynamic>{
+          'address': <String, dynamic>{
+            'country': 'France',
+            'state': 'Metropolitan France',
+            'province': 'Provence-Alpes-Côte d\'Azur',
+            'city': 'Sanary-sur-Mer',
+          },
+        }),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(43.12, 5.8, languageCode: 'en'),
+      );
+
+      expect(result.region, 'Provence-Alpes-Côte d\'Azur');
+    });
+
     test(
       'sends the English pin in both the URI and the request headers',
       () async {
