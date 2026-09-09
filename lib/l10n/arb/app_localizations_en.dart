@@ -21526,6 +21526,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'This certifies that';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'App setting: off';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'App setting: on';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Clock sync';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Check again';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Sets the clock to this device\'s time after each download. Applies to this device only.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle => 'Sync dive computer clocks';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Always';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'App setting';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Never';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Supported by this model';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'This model does not support clock sync';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21730,6 +21765,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download cancelled';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => 'Clock sync failed';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'Clock sync is not supported by this model';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Clock synced';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

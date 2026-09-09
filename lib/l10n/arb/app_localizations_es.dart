@@ -21916,6 +21916,44 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'Se certifica que';
 
   @override
+  String get diveComputer_clockSync_appSettingOff =>
+      'Ajuste de la app: desactivado';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn =>
+      'Ajuste de la app: activado';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Sincronización del reloj';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Comprobar de nuevo';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Ajusta el reloj a la hora de este dispositivo tras cada descarga. Solo se aplica a este dispositivo.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Sincronizar relojes de ordenadores de buceo';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Siempre';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'Ajuste de la app';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Nunca';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Compatible con este modelo';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Este modelo no admite la sincronización del reloj';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -22127,6 +22165,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Descarga cancelada';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Error al sincronizar el reloj';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'Este modelo no admite la sincronización del reloj';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Reloj sincronizado';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

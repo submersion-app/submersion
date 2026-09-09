@@ -21851,6 +21851,43 @@ class AppLocalizationsDe extends AppLocalizations {
       'Hiermit wird bescheinigt, dass';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'App-Einstellung: aus';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'App-Einstellung: ein';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Uhrzeit-Abgleich';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Erneut prüfen';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Stellt die Uhr nach jedem Download auf die Zeit dieses Geräts. Gilt nur für dieses Gerät.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Uhren der Tauchcomputer abgleichen';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Immer';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'App-Einstellung';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Nie';
+
+  @override
+  String get diveComputer_clockSync_supported =>
+      'Von diesem Modell unterstützt';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Dieses Modell unterstützt keinen Uhrzeit-Abgleich';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -22060,6 +22097,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download abgebrochen';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Uhrzeit-Abgleich fehlgeschlagen';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'Uhrzeit-Abgleich wird von diesem Modell nicht unterstützt';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Uhrzeit abgeglichen';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

@@ -21500,6 +21500,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'يشهد هذا بأن';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'إعداد التطبيق: معطّل';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'إعداد التطبيق: مفعّل';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'مزامنة الساعة';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'التحقق مرة أخرى';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'يضبط الساعة على وقت هذا الجهاز بعد كل تنزيل. ينطبق على هذا الجهاز فقط.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'مزامنة ساعات كمبيوترات الغوص';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'دائمًا';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'إعداد التطبيق';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'أبدًا';
+
+  @override
+  String get diveComputer_clockSync_supported => 'مدعومة في هذا الطراز';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'هذا الطراز لا يدعم مزامنة الساعة';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21705,6 +21741,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'تم إلغاء التنزيل';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => 'فشلت مزامنة الساعة';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'مزامنة الساعة غير مدعومة في هذا الطراز';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'تمت مزامنة الساعة';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

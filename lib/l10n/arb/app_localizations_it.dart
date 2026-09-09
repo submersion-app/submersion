@@ -21898,6 +21898,43 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'Si certifica che';
 
   @override
+  String get diveComputer_clockSync_appSettingOff =>
+      'Impostazione app: disattivata';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'Impostazione app: attiva';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Sincronizzazione orologio';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Controlla di nuovo';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Imposta l\'orologio sull\'ora di questo dispositivo dopo ogni download. Vale solo per questo dispositivo.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Sincronizza l\'orologio dei computer subacquei';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Sempre';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'Impostazione app';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Mai';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Supportata da questo modello';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Questo modello non supporta la sincronizzazione dell\'orologio';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -22108,6 +22145,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download annullato';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Sincronizzazione dell\'orologio non riuscita';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'La sincronizzazione dell\'orologio non è supportata da questo modello';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Orologio sincronizzato';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

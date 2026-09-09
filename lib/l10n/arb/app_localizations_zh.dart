@@ -20758,6 +20758,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_certificate_thisCertifies => '特此证明';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => '应用设置：关';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => '应用设置：开';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => '时钟同步';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => '重新检查';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      '每次下载后将时钟设为本设备的时间。仅适用于本设备。';
+
+  @override
+  String get diveComputer_clockSync_globalTitle => '同步潜水电脑时钟';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => '总是';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => '应用设置';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => '从不';
+
+  @override
+  String get diveComputer_clockSync_supported => '此型号支持';
+
+  @override
+  String get diveComputer_clockSync_unsupported => '此型号不支持时钟同步';
+
+  @override
   String get diveComputer_connectionType_ble => '蓝牙 LE';
 
   @override
@@ -20955,6 +20989,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => '下载已取消';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => '时钟同步失败';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported => '此型号不支持时钟同步';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => '时钟已同步';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

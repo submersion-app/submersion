@@ -21830,6 +21830,42 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezennel tanusitjuk, hogy';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'Alkalmazásbeállítás: ki';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'Alkalmazásbeállítás: be';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Óraszinkronizálás';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Ellenőrzés újra';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Minden letöltés után ennek az eszköznek az idejére állítja az órát. Csak erre az eszközre vonatkozik.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Búvárkomputerek órájának szinkronizálása';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Mindig';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'Alkalmazásbeállítás';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Soha';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Ez a modell támogatja';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Ez a modell nem támogatja az óraszinkronizálást';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -22039,6 +22075,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Letoltes megszakitva';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Az óraszinkronizálás nem sikerült';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'Az óraszinkronizálást ez a modell nem támogatja';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Óra szinkronizálva';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

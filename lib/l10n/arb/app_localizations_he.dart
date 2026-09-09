@@ -21349,6 +21349,41 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'בזאת מאושר כי';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'הגדרת האפליקציה: כבויה';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'הגדרת האפליקציה: פעילה';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'סנכרון שעון';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'בדיקה חוזרת';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'מכוון את השעון לשעת המכשיר הזה אחרי כל הורדה. חל על מכשיר זה בלבד.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle => 'סנכרון שעוני מחשבי צלילה';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'תמיד';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'הגדרת האפליקציה';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'אף פעם';
+
+  @override
+  String get diveComputer_clockSync_supported => 'נתמך בדגם זה';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'דגם זה אינו תומך בסנכרון שעון';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21550,6 +21585,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'ההורדה בוטלה';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => 'סנכרון השעון נכשל';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'סנכרון שעון אינו נתמך בדגם זה';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'השעון סונכרן';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

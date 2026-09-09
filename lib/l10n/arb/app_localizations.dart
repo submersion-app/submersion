@@ -36094,6 +36094,72 @@ abstract class AppLocalizations {
   /// **'This certifies that'**
   String get certifications_certificate_thisCertifies;
 
+  /// No description provided for @diveComputer_clockSync_appSettingOff.
+  ///
+  /// In en, this message translates to:
+  /// **'App setting: off'**
+  String get diveComputer_clockSync_appSettingOff;
+
+  /// No description provided for @diveComputer_clockSync_appSettingOn.
+  ///
+  /// In en, this message translates to:
+  /// **'App setting: on'**
+  String get diveComputer_clockSync_appSettingOn;
+
+  /// No description provided for @diveComputer_clockSync_cardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock sync'**
+  String get diveComputer_clockSync_cardTitle;
+
+  /// No description provided for @diveComputer_clockSync_checkAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get diveComputer_clockSync_checkAgain;
+
+  /// No description provided for @diveComputer_clockSync_globalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets the clock to this device\'s time after each download. Applies to this device only.'**
+  String get diveComputer_clockSync_globalSubtitle;
+
+  /// No description provided for @diveComputer_clockSync_globalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync dive computer clocks'**
+  String get diveComputer_clockSync_globalTitle;
+
+  /// No description provided for @diveComputer_clockSync_overrideAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get diveComputer_clockSync_overrideAlways;
+
+  /// No description provided for @diveComputer_clockSync_overrideInherit.
+  ///
+  /// In en, this message translates to:
+  /// **'App setting'**
+  String get diveComputer_clockSync_overrideInherit;
+
+  /// No description provided for @diveComputer_clockSync_overrideNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get diveComputer_clockSync_overrideNever;
+
+  /// No description provided for @diveComputer_clockSync_supported.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported by this model'**
+  String get diveComputer_clockSync_supported;
+
+  /// No description provided for @diveComputer_clockSync_unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This model does not support clock sync'**
+  String get diveComputer_clockSync_unsupported;
+
   /// No description provided for @diveComputer_connectionType_ble.
   ///
   /// In en, this message translates to:
@@ -36465,6 +36531,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download cancelled'**
   String get diveComputer_downloadStep_cancelled;
+
+  /// No description provided for @diveComputer_downloadStep_clockSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock sync failed'**
+  String get diveComputer_downloadStep_clockSyncFailed;
+
+  /// No description provided for @diveComputer_downloadStep_clockSyncUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock sync is not supported by this model'**
+  String get diveComputer_downloadStep_clockSyncUnsupported;
+
+  /// No description provided for @diveComputer_downloadStep_clockSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock synced'**
+  String get diveComputer_downloadStep_clockSynced;
 
   /// No description provided for @diveComputer_downloadStep_depthMeters.
   ///

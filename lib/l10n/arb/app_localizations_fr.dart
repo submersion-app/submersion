@@ -21985,6 +21985,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'Ceci certifie que';
 
   @override
+  String get diveComputer_clockSync_appSettingOff =>
+      'Réglage de l\'app : désactivé';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn =>
+      'Réglage de l\'app : activé';
+
+  @override
+  String get diveComputer_clockSync_cardTitle =>
+      'Synchronisation de l\'horloge';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Vérifier à nouveau';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Règle l\'horloge sur l\'heure de cet appareil après chaque téléchargement. S\'applique uniquement à cet appareil.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Synchroniser l\'horloge des ordinateurs de plongée';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Toujours';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'Réglage de l\'app';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Jamais';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Pris en charge par ce modèle';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Ce modèle ne prend pas en charge la synchronisation de l\'horloge';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -22197,6 +22236,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Téléchargement annule';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Échec de la synchronisation de l\'horloge';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'La synchronisation de l\'horloge n\'est pas prise en charge par ce modèle';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Horloge synchronisée';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {

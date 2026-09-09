@@ -21722,6 +21722,42 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hierbij wordt verklaard dat';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'App-instelling: uit';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'App-instelling: aan';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Kloksynchronisatie';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Opnieuw controleren';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Zet de klok na elke download op de tijd van dit apparaat. Geldt alleen voor dit apparaat.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Klok van duikcomputers synchroniseren';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Altijd';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'App-instelling';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Nooit';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Ondersteund door dit model';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Dit model ondersteunt geen kloksynchronisatie';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21930,6 +21966,17 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download geannuleerd';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Kloksynchronisatie mislukt';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'Kloksynchronisatie wordt niet ondersteund door dit model';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Klok gesynchroniseerd';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
