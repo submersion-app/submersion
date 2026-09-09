@@ -3845,6 +3845,61 @@
   "cylinderConfigs_sectionTitle": "配置",
   "equipment_serviceClocks_hoursSource": "根据已记录的潜水时间计算",
   "equipment_serviceClocks_hoursLeft": "剩余 {remaining}/{total} 小时",
+  "equipment_serviceClocks_saltHoursLeft": "海水小时数剩余 {remaining} / {total}",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "冷水潜水剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "高氧小时数剩余 {remaining} / {total}",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "深潜剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "电池循环剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "管理维护类型",
   "equipment_serviceClocks_appliesToClock": "适用的倒计时",
   "equipment_serviceClocks_noClockOption": "不关联倒计时",
@@ -3852,6 +3907,11 @@
   "equipment_scheduleDialog_intervalDays": "间隔（天）",
   "equipment_scheduleDialog_intervalDives": "间隔（潜水次数）",
   "equipment_scheduleDialog_intervalHours": "间隔（小时）",
+  "equipment_scheduleDialog_intervalSaltHours": "间隔（海水小时数）",
+  "equipment_scheduleDialog_intervalColdDives": "间隔（冷水潜水次数）",
+  "equipment_scheduleDialog_intervalO2Hours": "间隔（高氧小时数）",
+  "equipment_scheduleDialog_intervalDeepCycles": "间隔（深潜次数）",
+  "equipment_scheduleDialog_intervalCycles": "间隔（电池循环次数）",
   "equipment_scheduleDialog_inheritHint": "默认：{value}",
   "equipment_scheduleDialog_anchorDate": "基准日期",
   "equipment_scheduleDialog_anchorHint": "在尚无此类维护记录时使用",

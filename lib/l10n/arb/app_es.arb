@@ -3700,6 +3700,61 @@
   "cylinderConfigs_sectionTitle": "Configuraciones",
   "equipment_serviceClocks_hoursSource": "Calculado a partir del tiempo de buceo registrado",
   "equipment_serviceClocks_hoursLeft": "Quedan {remaining} de {total} horas",
+  "equipment_serviceClocks_saltHoursLeft": "Quedan {remaining} de {total} horas en agua salada",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "Quedan {remaining} de {total} inmersiones en agua fría",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "Quedan {remaining} de {total} horas con alto O2",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "Quedan {remaining} de {total} inmersiones profundas",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "Quedan {remaining} de {total} ciclos de batería",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Gestionar tipos de mantenimiento",
   "equipment_serviceClocks_appliesToClock": "Se aplica al intervalo",
   "equipment_serviceClocks_noClockOption": "No vinculado a un intervalo",
@@ -3707,6 +3762,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervalo (días)",
   "equipment_scheduleDialog_intervalDives": "Intervalo (inmersiones)",
   "equipment_scheduleDialog_intervalHours": "Intervalo (horas)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervalo (horas en agua salada)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervalo (inmersiones en agua fría)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervalo (horas con alto O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervalo (inmersiones profundas)",
+  "equipment_scheduleDialog_intervalCycles": "Intervalo (ciclos de batería)",
   "equipment_scheduleDialog_inheritHint": "Predeterminado: {value}",
   "equipment_scheduleDialog_anchorDate": "Fecha de referencia",
   "equipment_scheduleDialog_anchorHint": "Se usa cuando todavía no existe ningún registro de mantenimiento de este tipo",

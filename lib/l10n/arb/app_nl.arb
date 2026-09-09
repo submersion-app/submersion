@@ -3700,6 +3700,61 @@
   "cylinderConfigs_sectionTitle": "Configuraties",
   "equipment_serviceClocks_hoursSource": "Berekend op basis van geregistreerde duiktijd",
   "equipment_serviceClocks_hoursLeft": "{remaining} van {total} uur resterend",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} van {total} uren in zout water over",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} van {total} koudwaterduiken over",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} van {total} uren met hoog O2 over",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} van {total} diepe duiken over",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} van {total} batterijcycli over",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Servicetypen beheren",
   "equipment_serviceClocks_appliesToClock": "Gekoppeld aan interval",
   "equipment_serviceClocks_noClockOption": "Niet aan een interval gekoppeld",
@@ -3707,6 +3762,11 @@
   "equipment_scheduleDialog_intervalDays": "Interval (dagen)",
   "equipment_scheduleDialog_intervalDives": "Interval (duiken)",
   "equipment_scheduleDialog_intervalHours": "Interval (uren)",
+  "equipment_scheduleDialog_intervalSaltHours": "Interval (uren in zout water)",
+  "equipment_scheduleDialog_intervalColdDives": "Interval (koudwaterduiken)",
+  "equipment_scheduleDialog_intervalO2Hours": "Interval (uren met hoog O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Interval (diepe duiken)",
+  "equipment_scheduleDialog_intervalCycles": "Interval (batterijcycli)",
   "equipment_scheduleDialog_inheritHint": "Standaard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referentiedatum",
   "equipment_scheduleDialog_anchorHint": "Wordt gebruikt zolang er nog geen servicerecord van dit type bestaat",

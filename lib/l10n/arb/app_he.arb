@@ -3616,6 +3616,61 @@
   "cylinderConfigs_sectionTitle": "תצורות",
   "equipment_serviceClocks_hoursSource": "מחושב מזמן הצלילה המתועד",
   "equipment_serviceClocks_hoursLeft": "נותרו {remaining} מתוך {total} שעות",
+  "equipment_serviceClocks_saltHoursLeft": "נותרו {remaining} מתוך {total} שעות במים מלוחים",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "נותרו {remaining} מתוך {total} צלילות במים קרים",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "נותרו {remaining} מתוך {total} שעות בחמצן גבוה",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "נותרו {remaining} מתוך {total} צלילות עמוקות",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "נותרו {remaining} מתוך {total} מחזורי סוללה",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "ניהול סוגי טיפול",
   "equipment_serviceClocks_appliesToClock": "חל על שעון",
   "equipment_serviceClocks_noClockOption": "לא משויך לשעון",
@@ -3623,6 +3678,11 @@
   "equipment_scheduleDialog_intervalDays": "מרווח (ימים)",
   "equipment_scheduleDialog_intervalDives": "מרווח (צלילות)",
   "equipment_scheduleDialog_intervalHours": "מרווח (שעות)",
+  "equipment_scheduleDialog_intervalSaltHours": "מרווח (שעות במים מלוחים)",
+  "equipment_scheduleDialog_intervalColdDives": "מרווח (צלילות במים קרים)",
+  "equipment_scheduleDialog_intervalO2Hours": "מרווח (שעות בחמצן גבוה)",
+  "equipment_scheduleDialog_intervalDeepCycles": "מרווח (צלילות עמוקות)",
+  "equipment_scheduleDialog_intervalCycles": "מרווח (מחזורי סוללה)",
   "equipment_scheduleDialog_inheritHint": "ברירת מחדל: {value}",
   "equipment_scheduleDialog_anchorDate": "תאריך בסיס",
   "equipment_scheduleDialog_anchorHint": "בשימוש כאשר עדיין אין רשומת טיפול מסוג זה",

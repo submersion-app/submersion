@@ -11040,6 +11040,34 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total שעות במים מלוחים';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total צלילות במים קרים';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total שעות בחמצן גבוה';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return 'נותרו $remaining מתוך $total צלילות עמוקות';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total מחזורי סוללה';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'ניהול סוגי טיפול';
 
   @override
@@ -11059,6 +11087,25 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'מרווח (שעות)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'מרווח (שעות במים מלוחים)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'מרווח (צלילות במים קרים)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'מרווח (שעות בחמצן גבוה)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'מרווח (צלילות עמוקות)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles => 'מרווח (מחזורי סוללה)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {

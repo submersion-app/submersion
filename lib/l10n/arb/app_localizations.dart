@@ -19098,6 +19098,36 @@ abstract class AppLocalizations {
   /// **'{remaining} of {total} hours left'**
   String equipment_serviceClocks_hoursLeft(String remaining, String total);
 
+  /// No description provided for @equipment_serviceClocks_saltHoursLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} of {total} salt-water hours left'**
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_coldDivesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} of {total} cold dives left'**
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_o2HoursLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} of {total} high-O2 hours left'**
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_deepCyclesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} of {total} deep dives left'**
+  String equipment_serviceClocks_deepCyclesLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_cyclesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} of {total} battery cycles left'**
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total);
+
   /// No description provided for @equipment_serviceClocks_manageKinds.
   ///
   /// In en, this message translates to:
@@ -19139,6 +19169,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Interval (hours)'**
   String get equipment_scheduleDialog_intervalHours;
+
+  /// No description provided for @equipment_scheduleDialog_intervalSaltHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (salt-water hours)'**
+  String get equipment_scheduleDialog_intervalSaltHours;
+
+  /// No description provided for @equipment_scheduleDialog_intervalColdDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (cold dives)'**
+  String get equipment_scheduleDialog_intervalColdDives;
+
+  /// No description provided for @equipment_scheduleDialog_intervalO2Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (high-O2 hours)'**
+  String get equipment_scheduleDialog_intervalO2Hours;
+
+  /// No description provided for @equipment_scheduleDialog_intervalDeepCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (deep dives)'**
+  String get equipment_scheduleDialog_intervalDeepCycles;
+
+  /// No description provided for @equipment_scheduleDialog_intervalCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (battery cycles)'**
+  String get equipment_scheduleDialog_intervalCycles;
 
   /// No description provided for @equipment_scheduleDialog_inheritHint.
   ///

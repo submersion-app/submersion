@@ -3700,6 +3700,61 @@
   "cylinderConfigs_sectionTitle": "Konfigurationen",
   "equipment_serviceClocks_hoursSource": "Aus der protokollierten Tauchzeit berechnet",
   "equipment_serviceClocks_hoursLeft": "{remaining} von {total} Stunden übrig",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} von {total} Salzwasserstunden übrig",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} von {total} Kaltwassertauchgängen übrig",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} von {total} Stunden mit hohem O2 übrig",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} von {total} tiefen Tauchgängen übrig",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} von {total} Batteriezyklen übrig",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Wartungsarten verwalten",
   "equipment_serviceClocks_appliesToClock": "Zugehöriges Intervall",
   "equipment_serviceClocks_noClockOption": "Keinem Intervall zugeordnet",
@@ -3707,6 +3762,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervall (Tage)",
   "equipment_scheduleDialog_intervalDives": "Intervall (Tauchgänge)",
   "equipment_scheduleDialog_intervalHours": "Intervall (Stunden)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervall (Salzwasserstunden)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervall (Kaltwassertauchgänge)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervall (Stunden mit hohem O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervall (tiefe Tauchgänge)",
+  "equipment_scheduleDialog_intervalCycles": "Intervall (Batteriezyklen)",
   "equipment_scheduleDialog_inheritHint": "Standard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referenzdatum",
   "equipment_scheduleDialog_anchorHint": "Wird verwendet, solange noch kein Wartungseintrag dieser Art vorliegt",

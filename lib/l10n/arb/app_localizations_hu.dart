@@ -11266,6 +11266,34 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return '$remaining / $total sós vízi óra van hátra';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return '$remaining / $total hideg vízi merülés van hátra';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return '$remaining / $total magas O2-tartalmú óra van hátra';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return '$remaining / $total mély merülés van hátra';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return '$remaining / $total akkumulátorciklus van hátra';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'Szerviztípusok kezelése';
 
   @override
@@ -11286,6 +11314,26 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'Intervallum (óra)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'Intervallum (sós vízi órák)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'Intervallum (hideg vízi merülések)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'Intervallum (magas O2-tartalmú órák)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'Intervallum (mély merülések)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles =>
+      'Intervallum (akkumulátorciklusok)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {

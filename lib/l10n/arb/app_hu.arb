@@ -3616,6 +3616,61 @@
   "cylinderConfigs_sectionTitle": "Konfigurációk",
   "equipment_serviceClocks_hoursSource": "A naplózott merülési idő alapján számolva",
   "equipment_serviceClocks_hoursLeft": "{remaining} / {total} óra van hátra",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} / {total} sós vízi óra van hátra",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} / {total} hideg vízi merülés van hátra",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} / {total} magas O2-tartalmú óra van hátra",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} / {total} mély merülés van hátra",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} / {total} akkumulátorciklus van hátra",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Szerviztípusok kezelése",
   "equipment_serviceClocks_appliesToClock": "Kapcsolódó intervallum",
   "equipment_serviceClocks_noClockOption": "Nem tartozik intervallumhoz",
@@ -3623,6 +3678,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervallum (nap)",
   "equipment_scheduleDialog_intervalDives": "Intervallum (merülés)",
   "equipment_scheduleDialog_intervalHours": "Intervallum (óra)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervallum (sós vízi órák)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervallum (hideg vízi merülések)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervallum (magas O2-tartalmú órák)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervallum (mély merülések)",
+  "equipment_scheduleDialog_intervalCycles": "Intervallum (akkumulátorciklusok)",
   "equipment_scheduleDialog_inheritHint": "Alapértelmezés: {value}",
   "equipment_scheduleDialog_anchorDate": "Kiindulási dátum",
   "equipment_scheduleDialog_anchorHint": "Akkor használjuk, ha még nincs ilyen típusú szervizbejegyzés",

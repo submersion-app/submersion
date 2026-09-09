@@ -202,6 +202,8 @@ void main() {
     );
 
     // Pick today as the baseline date via the material date picker.
+    // v202 added five exposure fields above the baseline row; scroll it in.
+    await tester.ensureVisible(find.text('Baseline date'));
     await tester.tap(find.text('Baseline date'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('OK'));
@@ -242,6 +244,7 @@ void main() {
     await tester.tap(find.text('Edit intervals'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.byTooltip('Clear baseline date'));
     await tester.tap(find.byTooltip('Clear baseline date'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));

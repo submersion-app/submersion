@@ -10789,6 +10789,34 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return '海水小时数剩余 $remaining / $total';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return '冷水潜水剩余 $remaining / $total 次';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return '高氧小时数剩余 $remaining / $total';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return '深潜剩余 $remaining / $total 次';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return '电池循环剩余 $remaining / $total 次';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => '管理维护类型';
 
   @override
@@ -10808,6 +10836,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => '间隔（小时）';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours => '间隔（海水小时数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives => '间隔（冷水潜水次数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours => '间隔（高氧小时数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles => '间隔（深潜次数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles => '间隔（电池循环次数）';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {

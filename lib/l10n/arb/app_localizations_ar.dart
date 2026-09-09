@@ -11100,6 +11100,34 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total ساعة في الماء المالح';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total غطسة في الماء البارد';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total ساعة بأكسجين مرتفع';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return 'تبقى $remaining من $total غطسة عميقة';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total دورة بطارية';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'إدارة أنواع الصيانة';
 
   @override
@@ -11119,6 +11147,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'الفترة (ساعات)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'الفاصل (ساعات في الماء المالح)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'الفاصل (غطسات في الماء البارد)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'الفاصل (ساعات بأكسجين مرتفع)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'الفاصل (غطسات عميقة)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles =>
+      'الفاصل (دورات البطارية)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {

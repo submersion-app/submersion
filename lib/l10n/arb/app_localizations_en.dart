@@ -11121,6 +11121,34 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return '$remaining of $total salt-water hours left';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return '$remaining of $total cold dives left';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return '$remaining of $total high-O2 hours left';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return '$remaining of $total deep dives left';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return '$remaining of $total battery cycles left';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'Manage service types';
 
   @override
@@ -11140,6 +11168,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'Interval (hours)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'Interval (salt-water hours)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'Interval (cold dives)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'Interval (high-O2 hours)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'Interval (deep dives)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles =>
+      'Interval (battery cycles)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
