@@ -18,11 +18,17 @@ void main() {
   // The value line formats through Intl.getCurrentLocale(), which resolves the
   // Intl.defaultLocale process global rather than the MaterialApp locale. The
   // app assigns it from the diver's locale (lib/app.dart); a widget test that
-  // pumps the tile alone never runs that, so tests pin it and put it back.
+  // pumps the tile alone never runs that.
+  //
+  // Pinned rather than merely saved. Left unset, getCurrentLocale falls back to
+  // Intl.systemLocale, and the assertions below that spell out a '.' would then
+  // rest on that fallback happening to be en_US: a default owned by intl, not
+  // by this file. Tests that need another locale set it in the test body.
   late String? previousLocale;
 
   setUp(() {
     previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
   });
 
   tearDown(() {
