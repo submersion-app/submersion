@@ -11692,6 +11692,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Allapot';
 
   @override
+  String get equipment_edit_parentLabel => 'Beszerelve ebbe';
+
+  @override
+  String get equipment_edit_parentNone => 'Nincs beszerelve';
+
+  @override
   String get equipment_edit_thicknessDesignationHint => 'pl. 5, 5/4, 7/5/3';
 
   @override

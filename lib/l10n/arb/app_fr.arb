@@ -3781,6 +3781,8 @@
   "equipment_edit_snackbar_error": "Erreur d'enregistrement de l'équipement : {error}",
   "equipment_edit_snackbar_updated": "Équipement mis à jour",
   "equipment_edit_statusLabel": "Statut",
+  "equipment_edit_parentLabel": "Installé dans",
+  "equipment_edit_parentNone": "Installé nulle part",
   "equipment_edit_thicknessDesignationHint": "ex: 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "par ex. shop.example.com/product",
   "equipment_edit_thicknessHint": "ex: 5mm, 7mm",

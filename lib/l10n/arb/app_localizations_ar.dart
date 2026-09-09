@@ -11522,6 +11522,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_statusLabel => 'الحالة';
 
   @override
+  String get equipment_edit_parentLabel => 'مركّب في';
+
+  @override
+  String get equipment_edit_parentNone => 'غير مركّب في أي شيء';
+
+  @override
   String get equipment_edit_thicknessDesignationHint => 'مثلاً 5، 5/4، 7/5/3';
 
   @override

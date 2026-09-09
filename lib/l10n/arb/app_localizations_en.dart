@@ -11540,6 +11540,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Status';
 
   @override
+  String get equipment_edit_parentLabel => 'Installed in';
+
+  @override
+  String get equipment_edit_parentNone => 'Not installed in anything';
+
+  @override
   String get equipment_edit_thicknessDesignationHint => 'e.g., 5, 5/4, 7/5/3';
 
   @override

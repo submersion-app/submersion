@@ -3865,6 +3865,8 @@
   "equipment_edit_snackbar_error": "Fout bij opslaan van uitrusting: {error}",
   "equipment_edit_snackbar_updated": "Uitrusting bijgewerkt",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_parentLabel": "Geplaatst in",
+  "equipment_edit_parentNone": "Nergens geplaatst",
   "equipment_edit_thicknessDesignationHint": "bijv. 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "bijv. shop.example.com/product",
   "equipment_edit_thicknessHint": "bijv. 5mm, 7mm",

@@ -11720,6 +11720,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Status';
 
   @override
+  String get equipment_edit_parentLabel => 'Eingebaut in';
+
+  @override
+  String get equipment_edit_parentNone => 'Nirgends eingebaut';
+
+  @override
   String get equipment_edit_thicknessDesignationHint => 'z.B. 5, 5/4, 7/5/3';
 
   @override

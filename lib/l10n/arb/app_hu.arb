@@ -3781,6 +3781,8 @@
   "equipment_edit_snackbar_error": "Hiba a felszereles mentesekor: {error}",
   "equipment_edit_snackbar_updated": "Felszereles frissitve",
   "equipment_edit_statusLabel": "Allapot",
+  "equipment_edit_parentLabel": "Beszerelve ebbe",
+  "equipment_edit_parentNone": "Nincs beszerelve",
   "equipment_edit_thicknessDesignationHint": "pl. 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "pl. shop.example.com/product",
   "equipment_edit_thicknessHint": "pl. 5mm, 7mm",

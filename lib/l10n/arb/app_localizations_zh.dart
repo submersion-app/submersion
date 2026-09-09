@@ -11188,6 +11188,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_statusLabel => '状态';
 
   @override
+  String get equipment_edit_parentLabel => '安装于';
+
+  @override
+  String get equipment_edit_parentNone => '未安装';
+
+  @override
   String get equipment_edit_thicknessDesignationHint => '例如：5, 5/4, 7/5/3';
 
   @override

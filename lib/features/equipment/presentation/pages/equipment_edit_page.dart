@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
@@ -54,6 +55,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   EquipmentType _selectedType = EquipmentType.regulator;
   EquipmentStatus _selectedStatus = EquipmentStatus.active;
   DateTime? _purchaseDate;
+  String? _parentEquipmentId;
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
@@ -147,6 +149,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         ? EquipmentStatus.retired
         : equipment.status;
     _purchaseDate = equipment.purchaseDate;
+    _parentEquipmentId = equipment.parentEquipmentId;
     _customReminderEnabled = equipment.customReminderEnabled;
     _customReminderDays = equipment.customReminderDays ?? const [7, 14, 30];
   }
@@ -158,6 +161,21 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       context.pop();
     }
   }
+
+  /// Which item types can hold a child of [type]. Empty means the type is
+  /// not a child type and the picker is hidden.
+  static Set<EquipmentType> _parentTypesFor(EquipmentType type) =>
+      switch (type) {
+        EquipmentType.o2Cell => const {EquipmentType.rebreather},
+        EquipmentType.battery => const {
+          EquipmentType.computer,
+          EquipmentType.transmitter,
+          EquipmentType.light,
+          EquipmentType.dpv,
+          EquipmentType.rebreather,
+        },
+        _ => const {},
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -273,6 +291,48 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             },
           ),
           const SizedBox(height: 16),
+
+          // Parent item, for the child types only (v202).
+          if (_parentTypesFor(_selectedType).isNotEmpty) ...[
+            Builder(
+              builder: (context) {
+                final candidates =
+                    (ref.watch(activeEquipmentProvider).valueOrNull ??
+                            const <EquipmentItem>[])
+                        .where(
+                          (e) =>
+                              e.id != widget.equipmentId &&
+                              _parentTypesFor(_selectedType).contains(e.type),
+                        )
+                        .toList();
+                final known = candidates.any((e) => e.id == _parentEquipmentId);
+                return DropdownButtonFormField<String?>(
+                  key: const Key('equipment-parent-picker'),
+                  initialValue: known ? _parentEquipmentId : null,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_edit_parentLabel,
+                    prefixIcon: const Icon(Icons.account_tree_outlined),
+                  ),
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text(context.l10n.equipment_edit_parentNone),
+                    ),
+                    for (final e in candidates)
+                      DropdownMenuItem<String?>(
+                        value: e.id,
+                        child: Text(e.name),
+                      ),
+                  ],
+                  onChanged: (value) => setState(() {
+                    _parentEquipmentId = value;
+                    _hasChanges = true;
+                  }),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Name
           TextFormField(
@@ -864,6 +924,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ? null
             : _serialController.text.trim(),
         purchaseDate: _purchaseDate,
+        parentEquipmentId: _parentTypesFor(_selectedType).isEmpty
+            ? null
+            : _parentEquipmentId,
         // Blank means "no price"; anything unreadable was already stopped by
         // the field validator, so null here can only mean blank.
         purchasePrice: parseUserDecimal(_purchasePriceController.text),

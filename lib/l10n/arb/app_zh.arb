@@ -4010,6 +4010,8 @@
   "equipment_edit_snackbar_error": "保存装备出错：{error}",
   "equipment_edit_snackbar_updated": "装备已更新",
   "equipment_edit_statusLabel": "状态",
+  "equipment_edit_parentLabel": "安装于",
+  "equipment_edit_parentNone": "未安装",
   "equipment_edit_thicknessDesignationHint": "例如：5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "例如 shop.example.com/product",
   "equipment_edit_thicknessHint": "例如：5mm, 7mm",

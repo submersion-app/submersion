@@ -19788,6 +19788,18 @@ abstract class AppLocalizations {
   /// **'Status'**
   String get equipment_edit_statusLabel;
 
+  /// No description provided for @equipment_edit_parentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed in'**
+  String get equipment_edit_parentLabel;
+
+  /// No description provided for @equipment_edit_parentNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not installed in anything'**
+  String get equipment_edit_parentNone;
+
   /// No description provided for @equipment_edit_thicknessDesignationHint.
   ///
   /// In en, this message translates to:

@@ -6654,6 +6654,8 @@
   "equipment_edit_snackbar_error": "Error saving equipment: {error}",
   "equipment_edit_snackbar_updated": "Equipment updated",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_parentLabel": "Installed in",
+  "equipment_edit_parentNone": "Not installed in anything",
   "equipment_edit_thicknessDesignationHint": "e.g., 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "e.g., shop.example.com/product",
   "equipment_edit_thicknessHint": "e.g., 5mm, 7mm",

@@ -11723,6 +11723,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Status';
 
   @override
+  String get equipment_edit_parentLabel => 'Instalado em';
+
+  @override
+  String get equipment_edit_parentNone => 'Não instalado';
+
+  @override
   String get equipment_edit_thicknessDesignationHint => 'ex: 5, 5/4, 7/5/3';
 
   @override

@@ -3865,6 +3865,8 @@
   "equipment_edit_snackbar_error": "Fehler beim Speichern der Ausrüstung: {error}",
   "equipment_edit_snackbar_updated": "Ausrüstung aktualisiert",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_parentLabel": "Eingebaut in",
+  "equipment_edit_parentNone": "Nirgends eingebaut",
   "equipment_edit_thicknessDesignationHint": "z.B. 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "z.B. shop.example.com/product",
   "equipment_edit_thicknessHint": "z.B. 5mm, 7mm",
