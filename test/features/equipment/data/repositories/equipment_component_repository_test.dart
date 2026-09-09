@@ -139,6 +139,31 @@ void main() {
     expect(await repo.ancestorsOf('kit'), isEmpty);
   });
 
+  test(
+    'ancestorsOf terminates on a corrupt cycle written behind the guard',
+    () async {
+      // The repository refuses a cycle, so write the loop with raw inserts.
+      final t = DateTime.now().millisecondsSinceEpoch;
+      for (final (id, parent, child) in [
+        ('x1', 'reg', 'first'),
+        ('x2', 'first', 'reg'),
+      ]) {
+        await db
+            .into(db.equipmentComponents)
+            .insert(
+              EquipmentComponentsCompanion.insert(
+                id: id,
+                parentEquipmentId: parent,
+                componentEquipmentId: child,
+                createdAt: t,
+                updatedAt: t,
+              ),
+            );
+      }
+      expect(await repo.ancestorsOf('reg'), {'first', 'reg'});
+    },
+  );
+
   test('reorder rewrites sort order in the given sequence', () async {
     final a = await repo.addComponent(parentId: 'reg', componentId: 'first');
     final b = await repo.addComponent(parentId: 'reg', componentId: 'second');
@@ -190,6 +215,23 @@ void main() {
       expect(await repo.distinctRoles(), ['Necklace', 'Primary']);
     },
   );
+
+  test('watchComponentEdgeChanges ignores a rename but sees an edge', () async {
+    var ticks = 0;
+    final sub = repo.watchComponentEdgeChanges().listen((_) => ticks++);
+    addTearDown(sub.cancel);
+    await (db.update(db.equipment)..where((t) => t.id.equals('reg'))).write(
+      const EquipmentCompanion(name: Value('Renamed reg')),
+    );
+    // Past the 300 ms debounce with no edge write: still silent.
+    await Future<void>.delayed(const Duration(milliseconds: 450));
+    expect(ticks, 0);
+    await repo.addComponent(parentId: 'reg', componentId: 'first');
+    for (var i = 0; i < 50 && ticks == 0; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(ticks, greaterThan(0));
+  });
 
   test('watchComponentChanges ticks on a membership write', () async {
     var ticks = 0;

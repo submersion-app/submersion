@@ -43,7 +43,7 @@ class EquipmentComponentRepository {
   static const entityType = 'equipmentComponents';
 
   /// Emits on any change to the template or to the items it points at, so a
-  /// renamed part refreshes the Components card and the list chips.
+  /// renamed part refreshes a hydrated read such as the Components card.
   Stream<void> watchComponentChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
@@ -51,6 +51,12 @@ class EquipmentComponentRepository {
           TableUpdateQuery.onTable(_db.equipment),
         ]),
       )
+      .debounce(changeTickDebounce);
+
+  /// Emits only when the edges themselves change. The adjacency index reads
+  /// ids alone, so a rename of a part must not make it re-read every row.
+  Stream<void> watchComponentEdgeChanges() => _db
+      .tableUpdates(TableUpdateQuery.onTable(_db.equipmentComponents))
       .debounce(changeTickDebounce);
 
   EquipmentComponent _map(
@@ -97,22 +103,22 @@ class EquipmentComponentRepository {
   }
 
   /// Ids reachable upward from [id]: its parents, their parents, and so on.
-  /// A visited set makes the walk terminate even on a corrupt graph.
+  ///
+  /// Walks one frontier at a time, querying only the rows whose part is in
+  /// that frontier, so the cost follows the edges actually reachable rather
+  /// than the whole table. A visited set makes the walk terminate even on a
+  /// corrupt graph.
   Future<Set<String>> ancestorsOf(String id) async {
-    final rows = await getAllComponents();
-    final parentsOf = <String, List<String>>{};
-    for (final r in rows) {
-      parentsOf
-          .putIfAbsent(r.componentEquipmentId, () => [])
-          .add(r.parentEquipmentId);
-    }
     final seen = <String>{};
-    final queue = <String>[id];
-    while (queue.isNotEmpty) {
-      final current = queue.removeLast();
-      for (final parent in parentsOf[current] ?? const <String>[]) {
-        if (seen.add(parent)) queue.add(parent);
-      }
+    var frontier = <String>{id};
+    while (frontier.isNotEmpty) {
+      final rows = await (_db.select(
+        _db.equipmentComponents,
+      )..where((t) => t.componentEquipmentId.isIn(frontier.toList()))).get();
+      frontier = {
+        for (final r in rows)
+          if (seen.add(r.parentEquipmentId)) r.parentEquipmentId,
+      };
     }
     return seen;
   }

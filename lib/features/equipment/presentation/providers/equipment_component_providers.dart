@@ -72,12 +72,14 @@ class ComponentsIndex {
   }
 }
 
-/// The whole template, refreshed on any component or equipment write.
+/// The whole template, refreshed only when an edge changes: it holds ids,
+/// so a rename of a part is nothing to it. Names come from the item
+/// providers, which follow the equipment table on their own.
 final equipmentComponentsIndexProvider = FutureProvider<ComponentsIndex>((
   ref,
 ) async {
   final repository = ref.watch(equipmentComponentRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchComponentChanges());
+  ref.invalidateSelfWhen(repository.watchComponentEdgeChanges());
   return ComponentsIndex.fromRows(await repository.getAllComponents());
 });
 
