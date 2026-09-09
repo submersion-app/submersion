@@ -252,6 +252,35 @@ void main() {
     },
   );
 
+  test(
+    'a row stored raw by sync still conflicts and still matches tanks',
+    () async {
+      // A peer can upsert a transmitter row without the local normalization,
+      // so the repository must compare canonical forms on both sides.
+      await seedDiverAndDive();
+      await seedTank(id: 'k1', diveId: 'd1', serial: '180777');
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO transmitters (id, diver_id, transmitter_serial, label, "
+        "tank_role, volume_l, created_at, updated_at) "
+        "VALUES ('raw', 'diver-1', ' 180777 ', 'Padded', 'stage', 11.1, 1, 1)",
+      );
+
+      expect(
+        () => repo.create(_entry(id: 'dup', serial: '180777')),
+        throwsA(isA<TransmitterConflictException>()),
+      );
+
+      final raw = (await repo.getById('raw'))!;
+      final result = await repo.applyToExistingDives(raw);
+      expect(result.tanksUpdated, 1);
+      final k1 = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('k1'))).getSingle();
+      expect(k1.volume, 11.1);
+    },
+  );
+
   test('delete removes the row and logs a tombstone', () async {
     await seedDiverAndDive();
     final created = await repo.create(_entry());

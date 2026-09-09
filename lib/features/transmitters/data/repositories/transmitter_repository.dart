@@ -242,15 +242,16 @@ class TransmitterRepository {
   }
 
   Future<List<DiveTank>> _tanksForEntry(Transmitter t) async {
-    if (t.hasSerial) {
+    // Canonical on both sides: an entry can arrive unnormalized through a
+    // sync payload even though local writes normalize on the way in.
+    final wanted = normalizeTransmitterSerial(t.transmitterSerial);
+    if (wanted != null) {
       final rows = await (_db.select(
         _db.diveTanks,
       )..where((d) => d.transmitterSerial.isNotNull())).get();
       return rows
           .where(
-            (r) =>
-                normalizeTransmitterSerial(r.transmitterSerial) ==
-                t.transmitterSerial,
+            (r) => normalizeTransmitterSerial(r.transmitterSerial) == wanted,
           )
           .toList();
     }
@@ -291,10 +292,14 @@ class TransmitterRepository {
 
   Future<void> _checkConflicts(Transmitter t) async {
     final siblings = await getForDiver(t.diverId);
+    final serial = normalizeTransmitterSerial(t.transmitterSerial);
     for (final other in siblings) {
       if (other.id == t.id) continue;
+      // The sibling may have been stored raw by a sync payload, so compare
+      // canonical forms rather than trusting write-time normalization.
       final serialClash =
-          t.hasSerial && other.transmitterSerial == t.transmitterSerial;
+          serial != null &&
+          normalizeTransmitterSerial(other.transmitterSerial) == serial;
       final channelClash =
           t.hasChannel &&
           other.diveComputerId == t.diveComputerId &&
