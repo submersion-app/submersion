@@ -54,8 +54,21 @@ class EquipmentPickerFilterSheet extends StatefulWidget {
 
 class _EquipmentPickerFilterSheetState
     extends State<EquipmentPickerFilterSheet> {
-  late EquipmentStatus? _status = widget.current.status;
-  late EquipmentType? _type = widget.current.type;
+  EquipmentStatus? _status;
+  EquipmentType? _type;
+
+  // Seeded in initState rather than in a field initializer. A `late` field
+  // initializer would also work, because it defers to first read in build,
+  // by which point the framework has assigned `widget`. But a plain field
+  // initializer reading `widget` DOES throw, since State fields are built
+  // during createState before the element assigns it, so the `late` was the
+  // only thing standing between this and a crash. initState says so plainly.
+  @override
+  void initState() {
+    super.initState();
+    _status = widget.current.status;
+    _type = widget.current.type;
+  }
 
   @override
   Widget build(BuildContext context) {
