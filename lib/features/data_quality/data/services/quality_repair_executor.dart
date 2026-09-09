@@ -317,6 +317,40 @@ class QualityRepairExecutor {
     });
   }
 
+  /// Delete the redundant copy of a dive downloaded twice from one computer.
+  ///
+  /// Goes through [DiveRepository.deleteDive], the same path as the dive
+  /// list's own delete: row delete, sync tombstone, local-change notify. A
+  /// bare row delete would have the next sync resurrect the copy from any
+  /// peer that still holds it. Undo re-creates the dive from the entity read
+  /// beforehand, the way the list's bulk-delete Undo does; both ids are
+  /// rescanned so the pair's finding retires on the survivor.
+  Future<RepairResult> deleteDuplicate({
+    required String keepDiveId,
+    required String deleteDiveId,
+    required String findingId,
+  }) async {
+    if (keepDiveId == deleteDiveId) {
+      throw ArgumentError.value(
+        deleteDiveId,
+        'deleteDiveId',
+        'must differ from keepDiveId',
+      );
+    }
+    final doomed = await _diveRepo.getDivesByIds([deleteDiveId]);
+    // Already gone (deleted by hand, or by sync, since the scan). Nothing to
+    // do; the finding is left to the rescan rather than resolved on a fact
+    // this tap did not establish.
+    if (doomed.isEmpty) return const RepairResult.noChange();
+    final snapshot = doomed.single;
+    await _diveRepo.deleteDive(deleteDiveId);
+    await _finish(findingId, [keepDiveId, deleteDiveId]);
+    return RepairResult.applied(() async {
+      await _diveRepo.createDive(snapshot);
+      scheduleQualityScan([keepDiveId, deleteDiveId]);
+    });
+  }
+
   /// Exchange two tanks' computer bundles from the dive page, outside any
   /// finding. Same write, notify and undo contract as [swapPressureSeries];
   /// the targeted rescan lets a twin-tank finding clear itself.

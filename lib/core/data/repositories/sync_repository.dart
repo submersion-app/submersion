@@ -79,6 +79,7 @@ class SyncRepository {
     // their own clock.
     'equipmentSetGeofences': (table: 'equipment_set_geofences', pk: 'id'),
     'equipmentAttributes': (table: 'equipment_attributes', pk: 'id'),
+    'equipmentComponents': (table: 'equipment_components', pk: 'id'),
     'cylinderConfigs': (table: 'cylinder_configs', pk: 'id'),
     'cylinderConfigItems': (table: 'cylinder_config_items', pk: 'id'),
     'diveTypes': (table: 'dive_types', pk: 'id'),
@@ -116,6 +117,10 @@ class SyncRepository {
     'qualityFindings': (table: 'quality_findings', pk: 'id'),
     'emergencyChambers': (table: 'emergency_chambers', pk: 'id'),
     'incidents': (table: 'incidents', pk: 'id'),
+    // v202: gear check-ins. The serializer wires them in the condition
+    // findings phase; registering the clock target now keeps the hlc census
+    // honest about the table carrying a clock column.
+    'equipmentObservations': (table: 'equipment_observations', pk: 'id'),
     'mediaSmartAlbums': (table: 'media_smart_albums', pk: 'id'),
   };
 

@@ -74,6 +74,11 @@ abstract final class EquipmentAttrKeys {
   static const sku = 'sku';
   static const retailer = 'retailer';
   static const productUrl = 'product_url';
+
+  // Child items (o2Cell, battery).
+  static const cellSlot = 'cell_slot';
+  static const installedDate = 'installed_date';
+  static const rechargeable = 'rechargeable';
 }
 
 class EquipmentAttributeDef {
@@ -177,6 +182,29 @@ abstract final class EquipmentAttributeCatalog {
       'merino',
       'polypropylene',
     ],
+  );
+
+  // Shared by a whole and its parts (issue #1487): a first stage has the
+  // regulator's connection, a wing the BCD's lift, a housing the camera's
+  // depth rating.
+  static const _connection = EquipmentAttributeDef(
+    key: 'connection',
+    kind: AttributeKind.choice,
+    choiceKeys: ['din', 'yoke'],
+  );
+  static const _coldWaterRated = EquipmentAttributeDef(
+    key: 'cold_water_rated',
+    kind: AttributeKind.flag,
+  );
+  static const _liftCapacity = EquipmentAttributeDef(
+    key: EquipmentAttrKeys.liftCapacityKg,
+    kind: AttributeKind.number,
+    dimension: AttributeDimension.massKg,
+  );
+  static const _depthRating = EquipmentAttributeDef(
+    key: 'depth_rating_m',
+    kind: AttributeKind.number,
+    dimension: AttributeDimension.depthM,
   );
 
   static const Map<EquipmentType, List<EquipmentAttributeDef>> _byType = {
@@ -299,13 +327,17 @@ abstract final class EquipmentAttributeCatalog {
         dimension: AttributeDimension.depthM,
       ),
     ],
-    EquipmentType.regulator: [
+    EquipmentType.regulator: [_connection, _coldWaterRated],
+    EquipmentType.firstStage: [_connection, _coldWaterRated],
+    EquipmentType.secondStage: [_coldWaterRated],
+    EquipmentType.hose: [
+      // Stored in metres and shown in the diver's length unit through the
+      // existing lengthM dimension, like an SMB or a reel line.
       EquipmentAttributeDef(
-        key: 'connection',
-        kind: AttributeKind.choice,
-        choiceKeys: ['din', 'yoke'],
+        key: 'hose_length_m',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.lengthM,
       ),
-      EquipmentAttributeDef(key: 'cold_water_rated', kind: AttributeKind.flag),
     ],
     EquipmentType.bcd: [
       _size,
@@ -314,12 +346,17 @@ abstract final class EquipmentAttributeCatalog {
         kind: AttributeKind.choice,
         choiceKeys: ['jacket', 'back_inflate', 'wing', 'sidemount'],
       ),
+      _liftCapacity,
+    ],
+    EquipmentType.backplate: [
       EquipmentAttributeDef(
-        key: EquipmentAttrKeys.liftCapacityKg,
-        kind: AttributeKind.number,
-        dimension: AttributeDimension.massKg,
+        key: 'plate_material',
+        kind: AttributeKind.choice,
+        choiceKeys: ['steel', 'aluminum', 'carbon_fiber'],
       ),
     ],
+    EquipmentType.wing: [_liftCapacity],
+    EquipmentType.harness: [_size],
     EquipmentType.fins: [
       _size,
       EquipmentAttributeDef(
@@ -423,13 +460,9 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['spot', 'flood', 'adjustable'],
       ),
     ],
-    EquipmentType.camera: [
-      EquipmentAttributeDef(
-        key: 'depth_rating_m',
-        kind: AttributeKind.number,
-        dimension: AttributeDimension.depthM,
-      ),
-    ],
+    EquipmentType.camera: [_depthRating],
+    EquipmentType.housing: [_depthRating],
+    EquipmentType.strobe: [_depthRating],
     EquipmentType.dpv: [
       EquipmentAttributeDef(
         key: 'dpv_style',
@@ -448,7 +481,13 @@ abstract final class EquipmentAttributeCatalog {
       EquipmentAttributeDef(
         key: 'battery_type',
         kind: AttributeKind.choice,
-        choiceKeys: ['lithium_ion', 'nimh', 'lead_acid'],
+        choiceKeys: [
+          'lithium_ion',
+          'nimh',
+          'lead_acid',
+          'alkaline',
+          'lithium_primary',
+        ],
       ),
       // Watt-hours: the figure printed on the pack and the one airlines ask
       // about, universal in every market.
@@ -551,6 +590,37 @@ abstract final class EquipmentAttributeCatalog {
         key: 'sole_type',
         kind: AttributeKind.choice,
         choiceKeys: ['hard', 'soft'],
+      ),
+    ],
+    EquipmentType.o2Cell: [
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.cellSlot,
+        kind: AttributeKind.number,
+      ),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.installedDate,
+        kind: AttributeKind.date,
+      ),
+    ],
+    EquipmentType.battery: [
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.installedDate,
+        kind: AttributeKind.date,
+      ),
+      EquipmentAttributeDef(
+        key: 'battery_type',
+        kind: AttributeKind.choice,
+        choiceKeys: [
+          'lithium_ion',
+          'nimh',
+          'lead_acid',
+          'alkaline',
+          'lithium_primary',
+        ],
+      ),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.rechargeable,
+        kind: AttributeKind.flag,
       ),
     ],
     EquipmentType.other: [],

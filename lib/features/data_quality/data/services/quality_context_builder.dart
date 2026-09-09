@@ -92,6 +92,11 @@ class QualityContextBuilder {
       dive.id,
       primaryOnly: true,
     );
+    // Summed from the stored summaries, not counted off the merged list
+    // below, so it agrees with the neighbor query's SUM over the same column.
+    final primarySampleCount = primarySeries.isEmpty
+        ? null
+        : primarySeries.fold<int>(0, (n, s) => n + s.summary.sampleCount);
     final samples = <QualitySample>[
       for (final p in mergeSeriesPointsCollapsingDuplicates(primarySeries))
         if (p.depth.isFinite &&
@@ -139,6 +144,7 @@ class QualityContextBuilder {
       now: now,
       sources: sources,
       primarySamples: samples,
+      primarySampleCount: primarySampleCount,
       tanks: dive.tanks,
       pressuresByTankId: pressures,
       gasSwitches: switches,
@@ -177,7 +183,11 @@ class QualityContextBuilder {
           // alone picked the other one and reported a last depth no other
           // reader agrees with.
           'ORDER BY s.end_timestamp DESC, s.start_timestamp DESC, '
-          's.id DESC LIMIT 1) AS last_depth '
+          's.id DESC LIMIT 1) AS last_depth, '
+          // NULL (not 0) when the neighbor has no primary series, so an
+          // unknown recording never reads as an empty one.
+          '(SELECT SUM(s.sample_count) FROM dive_profile_series s '
+          'WHERE s.dive_id = dives.id AND s.is_primary = 1) AS sample_count '
           'FROM dives WHERE id != ?1 AND diver_id IS ?2 '
           'AND COALESCE(entry_time, dive_date_time) BETWEEN ?3 AND ?4 '
           'ORDER BY COALESCE(entry_time, dive_date_time) ASC',
@@ -215,6 +225,7 @@ class QualityContextBuilder {
           computerSerial: row.read<String?>('dive_computer_serial'),
           firstSampleDepth: _finiteDepth(row.read<double?>('first_depth')),
           lastSampleDepth: _finiteDepth(row.read<double?>('last_depth')),
+          sampleCount: row.read<int?>('sample_count'),
         ),
       );
     }

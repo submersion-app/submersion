@@ -8,6 +8,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
     as domain;
 
@@ -65,6 +66,9 @@ class ServiceKindRepository {
             defaultIntervalDays: Value(kind.defaultIntervalDays),
             defaultIntervalDives: Value(kind.defaultIntervalDives),
             defaultIntervalHours: Value(kind.defaultIntervalHours),
+            exposureIntervals: Value(
+              encodeExposureIntervals(kind.exposureIntervals),
+            ),
             defaultCost: Value(kind.defaultCost),
             defaultCurrency: Value(kind.defaultCurrency),
             defaultCategory: Value(kind.defaultCategory?.name),
@@ -104,6 +108,9 @@ class ServiceKindRepository {
         defaultIntervalDays: Value(kind.defaultIntervalDays),
         defaultIntervalDives: Value(kind.defaultIntervalDives),
         defaultIntervalHours: Value(kind.defaultIntervalHours),
+        exposureIntervals: Value(
+          encodeExposureIntervals(kind.exposureIntervals),
+        ),
         defaultCost: Value(kind.defaultCost),
         defaultCurrency: Value(kind.defaultCurrency),
         defaultCategory: Value(kind.defaultCategory?.name),
@@ -167,6 +174,7 @@ class ServiceKindRepository {
       defaultIntervalDays: row.defaultIntervalDays,
       defaultIntervalDives: row.defaultIntervalDives,
       defaultIntervalHours: row.defaultIntervalHours,
+      exposureIntervals: decodeExposureIntervals(row.exposureIntervals),
       defaultCost: row.defaultCost,
       defaultCurrency: row.defaultCurrency,
       defaultCategory: row.defaultCategory == null

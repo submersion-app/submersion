@@ -249,4 +249,73 @@ void main() {
       expect(names, isNot(contains('Theirs')));
     },
   );
+
+  group('cell linearity link (#986)', () {
+    domain.PreDiveChecklistTemplateItem linked(
+      String templateId, {
+      required String id,
+      required String title,
+      domain.PreDiveItemType type = domain.PreDiveItemType.value,
+      String? sourceItemId,
+      int order = 0,
+    }) {
+      final now = DateTime.now();
+      return domain.PreDiveChecklistTemplateItem(
+        id: id,
+        templateId: templateId,
+        title: title,
+        sortOrder: order,
+        itemType: type,
+        sourceItemId: sourceItemId,
+        createdAt: now,
+        updatedAt: now,
+      );
+    }
+
+    test('saveItems persists sourceItemId', () async {
+      final tpl = await repository.createTemplate(template());
+      await repository.saveItems(tpl.id, [
+        linked(tpl.id, id: 'air1', title: 'Cell 1 mV in air'),
+        linked(
+          tpl.id,
+          id: 'o2-1',
+          title: 'Cell 1 mV in O2',
+          type: domain.PreDiveItemType.cellLinearity,
+          sourceItemId: 'air1',
+          order: 1,
+        ),
+      ]);
+      final items = await repository.getItemsForTemplate(tpl.id);
+      final linearity = items.firstWhere((i) => i.id == 'o2-1');
+      expect(linearity.sourceItemId, 'air1');
+      expect(linearity.itemType, domain.PreDiveItemType.cellLinearity);
+    });
+
+    test('cloneTemplate remaps the link to the new ids', () async {
+      final tpl = await repository.createTemplate(template());
+      await repository.saveItems(tpl.id, [
+        linked(tpl.id, id: 'air1', title: 'Cell 1 mV in air'),
+        linked(
+          tpl.id,
+          id: 'o2-1',
+          title: 'Cell 1 mV in O2',
+          type: domain.PreDiveItemType.cellLinearity,
+          sourceItemId: 'air1',
+          order: 1,
+        ),
+      ]);
+
+      final clone = await repository.cloneTemplate(tpl.id, newName: 'My CCR');
+      final items = await repository.getItemsForTemplate(clone.id);
+      final air = items.firstWhere((i) => i.title == 'Cell 1 mV in air');
+      final linearity = items.firstWhere((i) => i.title == 'Cell 1 mV in O2');
+
+      expect(air.id, isNot('air1'), reason: 'the clone gets fresh ids');
+      expect(
+        linearity.sourceItemId,
+        air.id,
+        reason: 'the link must follow the remap, not dangle at the old id',
+      );
+    });
+  });
 }

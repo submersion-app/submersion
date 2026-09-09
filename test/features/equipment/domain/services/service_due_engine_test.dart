@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 
 void main() {
@@ -241,5 +244,115 @@ void main() {
     );
     expect(statuses.first.kind.id, 'regulator-service'); // overdue
     expect(statuses.first.severity, ServiceClockSeverity.overdue);
+  });
+
+  group('exposure units', () {
+    ServiceKind regWithCold() => ServiceKind(
+      id: 'regulator-service',
+      name: 'Reg service',
+      defaultIntervalDays: 365,
+      exposureIntervals: const {ExposureUnit.coldDives: 3},
+      applicableTypes: const [EquipmentType.regulator],
+      isBuiltIn: true,
+      createdAt: t0,
+      updatedAt: t0,
+    );
+    EquipmentExposureSample cold(int daysAfterT0) => EquipmentExposureSample(
+      date: t0.add(Duration(days: daysAfterT0)),
+      durationSeconds: 3600,
+      minTemperature: 4,
+    );
+    EquipmentExposureSample warm(int daysAfterT0) => EquipmentExposureSample(
+      date: t0.add(Duration(days: daysAfterT0)),
+      durationSeconds: 3600,
+      minTemperature: 24,
+    );
+
+    test('a kind-level cold-dive interval counts only cold dives', () {
+      final statuses = engine.evaluate(
+        schedules: [sched('regulator-service')],
+        kindsById: {'regulator-service': regWithCold()},
+        records: const [],
+        usage: [cold(10), warm(20), cold(30)],
+        purchaseDate: t0,
+        equipmentCreatedAt: t0,
+        dueSoonWindowDays: 30,
+        now: t0.add(const Duration(days: 40)),
+      );
+      final usage = statuses.single.usageByUnit[ExposureUnit.coldDives]!;
+      expect(usage.interval, 3);
+      expect(usage.since, 2);
+      expect(usage.remaining, 1);
+      expect(statuses.single.severity, ServiceClockSeverity.dueSoon);
+    });
+
+    test('a schedule override beats the kind default and can go overdue', () {
+      final schedule = sched(
+        'regulator-service',
+      ).copyWith(exposureIntervals: const {ExposureUnit.coldDives: 2});
+      final statuses = engine.evaluate(
+        schedules: [schedule],
+        kindsById: {'regulator-service': regWithCold()},
+        records: const [],
+        usage: [cold(10), cold(20)],
+        purchaseDate: t0,
+        equipmentCreatedAt: t0,
+        dueSoonWindowDays: 30,
+        now: t0.add(const Duration(days: 40)),
+      );
+      expect(statuses.single.usageByUnit[ExposureUnit.coldDives]!.remaining, 0);
+      expect(statuses.single.severity, ServiceClockSeverity.overdue);
+    });
+
+    test('a service record resets every unit', () {
+      final statuses = engine.evaluate(
+        schedules: [sched('regulator-service')],
+        kindsById: {'regulator-service': regWithCold()},
+        records: [
+          record('regulator-service', t0.add(const Duration(days: 25))),
+        ],
+        usage: [cold(10), cold(20), cold(30)],
+        purchaseDate: t0,
+        equipmentCreatedAt: t0,
+        dueSoonWindowDays: 30,
+        now: t0.add(const Duration(days: 40)),
+      );
+      expect(statuses.single.usageByUnit[ExposureUnit.coldDives]!.since, 1);
+    });
+
+    test('the classifier is injectable', () {
+      final statuses = engine.evaluate(
+        schedules: [sched('regulator-service')],
+        kindsById: {'regulator-service': regWithCold()},
+        records: const [],
+        usage: [warm(10)],
+        classifier: const ExposureClassifier(
+          thresholds: ExposureThresholds(coldWaterC: 25),
+        ),
+        purchaseDate: t0,
+        equipmentCreatedAt: t0,
+        dueSoonWindowDays: 30,
+        now: t0.add(const Duration(days: 40)),
+      );
+      expect(statuses.single.usageByUnit[ExposureUnit.coldDives]!.since, 1);
+    });
+
+    test('legacy dives and hours still evaluate through the map', () {
+      final statuses = engine.evaluate(
+        schedules: [sched('regulator-service', dives: 10, hours: 5)],
+        kindsById: {'regulator-service': regWithCold()},
+        records: const [],
+        usage: [cold(10), warm(20)],
+        purchaseDate: t0,
+        equipmentCreatedAt: t0,
+        dueSoonWindowDays: 30,
+        now: t0.add(const Duration(days: 40)),
+      );
+      final s = statuses.single;
+      expect(s.divesSinceAnchor, 2);
+      expect(s.divesRemaining, 8);
+      expect(s.hoursSinceAnchor, closeTo(2, 1e-9));
+      expect(s.hoursRemaining, closeTo(3, 1e-9));
+    });
   });
 }

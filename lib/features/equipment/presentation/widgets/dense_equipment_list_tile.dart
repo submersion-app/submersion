@@ -4,7 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -32,7 +32,18 @@ class DenseEquipmentListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final worstClock = ref.watch(equipmentWorstClockProvider).value?[item.id];
+    // The rollup (issue #1487): a due part lights its assembly.
+    final rollup = ref.watch(equipmentRollupClockProvider).value?[item.id];
+    final worstClock =
+        rollup == null || rollup.status.severity == ServiceClockSeverity.ok
+        ? null
+        : rollup;
+    final isAssembly =
+        ref
+            .watch(equipmentComponentsIndexProvider)
+            .value
+            ?.isAssembly(item.id) ??
+        false;
     final colorScheme = Theme.of(context).colorScheme;
     final rowColor = isSelected
         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
@@ -64,6 +75,14 @@ class DenseEquipmentListTile extends ConsumerWidget {
                   onChanged: onCheckChanged,
                   gap: 8,
                 ),
+                if (isAssembly) ...[
+                  Icon(
+                    Icons.account_tree_outlined,
+                    size: 14,
+                    color: secondaryTextColor,
+                  ),
+                  const SizedBox(width: 4),
+                ],
                 // Equipment name (expanded)
                 Expanded(
                   child: Text(
@@ -108,14 +127,20 @@ class DenseEquipmentListTile extends ConsumerWidget {
     );
   }
 
-  Widget _buildServiceStatus(BuildContext context, DueClock? worstClock) {
+  Widget _buildServiceStatus(BuildContext context, RollupClock? worstClock) {
     final theme = Theme.of(context);
 
     if (worstClock != null) {
       final overdue =
           worstClock.status.severity == ServiceClockSeverity.overdue;
+      final kindLabel = worstClock.ownerId == item.id
+          ? worstClock.status.kind.name
+          : context.l10n.equipment_components_rollupClock(
+              worstClock.ownerName,
+              worstClock.status.kind.name,
+            );
       return Text(
-        worstClock.status.kind.name,
+        kindLabel,
         style: theme.textTheme.labelSmall?.copyWith(
           color: overdue ? theme.colorScheme.error : theme.colorScheme.tertiary,
           fontWeight: FontWeight.w600,

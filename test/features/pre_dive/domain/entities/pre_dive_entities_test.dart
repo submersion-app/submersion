@@ -260,4 +260,116 @@ void main() {
       expect(full() == full().copyWith(notes: 'changed'), isFalse);
     });
   });
+
+  group('cell linearity items', () {
+    PreDiveSessionItem linearityItem({
+      double? airMillivolts,
+      double? o2Millivolts,
+      double? min,
+      double? max,
+    }) => PreDiveSessionItem(
+      id: 'i1',
+      sessionId: 's1',
+      title: 'Cell 1 mV in O2',
+      itemType: PreDiveItemType.cellLinearity,
+      valueLabel: 'Cell 1',
+      valueUnit: 'mV',
+      valueMin: min,
+      valueMax: max,
+      valueNumber: o2Millivolts,
+      sourceItemId: 'air1',
+      sourceValueNumber: airMillivolts,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    test('parses the new type name', () {
+      expect(
+        PreDiveItemType.parse('cellLinearity'),
+        PreDiveItemType.cellLinearity,
+      );
+    });
+
+    test('an unknown type still falls back to check', () {
+      // Forward compatibility: an older build must render a newer type as a
+      // plain checkbox rather than throwing.
+      expect(PreDiveItemType.parse('somethingNewer'), PreDiveItemType.check);
+    });
+
+    test('derives the expected O2 output and the percentage', () {
+      final item = linearityItem(airMillivolts: 10.1, o2Millivolts: 48.0);
+      expect(item.expectedO2Millivolts, closeTo(48.325, 0.001));
+      expect(item.linearityPercent, closeTo(99.33, 0.01));
+    });
+
+    test('derives nothing without a frozen air reading', () {
+      final item = linearityItem(o2Millivolts: 48.0);
+      expect(item.expectedO2Millivolts, isNull);
+      expect(item.linearityPercent, isNull);
+    });
+
+    test('thresholds are read as a percentage, not as millivolts', () {
+      // The regression this guards: valueMin/valueMax hold a percentage on a
+      // linearity item, but valueNumber holds millivolts. Comparing the two
+      // lights amber on every healthy cell.
+      final healthy = linearityItem(
+        airMillivolts: 10.1,
+        o2Millivolts: 48.0,
+        min: 95,
+      );
+      expect(healthy.linearityPercent!.round(), 99);
+      expect(healthy.valueOutOfRange, isFalse);
+
+      final sick = linearityItem(
+        airMillivolts: 10.1,
+        o2Millivolts: 40.0,
+        min: 95,
+      );
+      expect(sick.valueOutOfRange, isTrue);
+    });
+
+    test('a linearity item with no percentage is never out of range', () {
+      final item = linearityItem(o2Millivolts: 48.0, min: 95);
+      expect(item.valueOutOfRange, isFalse);
+    });
+
+    test('a plain value item still compares against valueNumber', () {
+      final item = PreDiveSessionItem(
+        id: 'i2',
+        sessionId: 's1',
+        title: 'Cell 1 mV in air',
+        itemType: PreDiveItemType.value,
+        valueNumber: 8.0,
+        valueMin: 8.5,
+        valueMax: 13.0,
+        createdAt: now,
+        updatedAt: now,
+      );
+      expect(item.valueOutOfRange, isTrue);
+    });
+
+    test('copyWith round-trips the new fields and can null them', () {
+      final item = linearityItem(airMillivolts: 10.1, o2Millivolts: 48.0);
+      expect(item.copyWith(sourceValueNumber: 9.9).sourceValueNumber, 9.9);
+      expect(item.copyWith(sourceItemId: null).sourceItemId, isNull);
+      expect(item.copyWith(sourceValueNumber: null).sourceValueNumber, isNull);
+      expect(item.copyWith(title: 'x').sourceItemId, 'air1');
+    });
+
+    test('template items round-trip sourceItemId through copyWith', () {
+      final t = PreDiveChecklistTemplateItem(
+        id: 't1',
+        templateId: 'tpl',
+        title: 'Cell 1 mV in O2',
+        itemType: PreDiveItemType.cellLinearity,
+        sourceItemId: 'air1',
+        createdAt: now,
+        updatedAt: now,
+      );
+      expect(t.sourceItemId, 'air1');
+      expect(t.copyWith(sourceItemId: null).sourceItemId, isNull);
+      expect(t.copyWith(title: 'x').sourceItemId, 'air1');
+      expect(t.props, contains('air1'));
+    });
+  });
 }

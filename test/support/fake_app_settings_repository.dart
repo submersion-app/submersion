@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 
 /// In-memory stand-in for [AppSettingsRepository] so tests can exercise
@@ -9,6 +10,16 @@ import 'package:submersion/features/gas_calculators/domain/blending/blender_pref
 /// Dart's implicit interfaces let us implement the concrete repository
 /// directly, so no production-side abstraction is needed.
 class FakeAppSettingsRepository implements AppSettingsRepository {
+  /// The gear arrangement is not exercised by these tests; the notifier falls
+  /// back to EquipmentArrangement.defaults when the read returns null.
+  @override
+  Future<EquipmentArrangement?> getEquipmentArrangement() async => null;
+
+  @override
+  Future<void> setEquipmentArrangement(
+    EquipmentArrangement arrangement,
+  ) async {}
+
   final Map<String, String> values = {};
 
   /// When set, [getRawSetting] throws it.

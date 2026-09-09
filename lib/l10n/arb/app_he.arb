@@ -4,7 +4,10 @@
   "settings_oauth_connect_copyLink": "העתקת קישור",
   "settings_oauth_connect_linkCopied": "הקישור הועתק. הדבק אותו בדפדפן שלך כדי לאשר.",
   "universalImport_action_importFromGarmin": "ייבוא מהתקן Garmin",
+  "enum_equipmentType_backplate": "פלטת גב",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "תא חמצן",
+  "enum_equipmentType_battery": "סוללה",
   "diveLog_tank_saveAsPreset": "שמור כתבנית",
   "diveLog_tank_saveAsPreset_needSpecs": "הזן תחילה נפח ולחץ עבודה",
   "diveLog_tank_saveAsPreset_nameTitle": "שמור תבנית בלון",
@@ -162,6 +165,23 @@
   "diveLog_edit_geofenceSuggestion_body": "להחיל את ערכת \"{setName}\"?",
   "diveLog_edit_geofenceSuggestion_apply": "החל",
   "common_action_dismiss": "התעלם",
+  "equipment_components_add": "הוספת רכיב",
+  "equipment_components_count": "{count, plural, =1{רכיב אחד} other{{count} רכיבים}}",
+  "equipment_components_cycleError": "הפריט הזה כבר מכיל את זה, ולכן אי אפשר להוסיף אותו כרכיב.",
+  "equipment_components_editRole": "עריכת תפקיד",
+  "equipment_components_empty": "אין רכיבים. הוסיפו את החלקים שמהם מורכב הפריט.",
+  "equipment_components_partOf": "חלק מ-{name}",
+  "equipment_components_partOfCount": "{count, plural, =1{חלק ממכלול אחד} other{חלק מ-{count} מכלולים}}",
+  "equipment_components_pickerConfirm": "{count, plural, =0{הוספה} =1{הוספת 1} other{הוספת {count}}}",
+  "equipment_components_pickerEmpty": "אין ציוד פעיל נוסף שאפשר להוסיף כאן.",
+  "equipment_components_pickerTitle": "הוספת רכיבים",
+  "equipment_components_remove": "הסרת רכיב",
+  "equipment_components_reorder": "סידור מחדש",
+  "equipment_components_role": "תפקיד",
+  "equipment_components_roleDialogTitle": "תפקיד הרכיב",
+  "equipment_components_roleHint": "לדוגמה: שלב שני ראשי",
+  "equipment_components_rollupClock": "{component}: {kind}",
+  "equipment_components_title": "רכיבים",
   "equipment_setEdit_defaultSwitch_title": "ערכת ברירת מחדל",
   "equipment_setEdit_defaultSwitch_subtitle": "מוחלת אוטומטית על צלילות חדשות שאין בהן ציוד עדיין",
   "equipment_setEdit_geofencesTitle": "גדרות גאוגרפיות",
@@ -937,8 +957,9 @@
   "checklists_saveTemplate_title": "שמירה כתבנית",
   "checklists_saveTemplate_nameLabel": "שם התבנית",
   "checklists_saveTemplate_success": "התבנית נשמרה",
-  "checklists_templates_pageTitle": "תבניות רשימות משימות",
+  "checklists_templates_pageTitle": "תבניות רשימות משימות לטיול",
   "checklists_templates_addTemplate": "הוסף תבנית",
+  "checklists_templates_editTemplate": "עריכת תבנית",
   "checklists_templates_empty": "עדיין אין תבניות",
   "checklists_templates_deleteTitle": "מחיקת תבנית",
   "checklists_templates_deleteContent": "למחוק את \"{name}\"? טיולים שכבר החילו אותה ישמרו את הפריטים שלהם.",
@@ -976,6 +997,20 @@
   "preDive_item_valueUnit": "יחידה",
   "preDive_item_valueMin": "מינימום (אזהרה)",
   "preDive_item_valueMax": "מקסימום (אזהרה)",
+  "preDive_item_type_cellLinearity": "ליניאריות התא",
+  "preDive_item_sourceItem": "קריאת אוויר מתוך",
+  "preDive_item_sourceItemRequired": "בחר את הפריט שמכיל את קריאת האוויר",
+  "preDive_item_linearityMin": "ליניאריות מזערית % (אזהרה)",
+  "preDive_item_linearityMax": "ליניאריות מרבית % (אזהרה)",
+  "preDive_item_sourceCleared": "ל־{title} אין יותר קריאת אוויר להשוואה",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "קורא ערך שנרשם בהמשך הרשימה",
   "preDive_runner_progress": "{done} מתוך {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1039,35 @@
   "preDive_runner_serviceOverdue": "פג תוקף הטיפול",
   "preDive_runner_addNote": "הוסף הערה",
   "preDive_runner_enterValue": "הזן ערך",
+  "preDive_runner_cellInAir": "באוויר",
+  "preDive_runner_cellInAirMissing": "טרם נרשם",
+  "preDive_runner_enterO2Value": "הזן ערך בחמצן טהור",
+  "preDive_runner_linearityReadout": "צפוי {expected} mV, ליניאריות {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "אוויר {air} mV, צפוי {expected} mV, ליניאריות {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "קריאת האוויר השתנתה מאז",
   "preDive_runner_flaggedBadge": "{count} מסומנים בדגל",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2549,6 +2613,8 @@
   "diveLog_tank_selectPreset": "בחר תבנית...",
   "diveLog_tank_title": "בלון {number}",
   "diveLog_tank_tooltip_remove": "הסר בלון",
+  "diveLog_tank_regulatorLabel": "וסת",
+  "diveLog_tank_regulatorNone": "ללא",
   "diveLog_tissue_label_ceiling": "תקרה",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -2748,6 +2814,7 @@
   "diveSites_detail_deleteMenu_label": "מחק",
   "diveSites_detail_deleteSnackbar": "האתר נמחק",
   "diveSites_detail_depth_maximum": "מקסימום",
+  "diveSites_detail_depth_reachedHeading": "עומק שהושג",
   "diveSites_detail_depth_minimum": "מינימום",
   "diveSites_detail_diveCount_one": "צלילה אחת רשומה",
   "diveSites_detail_diveCount_other": "{count} צלילות רשומות",
@@ -2787,6 +2854,8 @@
   "diveSites_detail_stats_maxDepth": "הצלילה העמוקה ביותר",
   "diveSites_detail_stats_minDepth": "הצלילה הרדודה ביותר",
   "diveSites_detail_stats_notAvailable": "לא זמין",
+  "diveSites_detail_stats_viewAllDives": "{count, plural, =1{הצג צלילה אחת} other{הצג את כל {count} הצלילות}}",
+  "diveSites_detail_semantics_openLinkedDive": "{label}, פתח צלילה זו",
   "diveSites_detail_semantics_copyToClipboard": "העתק {label} ללוח",
   "diveSites_detail_semantics_viewDivesAtSite": "צפה בצלילות באתר זה",
   "diveSites_detail_semantics_viewFullscreenMap": "צפה במפה במסך מלא",
@@ -3051,6 +3120,10 @@
   "diveSites_summary_stat_totalDives": "סה\"כ צלילות",
   "diveSites_summary_stat_totalSites": "סה\"כ אתרים",
   "diveSites_summary_stat_withGps": "עם GPS",
+  "diveSites_summary_stat_countries": "מדינות",
+  "diveSites_summary_stat_notDived": "לא נצללו",
+  "diveSites_summary_section_recentlyDived": "נצללו לאחרונה",
+  "diveSites_summary_tile_lastDived": "נצלל לאחרונה {date}",
   "diveType_builtin_altitude": "גובה רב",
   "diveType_builtin_altitude_short": "גובה",
   "diveType_builtin_boat": "מסירה",
@@ -3346,6 +3419,12 @@
   "enum_equipmentType_computer": "מחשב צלילה",
   "enum_equipmentType_drysuit": "חליפה יבשה",
   "enum_equipmentType_baselayer": "שכבת בסיס",
+  "enum_equipmentType_firstStage": "שלב ראשון",
+  "enum_equipmentType_harness": "רתמה",
+  "enum_equipmentType_hose": "צינור",
+  "enum_equipmentType_housing": "מארז",
+  "enum_equipmentType_secondStage": "שלב שני",
+  "enum_equipmentType_strobe": "פלאש",
   "enum_equipmentType_undersuit": "חליפה תחתונה",
   "enum_equipmentType_fins": "סנפירים",
   "enum_equipmentType_gloves": "כפפות",
@@ -3367,6 +3446,7 @@
   "enum_equipmentType_rebreather": "ריברת'ר",
   "enum_equipmentType_tool": "כלי",
   "enum_equipmentType_rashGuard": "חולצת ליקרה",
+  "enum_equipmentType_wing": "כנף",
   "enum_eventSeverity_alert": "התראה",
   "enum_eventSeverity_info": "מידע",
   "enum_eventSeverity_warning": "אזהרה",
@@ -3614,6 +3694,61 @@
   "cylinderConfigs_sectionTitle": "תצורות",
   "equipment_serviceClocks_hoursSource": "מחושב מזמן הצלילה המתועד",
   "equipment_serviceClocks_hoursLeft": "נותרו {remaining} מתוך {total} שעות",
+  "equipment_serviceClocks_saltHoursLeft": "נותרו {remaining} מתוך {total} שעות במים מלוחים",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "נותרו {remaining} מתוך {total} צלילות במים קרים",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "נותרו {remaining} מתוך {total} שעות בחמצן גבוה",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "נותרו {remaining} מתוך {total} צלילות עמוקות",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "נותרו {remaining} מתוך {total} מחזורי סוללה",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "ניהול סוגי טיפול",
   "equipment_serviceClocks_appliesToClock": "חל על שעון",
   "equipment_serviceClocks_noClockOption": "לא משויך לשעון",
@@ -3621,6 +3756,11 @@
   "equipment_scheduleDialog_intervalDays": "מרווח (ימים)",
   "equipment_scheduleDialog_intervalDives": "מרווח (צלילות)",
   "equipment_scheduleDialog_intervalHours": "מרווח (שעות)",
+  "equipment_scheduleDialog_intervalSaltHours": "מרווח (שעות במים מלוחים)",
+  "equipment_scheduleDialog_intervalColdDives": "מרווח (צלילות במים קרים)",
+  "equipment_scheduleDialog_intervalO2Hours": "מרווח (שעות בחמצן גבוה)",
+  "equipment_scheduleDialog_intervalDeepCycles": "מרווח (צלילות עמוקות)",
+  "equipment_scheduleDialog_intervalCycles": "מרווח (מחזורי סוללה)",
   "equipment_scheduleDialog_inheritHint": "ברירת מחדל: {value}",
   "equipment_scheduleDialog_anchorDate": "תאריך בסיס",
   "equipment_scheduleDialog_anchorHint": "בשימוש כאשר עדיין אין רשומת טיפול מסוג זה",
@@ -3719,6 +3859,8 @@
   "equipment_edit_snackbar_error": "שגיאה בשמירת ציוד: {error}",
   "equipment_edit_snackbar_updated": "הציוד עודכן",
   "equipment_edit_statusLabel": "סטטוס",
+  "equipment_edit_parentLabel": "מותקן ב",
+  "equipment_edit_parentNone": "לא מותקן בשום פריט",
   "equipment_edit_thicknessDesignationHint": "למשל, 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "למשל shop.example.com/product",
   "equipment_edit_thicknessHint": "למשל, 5 מ\"מ, 7 מ\"מ",
@@ -5204,7 +5346,7 @@
   "settings_lightroom_scan_summary": "{attached} קושרו, {suggested} הוצעו, {skipped} כבר מקושרות",
   "settings_lightroom_subtitle": "קישור אוטומטי של תמונות וסרטונים לצלילות",
   "settings_lightroom_title": "Adobe Lightroom",
-  "settings_manage_checklistTemplates": "תבניות רשימות משימות",
+  "settings_manage_checklistTemplates": "תבניות רשימות משימות לטיול",
   "settings_manage_checklistTemplates_subtitle": "רשימות משימות לשימוש חוזר לתכנון טיולים",
   "settings_manage_diveRoles": "תפקידי צלילה",
   "settings_manage_diveRoles_subtitle": "ניהול תפקידי צלילה מותאמים אישית",
@@ -6584,10 +6726,6 @@
   "settings_siteMatch_subtitle": "באיזו מידה צלילות שהורדו מותאמות לאתרים",
   "settings_tankPressureAtSurfacing_title": "לחץ המיכל בעלייה לפני השטח",
   "settings_tankPressureAtSurfacing_subtitle": "קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה",
-  "settings_cloudImportPageSize_title": "גודל עמוד בייבוא מהענן",
-  "settings_cloudImportPageSize_subtitle": "כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.",
-  "settings_cloudImportPageSize_dialogTitle": "צלילות לעמוד",
-  "settings_cloudImportPageSize_range": "בין {min} ל-{max}",
   "settings_siteMatch_strict": "קפדני",
   "settings_siteMatch_balanced": "מאוזן",
   "settings_siteMatch_relaxed": "גמיש",
@@ -7410,6 +7548,8 @@
   "media_unavailablePlaceholder_volumeOffline": "הכונן אינו מחובר",
   "media_unavailablePlaceholder_stillFetching": "עדיין נטען. הקש כדי לנסות שוב.",
   "media_unavailablePlaceholder_accessDenied": "אין גישה לספריית התמונות",
+  "attrLabel_hose_length_m": "אורך הצינור",
+  "attrLabel_plate_material": "חומר הפלטה",
   "attrLabel_size": "מידה",
   "attrLabel_thickness_mm": "עובי (מ\"מ)",
   "attrLabel_suit_style": "סוג חליפה",
@@ -7457,6 +7597,9 @@
   "attrLabel_o2_cylinder_l": "בלון O2",
   "attrLabel_dpv_style": "סגנון",
   "attrLabel_burn_time_h": "זמן פעולה",
+  "attrLabel_cell_slot": "מיקום התא",
+  "attrLabel_installed_date": "תאריך התקנה",
+  "attrLabel_rechargeable": "נטענת",
   "attrLabel_battery_type": "סוללה",
   "attrLabel_battery_capacity_wh": "קיבולת סוללה (Wh)",
   "attrLabel_motor_type": "מנוע",
@@ -7474,6 +7617,9 @@
   "attrLabel_balance_zone": "אזור איזון",
   "attrLabel_tilt_tolerance_deg": "סבילות הטיה (°)",
   "attrLabel_tool_type": "סוג הכלי",
+  "attrChoice_plate_material_aluminum": "אלומיניום",
+  "attrChoice_plate_material_carbon_fiber": "סיבי פחמן",
+  "attrChoice_plate_material_steel": "פלדה",
   "attrChoice_unit_type_eccr": "CCR אלקטרוני (eCCR)",
   "attrChoice_unit_type_mccr": "CCR ידני (mCCR)",
   "attrChoice_unit_type_hccr": "CCR היברידי (hCCR)",
@@ -7563,6 +7709,8 @@
   "attrChoice_battery_type_lithium_ion": "ליתיום-יון",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "עופרת-חומצה",
+  "attrChoice_battery_type_alkaline": "אלקליין",
+  "attrChoice_battery_type_lithium_primary": "ליתיום (לא נטענת)",
   "attrChoice_motor_type_brushless": "ללא מברשות",
   "attrChoice_motor_type_brushed": "עם מברשות",
   "attrChoice_sleeve_length_short": "קצרים",
@@ -8017,6 +8165,16 @@
   "planning_card_noFly_subtitle": "ספירה לאחור מנחה מהצלילות האחרונות שלך",
   "settings_section_safety_title": "בטיחות",
   "settings_section_safety_subtitle": "כללי סקירה וטיסה אחרי צלילה",
+  "settings_section_equipmentCondition_title": "מצב הציוד",
+  "settings_section_equipmentCondition_subtitle": "ספי חשיפה לשעוני תחזוקה",
+  "equipmentConditionSettings_title": "מצב הציוד",
+  "equipmentConditionSettings_thresholdsHeader": "ספי חשיפה",
+  "equipmentConditionSettings_thresholdsHelp": "צלילה נחשבת קרה, עמוקה או בחמצן גבוה לשעוני התחזוקה כאשר היא חוצה ספים אלה.",
+  "equipmentConditionSettings_coldLabel": "מים קרים מתחת ל",
+  "equipmentConditionSettings_deepLabel": "צלילה עמוקה החל מ",
+  "equipmentConditionSettings_o2Label": "תערובת בחמצן גבוה מעל (% O2)",
+  "equipmentConditionSettings_invalid": "יש להזין מספר",
+  "equipmentConditionSettings_saveFailed": "השמירה נכשלה. נסו שוב.",
   "dataQuality_inbox_title": "איכות הנתונים",
   "dataQuality_dive_unknown": "פרטי הצלילה אינם זמינים",
   "dataQuality_dive_number": "#{number}",
@@ -8091,6 +8249,11 @@
   "dataQuality_repairLabel_shiftTime": "הסטת הזמן ב-{offset}",
   "dataQuality_repairLabel_shiftImport": "הסטת כל הצלילות מייבוא זה",
   "dataQuality_repairLabel_consolidate": "איחוד",
+  "dataQuality_repairLabel_deleteDuplicate": "מחיקת כפילות",
+  "dataQuality_deleteDuplicate_title": "למחוק את העותק המיותר?",
+  "dataQuality_deleteDuplicate_body": "שניהם הוקלטו על ידי אותו מחשב צלילה. העותק עם פחות נתוני צלילה יימחק. ניתן לבטל זאת לאחר מכן.",
+  "dataQuality_deleteDuplicate_keep": "לשמור: {dive}",
+  "dataQuality_deleteDuplicate_delete": "למחוק: {dive}",
   "dataQuality_repairLabel_combine": "מיזוג לצלילה אחת",
   "dataQuality_repairLabel_despike": "הסרת הקפיצה",
   "dataQuality_repairLabel_clampNegative": "הגבלת עומקים מעל פני המים",
@@ -8431,6 +8594,14 @@
   "enum_siteField_lastDived": "צלילה אחרונה",
   "enum_siteField_lastDived_short": "אחרונה",
   "enum_siteField_maxDepthReached": "העומק המרבי שלך",
+  "enum_siteField_firstDived": "צלילה ראשונה",
+  "enum_siteField_firstDived_short": "ראשונה",
+  "enum_siteField_averageDepthReached": "עומק ממוצע",
+  "enum_siteField_averageDepthReached_short": "ממוצע",
+  "enum_siteField_longestDive": "הצלילה הארוכה",
+  "enum_siteField_longestDive_short": "הארוכה",
+  "enum_siteField_averageDuration": "משך ממוצע",
+  "enum_siteField_averageDuration_short": "משך",
   "enum_siteField_maxDepthReached_short": "המרבי שלך",
   "enum_buddyField_buddyName": "שם",
   "enum_buddyField_email": "דוא\"ל",
@@ -8474,6 +8645,8 @@
   "enum_tripField_maxDepth_short": "ע. מרבי",
   "enum_tripField_avgDepth_short": "ע. ממוצע",
   "enum_tripField_notes_short": "הערות",
+  "enum_equipmentField_components": "רכיבים",
+  "enum_equipmentField_components_short": "חלקים",
   "enum_equipmentField_itemName": "שם",
   "enum_equipmentField_fullName": "שם מלא",
   "enum_equipmentField_type": "סוג",
@@ -10979,5 +11152,25 @@
   "backup_unrecognized_deleteFailed": "לא ניתן היה למחוק את הקבצים שנבחרו.",
   "backup_unrecognized_freed": "{size} פונו",
   "settings_storageUsage_unrecognized_title": "{count, plural, =1{קובץ אחד שאינו בהיסטוריית הגיבויים שלך} other{{count} קבצים שאינם בהיסטוריית הגיבויים שלך}}",
-  "settings_storageUsage_unrecognized_action": "בדיקה"
+  "settings_storageUsage_unrecognized_action": "בדיקה",
+  "enum_equipmentTypeOrder_none": "אל תמיין לפי סוג",
+  "enum_equipmentTypeOrder_alphabetical": "לפי א-ב",
+  "enum_equipmentTypeOrder_headToToe": "מהראש ועד כף הרגל",
+  "enum_equipmentTypeOrder_dressingOrder": "סדר הלבישה",
+  "enum_equipmentTypeOrder_canonical": "לפי תפקיד",
+  "enum_equipmentItemSortField_name": "שם",
+  "enum_equipmentItemSortField_purchaseDate": "תאריך רכישה",
+  "enum_equipmentItemSortField_dateAdded": "תאריך הוספה",
+  "enum_equipmentItemSortField_lastServiceDate": "טיפול אחרון",
+  "equipment_arrange_title": "סידור הציוד",
+  "equipment_arrange_groupByType": "קיבוץ לפי סוג",
+  "equipment_arrange_groupByTypeSubtitle": "הצגת כותרת לכל סוג ציוד",
+  "equipment_arrange_typeOrderLabel": "מיון סוגים לפי",
+  "equipment_arrange_itemOrderLabel": "ולאחר מכן לפי",
+  "equipment_arrange_itemOrderLabelFlat": "מיון לפי",
+  "equipment_arrange_tooltip": "סידור הציוד",
+  "equipment_arrange_reset": "איפוס לברירת המחדל",
+  "equipment_arrange_saveFailed": "לא ניתן לשמור את הסידור",
+  "settings_appearance_gearArrangement": "סידור הציוד",
+  "settings_appearance_gearArrangementSubtitle": "כיצד הציוד מקובץ וממוין בצלילה"
 }

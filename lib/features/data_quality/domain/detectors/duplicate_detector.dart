@@ -14,7 +14,7 @@ class DuplicateDetector extends QualityDetector {
   @override
   String get id => 'duplicate';
   @override
-  int get version => 2;
+  int get version => 3;
   @override
   QualityCategory get category => QualityCategory.duplicate;
 
@@ -46,6 +46,30 @@ class DuplicateDetector extends QualityDetector {
         existingDurationSeconds: nDuration,
       );
       if (!_matcher.isPossibleDuplicate(score)) continue;
+      final sameComputer =
+          serial != null && serial.isNotEmpty && serial == n.computerSerial;
+      // Stored runtime, else stored bottom time: the same two columns the
+      // neighbor query reads. Not `duration` (effectiveRuntime), which falls
+      // back to exit minus entry and then to the profile; the pair's two
+      // contexts would then disagree on one dive's duration and the choice
+      // would depend on scan order.
+      final storedDuration = (dive.runtime ?? dive.bottomTime)?.inSeconds;
+      final redundant = sameComputer
+          ? redundantDuplicate(
+              a: (
+                id: dive.id,
+                sampleCount: ctx.primarySampleCount,
+                durationSeconds: storedDuration,
+                maxDepth: maxDepth,
+              ),
+              b: (
+                id: n.id,
+                sampleCount: n.sampleCount,
+                durationSeconds: nDuration,
+                maxDepth: nDepth,
+              ),
+            )
+          : null;
       out.add(
         makePair(
           ctx,
@@ -65,14 +89,67 @@ class DuplicateDetector extends QualityDetector {
             // ever fail. An unknown serial on either side stays false: the
             // pair may well be consolidatable, and the service is the one
             // that decides.
-            'sameComputer':
-                serial != null &&
-                serial.isNotEmpty &&
-                serial == n.computerSerial,
+            'sameComputer': sameComputer,
+            // The copy a same-computer re-download can lose without losing
+            // data. Absent when neither side clearly dominates (an exact
+            // tie, a mixed pair, or an unknown metric), so the card falls
+            // back to its no-automatic-fix row and the diver decides.
+            'redundantDiveId': ?redundant,
           },
         ),
       );
     }
     return out;
   }
+}
+
+/// One side of a same-computer duplicate pair, reduced to the metrics that
+/// say how much of the dive it recorded.
+typedef DuplicateRecording = ({
+  String id,
+  int? sampleCount,
+  int? durationSeconds,
+  double? maxDepth,
+});
+
+/// The dive a same-computer re-download can delete without losing data, or
+/// null when the choice is not clear-cut.
+///
+/// The survivor must be at least as rich on every metric (samples, runtime,
+/// max depth) and strictly richer on one. An exact tie names nobody: two
+/// identical downloads may each carry the diver's notes or site, and that is
+/// their call. A metric missing on either side is unknown, not zero; it
+/// blocks the choice rather than volunteering a dive on a fact nobody
+/// recorded. Symmetric in its arguments, which matters because the pair has
+/// one canonical finding written by whichever side the scan reached last.
+String? redundantDuplicate({
+  required DuplicateRecording a,
+  required DuplicateRecording b,
+}) {
+  final aSamples = a.sampleCount;
+  final bSamples = b.sampleCount;
+  final aDuration = a.durationSeconds;
+  final bDuration = b.durationSeconds;
+  final aDepth = a.maxDepth;
+  final bDepth = b.maxDepth;
+  if (aSamples == null ||
+      bSamples == null ||
+      aDuration == null ||
+      bDuration == null ||
+      aDepth == null ||
+      bDepth == null) {
+    return null;
+  }
+  final comparisons = [
+    aSamples.compareTo(bSamples),
+    aDuration.compareTo(bDuration),
+    aDepth.compareTo(bDepth),
+  ];
+  if (comparisons.every((c) => c <= 0) && comparisons.any((c) => c < 0)) {
+    return a.id;
+  }
+  if (comparisons.every((c) => c >= 0) && comparisons.any((c) => c > 0)) {
+    return b.id;
+  }
+  return null;
 }

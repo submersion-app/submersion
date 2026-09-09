@@ -313,13 +313,29 @@ class DiveRepository {
             : <Trip>[];
         final tripsById = {for (final t in allTrips) t.id: t};
 
-        // Load all equipment for these dives in one query
-        final allDiveEquipment = await (_db.select(_db.diveEquipment).join([
-          innerJoin(
-            _db.equipment,
-            _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId),
-          ),
-        ])..where(_db.diveEquipment.diveId.isIn(diveIds))).get();
+        // Load all equipment for these dives in one query.
+        //
+        // The ORDER BY is a DETERMINISM guarantee, not a display order:
+        // without it SQLite may emit join rows in whatever order its plan
+        // produces, which is what made a dive's gear list look random (#1486,
+        // #1576) and what let export output churn between devices. The
+        // diver's chosen arrangement is applied in the presentation layer by
+        // arrangeEquipment(); this only guarantees that two reads agree.
+        // Sorting down to id keeps the order total.
+        final allDiveEquipment =
+            await (_db.select(_db.diveEquipment).join([
+                    innerJoin(
+                      _db.equipment,
+                      _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId),
+                    ),
+                  ])
+                  ..where(_db.diveEquipment.diveId.isIn(diveIds))
+                  ..orderBy([
+                    OrderingTerm.asc(_db.equipment.type),
+                    OrderingTerm.asc(_db.equipment.name),
+                    OrderingTerm.asc(_db.equipment.id),
+                  ]))
+                .get();
         final equipmentByDive = <String, List<EquipmentItem>>{};
         for (final joinRow in allDiveEquipment) {
           final diveId = joinRow.readTable(_db.diveEquipment).diveId;
@@ -352,6 +368,10 @@ class DiveRepository {
                   serviceIntervalDays: e.serviceIntervalDays,
                   notes: e.notes,
                   isActive: e.isActive,
+                  // The column is non-nullable, so no guard is needed. Kept
+                  // because the "date added" gear sort reads it and would
+                  // silently tie every item on null without it.
+                  createdAt: DateTime.fromMillisecondsSinceEpoch(e.createdAt),
                 ),
               );
         }
@@ -1412,6 +1432,7 @@ class DiveRepository {
                 presetName: Value(tank.presetName),
                 computerId: Value(tank.computerId),
                 transmitterSerial: Value(tank.transmitterSerial),
+                regulatorEquipmentId: Value(tank.regulatorEquipmentId),
                 sourceTankIndex: Value(tank.sourceTankIndex),
               ),
             );
@@ -1658,6 +1679,9 @@ class DiveRepository {
               // and deliberately not written here: edit flows rebuild the
               // tank field by field, and a rebuild that forgot them must not
               // wipe what the download recorded.
+              // The regulator link is user-authored, unlike the two above,
+              // so an edit does write it.
+              regulatorEquipmentId: Value(tank.regulatorEquipmentId),
             ),
           );
           // Log as pending update (assuming sync handles updates)
@@ -1687,6 +1711,7 @@ class DiveRepository {
                   presetName: Value(tank.presetName),
                   computerId: Value(tank.computerId),
                   transmitterSerial: Value(tank.transmitterSerial),
+                  regulatorEquipmentId: Value(tank.regulatorEquipmentId),
                   sourceTankIndex: Value(tank.sourceTankIndex),
                 ),
               );
@@ -3578,6 +3603,7 @@ class DiveRepository {
               presetName: t.presetName,
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
+              regulatorEquipmentId: t.regulatorEquipmentId,
               sourceTankIndex: t.sourceTankIndex,
             ),
           )
@@ -3682,13 +3708,21 @@ class DiveRepository {
     // [getMergedProfile] mirrors this read and the two must stay in step.
     final seriesProfile = await _mergedSeriesPoints(row.id);
 
-    // Get equipment for this dive
-    final equipmentQuery = _db.select(_db.diveEquipment).join([
-      innerJoin(
-        _db.equipment,
-        _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId),
-      ),
-    ])..where(_db.diveEquipment.diveId.equals(row.id));
+    // Get equipment for this dive. See the batch path in [getAllDives] for
+    // why this is ordered.
+    final equipmentQuery =
+        _db.select(_db.diveEquipment).join([
+            innerJoin(
+              _db.equipment,
+              _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId),
+            ),
+          ])
+          ..where(_db.diveEquipment.diveId.equals(row.id))
+          ..orderBy([
+            OrderingTerm.asc(_db.equipment.type),
+            OrderingTerm.asc(_db.equipment.name),
+            OrderingTerm.asc(_db.equipment.id),
+          ]);
     final equipmentRows = await equipmentQuery.get();
     final equipmentItems = equipmentRows.map((joinRow) {
       final e = joinRow.readTable(_db.equipment);
@@ -3717,6 +3751,9 @@ class DiveRepository {
         serviceIntervalDays: e.serviceIntervalDays,
         notes: e.notes,
         isActive: e.isActive,
+        // See the batch mapper in [getAllDives]: the "date added" gear sort
+        // reads this and ties on null without it.
+        createdAt: DateTime.fromMillisecondsSinceEpoch(e.createdAt),
       );
     }).toList();
     final singleDiveEquipmentAttrs = await _equipmentAttributesFor(
@@ -3974,6 +4011,7 @@ class DiveRepository {
           presetName: t.presetName,
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
+          regulatorEquipmentId: t.regulatorEquipmentId,
           sourceTankIndex: t.sourceTankIndex,
         );
       }).toList(),
@@ -5833,6 +5871,7 @@ class DiveRepository {
     presetName: Value(t.presetName),
     computerId: Value(t.computerId),
     transmitterSerial: Value(t.transmitterSerial),
+    regulatorEquipmentId: Value(t.regulatorEquipmentId),
     sourceTankIndex: Value(t.sourceTankIndex),
   );
 
