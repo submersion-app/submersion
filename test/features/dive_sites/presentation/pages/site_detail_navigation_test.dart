@@ -76,14 +76,22 @@ void main() {
 
       // We should be on SiteDetailPage, NOT redirected to /sites (which isn't even defined here, so it would error if it tried)
       expect(find.byType(SiteDetailPage), findsOneWidget);
-      // Use find.descendant or a more specific finder to avoid finding multiple site names
-      // (one in the header, one in the basic info section).
+      // The name lives in the page chrome only. The Basic Info card that used
+      // to repeat it below the app bar is gone, so a Card bearing the site
+      // name would be that duplication coming back.
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Blue Hole'),
+        ),
+        findsOneWidget,
+      );
       expect(
         find.descendant(
           of: find.byType(Card),
           matching: find.text('Blue Hole'),
         ),
-        findsOneWidget,
+        findsNothing,
       );
     });
   });

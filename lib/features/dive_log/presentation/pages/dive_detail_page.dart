@@ -14,6 +14,10 @@ import 'package:submersion/core/constants/dive_detail_section_pairs.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -4628,11 +4632,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       dive.equipment.length,
     );
 
+    final groups = arrangeEquipment(
+      dive.equipment,
+      ref.watch(equipmentArrangementProvider),
+      typeLabel: (type) => type.localizedName(context.l10n),
+    );
+
     return CollapsibleCardSection(
       title: context.l10n.diveLog_detail_section_equipment,
       icon: Icons.backpack,
       collapsedSubtitle: collapsedSubtitle,
       isExpanded: isExpanded,
+      // The header is one large InkWell that toggles the card, so this button
+      // consumes its own tap: without it, arranging would also collapse the
+      // section the diver was looking at.
+      trailing: IconButton(
+        icon: const Icon(Icons.sort, size: 20),
+        tooltip: context.l10n.equipment_arrange_tooltip,
+        onPressed: () => showEquipmentArrangeSheet(context),
+      ),
       onToggle: (expanded) {
         ref
             .read(collapsibleSectionProvider.notifier)
@@ -4643,47 +4661,59 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...dive.equipment.map((item) {
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: CircleAvatar(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.tertiaryContainer,
-                  child: Icon(
-                    equipmentTypeIcon(item.type),
-                    color: Theme.of(context).colorScheme.onTertiaryContainer,
-                    size: 20,
-                  ),
-                ),
-                title: Text(item.name),
-                subtitle: item.brand != null || item.model != null
-                    ? Text(
-                        [
-                          item.brand,
-                          item.model,
-                        ].where((s) => s != null && s.isNotEmpty).join(' '),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      )
-                    : null,
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      item.type.localizedName(context.l10n),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+            for (final group in groups) ...[
+              if (group.type != null) EquipmentGroupHeader(type: group.type!),
+              ...group.items.map((item) {
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.tertiaryContainer,
+                    child: Icon(
+                      equipmentTypeIcon(item.type),
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                      size: 20,
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right, size: 20),
-                  ],
-                ),
-                onTap: () => context.push('/equipment/${item.id}'),
-              );
-            }),
+                  ),
+                  title: Text(item.name),
+                  subtitle: item.brand != null || item.model != null
+                      ? Text(
+                          [
+                            item.brand,
+                            item.model,
+                          ].where((s) => s != null && s.isNotEmpty).join(' '),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        )
+                      : null,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Redundant under a group heading, which already names
+                      // the type.
+                      if (group.type == null)
+                        Text(
+                          item.type.localizedName(context.l10n),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chevron_right, size: 20),
+                    ],
+                  ),
+                  onTap: () => context.push('/equipment/${item.id}'),
+                );
+              }),
+            ],
           ],
         ),
       ),

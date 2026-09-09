@@ -180,6 +180,18 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'ON equipment_attributes(attr_key, value_num)',
   ),
   (
+    name: 'idx_equipment_components_parent',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_components_parent '
+        'ON equipment_components(parent_equipment_id)',
+  ),
+  (
+    name: 'idx_equipment_components_component',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_components_component '
+        'ON equipment_components(component_equipment_id)',
+  ),
+  (
     name: 'idx_dive_data_sources_dive_id',
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_dive_data_sources_dive_id '

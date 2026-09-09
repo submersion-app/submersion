@@ -864,30 +864,51 @@ class SiteRepository {
     return aggregates.map((siteId, a) => MapEntry(siteId, a.diveCount));
   }
 
-  /// One GROUP BY over the dives table: count, most recent dive, and the
-  /// deepest max_depth logged, per site. Sites with no dives are absent.
+  /// One GROUP BY over the dives table: per site, how many dives, the span
+  /// they cover, and the depths and durations they reached. Sites with no
+  /// dives are absent.
+  ///
+  /// Every figure the site list and its cards can show comes from this one
+  /// query, so adding a column here is free where a per-site lookup would be
+  /// an N+1 over the whole list.
+  ///
+  /// Durations coalesce runtime to bottom time, matching
+  /// `StatisticsRepository.getSiteDiveStatistics`; a dive carrying neither
+  /// is counted but contributes to neither duration figure.
   Future<Map<String, SiteDiveAggregate>> getDiveAggregatesBySite() async {
     try {
       final result = await _db.customSelect('''
         SELECT site_id,
                COUNT(*) AS dive_count,
                MAX(dive_date_time) AS last_dived,
-               MAX(max_depth) AS max_depth_reached
+               MIN(dive_date_time) AS first_dived,
+               MAX(max_depth) AS max_depth_reached,
+               AVG(max_depth) AS avg_depth_reached,
+               MAX(COALESCE(runtime, bottom_time)) AS longest_dive_seconds,
+               AVG(COALESCE(runtime, bottom_time)) AS avg_duration_seconds
         FROM dives
         WHERE site_id IS NOT NULL${DiveStatsScope.and(alias: 'dives')}
         GROUP BY site_id
       ''').get();
 
+      // Local, not UTC: this matches how lastDivedAt has always been read
+      // back here, so the two dates on one aggregate agree with each other.
+      DateTime? readDate(Object? ms) =>
+          ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms as int);
+
       return {
         for (final row in result)
           row.data['site_id'] as String: SiteDiveAggregate(
             diveCount: row.data['dive_count'] as int,
-            lastDivedAt: row.data['last_dived'] == null
-                ? null
-                : DateTime.fromMillisecondsSinceEpoch(
-                    row.data['last_dived'] as int,
-                  ),
+            lastDivedAt: readDate(row.data['last_dived']),
+            firstDivedAt: readDate(row.data['first_dived']),
             maxDepthReached: (row.data['max_depth_reached'] as num?)
+                ?.toDouble(),
+            averageDepthReached: (row.data['avg_depth_reached'] as num?)
+                ?.toDouble(),
+            longestDiveSeconds: (row.data['longest_dive_seconds'] as num?)
+                ?.round(),
+            averageDurationSeconds: (row.data['avg_duration_seconds'] as num?)
                 ?.toDouble(),
           ),
       };
@@ -946,7 +967,11 @@ class SiteRepository {
             site: site,
             diveCount: a?.diveCount ?? 0,
             lastDivedAt: a?.lastDivedAt,
+            firstDivedAt: a?.firstDivedAt,
             maxDepthReached: a?.maxDepthReached,
+            averageDepthReached: a?.averageDepthReached,
+            longestDiveSeconds: a?.longestDiveSeconds,
+            averageDurationSeconds: a?.averageDurationSeconds,
             featureTypes: featureTypes[site.id] ?? const [],
           );
         }).toList()..sort((a, b) => b.diveCount.compareTo(a.diveCount));

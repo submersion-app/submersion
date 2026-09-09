@@ -89,7 +89,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Checklist Templates'), findsOneWidget);
+    expect(find.text('Trip Checklist Templates'), findsOneWidget);
     expect(find.text('Liveaboard packing'), findsOneWidget);
   });
 

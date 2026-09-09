@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 
 /// A type of maintenance a piece of equipment can need (hydro, VIP, ...).
 class ServiceKind extends Equatable {
@@ -13,6 +14,10 @@ class ServiceKind extends Equatable {
   final int? defaultIntervalDays;
   final int? defaultIntervalDives;
   final double? defaultIntervalHours;
+
+  /// Default intervals for the exposure units that have no column of their
+  /// own (salt hours, cold dives, high-O2 hours, deep cycles, cycles).
+  final Map<ExposureUnit, double> exposureIntervals;
 
   /// Default price prefilled when logging this maintenance. Null currency
   /// means "no opinion, use the diver's default currency".
@@ -35,6 +40,7 @@ class ServiceKind extends Equatable {
     this.defaultIntervalDays,
     this.defaultIntervalDives,
     this.defaultIntervalHours,
+    this.exposureIntervals = const {},
     this.defaultCost,
     this.defaultCurrency,
     this.defaultCategory,
@@ -61,6 +67,7 @@ class ServiceKind extends Equatable {
     Object? defaultIntervalDays = _undefined,
     Object? defaultIntervalDives = _undefined,
     Object? defaultIntervalHours = _undefined,
+    Map<ExposureUnit, double>? exposureIntervals,
     Object? defaultCost = _undefined,
     Object? defaultCurrency = _undefined,
     Object? defaultCategory = _undefined,
@@ -83,6 +90,7 @@ class ServiceKind extends Equatable {
       defaultIntervalHours: defaultIntervalHours == _undefined
           ? this.defaultIntervalHours
           : defaultIntervalHours as double?,
+      exposureIntervals: exposureIntervals ?? this.exposureIntervals,
       defaultCost: defaultCost == _undefined
           ? this.defaultCost
           : defaultCost as double?,
@@ -108,6 +116,7 @@ class ServiceKind extends Equatable {
     defaultIntervalDays,
     defaultIntervalDives,
     defaultIntervalHours,
+    exposureIntervals,
     defaultCost,
     defaultCurrency,
     defaultCategory,
