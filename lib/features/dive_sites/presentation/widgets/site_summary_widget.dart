@@ -91,8 +91,12 @@ class SiteSummaryWidget extends ConsumerWidget {
         ratedSites++;
         totalRating += site.rating!;
       }
-      if (site.country != null && site.country!.isNotEmpty) {
-        countryCounts[site.country!] = (countryCounts[site.country!] ?? 0) + 1;
+      // Trim before testing and before keying, the same rule DiveSite's own
+      // locationString applies: imported and synced rows carry whitespace-only
+      // countries, and untrimmed keys would also split "Malta" from "Malta ".
+      final country = site.country?.trim() ?? '';
+      if (country.isNotEmpty) {
+        countryCounts[country] = (countryCounts[country] ?? 0) + 1;
       }
     }
 

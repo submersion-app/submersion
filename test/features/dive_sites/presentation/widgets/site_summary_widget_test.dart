@@ -53,7 +53,10 @@ void main() {
     ),
   ];
 
-  Future<void> pumpSummary(WidgetTester tester) async {
+  Future<void> pumpSummary(
+    WidgetTester tester, {
+    List<SiteWithDiveCount>? library,
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(900, 1600);
     addTearDown(() {
@@ -76,7 +79,7 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
-          sitesWithCountsProvider.overrideWith((_) async => sites),
+          sitesWithCountsProvider.overrideWith((_) async => library ?? sites),
         ].cast<Override>(),
         child: MaterialApp.router(
           routerConfig: router,
@@ -206,6 +209,43 @@ void main() {
         find.descendant(of: list, matching: find.text('5.0')),
         findsOneWidget,
       );
+    });
+  });
+  group('the country count ignores whitespace-only values', () {
+    final messyLibrary = <SiteWithDiveCount>[
+      const SiteWithDiveCount(
+        site: DiveSite(id: 'm1', name: 'Real', country: 'Malta'),
+        diveCount: 1,
+      ),
+      // Imported and synced data carries untrimmed values; DiveSite's own
+      // locationString trims before testing for exactly this reason.
+      const SiteWithDiveCount(
+        site: DiveSite(id: 'm2', name: 'Padded', country: 'Malta '),
+        diveCount: 1,
+      ),
+      const SiteWithDiveCount(
+        site: DiveSite(id: 'm3', name: 'Blank', country: '   '),
+        diveCount: 1,
+      ),
+    ];
+
+    testWidgets('a whitespace-only country is not a country', (tester) async {
+      await pumpSummary(tester, library: messyLibrary);
+
+      // One real country: Malta. The padded duplicate folds into it and the
+      // blank one is not counted at all.
+      expect(
+        find.descendant(of: statTile('Countries'), matching: find.text('1')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('no blank chip appears in the countries list', (tester) async {
+      await pumpSummary(tester, library: messyLibrary);
+
+      expect(find.textContaining('Malta (2)'), findsOneWidget);
+      expect(find.textContaining('Malta  ('), findsNothing);
+      expect(find.textContaining('   ('), findsNothing);
     });
   });
 }
