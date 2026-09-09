@@ -76,4 +76,49 @@ void main() {
     expect(result!.provenance.map((p) => p.equipmentId), ['reg']);
     expect(result!.newItems, isEmpty);
   });
+
+  testWidgets('a failed template read attaches the addition flat', (
+    tester,
+  ) async {
+    GearExpansion? result;
+    Object? error;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          equipmentComponentsIndexProvider.overrideWith(
+            (ref) async => throw StateError('database unavailable'),
+          ),
+          equipmentRepositoryProvider.overrideWithValue(
+            _ThrowingEquipmentRepository(),
+          ),
+        ],
+        child: MaterialApp(
+          home: Consumer(
+            builder: (context, ref, _) => TextButton(
+              onPressed: () async {
+                try {
+                  result = await expandGearOnPage(
+                    ref,
+                    additions: const [(equipmentId: 'reg', viaSetId: 'w')],
+                    existing: const [],
+                    existingItems: const [reg],
+                  );
+                } catch (e) {
+                  error = e;
+                }
+              },
+              child: const Text('add'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('add'));
+    await tester.pumpAndSettle();
+
+    expect(error, isNull);
+    expect(result!.provenance.single.equipmentId, 'reg');
+    expect(result!.provenance.single.viaSetId, 'w');
+    expect(result!.newItems, isEmpty);
+  });
 }
