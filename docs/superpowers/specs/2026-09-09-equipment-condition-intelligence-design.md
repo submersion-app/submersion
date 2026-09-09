@@ -313,7 +313,9 @@ from the summary when present and runtime otherwise.
 
 The migration backfills `exposure_intervals` and `applicable_types` on the
 built-in rows (`is_built_in = 1`). These are starting points, not
-manufacturer figures, and the kind editor shows and edits them.
+manufacturer figures. Built-in kinds stay read-only, as they are today; a
+diver adjusts a default per item through the schedule override dialog, and
+the custom-kind editor carries the same fields for kinds the diver creates.
 
 | Kind | Exposure default | Applicable types change |
 | --- | --- | --- |
