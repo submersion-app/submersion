@@ -10348,6 +10348,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Uit gebruik';
 
   @override
+  String get enum_equipmentStatus_sold => 'Verkocht';
+
+  @override
   String get enum_equipmentType_bcd => 'Trimvest';
 
   @override

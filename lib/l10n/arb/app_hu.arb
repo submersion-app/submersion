@@ -3340,6 +3340,7 @@
   "enum_equipmentStatus_lost": "Elveszett",
   "enum_equipmentStatus_needsService": "Szerviz szukseges",
   "enum_equipmentStatus_retired": "Kivonva",
+  "enum_equipmentStatus_sold": "Eladva",
   "enum_equipmentType_bcd": "Jacket",
   "enum_equipmentType_boots": "Cipok",
   "enum_equipmentType_camera": "Kamera",

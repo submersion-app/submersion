@@ -3424,6 +3424,7 @@
   "enum_equipmentStatus_lost": "Verloren",
   "enum_equipmentStatus_needsService": "Onderhoud nodig",
   "enum_equipmentStatus_retired": "Uit gebruik",
+  "enum_equipmentStatus_sold": "Verkocht",
   "enum_equipmentType_bcd": "Trimvest",
   "enum_equipmentType_boots": "Laarzen",
   "enum_equipmentType_camera": "Camera",

@@ -6085,6 +6085,7 @@
   "enum_equipmentStatus_lost": "Lost",
   "enum_equipmentStatus_needsService": "Needs Service",
   "enum_equipmentStatus_retired": "Retired",
+  "enum_equipmentStatus_sold": "Sold",
   "enum_equipmentType_bcd": "BCD",
   "enum_equipmentType_boots": "Boots",
   "enum_equipmentType_camera": "Camera",

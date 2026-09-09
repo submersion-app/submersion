@@ -10474,6 +10474,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Réforme';
 
   @override
+  String get enum_equipmentStatus_sold => 'Vendu';
+
+  @override
   String get enum_equipmentType_bcd => 'Gilet stabilisateur';
 
   @override

@@ -3424,6 +3424,7 @@
   "enum_equipmentStatus_lost": "Verloren",
   "enum_equipmentStatus_needsService": "Wartung erforderlich",
   "enum_equipmentStatus_retired": "Ausgemustert",
+  "enum_equipmentStatus_sold": "Verkauft",
   "enum_equipmentType_bcd": "Tarierjacket",
   "enum_equipmentType_boots": "Füßling",
   "enum_equipmentType_camera": "Kamera",

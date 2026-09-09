@@ -3561,6 +3561,7 @@
   "enum_equipmentStatus_lost": "遗失",
   "enum_equipmentStatus_needsService": "需要维护",
   "enum_equipmentStatus_retired": "已退役",
+  "enum_equipmentStatus_sold": "已售出",
   "enum_equipmentType_bcd": "浮力控制装置",
   "enum_equipmentType_boots": "潜水靴",
   "enum_equipmentType_camera": "相机",

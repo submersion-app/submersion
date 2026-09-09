@@ -3340,6 +3340,7 @@
   "enum_equipmentStatus_lost": "Perso",
   "enum_equipmentStatus_needsService": "Richiede assistenza",
   "enum_equipmentStatus_retired": "Dismesso",
+  "enum_equipmentStatus_sold": "Venduto",
   "enum_equipmentType_bcd": "Jacket",
   "enum_equipmentType_boots": "Calzari",
   "enum_equipmentType_camera": "Fotocamera",

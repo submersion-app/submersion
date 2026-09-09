@@ -10429,6 +10429,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Ausgemustert';
 
   @override
+  String get enum_equipmentStatus_sold => 'Verkauft';
+
+  @override
   String get enum_equipmentType_bcd => 'Tarierjacket';
 
   @override

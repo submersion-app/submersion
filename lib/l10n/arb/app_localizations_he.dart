@@ -10180,6 +10180,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'הוצא משימוש';
 
   @override
+  String get enum_equipmentStatus_sold => 'נמכר';
+
+  @override
   String get enum_equipmentType_bcd => 'אפוד ציפה';
 
   @override

@@ -54,10 +54,13 @@ class EquipmentRepository {
       final query = _db.select(_db.equipment)
         // status is the user-visible retirement flag; legacy rows can carry
         // status=retired with isActive still true, so filter on both (#636).
+        // "Sold" is the same kind of terminal status -- gear that has left
+        // the kit -- so it drops out of the active list the same way.
         ..where(
           (t) =>
               t.isActive.equals(true) &
-              t.status.isNotValue(EquipmentStatus.retired.name),
+              t.status.isNotValue(EquipmentStatus.retired.name) &
+              t.status.isNotValue(EquipmentStatus.sold.name),
         )
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
@@ -522,18 +525,21 @@ class EquipmentRepository {
   Future<void> reactivateEquipment(String id) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      // Clear a retired status on the way back in, but leave any other
-      // status (needsService, inService, loaned) alone -- reactivating is
-      // not the same as declaring the item serviceable (#636).
+      // Clear a terminal status (retired / sold) on the way back in, but
+      // leave any other status (needsService, inService, loaned) alone --
+      // reactivating is not the same as declaring the item serviceable
+      // (#636). Left as-is, a reactivated sold/retired row would stay
+      // hidden from the active list, which reads the status too.
       final current = await (_db.select(
         _db.equipment,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
-      final clearsRetiredStatus =
-          current?.status == EquipmentStatus.retired.name;
+      final clearsTerminalStatus =
+          current?.status == EquipmentStatus.retired.name ||
+          current?.status == EquipmentStatus.sold.name;
       await (_db.update(_db.equipment)..where((t) => t.id.equals(id))).write(
         EquipmentCompanion(
           isActive: const Value(true),
-          status: clearsRetiredStatus
+          status: clearsTerminalStatus
               ? Value(EquipmentStatus.active.name)
               : const Value.absent(),
           updatedAt: Value(now),

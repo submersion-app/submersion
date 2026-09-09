@@ -3424,6 +3424,7 @@
   "enum_equipmentStatus_lost": "Perdido",
   "enum_equipmentStatus_needsService": "Precisa de Manutencao",
   "enum_equipmentStatus_retired": "Aposentado",
+  "enum_equipmentStatus_sold": "Vendido",
   "enum_equipmentType_bcd": "Colete Equilibrador",
   "enum_equipmentType_boots": "Botinhas",
   "enum_equipmentType_camera": "Camera",

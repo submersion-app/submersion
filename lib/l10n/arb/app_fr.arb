@@ -3340,6 +3340,7 @@
   "enum_equipmentStatus_lost": "Perdu",
   "enum_equipmentStatus_needsService": "Révision nécessaire",
   "enum_equipmentStatus_retired": "Réforme",
+  "enum_equipmentStatus_sold": "Vendu",
   "enum_equipmentType_bcd": "Gilet stabilisateur",
   "enum_equipmentType_boots": "Bottillons",
   "enum_equipmentType_camera": "Camera",

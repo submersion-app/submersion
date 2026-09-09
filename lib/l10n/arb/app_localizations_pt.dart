@@ -10430,6 +10430,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Aposentado';
 
   @override
+  String get enum_equipmentStatus_sold => 'Vendido';
+
+  @override
   String get enum_equipmentType_bcd => 'Colete Equilibrador';
 
   @override

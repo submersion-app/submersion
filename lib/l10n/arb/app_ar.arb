@@ -3424,6 +3424,7 @@
   "enum_equipmentStatus_lost": "مفقود",
   "enum_equipmentStatus_needsService": "يحتاج صيانة",
   "enum_equipmentStatus_retired": "متقاعد",
+  "enum_equipmentStatus_sold": "تم بيعه",
   "enum_equipmentType_bcd": "سترة الطفو",
   "enum_equipmentType_boots": "أحذية",
   "enum_equipmentType_camera": "كاميرا",

@@ -3424,6 +3424,7 @@
   "enum_equipmentStatus_lost": "Perdido",
   "enum_equipmentStatus_needsService": "Necesita servicio",
   "enum_equipmentStatus_retired": "Retirado",
+  "enum_equipmentStatus_sold": "Vendido",
   "enum_equipmentType_bcd": "Chaleco compensador",
   "enum_equipmentType_boots": "Botines",
   "enum_equipmentType_camera": "Cámara",

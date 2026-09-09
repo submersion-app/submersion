@@ -9940,6 +9940,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentStatus_retired => '已退役';
 
   @override
+  String get enum_equipmentStatus_sold => '已售出';
+
+  @override
   String get enum_equipmentType_bcd => '浮力控制装置';
 
   @override

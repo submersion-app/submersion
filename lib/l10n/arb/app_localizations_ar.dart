@@ -10238,6 +10238,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'متقاعد';
 
   @override
+  String get enum_equipmentStatus_sold => 'تم بيعه';
+
+  @override
   String get enum_equipmentType_bcd => 'سترة الطفو';
 
   @override

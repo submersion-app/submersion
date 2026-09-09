@@ -3340,6 +3340,7 @@
   "enum_equipmentStatus_lost": "אבוד",
   "enum_equipmentStatus_needsService": "דורש תחזוקה",
   "enum_equipmentStatus_retired": "הוצא משימוש",
+  "enum_equipmentStatus_sold": "נמכר",
   "enum_equipmentType_bcd": "אפוד ציפה",
   "enum_equipmentType_boots": "נעלי צלילה",
   "enum_equipmentType_camera": "מצלמה",
