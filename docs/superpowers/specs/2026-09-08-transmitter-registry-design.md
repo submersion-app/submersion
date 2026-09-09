@@ -103,7 +103,7 @@ rows means "same as `tankOrder`". No data rewrite in the migration.
 
 ### Schema and sync registration
 
-- One rung, v199, creating `transmitters` and adding
+- One rung, v200 (main shipped v199 on 2026-09-08 for certifications), creating `transmitters` and adding
   `dive_tanks.source_tank_index`. Rescan open PR diffs and worktree scalars
   for `currentSchemaVersion` immediately before taking the rung and again
   after every merge of main.
@@ -114,9 +114,9 @@ rows means "same as `tankOrder`". No data rewrite in the migration.
   seven `case` arms; `mergeOrder` after `equipment` and `diveComputers`;
   `entityHasUpdatedAt`; `parentRefs` with `equipmentId` and `diveComputerId`
   both nullable.
-- `migration_v199_transmitters_test.dart` pins the rung (fresh database and
-  stranded-at-198 cases) and hands the "relax to greaterThanOrEqualTo"
-  instruction forward; `migration_v198_*` is relaxed if it pins equality.
+- `migration_v200_transmitters_test.dart` pins the rung (fresh database and
+  stranded-at-199 cases) and hands the "relax to greaterThanOrEqualTo"
+  instruction forward; `migration_v199_*` is relaxed if it pins equality.
 
 ### Domain
 
@@ -338,7 +338,7 @@ They are independent.
   normalized serial comparison, most-recent entry wins on duplicates.
 - Repository: CRUD, uniqueness refusal, unassigned-serial query, batch apply
   fills only empty fields and changes role only from `backGas`.
-- Migration v199 fresh and stranded cases; the four sync guard suites
+- Migration v200 fresh and stranded cases; the four sync guard suites
   (`sync_base_streaming_parity_test`, `sync_hlc_target_registration_test`,
   `hlc_column_test`, `sync_parent_refs_completeness_test`).
 - Import service and re-parse: registry before preset; new rows only on
