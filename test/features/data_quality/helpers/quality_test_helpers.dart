@@ -36,6 +36,7 @@ DiveQualityContext makeContext({
   List<QualityNeighbor> neighbors = const [],
   List<GasSwitch> gasSwitches = const [],
   double ppO2MaxBar = 1.6,
+  Set<String> knownTransmitterSerials = const {},
 }) => DiveQualityContext(
   dive: dive,
   now: now ?? DateTime.utc(2026, 7, 17, 12),
@@ -46,6 +47,7 @@ DiveQualityContext makeContext({
   gasSwitches: gasSwitches,
   neighbors: neighbors,
   ppO2MaxBar: ppO2MaxBar,
+  knownTransmitterSerials: knownTransmitterSerials,
 );
 
 /// Descend to [depth] at t=0..60, hold, surface in the last minute.

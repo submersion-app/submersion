@@ -19,10 +19,16 @@ class DownloadCompleteEvent extends DownloadEvent {
   final int totalDives;
   final String? serialNumber;
   final String? firmwareVersion;
+
+  /// Wire name of the clock sync outcome ("synced", "unsupported", "failed")
+  /// or null when no sync was requested. Parsed by the app layer.
+  final String? clockSyncStatus;
+
   DownloadCompleteEvent(
     this.totalDives, {
     this.serialNumber,
     this.firmwareVersion,
+    this.clockSyncStatus,
   });
 }
 
@@ -91,8 +97,15 @@ class DiveComputerService implements DiveComputerFlutterApi {
   }
 
   /// Start downloading dives from a discovered device.
-  Future<void> startDownload(DiscoveredDevice device, {String? fingerprint}) {
-    return _hostApi.startDownload(device, fingerprint);
+  ///
+  /// [syncClock] asks the native side to set the computer's clock to the
+  /// host's local time once the download has succeeded (issue #1216).
+  Future<void> startDownload(
+    DiscoveredDevice device, {
+    String? fingerprint,
+    bool syncClock = false,
+  }) {
+    return _hostApi.startDownload(device, fingerprint, syncClock);
   }
 
   /// Cancel an ongoing download.
@@ -132,12 +145,14 @@ class DiveComputerService implements DiveComputerFlutterApi {
     int totalDives,
     String? serialNumber,
     String? firmwareVersion,
+    String? clockSyncStatus,
   ) {
     _downloadEventsController.add(
       DownloadCompleteEvent(
         totalDives,
         serialNumber: serialNumber,
         firmwareVersion: firmwareVersion,
+        clockSyncStatus: clockSyncStatus,
       ),
     );
   }

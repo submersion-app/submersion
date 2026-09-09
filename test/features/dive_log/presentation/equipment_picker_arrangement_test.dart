@@ -35,6 +35,7 @@ void main() {
     WidgetTester tester, {
     EquipmentArrangement arrangement = EquipmentArrangement.defaults,
     Set<String> selected = const {},
+    EquipmentType? typeFilter,
     List<EquipmentItem> gear = const [zeagle, faber, apeks],
     EquipmentPickerFilter filter = EquipmentPickerFilter.none,
   }) async {
@@ -53,6 +54,7 @@ void main() {
             body: EquipmentPickerSheet(
               scrollController: ScrollController(),
               selectedEquipmentIds: selected,
+              typeFilter: typeFilter,
               onEquipmentSelected: (_) {},
             ),
           ),
@@ -237,6 +239,39 @@ void main() {
       find.byKey(const ValueKey('picker_filter_type_tank')),
       findsOneWidget,
     );
+  });
+
+  testWidgets("the caller's typeFilter narrows the list and the chips", (
+    tester,
+  ) async {
+    // A caller may constrain the picker (the transmitter registry offers
+    // cylinders only). That constraint is not the diver's to clear, so the
+    // filter sheet must not offer chips it already rules out.
+    await pumpPicker(tester, typeFilter: EquipmentType.regulator);
+
+    expect(find.text('Apeks'), findsOneWidget);
+    expect(find.text('Faber'), findsNothing);
+    expect(find.text('Zeagle'), findsNothing);
+
+    await tester.tap(find.byTooltip('Filter Equipment'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('picker_filter_type_regulator')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('picker_filter_type_tank')), findsNothing);
+  });
+
+  testWidgets("a typeFilter matching nothing does not claim all are selected", (
+    tester,
+  ) async {
+    // Nothing is selected here; the caller's constraint is what emptied the
+    // list, so saying "all equipment already selected" would be a lie.
+    await pumpPicker(tester, typeFilter: EquipmentType.camera);
+
+    expect(find.text('No equipment in this category'), findsOneWidget);
+    expect(find.text('All equipment already selected'), findsNothing);
   });
 
   testWidgets('the filter action opens the filter sheet', (tester) async {

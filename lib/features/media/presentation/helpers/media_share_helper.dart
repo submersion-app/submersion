@@ -16,7 +16,14 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// [anchor] is the iPad share popover's origin; pass the share button's rect
 /// (see `shareAnchorFrom`). Ignored on every other platform.
-Future<void> shareMediaItems(
+///
+/// Returns whether the sheet was opened with at least one file. The library's
+/// selection bar turns that into a [BulkActionOutcome], which is what makes
+/// Share leave multi-select the way every other bulk action does (#1262).
+/// Opening the sheet counts as done even if the diver then dismisses it:
+/// share_plus only reports a dismissal on mobile, so trusting the status
+/// would make the bar behave differently on desktop for no gain.
+Future<bool> shareMediaItems(
   BuildContext context,
   WidgetRef ref,
   List<MediaItem> items, {
@@ -36,6 +43,17 @@ Future<void> shareMediaItems(
         const Center(child: CircularProgressIndicator(color: Colors.white)),
   );
 
+  // The dialog is popped before the platform call so the share sheet is not
+  // raised behind a modal, which leaves the catch below with nothing of its
+  // own to dismiss. Without this flag a throwing share popped a second time
+  // and took the page the diver shared FROM with it.
+  var dialogVisible = true;
+  void dismissDialog() {
+    if (!dialogVisible || !context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+    dialogVisible = false;
+  }
+
   try {
     final files = <XFile>[];
     for (final item in items) {
@@ -47,23 +65,23 @@ Future<void> shareMediaItems(
       files.add(XFile(file.path, mimeType: item.shareMimeType));
     }
 
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-    }
+    dismissDialog();
     if (files.isEmpty) {
       if (context.mounted) {
         _showError(context, l10n.media_photoViewer_cannotShare);
       }
-      return;
+      return false;
     }
     await SharePlus.instance.share(
       ShareParams(files: files, sharePositionOrigin: sharePositionOrigin),
     );
+    return true;
   } catch (e) {
+    dismissDialog();
     if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
       _showError(context, l10n.media_photoViewer_failedToShare(e.toString()));
     }
+    return false;
   }
 }
 

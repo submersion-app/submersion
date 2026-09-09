@@ -7,5 +7,7 @@ oneway interface IDiveDownloadCallback {
     void onProgress(int current, int max);
     void onDive(in byte[] pigeonEncodedDive);   // ParsedDive via DiveMarshaling
     void onError(String code, String message);
-    void onComplete(long totalDives);
+    // Strings are nullable: null serial/firmware when the device reported
+    // none, null clockSyncStatus when no sync was requested (issue #1216).
+    void onComplete(long totalDives, String serialNumber, String firmwareVersion, String clockSyncStatus);
 }

@@ -7,6 +7,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 /// Create/edit page for a pre-dive checklist template and its items.
 class PreDiveTemplateEditPage extends ConsumerStatefulWidget {
@@ -169,7 +170,7 @@ class _PreDiveTemplateEditPageState
         ),
         actions: [
           if (_editable)
-            TextButton(onPressed: _save, child: Text(l10n.common_action_save)),
+            AppBarTextAction(label: l10n.common_action_save, onPressed: _save),
         ],
       ),
       body: _loading

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
@@ -303,9 +304,9 @@ class _CertificationListContentState
     _handleItemTap(cert);
   }
 
-  Future<void> _confirmAndDelete() async {
+  Future<BulkActionOutcome> _confirmAndDelete() async {
     final ids = _selectedIds.toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -327,7 +328,7 @@ class _CertificationListContentState
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return BulkActionOutcome.cancelled;
 
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(certificationListNotifierProvider.notifier);
@@ -335,12 +336,13 @@ class _CertificationListContentState
     for (final id in ids) {
       await notifier.deleteCertification(id);
     }
-    if (!mounted) return;
+    if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(
       SnackBar(
         content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
       ),
     );
+    return BulkActionOutcome.completed;
   }
 
   Widget _buildTableModeScaffold(

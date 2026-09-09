@@ -90,6 +90,7 @@ class SyncRepository {
     // clock (see _exportWeightPresetEntries), like the equipmentSetItems
     // junction above.
     'diveComputers': (table: 'dive_computers', pk: 'id'),
+    'transmitters': (table: 'transmitters', pk: 'id'),
     'tags': (table: 'tags', pk: 'id'),
     'courses': (table: 'courses', pk: 'id'),
     // HLC merge-root only: the courseRequirementDives junction is clockless

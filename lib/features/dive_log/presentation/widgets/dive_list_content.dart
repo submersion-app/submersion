@@ -337,21 +337,22 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   }
 
   /// Pick a date range and select every dive whose date falls inside it.
-  Future<void> _selectByDateRange(List<DiveSummary> dives) async {
+  Future<BulkActionOutcome> _selectByDateRange(List<DiveSummary> dives) async {
     final range = await showAppDateRangePicker(
       context: context,
       firstDate: DateTime(1970),
       lastDate: DateTime(2100),
     );
-    if (range == null) return;
+    if (range == null) return BulkActionOutcome.cancelled;
     final matching = dives
         .where((d) => inDateRange(d, range))
         .map((d) => d.id)
         .toList();
     _selection.selectAll([..._selectedIds, ...matching]);
+    return BulkActionOutcome.completed;
   }
 
-  Future<void> _confirmAndDelete() async {
+  Future<BulkActionOutcome> _confirmAndDelete() async {
     final count = _selectedIds.length;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -423,7 +424,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
         );
       }
+      return BulkActionOutcome.completed;
     }
+    return BulkActionOutcome.cancelled;
   }
 
   /// Show the combine-dives dialog for the current selection, then refresh
@@ -433,16 +436,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// clearing, but the snackbar action is #406-complete: `persist: false` is
   /// required whenever a SnackBar has an action, otherwise it defaults to
   /// persisting until explicitly dismissed.
-  Future<void> _combineSelected() async {
+  Future<BulkActionOutcome> _combineSelected() async {
     final ids = _selectedIds.toList();
-    if (ids.length < 2) return;
+    if (ids.length < 2) return BulkActionOutcome.cancelled;
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     final outcome = await showCombineDivesDialog(
       context: context,
       diveIds: ids,
     );
-    if (outcome == null || !mounted) return;
+    if (outcome == null) return BulkActionOutcome.cancelled;
+    if (!mounted) return BulkActionOutcome.completed;
 
     // Select the merged dive the same way a list tap does: highlight its row
     // (highlightedDiveIdProvider) AND open it in the detail pane
@@ -526,6 +530,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // first or the row won't exist yet to scroll to.
     await ref.read(paginatedDiveListProvider.notifier).refresh();
     if (mounted) _scrollToSelectedItem(outcome.mergedDive.id);
+    return BulkActionOutcome.completed;
   }
 
   /// Invalidate the merge-derived providers other than the paginated list
@@ -541,10 +546,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     _invalidateStatsAfterMerge();
   }
 
-  void _showExportDialog() {
+  Future<BulkActionOutcome> _showExportDialog() async {
     final count = _selectedIds.length;
 
-    showModalBottomSheet(
+    final format = await showModalBottomSheet<_BulkExportFormat>(
       context: context,
       builder: (sheetContext) => SafeArea(
         child: Column(
@@ -572,46 +577,35 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               leading: const Icon(Icons.picture_as_pdf),
               title: Text(context.l10n.diveLog_bulkExport_pdf),
               subtitle: Text(context.l10n.diveLog_bulkExport_pdfDescription),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _exportSelectedAs(
-                  _BulkExportFormat.pdf,
-                  context.l10n.diveLog_bulkExport_pdf,
-                );
-              },
+              onTap: () => Navigator.pop(sheetContext, _BulkExportFormat.pdf),
             ),
             ListTile(
               leading: const Icon(Icons.table_chart),
               title: Text(context.l10n.diveLog_bulkExport_csv),
               subtitle: Text(context.l10n.diveLog_bulkExport_csvDescription),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _exportSelectedAs(
-                  _BulkExportFormat.csv,
-                  context.l10n.diveLog_bulkExport_csv,
-                );
-              },
+              onTap: () => Navigator.pop(sheetContext, _BulkExportFormat.csv),
             ),
             ListTile(
               leading: const Icon(Icons.code),
               title: Text(context.l10n.diveLog_bulkExport_uddf),
               subtitle: Text(context.l10n.diveLog_bulkExport_uddfDescription),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _exportSelectedAs(
-                  _BulkExportFormat.uddf,
-                  context.l10n.diveLog_bulkExport_uddf,
-                );
-              },
+              onTap: () => Navigator.pop(sheetContext, _BulkExportFormat.uddf),
             ),
             const SizedBox(height: 8),
           ],
         ),
       ),
     );
+
+    if (format == null || !mounted) return BulkActionOutcome.cancelled;
+    return _exportSelectedAs(format, switch (format) {
+      _BulkExportFormat.pdf => context.l10n.diveLog_bulkExport_pdf,
+      _BulkExportFormat.csv => context.l10n.diveLog_bulkExport_csv,
+      _BulkExportFormat.uddf => context.l10n.diveLog_bulkExport_uddf,
+    });
   }
 
-  Future<void> _exportSelectedAs(
+  Future<BulkActionOutcome> _exportSelectedAs(
     _BulkExportFormat format,
     String formatLabel,
   ) async {
@@ -621,7 +615,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     if (format == _BulkExportFormat.pdf) {
       pdfOptions = await PdfExportDialog.show(context);
       // A null return means the diver cancelled, not that anything failed.
-      if (pdfOptions == null || !mounted) return;
+      if (pdfOptions == null || !mounted) return BulkActionOutcome.cancelled;
     }
 
     // Only UDDF carries raw dive computer bytes, so only it offers the
@@ -631,7 +625,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       title: formatLabel,
       showRawDataToggle: format == _BulkExportFormat.uddf,
     );
-    if (choice == null || !mounted) return;
+    if (choice == null || !mounted) return BulkActionOutcome.cancelled;
     final destination = choice.destination;
     final uddfOptions = UddfExportOptions(
       includeRawData: choice.includeRawData,
@@ -715,10 +709,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           // Keep the export going without the personalization.
         }
       }
-      if (!mounted) return;
+      if (!mounted) return BulkActionOutcome.cancelled;
 
       if (!keepDialogForDelivery) {
-        if (!mounted) return;
+        if (!mounted) return BulkActionOutcome.cancelled;
         Navigator.of(context, rootNavigator: true).pop();
         dialogVisible = false;
       }
@@ -771,14 +765,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 ),
       };
 
-      if (!mounted) return;
+      if (!mounted) return BulkActionOutcome.completed;
       if (dialogVisible) {
         Navigator.of(context, rootNavigator: true).pop();
         dialogVisible = false;
       }
       // A null path means the save panel was dismissed - not a failure.
-      if (path == null) return;
-      _exitSelectionMode();
+      if (path == null) return BulkActionOutcome.cancelled;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -787,6 +780,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           backgroundColor: Colors.green,
         ),
       );
+      return BulkActionOutcome.completed;
     } catch (e) {
       if (mounted) {
         if (dialogVisible) {
@@ -799,23 +793,35 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
         );
       }
+      return BulkActionOutcome.failed;
     }
   }
 
-  /// Open the bulk-edit form for the selected dives, then exit selection mode.
-  Future<void> _openBulkEdit() async {
+  /// Open the bulk edit form for the selected dives.
+  ///
+  /// Reports completed either way. The form leaves itself with
+  /// `context.go('/dives')` rather than popping a result, so a saved edit and
+  /// a cancelled one both complete the pushed route's future with null and are
+  /// indistinguishable from here. Teaching it to pop a result would have to
+  /// keep the `go` fallback for the deep-linked entry, and popping inside the
+  /// shell navigator is what blanks a master-detail pane -- so this keeps the
+  /// behavior it has always had rather than risking that for the cancel case.
+  Future<BulkActionOutcome> _openBulkEdit() async {
     final ids = _selectedIds.toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
     await context.pushNamed('bulkEditDives', extra: ids);
-    if (mounted) _exitSelectionMode();
+    return BulkActionOutcome.completed;
   }
 
-  /// Open the 3D comparison view for the selected dives, then exit selection.
-  Future<void> _compareIn3d() async {
+  /// Open the 3D comparison view for the selected dives.
+  ///
+  /// Opening the comparison IS the action, so it completes as soon as the
+  /// view has been shown; there is nothing to cancel out of.
+  Future<BulkActionOutcome> _compareIn3d() async {
     final ids = _selectedIds.toList();
-    if (ids.length < 2) return;
+    if (ids.length < 2) return BulkActionOutcome.cancelled;
     await context.pushNamed('compareDives3d', extra: ids);
-    if (mounted) _exitSelectionMode();
+    return BulkActionOutcome.completed;
   }
 
   /// One tap policy for every dive row, in every view mode.
@@ -1331,6 +1337,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       ),
       BulkAction(
         id: 'date_range',
+        // Builds the selection instead of acting on it, so it is the one
+        // action that must leave the mode standing.
+        exitsSelectionOnComplete: false,
         icon: Icons.date_range,
         label: context.l10n.diveLog_selection_tooltip_selectDateRange,
         // Operates on the visible list rather than the selection, so it is

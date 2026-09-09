@@ -339,7 +339,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context) async {
+  Future<BulkActionOutcome> _confirmDelete(BuildContext context) async {
     final repository = ref.read(tagRepositoryProvider);
     final statsAsync = ref.read(tagStatisticsProvider);
     final stats = statsAsync.valueOrNull ?? [];
@@ -370,16 +370,15 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         ),
       );
 
-      if (confirmed == true) {
-        await ref.read(tagListNotifierProvider.notifier).deleteTag(tagId);
-        _exitSelectionMode();
-      }
+      if (confirmed != true) return BulkActionOutcome.cancelled;
+      await ref.read(tagListNotifierProvider.notifier).deleteTag(tagId);
+      return BulkActionOutcome.completed;
     } else {
       final totalDives = await repository.getMergedDiveCount(
         _selectedIds.toList(),
       );
 
-      if (!context.mounted) return;
+      if (!context.mounted) return BulkActionOutcome.cancelled;
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -401,23 +400,22 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         ),
       );
 
-      if (confirmed == true) {
-        await ref
-            .read(tagListNotifierProvider.notifier)
-            .deleteTags(_selectedIds.toList());
-        _exitSelectionMode();
-      }
+      if (confirmed != true) return BulkActionOutcome.cancelled;
+      await ref
+          .read(tagListNotifierProvider.notifier)
+          .deleteTags(_selectedIds.toList());
+      return BulkActionOutcome.completed;
     }
   }
 
-  Future<void> _showMergeSheet(BuildContext context) async {
+  Future<BulkActionOutcome> _showMergeSheet(BuildContext context) async {
     final statsAsync = ref.read(tagStatisticsProvider);
     final stats = statsAsync.valueOrNull ?? [];
     final selectedStats = stats
         .where((s) => _selectedIds.contains(s.tag.id))
         .toList();
 
-    if (selectedStats.length < 2) return;
+    if (selectedStats.length < 2) return BulkActionOutcome.cancelled;
 
     final merged = await showModalBottomSheet<bool>(
       context: context,
@@ -425,12 +423,10 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       builder: (context) => TagMergeSheet(selectedStats: selectedStats),
     );
 
-    if (merged == true) {
-      _exitSelectionMode();
-    }
+    return merged == true
+        ? BulkActionOutcome.completed
+        : BulkActionOutcome.cancelled;
   }
-
-  void _exitSelectionMode() => _selection.exit();
 
   void _toggleSelection(String id) => _selection.toggle(id);
 }

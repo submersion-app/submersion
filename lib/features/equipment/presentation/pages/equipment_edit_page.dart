@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 
@@ -429,25 +430,16 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                 : context.l10n.equipment_edit_appBar_newTitle,
           ),
           actions: [
-            if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              )
-            else
-              Tooltip(
-                message: context.l10n.equipment_edit_appBar_saveTooltip,
-                child: TextButton(
-                  onPressed: () => _saveEquipment(existingEquipment),
-                  child: Text(context.l10n.equipment_edit_appBar_saveButton),
-                ),
+            Tooltip(
+              message: context.l10n.equipment_edit_appBar_saveTooltip,
+              child: AppBarTextAction(
+                label: context.l10n.equipment_edit_appBar_saveButton,
+                onPressed: _isLoading
+                    ? null
+                    : () => _saveEquipment(existingEquipment),
+                busy: _isLoading,
               ),
+            ),
           ],
         ),
         body: body,

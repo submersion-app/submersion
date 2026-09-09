@@ -1432,6 +1432,7 @@ class DiveRepository {
                 presetName: Value(tank.presetName),
                 computerId: Value(tank.computerId),
                 transmitterSerial: Value(tank.transmitterSerial),
+                sourceTankIndex: Value(tank.sourceTankIndex),
               ),
             );
           }
@@ -1706,6 +1707,7 @@ class DiveRepository {
                   presetName: Value(tank.presetName),
                   computerId: Value(tank.computerId),
                   transmitterSerial: Value(tank.transmitterSerial),
+                  sourceTankIndex: Value(tank.sourceTankIndex),
                 ),
               );
           await _syncRepository.markRecordPending(
@@ -3596,6 +3598,7 @@ class DiveRepository {
               presetName: t.presetName,
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
+              sourceTankIndex: t.sourceTankIndex,
             ),
           )
           .toList(),
@@ -4002,6 +4005,7 @@ class DiveRepository {
           presetName: t.presetName,
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
+          sourceTankIndex: t.sourceTankIndex,
         );
       }).toList(),
       profile: seriesProfile,
@@ -5860,6 +5864,7 @@ class DiveRepository {
     presetName: Value(t.presetName),
     computerId: Value(t.computerId),
     transmitterSerial: Value(t.transmitterSerial),
+    sourceTankIndex: Value(t.sourceTankIndex),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).

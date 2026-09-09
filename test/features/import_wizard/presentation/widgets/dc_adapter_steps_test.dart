@@ -7,9 +7,11 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:libdivecomputer_plugin/src/dive_computer_service.dart'
     show DownloadEvent;
 
+import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_step_widget.dart';
@@ -44,6 +46,7 @@ class _FakeDiveComputerService implements pigeon.DiveComputerService {
   Future<void> startDownload(
     pigeon.DiscoveredDevice device, {
     String? fingerprint,
+    bool syncClock = false,
   }) async {}
   @override
   Future<void> cancelDownload() async {}
@@ -62,6 +65,7 @@ class _FakeDiveComputerService implements pigeon.DiveComputerService {
     int totalDives,
     String? serialNumber,
     String? firmwareVersion,
+    String? clockSyncStatus,
   ) {}
   @override
   void onError(pigeon.DiveComputerError error) {}
@@ -674,6 +678,74 @@ void main() {
         expect(container.read(dcAdapterDownloadCanAdvanceProvider), isFalse);
       },
     );
+
+    testWidgets('a completed download records what the model answered', (
+      tester,
+    ) async {
+      final repository = _RecordingDiveComputerRepository();
+      final adapter = _makeAdapter(computerRepository: repository);
+
+      await tester.pumpWidget(
+        _buildDownloadStep(
+          adapter: adapter,
+          discoveryState: DiscoveryState(selectedDevice: _testDevice),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      container
+          .read(downloadNotifierProvider.notifier)
+          .state = const DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [],
+        clockSyncStatus: ClockSyncStatus.unsupported,
+      );
+      await tester.pumpAndSettle();
+
+      final savedId = repository.created.single.id;
+      expect(
+        container.read(clockSyncSettingsNotifierProvider).supportFor(savedId),
+        ClockSyncSupport.unsupported,
+      );
+    });
+
+    testWidgets('a failed clock sync records nothing about the model', (
+      tester,
+    ) async {
+      final repository = _RecordingDiveComputerRepository();
+      final adapter = _makeAdapter(computerRepository: repository);
+
+      await tester.pumpWidget(
+        _buildDownloadStep(
+          adapter: adapter,
+          discoveryState: DiscoveryState(selectedDevice: _testDevice),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      container
+          .read(downloadNotifierProvider.notifier)
+          .state = const DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [],
+        clockSyncStatus: ClockSyncStatus.failed,
+      );
+      await tester.pumpAndSettle();
+
+      final savedId = repository.created.single.id;
+      expect(
+        container.read(clockSyncSettingsNotifierProvider).supportFor(savedId),
+        ClockSyncSupport.unknown,
+      );
+    });
 
     testWidgets(
       'importing a partial download captures dives and advances the wizard',

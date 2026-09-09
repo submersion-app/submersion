@@ -32,18 +32,11 @@ List<TankData> applyDefaultPresetToTanks(
     if (hasVolume || !isBackGas) {
       return tank;
     }
-    return TankData(
-      index: tank.index,
-      o2Percent: tank.o2Percent,
-      hePercent: tank.hePercent,
-      startPressure: tank.startPressure,
-      endPressure: tank.endPressure,
+    return tank.copyWith(
       volumeLiters: preset.volumeLiters,
       workingPressure: tank.workingPressure ?? preset.workingPressureBar,
       material: tank.material ?? preset.material.name,
       presetName: tank.presetName ?? preset.name,
-      role: tank.role,
-      transmitterSerial: tank.transmitterSerial,
     );
   }).toList();
 }

@@ -19,6 +19,7 @@ import 'package:submersion/features/data_quality/presentation/widgets/quality_fi
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_unit_formatters.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassign_tank_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/run_dive_consolidation.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -305,6 +306,15 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
         );
       case CompareSourcesRepair(:final diveId):
         if (context.mounted) context.push('/dives/$diveId');
+      case AssignTransmitterRepair(:final serial):
+        if (context.mounted) {
+          context.push(
+            Uri(
+              path: '/transmitters/new',
+              queryParameters: {'serial': serial},
+            ).toString(),
+          );
+        }
       case GoToDiveRepair(:final diveId):
         if (context.mounted) context.push('/dives/$diveId');
     }
@@ -714,31 +724,5 @@ Future<({Duration offset, bool importWide})?> showTimeShiftSheet(
         ),
       );
     },
-  );
-}
-
-/// Simple picker listing the dive's other tanks for a series reassignment.
-Future<String?> showReassignTankPicker(
-  BuildContext context,
-  WidgetRef ref, {
-  required String diveId,
-  required String excludeTankId,
-}) async {
-  final dive = await ref.read(diveProvider(diveId).future);
-  if (dive == null || !context.mounted) return null;
-  final candidates = dive.tanks.where((t) => t.id != excludeTankId).toList();
-  if (candidates.isEmpty) return null;
-  return showDialog<String>(
-    context: context,
-    builder: (context) => SimpleDialog(
-      title: Text(context.l10n.dataQuality_repairLabel_reassignSeries),
-      children: [
-        for (final t in candidates)
-          SimpleDialogOption(
-            onPressed: () => Navigator.of(context).pop(t.id),
-            child: Text(t.name ?? 'Tank ${t.order + 1}'),
-          ),
-      ],
-    ),
   );
 }

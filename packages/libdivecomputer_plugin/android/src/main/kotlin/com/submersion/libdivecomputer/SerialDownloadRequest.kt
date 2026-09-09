@@ -10,6 +10,8 @@ class SerialDownloadRequest(
     val model: Long,
     val name: String?,
     val fingerprint: ByteArray?,
+    /** Set the computer's clock after a successful download (issue #1216). */
+    val syncClock: Boolean = false,
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this(
@@ -18,6 +20,7 @@ class SerialDownloadRequest(
         model = parcel.readLong(),
         name = parcel.readString(),
         fingerprint = parcel.createByteArray(),
+        syncClock = parcel.readInt() != 0,
     )
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
@@ -26,6 +29,7 @@ class SerialDownloadRequest(
         dest.writeLong(model)
         dest.writeString(name)
         dest.writeByteArray(fingerprint)
+        dest.writeInt(if (syncClock) 1 else 0)
     }
 
     override fun describeContents(): Int = 0

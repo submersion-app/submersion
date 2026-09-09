@@ -148,6 +148,8 @@ struct DownloadThreadData {
   gchar* address;
   gchar* fingerprint;
   LibdivecomputerPluginTransportType transport;
+  // Set the device clock after a successful download (issue #1216).
+  gboolean sync_clock;
 };
 
 // Whether a plugged-in HID device belongs to the model this download selected.
@@ -334,6 +336,7 @@ static gpointer download_thread_func(gpointer data) {
 
   unsigned int serial_number = 0;
   unsigned int firmware_version = 0;
+  libdc_clock_sync_status_t clock_sync = LIBDC_CLOCK_SYNC_NOT_REQUESTED;
   char error_buf[256] = {0};
 
   // Decode fingerprint from hex string.
@@ -388,8 +391,9 @@ static gpointer download_thread_func(gpointer data) {
         transport_flag,
         &io_callbacks,
         fp_data, fp_size,
+        td->sync_clock ? 1 : 0,
         &dl_callbacks,
-        &serial_number, &firmware_version,
+        &serial_number, &firmware_version, &clock_sync,
         error_buf, sizeof(error_buf));
   } else {
     // Serial or USB transport.
@@ -438,6 +442,7 @@ static gpointer download_thread_func(gpointer data) {
         io_callbacks = usbhid_io_stream_make_callbacks(ctx->usbhid_stream);
         serial_number = 0;
         firmware_version = 0;
+        clock_sync = LIBDC_CLOCK_SYNC_NOT_REQUESTED;
         memset(error_buf, 0, sizeof(error_buf));
 
         rc = libdc_download_run(
@@ -446,8 +451,9 @@ static gpointer download_thread_func(gpointer data) {
             LIBDC_TRANSPORT_USBHID,
             &io_callbacks,
             fp_data, fp_size,
+            td->sync_clock ? 1 : 0,
             &dl_callbacks,
-            &serial_number, &firmware_version,
+            &serial_number, &firmware_version, &clock_sync,
             error_buf, sizeof(error_buf));
 
         usbhid_io_stream_free(ctx->usbhid_stream);
@@ -494,8 +500,9 @@ static gpointer download_thread_func(gpointer data) {
             transport_flag,
             &io_callbacks,
             fp_data, fp_size,
+            td->sync_clock ? 1 : 0,
             &dl_callbacks,
-            &serial_number, &firmware_version,
+            &serial_number, &firmware_version, &clock_sync,
             error_buf, sizeof(error_buf));
         found = TRUE;
       } else {
@@ -526,6 +533,7 @@ static gpointer download_thread_func(gpointer data) {
           io_callbacks = serial_io_stream_make_callbacks(ctx->serial_stream);
           serial_number = 0;
           firmware_version = 0;
+          clock_sync = LIBDC_CLOCK_SYNC_NOT_REQUESTED;
           memset(error_buf, 0, sizeof(error_buf));
 
           rc = libdc_download_run(
@@ -534,8 +542,9 @@ static gpointer download_thread_func(gpointer data) {
               transport_flag,
               &io_callbacks,
               fp_data, fp_size,
+              td->sync_clock ? 1 : 0,
               &dl_callbacks,
-              &serial_number, &firmware_version,
+              &serial_number, &firmware_version, &clock_sync,
               error_buf, sizeof(error_buf));
 
           serial_io_stream_free(ctx->serial_stream);
@@ -602,23 +611,31 @@ static gpointer download_thread_func(gpointer data) {
     gchar* firmware_str = (firmware_version != 0)
         ? g_strdup_printf("%u", firmware_version) : nullptr;
 
+    // Null means no sync was requested, so the Dart side shows no line.
+    gchar* clock_sync_str = (clock_sync != LIBDC_CLOCK_SYNC_NOT_REQUESTED)
+        ? g_strdup(libdc_clock_sync_status_name(clock_sync)) : nullptr;
+
     struct CompleteData {
         LibdivecomputerPluginDiveComputerFlutterApi* api;
         gchar* serial;
         gchar* firmware;
+        gchar* clock_sync;
     };
     auto* cd = new CompleteData{ctx->flutter_api,
-                                g_strdup(serial_str), g_strdup(firmware_str)};
+                                g_strdup(serial_str), g_strdup(firmware_str),
+                                g_strdup(clock_sync_str)};
     g_idle_add([](gpointer data) -> gboolean {
         auto* d = static_cast<CompleteData*>(data);
         libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(
-            d->api, 0, d->serial, d->firmware,
+            d->api, 0, d->serial, d->firmware, d->clock_sync,
             nullptr, nullptr, nullptr);
         g_free(d->serial);
         g_free(d->firmware);
+        g_free(d->clock_sync);
         delete d;
         return G_SOURCE_REMOVE;
     }, cd);
+    g_free(clock_sync_str);
 
     g_free(serial_str);
     g_free(firmware_str);
@@ -748,6 +765,7 @@ handle_stop_discovery(gpointer user_data) {
 static void handle_start_download(
     LibdivecomputerPluginDiscoveredDevice* device,
     const gchar* fingerprint,
+    gboolean sync_clock,
     LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle,
     gpointer user_data) {
   auto* ctx = static_cast<HostApiContext*>(user_data);
@@ -770,6 +788,7 @@ static void handle_start_download(
   td->transport =
       libdivecomputer_plugin_discovered_device_get_transport(device);
   td->fingerprint = (fingerprint != NULL) ? g_strdup(fingerprint) : NULL;
+  td->sync_clock = sync_clock;
 
   // Spawn download thread.
   ctx->download_thread = g_thread_new("dc-download", download_thread_func, td);

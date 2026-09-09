@@ -1388,6 +1388,11 @@ class SyncService {
             records: data.diveComputers,
             hasUpdatedAt: true,
           ),
+          (
+            type: 'transmitters',
+            records: data.transmitters,
+            hasUpdatedAt: true,
+          ),
           (type: 'species', records: data.species, hasUpdatedAt: false),
           (type: 'tags', records: data.tags, hasUpdatedAt: true),
           // Courses must apply before dives/certifications that reference them.
@@ -2228,6 +2233,7 @@ class SyncService {
     'weightPresets': true,
     'weightPresetEntries': false,
     'diveComputers': true,
+    'transmitters': true,
     'species': false,
     'tags': true,
     'courses': true,
@@ -2332,6 +2338,12 @@ class SyncService {
     // COMMIT. Nullable, so the computer survives with the reference cleared.
     'diveComputers': [
       (field: 'equipmentId', parent: 'equipment', nullable: true),
+    ],
+    // Both gear FKs are nullable: the registry entry outlives a deleted
+    // cylinder or computer (set null), so a missing parent must not drop it.
+    'transmitters': [
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
+      (field: 'diveComputerId', parent: 'diveComputers', nullable: true),
     ],
     'diveTanks': [
       (field: 'diveId', parent: 'dives', nullable: false),

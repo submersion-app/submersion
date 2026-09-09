@@ -18,12 +18,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class EquipmentPickerSheet extends ConsumerWidget {
   final ScrollController scrollController;
   final Set<String> selectedEquipmentIds;
+
+  /// When set, only gear of this type is offered (the transmitter registry
+  /// editor lists cylinders only).
+  final EquipmentType? typeFilter;
   final void Function(EquipmentItem) onEquipmentSelected;
 
   const EquipmentPickerSheet({
     super.key,
     required this.scrollController,
     required this.selectedEquipmentIds,
+    this.typeFilter,
     required this.onEquipmentSelected,
   });
 
@@ -82,23 +87,26 @@ class EquipmentPickerSheet extends ConsumerWidget {
         Expanded(
           child: equipmentAsync.when(
             data: (equipmentList) {
-              // Selection first, then the diver's filter: an item already on
-              // the dive is gone for a different reason than one the filter
-              // hides, and the empty states below say which.
+              // Three narrowings, kept separate because each empties the list
+              // for a different reason and the diver deserves to be told
+              // which: gear already on the dive, the caller's own constraint
+              // (the transmitter registry offers cylinders only), and finally
+              // the filter the diver chose.
               final unselected = equipmentList
                   .where((e) => !selectedEquipmentIds.contains(e.id))
                   .toList();
-              final available = filter.apply(unselected);
+              final offerable = typeFilter == null
+                  ? unselected
+                  : unselected.where((e) => e.type == typeFilter).toList();
+              final available = filter.apply(offerable);
 
               if (available.isEmpty) {
                 return _EmptyState(
-                  // Distinguishes "you own none" from "all of it is already on
-                  // this dive" from "your filter hides the rest".
                   message: equipmentList.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_noEquipment
                       : unselected.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_allSelected
-                      : filter.type != null
+                      : offerable.isEmpty || filter.type != null
                       ? context.l10n.equipment_list_emptyState_noTypeMatch
                       : context.l10n.equipment_list_emptyState_noStatusMatch,
                   hint: equipmentList.isEmpty
@@ -188,12 +196,13 @@ class EquipmentPickerSheet extends ConsumerWidget {
     List<EquipmentItem> equipment,
   ) async {
     final current = ref.read(equipmentPickerFilterProvider);
-    // Derived from what the picker can actually show, which excludes gear
-    // already on the dive. Deriving them from the full active list would
-    // offer a chip for a type whose every item is already selected, and
-    // choosing it could only ever produce an empty list.
+    // Derived from what the picker can actually show: gear already on the
+    // dive is excluded, and so is anything the caller's own typeFilter
+    // rules out. Deriving them from the full active list would offer a chip
+    // that could only ever produce an empty list.
     final selectable = equipment
         .where((e) => !selectedEquipmentIds.contains(e.id))
+        .where((e) => typeFilter == null || e.type == typeFilter)
         .toList();
     final presentTypes = selectable.map((e) => e.type).toSet();
     final presentStatuses = selectable.map((e) => e.status).toSet();
