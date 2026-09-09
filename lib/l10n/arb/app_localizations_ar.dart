@@ -10220,6 +10220,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'متقاعد';
 
   @override
+  String get enum_equipmentType_backplate => 'لوحة ظهر';
+
+  @override
   String get enum_equipmentType_bcd => 'سترة الطفو';
 
   @override
@@ -10239,6 +10242,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'طبقة أساسية';
+
+  @override
+  String get enum_equipmentType_firstStage => 'المرحلة الأولى';
+
+  @override
+  String get enum_equipmentType_harness => 'حزام';
+
+  @override
+  String get enum_equipmentType_hose => 'خرطوم';
+
+  @override
+  String get enum_equipmentType_housing => 'غلاف الكاميرا';
+
+  @override
+  String get enum_equipmentType_secondStage => 'المرحلة الثانية';
+
+  @override
+  String get enum_equipmentType_strobe => 'فلاش';
 
   @override
   String get enum_equipmentType_undersuit => 'بدلة داخلية';
@@ -10302,6 +10323,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'قميص واقٍ من الاحتكاك';
+
+  @override
+  String get enum_equipmentType_wing => 'جناح';
 
   @override
   String get enum_eventSeverity_alert => 'تنبيه';
@@ -25044,6 +25068,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يوجد وصول إلى مكتبة الصور';
 
   @override
+  String get attrLabel_hose_length_m => 'طول الخرطوم';
+
+  @override
+  String get attrLabel_plate_material => 'مادة اللوحة';
+
+  @override
   String get attrLabel_size => 'المقاس';
 
   @override
@@ -25234,6 +25264,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'نوع الأداة';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'ألومنيوم';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'ألياف الكربون';
+
+  @override
+  String get attrChoice_plate_material_steel => 'فولاذ';
 
   @override
   String get attrChoice_unit_type_eccr => 'CCR إلكتروني (eCCR)';

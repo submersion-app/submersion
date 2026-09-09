@@ -10240,6 +10240,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Retired';
 
   @override
+  String get enum_equipmentType_backplate => 'Backplate';
+
+  @override
   String get enum_equipmentType_bcd => 'BCD';
 
   @override
@@ -10259,6 +10262,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'Base Layer';
+
+  @override
+  String get enum_equipmentType_firstStage => 'First Stage';
+
+  @override
+  String get enum_equipmentType_harness => 'Harness';
+
+  @override
+  String get enum_equipmentType_hose => 'Hose';
+
+  @override
+  String get enum_equipmentType_housing => 'Housing';
+
+  @override
+  String get enum_equipmentType_secondStage => 'Second Stage';
+
+  @override
+  String get enum_equipmentType_strobe => 'Strobe';
 
   @override
   String get enum_equipmentType_undersuit => 'Undersuit';
@@ -10322,6 +10343,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'Rash Guard';
+
+  @override
+  String get enum_equipmentType_wing => 'Wing';
 
   @override
   String get enum_eventSeverity_alert => 'Alert';
@@ -25071,6 +25095,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'No photo library access';
 
   @override
+  String get attrLabel_hose_length_m => 'Hose length';
+
+  @override
+  String get attrLabel_plate_material => 'Plate material';
+
+  @override
   String get attrLabel_size => 'Size';
 
   @override
@@ -25261,6 +25291,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'Tool type';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'Aluminum';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'Carbon fiber';
+
+  @override
+  String get attrChoice_plate_material_steel => 'Steel';
 
   @override
   String get attrChoice_unit_type_eccr => 'Electronic CCR (eCCR)';

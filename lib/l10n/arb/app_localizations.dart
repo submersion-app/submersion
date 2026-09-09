@@ -17472,6 +17472,12 @@ abstract class AppLocalizations {
   /// **'Retired'**
   String get enum_equipmentStatus_retired;
 
+  /// No description provided for @enum_equipmentType_backplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Backplate'**
+  String get enum_equipmentType_backplate;
+
   /// No description provided for @enum_equipmentType_bcd.
   ///
   /// In en, this message translates to:
@@ -17513,6 +17519,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Base Layer'**
   String get enum_equipmentType_baselayer;
+
+  /// No description provided for @enum_equipmentType_firstStage.
+  ///
+  /// In en, this message translates to:
+  /// **'First Stage'**
+  String get enum_equipmentType_firstStage;
+
+  /// No description provided for @enum_equipmentType_harness.
+  ///
+  /// In en, this message translates to:
+  /// **'Harness'**
+  String get enum_equipmentType_harness;
+
+  /// No description provided for @enum_equipmentType_hose.
+  ///
+  /// In en, this message translates to:
+  /// **'Hose'**
+  String get enum_equipmentType_hose;
+
+  /// No description provided for @enum_equipmentType_housing.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing'**
+  String get enum_equipmentType_housing;
+
+  /// No description provided for @enum_equipmentType_secondStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Second Stage'**
+  String get enum_equipmentType_secondStage;
+
+  /// No description provided for @enum_equipmentType_strobe.
+  ///
+  /// In en, this message translates to:
+  /// **'Strobe'**
+  String get enum_equipmentType_strobe;
 
   /// No description provided for @enum_equipmentType_undersuit.
   ///
@@ -17639,6 +17681,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rash Guard'**
   String get enum_equipmentType_rashGuard;
+
+  /// No description provided for @enum_equipmentType_wing.
+  ///
+  /// In en, this message translates to:
+  /// **'Wing'**
+  String get enum_equipmentType_wing;
 
   /// No description provided for @enum_eventSeverity_alert.
   ///
@@ -41939,6 +41987,18 @@ abstract class AppLocalizations {
   /// **'No photo library access'**
   String get media_unavailablePlaceholder_accessDenied;
 
+  /// No description provided for @attrLabel_hose_length_m.
+  ///
+  /// In en, this message translates to:
+  /// **'Hose length'**
+  String get attrLabel_hose_length_m;
+
+  /// No description provided for @attrLabel_plate_material.
+  ///
+  /// In en, this message translates to:
+  /// **'Plate material'**
+  String get attrLabel_plate_material;
+
   /// No description provided for @attrLabel_size.
   ///
   /// In en, this message translates to:
@@ -42322,6 +42382,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tool type'**
   String get attrLabel_tool_type;
+
+  /// No description provided for @attrChoice_plate_material_aluminum.
+  ///
+  /// In en, this message translates to:
+  /// **'Aluminum'**
+  String get attrChoice_plate_material_aluminum;
+
+  /// No description provided for @attrChoice_plate_material_carbon_fiber.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbon fiber'**
+  String get attrChoice_plate_material_carbon_fiber;
+
+  /// No description provided for @attrChoice_plate_material_steel.
+  ///
+  /// In en, this message translates to:
+  /// **'Steel'**
+  String get attrChoice_plate_material_steel;
 
   /// No description provided for @attrChoice_unit_type_eccr.
   ///

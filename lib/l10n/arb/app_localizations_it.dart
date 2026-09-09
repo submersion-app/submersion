@@ -10409,6 +10409,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Dismesso';
 
   @override
+  String get enum_equipmentType_backplate => 'Piastra dorsale';
+
+  @override
   String get enum_equipmentType_bcd => 'Jacket';
 
   @override
@@ -10428,6 +10431,24 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'Strato base';
+
+  @override
+  String get enum_equipmentType_firstStage => 'Primo stadio';
+
+  @override
+  String get enum_equipmentType_harness => 'Imbrago';
+
+  @override
+  String get enum_equipmentType_hose => 'Frusta';
+
+  @override
+  String get enum_equipmentType_housing => 'Custodia';
+
+  @override
+  String get enum_equipmentType_secondStage => 'Secondo stadio';
+
+  @override
+  String get enum_equipmentType_strobe => 'Flash';
 
   @override
   String get enum_equipmentType_undersuit => 'Sottomuta';
@@ -10491,6 +10512,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'Rash guard';
+
+  @override
+  String get enum_equipmentType_wing => 'Sacco wing';
 
   @override
   String get enum_eventSeverity_alert => 'Allarme';
@@ -25505,6 +25529,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun accesso alla libreria foto';
 
   @override
+  String get attrLabel_hose_length_m => 'Lunghezza della frusta';
+
+  @override
+  String get attrLabel_plate_material => 'Materiale della piastra';
+
+  @override
   String get attrLabel_size => 'Taglia';
 
   @override
@@ -25695,6 +25725,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'Tipo di attrezzo';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'Alluminio';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'Fibra di carbonio';
+
+  @override
+  String get attrChoice_plate_material_steel => 'Acciaio';
 
   @override
   String get attrChoice_unit_type_eccr => 'CCR elettronico (eCCR)';

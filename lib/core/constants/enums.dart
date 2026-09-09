@@ -9,7 +9,18 @@ import 'dart:ui' show Color;
 /// offer, so related gear is grouped rather than alphabetised.
 enum EquipmentType {
   regulator('Regulator'),
+  // The regulator's parts (issue #1487). A diver who swaps second stages and
+  // hoses between a DIN and a yoke first stage tracks service on each part,
+  // so the parts are types of their own rather than `other` with a name.
+  firstStage('First Stage'),
+  secondStage('Second Stage'),
+  hose('Hose'),
   bcd('BCD'),
+  // The backplate-and-wing rig's parts (issue #1487): the plate is what a
+  // diver swaps between a wetsuit and a drysuit season.
+  backplate('Backplate'),
+  wing('Wing'),
+  harness('Harness'),
   wetsuit('Wetsuit'),
   drysuit('Drysuit'),
   // The two drysuit layers, requested in #1537. They sit next to the suits
@@ -35,6 +46,9 @@ enum EquipmentType {
   weights('Weights'),
   light('Light'),
   camera('Camera'),
+  // Photo rig parts (issue #1487): the same strobes ride different housings.
+  housing('Housing'),
+  strobe('Strobe'),
   smb('SMB'),
   reel('Reel'),
   knife('Knife'),

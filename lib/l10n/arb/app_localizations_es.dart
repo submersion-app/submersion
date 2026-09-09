@@ -10410,6 +10410,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Retirado';
 
   @override
+  String get enum_equipmentType_backplate => 'Placa dorsal';
+
+  @override
   String get enum_equipmentType_bcd => 'Chaleco compensador';
 
   @override
@@ -10429,6 +10432,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'Capa base';
+
+  @override
+  String get enum_equipmentType_firstStage => 'Primera etapa';
+
+  @override
+  String get enum_equipmentType_harness => 'Arnés';
+
+  @override
+  String get enum_equipmentType_hose => 'Latiguillo';
+
+  @override
+  String get enum_equipmentType_housing => 'Carcasa';
+
+  @override
+  String get enum_equipmentType_secondStage => 'Segunda etapa';
+
+  @override
+  String get enum_equipmentType_strobe => 'Flash';
 
   @override
   String get enum_equipmentType_undersuit => 'Traje interior';
@@ -10492,6 +10513,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'Licra';
+
+  @override
+  String get enum_equipmentType_wing => 'Ala';
 
   @override
   String get enum_eventSeverity_alert => 'Alerta';
@@ -25524,6 +25548,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sin acceso a la fototeca';
 
   @override
+  String get attrLabel_hose_length_m => 'Longitud del latiguillo';
+
+  @override
+  String get attrLabel_plate_material => 'Material de la placa';
+
+  @override
   String get attrLabel_size => 'Talla';
 
   @override
@@ -25714,6 +25744,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'Tipo de herramienta';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'Aluminio';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'Fibra de carbono';
+
+  @override
+  String get attrChoice_plate_material_steel => 'Acero';
 
   @override
   String get attrChoice_unit_type_eccr => 'CCR electrónico (eCCR)';

@@ -150,21 +150,22 @@ class MacDiveValueMapper {
         s.contains('analyzer')) {
       return EquipmentType.instrument;
     }
-    if (s.contains('octo') ||
-        s.contains('regulator') ||
-        s.startsWith('reg') ||
-        s.contains('second stage') ||
-        s.contains('first stage')) {
+    // Regulator parts (issue #1487) win over the regulator family: a long
+    // hose is a hose, and a second stage is not the whole regulator.
+    if (s.contains('hose')) return EquipmentType.hose;
+    if (s.contains('first stage')) return EquipmentType.firstStage;
+    if (s.contains('second stage')) return EquipmentType.secondStage;
+    if (s.contains('octo') || s.contains('regulator') || s.startsWith('reg')) {
       return EquipmentType.regulator;
     }
-    if (s.contains('bcd') ||
-        s.contains('bc ') ||
-        s == 'bc' ||
-        s.contains('wing') ||
-        s.contains('harness') ||
-        s.contains('backplate')) {
+    if (s.contains('bcd') || s.contains('bc ') || s == 'bc') {
       return EquipmentType.bcd;
     }
+    // Backplate-and-wing parts (issue #1487), after the whole-BCD words so
+    // "BCD - Wing" stays a BCD. A plate-and-harness listing is the plate.
+    if (s.contains('backplate')) return EquipmentType.backplate;
+    if (s.contains('wing')) return EquipmentType.wing;
+    if (s.contains('harness')) return EquipmentType.harness;
     if (s.contains('tank') || s.contains('cylinder')) return EquipmentType.tank;
     if (s.contains('weight') || s.contains('ballast')) {
       return EquipmentType.weights;
@@ -197,10 +198,10 @@ class MacDiveValueMapper {
       return EquipmentType.baselayer;
     }
     if (s.contains('light') || s.contains('torch')) return EquipmentType.light;
-    if (s.contains('camera') ||
-        s.contains('housing') ||
-        s.contains('strobe') ||
-        s.contains('gopro')) {
+    // Photo rig parts (issue #1487) before the camera family.
+    if (s.contains('housing')) return EquipmentType.housing;
+    if (s.contains('strobe')) return EquipmentType.strobe;
+    if (s.contains('camera') || s.contains('gopro')) {
       return EquipmentType.camera;
     }
     if (s.contains('smb') ||

@@ -29,8 +29,24 @@ IconData equipmentTypeIcon(EquipmentType type) {
   switch (type) {
     case EquipmentType.regulator:
       return SubmersionIcons.regulator;
+    // Regulator parts (issue #1487). Material glyphs for now: a round DIN
+    // face, breathing air, and a cable for the hose. Drawn glyphs can
+    // follow under the equipment icons design.
+    case EquipmentType.firstStage:
+      return Icons.settings_input_svideo;
+    case EquipmentType.secondStage:
+      return Icons.air;
+    case EquipmentType.hose:
+      return Icons.cable;
     case EquipmentType.bcd:
       return SubmersionIcons.bcd;
+    // Backplate-and-wing parts (issue #1487): a plate, a donut, webbing.
+    case EquipmentType.backplate:
+      return Icons.crop_portrait;
+    case EquipmentType.wing:
+      return Icons.donut_large;
+    case EquipmentType.harness:
+      return Icons.link;
     // The two suits share a silhouette but not a glyph: the drysuit carries
     // the attached hood and boots that distinguish it in the water.
     case EquipmentType.wetsuit:
@@ -80,6 +96,11 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return Icons.flashlight_on;
     case EquipmentType.camera:
       return Icons.camera_alt;
+    // Photo rig parts (issue #1487).
+    case EquipmentType.housing:
+      return Icons.photo_camera_back;
+    case EquipmentType.strobe:
+      return Icons.flash_on;
     case EquipmentType.knife:
       return MdiIcons.knifeMilitary;
     // Crossed screwdriver and wrench: a save-a-dive kit, not one wrench, which

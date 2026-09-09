@@ -10380,6 +10380,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Kivonva';
 
   @override
+  String get enum_equipmentType_backplate => 'Hátlemez';
+
+  @override
   String get enum_equipmentType_bcd => 'Jacket';
 
   @override
@@ -10399,6 +10402,24 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'Alapréteg';
+
+  @override
+  String get enum_equipmentType_firstStage => 'Első fokozat';
+
+  @override
+  String get enum_equipmentType_harness => 'Heveder';
+
+  @override
+  String get enum_equipmentType_hose => 'Tömlő';
+
+  @override
+  String get enum_equipmentType_housing => 'Tokozás';
+
+  @override
+  String get enum_equipmentType_secondStage => 'Második fokozat';
+
+  @override
+  String get enum_equipmentType_strobe => 'Vaku';
 
   @override
   String get enum_equipmentType_undersuit => 'Alsóöltözet';
@@ -10462,6 +10483,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'Vízi trikó';
+
+  @override
+  String get enum_equipmentType_wing => 'Szárny';
 
   @override
   String get enum_eventSeverity_alert => 'Riasztas';
@@ -25398,6 +25422,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs hozzáférés a fotókönyvtárhoz';
 
   @override
+  String get attrLabel_hose_length_m => 'Tömlő hossza';
+
+  @override
+  String get attrLabel_plate_material => 'Lemez anyaga';
+
+  @override
   String get attrLabel_size => 'Méret';
 
   @override
@@ -25588,6 +25618,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'Szerszám típusa';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'Alumínium';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'Szénszál';
+
+  @override
+  String get attrChoice_plate_material_steel => 'Acél';
 
   @override
   String get attrChoice_unit_type_eccr => 'Elektronikus CCR (eCCR)';

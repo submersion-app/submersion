@@ -13,7 +13,13 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 extension EquipmentTypeDisplay on EquipmentType {
   String localizedName(AppLocalizations l10n) => switch (this) {
     EquipmentType.regulator => l10n.enum_equipmentType_regulator,
+    EquipmentType.firstStage => l10n.enum_equipmentType_firstStage,
+    EquipmentType.secondStage => l10n.enum_equipmentType_secondStage,
+    EquipmentType.hose => l10n.enum_equipmentType_hose,
     EquipmentType.bcd => l10n.enum_equipmentType_bcd,
+    EquipmentType.backplate => l10n.enum_equipmentType_backplate,
+    EquipmentType.wing => l10n.enum_equipmentType_wing,
+    EquipmentType.harness => l10n.enum_equipmentType_harness,
     EquipmentType.wetsuit => l10n.enum_equipmentType_wetsuit,
     EquipmentType.drysuit => l10n.enum_equipmentType_drysuit,
     EquipmentType.undersuit => l10n.enum_equipmentType_undersuit,
@@ -31,6 +37,8 @@ extension EquipmentTypeDisplay on EquipmentType {
     EquipmentType.weights => l10n.enum_equipmentType_weights,
     EquipmentType.light => l10n.enum_equipmentType_light,
     EquipmentType.camera => l10n.enum_equipmentType_camera,
+    EquipmentType.housing => l10n.enum_equipmentType_housing,
+    EquipmentType.strobe => l10n.enum_equipmentType_strobe,
     EquipmentType.smb => l10n.enum_equipmentType_smb,
     EquipmentType.reel => l10n.enum_equipmentType_reel,
     EquipmentType.knife => l10n.enum_equipmentType_knife,

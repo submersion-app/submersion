@@ -10450,6 +10450,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Réforme';
 
   @override
+  String get enum_equipmentType_backplate => 'Plaque dorsale';
+
+  @override
   String get enum_equipmentType_bcd => 'Gilet stabilisateur';
 
   @override
@@ -10469,6 +10472,24 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'Sous-couche';
+
+  @override
+  String get enum_equipmentType_firstStage => 'Premier étage';
+
+  @override
+  String get enum_equipmentType_harness => 'Harnais';
+
+  @override
+  String get enum_equipmentType_hose => 'Flexible';
+
+  @override
+  String get enum_equipmentType_housing => 'Caisson';
+
+  @override
+  String get enum_equipmentType_secondStage => 'Deuxième étage';
+
+  @override
+  String get enum_equipmentType_strobe => 'Flash';
 
   @override
   String get enum_equipmentType_undersuit => 'Sous-combinaison';
@@ -10532,6 +10553,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'Lycra';
+
+  @override
+  String get enum_equipmentType_wing => 'Wing';
 
   @override
   String get enum_eventSeverity_alert => 'Alerte';
@@ -25595,6 +25619,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun accès à la photothèque';
 
   @override
+  String get attrLabel_hose_length_m => 'Longueur du flexible';
+
+  @override
+  String get attrLabel_plate_material => 'Matériau de la plaque';
+
+  @override
   String get attrLabel_size => 'Taille';
 
   @override
@@ -25785,6 +25815,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'Type d\'outil';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'Aluminium';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'Fibre de carbone';
+
+  @override
+  String get attrChoice_plate_material_steel => 'Acier';
 
   @override
   String get attrChoice_unit_type_eccr => 'CCR électronique (eCCR)';

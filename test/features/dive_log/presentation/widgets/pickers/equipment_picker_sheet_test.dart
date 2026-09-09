@@ -16,7 +16,9 @@ Future<void> _pump(
   Set<String> selectedIds = const {},
   void Function(EquipmentItem)? onSelected,
 }) async {
-  tester.view.physicalSize = const Size(900, 2400);
+  // Tall enough that the lazy list builds one tile per equipment type; the
+  // assembly part types (#1487) outgrew the previous 2400 px.
+  tester.view.physicalSize = const Size(900, 3600);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(

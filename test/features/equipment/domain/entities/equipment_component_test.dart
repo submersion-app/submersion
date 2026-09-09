@@ -33,7 +33,7 @@ void main() {
     const hose = EquipmentItem(
       id: 'hose',
       name: 'LP hose',
-      type: EquipmentType.other,
+      type: EquipmentType.hose,
     );
     final copy = row().copyWith(role: 'Primary', component: hose);
     expect(copy.role, 'Primary');

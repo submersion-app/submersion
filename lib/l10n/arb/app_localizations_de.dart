@@ -10407,6 +10407,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Ausgemustert';
 
   @override
+  String get enum_equipmentType_backplate => 'Backplate';
+
+  @override
   String get enum_equipmentType_bcd => 'Tarierjacket';
 
   @override
@@ -10426,6 +10429,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'Basisschicht';
+
+  @override
+  String get enum_equipmentType_firstStage => 'Erste Stufe';
+
+  @override
+  String get enum_equipmentType_harness => 'Harness';
+
+  @override
+  String get enum_equipmentType_hose => 'Schlauch';
+
+  @override
+  String get enum_equipmentType_housing => 'Gehäuse';
+
+  @override
+  String get enum_equipmentType_secondStage => 'Zweite Stufe';
+
+  @override
+  String get enum_equipmentType_strobe => 'Blitz';
 
   @override
   String get enum_equipmentType_undersuit => 'Unterzieher';
@@ -10489,6 +10510,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'Rashguard';
+
+  @override
+  String get enum_equipmentType_wing => 'Wing';
 
   @override
   String get enum_eventSeverity_alert => 'Alarm';
@@ -25452,6 +25476,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Zugriff auf die Fotomediathek';
 
   @override
+  String get attrLabel_hose_length_m => 'Schlauchlänge';
+
+  @override
+  String get attrLabel_plate_material => 'Plattenmaterial';
+
+  @override
   String get attrLabel_size => 'Größe';
 
   @override
@@ -25642,6 +25672,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'Werkzeugart';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'Aluminium';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'Kohlefaser';
+
+  @override
+  String get attrChoice_plate_material_steel => 'Stahl';
 
   @override
   String get attrChoice_unit_type_eccr => 'Elektronischer CCR (eCCR)';

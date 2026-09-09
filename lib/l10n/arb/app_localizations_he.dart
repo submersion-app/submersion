@@ -10162,6 +10162,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'הוצא משימוש';
 
   @override
+  String get enum_equipmentType_backplate => 'פלטת גב';
+
+  @override
   String get enum_equipmentType_bcd => 'אפוד ציפה';
 
   @override
@@ -10181,6 +10184,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'שכבת בסיס';
+
+  @override
+  String get enum_equipmentType_firstStage => 'שלב ראשון';
+
+  @override
+  String get enum_equipmentType_harness => 'רתמה';
+
+  @override
+  String get enum_equipmentType_hose => 'צינור';
+
+  @override
+  String get enum_equipmentType_housing => 'מארז';
+
+  @override
+  String get enum_equipmentType_secondStage => 'שלב שני';
+
+  @override
+  String get enum_equipmentType_strobe => 'פלאש';
 
   @override
   String get enum_equipmentType_undersuit => 'חליפה תחתונה';
@@ -10244,6 +10265,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'חולצת ליקרה';
+
+  @override
+  String get enum_equipmentType_wing => 'כנף';
 
   @override
   String get enum_eventSeverity_alert => 'התראה';
@@ -24865,6 +24889,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין גישה לספריית התמונות';
 
   @override
+  String get attrLabel_hose_length_m => 'אורך הצינור';
+
+  @override
+  String get attrLabel_plate_material => 'חומר הפלטה';
+
+  @override
   String get attrLabel_size => 'מידה';
 
   @override
@@ -25055,6 +25085,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'סוג הכלי';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'אלומיניום';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'סיבי פחמן';
+
+  @override
+  String get attrChoice_plate_material_steel => 'פלדה';
 
   @override
   String get attrChoice_unit_type_eccr => 'CCR אלקטרוני (eCCR)';

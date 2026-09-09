@@ -9922,6 +9922,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentStatus_retired => '已退役';
 
   @override
+  String get enum_equipmentType_backplate => '背板';
+
+  @override
   String get enum_equipmentType_bcd => '浮力控制装置';
 
   @override
@@ -9941,6 +9944,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => '基础层';
+
+  @override
+  String get enum_equipmentType_firstStage => '一级头';
+
+  @override
+  String get enum_equipmentType_harness => '背带';
+
+  @override
+  String get enum_equipmentType_hose => '软管';
+
+  @override
+  String get enum_equipmentType_housing => '防水壳';
+
+  @override
+  String get enum_equipmentType_secondStage => '二级头';
+
+  @override
+  String get enum_equipmentType_strobe => '闪光灯';
 
   @override
   String get enum_equipmentType_undersuit => '内胆保暖服';
@@ -10004,6 +10025,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => '防磨衣';
+
+  @override
+  String get enum_equipmentType_wing => '背飞气囊';
 
   @override
   String get enum_eventSeverity_alert => '警报';
@@ -24174,6 +24198,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_unavailablePlaceholder_accessDenied => '无照片库访问权限';
 
   @override
+  String get attrLabel_hose_length_m => '软管长度';
+
+  @override
+  String get attrLabel_plate_material => '背板材质';
+
+  @override
   String get attrLabel_size => '尺码';
 
   @override
@@ -24364,6 +24394,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => '工具类型';
+
+  @override
+  String get attrChoice_plate_material_aluminum => '铝';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => '碳纤维';
+
+  @override
+  String get attrChoice_plate_material_steel => '钢';
 
   @override
   String get attrChoice_unit_type_eccr => '电子式 CCR (eCCR)';

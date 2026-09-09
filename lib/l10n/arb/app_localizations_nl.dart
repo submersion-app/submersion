@@ -10330,6 +10330,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Uit gebruik';
 
   @override
+  String get enum_equipmentType_backplate => 'Backplate';
+
+  @override
   String get enum_equipmentType_bcd => 'Trimvest';
 
   @override
@@ -10349,6 +10352,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'Basislaag';
+
+  @override
+  String get enum_equipmentType_firstStage => 'Eerste trap';
+
+  @override
+  String get enum_equipmentType_harness => 'Harnas';
+
+  @override
+  String get enum_equipmentType_hose => 'Slang';
+
+  @override
+  String get enum_equipmentType_housing => 'Behuizing';
+
+  @override
+  String get enum_equipmentType_secondStage => 'Tweede trap';
+
+  @override
+  String get enum_equipmentType_strobe => 'Flitser';
 
   @override
   String get enum_equipmentType_undersuit => 'Onderpak';
@@ -10412,6 +10433,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'Rashguard';
+
+  @override
+  String get enum_equipmentType_wing => 'Wing';
 
   @override
   String get enum_eventSeverity_alert => 'Alarm';
@@ -25309,6 +25333,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen toegang tot fotobibliotheek';
 
   @override
+  String get attrLabel_hose_length_m => 'Slanglengte';
+
+  @override
+  String get attrLabel_plate_material => 'Plaatmateriaal';
+
+  @override
   String get attrLabel_size => 'Maat';
 
   @override
@@ -25499,6 +25529,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'Soort gereedschap';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'Aluminium';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'Koolstofvezel';
+
+  @override
+  String get attrChoice_plate_material_steel => 'Staal';
 
   @override
   String get attrChoice_unit_type_eccr => 'Elektronische CCR (eCCR)';

@@ -10410,6 +10410,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentStatus_retired => 'Aposentado';
 
   @override
+  String get enum_equipmentType_backplate => 'Backplate';
+
+  @override
   String get enum_equipmentType_bcd => 'Colete Equilibrador';
 
   @override
@@ -10429,6 +10432,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_equipmentType_baselayer => 'Camada base';
+
+  @override
+  String get enum_equipmentType_firstStage => 'Primeiro estágio';
+
+  @override
+  String get enum_equipmentType_harness => 'Arnês';
+
+  @override
+  String get enum_equipmentType_hose => 'Mangueira';
+
+  @override
+  String get enum_equipmentType_housing => 'Caixa estanque';
+
+  @override
+  String get enum_equipmentType_secondStage => 'Segundo estágio';
+
+  @override
+  String get enum_equipmentType_strobe => 'Flash';
 
   @override
   String get enum_equipmentType_undersuit => 'Fato interior';
@@ -10492,6 +10513,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'Licra';
+
+  @override
+  String get enum_equipmentType_wing => 'Asa';
 
   @override
   String get enum_eventSeverity_alert => 'Alerta';
@@ -25501,6 +25525,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem acesso à biblioteca de fotos';
 
   @override
+  String get attrLabel_hose_length_m => 'Comprimento da mangueira';
+
+  @override
+  String get attrLabel_plate_material => 'Material da placa';
+
+  @override
   String get attrLabel_size => 'Tamanho';
 
   @override
@@ -25691,6 +25721,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrLabel_tool_type => 'Tipo de ferramenta';
+
+  @override
+  String get attrChoice_plate_material_aluminum => 'Alumínio';
+
+  @override
+  String get attrChoice_plate_material_carbon_fiber => 'Fibra de carbono';
+
+  @override
+  String get attrChoice_plate_material_steel => 'Aço';
 
   @override
   String get attrChoice_unit_type_eccr => 'CCR eletrónico (eCCR)';
