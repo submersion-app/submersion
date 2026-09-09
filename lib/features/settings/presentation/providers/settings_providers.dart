@@ -238,6 +238,11 @@ class AppSettings {
   /// Flying-after-diving conservatism preset
   final NoFlyPreset noFlyPreset;
 
+  /// Exposure thresholds for service clocks (v202), stored metric.
+  final double coldWaterThresholdC;
+  final double deepDiveThresholdM;
+  final double highO2ThresholdPercent;
+
   /// Bundled chamber ids hidden from the emergency card
   final Set<String> hiddenChamberIds;
 
@@ -546,6 +551,9 @@ class AppSettings {
     this.safetyReviewEnabled = true,
     this.safetyReviewDisabledRules = const {},
     this.noFlyPreset = NoFlyPreset.standard,
+    this.coldWaterThresholdC = 10.0,
+    this.deepDiveThresholdM = 30.0,
+    this.highO2ThresholdPercent = 40.0,
     this.hiddenChamberIds = const {},
     this.emergencyRegion,
     this.showAscentRateColors = false,
@@ -715,6 +723,9 @@ class AppSettings {
     bool? safetyReviewEnabled,
     Set<String>? safetyReviewDisabledRules,
     NoFlyPreset? noFlyPreset,
+    double? coldWaterThresholdC,
+    double? deepDiveThresholdM,
+    double? highO2ThresholdPercent,
     Set<String>? hiddenChamberIds,
     String? emergencyRegion,
     bool clearEmergencyRegion = false,
@@ -858,6 +869,10 @@ class AppSettings {
       safetyReviewDisabledRules:
           safetyReviewDisabledRules ?? this.safetyReviewDisabledRules,
       noFlyPreset: noFlyPreset ?? this.noFlyPreset,
+      coldWaterThresholdC: coldWaterThresholdC ?? this.coldWaterThresholdC,
+      deepDiveThresholdM: deepDiveThresholdM ?? this.deepDiveThresholdM,
+      highO2ThresholdPercent:
+          highO2ThresholdPercent ?? this.highO2ThresholdPercent,
       hiddenChamberIds: hiddenChamberIds ?? this.hiddenChamberIds,
       emergencyRegion: clearEmergencyRegion
           ? null
@@ -1577,6 +1592,21 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setSafetyReviewEnabled(bool value) async {
     state = state.copyWith(safetyReviewEnabled: value);
+    await _saveSettings();
+  }
+
+  Future<void> setColdWaterThresholdC(double value) async {
+    state = state.copyWith(coldWaterThresholdC: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDeepDiveThresholdM(double value) async {
+    state = state.copyWith(deepDiveThresholdM: value);
+    await _saveSettings();
+  }
+
+  Future<void> setHighO2ThresholdPercent(double value) async {
+    state = state.copyWith(highO2ThresholdPercent: value);
     await _saveSettings();
   }
 
