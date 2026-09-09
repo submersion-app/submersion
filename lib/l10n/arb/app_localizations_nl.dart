@@ -23728,22 +23728,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Neem de einddruk op het moment van bovenkomen, niet aan het einde van de opname';
 
   @override
-  String get settings_cloudImportPageSize_title =>
-      'Paginagrootte voor cloudimport';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'Hoeveel van de nieuwste duiken per keer op te halen van Suunto Cloud of Garmin Connect. „Meer laden” haalt de volgende batch van dezelfde grootte op.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Duiken per pagina';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'Tussen $min en $max';
-  }
-
-  @override
   String get settings_siteMatch_strict => 'Strikt';
 
   @override

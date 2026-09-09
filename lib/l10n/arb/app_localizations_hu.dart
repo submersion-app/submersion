@@ -23843,22 +23843,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'A végnyomás a felszínre érkezéskor legyen leolvasva, ne a rögzítés végén';
 
   @override
-  String get settings_cloudImportPageSize_title => 'Felhőimport oldalmérete';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'Hány legutóbbi merülést töltsön le egyszerre a Suunto Cloudból vagy a Garmin Connectből. A „Továbbiak betöltése” ugyanekkora következő köteget kér.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle =>
-      'Merülések oldalanként';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return '$min és $max között';
-  }
-
-  @override
   String get settings_siteMatch_strict => 'Szigorú';
 
   @override

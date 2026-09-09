@@ -39311,30 +39311,6 @@ abstract class AppLocalizations {
   /// **'Read end pressure when you reached the surface, not when the computer stopped recording'**
   String get settings_tankPressureAtSurfacing_subtitle;
 
-  /// No description provided for @settings_cloudImportPageSize_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud import page size'**
-  String get settings_cloudImportPageSize_title;
-
-  /// No description provided for @settings_cloudImportPageSize_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.'**
-  String get settings_cloudImportPageSize_subtitle;
-
-  /// No description provided for @settings_cloudImportPageSize_dialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives per page'**
-  String get settings_cloudImportPageSize_dialogTitle;
-
-  /// Helper text under the cloud import page size field showing the allowed range
-  ///
-  /// In en, this message translates to:
-  /// **'Between {min} and {max}'**
-  String settings_cloudImportPageSize_range(Object min, Object max);
-
   /// No description provided for @settings_siteMatch_strict.
   ///
   /// In en, this message translates to:

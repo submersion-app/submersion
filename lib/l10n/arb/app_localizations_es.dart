@@ -23940,23 +23940,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tomar la presión final al llegar a la superficie, no al terminar el registro';
 
   @override
-  String get settings_cloudImportPageSize_title =>
-      'Tamaño de página de importación en la nube';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'Cuántas de las inmersiones más recientes se obtienen cada vez desde Suunto Cloud o Garmin Connect. «Cargar más» obtiene el siguiente lote del mismo tamaño.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle =>
-      'Inmersiones por página';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'Entre $min y $max';
-  }
-
-  @override
   String get settings_siteMatch_strict => 'Estricto';
 
   @override

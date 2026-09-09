@@ -23510,21 +23510,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Read end pressure when you reached the surface, not when the computer stopped recording';
 
   @override
-  String get settings_cloudImportPageSize_title => 'Cloud import page size';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Dives per page';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'Between $min and $max';
-  }
-
-  @override
   String get settings_siteMatch_strict => 'Strict';
 
   @override

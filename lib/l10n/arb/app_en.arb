@@ -15355,23 +15355,6 @@
   "settings_siteMatch_subtitle": "How aggressively downloaded dives are matched to sites",
   "settings_tankPressureAtSurfacing_title": "Tank pressure at surfacing",
   "settings_tankPressureAtSurfacing_subtitle": "Read end pressure when you reached the surface, not when the computer stopped recording",
-  "settings_cloudImportPageSize_title": "Cloud import page size",
-  "settings_cloudImportPageSize_subtitle": "How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.",
-  "settings_cloudImportPageSize_dialogTitle": "Dives per page",
-  "settings_cloudImportPageSize_range": "Between {min} and {max}",
-  "@settings_cloudImportPageSize_range": {
-    "description": "Helper text under the cloud import page size field showing the allowed range",
-    "placeholders": {
-      "min": {
-        "type": "Object",
-        "example": "1"
-      },
-      "max": {
-        "type": "Object",
-        "example": "100"
-      }
-    }
-  },
   "settings_siteMatch_strict": "Strict",
   "settings_siteMatch_balanced": "Balanced",
   "settings_siteMatch_relaxed": "Relaxed",

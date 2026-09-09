@@ -23874,22 +23874,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Enddruck beim Erreichen der Oberfläche übernehmen, nicht am Ende der Aufzeichnung';
 
   @override
-  String get settings_cloudImportPageSize_title =>
-      'Seitengröße für Cloud-Import';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'Wie viele der neuesten Tauchgänge jeweils von Suunto Cloud oder Garmin Connect geladen werden. „Mehr laden“ holt den nächsten Stapel derselben Größe.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Tauchgänge pro Seite';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'Zwischen $min und $max';
-  }
-
-  @override
   String get settings_siteMatch_strict => 'Streng';
 
   @override

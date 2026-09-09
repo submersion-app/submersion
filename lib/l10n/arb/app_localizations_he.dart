@@ -23320,21 +23320,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה';
 
   @override
-  String get settings_cloudImportPageSize_title => 'גודל עמוד בייבוא מהענן';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'צלילות לעמוד';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'בין $min ל-$max';
-  }
-
-  @override
   String get settings_siteMatch_strict => 'קפדני';
 
   @override
