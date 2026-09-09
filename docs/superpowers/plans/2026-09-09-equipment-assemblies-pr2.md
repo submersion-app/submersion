@@ -15,7 +15,7 @@
 - No schema change. `dive_equipment.via_equipment_id`, `dive_equipment.via_set_id` and the same pair on `dive_plan_equipment` exist since v203 and already round-trip through sync as generated rows.
 - No em-dashes anywhere. No mention of the AI tool or its vendor in any file or commit message. No emojis.
 - Every new user-visible string gets a key in all **11** ARB files under `lib/l10n/arb/` (`ar`, `de`, `en`, `es`, `fr`, `he`, `hu`, `it`, `nl`, `pt`, `zh`), inserted inside the contiguous prefix block (or before the anchor key named in the task), followed by `flutter gen-l10n`, with the regenerated `app_localizations*.dart` committed.
-- `Dive` keeps its `const` constructor and its `this.<field>` parameter style: `test/features/dive_log/presentation/pages/dive_edit_save_field_census_test.dart` reads `dive.dart` as text between `'  const Dive({'` and `'\n  });'`, collects every `this.<x>` as a constructor parameter, collects every `dive.<x>` that `updateDive` reads, and requires each parameter in that intersection to be a named argument of the edit page's `Dive(` literal. The gear field is `gear`, and `equipment` is a getter, so once Task 3 makes `updateDive` read `dive.gear` the census enforces `gear:` in the save literal.
+- `Dive` keeps its `const` constructor and its `this.<field>` parameter style: `test/features/dive_log/presentation/pages/dive_edit_save_field_census_test.dart` reads `dive.dart` as text between `'  const Dive({'` and `'\n  });'`, collects every `this.<x>` as a constructor parameter, collects every `dive.<x>` that `updateDive` reads, and requires each parameter in that intersection to be a named argument of the edit page's `Dive(` literal. The scan of `updateDive` stops at its first `markRecordPending` call, which comes before the child-row blocks, so the census does not see the gear write; the gear field is still named `gear` with `equipment` as a getter, and Task 7's edit-page test is what proves the save literal passes gear through.
 - `ComponentsIndex` moves to the domain layer so repositories can use it; the presentation provider file re-exports it so no existing import breaks.
 - Layering rule for every renderer: bucket by set (loose gear last), arrange top-level rows with `arrangeEquipment`, assemblies opaque, parts in template order.
 - Installed-in children (#1708, `equipment.parent_equipment_id`) are NOT components. The expander only follows `equipment_components`.
@@ -1243,14 +1243,14 @@ and after the batch commits, where the other child entities are marked pending, 
 `updateDive` (replace L1773-L1800):
 
 ```dart
-      // Equipment: a diff keyed by equipment id. Read dive.gear (the
-      // constructor field) rather than the getter so the save-field census
-      // keeps requiring gear: in the edit page's Dive literal.
+      // Equipment: a diff keyed by equipment id, shared with the bulk
+      // operations, so an unchanged row is neither tombstoned nor
+      // re-marked pending (issue #1487).
       final desiredGear = [for (final g in dive.gear) g.provenance];
       await _writeGearDiff(dive.id, desiredGear, now);
 ```
 
-Check that `now` is in scope at that point of `updateDive` (it is the timestamp the rest of the method uses).
+Check that `now` is in scope at that point of `updateDive` (it is the timestamp the rest of the method uses). On the read side, keep the existing item maps and attribute hydration untouched and collect a parallel provenance list per dive; join the two with `gearLinksFor` at the `Dive(` construction. That keeps the diff small and reuses the helper from Task 1.
 
 - [ ] **Step 5: Expand in the bulk operations**
 
