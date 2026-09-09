@@ -63,8 +63,13 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
   /// value with a stale one.
   int _loadSeq = 0;
 
-  /// Completes when the stored value has been read. Exposed for tests; the UI
-  /// does not await it because the defaults are already a valid state.
+  /// Completes when the stored value has first been read.
+  ///
+  /// Screens do not await it: they start on the defaults and rebuild when the
+  /// stored value lands, which is invisible. A one-shot consumer must await
+  /// it, because for them "not loaded yet" is indistinguishable from "the
+  /// diver chose the defaults" and the difference is baked into the output.
+  /// The PDF export path does exactly that.
   late final Future<void> loaded;
 
   @override

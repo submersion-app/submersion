@@ -264,4 +264,39 @@ void main() {
       EquipmentTypeOrder.dressingOrder,
     );
   });
+
+  test(
+    'a read before the first load completes gives only the defaults',
+    () async {
+      // This is why the PDF export path awaits `loaded`. A one-shot consumer
+      // that reads synchronously bakes the defaults into its output over
+      // whatever the diver actually saved, and unlike a screen it never
+      // rebuilds to correct itself.
+      final fake = _OrderedFakeRepository();
+      final container = ProviderContainer(
+        overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+      );
+      addTearDown(container.dispose);
+
+      expect(
+        container.read(equipmentArrangementProvider),
+        EquipmentArrangement.defaults,
+      );
+      expect(fake.pending, hasLength(1));
+
+      fake.pending[0].complete(
+        EquipmentArrangement.defaults.copyWith(
+          typeOrder: EquipmentTypeOrder.dressingOrder,
+        ),
+      );
+      await container
+          .read(equipmentArrangementNotifierProvider.notifier)
+          .loaded;
+
+      expect(
+        container.read(equipmentArrangementProvider).typeOrder,
+        EquipmentTypeOrder.dressingOrder,
+      );
+    },
+  );
 }
