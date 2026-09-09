@@ -35,7 +35,7 @@ void main() {
   );
 
   final template = PdfTemplateDetailed();
-  final units = UnitFormatter(const AppSettings());
+  const units = UnitFormatter(AppSettings());
 
   Dive diveWith(List<EquipmentItem> gear) => Dive(
     id: 'dive-1',

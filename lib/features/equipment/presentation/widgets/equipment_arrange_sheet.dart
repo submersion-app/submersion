@@ -86,20 +86,25 @@ class EquipmentArrangeSheet extends ConsumerWidget {
               ),
               const Divider(height: 1),
               _SectionLabel(l10n.equipment_arrange_typeOrderLabel),
-              for (final order in EquipmentTypeOrder.values)
-                RadioListTile<EquipmentTypeOrder>(
-                  value: order,
-                  groupValue: arrangement.typeOrder,
-                  title: Text(order.localizedName(l10n)),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    _apply(
-                      context,
-                      ref,
-                      arrangement.copyWith(typeOrder: value),
-                    );
-                  },
+              // RadioGroup rather than per-tile groupValue/onChanged, which
+              // Flutter deprecated after 3.32.
+              RadioGroup<EquipmentTypeOrder>(
+                groupValue: arrangement.typeOrder,
+                onChanged: (value) {
+                  if (value == null) return;
+                  _apply(context, ref, arrangement.copyWith(typeOrder: value));
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final order in EquipmentTypeOrder.values)
+                      RadioListTile<EquipmentTypeOrder>(
+                        value: order,
+                        title: Text(order.localizedName(l10n)),
+                      ),
+                  ],
                 ),
+              ),
               const Divider(height: 1),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -135,21 +140,28 @@ class EquipmentArrangeSheet extends ConsumerWidget {
                   ],
                 ),
               ),
-              for (final field in EquipmentItemSortField.values)
-                RadioListTile<EquipmentItemSortField>(
-                  value: field,
-                  groupValue: arrangement.itemSortField,
-                  secondary: Icon(field.icon),
-                  title: Text(field.localizedName(l10n)),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    _apply(
-                      context,
-                      ref,
-                      arrangement.copyWith(itemSortField: value),
-                    );
-                  },
+              RadioGroup<EquipmentItemSortField>(
+                groupValue: arrangement.itemSortField,
+                onChanged: (value) {
+                  if (value == null) return;
+                  _apply(
+                    context,
+                    ref,
+                    arrangement.copyWith(itemSortField: value),
+                  );
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final field in EquipmentItemSortField.values)
+                      RadioListTile<EquipmentItemSortField>(
+                        value: field,
+                        secondary: Icon(field.icon),
+                        title: Text(field.localizedName(l10n)),
+                      ),
+                  ],
                 ),
+              ),
               const Divider(height: 1),
               Align(
                 alignment: AlignmentDirectional.centerEnd,

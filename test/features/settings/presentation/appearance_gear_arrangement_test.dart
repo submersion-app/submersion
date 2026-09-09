@@ -46,10 +46,10 @@ void main() {
           ...base,
           appSettingsRepositoryProvider.overrideWithValue(fake),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const AppearancePage(),
+          home: AppearancePage(),
         ),
       ),
     );
