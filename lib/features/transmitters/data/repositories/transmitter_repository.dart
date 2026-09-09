@@ -6,6 +6,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 
@@ -73,10 +74,18 @@ class TransmitterRepository {
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
+    await _rescanAffectedDives(normalized);
     return normalized.copyWith(
       createdAt: DateTime.fromMillisecondsSinceEpoch(now),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
     );
+  }
+
+  /// An unknown-transmitter finding clears itself on the next scan of its
+  /// dive, so queue one for the dives that carry this entry's key.
+  Future<void> _rescanAffectedDives(Transmitter t) async {
+    final affected = (await _tanksForEntry(t)).map((r) => r.diveId).toSet();
+    if (affected.isNotEmpty) scheduleQualityScan(affected);
   }
 
   Future<void> update(Transmitter t) async {
@@ -92,6 +101,7 @@ class TransmitterRepository {
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
+    await _rescanAffectedDives(normalized);
   }
 
   Future<void> delete(String id) async {

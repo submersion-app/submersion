@@ -148,6 +148,12 @@ class GoToDiveRepair extends QualityRepairAction {
   final String diveId;
 }
 
+/// Navigate to the transmitter editor prefilled with [serial].
+class AssignTransmitterRepair extends QualityRepairAction {
+  const AssignTransmitterRepair(this.serial);
+  final String serial;
+}
+
 double? _num(Map<String, Object?> p, String k) => (p[k] as num?)?.toDouble();
 
 /// Pure mapping from a finding to its offered repairs (spec's repair table).
@@ -302,6 +308,13 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
 
     case 'gas_mod':
       return [GoToDiveRepair(diveId)];
+
+    case 'unknown_transmitter':
+      final serial = p['serial'] as String?;
+      return [
+        if (serial != null) AssignTransmitterRepair(serial),
+        GoToDiveRepair(diveId),
+      ];
 
     case 'tank_assignment':
       final a = p['tankIdA'] as String?;

@@ -305,6 +305,15 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
         );
       case CompareSourcesRepair(:final diveId):
         if (context.mounted) context.push('/dives/$diveId');
+      case AssignTransmitterRepair(:final serial):
+        if (context.mounted) {
+          context.push(
+            Uri(
+              path: '/transmitters/new',
+              queryParameters: {'serial': serial},
+            ).toString(),
+          );
+        }
       case GoToDiveRepair(:final diveId):
         if (context.mounted) context.push('/dives/$diveId');
     }
