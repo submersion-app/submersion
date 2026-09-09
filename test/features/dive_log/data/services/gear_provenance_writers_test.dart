@@ -72,10 +72,9 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   Future<Map<String, DiveEquipmentData>> rowsOf(String diveId) async => {
-    for (final r
-        in await (db.select(
-          db.diveEquipment,
-        )..where((t) => t.diveId.equals(diveId))).get())
+    for (final r in await (db.select(
+      db.diveEquipment,
+    )..where((t) => t.diveId.equals(diveId))).get())
       r.equipmentId: r,
   };
 
