@@ -78,6 +78,7 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     final cycleText = context.l10n.equipment_components_cycleError;
+    var popped = false;
     try {
       for (final id in _selected) {
         await repository.addComponent(
@@ -85,10 +86,16 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
           componentId: id,
         );
       }
+      popped = true;
       navigator.pop();
     } on EquipmentComponentCycleException {
       messenger.showSnackBar(SnackBar(content: Text(cycleText)));
-      if (mounted) setState(() => _saving = false);
+    } catch (e) {
+      // Any other failure (a closed database, a constraint) must not leave
+      // the sheet disabled with no way out.
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (!popped && mounted) setState(() => _saving = false);
     }
   }
 
@@ -120,11 +127,18 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
           ),
         ),
         Expanded(
-          child: activeAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('$e')),
-            data: (active) {
-              final index = indexAsync.value ?? ComponentsIndex.empty;
+          child: Builder(
+            builder: (context) {
+              // Wait for the index as well as the gear: with an empty index
+              // the sheet would briefly offer the item itself and its
+              // relatives, which the repository would then refuse.
+              if (!activeAsync.hasValue || !indexAsync.hasValue) {
+                final error = activeAsync.error ?? indexAsync.error;
+                if (error != null) return Center(child: Text('$error'));
+                return const Center(child: CircularProgressIndicator());
+              }
+              final active = activeAsync.requireValue;
+              final index = indexAsync.requireValue;
               final candidates = _candidates(active, index);
               if (candidates.isEmpty) {
                 return Center(

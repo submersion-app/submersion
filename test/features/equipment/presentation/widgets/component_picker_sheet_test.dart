@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -13,6 +15,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 class _FakeComponentRepository extends EquipmentComponentRepository {
   final added = <(String, String)>[];
   bool throwCycle = false;
+  Object? throwOther;
 
   @override
   Future<EquipmentComponent> addComponent({
@@ -23,6 +26,7 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
     if (throwCycle) {
       throw EquipmentComponentCycleException(parentId, componentId);
     }
+    if (throwOther != null) throw throwOther!;
     added.add((parentId, componentId));
     return EquipmentComponent(
       id: 'new-$componentId',
@@ -58,12 +62,15 @@ void main() {
   // (self), first (already a part), and offer hose and fins.
   final edges = [edge('kit', 'reg'), edge('reg', 'first')];
 
-  Widget build(_FakeComponentRepository repo) => ProviderScope(
+  Widget build(
+    _FakeComponentRepository repo, {
+    Future<ComponentsIndex>? index,
+  }) => ProviderScope(
     overrides: [
       equipmentComponentRepositoryProvider.overrideWithValue(repo),
       activeEquipmentProvider.overrideWith((ref) async => active),
       equipmentComponentsIndexProvider.overrideWith(
-        (ref) async => ComponentsIndex.fromRows(edges),
+        (ref) => index ?? Future.value(ComponentsIndex.fromRows(edges)),
       ),
     ],
     child: MaterialApp(
@@ -104,6 +111,40 @@ void main() {
     await tester.tap(find.text('Add 2'));
     await tester.pumpAndSettle();
     expect(repo.added, unorderedEquals([('reg', 'hose'), ('reg', 'fins')]));
+  });
+
+  testWidgets('offers nothing while the index is still loading', (
+    tester,
+  ) async {
+    // An empty stand-in index would list the parent and its relatives as
+    // candidates until the real one arrived.
+    final pending = Completer<ComponentsIndex>();
+    await tester.pumpWidget(
+      build(_FakeComponentRepository(), index: pending.future),
+    );
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(CheckboxListTile), findsNothing);
+    pending.complete(ComponentsIndex.fromRows(edges));
+    await tester.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('Name hose'), findsOneWidget);
+    expect(find.text('Name reg'), findsNothing);
+  });
+
+  testWidgets('a non-cycle failure reports itself and re-enables the sheet', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository()..throwOther = StateError('boom');
+    await tester.pumpWidget(build(repo));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Add 1'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('boom'), findsOneWidget);
+    final button = tester.widget<FilledButton>(find.byType(FilledButton));
+    expect(button.onPressed, isNotNull);
   });
 
   testWidgets('a cycle refused by the repository shows the explanation', (
