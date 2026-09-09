@@ -44,17 +44,26 @@ List<EquipmentGroup> arrangeEquipment(
 
   int compareTypes(EquipmentType a, EquipmentType b) {
     if (a == b) return 0;
+    final int ordered;
     final table = equipmentTypeRankTable(arrangement.typeOrder);
     if (table != null) {
-      return equipmentTypeRank(a, table).compareTo(equipmentTypeRank(b, table));
+      ordered = equipmentTypeRank(
+        a,
+        table,
+      ).compareTo(equipmentTypeRank(b, table));
+    } else {
+      // Alphabetical, on what the reader actually sees.
+      final byLabel = typeLabel(
+        a,
+      ).toLowerCase().compareTo(typeLabel(b).toLowerCase());
+      // Fall back to the stable enum name so two types sharing a translation
+      // still order consistently.
+      ordered = byLabel != 0 ? byLabel : a.name.compareTo(b.name);
     }
-    // Alphabetical, on what the reader actually sees.
-    final byLabel = typeLabel(
-      a,
-    ).toLowerCase().compareTo(typeLabel(b).toLowerCase());
-    // Fall back to the stable enum name so two types sharing a translation
-    // still order consistently.
-    return byLabel != 0 ? byLabel : a.name.compareTo(b.name);
+    // "Toe to head" (#1486) and "descending by Head to Toe" (#1576). Applied
+    // to the type axis only, so reversing the headings leaves the gear inside
+    // each heading in the order the item sort asked for.
+    return arrangement.typeOrderDescending ? -ordered : ordered;
   }
 
   int compareItems(EquipmentItem a, EquipmentItem b) {

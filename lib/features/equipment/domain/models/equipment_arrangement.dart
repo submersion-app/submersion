@@ -19,6 +19,13 @@ import 'package:submersion/features/equipment/domain/constants/equipment_type_or
 @immutable
 class EquipmentArrangement {
   final EquipmentTypeOrder typeOrder;
+
+  /// Reverses [typeOrder], which is how #1486's "toe to head" and #1576's
+  /// "ascending and descending by Head to Toe" are expressed. Independent of
+  /// [itemSortDirection] so reversing the headings does not also reverse the
+  /// gear inside them.
+  final bool typeOrderDescending;
+
   final bool groupByType;
   final EquipmentItemSortField itemSortField;
 
@@ -31,6 +38,7 @@ class EquipmentArrangement {
 
   const EquipmentArrangement({
     required this.typeOrder,
+    this.typeOrderDescending = false,
     required this.groupByType,
     required this.itemSortField,
     required this.itemSortDirection,
@@ -43,6 +51,7 @@ class EquipmentArrangement {
   /// correct in every locale without a curated table.
   static const EquipmentArrangement defaults = EquipmentArrangement(
     typeOrder: EquipmentTypeOrder.alphabetical,
+    typeOrderDescending: false,
     groupByType: true,
     itemSortField: EquipmentItemSortField.name,
     itemSortDirection: SortDirection.ascending,
@@ -50,12 +59,14 @@ class EquipmentArrangement {
 
   EquipmentArrangement copyWith({
     EquipmentTypeOrder? typeOrder,
+    bool? typeOrderDescending,
     bool? groupByType,
     EquipmentItemSortField? itemSortField,
     SortDirection? itemSortDirection,
   }) {
     return EquipmentArrangement(
       typeOrder: typeOrder ?? this.typeOrder,
+      typeOrderDescending: typeOrderDescending ?? this.typeOrderDescending,
       groupByType: groupByType ?? this.groupByType,
       itemSortField: itemSortField ?? this.itemSortField,
       itemSortDirection: itemSortDirection ?? this.itemSortDirection,
@@ -64,6 +75,7 @@ class EquipmentArrangement {
 
   Map<String, dynamic> toJson() => {
     'typeOrder': typeOrder.name,
+    'typeOrderDescending': typeOrderDescending,
     'groupByType': groupByType,
     'itemSortField': itemSortField.name,
     'itemSortDirection': itemSortDirection.name,
@@ -84,12 +96,16 @@ class EquipmentArrangement {
     }
 
     final rawGroup = json['groupByType'];
+    final rawTypeDesc = json['typeOrderDescending'];
     return EquipmentArrangement(
       typeOrder: decode(
         'typeOrder',
         EquipmentTypeOrder.values,
         defaults.typeOrder,
       ),
+      typeOrderDescending: rawTypeDesc is bool
+          ? rawTypeDesc
+          : defaults.typeOrderDescending,
       groupByType: rawGroup is bool ? rawGroup : defaults.groupByType,
       itemSortField: decode(
         'itemSortField',
@@ -109,16 +125,23 @@ class EquipmentArrangement {
       identical(this, other) ||
       other is EquipmentArrangement &&
           other.typeOrder == typeOrder &&
+          other.typeOrderDescending == typeOrderDescending &&
           other.groupByType == groupByType &&
           other.itemSortField == itemSortField &&
           other.itemSortDirection == itemSortDirection;
 
   @override
-  int get hashCode =>
-      Object.hash(typeOrder, groupByType, itemSortField, itemSortDirection);
+  int get hashCode => Object.hash(
+    typeOrder,
+    typeOrderDescending,
+    groupByType,
+    itemSortField,
+    itemSortDirection,
+  );
 
   @override
   String toString() =>
-      'EquipmentArrangement(typeOrder: $typeOrder, groupByType: $groupByType, '
+      'EquipmentArrangement(typeOrder: $typeOrder, '
+      'typeOrderDescending: $typeOrderDescending, groupByType: $groupByType, '
       'itemSortField: $itemSortField, itemSortDirection: $itemSortDirection)';
 }

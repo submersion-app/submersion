@@ -42,6 +42,9 @@ class EquipmentArrangeSheet extends ConsumerWidget {
     // arrangeEquipment forces headers off in that case. Disable the switch
     // rather than let the diver flip a control that does nothing.
     final canGroup = arrangement.typeOrder != EquipmentTypeOrder.none;
+    // Same condition, named for the direction toggle: with no type ordering
+    // there is nothing to reverse.
+    final canGroupOrOrder = canGroup;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -85,7 +88,47 @@ class EquipmentArrangeSheet extends ConsumerWidget {
                 subtitle: Text(l10n.equipment_arrange_groupByTypeSubtitle),
               ),
               const Divider(height: 1),
-              _SectionLabel(l10n.equipment_arrange_typeOrderLabel),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.equipment_arrange_typeOrderLabel,
+                        style: textTheme.labelLarge,
+                      ),
+                    ),
+                    // #1486 asks for "toe to head" and #1576 for descending
+                    // by head to toe, so the type axis carries its own
+                    // direction, independent of the item sort below.
+                    SegmentedButton<bool>(
+                      segments: [
+                        ButtonSegment(
+                          value: false,
+                          icon: Icon(SortDirection.ascending.icon, size: 18),
+                          tooltip: SortDirection.ascending.localizedName(l10n),
+                        ),
+                        ButtonSegment(
+                          value: true,
+                          icon: Icon(SortDirection.descending.icon, size: 18),
+                          tooltip: SortDirection.descending.localizedName(l10n),
+                        ),
+                      ],
+                      selected: {arrangement.typeOrderDescending},
+                      showSelectedIcon: false,
+                      onSelectionChanged: canGroupOrOrder
+                          ? (selected) => _apply(
+                              context,
+                              ref,
+                              arrangement.copyWith(
+                                typeOrderDescending: selected.first,
+                              ),
+                            )
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
               // RadioGroup rather than per-tile groupValue/onChanged, which
               // Flutter deprecated after 3.32.
               RadioGroup<EquipmentTypeOrder>(
@@ -200,19 +243,5 @@ class EquipmentArrangeSheet extends ConsumerWidget {
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(message)));
     }
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.label);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: Text(label, style: Theme.of(context).textTheme.labelLarge),
-    );
   }
 }

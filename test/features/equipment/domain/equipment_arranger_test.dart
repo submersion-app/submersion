@@ -229,6 +229,50 @@ void main() {
     expect(first, ['a', 'z']);
   });
 
+  test('the type order can be reversed (toe to head, #1486)', () {
+    final groups = arrangeEquipment(
+      gear,
+      EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.headToToe,
+        typeOrderDescending: true,
+      ),
+      typeLabel: english,
+    );
+
+    // Head to toe is tank, regulator, bcd; reversed it is bcd first.
+    expect(groups.map((g) => g.type).toList(), [
+      EquipmentType.bcd,
+      EquipmentType.regulator,
+      EquipmentType.tank,
+    ]);
+  });
+
+  test('reversing the type order leaves the item order alone', () {
+    final groups = arrangeEquipment(
+      gear,
+      EquipmentArrangement.defaults.copyWith(typeOrderDescending: true),
+      typeLabel: english,
+    );
+
+    // Types reversed (Tank, Regulator, BCD) but names still ascend inside.
+    expect(groups.first.type, EquipmentType.tank);
+    expect(groups[1].items.map((i) => i.name).toList(), ['Apeks', 'Aqualung']);
+  });
+
+  test('reverse alphabetical type order', () {
+    final groups = arrangeEquipment(
+      gear,
+      EquipmentArrangement.defaults.copyWith(typeOrderDescending: true),
+      typeLabel: english,
+    );
+
+    expect(groups.map((g) => g.type).toList(), [
+      EquipmentType.tank,
+      EquipmentType.regulator,
+      EquipmentType.bcd,
+    ]);
+  });
+
   test('does not mutate the caller list', () {
     final input = List<EquipmentItem>.from(gear);
 

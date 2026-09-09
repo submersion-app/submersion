@@ -10,11 +10,13 @@ void main() {
     expect(d.typeOrder, EquipmentTypeOrder.alphabetical);
     expect(d.itemSortField, EquipmentItemSortField.name);
     expect(d.itemSortDirection, SortDirection.ascending);
+    expect(d.typeOrderDescending, isFalse);
   });
 
   test('round-trips through JSON', () {
     const original = EquipmentArrangement(
       typeOrder: EquipmentTypeOrder.dressingOrder,
+      typeOrderDescending: true,
       groupByType: false,
       itemSortField: EquipmentItemSortField.purchaseDate,
       itemSortDirection: SortDirection.descending,
@@ -37,6 +39,14 @@ void main() {
       decoded.itemSortDirection,
       EquipmentArrangement.defaults.itemSortDirection,
     );
+  });
+
+  test('a non-bool typeOrderDescending degrades to the default', () {
+    final decoded = EquipmentArrangement.fromJson({
+      'typeOrderDescending': 'backwards',
+    });
+
+    expect(decoded.typeOrderDescending, isFalse);
   });
 
   test('a partial or wrongly typed blob degrades to defaults', () {

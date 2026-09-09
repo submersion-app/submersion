@@ -73,6 +73,10 @@ void main() {
     final fake = _FakeSettingsRepository();
     await pumpSheet(tester, fake);
 
+    // The sheet now carries a direction toggle on the type axis too, so the
+    // item-sort options sit below the fold on a short viewport.
+    await tester.ensureVisible(find.text('Purchase date'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Purchase date'));
     await tester.pumpAndSettle();
 
