@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -658,6 +659,39 @@ void main() {
         sourceValueNumber: frozenAir,
       ),
     ];
+
+    testWidgets('the readout uses the diver separator under de (#1682)', (
+      tester,
+    ) async {
+      // The field itself is already locale-aware (seeded through
+      // formatDecimalForInput, read through parseUserDecimal), so an ASCII
+      // readout contradicts the comma the diver just typed into it. Both
+      // Intl.defaultLocale and the widget locale are set: the formatters
+      // resolve the process global, so pinning only the widget locale gives a
+      // test that passes against unfixed code.
+      final previousLocale = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previousLocale);
+      Intl.defaultLocale = 'de';
+
+      await pumpRunner(
+        tester,
+        s: session(strict: false),
+        items: pair(),
+        locale: const Locale('de'),
+      );
+
+      await tester.tap(find.text('Item 1'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('In Luft: 10,1'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).first, '48,0');
+      await tester.pump();
+
+      expect(find.textContaining('Erwartet 48,3 mV'), findsOneWidget);
+      expect(find.textContaining('10.1'), findsNothing);
+      expect(find.textContaining('48.3'), findsNothing);
+    });
 
     testWidgets('the dialog shows the air reading and a live readout', (
       tester,

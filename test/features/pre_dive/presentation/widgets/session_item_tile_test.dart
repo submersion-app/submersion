@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -13,6 +14,16 @@ import '../../../../helpers/test_app.dart';
 
 void main() {
   final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+
+  // The tile formats its numbers through number_input.dart, which resolves
+  // Intl.defaultLocale: a mutable process global the app sets from the diver's
+  // language at lib/app.dart. Setting only the MaterialApp locale leaves the
+  // formatter on intl's implicit fallback, so a locale test that skipped this
+  // would pass against unfixed code. Restored per test so nothing leaks.
+  late String? previousLocale;
+
+  setUp(() => previousLocale = Intl.defaultLocale);
+  tearDown(() => Intl.defaultLocale = previousLocale);
 
   PreDiveSession session({bool locked = false, bool strict = false}) =>
       PreDiveSession(
@@ -80,10 +91,11 @@ void main() {
     VoidCallback? onAddNote,
     VoidCallback? onReset,
     List<dynamic> overrides = const [],
+    Locale locale = const Locale('en'),
   }) async {
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: overrides,
         child: SessionItemTile(
           session: s,
@@ -596,6 +608,31 @@ void main() {
       expect(find.textContaining('Air 10.1 mV'), findsOneWidget);
       expect(find.textContaining('expected 48.3 mV'), findsOneWidget);
       expect(find.textContaining('linearity 99%'), findsOneWidget);
+    });
+
+    testWidgets('renders every number in the diver separator under de (#1682)', (
+      tester,
+    ) async {
+      // The value line and the working line are formatted independently, so
+      // both are pinned here: a diver who types "48,0" must not read "48.0".
+      Intl.defaultLocale = 'de';
+
+      await pumpTile(
+        tester,
+        s: session(),
+        it: linearity(),
+        locale: const Locale('de'),
+      );
+
+      expect(find.textContaining('Cell 1: 48,0 mV'), findsOneWidget);
+      expect(find.textContaining('Luft 10,1 mV'), findsOneWidget);
+      expect(find.textContaining('erwartet 48,3 mV'), findsOneWidget);
+
+      // toStringAsFixed and raw interpolation both emit ASCII '.', which under
+      // de is the grouping separator and reads as a thousand times too large.
+      expect(find.textContaining('48.0'), findsNothing);
+      expect(find.textContaining('10.1'), findsNothing);
+      expect(find.textContaining('48.3'), findsNothing);
     });
 
     testWidgets('a low reading is styled as out of range', (tester) async {

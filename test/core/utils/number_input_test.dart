@@ -208,6 +208,67 @@ void main() {
     });
   });
 
+  group('formatDecimalForDisplay', () {
+    test('uses the locale decimal separator', () {
+      Intl.defaultLocale = 'fr';
+      expect(formatDecimalForDisplay(12.5), '12,5');
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(12.5), '12.5');
+    });
+
+    test('keeps a trailing zero the input twin would drop (#1682)', () {
+      // The display twin renders a value the diver is reading, not editing, so
+      // "48.0 mV" stays "48,0 mV" under de rather than collapsing to "48 mV".
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(48), '48.0');
+      Intl.defaultLocale = 'de';
+      expect(formatDecimalForDisplay(48), '48,0');
+    });
+
+    test('omits grouping separators, matching the input twin', () {
+      Intl.defaultLocale = 'de';
+      expect(formatDecimalForDisplay(1250.5), '1250,5');
+    });
+
+    test('preserves the precision of the value', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(12.345678), '12.345678');
+      expect(formatDecimalForDisplay(12.05), '12.05');
+    });
+
+    test('localises the minus sign', () {
+      Intl.defaultLocale = 'fr';
+      expect(formatDecimalForDisplay(-12.5), '-12,5');
+    });
+
+    test('returns empty for non-finite input', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(double.nan), '');
+      expect(formatDecimalForDisplay(double.infinity), '');
+    });
+  });
+
+  group('formatFixedForDisplay', () {
+    test('keeps exactly the requested decimals, trailing zeros included', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatFixedForDisplay(2, 1), '2.0');
+      expect(formatFixedForDisplay(48.28, 1), '48.3');
+      expect(formatFixedForDisplay(1250, 0), '1250');
+    });
+
+    test('uses the locale decimal separator (#1682)', () {
+      Intl.defaultLocale = 'de';
+      expect(formatFixedForDisplay(48.28, 1), '48,3');
+      Intl.defaultLocale = 'fr';
+      expect(formatFixedForDisplay(2, 1), '2,0');
+    });
+
+    test('returns empty for non-finite input', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatFixedForDisplay(double.nan, 1), '');
+    });
+  });
+
   group('locale cache', () {
     test('a locale change takes effect immediately', () {
       // The helpers cache their NumberFormat, and Intl.defaultLocale is a

@@ -118,18 +118,38 @@ int? parseUserInt(String text) {
 /// 12.345678 to 12.346 makes it start emitting noise instead (12.05 becomes
 /// "12.050000000000001"). Callers wanting fewer decimals round before calling.
 String formatDecimalForInput(double value) {
+  final text = formatDecimalForDisplay(value);
+  // "1250,0" reads as a half-finished edit; the field wants "1250". Trimmed
+  // after localisation, so the separator being looked for is the diver's.
+  final decimalSep = _localeFormat().symbols.DECIMAL_SEP;
+  return text.endsWith('${decimalSep}0')
+      ? text.substring(0, text.length - decimalSep.length - 1)
+      : text;
+}
+
+/// [value] rendered for reading, in the active locale's decimal convention and
+/// without grouping separators, keeping the value's own precision.
+///
+/// The display twin of [formatDecimalForInput], and the two differ in exactly
+/// one place: a field being edited drops a trailing ",0" as a half-finished
+/// edit, while a rendered line keeps it, so a cell reading of 48.0 mV stays
+/// "48,0 mV" under de instead of collapsing to "48 mV" (#1682).
+///
+/// Raw interpolation is the trap this replaces. Interpolating a double goes
+/// through [double.toString], which implements the Dart literal grammar and so
+/// always emits '.'; under de that is the GROUPING separator, so the diver
+/// reads a number a thousand times too large.
+String formatDecimalForDisplay(double value) {
   if (!value.isFinite) return '';
-  var text = value.toString();
+  final text = value.toString();
   // Very large or very small magnitudes stringify in exponent notation, which
-  // no diver can meaningfully edit and no parser here reads back.
+  // no diver can meaningfully read and no parser here reads back.
   if (text.contains('e') || text.contains('E')) {
     final format = NumberFormat.decimalPattern()
       ..turnOffGrouping()
       ..maximumFractionDigits = 15;
     return format.format(value);
   }
-  // "1250.0" reads as a half-finished edit; the field wants "1250".
-  if (text.endsWith('.0')) text = text.substring(0, text.length - 2);
   return _localiseSeparators(text);
 }
 
@@ -153,7 +173,21 @@ String formatRoundedForInput(double value, int fractionDigits) {
 /// log seeds at a pinned precision and its displayed "2.0" is load-bearing,
 /// while every other field drops the zero. Keeping both here stops per-widget
 /// copies from drifting apart.
-String formatFixedForInput(double value, int fractionDigits) {
+String formatFixedForInput(double value, int fractionDigits) =>
+    formatFixedForDisplay(value, fractionDigits);
+
+/// [value] rendered for reading with exactly [fractionDigits] decimals, keeping
+/// trailing zeros (2 displays as "2,0" at one digit under de).
+///
+/// Seeding and display want identical output here, so [formatFixedForInput] is
+/// an alias rather than a copy. It keeps its own name because the call sites
+/// read differently: one seeds a controller, the other builds a label.
+///
+/// Use this wherever [num.toStringAsFixed] was reached for. That method
+/// implements the Dart literal grammar and always emits '.', which is what
+/// left the pre-dive linearity line ASCII-only under every comma-decimal
+/// locale (#1682).
+String formatFixedForDisplay(double value, int fractionDigits) {
   if (!value.isFinite) return '';
   return _localiseSeparators(value.toStringAsFixed(fractionDigits));
 }
