@@ -5975,6 +5975,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'Dieses Jahr';
 
   @override
+  String get diveLog_filter_searchComputersHint =>
+      'Tippen, um Computer zu suchen';
+
+  @override
+  String get diveLog_filter_searchSitesHint =>
+      'Tippen, um Tauchplätze zu suchen';
+
+  @override
+  String get diveLog_filter_searchTypesHint =>
+      'Tippen, um Tauchgangstypen zu suchen';
+
+  @override
+  String get diveLog_filter_searchCentersHint =>
+      'Tippen, um Tauchbasen zu suchen';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Tippen, um Felder zu suchen';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Tippen, um Reisen zu suchen';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Tauchpartner';
 
   @override
@@ -37215,6 +37237,87 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automatisch)';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title => 'Nicht erkannte Sicherungen';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Diese Dateien liegen in Ihrem Sicherungsordner, stehen aber nicht im Sicherungsverlauf dieses Geräts. Hier kann nur eine von diesem Gerät geschriebene Datei gelöscht werden: alles andere könnte die einzige Kopie eines anderen Geräts sein.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Keine nicht erkannten Sicherungsdateien.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'Der Sicherungsordner konnte nicht gelesen werden.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Dieses Gerät kann den gewählten Sicherungsordner nicht auflisten, daher können nicht erkannte Dateien nicht gefunden werden.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Anderes Gerät';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'Unbekanntes Gerät';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien löschen ($size)',
+      one: '1 Datei löschen ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Diese Sicherungsdateien löschen?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Sicherungsdateien werden endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.',
+      one:
+          '1 Sicherungsdatei wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Die ausgewählten Dateien konnten nicht gelöscht werden.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size freigegeben';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Dateien fehlen im Sicherungsverlauf',
+      one: '1 Datei fehlt im Sicherungsverlauf',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Prüfen';
 
   @override
   String get enum_equipmentTypeOrder_none => 'Nicht nach Typ ordnen';

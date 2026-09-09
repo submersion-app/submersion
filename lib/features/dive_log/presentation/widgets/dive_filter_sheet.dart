@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
@@ -13,8 +14,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 
 /// Filter sheet for dive list
 class DiveFilterSheet extends ConsumerStatefulWidget {
@@ -148,6 +152,36 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
   /// invalid input clears the bound. A blanket replaceAll(',', '.') would
   /// misread the en_US thousands separator, turning "1,250" into 1.25 (#1091).
   double? _parseThicknessBound(String value) => parseUserDecimal(value);
+
+  /// The selected computer, or null when [computers] no longer contains it.
+  String? _computerIdWithin(List<DiveComputer> computers) =>
+      computers.any((c) => c.id == _computerId) ? _computerId : null;
+
+  /// The computer filter to apply, dropping a computer deleted since the
+  /// filter was saved so that it resolves to All computers.
+  ///
+  /// Resolved here rather than while the Dive Computer section builds. That
+  /// section reconciles only on the branch that renders a populated list, so
+  /// deleting the last computer left the stale id in place and the sheet
+  /// re-applied a filter that matches no dive.
+  ///
+  /// A list that has not loaded yet says nothing about whether the computer
+  /// still exists, so the id is kept: a slow load must not quietly clear the
+  /// diver's filter.
+  ///
+  /// Read through this State's own [ref] rather than `widget.ref`. The two
+  /// divide by who owns the provider: `widget.ref` is passed in paired with
+  /// `widget.filterProvider`, so the filter write lands in the caller's
+  /// container and outlives the sheet's pop, while every app-wide provider is
+  /// read through the sheet's own ref, this one and the section's watch of the
+  /// same provider included. Were the two ever to resolve different
+  /// containers, reading the computer list through the caller's ref is what
+  /// would diverge: the applied id would be reconciled against a different
+  /// list from the one the diver was just shown.
+  String? _resolveComputerId() {
+    final computers = ref.read(allDiveComputersProvider).valueOrNull;
+    return computers == null ? _computerId : _computerIdWithin(computers);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -421,29 +455,24 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                               context.l10n.diveLog_listPage_errorLoading(e),
                             ),
                             data: (diveTypes) =>
-                                DropdownButtonFormField<String?>(
-                                  initialValue: _diveTypeId,
-                                  decoration: InputDecoration(
-                                    hintText:
-                                        context.l10n.diveLog_filter_allTypes,
-                                    prefixIcon: const Icon(Icons.category),
-                                  ),
-                                  items: [
-                                    DropdownMenuItem(
-                                      value: null,
-                                      child: Text(
-                                        context.l10n.diveLog_filter_allTypes,
-                                      ),
-                                    ),
-                                    ...diveTypes.map((type) {
-                                      return DropdownMenuItem(
-                                        value: type.id,
-                                        child: Text(
-                                          type.localizedName(context.l10n),
+                                SearchableFilterDropdown<String>(
+                                  value: _diveTypeId,
+                                  allOptionLabel:
+                                      context.l10n.diveLog_filter_allTypes,
+                                  searchHintText: context
+                                      .l10n
+                                      .diveLog_filter_searchTypesHint,
+                                  icon: Icons.category,
+                                  options: diveTypes
+                                      .map(
+                                        (type) => FilterDropdownOption(
+                                          value: type.id,
+                                          label: type.localizedName(
+                                            context.l10n,
+                                          ),
                                         ),
-                                      );
-                                    }),
-                                  ],
+                                      )
+                                      .toList(),
                                   onChanged: (value) {
                                     setState(() => _diveTypeId = value);
                                   },
@@ -460,24 +489,29 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       ),
                       const SizedBox(height: 8),
                       sites.when(
-                        data: (siteList) => DropdownButtonFormField<String?>(
-                          initialValue: _siteId,
-                          decoration: InputDecoration(
-                            hintText: context.l10n.diveLog_filter_allSites,
-                            prefixIcon: const Icon(Icons.location_on),
-                          ),
-                          items: [
-                            DropdownMenuItem(
-                              value: null,
-                              child: Text(context.l10n.diveLog_filter_allSites),
-                            ),
-                            ...siteList.map((site) {
-                              return DropdownMenuItem(
-                                value: site.id,
-                                child: Text(site.name),
-                              );
-                            }),
-                          ],
+                        data: (siteList) => SearchableFilterDropdown<String>(
+                          value: _siteId,
+                          allOptionLabel: context.l10n.diveLog_filter_allSites,
+                          searchHintText:
+                              context.l10n.diveLog_filter_searchSitesHint,
+                          icon: Icons.location_on,
+                          options: siteList
+                              .map(
+                                (site) => FilterDropdownOption(
+                                  value: site.id,
+                                  label: site.name,
+                                  // Typing a country or region finds the site
+                                  // as well, matching the fields the site
+                                  // picker in dive edit already searches.
+                                  searchText: buildFilterSearchText([
+                                    site.name,
+                                    site.locationString,
+                                    site.country,
+                                    site.region,
+                                  ]),
+                                ),
+                              )
+                              .toList(),
                           onChanged: (value) {
                             setState(() => _siteId = value);
                           },
@@ -523,36 +557,36 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                       ),
                                 );
                               }
-                              // Reset to null if the saved computer is no longer known
-                              // (deleted since the filter was set).
-                              final validId =
-                                  computers.any((c) => c.id == _computerId)
-                                  ? _computerId
-                                  : null;
-                              if (validId != _computerId) {
-                                _computerId = validId;
-                              }
-                              return DropdownButtonFormField<String?>(
-                                initialValue: validId,
-                                decoration: InputDecoration(
-                                  hintText:
-                                      context.l10n.diveLog_filter_allComputers,
-                                  prefixIcon: const Icon(Icons.watch),
-                                ),
-                                items: [
-                                  DropdownMenuItem(
-                                    value: null,
-                                    child: Text(
-                                      context.l10n.diveLog_filter_allComputers,
-                                    ),
-                                  ),
-                                  ...computers.map(
-                                    (c) => DropdownMenuItem(
-                                      value: c.id,
-                                      child: Text(c.displayName),
-                                    ),
-                                  ),
-                                ],
+                              // Shown as All computers if the saved computer
+                              // is no longer known (deleted since the filter
+                              // was set). Reconciling the field itself is left
+                              // to _applyFilters: assigning to state from
+                              // build is a side effect in build, and this
+                              // branch is not the only one the sheet can take.
+                              final validId = _computerIdWithin(computers);
+                              return SearchableFilterDropdown<String>(
+                                value: validId,
+                                allOptionLabel:
+                                    context.l10n.diveLog_filter_allComputers,
+                                searchHintText: context
+                                    .l10n
+                                    .diveLog_filter_searchComputersHint,
+                                icon: Icons.watch,
+                                options: computers
+                                    .map(
+                                      (c) => FilterDropdownOption(
+                                        value: c.id,
+                                        label: c.displayName,
+                                        // A renamed computer is still findable
+                                        // by the make and model printed on it.
+                                        searchText: buildFilterSearchText([
+                                          c.displayName,
+                                          c.manufacturer,
+                                          c.model,
+                                        ]),
+                                      ),
+                                    )
+                                    .toList(),
                                 onChanged: (value) {
                                   setState(() => _computerId = value);
                                 },
@@ -870,33 +904,13 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                     onSubmitted: (_) => onFieldSubmitted(),
                                   );
                                 },
-                            optionsViewBuilder: (context, onSelected, options) {
-                              return Align(
-                                alignment: Alignment.topLeft,
-                                child: Material(
-                                  elevation: 4.0,
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxHeight: 200,
+                            optionsViewBuilder:
+                                (context, onSelected, options) =>
+                                    AutocompleteOptionsList<String>(
+                                      options: options,
+                                      onSelected: onSelected,
+                                      labelFor: (option) => option,
                                     ),
-                                    child: ListView.builder(
-                                      padding: EdgeInsets.zero,
-                                      shrinkWrap: true,
-                                      itemCount: options.length,
-                                      itemBuilder:
-                                          (BuildContext context, int index) {
-                                            final String option = options
-                                                .elementAt(index);
-                                            return ListTile(
-                                              title: Text(option),
-                                              onTap: () => onSelected(option),
-                                            );
-                                          },
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
                           );
                         },
                       ),
@@ -1231,7 +1245,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
       minRating: _minRating,
       minBottomTimeMinutes: _minDurationMinutes,
       maxBottomTimeMinutes: _maxDurationMinutes,
-      computerId: _computerId,
+      computerId: _resolveComputerId(),
       equipmentAttrKey: (_suitThicknessMin != null || _suitThicknessMax != null)
           ? 'thickness_mm'
           : null,

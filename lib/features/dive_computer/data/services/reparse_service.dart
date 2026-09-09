@@ -491,7 +491,10 @@ class ReparseService {
   }) async {
     final diveDateTimeMs = _parsedEntryTime(parsed).millisecondsSinceEpoch;
     final exitTimeMs = diveDateTimeMs + (parsed.durationSeconds * 1000);
-    final bottomTimeSeconds = _calculateBottomTimeFromSamples(parsed.samples);
+    final bottomTimeSeconds = _calculateBottomTimeFromSamples(
+      parsed.samples,
+      totalDurationSeconds: parsed.durationSeconds,
+    );
     final waterTemp = _minWaterTemp(parsed);
 
     await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
@@ -852,16 +855,18 @@ class ReparseService {
   /// Calculate bottom time from profile samples.
   ///
   /// Delegates to [BottomTimeCalculator], mirroring
-  /// DiveComputerRepositoryImpl._calculateBottomTimeFromPoints: bottom time
+  /// DiveComputerRepository._calculateBottomTimeFromPoints: bottom time
   /// runs from surface departure to the start of the final ascent, so
-  /// multilevel dives count their shallower segments. Returns null if
-  /// insufficient data.
+  /// multilevel dives count their shallower segments, and never exceeds
+  /// [totalDurationSeconds], the computer's own reported runtime. Returns
+  /// null if insufficient data.
   static int? _calculateBottomTimeFromSamples(
-    List<pigeon.ProfileSample> samples,
-  ) {
+    List<pigeon.ProfileSample> samples, {
+    required int totalDurationSeconds,
+  }) {
     return BottomTimeCalculator.secondsFromSamples([
       for (final s in samples) (timestamp: s.timeSeconds, depth: s.depthMeters),
-    ]);
+    ], totalDurationSeconds: totalDurationSeconds);
   }
 
   /// Minimum water temperature for this parse, in Celsius.

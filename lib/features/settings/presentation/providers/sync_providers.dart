@@ -1485,11 +1485,29 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// the anchored identity, so a clone survives everything short of this.
   /// The retired identity's cloud file is removed best-effort: after the id
   /// changes it would otherwise be merged back as a stale "peer" forever.
+  ///
+  /// That removal is guarded, because the retired id's files are only
+  /// redundant while another device still publishes the library. When it is
+  /// the account's sole publisher -- an install that inherited an earlier
+  /// install's id (#1541), or any single-device user whose local library is
+  /// empty or damaged -- those files ARE the library, and deleting them would
+  /// destroy it (#1551). They are kept instead: an orphaned peer log that the
+  /// identity just minted can pull, which costs one redundant merge at worst.
   Future<void> resetSyncState() async {
     final oldDeviceId = await _syncRepository.getDeviceId();
     await _syncService.resetSyncState();
-    await _ref.read(syncInitializerProvider).adoptFreshIdentity();
-    await _syncService.deleteDeviceSyncFile(oldDeviceId);
+    final initializer = _ref.read(syncInitializerProvider);
+    await initializer.adoptFreshIdentity();
+    // The question is about the RETIRED id, which is no longer this device's,
+    // so it is passed explicitly rather than inferred from the current one.
+    final provider = _ref.read(cloudStorageProviderProvider);
+    if (provider != null &&
+        await initializer.anotherDevicePublishesLibrary(
+          oldDeviceId,
+          provider,
+        )) {
+      await _syncService.deleteDeviceSyncFile(oldDeviceId);
+    }
     // Reset is the manual escape hatch: drop any stuck replace intent and
     // un-pause an awaiting-adoption state.
     await _ref.read(libraryEpochStoreProvider).clearPendingReplace();
@@ -1500,8 +1518,8 @@ class SyncNotifier extends StateNotifier<SyncState> {
   }
 
   /// Comprehensive local repair: the full [resetSyncState] (fresh identity,
-  /// this device's cloud file removed, pending-replace/awaiting-adoption
-  /// cleared) PLUS the last-accepted epoch marker and leftover base temp files,
+  /// this device's cloud file removed unless it is the account's only library,
+  /// pending-replace/awaiting-adoption cleared) PLUS the last-accepted epoch marker and leftover base temp files,
   /// ending with any error cleared. The guaranteed local escape from a wedged
   /// sync (issue #509); dive data is never touched.
   Future<void> repairSync() async {

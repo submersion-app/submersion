@@ -13,6 +13,8 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_type_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -429,21 +431,26 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       children: [
         // Dive Site
         sites.when(
-          data: (siteList) => DropdownButtonFormField<String?>(
-            initialValue: _siteId,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_search_label_diveSite,
-              prefixIcon: const Icon(Icons.location_on),
-            ),
-            items: [
-              DropdownMenuItem(
-                value: null,
-                child: Text(context.l10n.diveLog_filter_allSites),
-              ),
-              ...siteList.map((site) {
-                return DropdownMenuItem(value: site.id, child: Text(site.name));
-              }),
-            ],
+          data: (siteList) => SearchableFilterDropdown<String>(
+            value: _siteId,
+            labelText: context.l10n.diveLog_search_label_diveSite,
+            allOptionLabel: context.l10n.diveLog_filter_allSites,
+            searchHintText: context.l10n.diveLog_filter_searchSitesHint,
+            icon: Icons.location_on,
+            options: siteList
+                .map(
+                  (site) => FilterDropdownOption(
+                    value: site.id,
+                    label: site.name,
+                    searchText: buildFilterSearchText([
+                      site.name,
+                      site.locationString,
+                      site.country,
+                      site.region,
+                    ]),
+                  ),
+                )
+                .toList(),
             onChanged: (value) => setState(() => _siteId = value),
           ),
           loading: () => const LinearProgressIndicator(),
@@ -453,21 +460,28 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
 
         // Trip
         trips.when(
-          data: (tripList) => DropdownButtonFormField<String?>(
-            initialValue: _tripId,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_search_label_trip,
-              prefixIcon: const Icon(Icons.flight),
-            ),
-            items: [
-              DropdownMenuItem(
-                value: null,
-                child: Text(context.l10n.diveLog_search_allTrips),
-              ),
-              ...tripList.map((trip) {
-                return DropdownMenuItem(value: trip.id, child: Text(trip.name));
-              }),
-            ],
+          data: (tripList) => SearchableFilterDropdown<String>(
+            value: _tripId,
+            labelText: context.l10n.diveLog_search_label_trip,
+            allOptionLabel: context.l10n.diveLog_search_allTrips,
+            searchHintText: context.l10n.diveLog_filter_searchTripsHint,
+            icon: Icons.flight,
+            options: tripList
+                .map(
+                  (trip) => FilterDropdownOption(
+                    value: trip.id,
+                    label: trip.name,
+                    // A trip is as often remembered by where it went or who
+                    // ran it as by the name it was given.
+                    searchText: buildFilterSearchText([
+                      trip.name,
+                      trip.location,
+                      trip.resortName,
+                      trip.liveaboardName,
+                    ]),
+                  ),
+                )
+                .toList(),
             onChanged: (value) => setState(() => _tripId = value),
           ),
           loading: () => const LinearProgressIndicator(),
@@ -477,24 +491,26 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
 
         // Dive Center
         diveCenters.when(
-          data: (centerList) => DropdownButtonFormField<String?>(
-            initialValue: _diveCenterId,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_search_label_diveCenter,
-              prefixIcon: const Icon(Icons.store),
-            ),
-            items: [
-              DropdownMenuItem(
-                value: null,
-                child: Text(context.l10n.diveLog_search_allCenters),
-              ),
-              ...centerList.map((center) {
-                return DropdownMenuItem(
-                  value: center.id,
-                  child: Text(center.name),
-                );
-              }),
-            ],
+          data: (centerList) => SearchableFilterDropdown<String>(
+            value: _diveCenterId,
+            labelText: context.l10n.diveLog_search_label_diveCenter,
+            allOptionLabel: context.l10n.diveLog_search_allCenters,
+            searchHintText: context.l10n.diveLog_filter_searchCentersHint,
+            icon: Icons.store,
+            options: centerList
+                .map(
+                  (center) => FilterDropdownOption(
+                    value: center.id,
+                    label: center.name,
+                    searchText: buildFilterSearchText([
+                      center.name,
+                      center.city,
+                      center.stateProvince,
+                      center.country,
+                    ]),
+                  ),
+                )
+                .toList(),
             onChanged: (value) => setState(() => _diveCenterId = value),
           ),
           loading: () => const LinearProgressIndicator(),
@@ -628,21 +644,18 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       children: [
         // Dive Type
         diveTypesAsync.when(
-          data: (diveTypes) => DropdownButtonFormField<String?>(
-            initialValue: _diveTypeId,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_search_label_diveType,
-              prefixIcon: const Icon(Icons.category),
-            ),
-            items: [
-              DropdownMenuItem(
-                value: null,
-                child: Text(context.l10n.diveLog_filter_allTypes),
-              ),
-              ...diveTypes.map((type) {
-                return DropdownMenuItem(value: type.id, child: Text(type.name));
-              }),
-            ],
+          data: (diveTypes) => SearchableFilterDropdown<String>(
+            value: _diveTypeId,
+            labelText: context.l10n.diveLog_search_label_diveType,
+            allOptionLabel: context.l10n.diveLog_filter_allTypes,
+            searchHintText: context.l10n.diveLog_filter_searchTypesHint,
+            icon: Icons.category,
+            options: diveTypes
+                .map(
+                  (type) =>
+                      FilterDropdownOption(value: type.id, label: type.name),
+                )
+                .toList(),
             onChanged: (value) => setState(() => _diveTypeId = value),
           ),
           loading: () => const LinearProgressIndicator(),
@@ -1027,22 +1040,15 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          DropdownButtonFormField<String?>(
-            initialValue: _customFieldKey,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_search_customFieldKey,
-              prefixIcon: const Icon(Icons.extension),
-            ),
-            items: [
-              DropdownMenuItem<String?>(
-                value: null,
-                child: Text(context.l10n.diveLog_search_customFieldKey),
-              ),
-              ...suggestions.map(
-                (key) =>
-                    DropdownMenuItem<String?>(value: key, child: Text(key)),
-              ),
-            ],
+          SearchableFilterDropdown<String>(
+            value: _customFieldKey,
+            labelText: context.l10n.diveLog_search_customFieldKey,
+            allOptionLabel: context.l10n.diveLog_search_customFieldKey,
+            searchHintText: context.l10n.diveLog_filter_searchFieldsHint,
+            icon: Icons.extension,
+            options: suggestions
+                .map((key) => FilterDropdownOption(value: key, label: key))
+                .toList(),
             onChanged: (value) {
               setState(() {
                 _customFieldKey = value;

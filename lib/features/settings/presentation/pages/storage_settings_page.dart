@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
@@ -454,7 +455,7 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
 
     // Generate a timestamped backup path
     final appDir = await getApplicationDocumentsDirectory();
-    final backupDir = p.join(appDir.path, 'Submersion', 'Backups');
+    final backupDir = p.join(appDir.path, kAppDocumentsFolder, 'Backups');
     final timestamp = DateFormat('yyyy-MM-dd_HHmmss').format(DateTime.now());
     final backupPath = p.join(backupDir, 'pre_reset_$timestamp.db');
 

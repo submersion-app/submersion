@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 
 /// Multi-tag chip field with autocomplete for the import review step.
 ///
@@ -162,40 +163,30 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
                     contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   ),
                   onSubmitted: (text) {
-                    _submitTag(text);
+                    // Give RawAutocomplete first refusal: it commits the
+                    // highlighted suggestion, but only while the options
+                    // overlay is actually showing. Whether suggestions merely
+                    // exist is not the same question, since Escape closes the
+                    // overlay and leaves them matching.
                     onSubmitted();
+                    // Committing a suggestion clears the field via onSelected,
+                    // so text still standing means nothing was committed and
+                    // the typed tag is what the user meant.
+                    if (controller.text == text) _submitTag(text);
                   },
                 ),
               ),
             ],
           );
         },
-        optionsViewBuilder: (context, onSelected, options) {
-          return Align(
-            alignment: Alignment.topLeft,
-            child: Material(
-              elevation: 4,
-              borderRadius: BorderRadius.circular(8),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 200),
-                child: ListView.builder(
-                  padding: EdgeInsets.zero,
-                  shrinkWrap: true,
-                  itemCount: options.length,
-                  itemBuilder: (context, index) {
-                    final tag = options.elementAt(index);
-                    return ListTile(
-                      dense: true,
-                      leading: Icon(Icons.label, color: tag.color, size: 20),
-                      title: Text(tag.name),
-                      onTap: () => onSelected(tag),
-                    );
-                  },
-                ),
-              ),
+        optionsViewBuilder: (context, onSelected, options) =>
+            AutocompleteOptionsList<Tag>(
+              options: options,
+              onSelected: onSelected,
+              labelFor: (tag) => tag.name,
+              leadingFor: (context, tag) =>
+                  Icon(Icons.label, color: tag.color, size: 20),
             ),
-          );
-        },
       ),
     );
   }
