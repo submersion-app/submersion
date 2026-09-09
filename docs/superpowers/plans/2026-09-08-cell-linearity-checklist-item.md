@@ -34,7 +34,7 @@
 |---|---|
 | `lib/features/pre_dive/domain/services/cell_linearity.dart` | The constant and the two derivations. Pure, no Flutter imports. |
 | `test/features/pre_dive/domain/services/cell_linearity_test.dart` | Calculator vectors and null handling. |
-| `test/core/database/migration_v200_cell_linearity_test.dart` | The new rung. Rename if the rung number changes (Task 3, Step 1). |
+| `test/core/database/migration_v201_cell_linearity_test.dart` | The new rung. Rename if the rung number changes (Task 3, Step 1). |
 
 **Modify:**
 
@@ -541,7 +541,7 @@ git commit -m "feat(pre-dive): add cellLinearity item type and derived getters (
 
 **Files:**
 - Modify: `lib/core/database/database.dart`
-- Create: `test/core/database/migration_v200_cell_linearity_test.dart`
+- Create: `test/core/database/migration_v201_cell_linearity_test.dart`
 
 **Interfaces:**
 - Consumes: nothing.
@@ -562,11 +562,11 @@ Then check whether any sibling branch has already taken the next rung:
 git log --all --oneline -S'currentSchemaVersion = 200' -- lib/core/database/database.dart | head
 ```
 
-Main is at v199 as of 2026-09-08, so the next free rung is **v200**. The spec estimated v201 on the assumption that issue #1365 would land its rung first. If #1365 or any other branch has taken 200, use the next free number and rename the migration test file to match. Record the number you chose; every later step in this task uses it. The rest of this task is written for **v200**.
+**Resolved during execution on 2026-09-08: the rung is v201, not v200.** Main is at v199, but `git log --all -S'currentSchemaVersion = 200'` shows commit `c2eca95772e` on the unmerged branch `ericgriffin/issue-1365-brainstorm-f1e2c7` already holding v200 for the transmitter registry. Looking only at main would have collided with it. The rest of this task, and the migration test filename, use **v201**. Re-run the same check before trusting even this number, and if #1365 merges first nothing changes, while if this branch merges first that one renumbers.
 
 - [ ] **Step 2: Write the failing migration test**
 
-Create `test/core/database/migration_v200_cell_linearity_test.dart`:
+Create `test/core/database/migration_v201_cell_linearity_test.dart`:
 
 ```dart
 import 'package:drift/native.dart';
@@ -574,7 +574,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v200 adds the O2 cell linearity link (issue #986):
+/// v201 adds the O2 cell linearity link (issue #986):
 /// pre_dive_checklist_template_items.source_item_id, plus
 /// pre_dive_session_items.source_item_id and .source_value_number.
 
@@ -584,9 +584,9 @@ Future<Set<String>> _columns(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v200 is the current schema version and is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 200);
-    expect(AppDatabase.migrationVersions, contains(200));
+  test('v201 is the current schema version and is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, 201);
+    expect(AppDatabase.migrationVersions, contains(201));
   });
 
   test('a fresh database has all three linearity columns', () async {
@@ -602,10 +602,10 @@ void main() {
     expect(sessionItemColumns, contains('source_value_number'));
   });
 
-  test('a database stranded before v200 gains the columns', () async {
+  test('a database stranded before v201 gains the columns', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 199');
+        rawDb.execute('PRAGMA user_version = 200');
         rawDb.execute('''
           CREATE TABLE pre_dive_checklist_template_items (
             id TEXT NOT NULL PRIMARY KEY,
@@ -673,7 +673,7 @@ void main() {
 - [ ] **Step 3: Run it and confirm it fails**
 
 ```bash
-flutter test test/core/database/migration_v200_cell_linearity_test.dart
+flutter test test/core/database/migration_v201_cell_linearity_test.dart
 ```
 
 Expected: FAIL. `currentSchemaVersion` is 199, and the columns are absent.
@@ -716,7 +716,7 @@ In `class PreDiveSessionItems`, after `equipmentId`:
 Beside `_assertTemplateItemEquipmentIdColumn` and `_assertSessionItemOverdueServicesColumn`, following their exact shape:
 
 ```dart
-  /// Idempotent DDL for the v200 pre_dive_checklist_template_items
+  /// Idempotent DDL for the v201 pre_dive_checklist_template_items
   /// .source_item_id column (issue #986). Self-guards on the table existing.
   /// Same dual-call contract (onUpgrade plus beforeOpen backstop) as the
   /// other column-assert helpers.
@@ -733,7 +733,7 @@ Beside `_assertTemplateItemEquipmentIdColumn` and `_assertSessionItemOverdueServ
     );
   }
 
-  /// Idempotent DDL for the v200 pre_dive_session_items linearity columns
+  /// Idempotent DDL for the v201 pre_dive_session_items linearity columns
   /// (issue #986). Each column is guarded independently, so an upgrade
   /// interrupted between the two still gets the second on the next open.
   Future<void> _assertSessionItemSourceColumns() async {
@@ -761,28 +761,28 @@ Beside `_assertTemplateItemEquipmentIdColumn` and `_assertSessionItemOverdueServ
 Bump the version:
 
 ```dart
-  static const int currentSchemaVersion = 200;
+  static const int currentSchemaVersion = 201;
 ```
 
-Add 200 to `migrationVersions` in the same style as its neighbours.
+Add 201 to `migrationVersions` in the same style as its neighbours.
 
 In `onUpgrade`, after the `from < 199` block (around `database.dart:10577-10580`):
 
 ```dart
-        // v200: the O2 cell linearity link (issue #986). Column-only rung,
+        // v201: the O2 cell linearity link (issue #986). Column-only rung,
         // no backfill: existing items are not linearity items and want null
         // in all three columns.
-        if (from < 200) {
+        if (from < 201) {
           await _assertTemplateItemSourceIdColumn();
           await _assertSessionItemSourceColumns();
         }
-        if (from < 200) await reportProgress();
+        if (from < 201) await reportProgress();
 ```
 
 In `beforeOpen`, beside the other backstops:
 
 ```dart
-        // v200 backstop: re-assert the cell linearity columns.
+        // v201 backstop: re-assert the cell linearity columns.
         await _assertTemplateItemSourceIdColumn();
         await _assertSessionItemSourceColumns();
 ```
@@ -808,7 +808,7 @@ Expected: a non-zero count.
 - [ ] **Step 8: Run the migration test and confirm it passes**
 
 ```bash
-flutter test test/core/database/migration_v200_cell_linearity_test.dart
+flutter test test/core/database/migration_v201_cell_linearity_test.dart
 ```
 
 Expected: all four tests pass.
@@ -845,7 +845,7 @@ Expected: all pass. Any failure here is a stale literal Step 9 missed.
 ```bash
 dart format .
 git add lib/core/database/database.dart lib/core/database/database.g.dart test/core/database/
-git commit -m "feat(pre-dive): add v200 schema for the cell linearity link (#986)"
+git commit -m "feat(pre-dive): add v201 schema for the cell linearity link (#986)"
 ```
 
 ---

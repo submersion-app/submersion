@@ -351,6 +351,16 @@ class PreDiveChecklistTemplateItems extends Table {
   /// require the equipment table to exist wherever this table does.
   /// Referential integrity is enforced at the application layer instead.
   TextColumn get equipmentId => text().nullable()();
+
+  /// For a 'cellLinearity' item, the template item holding this cell's air
+  /// reading (issue #986).
+  ///
+  /// Deliberately not a SQL-level FK, for the same reason as [equipmentId]:
+  /// these rows are seeded into isolated schema fixtures and re-seeded at
+  /// every app start, so a REFERENCES clause would demand the referenced row
+  /// exist wherever this table does. Remapped on clone and again at session
+  /// start; every reader tolerates a dangling value.
+  TextColumn get sourceItemId => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -449,6 +459,20 @@ class PreDiveSessionItems extends Table {
   /// runner computes the live overdue list from equipmentId instead) and
   /// cleared back to null on reset. Issue #814 phase 2.
   TextColumn get overdueServices => text().nullable()();
+
+  /// For a 'cellLinearity' item, the session item holding this cell's air
+  /// reading, remapped from the template item id at compose time (issue
+  /// #986).
+  ///
+  /// Not a SQL-level FK: this references a row in the same table, and the
+  /// two rows sync as independent HLC records with no guaranteed order of
+  /// arrival, so a constraint would reject a legitimate out-of-order insert.
+  TextColumn get sourceItemId => text().nullable()();
+
+  /// The air millivolts, frozen when the diver resolved this item. Kept
+  /// rather than re-read so a completed audit record cannot be rewritten by
+  /// a later edit to the source row. Cleared back to null on reset.
+  RealColumn get sourceValueNumber => real().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -3508,7 +3532,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 199;
+  static const int currentSchemaVersion = 201;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4024,6 +4048,10 @@ class AppDatabase extends _$AppDatabase {
     // 197: main landed the planner salinity and water-type rungs (197, 198)
     // while this branch was open.
     199,
+    // 200 is taken by the transmitter registry branch (issue #1365), which
+    // is unmerged while this branch is open, so the cell linearity link
+    // (issue #986) takes 201 rather than colliding with it.
+    201,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6256,6 +6284,45 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'ALTER TABLE dive_tanks ADD COLUMN transmitter_serial TEXT',
     );
+  }
+
+  /// Idempotent DDL for the v201 pre_dive_checklist_template_items
+  /// .source_item_id column (issue #986): the cell linearity link. Self-
+  /// guards on the table existing. Same dual-call contract (onUpgrade plus
+  /// beforeOpen backstop) as the other column-assert helpers.
+  Future<void> _assertTemplateItemSourceIdColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('pre_dive_checklist_template_items')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('source_item_id')) return;
+    await customStatement(
+      'ALTER TABLE pre_dive_checklist_template_items ADD COLUMN '
+      'source_item_id TEXT',
+    );
+  }
+
+  /// Idempotent DDL for the v201 pre_dive_session_items linearity columns
+  /// (issue #986). Each column is guarded independently, so an upgrade
+  /// interrupted between the two still picks the second up on the next open.
+  Future<void> _assertSessionItemSourceColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('pre_dive_session_items')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('source_item_id')) {
+      await customStatement(
+        'ALTER TABLE pre_dive_session_items ADD COLUMN source_item_id TEXT',
+      );
+    }
+    if (!names.contains('source_value_number')) {
+      await customStatement(
+        'ALTER TABLE pre_dive_session_items ADD COLUMN source_value_number '
+        'REAL',
+      );
+    }
   }
 
   Future<void> _assertSessionItemOverdueServicesColumn() async {
@@ -10578,10 +10645,24 @@ class AppDatabase extends _$AppDatabase {
           await _assertCertificationCredentialsColumn();
         }
         if (from < 199) await reportProgress();
+        // v201: the O2 cell linearity link (issue #986). Column-only rung,
+        // no backfill: no existing item is a linearity item, and null is the
+        // correct value for all three columns. Numbered 201 rather than 200
+        // because the transmitter registry branch (issue #1365) holds v200
+        // while this branch is open.
+        if (from < 201) {
+          await _assertTemplateItemSourceIdColumn();
+          await _assertSessionItemSourceColumns();
+        }
+        if (from < 201) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
+
+        // v201 backstop: re-assert the cell linearity columns.
+        await _assertTemplateItemSourceIdColumn();
+        await _assertSessionItemSourceColumns();
 
         // v103 backstop: re-assert media store schema (the helper is
         // self-guarding when the media table is absent).
