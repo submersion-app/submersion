@@ -25,7 +25,9 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 
@@ -636,13 +638,35 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(importedDiveIds);
 
+    final unmatched = _importService.unmatchedTransmitterSerials;
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
       updatedCount: updated,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
+      notices: [
+        if (unmatched.isNotEmpty && importedDiveIds.isNotEmpty)
+          ImportNotice(
+            kind: ImportNoticeKind.unknownTransmitter,
+            affectedDives: _divesCarrying(unmatched, importedDiveIds.length),
+          ),
+      ],
     );
+  }
+
+  /// How many of this run's downloaded dives carry an unmatched serial,
+  /// clamped to the imported count like the grouper does.
+  int _divesCarrying(List<String> unmatched, int importedDives) {
+    final set = unmatched.toSet();
+    var n = 0;
+    for (final dive in _downloadedDives) {
+      final hit = dive.tanks.any(
+        (t) => set.contains(normalizeTransmitterSerial(t.transmitterSerial)),
+      );
+      if (hit) n++;
+    }
+    return n > importedDives ? importedDives : n;
   }
 
   // ---------------------------------------------------------------------------
