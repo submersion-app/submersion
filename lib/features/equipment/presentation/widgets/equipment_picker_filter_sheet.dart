@@ -88,11 +88,17 @@ class _EquipmentPickerFilterSheetState
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        l10n.equipment_filter_title,
-                        style: textTheme.titleLarge,
+                    // Flexible with an ellipsis: the Clear All action beside
+                    // it is itself a translated string, so the pair can
+                    // outgrow a narrow phone.
+                    Flexible(
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          l10n.equipment_filter_title,
+                          style: textTheme.titleLarge,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                     const Spacer(),

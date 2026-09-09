@@ -47,9 +47,15 @@ class EquipmentPickerSheet extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                context.l10n.diveLog_equipmentPicker_title,
-                style: Theme.of(context).textTheme.titleLarge,
+              // Flexible with an ellipsis: three icon buttons take a fixed
+              // ~144dp, and an inflexible title overflowed a 320dp phone by
+              // 362px in French, whose title is 23 characters.
+              Flexible(
+                child: Text(
+                  context.l10n.diveLog_equipmentPicker_title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,

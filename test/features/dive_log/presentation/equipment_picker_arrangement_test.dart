@@ -38,7 +38,14 @@ void main() {
     EquipmentType? typeFilter,
     List<EquipmentItem> gear = const [zeagle, faber, apeks],
     EquipmentPickerFilter filter = EquipmentPickerFilter.none,
+    Locale locale = const Locale('en'),
+    Size? surface,
   }) async {
+    if (surface != null) {
+      tester.view.physicalSize = surface;
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+    }
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -47,7 +54,7 @@ void main() {
           equipmentPickerFilterProvider.overrideWith((ref) => filter),
         ],
         child: MaterialApp(
-          locale: const Locale('en'),
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -323,5 +330,19 @@ void main() {
       find.byKey(const ValueKey('picker_filter_type_camera')),
       findsNothing,
     );
+  });
+
+  testWidgets('the header survives a narrow phone and a long title', (
+    tester,
+  ) async {
+    // Three icon buttons sit beside the title, and the French title is 23
+    // characters. An inflexible Text in that Row overflows on a small phone.
+    await pumpPicker(
+      tester,
+      locale: const Locale('fr'),
+      surface: const Size(320, 640),
+    );
+
+    expect(tester.takeException(), isNull);
   });
 }

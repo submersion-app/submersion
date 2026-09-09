@@ -161,4 +161,38 @@ void main() {
     // Still open: clearing edits the draft, it does not apply.
     expect(find.byKey(const ValueKey('picker_filter_apply')), findsOneWidget);
   });
+
+  testWidgets('the filter header survives a narrow phone in French', (
+    tester,
+  ) async {
+    // Title plus a translated Clear All action on one row.
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('fr'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showEquipmentPickerFilterSheet(
+                context,
+                current: EquipmentPickerFilter.none,
+                availableTypes: const [EquipmentType.tank],
+                availableStatuses: const [EquipmentStatus.active],
+              ),
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+  });
 }

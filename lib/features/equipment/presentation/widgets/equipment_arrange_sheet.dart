@@ -58,11 +58,17 @@ class EquipmentArrangeSheet extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        l10n.equipment_arrange_title,
-                        style: textTheme.titleLarge,
+                    // Flexible with an ellipsis rather than a bare Text: the
+                    // longest translation of this title is 23 characters and
+                    // an inflexible one overflows a narrow phone.
+                    Flexible(
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          l10n.equipment_arrange_title,
+                          style: textTheme.titleLarge,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                     const Spacer(),

@@ -151,4 +151,39 @@ void main() {
     expect(find.text('Could not save the arrangement'), findsOneWidget);
     expect(fake.written, isEmpty);
   });
+
+  testWidgets('the sheet header survives a narrow phone in Portuguese', (
+    tester,
+  ) async {
+    // The longest translation of the title is 23 characters, beside a close
+    // button, so an inflexible Text overflows a small phone.
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final fake = _FakeSettingsRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+        child: MaterialApp(
+          locale: const Locale('pt'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showEquipmentArrangeSheet(context),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+  });
 }
