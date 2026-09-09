@@ -110,6 +110,15 @@ void main() {
     expect(find.textContaining('Hose replacement'), findsNothing);
   });
 
+  testWidgets('a plain item keeps the one-line tile (no empty subtitle)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(wrap(const EquipmentListTile(item: reg), const {}));
+    await tester.pumpAndSettle();
+    final tile = tester.widget<ListTile>(find.byType(ListTile));
+    expect(tile.subtitle, isNull);
+  });
+
   testWidgets('dense tile shows the part name for a descendant clock', (
     tester,
   ) async {

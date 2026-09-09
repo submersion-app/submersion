@@ -957,6 +957,13 @@ class EquipmentListTile extends ConsumerWidget {
         : rollup;
     final isOverdue =
         worstClock?.status.severity == ServiceClockSeverity.overdue;
+    // A non-null subtitle forces the two-line tile layout, so only build one
+    // when there is something to show: a differing full name, or chips.
+    final index = ref.watch(equipmentComponentsIndexProvider).value;
+    final hasChips =
+        index != null &&
+        (index.isAssembly(item.id) || index.parentIdsOf(item.id).isNotEmpty);
+    final hasFullName = item.fullName != item.name;
     final accent = resolveFeatureAccent(
       context,
       ref,
@@ -992,14 +999,16 @@ class EquipmentListTile extends ConsumerWidget {
           ),
         ),
         title: Text(item.name),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (item.fullName != item.name) Text(item.fullName),
-            AssemblyChips(itemId: item.id),
-          ],
-        ),
+        subtitle: hasFullName || hasChips
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (hasFullName) Text(item.fullName),
+                  if (hasChips) AssemblyChips(itemId: item.id),
+                ],
+              )
+            : null,
         trailing: _buildTrailing(context, worstClock),
       ),
     );
