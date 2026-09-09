@@ -669,8 +669,10 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
     jobject ioHandler,
     jstring devName,
     jbyteArray fingerprint,
+    jboolean syncClock,
     jobject downloadCallback,
-    jbyteArray errorBuf) {
+    jbyteArray errorBuf,
+    jintArray infoOut) {
 
     auto *session = reinterpret_cast<libdc_download_session_t *>(sessionPtr);
 
@@ -824,6 +826,9 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
 
     // Run the download.
     char error_buf[256] = {0};
+    unsigned int serial_out = 0;
+    unsigned int firmware_out = 0;
+    libdc_clock_sync_status_t clock_sync_out = LIBDC_CLOCK_SYNC_NOT_REQUESTED;
     int result = libdc_download_run(
         session,
         vendorStr, productStr,
@@ -831,8 +836,9 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
         static_cast<unsigned int>(transport),
         &io_callbacks,
         fp_data, fp_size,
+        syncClock == JNI_TRUE ? 1 : 0,
         &dl_callbacks,
-        nullptr, nullptr,
+        &serial_out, &firmware_out, &clock_sync_out,
         error_buf, sizeof(error_buf));
 
     // Cleanup fingerprint.
@@ -845,6 +851,17 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
         if (msgLen > len) msgLen = len;
         env->SetByteArrayRegion(errorBuf, 0, msgLen,
             reinterpret_cast<const jbyte *>(error_buf));
+    }
+
+    // Device info and the clock sync outcome, in the slot order the Kotlin
+    // side reads: serial, firmware, clock sync status code (issue #1216).
+    if (infoOut != nullptr && env->GetArrayLength(infoOut) >= 3) {
+        jint info[3] = {
+            static_cast<jint>(serial_out),
+            static_cast<jint>(firmware_out),
+            static_cast<jint>(clock_sync_out),
+        };
+        env->SetIntArrayRegion(infoOut, 0, 3, info);
     }
 
     // Cleanup.

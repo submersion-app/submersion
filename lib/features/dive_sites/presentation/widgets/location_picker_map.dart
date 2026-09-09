@@ -12,6 +12,7 @@ import 'package:submersion/features/maps/presentation/providers/map_tile_provide
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 /// Result from the location picker
 class PickedLocation {
@@ -145,12 +146,10 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
           if (_selectedLocation != null)
             Tooltip(
               message: context.l10n.diveSites_locationPicker_confirmTooltip,
-              child: TextButton.icon(
+              child: AppBarTextAction(
+                label: context.l10n.diveSites_locationPicker_confirmButton,
                 onPressed: _confirmSelection,
                 icon: const Icon(Icons.check),
-                label: Text(
-                  context.l10n.diveSites_locationPicker_confirmButton,
-                ),
               ),
             ),
         ],

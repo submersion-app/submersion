@@ -231,14 +231,15 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     _handleItemTap(buddies[index].buddy);
   }
 
-  Future<void> _startMerge() async {
+  Future<BulkActionOutcome> _startMerge() async {
     final selectedCount = _selectedIds.length;
     final result = await context.push<BuddyMergeResult>(
       '/buddies/merge',
       extra: _selectedIds.toList(),
     );
 
-    if (!mounted || result == null) return;
+    if (result == null) return BulkActionOutcome.cancelled;
+    if (!mounted) return BulkActionOutcome.completed;
 
     _mergeSnapshot = result.snapshot;
     final mergedId = result.survivorId;
@@ -282,9 +283,10 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
         ),
       );
     }
+    return BulkActionOutcome.completed;
   }
 
-  Future<void> _confirmAndDelete() async {
+  Future<BulkActionOutcome> _confirmAndDelete() async {
     final count = _selectedIds.length;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -327,7 +329,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           ),
         );
       }
+      return BulkActionOutcome.completed;
     }
+    return BulkActionOutcome.cancelled;
   }
 
   Future<void> _importFromContacts(BuildContext context) async {

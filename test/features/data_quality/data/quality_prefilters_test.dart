@@ -22,9 +22,9 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  test('registry contains all 11 detectors with unique ids', () {
+  test('registry contains all 12 detectors with unique ids', () {
     final ids = kQualityDetectors.map((d) => d.id).toList();
-    expect(ids.toSet(), hasLength(11));
+    expect(ids.toSet(), hasLength(12));
     expect(
       ids.toSet(),
       containsAll({
@@ -38,10 +38,15 @@ void main() {
         'pressure_anomaly',
         'gas_mod',
         'tank_assignment',
+        'unknown_transmitter',
         'source_conflict',
       }),
     );
-    expect(qualityDetectorVersions()['duplicate'], 1);
+    // v2 records `sameComputer` on every duplicate pair. The bump is what
+    // raises the "new checks are available" banner, so an existing library
+    // gets the flag on a rescan instead of keeping a Consolidate button that
+    // cannot work.
+    expect(qualityDetectorVersions()['duplicate'], 2);
   });
 
   test('profile detectors only get dives that have profiles', () async {

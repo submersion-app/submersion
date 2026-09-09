@@ -1,7 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/theme/full_themes/tropical_theme.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
@@ -655,4 +659,37 @@ void main() {
       expect(find.text('Save'), findsOneWidget);
     });
   });
+
+  testWidgets(
+    'the Save action stays visible on the tropical app bar when creating a '
+    'new template (#1231)',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: tropicalLight,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const PreDiveTemplateEditPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final style = tester
+          .renderObject<RenderParagraph>(find.text('Save'))
+          .text
+          .style;
+      expect(style?.color, isNotNull);
+      expect(
+        style!.color,
+        isNot(tropicalLight.appBarTheme.backgroundColor),
+        reason:
+            'a bare TextButton paints colorScheme.primary, which this theme '
+            'sets to its own app bar background, so the diver sees no Save '
+            'button at all',
+      );
+    },
+  );
 }

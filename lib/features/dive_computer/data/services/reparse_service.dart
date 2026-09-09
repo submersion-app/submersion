@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_
     show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
+import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
+import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 
@@ -32,12 +34,18 @@ class ReparseService {
   /// with the live download path.
   final bool trimTankPressureAtSurfacing;
 
+  /// The diver's transmitter registry, read per re-parsed dive so an entry
+  /// saved a moment ago applies. Null (or a failing load) means no mapping.
+  final TransmitterMatcherLoader? _transmitterMatcherLoader;
+
   ReparseService({
     required this.db,
     this.trimTankPressureAtSurfacing = true,
+    TransmitterMatcherLoader? transmitterMatcherLoader,
     ProfileSeriesRepository? profileSeries,
     TankPressureSeriesRepository? tankSeries,
-  }) : _profileSeries =
+  }) : _transmitterMatcherLoader = transmitterMatcherLoader,
+       _profileSeries =
            profileSeries ??
            ProfileSeriesRepository(
              database: db,
@@ -52,6 +60,16 @@ class ReparseService {
 
   final ProfileSeriesRepository _profileSeries;
   final TankPressureSeriesRepository _tankSeries;
+
+  Future<TransmitterMatcher> _loadMatcher() async {
+    final loader = _transmitterMatcherLoader;
+    if (loader == null) return const TransmitterMatcher.empty();
+    try {
+      return await loader();
+    } catch (_) {
+      return const TransmitterMatcher.empty();
+    }
+  }
 
   /// Apply a freshly parsed dive to the database, updating only
   /// computer-authored fields and preserving user-authored fields.
@@ -691,22 +709,43 @@ class ReparseService {
             .get();
 
     // Build a map of existing tanks by tankOrder
-    final existingByOrder = {for (final t in existingTanks) t.tankOrder: t};
+    final matcher = await _loadMatcher();
+    final parsedTanks = applyTransmitterRegistry(
+      resolveParsedTanks(
+        parsed,
+        trimAtSurfacing: trimTankPressureAtSurfacing,
+      ).map(DiveParser.tankDataFrom).toList(),
+      matcher,
+      computerId: computerId,
+    );
 
-    // Build a set of new tank orders from parsed
+    // Which existing row takes parsed tank [index]. A row's source index wins
+    // (a reassignment, issue #1314); rows from before v200 carry null and
+    // fall back to their order, as the old path did. The fallback accepts
+    // rows attributed to this computer or to none (legacy and manual rows),
+    // never another computer's row on a multi-source dive. A row marked
+    // kNoSourceTankIndex takes nothing.
+    final matchedIds = <String>{};
+    DiveTank? existingFor(int index) {
+      for (final t in existingTanks) {
+        if (matchedIds.contains(t.id)) continue;
+        if (t.computerId != computerId) continue;
+        if (t.sourceTankIndex == index) return t;
+      }
+      for (final t in existingTanks) {
+        if (matchedIds.contains(t.id)) continue;
+        if (t.computerId != null && t.computerId != computerId) continue;
+        if (t.sourceTankIndex == null && t.tankOrder == index) return t;
+      }
+      return null;
+    }
+
     final newTankOrders = <int>{};
-
-    // Gas-mix linking and tankless synthesis (computers that report gas
-    // mixes but no tank records) live in the shared resolver so this path
-    // cannot drift from the live-download mapper.
-    for (final tank in resolveParsedTanks(
-      parsed,
-      trimAtSurfacing: trimTankPressureAtSurfacing,
-    )) {
+    for (final tank in parsedTanks) {
       newTankOrders.add(tank.index);
-
-      final existing = existingByOrder[tank.index];
+      final existing = existingFor(tank.index);
       if (existing != null) {
+        matchedIds.add(existing.id);
         tankIdsByIndex[tank.index] = existing.id;
         // Update existing tank: overwrite computer fields, preserve user fields
         await (db.update(
@@ -730,12 +769,18 @@ class ReparseService {
             // before the serial was stored gains it (and a parse that stops
             // reporting one clears the stale value).
             transmitterSerial: Value(tank.transmitterSerial),
+            // A legacy row gains its explicit source index here; a row that
+            // already has one keeps it.
+            sourceTankIndex: existing.sourceTankIndex == null
+                ? Value(tank.index)
+                : const Value.absent(),
             // tankName, presetName, equipmentId, tankRole, tankMaterial
-            // are user-authored -- NOT touched
+            // are user-authored -- NOT touched, so the registry is not
+            // applied to an existing row either.
           ),
         );
       } else {
-        // New tank: insert with defaults
+        // New tank: insert with defaults, registry applied.
         final newTankId = _uuid.v4();
         tankIdsByIndex[tank.index] = newTankId;
         await db
@@ -746,6 +791,11 @@ class ReparseService {
                 diveId: Value(diveId),
                 computerId: Value(computerId),
                 volume: Value(tank.volumeLiters),
+                workingPressure: Value.absentIfNull(tank.workingPressure),
+                tankMaterial: Value.absentIfNull(tank.material),
+                presetName: Value.absentIfNull(tank.presetName),
+                equipmentId: Value.absentIfNull(tank.equipmentId),
+                tankName: Value.absentIfNull(tank.tankName),
                 startPressure: Value(tank.startPressure),
                 endPressure: Value(tank.endPressure),
                 o2Percent: Value(tank.o2Percent),
@@ -753,13 +803,17 @@ class ReparseService {
                 tankOrder: Value(tank.index),
                 tankRole: Value(tank.role ?? 'backGas'),
                 transmitterSerial: Value(tank.transmitterSerial),
+                sourceTankIndex: Value(tank.index),
               ),
             );
       }
     }
 
-    // Delete tanks that exist in DB but not in parsed
+    // Delete tanks that exist in DB but were neither matched nor kept by
+    // order (the pre-v200 rule, so manual rows on a re-parsed dive behave as
+    // before).
     for (final existing in existingTanks) {
+      if (matchedIds.contains(existing.id)) continue;
       if (!newTankOrders.contains(existing.tankOrder)) {
         await (db.delete(
           db.diveTanks,

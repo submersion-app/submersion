@@ -58,6 +58,7 @@ DownloadedDive makeDownloadedDive({
   double? minTemperature = 22.1,
   String? fingerprint,
   List<ProfileSample> profile = const [],
+  List<DownloadedTank> tanks = const [],
 }) {
   return DownloadedDive(
     startTime: startTime ?? DateTime(2026, 3, 15, 10, 32),
@@ -67,6 +68,7 @@ DownloadedDive makeDownloadedDive({
     minTemperature: minTemperature,
     fingerprint: fingerprint,
     profile: profile,
+    tanks: tanks,
   );
 }
 
@@ -82,6 +84,11 @@ void main() {
 
   setUp(() {
     mockImportService = MockDiveImportService();
+    // The registry notice reads this after every import; no unmatched
+    // serials unless a test says otherwise.
+    when(
+      mockImportService.unmatchedTransmitterSerials,
+    ).thenReturn(const <String>[]);
     mockComputerRepo = MockDiveComputerRepository();
     mockDiveRepo = MockDiveRepository();
     mockConsolidationService = MockDiveConsolidationService();
@@ -556,6 +563,56 @@ void main() {
       expect(result.skippedCount, equals(1));
       expect(result.importedCounts[ImportEntityType.dives], equals(0));
     });
+
+    test(
+      'unknown-transmitter notice counts only dives that were written',
+      () async {
+        // Both dives carry the unmatched serial, but dive 0 is skipped as a
+        // duplicate and never reaches the database, so it must not inflate
+        // "Affects N dives" (issue #1365).
+        const tank = DownloadedTank(
+          index: 0,
+          o2Percent: 21,
+          transmitterSerial: '999',
+        );
+        final skippedDive = makeDownloadedDive(
+          fingerprint: 'fp-skip',
+          tanks: const [tank],
+        );
+        final newDive = makeDownloadedDive(
+          fingerprint: 'fp-new',
+          startTime: DateTime(2026, 3, 16, 10, 32),
+          tanks: const [tank],
+        );
+        adapter.setDownloadedDives([skippedDive, newDive]);
+        final bundle = await adapter.buildBundle();
+        when(mockImportService.unmatchedTransmitterSerials).thenReturn(['999']);
+        when(
+          mockImportService.importSingleDiveAsNew(
+            newDive,
+            computerId: computer.id,
+            diverId: diverId,
+          ),
+        ).thenAnswer((_) async => 'new-dive-1');
+
+        final result = await adapter.performImport(
+          bundle,
+          {
+            ImportEntityType.dives: {1},
+          },
+          {
+            ImportEntityType.dives: {0: DuplicateAction.skip},
+          },
+        );
+
+        expect(result.skippedCount, 1);
+        expect(result.importedCounts[ImportEntityType.dives], 1);
+        expect(result.notices, hasLength(1));
+        expect(result.notices.single.affectedDives, 1);
+        // The accumulator was started fresh for this run.
+        verify(mockImportService.resetUnmatchedTransmitterSerials()).called(1);
+      },
+    );
 
     test('handles DuplicateAction.importAsNew', () async {
       final dive = makeDownloadedDive();

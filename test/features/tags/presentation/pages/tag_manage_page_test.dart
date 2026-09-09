@@ -5,6 +5,7 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/selection_contract.dart';
@@ -47,6 +48,11 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
     implements TagListNotifier {
   _MockTagListNotifier(List<Tag> tags) : super(AsyncValue.data(tags));
 
+  /// What the bulk paths actually asked for, so an outcome assertion is
+  /// backed by real work rather than only by the bar disappearing.
+  final List<String> deleted = [];
+  final List<List<String>> bulkDeleted = [];
+
   @override
   Future<void> refresh() async {}
   @override
@@ -59,9 +65,9 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   @override
   Future<void> updateTag(Tag tag) async {}
   @override
-  Future<void> deleteTag(String id) async {}
+  Future<void> deleteTag(String id) async => deleted.add(id);
   @override
-  Future<void> deleteTags(List<String> ids) async {}
+  Future<void> deleteTags(List<String> ids) async => bulkDeleted.add(ids);
   @override
   Future<void> mergeTags({
     required List<String> sourceTagIds,
@@ -93,12 +99,15 @@ class _MockTagRepository extends TagRepository {
 List<Tag> _tagsFromStats(List<TagStatistic> stats) =>
     stats.map((s) => s.tag).toList();
 
-Widget _buildTestWidget({List<TagStatistic> stats = const []}) {
+Widget _buildTestWidget({
+  List<TagStatistic> stats = const [],
+  _MockTagListNotifier? notifier,
+}) {
   return ProviderScope(
     overrides: [
       tagStatisticsProvider.overrideWith((ref) => Future.value(stats)),
       tagListNotifierProvider.overrideWith(
-        (ref) => _MockTagListNotifier(_tagsFromStats(stats)),
+        (ref) => notifier ?? _MockTagListNotifier(_tagsFromStats(stats)),
       ),
       tagRepositoryProvider.overrideWithValue(_MockTagRepository()),
     ],
@@ -306,6 +315,127 @@ void main() {
             .onPressed,
         isNotNull,
       );
+    });
+  });
+
+  group('a bulk action returns the diver to the normal list', () {
+    // #1262. This surface used to call _exitSelectionMode() inside each
+    // handler; the exit now travels back to SelectionAppBar as a
+    // BulkActionOutcome, so these cover the decision that replaced it.
+
+    Future<void> enterSelection(WidgetTester tester, List<String> names) async {
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      for (final name in names) {
+        await tester.tap(find.text(name));
+        await tester.pumpAndSettle();
+      }
+    }
+
+    /// Delete sits in the overflow on every surface, never inline.
+    Future<void> openDelete(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_delete')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('deleting several tags ends selection mode', (tester) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await enterSelection(tester, ['Night Dive', 'Photography']);
+      expect(find.text('2 selected'), findsOneWidget);
+
+      await openDelete(tester);
+      await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.bulkDeleted, [
+        ['tag1', 'tag2'],
+      ]);
+      expect(
+        find.byKey(const ValueKey('selection_exit')),
+        findsNothing,
+        reason: 'a completed delete must return the diver to the tag list',
+      );
+    });
+
+    testWidgets('cancelling a multi-tag delete keeps the selection', (
+      tester,
+    ) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await enterSelection(tester, ['Night Dive', 'Photography']);
+      await openDelete(tester);
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.bulkDeleted, isEmpty);
+      expect(find.text('2 selected'), findsOneWidget);
+    });
+
+    testWidgets('deleting a single tag ends selection mode', (tester) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      // One checked row takes the single-tag branch, which names the tag and
+      // its dive count rather than counting a selection.
+      await enterSelection(tester, ['Night Dive']);
+      await openDelete(tester);
+      await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.deleted, ['tag1']);
+      expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
+    });
+
+    testWidgets('cancelling a single-tag delete keeps the selection', (
+      tester,
+    ) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await enterSelection(tester, ['Night Dive']);
+      await openDelete(tester);
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.deleted, isEmpty);
+      expect(find.text('1 selected'), findsOneWidget);
+    });
+
+    testWidgets('dismissing the merge sheet keeps the selection', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      await enterSelection(tester, ['Night Dive', 'Photography']);
+      await tester.tap(find.byKey(const ValueKey('selection_action_merge')));
+      await tester.pumpAndSettle();
+      expect(find.byType(TagMergeSheet), findsOneWidget);
+
+      // Tapping the barrier dismisses the sheet with no result, which is the
+      // diver changing their mind rather than a merge.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TagMergeSheet), findsNothing);
+      expect(find.text('2 selected'), findsOneWidget);
     });
   });
 }

@@ -21551,6 +21551,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'يشهد هذا بأن';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'إعداد التطبيق: معطّل';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'إعداد التطبيق: مفعّل';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'مزامنة الساعة';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'التحقق مرة أخرى';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'يضبط الساعة على وقت هذا الجهاز بعد كل تنزيل. ينطبق على هذا الجهاز فقط.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'مزامنة ساعات كمبيوترات الغوص';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'دائمًا';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'إعداد التطبيق';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'أبدًا';
+
+  @override
+  String get diveComputer_clockSync_supported => 'مدعومة في هذا الطراز';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'هذا الطراز لا يدعم مزامنة الساعة';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21756,6 +21792,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'تم إلغاء التنزيل';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => 'فشلت مزامنة الساعة';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'مزامنة الساعة غير مدعومة في هذا الطراز';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'تمت مزامنة الساعة';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -36985,4 +37031,273 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (تلقائي)';
   }
+
+  @override
+  String get settings_manage_transmitters => 'أجهزة الإرسال';
+
+  @override
+  String get settings_manage_transmitters_subtitle =>
+      'ربط أجهزة إرسال الضغط بالأسطوانات';
+
+  @override
+  String get transmitters_title => 'أجهزة الإرسال';
+
+  @override
+  String get transmitters_add => 'إضافة جهاز إرسال';
+
+  @override
+  String get transmitters_header_assigned => 'أجهزة إرسال معيّنة';
+
+  @override
+  String get transmitters_header_unassigned => 'ظهرت في التنزيلات ولم تُعيّن';
+
+  @override
+  String get transmitters_empty =>
+      'لا توجد أجهزة إرسال بعد. أضف واحدًا، أو عيّن رقمًا تسلسليًا بعد التنزيل التالي.';
+
+  @override
+  String get transmitters_action_assign => 'تعيين';
+
+  @override
+  String get transmitters_action_edit => 'تعديل جهاز الإرسال';
+
+  @override
+  String get transmitters_action_delete => 'حذف جهاز الإرسال';
+
+  @override
+  String get transmitters_action_apply => 'تطبيق على الغطسات الحالية';
+
+  @override
+  String get transmitters_apply_title => 'تطبيق على الغطسات الحالية؟';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks أسطوانة في $dives غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return 'تم تحديث $tanks أسطوانة في $dives غطسة';
+  }
+
+  @override
+  String get transmitters_apply_nothing =>
+      'لا توجد أسطوانة تحمل جهاز الإرسال هذا';
+
+  @override
+  String get transmitters_delete_title => 'حذف جهاز الإرسال؟';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'ستستخدم التنزيلات القادمة من $label الإعداد الافتراضي مجددًا.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer، القناة $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return 'جهاز الإرسال $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'تعديل جهاز الإرسال';
+
+  @override
+  String get transmitters_new_title => 'جهاز إرسال جديد';
+
+  @override
+  String get transmitters_field_label => 'التسمية';
+
+  @override
+  String get transmitters_field_serial => 'الرقم التسلسلي لجهاز الإرسال';
+
+  @override
+  String get transmitters_field_computer =>
+      'كمبيوتر الغوص (عند عدم الإبلاغ عن رقم تسلسلي)';
+
+  @override
+  String get transmitters_field_channel => 'القناة';
+
+  @override
+  String get transmitters_field_role => 'الدور';
+
+  @override
+  String get transmitters_field_gear => 'أسطوانة من المعدات';
+
+  @override
+  String get transmitters_field_material => 'المادة';
+
+  @override
+  String get transmitters_gear_none => 'لا شيء';
+
+  @override
+  String get transmitters_validation_key =>
+      'أدخل رقمًا تسلسليًا، أو اختر كمبيوتر غوص وقناة';
+
+  @override
+  String get transmitters_validation_positive => 'أدخل قيمة أكبر من صفر';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'معيّن بالفعل إلى $label';
+  }
+
+  @override
+  String get transmitters_saved => 'تم حفظ جهاز الإرسال';
+
+  @override
+  String get diveComputer_detail_transmitters => 'أجهزة الإرسال';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known معروف، $unassigned غير معيّن';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'تعيين جهاز إرسال';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'إعادة تعيين سلسلة الضغط';
+
+  @override
+  String get diveLog_reassignSheet_title => 'سلاسل الضغط';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'تبديل';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'نقل إلى';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قراءة',
+      one: 'قراءة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'لا توجد سلسلة ضغط';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'تمت إعادة تعيين سلسلة الضغط';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'أجهزة إرسال غير معيّنة';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'جهاز إرسال واحد أو أكثر في هذا التنزيل غير معيّن لأسطوانة. عيّنها لتحصل التنزيلات القادمة على الحجم والدور الصحيحين.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters =>
+      'تعيين أجهزة الإرسال';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter => 'جهاز إرسال غير معيّن';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'جهاز الإرسال $serial غير معيّن لأسطوانة';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter => 'تعيين جهاز إرسال';
+
+  @override
+  String get backup_unrecognized_appBar_title => 'نسخ احتياطية غير معروفة';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. لا يمكن حذف سوى ملف كتبه هذا الجهاز هنا: أي ملف آخر قد يكون النسخة الوحيدة لجهاز آخر.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'لا توجد ملفات نسخ احتياطي غير معروفة.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'تعذّرت قراءة مجلد النسخ الاحتياطي.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'لا يستطيع هذا الجهاز سرد مجلد النسخ الاحتياطي الذي اخترته، لذا لا يمكن العثور على الملفات غير المعروفة.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'جهاز آخر';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'جهاز غير معروف';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف $count ملفات ($size)',
+      one: 'حذف ملف واحد ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'حذف ملفات النسخ الاحتياطي هذه؟';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ستُحذف $count من ملفات النسخ الاحتياطي نهائيًا. لا يمكن التراجع عن ذلك.',
+      one: 'سيُحذف ملف نسخ احتياطي واحد نهائيًا. لا يمكن التراجع عن ذلك.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed => 'تعذّر حذف الملفات المحددة.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return 'تم تحرير $size';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملفات غير موجودة في سجل النسخ الاحتياطي',
+      one: 'ملف واحد غير موجود في سجل النسخ الاحتياطي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'مراجعة';
 }

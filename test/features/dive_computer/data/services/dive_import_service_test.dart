@@ -12,6 +12,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 @GenerateMocks([DiveComputerRepository, DiveRepository])
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'dive_import_service_test.mocks.dart';
 
 void main() {
@@ -919,6 +922,24 @@ void main() {
       events: const [],
     );
 
+    DownloadedDive diveWithSerialTank(String serial) => DownloadedDive(
+      fingerprint: 'fp-$serial',
+      startTime: DateTime(2026, 2, 1, 9, 0),
+      durationSeconds: 2700,
+      maxDepth: 18.0,
+      profile: const [],
+      tanks: [
+        DownloadedTank(
+          index: 0,
+          o2Percent: 21.0,
+          startPressure: 200.0,
+          endPressure: 60.0,
+          transmitterSerial: serial,
+        ),
+      ],
+      events: const [],
+    );
+
     List<TankData> importedTanks() {
       final captured = verify(
         mockComputerRepo.importProfile(
@@ -954,6 +975,148 @@ void main() {
       when(
         mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
       ).thenAnswer((_) async => 1);
+    });
+
+    group('transmitter registry', () {
+      Transmitter entry() => Transmitter(
+        id: 'e1',
+        transmitterSerial: '180777',
+        label: 'O2',
+        role: TankRole.oxygenSupply,
+        volumeL: 2.0,
+        workingPressureBar: 232,
+        material: TankMaterial.steel,
+        equipmentId: 'g1',
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      );
+
+      test(
+        'a matched serial sets role, gear and size before the preset',
+        () async {
+          service = DiveImportService(
+            repository: mockComputerRepo,
+            diveRepository: mockDiveRepo,
+            defaultTankPresetForImports: () async => al80,
+            transmitterMatcherForImports: () async =>
+                TransmitterMatcher.fromEntries([entry()]),
+          );
+
+          await service.importDives(
+            dives: [diveWithSerialTank('180777')],
+            computer: computer,
+          );
+
+          final tank = importedTanks().single;
+          expect(tank.role, 'oxygenSupply');
+          expect(tank.equipmentId, 'g1');
+          expect(tank.tankName, 'O2');
+          expect(
+            tank.volumeLiters,
+            2.0,
+            reason: 'registry, not the AL80 preset',
+          );
+          expect(tank.presetName, isNull);
+        },
+      );
+
+      test(
+        'an unmatched serial still gets the default preset and is reported',
+        () async {
+          service = DiveImportService(
+            repository: mockComputerRepo,
+            diveRepository: mockDiveRepo,
+            defaultTankPresetForImports: () async => al80,
+            transmitterMatcherForImports: () async =>
+                TransmitterMatcher.fromEntries([entry()]),
+          );
+
+          final result = await service.importDives(
+            dives: [diveWithSerialTank('999')],
+            computer: computer,
+          );
+
+          expect(importedTanks().single.volumeLiters, al80.volumeLiters);
+          expect(result.unmatchedTransmitterSerials, ['999']);
+        },
+      );
+
+      test('a loader that throws degrades to no mapping', () async {
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          transmitterMatcherForImports: () async => throw StateError('db'),
+        );
+
+        final result = await service.importDives(
+          dives: [diveWithSerialTank('180777')],
+          computer: computer,
+        );
+
+        expect(result.imported, 1);
+        expect(importedTanks().single.role, isNot('oxygenSupply'));
+      });
+
+      test('a reset clears serials from an earlier run', () async {
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          transmitterMatcherForImports: () async =>
+              TransmitterMatcher.fromEntries([entry()]),
+        );
+        await service.importSingleDiveAsNew(
+          diveWithSerialTank('555'),
+          computerId: computer.id,
+        );
+        expect(service.unmatchedTransmitterSerials, ['555']);
+
+        service.resetUnmatchedTransmitterSerials();
+
+        expect(service.unmatchedTransmitterSerials, isEmpty);
+      });
+
+      test('importDives reports only its own batch', () async {
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          transmitterMatcherForImports: () async =>
+              TransmitterMatcher.fromEntries([entry()]),
+        );
+        await service.importSingleDiveAsNew(
+          diveWithSerialTank('555'),
+          computerId: computer.id,
+        );
+
+        final result = await service.importDives(
+          dives: [diveWithSerialTank('180777')],
+          computer: computer,
+        );
+
+        expect(result.unmatchedTransmitterSerials, isEmpty);
+      });
+
+      test(
+        'applies on the import-as-new path and remembers the serial',
+        () async {
+          service = DiveImportService(
+            repository: mockComputerRepo,
+            diveRepository: mockDiveRepo,
+            transmitterMatcherForImports: () async =>
+                TransmitterMatcher.fromEntries([entry()]),
+          );
+
+          await service.importSingleDiveAsNew(
+            diveWithSerialTank('180777'),
+            computerId: computer.id,
+          );
+          await service.importSingleDiveAsNew(
+            diveWithSerialTank('555'),
+            computerId: computer.id,
+          );
+
+          expect(service.unmatchedTransmitterSerials, ['555']);
+        },
+      );
     });
 
     test(

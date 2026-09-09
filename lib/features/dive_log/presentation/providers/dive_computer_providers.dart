@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_merge_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
@@ -233,6 +234,9 @@ class DiveComputerNotifier
 
   Future<void> delete(String id) async {
     await _repository.deleteComputer(id);
+    // The installation-local clock sync keys for this computer would
+    // otherwise outlive it in SharedPreferences (issue #1216).
+    await _ref.read(clockSyncSettingsNotifierProvider.notifier).forget(id);
     await _load();
     _ref.invalidate(allDiveComputersProvider);
     _ref.invalidate(favoriteDiveComputerProvider);

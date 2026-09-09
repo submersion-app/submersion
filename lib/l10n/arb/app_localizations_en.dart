@@ -21577,6 +21577,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'This certifies that';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'App setting: off';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'App setting: on';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Clock sync';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Check again';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Sets the clock to this device\'s time after each download. Applies to this device only.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle => 'Sync dive computer clocks';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Always';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'App setting';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Never';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Supported by this model';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'This model does not support clock sync';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21781,6 +21816,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download cancelled';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => 'Clock sync failed';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'Clock sync is not supported by this model';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Clock synced';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -36299,7 +36344,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get suuntoCloud_signIn_description =>
-      'Sign in with your app.suunto.com account to import your dives directly. Your password is never stored — only the resulting session is cached.';
+      'Sign in with your app.suunto.com account to import your dives directly. Your password is never stored; only the resulting session is cached.';
 
   @override
   String get suuntoCloud_signIn_emailLabel => 'Email';
@@ -36384,7 +36429,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get garminConnect_signIn_description =>
-      'Sign in with your Garmin Connect account to import your dives directly. Your password is never stored — only the resulting session is cached.';
+      'Sign in with your Garmin Connect account to import your dives directly. Your password is never stored; only the resulting session is cached.';
 
   @override
   String get garminConnect_signIn_emailLabel => 'Email';
@@ -36789,4 +36834,275 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (auto)';
   }
+
+  @override
+  String get settings_manage_transmitters => 'Transmitters';
+
+  @override
+  String get settings_manage_transmitters_subtitle =>
+      'Link air-integration transmitters to cylinders';
+
+  @override
+  String get transmitters_title => 'Transmitters';
+
+  @override
+  String get transmitters_add => 'Add transmitter';
+
+  @override
+  String get transmitters_header_assigned => 'Assigned transmitters';
+
+  @override
+  String get transmitters_header_unassigned =>
+      'Seen in downloads, not assigned';
+
+  @override
+  String get transmitters_empty =>
+      'No transmitters yet. Add one, or assign a serial after your next download.';
+
+  @override
+  String get transmitters_action_assign => 'Assign';
+
+  @override
+  String get transmitters_action_edit => 'Edit transmitter';
+
+  @override
+  String get transmitters_action_delete => 'Delete transmitter';
+
+  @override
+  String get transmitters_action_apply => 'Apply to existing dives';
+
+  @override
+  String get transmitters_apply_title => 'Apply to existing dives?';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks cylinders on $dives dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas will be replaced.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return 'Updated $tanks cylinders on $dives dives';
+  }
+
+  @override
+  String get transmitters_apply_nothing =>
+      'No cylinders carry this transmitter';
+
+  @override
+  String get transmitters_delete_title => 'Delete transmitter?';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'Future downloads from $label will use the default preset again.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer, channel $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return 'Transmitter $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'Edit transmitter';
+
+  @override
+  String get transmitters_new_title => 'New transmitter';
+
+  @override
+  String get transmitters_field_label => 'Label';
+
+  @override
+  String get transmitters_field_serial => 'Transmitter serial';
+
+  @override
+  String get transmitters_field_computer =>
+      'Dive computer (when no serial is reported)';
+
+  @override
+  String get transmitters_field_channel => 'Channel';
+
+  @override
+  String get transmitters_field_role => 'Role';
+
+  @override
+  String get transmitters_field_gear => 'Cylinder from gear';
+
+  @override
+  String get transmitters_field_material => 'Material';
+
+  @override
+  String get transmitters_gear_none => 'None';
+
+  @override
+  String get transmitters_validation_key =>
+      'Enter a transmitter serial, or pick a dive computer and channel';
+
+  @override
+  String get transmitters_validation_positive =>
+      'Enter a value greater than zero';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'Already assigned to $label';
+  }
+
+  @override
+  String get transmitters_saved => 'Transmitter saved';
+
+  @override
+  String get diveComputer_detail_transmitters => 'Transmitters';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known known, $unassigned unassigned';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'Assign transmitter';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'Reassign pressure series';
+
+  @override
+  String get diveLog_reassignSheet_title => 'Pressure series';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'Swap';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'Move to';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count readings',
+      one: '1 reading',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'No pressure series';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'Pressure series reassigned';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'Unassigned transmitters';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'One or more transmitters in this download are not assigned to a cylinder. Assign them so future downloads get the right size and role.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters =>
+      'Assign transmitters';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter =>
+      'Unassigned transmitter';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'Transmitter $serial is not assigned to a cylinder';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter => 'Assign transmitter';
+
+  @override
+  String get backup_unrecognized_appBar_title => 'Unrecognized Backups';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'These files are in your backups folder but not in this device\'s backup history. Only a file this device wrote can be deleted here: anything else may be another device\'s only copy.';
+
+  @override
+  String get backup_unrecognized_empty => 'No unrecognized backup files.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'Could not read the backups folder.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'This device cannot list the backup folder you chose, so unrecognized files cannot be found.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Another device';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'Unknown device';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete $count files ($size)',
+      one: 'Delete 1 file ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title => 'Delete these backup files?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count backup files will be permanently deleted. This cannot be undone.',
+      one: '1 backup file will be permanently deleted. This cannot be undone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Could not delete the selected files.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return 'Freed $size';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files not in your backup history',
+      one: '1 file not in your backup history',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Review';
 }

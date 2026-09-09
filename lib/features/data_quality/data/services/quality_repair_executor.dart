@@ -317,6 +317,30 @@ class QualityRepairExecutor {
     });
   }
 
+  /// Exchange two tanks' computer bundles from the dive page, outside any
+  /// finding. Same write, notify and undo contract as [swapPressureSeries];
+  /// the targeted rescan lets a twin-tank finding clear itself.
+  Future<RepairResult> exchangeTankSources({
+    required String diveId,
+    required String tankIdA,
+    required String tankIdB,
+  }) async {
+    Future<void> run() async {
+      await _db.transaction(
+        () => _tankRepo.exchangeTankSources(
+          diveId: diveId,
+          tankIdA: tankIdA,
+          tankIdB: tankIdB,
+        ),
+      );
+      SyncEventBus.notifyLocalChange();
+      scheduleQualityScan([diveId]);
+    }
+
+    await run();
+    return RepairResult.applied(run);
+  }
+
   Future<RepairResult> setPrimarySource({
     required String diveId,
     required String sourceId,

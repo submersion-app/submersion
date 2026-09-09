@@ -2457,6 +2457,16 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.sensors),
+                  title: Text(context.l10n.settings_manage_transmitters),
+                  subtitle: Text(
+                    context.l10n.settings_manage_transmitters_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/transmitters'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.fitness_center),
                   title: Text(context.l10n.settings_manage_weightPresets),
                   subtitle: Text(
