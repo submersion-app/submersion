@@ -108,9 +108,11 @@ void main() {
       fromTankId: 'tB',
       toTankId: 'tA',
     );
+    // Since v200 a reassign is an exchange: tA takes tB's single point and
+    // tB takes tA's two, so the undo (the same call reversed) is lossless.
     final byTank = await tankRepo.getTankPressuresForDive('d1');
-    expect(byTank.containsKey('tB'), isFalse);
-    expect(byTank['tA']!, hasLength(3));
+    expect(byTank['tA']!, hasLength(1));
+    expect(byTank['tB']!, hasLength(2));
   });
 
   test('updateTankRecordPressures swaps start/end on the record', () async {
