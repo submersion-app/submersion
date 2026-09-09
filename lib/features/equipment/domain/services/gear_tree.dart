@@ -61,6 +61,13 @@ abstract final class GearTree {
     };
   }
 
+  /// How many rows render as top-level once placed. Reads the placement
+  /// rather than `isTopLevel` so an orphan (parent not on the dive) or a
+  /// promoted loop row counts, matching what the renderer shows.
+  static int topLevelCount(Iterable<GearProvenance> rows) => _place([
+    for (final r in rows) (id: r.equipmentId, parent: r.viaEquipmentId),
+  ]).roots.length;
+
   /// Items with no child row on this dive once placed, in link order.
   static List<EquipmentItem> leafItems(List<GearLink> links) {
     final placement = _place([

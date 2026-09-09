@@ -99,4 +99,26 @@ void main() {
     expect(root.link.item.id, 'a');
     expect(root.children.single.link.item.id, 'b');
   });
+
+  test('topLevelCount counts what the renderer shows as top-level rows', () {
+    // The nominal fixture's provenance rows: kit and cam are top-level (the
+    // mask has no provenance row at all and is not in this list).
+    expect(GearTree.topLevelCount(provenance), 2);
+    // An orphan whose parent is not on the dive is promoted, so it counts
+    // even though its viaEquipmentId is set.
+    expect(
+      GearTree.topLevelCount(const [
+        GearProvenance(equipmentId: 'hose', viaEquipmentId: 'missing'),
+      ]),
+      1,
+    );
+    // A loop is one promoted root with the other row beneath it.
+    expect(
+      GearTree.topLevelCount(const [
+        GearProvenance(equipmentId: 'a', viaEquipmentId: 'b'),
+        GearProvenance(equipmentId: 'b', viaEquipmentId: 'a'),
+      ]),
+      1,
+    );
+  });
 }

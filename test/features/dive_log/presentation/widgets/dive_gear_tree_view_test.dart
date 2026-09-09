@@ -148,4 +148,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.close), findsNothing);
   });
+
+  testWidgets('a set-only callback shows no row controls that would do '
+      'nothing', (tester) async {
+    await tester.pumpWidget(build(arrangement: flat, onRemoveSet: (_) {}));
+    await tester.pumpAndSettle();
+    // Only the set header's own button; no per-row close icons.
+    expect(find.byIcon(Icons.close), findsOneWidget);
+    expect(find.byTooltip('Remove set from this dive'), findsOneWidget);
+    expect(find.byTooltip('Remove assembly and its parts'), findsNothing);
+    expect(find.byTooltip('Remove equipment'), findsNothing);
+  });
 }

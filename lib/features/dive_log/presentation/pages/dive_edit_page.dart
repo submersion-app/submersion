@@ -33,6 +33,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
@@ -2869,11 +2870,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     return [
       l10n.diveLog_edit_summary_tanks(_tanks.length),
       ?mix,
-      // Top-level rows: an assembly's parts sit inside its row (#1487).
+      // Top-level rows as the tree view places them: an assembly's parts
+      // sit inside its row and an orphaned row is promoted (#1487).
       if (_selectedEquipment.isNotEmpty)
-        l10n.diveLog_edit_summary_items(
-          _gearRows.where((p) => p.isTopLevel).length,
-        ),
+        l10n.diveLog_edit_summary_items(GearTree.topLevelCount(_gearRows)),
     ].join(' · ');
   }
 

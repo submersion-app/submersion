@@ -19,10 +19,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// by the diver's arrangement, an assembly as one collapsed row that
 /// expands in place to its parts in template order.
 ///
-/// Passing any remove callback puts the view in edit mode. A top-level
-/// row, loose or assembly, is removed through [onRemoveSubtree] (a loose
-/// row is a one-row subtree); a part beneath an assembly through
-/// [onRemovePart]; a whole band through [onRemoveSet].
+/// A row-removal callback puts the rows in edit mode. A top-level row,
+/// loose or assembly, is removed through [onRemoveSubtree] (a loose row is
+/// a one-row subtree); a part beneath an assembly through [onRemovePart];
+/// a whole band through [onRemoveSet], which only affects the band header.
 class DiveGearTreeView extends ConsumerStatefulWidget {
   final List<GearLink> links;
   final void Function(EquipmentItem item)? onTap;
@@ -46,10 +46,10 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
 class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
   final _expanded = <String>{};
 
+  /// Row controls appear only when a row removal can do something; the set
+  /// header owns its own button, so a set-only caller gets no dead icons.
   bool get _editable =>
-      widget.onRemoveSet != null ||
-      widget.onRemoveSubtree != null ||
-      widget.onRemovePart != null;
+      widget.onRemoveSubtree != null || widget.onRemovePart != null;
 
   @override
   Widget build(BuildContext context) {

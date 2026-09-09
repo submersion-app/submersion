@@ -14,6 +14,7 @@ import 'package:submersion/core/constants/dive_detail_section_pairs.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
@@ -4623,10 +4624,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Get collapsed state from provider
     final isExpanded = ref.watch(equipmentSectionExpandedProvider);
 
-    // Collapsed subtitle showing the top-level row count: an assembly's
-    // parts sit inside its row, so they are not counted twice (#1487).
+    // Collapsed subtitle showing the top-level row count as the tree view
+    // places it: an assembly's parts sit inside its row, and an orphaned
+    // row is promoted, so the count matches what expands below (#1487).
     final collapsedSubtitle = context.l10n.diveLog_detail_equipmentCount(
-      dive.gear.where((g) => g.isTopLevel).length,
+      GearTree.topLevelCount(dive.gearProvenance),
     );
 
     return CollapsibleCardSection(
