@@ -2,7 +2,7 @@
 
 Date: 2026-09-08
 Issue: https://github.com/submersion-app/submersion/issues/1216
-Status: design approved in chat, awaiting written review
+Status: approved; implementation plan at docs/superpowers/plans/2026-09-08-dive-computer-clock-sync.md
 
 ## Goal
 
@@ -152,8 +152,8 @@ void onDownloadComplete(
 | Platform | Change |
 |---|---|
 | Swift (`darwin/Sources/LibDCDarwin/DiveComputerHostApiImpl.swift`) | `startDownload` takes `syncClock`; `runOnce` passes it and reads `clock_sync_out` into `RunResult.clockSyncStatus`; `reportDownloadResult` forwards the name string. Both BLE and serial callers pass the flag. |
-| Kotlin in-process (`DiveComputerHostApiImpl.kt`, `LibdcWrapper.kt`, `libdc_jni.cpp`) | `nativeDownloadRun` gains `syncClock: Boolean` and an `IntArray(3)` out-param for serial, firmware, and clock status (replacing the `nullptr, nullptr` out-params in the JNI). `onDownloadComplete` reports the real serial, firmware, and status. |
-| Kotlin cross-process serial (`SerialDownloadRequest.kt` + `.aidl`, `IDiveDownloadCallback.aidl`, `SerialDownloadRunner.kt`, `SerialDownloadClient.kt`) | `SerialDownloadRequest` gains `syncClock`. `onComplete` gains `String serialNumber, String firmwareVersion, String clockSyncStatus` (empty string for absent, since AIDL strings are not nullable). The client maps empty to null. |
+| Kotlin in-process (`DiveComputerHostApiImpl.kt`, `LibdcWrapper.kt`, `libdc_jni.cpp`, `LibdcDownloadInfo.kt`) | `nativeDownloadRun` gains `syncClock: Boolean` and an `IntArray(3)` out-param for serial, firmware, and clock status code (replacing the `nullptr, nullptr` out-params in the JNI). The status code is named by a Kotlin twin of the C table, `libdcClockSyncStatusName`, pinned by a JVM test the way `libdcEventTypeName` already is, because the `:dc` process and JVM tests need it without a native call. `onDownloadComplete` reports the real serial, firmware, and status. |
+| Kotlin cross-process serial (`SerialDownloadRequest.kt` + `.aidl`, `IDiveDownloadCallback.aidl`, `SerialDownloadRunner.kt`, `SerialDownloadClient.kt`) | `SerialDownloadRequest` gains `syncClock`. `onComplete` gains `String serialNumber, String firmwareVersion, String clockSyncStatus`, all nullable (AIDL strings are nullable), null meaning absent. |
 | Linux (`linux/dive_computer_host_api_impl.cc`) | `DownloadThreadData.sync_clock`; every `libdc_download_run` call in the serial probe loop passes it; the `g_idle_add` completion carries the status. |
 | Windows (`windows/dive_computer_host_api_impl.cc`) | Same shape as Linux: a copied flag on the thread, status threaded into `OnDownloadComplete`. |
 
@@ -215,13 +215,14 @@ rebuild on any change. Provider name: `clockSyncSettingsNotifierProvider`.
 - `DownloadState` gains `final ClockSyncStatus? clockSyncStatus` with an enum
   `ClockSyncStatus { notRequested, synced, unsupported, failed }` parsed from
   the wire name in `DiveComputerService`. `DownloadCompleteEvent` carries it.
-- On `DownloadCompleteEvent`, the notifier stores the status in state. If the
-  status is `synced` or `unsupported` and `_computer` is non-null, it calls
-  `recordSupport`. A `failed` result records nothing.
-- Import wizard first-download path: `DcAdapterSteps` already calls
-  `ensureComputer` after completion. `ensureComputer` returns the resolved
-  `DiveComputer`; the step then records support for that id from the
-  captured `DownloadState.clockSyncStatus` under the same rule.
+- On `DownloadCompleteEvent`, the notifier only stores the parsed status in
+  state.
+- Support is recorded in one place: `DcAdapterDownloadStep`, which both the
+  saved-computer and first-discovery flows run through, already calls
+  `ensureComputer` after completion and then reads the adapter's resolved
+  `computer`. It records support for that id from the captured
+  `DownloadState.clockSyncStatus`: `synced` records supported,
+  `unsupported` records unsupported, and a `failed` result records nothing.
 - `DiveComputerNotifier.deleteComputer` calls `forget(id)` after the
   repository delete succeeds.
 
@@ -299,20 +300,27 @@ New keys, added to every locale's ARB and regenerated:
 
 ### Native tests (`packages/libdivecomputer_plugin/test/native/`)
 
-- `test_download_clock_sync.c`, linked like `test_parse_raw_dive` against
-  the full libdivecomputer plus wrapper:
-  1. OSTC 3 over a scripted serial custom iostream with `sync_clock = 1`:
-     asserts a CLOCK command is written whose six payload bytes decode to
-     a wall-clock time between `dc_datetime_localtime(dc_datetime_now())`
-     captured immediately before and after the run (the real clock cannot
-     be pinned, so the test brackets it), and that
-     `clock_sync_out == LIBDC_CLOCK_SYNC_SYNCED`.
-  2. Same script with `sync_clock = 0`: no CLOCK command, status
-     `NOT_REQUESTED`.
-  3. The existing scripted Uwatec G2 BLE conversation with
-     `sync_clock = 1`: status `UNSUPPORTED`, download result unchanged.
-  4. A script whose CLOCK reply is a NAK: status `FAILED`, download result
-     still 0.
+- The sync step is factored out of `libdc_download_run` as
+  `libdc_sync_device_clock(device, requested, download_succeeded)`, which
+  the run function calls with `sync_clock` and
+  `status == DC_STATUS_SUCCESS && !session->cancelled`. A scripted
+  whole-device download cannot be specified reliably, so
+  `test_download_clock_sync.c` (linked like `test_parse_raw_dive` against
+  the full libdivecomputer plus wrapper) drives that function with a
+  hand-built `dc_device_t` whose vtable is a fake, exercising the real
+  `dc_device_timesync` dispatcher and the real `dc_datetime_*` helpers:
+  1. `requested = 0`: status `NOT_REQUESTED`, timesync never called.
+  2. `download_succeeded = 0`: status `NOT_REQUESTED`, timesync never called.
+  3. A vtable whose timesync records its argument and succeeds: status
+     `SYNCED`; the received `dc_datetime_t` converts to an instant between
+     `dc_datetime_localtime(dc_datetime_now())` captured immediately before
+     and after the call (the real clock cannot be pinned, so the test
+     brackets it), and its `timezone` equals the host offset, not
+     `DC_TIMEZONE_NONE`.
+  4. A vtable with a NULL timesync slot: status `UNSUPPORTED` and no warning
+     logged.
+  5. A vtable whose timesync returns `DC_STATUS_IO`: status `FAILED` and one
+     warning naming the status through the log callback.
 - `test_event_type_names.c` gains assertions for the four
   `libdc_clock_sync_status_name` strings.
 - Both are registered in `CMakeLists.txt` and run by
@@ -352,6 +360,7 @@ Native plugin:
 - `pigeons/dive_computer_api.dart` and the five generated outputs
 - `darwin/Sources/LibDCDarwin/DiveComputerHostApiImpl.swift`
 - `android/.../DiveComputerHostApiImpl.kt`, `LibdcWrapper.kt`,
+  `LibdcDownloadInfo.kt` (new, with a JVM test),
   `SerialDownloadRequest.kt`, `SerialDownloadRunner.kt`,
   `SerialDownloadClient.kt`, `aidl/.../SerialDownloadRequest.aidl`,
   `aidl/.../IDiveDownloadCallback.aidl`, `src/main/cpp/libdc_jni.cpp`
