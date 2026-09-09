@@ -61,6 +61,30 @@ abstract final class GearTree {
     };
   }
 
+  /// Ids nested under a parent once placed: the rows a chip list folds into
+  /// their assembly's count. An orphan whose parent is absent, or the
+  /// promoted row of a loop, is a top-level row and not one of these.
+  static Set<String> partIds(Iterable<GearProvenance> rows) {
+    final roots = _place([
+      for (final r in rows) (id: r.equipmentId, parent: r.viaEquipmentId),
+    ]).roots.toSet();
+    return {
+      for (final r in rows)
+        if (!roots.contains(r.equipmentId)) r.equipmentId,
+    };
+  }
+
+  /// Parts under each assembly id once placed, for chip labels.
+  static Map<String, int> partCounts(Iterable<GearProvenance> rows) {
+    final placement = _place([
+      for (final r in rows) (id: r.equipmentId, parent: r.viaEquipmentId),
+    ]);
+    return {
+      for (final e in placement.children.entries)
+        if (e.value.isNotEmpty) e.key: e.value.length,
+    };
+  }
+
   /// How many rows render as top-level once placed. Reads the placement
   /// rather than `isTopLevel` so an orphan (parent not on the dive) or a
   /// promoted loop row counts, matching what the renderer shows.

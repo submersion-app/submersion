@@ -100,6 +100,18 @@ void main() {
     expect(root.children.single.link.item.id, 'b');
   });
 
+  test('partIds and partCounts follow the placement, not the raw parent', () {
+    expect(GearTree.partIds(provenance), {'reg', 'hose', 'fins'});
+    expect(GearTree.partCounts(provenance), {'kit': 2, 'reg': 1});
+    // An orphan is not a part: its parent is not on the dive, so it is a
+    // top-level row that a chip list must still show.
+    const orphan = [
+      GearProvenance(equipmentId: 'hose', viaEquipmentId: 'missing'),
+    ];
+    expect(GearTree.partIds(orphan), isEmpty);
+    expect(GearTree.partCounts(orphan), isEmpty);
+  });
+
   test('topLevelCount counts what the renderer shows as top-level rows', () {
     // The nominal fixture's provenance rows: kit and cam are top-level (the
     // mask has no provenance row at all and is not in this list).

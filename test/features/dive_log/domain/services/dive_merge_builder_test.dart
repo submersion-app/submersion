@@ -6,6 +6,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_merge_builder.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 
 Dive dive(
   String id, {
@@ -327,6 +330,45 @@ void main() {
       expect(result.tankIdMap['tA1'], tanks[0].id);
       expect(result.tankIdMap['tB1'], tanks[1].id);
       expect(tanks[0].id, isNot('tA1')); // fresh id
+    });
+
+    test('gear keeps the most informative link per item (#1487)', () {
+      const reg = EquipmentItem(
+        id: 'reg',
+        name: 'Reg',
+        type: EquipmentType.regulator,
+      );
+      const hose = EquipmentItem(
+        id: 'hose',
+        name: 'Hose',
+        type: EquipmentType.hose,
+      );
+      // The older dive has the hose loose; the later one has it as a part
+      // of the regulator, from a set. First-seen would keep the loose link
+      // and re-open the assembly/part double count in buoyancy.
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+      ).copyWith(gear: looseGear(const [hose]));
+      final b = dive('b', entry: DateTime.utc(2026, 7, 1, 10)).copyWith(
+        gear: gearLinksFor(
+          const [reg, hose],
+          const [
+            GearProvenance(equipmentId: 'reg', viaSetId: 'winter'),
+            GearProvenance(
+              equipmentId: 'hose',
+              viaEquipmentId: 'reg',
+              viaSetId: 'winter',
+            ),
+          ],
+        ),
+      );
+      final merged = builder.build([a, b]).mergedDive;
+      // First-seen order, most informative link.
+      expect(merged.gear.map((g) => g.item.id), ['hose', 'reg']);
+      final mergedHose = merged.gear.firstWhere((g) => g.item.id == 'hose');
+      expect(mergedHose.viaEquipmentId, 'reg');
+      expect(mergedHose.viaSetId, 'winter');
     });
 
     test('weights come from the first dive that has any', () {

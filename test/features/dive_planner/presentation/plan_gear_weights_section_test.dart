@@ -212,6 +212,46 @@ void main() {
     expect(container.read(divePlanNotifierProvider).equipmentIds, isEmpty);
   });
 
+  testWidgets('an orphaned part still shows as its own chip', (tester) async {
+    const hose = EquipmentItem(
+      id: 'hose',
+      name: 'Hose',
+      type: EquipmentType.hose,
+    );
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...base,
+          weightObservationsProvider.overrideWith((ref) async => const []),
+          allEquipmentProvider.overrideWith((ref) async => const [hose]),
+          activeEquipmentProvider.overrideWith((ref) async => const [hose]),
+          latestDiverWeightProvider.overrideWith((ref) async => null),
+          latestDiverHeightProvider.overrideWith((ref) async => null),
+        ],
+        child: const PlanGearWeightsSection(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The parent is not on the plan, so the part is a top-level row and
+    // must be visible and removable rather than hidden behind nothing.
+    ProviderScope.containerOf(
+          tester.element(find.byType(PlanGearWeightsSection)),
+        )
+        .read(divePlanNotifierProvider.notifier)
+        .setGear(
+          const ['hose'],
+          const [
+            GearProvenance(equipmentId: 'hose', viaEquipmentId: 'missing'),
+          ],
+        );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hose'), findsOneWidget);
+    expect(find.byType(InputChip), findsOneWidget);
+  });
+
   testWidgets('shows the empty invitation without gear', (tester) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(

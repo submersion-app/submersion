@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -126,15 +127,12 @@ class PlanGearWeightsSection extends ConsumerWidget {
     final equipment = ref.watch(allEquipmentProvider).valueOrNull ?? const [];
     final itemsById = {for (final item in equipment) item.id: item};
     final buoyancy = ref.watch(planBuoyancyTwinProvider);
-    // Parts sit inside their assembly's chip as a count (issue #1487).
-    final partIds = <String>{};
-    final partCounts = <String, int>{};
-    for (final p in state.gearProvenance) {
-      final parent = p.viaEquipmentId;
-      if (parent == null) continue;
-      partIds.add(p.equipmentId);
-      partCounts[parent] = (partCounts[parent] ?? 0) + 1;
-    }
+    // Parts sit inside their assembly's chip as a count (issue #1487). The
+    // tree's placement decides what is a part, so an orphaned row whose
+    // parent is not on the plan stays visible as its own chip.
+    final rows = _fullProvenance(state);
+    final partIds = GearTree.partIds(rows);
+    final partCounts = GearTree.partCounts(rows);
 
     return Card(
       child: Padding(

@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 /// Why a merge was rejected outright (neither sequential nor overlapping).
@@ -263,13 +264,23 @@ class DiveMergeBuilder {
       }
     }
 
-    // Equipment: union by item id.
-    final seenEquipment = <String>{};
-    final mergedGear = [
-      for (final d in sorted)
-        for (final g in d.gear)
-          if (seenEquipment.add(g.item.id)) g,
-    ];
+    // Equipment: union by item id in first-seen order, keeping the most
+    // informative link for an item both dives carry: a part link over a
+    // loose one, then a link that names its set (#1487). Keeping the first
+    // link would flatten an assembly and re-open the part double count in
+    // buoyancy.
+    int informative(GearLink g) =>
+        (g.viaEquipmentId != null ? 2 : 0) + (g.viaSetId != null ? 1 : 0);
+    final gearById = <String, GearLink>{};
+    for (final d in sorted) {
+      for (final g in d.gear) {
+        final current = gearById[g.item.id];
+        if (current == null || informative(g) > informative(current)) {
+          gearById[g.item.id] = g;
+        }
+      }
+    }
+    final mergedGear = gearById.values.toList();
 
     // Sightings: union; same species merged (counts summed, notes joined).
     final bySpecies = <String, MarineSighting>{};

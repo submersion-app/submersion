@@ -288,21 +288,12 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
     }
   }
 
-  /// Ids in [_gear] that are parts of an assembly also in [_gear].
-  Set<String> get _partIds => {
-    for (final p in _gearProvenance)
-      if (p.viaEquipmentId != null) p.equipmentId,
-  };
+  /// Ids in [_gear] that are parts of an assembly also in [_gear], as the
+  /// tree places them: an orphaned row stays a visible chip.
+  Set<String> get _partIds => GearTree.partIds(_gearProvenance);
 
   /// Parts under each assembly id, for the chip label.
-  Map<String, int> get _partCounts {
-    final counts = <String, int>{};
-    for (final p in _gearProvenance) {
-      final parent = p.viaEquipmentId;
-      if (parent != null) counts[parent] = (counts[parent] ?? 0) + 1;
-    }
-    return counts;
-  }
+  Map<String, int> get _partCounts => GearTree.partCounts(_gearProvenance);
 
   /// Every add funnels here so an assembly expands into its parts the same
   /// way it does on a dive (issue #1487). The prediction delta is shown
