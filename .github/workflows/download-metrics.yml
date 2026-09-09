@@ -1,0 +1,121 @@
+# Daily Release Download Metrics
+#
+# GitHub reports `download_count` per release asset as a single lifetime
+# integer: no history, no per-day breakdown, and no way to ask what a count was
+# last week. Snapshotting it on a schedule is the only way to get trend data,
+# so this job records the counts once a day and commits them to an orphan
+# branch.
+#
+# The orphan branch keeps a daily bot commit out of `main`, where it would
+# churn the source history and re-trigger CI on every push.
+
+name: Download Metrics
+
+on:
+  schedule:
+    - cron: '20 5 * * *' # Daily at 05:20 UTC
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Record every asset, not only those whose count changed'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# Never cancel in progress: a cancelled run loses that day's snapshot, and the
+# counts it would have read cannot be recovered afterwards.
+concurrency:
+  group: download-metrics
+  cancel-in-progress: false
+
+env:
+  METRICS_BRANCH: download-metrics
+  METRICS_CSV: download_counts.csv
+
+jobs:
+  snapshot:
+    name: Snapshot release download counts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+
+      - name: Check out (or create) the metrics branch
+        # A separate clone rather than a second actions/checkout: the branch
+        # does not exist before the first run, and `actions/checkout` with a
+        # `ref:` that has no commits fails rather than creating it.
+        env:
+          REMOTE: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        run: |
+          set -euo pipefail
+          git init -q metrics
+          git -C metrics remote add origin "$REMOTE"
+          if git -C metrics fetch -q --depth=1 origin "$METRICS_BRANCH" 2>/dev/null; then
+            git -C metrics checkout -q -B "$METRICS_BRANCH" FETCH_HEAD
+          else
+            echo "Branch $METRICS_BRANCH does not exist yet; creating it."
+            git -C metrics checkout -q --orphan "$METRICS_BRANCH"
+          fi
+
+      - name: Snapshot download counts
+        env:
+          # Only for the higher API rate limit; the endpoint is public.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          full=''
+          if [ "${{ inputs.full }}" = 'true' ]; then
+            full='--full'
+          fi
+          python3 scripts/download_metrics.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --csv "metrics/$METRICS_CSV" \
+            $full | tee snapshot-summary.txt
+
+      - name: Refresh the branch README
+        run: cp scripts/data/download_metrics_readme.md metrics/README.md
+
+      - name: Commit and push the snapshot
+        run: |
+          set -euo pipefail
+          cd metrics
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No count changed since the last snapshot; nothing to commit."
+            exit 0
+          fi
+          git commit -q -m "Record release download counts for $(date -u +%Y-%m-%d)"
+          for attempt in 1 2 3; do
+            if git push -q origin "$METRICS_BRANCH"; then
+              exit 0
+            fi
+            echo "::warning::push failed (attempt $attempt/3)"
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 5))
+            fi
+          done
+          echo "::error::could not push to $METRICS_BRANCH after 3 attempts"
+          exit 1
+
+      - name: Publish the summary
+        if: always()
+        run: |
+          {
+            echo '### Release download counts'
+            echo
+            echo '```'
+            cat snapshot-summary.txt 2>/dev/null || echo 'No snapshot was taken.'
+            echo '```'
+            echo
+            echo "Full history: [\`$METRICS_BRANCH\`](https://github.com/$GITHUB_REPOSITORY/blob/$METRICS_BRANCH/$METRICS_CSV)"
+          } >> "$GITHUB_STEP_SUMMARY"
