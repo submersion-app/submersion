@@ -166,9 +166,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   String? _validParentIdFor(EquipmentType type) {
     final id = _parentEquipmentId;
     if (id == null) return null;
-    final items =
-        ref.read(activeEquipmentProvider).valueOrNull ??
-        const <EquipmentItem>[];
+    // While the active list is still loading (or failed) the id is kept as
+    // is: a quick open-and-save must not drop a link the page never got to
+    // check.
+    final items = ref.read(activeEquipmentProvider).valueOrNull;
+    if (items == null) return id;
     final allowed = _parentTypesFor(type);
     return items.any((e) => e.id == id && allowed.contains(e.type)) ? id : null;
   }

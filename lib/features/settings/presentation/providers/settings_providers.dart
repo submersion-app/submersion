@@ -1600,13 +1600,17 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// A negative depth line would count every dive with a depth as deep.
   Future<void> setDeepDiveThresholdM(double value) async {
-    state = state.copyWith(deepDiveThresholdM: value);
+    state = state.copyWith(deepDiveThresholdM: value < 0 ? 0.0 : value);
     await _saveSettings();
   }
 
+  /// An O2 fraction outside 0 to 100 percent is not a mix that exists.
   Future<void> setHighO2ThresholdPercent(double value) async {
-    state = state.copyWith(highO2ThresholdPercent: value);
+    state = state.copyWith(
+      highO2ThresholdPercent: value.clamp(0.0, 100.0).toDouble(),
+    );
     await _saveSettings();
   }
 

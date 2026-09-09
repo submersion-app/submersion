@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -110,6 +112,62 @@ void main() {
     final saved = await repository.getEquipmentById(battery.id);
     expect(saved!.type, EquipmentType.o2Cell);
     expect(saved.parentEquipmentId, isNull);
+  });
+
+  testWidgets('saving while the active list is loading keeps the parent', (
+    tester,
+  ) async {
+    final unit = await repository.createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'JJ-CCR',
+        type: EquipmentType.rebreather,
+      ),
+    );
+    final cell = await repository.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Cell 1',
+        type: EquipmentType.o2Cell,
+        parentEquipmentId: unit.id,
+      ),
+    );
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          equipmentRepositoryProvider.overrideWithValue(repository),
+          // Never resolves: the page saves before the candidates are known.
+          activeEquipmentProvider.overrideWith(
+            (ref) => Completer<List<EquipmentItem>>().future,
+          ),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: EquipmentEditPage(equipmentId: cell.id, embedded: true),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      (await repository.getEquipmentById(cell.id))!.parentEquipmentId,
+      unit.id,
+    );
   });
 
   testWidgets('a regulator shows no parent picker', (tester) async {
