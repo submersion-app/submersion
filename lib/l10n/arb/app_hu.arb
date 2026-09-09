@@ -2551,6 +2551,8 @@
   "diveLog_tank_selectPreset": "Valasszon elore beallitast...",
   "diveLog_tank_title": "{number}. palack",
   "diveLog_tank_tooltip_remove": "Palack eltavolitasa",
+  "diveLog_tank_regulatorLabel": "Reduktor",
+  "diveLog_tank_regulatorNone": "Nincs",
   "diveLog_tissue_label_ceiling": "Plafon",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",

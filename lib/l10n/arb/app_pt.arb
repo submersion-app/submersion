@@ -2635,6 +2635,8 @@
   "diveLog_tank_selectPreset": "Selecionar Preset...",
   "diveLog_tank_title": "Cilindro {number}",
   "diveLog_tank_tooltip_remove": "Remover cilindro",
+  "diveLog_tank_regulatorLabel": "Regulador",
+  "diveLog_tank_regulatorNone": "Nenhum",
   "diveLog_tissue_label_ceiling": "Teto",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",

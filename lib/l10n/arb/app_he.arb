@@ -2551,6 +2551,8 @@
   "diveLog_tank_selectPreset": "בחר תבנית...",
   "diveLog_tank_title": "בלון {number}",
   "diveLog_tank_tooltip_remove": "הסר בלון",
+  "diveLog_tank_regulatorLabel": "וסת",
+  "diveLog_tank_regulatorNone": "ללא",
   "diveLog_tissue_label_ceiling": "תקרה",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",

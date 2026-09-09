@@ -7681,6 +7681,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'Flasche entfernen';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'Atemregler';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'Keiner';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'Ceiling';
 
   @override

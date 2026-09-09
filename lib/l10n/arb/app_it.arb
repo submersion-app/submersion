@@ -2551,6 +2551,8 @@
   "diveLog_tank_selectPreset": "Seleziona preset...",
   "diveLog_tank_title": "Bombola {number}",
   "diveLog_tank_tooltip_remove": "Rimuovi bombola",
+  "diveLog_tank_regulatorLabel": "Erogatore",
+  "diveLog_tank_regulatorNone": "Nessuno",
   "diveLog_tissue_label_ceiling": "Ceiling",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",

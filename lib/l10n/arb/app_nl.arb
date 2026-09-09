@@ -2635,6 +2635,8 @@
   "diveLog_tank_selectPreset": "Selecteer voorinstelling...",
   "diveLog_tank_title": "Fles {number}",
   "diveLog_tank_tooltip_remove": "Fles verwijderen",
+  "diveLog_tank_regulatorLabel": "Ademautomaat",
+  "diveLog_tank_regulatorNone": "Geen",
   "diveLog_tissue_label_ceiling": "Plafond",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",

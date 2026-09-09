@@ -2635,6 +2635,8 @@
   "diveLog_tank_selectPreset": "Vorlage auswählen...",
   "diveLog_tank_title": "Flasche {number}",
   "diveLog_tank_tooltip_remove": "Flasche entfernen",
+  "diveLog_tank_regulatorLabel": "Atemregler",
+  "diveLog_tank_regulatorNone": "Keiner",
   "diveLog_tissue_label_ceiling": "Ceiling",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",

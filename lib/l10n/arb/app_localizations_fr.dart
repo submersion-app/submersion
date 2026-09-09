@@ -7724,6 +7724,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'Retirer le bloc';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'Détendeur';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'Aucun';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'Plafond';
 
   @override

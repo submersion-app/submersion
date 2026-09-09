@@ -7304,6 +7304,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => '移除气瓶';
 
   @override
+  String get diveLog_tank_regulatorLabel => '调节器';
+
+  @override
+  String get diveLog_tank_regulatorNone => '无';
+
+  @override
   String get diveLog_tissue_label_ceiling => '上升限制';
 
   @override

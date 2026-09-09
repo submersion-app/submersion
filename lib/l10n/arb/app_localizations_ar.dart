@@ -7527,6 +7527,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'إزالة الأسطوانة';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'منظم التنفس';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'لا شيء';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'السقف';
 
   @override

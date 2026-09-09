@@ -2635,6 +2635,8 @@
   "diveLog_tank_selectPreset": "اختر إعداداً مسبقاً...",
   "diveLog_tank_title": "أسطوانة {number}",
   "diveLog_tank_tooltip_remove": "إزالة الأسطوانة",
+  "diveLog_tank_regulatorLabel": "منظم التنفس",
+  "diveLog_tank_regulatorNone": "لا شيء",
   "diveLog_tissue_label_ceiling": "السقف",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",

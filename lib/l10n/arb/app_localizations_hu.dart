@@ -7665,6 +7665,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'Palack eltavolitasa';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'Reduktor';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'Nincs';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'Plafon';
 
   @override

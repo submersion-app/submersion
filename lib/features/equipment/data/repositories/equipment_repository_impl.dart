@@ -831,6 +831,25 @@ class EquipmentRepository {
     }
   }
 
+  /// The regulator last paired with a cylinder preset, for prefilling the
+  /// tank editor: the newest dive whose tank of that preset names one.
+  Future<String?> getLastRegulatorForPreset(String presetName) async {
+    final rows = await _db
+        .customSelect(
+          '''
+      SELECT t.regulator_equipment_id AS reg
+      FROM dive_tanks t
+      JOIN dives d ON d.id = t.dive_id
+      WHERE t.preset_name = ?1 AND t.regulator_equipment_id IS NOT NULL
+      ORDER BY d.dive_date_time DESC
+      LIMIT 1
+    ''',
+          variables: [Variable.withString(presetName)],
+        )
+        .get();
+    return rows.isEmpty ? null : rows.first.data['reg'] as String?;
+  }
+
   /// Get trip count for equipment item (unique trips from dives using this equipment)
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
   /// from statistics still physically happened: it cycled this gear and put

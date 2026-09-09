@@ -2768,6 +2768,8 @@
   "diveLog_tank_selectPreset": "选择预设...",
   "diveLog_tank_title": "气瓶 {number}",
   "diveLog_tank_tooltip_remove": "移除气瓶",
+  "diveLog_tank_regulatorLabel": "调节器",
+  "diveLog_tank_regulatorNone": "无",
   "diveLog_tissue_label_ceiling": "上升限制",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "免减压极限",

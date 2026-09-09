@@ -7687,6 +7687,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'Eliminar tanque';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'Regulador';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'Ninguno';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'Techo';
 
   @override

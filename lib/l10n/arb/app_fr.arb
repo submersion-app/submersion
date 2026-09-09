@@ -2551,6 +2551,8 @@
   "diveLog_tank_selectPreset": "Sélectionner un preset...",
   "diveLog_tank_title": "Bloc {number}",
   "diveLog_tank_tooltip_remove": "Retirer le bloc",
+  "diveLog_tank_regulatorLabel": "Détendeur",
+  "diveLog_tank_regulatorNone": "Aucun",
   "diveLog_tissue_label_ceiling": "Plafond",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
