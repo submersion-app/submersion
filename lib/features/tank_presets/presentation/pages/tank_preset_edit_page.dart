@@ -12,6 +12,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 class TankPresetEditPage extends ConsumerStatefulWidget {
   final String? presetId;
@@ -132,9 +133,9 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
           tooltip: context.l10n.common_action_close,
         ),
         actions: [
-          TextButton(
+          AppBarTextAction(
+            label: context.l10n.common_action_save,
             onPressed: _isLoading ? null : _savePreset,
-            child: Text(context.l10n.common_action_save),
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import 'package:submersion/features/checklists/domain/entities/checklist_templat
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 /// Create/edit page for a checklist template and its items.
 class ChecklistTemplateEditPage extends ConsumerStatefulWidget {
@@ -125,9 +126,9 @@ class _ChecklistTemplateEditPageState
       appBar: AppBar(
         title: Text(context.l10n.checklists_templates_pageTitle),
         actions: [
-          TextButton(
+          AppBarTextAction(
+            label: context.l10n.common_action_save,
             onPressed: _loading ? null : _save,
-            child: Text(context.l10n.common_action_save),
           ),
         ],
       ),
