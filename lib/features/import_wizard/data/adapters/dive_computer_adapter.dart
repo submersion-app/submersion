@@ -543,6 +543,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     var consolidated = 0;
     var updated = 0;
     final processedDives = <DownloadedDive>[];
+    // Dives this run actually wrote (new, consolidated, kept standalone or
+    // source-replaced); skipped duplicates never count toward a notice.
+    final writtenDives = <DownloadedDive>[];
     final importedDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
@@ -562,11 +565,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           switch (result.outcome) {
             case _ConsolidateOutcome.consolidated:
               consolidated++;
+              writtenDives.add(dive);
             case _ConsolidateOutcome.keptStandalone:
               // The fold refused, but the download survived as its own dive,
               // so it counts as imported. Reporting it as skipped would hide
               // a dive the fingerprint is about to advance past.
               imported++;
+              writtenDives.add(dive);
               final keptId = result.diveId;
               if (keptId != null) importedDiveIds.add(keptId);
             case _ConsolidateOutcome.skippedSameComputer:
@@ -600,6 +605,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             libdivecomputerVersion: _libdivecomputerVersion,
           );
           updated++;
+          writtenDives.add(dive);
         }
       } else {
         // Import as new dive. Use importSingleDiveAsNew to bypass the
@@ -616,6 +622,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         );
         imported++;
         importedDiveIds.add(diveId);
+        writtenDives.add(dive);
       }
 
       processedDives.add(dive);
@@ -646,27 +653,27 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
       notices: [
-        if (unmatched.isNotEmpty && importedDiveIds.isNotEmpty)
+        if (unmatched.isNotEmpty && writtenDives.isNotEmpty)
           ImportNotice(
             kind: ImportNoticeKind.unknownTransmitter,
-            affectedDives: _divesCarrying(unmatched, importedDiveIds.length),
+            affectedDives: _divesCarrying(unmatched, writtenDives),
           ),
       ],
     );
   }
 
-  /// How many of this run's downloaded dives carry an unmatched serial,
-  /// clamped to the imported count like the grouper does.
-  int _divesCarrying(List<String> unmatched, int importedDives) {
+  /// How many of the dives this run wrote carry an unmatched serial. Skipped
+  /// duplicates are not in [written], so they cannot inflate the count.
+  int _divesCarrying(List<String> unmatched, List<DownloadedDive> written) {
     final set = unmatched.toSet();
-    var n = 0;
-    for (final dive in _downloadedDives) {
-      final hit = dive.tanks.any(
-        (t) => set.contains(normalizeTransmitterSerial(t.transmitterSerial)),
-      );
-      if (hit) n++;
-    }
-    return n > importedDives ? importedDives : n;
+    return written
+        .where(
+          (dive) => dive.tanks.any(
+            (t) =>
+                set.contains(normalizeTransmitterSerial(t.transmitterSerial)),
+          ),
+        )
+        .length;
   }
 
   // ---------------------------------------------------------------------------
