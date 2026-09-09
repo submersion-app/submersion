@@ -92,6 +92,12 @@ class _UnrecognizedBackupsPageState
   Future<void> _confirmAndReclaim(List<UnrecognizedBackup> selection) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
+    // Read before the dialog, alongside the other two. showDialog defaults to
+    // the ROOT navigator, so the dialog outlives this page being torn down
+    // underneath it, and `ref` on an unmounted element throws StateError. The
+    // service is a plain object once resolved, so holding it costs nothing and
+    // removes the gap entirely rather than guarding it.
+    final service = ref.read(unrecognizedBackupServiceProvider);
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -112,13 +118,12 @@ class _UnrecognizedBackupsPageState
         ],
       ),
     );
-    if (confirmed != true) return;
+    // Both checked: the user may have said no, and the page may be gone.
+    if (confirmed != true || !mounted) return;
 
     final int freed;
     try {
-      freed = await ref
-          .read(unrecognizedBackupServiceProvider)
-          .reclaim(selection);
+      freed = await service.reclaim(selection);
     } catch (_) {
       // Reported rather than swallowed: the page would otherwise redraw with
       // the files still listed and no explanation, which reads as the tap

@@ -47,11 +47,14 @@ void main() {
 
   late Directory documents;
   late Directory backups;
+  late PathProviderPlatform realPathProvider;
 
   setUp(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
     documents = await Directory.systemTemp.createTemp('unrecognized_wiring');
+    // Restored in tearDown: see the note in backups_directory_access_test.
+    realPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(documents.path);
     backups = await Directory(
       p.join(documents.path, 'Submersion', 'Backups'),
@@ -59,6 +62,7 @@ void main() {
   });
 
   tearDown(() async {
+    PathProviderPlatform.instance = realPathProvider;
     if (documents.existsSync()) await documents.delete(recursive: true);
   });
 

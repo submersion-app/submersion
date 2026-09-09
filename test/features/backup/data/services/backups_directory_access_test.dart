@@ -79,11 +79,16 @@ void main() {
     // that arms an Apple security-scoped bookmark, and nothing else asserts
     // that binding.
     late Directory documents;
+    late PathProviderPlatform realPathProvider;
 
     setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
       documents = await Directory.systemTemp.createTemp('live_access_test');
+      // Restored in tearDown: the instance is a global, and the fake points at
+      // a temp directory this group deletes. Leaving it installed hands any
+      // later test in this isolate a documents path that no longer exists.
+      realPathProvider = PathProviderPlatform.instance;
       PathProviderPlatform.instance = _FakePathProvider(documents.path);
       // Pinned rather than inherited. isSupported is
       // `Platform.isIOS || Platform.isMacOS`, so a test that leaves it to the
@@ -95,6 +100,7 @@ void main() {
 
     tearDown(() async {
       BackupBookmarkService.debugSupportedOverride = null;
+      PathProviderPlatform.instance = realPathProvider;
       if (documents.existsSync()) await documents.delete(recursive: true);
     });
 
