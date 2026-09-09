@@ -26213,6 +26213,36 @@ class AppLocalizationsEn extends AppLocalizations {
       'Review rules & flying after diving';
 
   @override
+  String get settings_section_equipmentCondition_title => 'Equipment condition';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Exposure thresholds for service clocks';
+
+  @override
+  String get equipmentConditionSettings_title => 'Equipment condition';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader =>
+      'Exposure thresholds';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'A dive counts as cold, deep or high-O2 for service clocks when it crosses these lines.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Cold water below';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'Deep dive at or beyond';
+
+  @override
+  String get equipmentConditionSettings_o2Label => 'High-O2 mix above (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Enter a number';
+
+  @override
   String get settings_section_security_title => 'App Security';
 
   @override

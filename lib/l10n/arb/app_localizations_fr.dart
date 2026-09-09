@@ -26755,6 +26755,38 @@ class AppLocalizationsFr extends AppLocalizations {
       'Règles du bilan et vol après la plongée';
 
   @override
+  String get settings_section_equipmentCondition_title => 'État du matériel';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Seuils d\'exposition pour les compteurs d\'entretien';
+
+  @override
+  String get equipmentConditionSettings_title => 'État du matériel';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader =>
+      'Seuils d\'exposition';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Une plongée compte comme froide, profonde ou à haut O2 pour les compteurs d\'entretien lorsqu\'elle franchit ces seuils.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Eau froide en dessous de';
+
+  @override
+  String get equipmentConditionSettings_deepLabel =>
+      'Plongée profonde à partir de';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'Mélange à haut O2 au-dessus de (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Saisissez un nombre';
+
+  @override
   String get settings_section_security_title => 'Sécurité de l\'application';
 
   @override

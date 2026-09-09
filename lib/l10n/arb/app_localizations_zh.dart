@@ -25285,6 +25285,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_section_safety_subtitle => '回顾规则与潜水后飞行';
 
   @override
+  String get settings_section_equipmentCondition_title => '装备状况';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle => '保养计时的暴露阈值';
+
+  @override
+  String get equipmentConditionSettings_title => '装备状况';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => '暴露阈值';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      '潜水越过这些界线时，保养计时将其计为冷水、深潜或高氧。';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => '冷水低于';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => '深潜达到或超过';
+
+  @override
+  String get equipmentConditionSettings_o2Label => '高氧混合气高于（% O2）';
+
+  @override
+  String get equipmentConditionSettings_invalid => '请输入数字';
+
+  @override
   String get settings_section_security_title => '应用安全';
 
   @override

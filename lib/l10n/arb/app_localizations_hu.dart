@@ -26550,6 +26550,38 @@ class AppLocalizationsHu extends AppLocalizations {
       'Áttekintési szabályok és repülés merülés után';
 
   @override
+  String get settings_section_equipmentCondition_title =>
+      'Felszerelés állapota';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Terhelési küszöbök a szervizórákhoz';
+
+  @override
+  String get equipmentConditionSettings_title => 'Felszerelés állapota';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader =>
+      'Terhelési küszöbök';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Egy merülés akkor számít hidegnek, mélynek vagy magas O2-tartalmúnak a szervizórák számára, ha átlépi ezeket a határokat.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Hideg víz ez alatt';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'Mély merülés ettől';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'Magas O2-tartalmú keverék e felett (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Adjon meg egy számot';
+
+  @override
   String get settings_section_security_title => 'Alkalmazásbiztonság';
 
   @override

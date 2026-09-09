@@ -44009,6 +44009,60 @@ abstract class AppLocalizations {
   /// **'Review rules & flying after diving'**
   String get settings_section_safety_subtitle;
 
+  /// No description provided for @settings_section_equipmentCondition_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment condition'**
+  String get settings_section_equipmentCondition_title;
+
+  /// No description provided for @settings_section_equipmentCondition_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure thresholds for service clocks'**
+  String get settings_section_equipmentCondition_subtitle;
+
+  /// No description provided for @equipmentConditionSettings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment condition'**
+  String get equipmentConditionSettings_title;
+
+  /// No description provided for @equipmentConditionSettings_thresholdsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure thresholds'**
+  String get equipmentConditionSettings_thresholdsHeader;
+
+  /// No description provided for @equipmentConditionSettings_thresholdsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'A dive counts as cold, deep or high-O2 for service clocks when it crosses these lines.'**
+  String get equipmentConditionSettings_thresholdsHelp;
+
+  /// No description provided for @equipmentConditionSettings_coldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold water below'**
+  String get equipmentConditionSettings_coldLabel;
+
+  /// No description provided for @equipmentConditionSettings_deepLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep dive at or beyond'**
+  String get equipmentConditionSettings_deepLabel;
+
+  /// No description provided for @equipmentConditionSettings_o2Label.
+  ///
+  /// In en, this message translates to:
+  /// **'High-O2 mix above (% O2)'**
+  String get equipmentConditionSettings_o2Label;
+
+  /// No description provided for @equipmentConditionSettings_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number'**
+  String get equipmentConditionSettings_invalid;
+
   /// No description provided for @settings_section_security_title.
   ///
   /// In en, this message translates to:

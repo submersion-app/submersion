@@ -26183,6 +26183,36 @@ class AppLocalizationsAr extends AppLocalizations {
       'قواعد المراجعة والطيران بعد الغوص';
 
   @override
+  String get settings_section_equipmentCondition_title => 'حالة المعدات';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'حدود التعرض لساعات الصيانة';
+
+  @override
+  String get equipmentConditionSettings_title => 'حالة المعدات';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => 'حدود التعرض';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'تُحتسب الغطسة باردة أو عميقة أو بأكسجين مرتفع لساعات الصيانة عندما تتجاوز هذه الحدود.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'ماء بارد تحت';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'غطسة عميقة من';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'خليط بأكسجين مرتفع فوق (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'أدخل رقمًا';
+
+  @override
   String get settings_section_security_title => 'أمان التطبيق';
 
   @override

@@ -26609,6 +26609,36 @@ class AppLocalizationsDe extends AppLocalizations {
       'Überprüfungsregeln & Fliegen nach dem Tauchen';
 
   @override
+  String get settings_section_equipmentCondition_title => 'Ausrüstungszustand';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Belastungsgrenzen für Wartungsuhren';
+
+  @override
+  String get equipmentConditionSettings_title => 'Ausrüstungszustand';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => 'Belastungsgrenzen';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Ein Tauchgang zählt für Wartungsuhren als kalt, tief oder O2-reich, wenn er diese Grenzen überschreitet.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Kaltwasser unter';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'Tiefer Tauchgang ab';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'O2-reiches Gemisch über (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Bitte eine Zahl eingeben';
+
+  @override
   String get settings_section_security_title => 'App-Sicherheit';
 
   @override

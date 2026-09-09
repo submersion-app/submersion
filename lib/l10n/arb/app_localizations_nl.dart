@@ -26456,6 +26456,38 @@ class AppLocalizationsNl extends AppLocalizations {
       'Controleregels & vliegen na het duiken';
 
   @override
+  String get settings_section_equipmentCondition_title =>
+      'Staat van uitrusting';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Blootstellingsdrempels voor onderhoudsklokken';
+
+  @override
+  String get equipmentConditionSettings_title => 'Staat van uitrusting';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader =>
+      'Blootstellingsdrempels';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Een duik telt voor onderhoudsklokken als koud, diep of met hoog O2 wanneer hij deze grenzen overschrijdt.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Koud water onder';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'Diepe duik vanaf';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'Mengsel met hoog O2 boven (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Voer een getal in';
+
+  @override
   String get settings_section_security_title => 'App-beveiliging';
 
   @override

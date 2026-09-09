@@ -26653,6 +26653,39 @@ class AppLocalizationsPt extends AppLocalizations {
       'Regras de revisão e voar após mergulhar';
 
   @override
+  String get settings_section_equipmentCondition_title =>
+      'Estado do equipamento';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Limites de exposição para os relógios de manutenção';
+
+  @override
+  String get equipmentConditionSettings_title => 'Estado do equipamento';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader =>
+      'Limites de exposição';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Um mergulho conta como frio, profundo ou com O2 elevado para os relógios de manutenção quando ultrapassa estes limites.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Água fria abaixo de';
+
+  @override
+  String get equipmentConditionSettings_deepLabel =>
+      'Mergulho profundo a partir de';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'Mistura com O2 elevado acima de (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Introduza um número';
+
+  @override
   String get settings_section_security_title => 'Segurança do app';
 
   @override

@@ -26658,6 +26658,38 @@ class AppLocalizationsIt extends AppLocalizations {
       'Regole di revisione e volo dopo l\'immersione';
 
   @override
+  String get settings_section_equipmentCondition_title =>
+      'Stato dell\'attrezzatura';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Soglie di esposizione per i contatori di manutenzione';
+
+  @override
+  String get equipmentConditionSettings_title => 'Stato dell\'attrezzatura';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader =>
+      'Soglie di esposizione';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Un\'immersione conta come fredda, profonda o ad alto O2 per i contatori di manutenzione quando supera queste soglie.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Acqua fredda sotto';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'Immersione profonda da';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'Miscela ad alto O2 oltre (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Inserisci un numero';
+
+  @override
   String get settings_section_security_title => 'Sicurezza dell\'app';
 
   @override

@@ -26677,6 +26677,38 @@ class AppLocalizationsEs extends AppLocalizations {
       'Reglas de revisión y volar tras bucear';
 
   @override
+  String get settings_section_equipmentCondition_title => 'Estado del equipo';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Umbrales de exposición para los relojes de mantenimiento';
+
+  @override
+  String get equipmentConditionSettings_title => 'Estado del equipo';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader =>
+      'Umbrales de exposición';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Una inmersión cuenta como fría, profunda o con alto O2 para los relojes de mantenimiento cuando cruza estos límites.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Agua fría por debajo de';
+
+  @override
+  String get equipmentConditionSettings_deepLabel =>
+      'Inmersión profunda a partir de';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'Mezcla con alto O2 por encima de (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Introduce un número';
+
+  @override
   String get settings_section_security_title => 'Seguridad de la app';
 
   @override

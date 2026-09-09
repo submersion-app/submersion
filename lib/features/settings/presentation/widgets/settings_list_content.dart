@@ -80,6 +80,12 @@ const settingsSections = [
     subtitle: 'Review rules & flying after diving',
   ),
   SettingsSection(
+    id: 'equipmentCondition',
+    icon: Icons.build_circle_outlined,
+    title: 'Equipment condition',
+    subtitle: 'Exposure thresholds for service clocks',
+  ),
+  SettingsSection(
     id: 'security',
     icon: Icons.lock_outline,
     title: 'App Security',

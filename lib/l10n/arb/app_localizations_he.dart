@@ -25998,6 +25998,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_safety_subtitle => 'כללי סקירה וטיסה אחרי צלילה';
 
   @override
+  String get settings_section_equipmentCondition_title => 'מצב הציוד';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'ספי חשיפה לשעוני תחזוקה';
+
+  @override
+  String get equipmentConditionSettings_title => 'מצב הציוד';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => 'ספי חשיפה';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'צלילה נחשבת קרה, עמוקה או בחמצן גבוה לשעוני התחזוקה כאשר היא חוצה ספים אלה.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'מים קרים מתחת ל';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'צלילה עמוקה החל מ';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'תערובת בחמצן גבוה מעל (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'יש להזין מספר';
+
+  @override
   String get settings_section_security_title => 'אבטחת האפליקציה';
 
   @override
