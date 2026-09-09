@@ -118,27 +118,48 @@ bool isMoreUrgentClock(ServiceClockStatus a, ServiceClockStatus b) {
 /// Derives from [activeEquipmentClocksProvider], which keeps ok clocks, and
 /// not from the due-only map: a rollup that dropped ok clocks could not
 /// answer "when is this rig next due". A retired descendant is absent from
-/// the active evaluation and therefore never counted, which is the same
-/// rule the dive expander applies (issue #1487).
+/// the active evaluation and contributes no clock of its own, though its
+/// own active parts still count through it, the same rule the dive expander
+/// applies (issue #1487).
+///
+/// One memoised post-order pass: each node's rollup is the worst of its own
+/// clocks and its children's rollups, computed once and reused by every
+/// parent, so a thousand-item list costs one visit per node and edge rather
+/// than a subtree walk per item.
 final equipmentRollupClockProvider = FutureProvider<Map<String, RollupClock>>((
   ref,
 ) async {
   final evaluated = await ref.watch(activeEquipmentClocksProvider.future);
   final index = await ref.watch(equipmentComponentsIndexProvider.future);
   final byId = {for (final e in evaluated) e.item.id: e};
-  final out = <String, RollupClock>{};
-  for (final e in evaluated) {
+  final memo = <String, RollupClock?>{};
+  final visiting = <String>{};
+
+  RollupClock? rollupFor(String id) {
+    if (memo.containsKey(id)) return memo[id];
+    // A corrupt loop would otherwise recurse forever; the repeated node
+    // contributes nothing on its second visit.
+    if (!visiting.add(id)) return null;
     RollupClock? worst;
-    for (final id in [e.item.id, ...index.descendantsOf(e.item.id)]) {
-      final clocks = byId[id];
-      if (clocks == null) continue;
-      for (final status in clocks.statuses) {
-        if (worst == null || isMoreUrgentClock(status, worst.status)) {
-          worst = (ownerId: id, ownerName: clocks.item.name, status: status);
-        }
+    void consider(RollupClock? candidate) {
+      if (candidate == null) return;
+      if (worst == null || isMoreUrgentClock(candidate.status, worst!.status)) {
+        worst = candidate;
       }
     }
-    if (worst != null) out[e.item.id] = worst;
+
+    final own = byId[id];
+    if (own != null) {
+      for (final status in own.statuses) {
+        consider((ownerId: id, ownerName: own.item.name, status: status));
+      }
+    }
+    for (final edge in index.byParent[id] ?? const <EquipmentComponent>[]) {
+      consider(rollupFor(edge.componentEquipmentId));
+    }
+    visiting.remove(id);
+    return memo[id] = worst;
   }
-  return out;
+
+  return {for (final e in evaluated) e.item.id: ?rollupFor(e.item.id)};
 });

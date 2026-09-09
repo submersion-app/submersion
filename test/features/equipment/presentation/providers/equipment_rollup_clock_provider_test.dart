@@ -201,6 +201,54 @@ void main() {
     },
   );
 
+  test(
+    'a diamond counts a shared part once and rolls up through a retired node',
+    () async {
+      // kit > reg > hose and kit > hose: the hose is reachable twice. The
+      // middle node "old" is retired (absent from the active evaluation) but
+      // its active child still reaches the root through it.
+      final c = container(
+        clocks: [
+          (item: item('kit'), statuses: const []),
+          (item: item('reg'), statuses: const []),
+          (
+            item: item('hose'),
+            statuses: [
+              clock(
+                'hose',
+                'swap',
+                ServiceClockSeverity.dueSoon,
+                due: DateTime(2026, 8, 1),
+              ),
+            ],
+          ),
+          (
+            item: item('cell'),
+            statuses: [
+              clock(
+                'cell',
+                'cal',
+                ServiceClockSeverity.overdue,
+                due: DateTime(2026, 1, 1),
+              ),
+            ],
+          ),
+        ],
+        edges: [
+          edge('kit', 'reg'),
+          edge('reg', 'hose'),
+          edge('kit', 'hose'),
+          edge('kit', 'old'),
+          edge('old', 'cell'),
+        ],
+      );
+      final rollup = await c.read(equipmentRollupClockProvider.future);
+      expect(rollup['kit']!.ownerId, 'cell');
+      expect(rollup['reg']!.ownerId, 'hose');
+      expect(rollup.containsKey('old'), isFalse);
+    },
+  );
+
   test('isMoreUrgentClock orders by severity then date, null date last', () {
     final overdue = clock('x', 'a', ServiceClockSeverity.overdue);
     final soonEarly = clock(
