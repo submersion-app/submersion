@@ -1057,6 +1057,20 @@ void main() {
       );
     });
 
+    test('rounds a fractional average duration rather than truncating', () {
+      // SQLite AVG yields fractional seconds. The site detail page rounds to
+      // whole seconds before formatting, so truncating here would show a
+      // different minute for the same dive in the list and on the page.
+      expect(
+        SiteFieldAdapter.instance.formatValue(
+          SiteField.averageDuration,
+          2759.6,
+          units,
+        ),
+        equals('46min'),
+      );
+    });
+
     test('formats a sub-hour average duration in minutes', () {
       expect(
         SiteFieldAdapter.instance.formatValue(

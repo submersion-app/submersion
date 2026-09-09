@@ -14,8 +14,12 @@ typedef SiteWithCount = SiteWithDiveCount;
 ///
 /// Mirrors how the site detail page renders its duration statistics, so the
 /// same dive reads the same way in the list and on the page.
+///
+/// Rounds to whole seconds first. SQLite's AVG returns fractional seconds,
+/// and the detail page rounds before formatting; truncating here instead
+/// would report a different minute for the same dive.
 String _formatDurationSeconds(num seconds) {
-  final totalMinutes = seconds ~/ 60;
+  final totalMinutes = seconds.round() ~/ 60;
   final hours = totalMinutes ~/ 60;
   final minutes = totalMinutes % 60;
   if (hours > 0) return '${hours}h ${minutes}m';

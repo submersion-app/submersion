@@ -87,6 +87,8 @@ void main() {
         container: container,
         child: MaterialApp.router(
           routerConfig: router,
+          // Pinned: these assertions are on English UI strings.
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
         ),

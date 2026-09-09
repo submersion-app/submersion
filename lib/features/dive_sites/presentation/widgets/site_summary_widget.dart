@@ -275,9 +275,11 @@ class SiteSummaryWidget extends ConsumerWidget {
 
   /// One row in the top-sites lists.
   ///
-  /// All three lists (rated, most dived, recent) show the same secondary
-  /// line, so a site reads the same whichever list surfaces it: where it is,
-  /// how many dives, and when it was last dived.
+  /// All three lists (rated, most dived, recent) share the same secondary
+  /// line, where the site is and how many dives it holds, so a site reads the
+  /// same whichever list surfaces it. [trailingText] is what that particular
+  /// list ranks by, so it differs: a rating in the rated list, a date in the
+  /// other two.
   Widget _buildSiteTile(
     BuildContext context,
     SiteWithDiveCount siteData, {
