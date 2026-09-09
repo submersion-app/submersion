@@ -22,13 +22,20 @@ class BackupsDirectoryAccess {
        _acquireLease = acquireLease;
 
   /// Wired to the live preferences and the leased resolver.
-  factory BackupsDirectoryAccess.live(BackupPreferences preferences) =>
-      BackupsDirectoryAccess(
-        configuredLocation: () async =>
-            preferences.getSettings().backupLocation,
-        acquireLease: () =>
-            BackupService.resolveBackupsDirectoryLeased(preferences),
-      );
+  ///
+  /// [bookmarks] exists only so a test can exercise the Apple branch without a
+  /// native channel, mirroring the seam `resolveBackupsDirectoryLeased` already
+  /// offers. Production passes nothing and gets the real port.
+  factory BackupsDirectoryAccess.live(
+    BackupPreferences preferences, {
+    BackupBookmarkPort? bookmarks,
+  }) => BackupsDirectoryAccess(
+    configuredLocation: () async => preferences.getSettings().backupLocation,
+    acquireLease: () => BackupService.resolveBackupsDirectoryLeased(
+      preferences,
+      bookmarks: bookmarks,
+    ),
+  );
 
   final Future<String?> Function() _configuredLocation;
   final Future<BackupDirLease> Function() _acquireLease;
