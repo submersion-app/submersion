@@ -2,6 +2,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/features/dive_computer/data/clock_sync_preferences.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -32,6 +34,12 @@ List<dynamic> rootProviderOverrides({
     // diver's actual choice.
     mediaProvenanceBadgesProvider.overrideWith(
       (ref) => MediaProvenanceBadgesNotifier(prefs),
+    ),
+    // Same reasoning as the badges: the default is unstored so pages that
+    // watch it never error in a container without prefs; here it gains
+    // persistence (issue #1216).
+    clockSyncSettingsNotifierProvider.overrideWith(
+      (ref) => ClockSyncSettingsNotifier(ClockSyncPreferences(prefs)),
     ),
   ];
 }

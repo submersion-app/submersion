@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -27,5 +28,30 @@ void main() {
 
     expect(container.read(sharedPreferencesProvider), same(prefs));
     expect(container.read(logFileServiceProvider), same(logFileService));
+  });
+
+  test('backs the clock sync settings with SharedPreferences', () async {
+    SharedPreferences.setMockInitialValues({
+      'dive_computer_clock_sync_enabled': true,
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final logFileService = LogFileService(logDirectory: '/tmp/submersion-test');
+
+    final container = ProviderContainer(
+      overrides: rootProviderOverrides(
+        prefs: prefs,
+        logFileService: logFileService,
+      ).cast(),
+    );
+    addTearDown(container.dispose);
+
+    expect(
+      container.read(clockSyncSettingsNotifierProvider).globalEnabled,
+      isTrue,
+    );
+    await container
+        .read(clockSyncSettingsNotifierProvider.notifier)
+        .setGlobalEnabled(false);
+    expect(prefs.getBool('dive_computer_clock_sync_enabled'), isFalse);
   });
 }
