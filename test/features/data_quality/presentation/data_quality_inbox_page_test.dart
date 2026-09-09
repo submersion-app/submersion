@@ -146,6 +146,11 @@ Future<Widget> _wrap(_FakeFindingsRepository repo) async {
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     child: const MaterialApp(
+      // Every assertion in this file is an English literal, and an unpinned
+      // MaterialApp resolves against the HOST machine's locale list (not a
+      // fixed en_US), so the app's own translations would win on a
+      // non-English dev machine and the finders would match nothing.
+      locale: Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: DataQualityInboxPage(),
@@ -232,6 +237,9 @@ Widget _scope(
     diveRepository: diveRepository,
   ).cast(),
   child: localizedMaterialApp(
+    // See the note in _wrap: pinned so the English finders below survive a
+    // non-English host locale.
+    locale: const Locale('en'),
     home: DataQualityInboxPage(filterDiveId: filterDiveId),
   ),
 );
@@ -1087,6 +1095,42 @@ void main() {
 
     expect(find.byType(SnackBar), findsWidgets);
     await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('a same-computer duplicate offers no Consolidate button', (
+    tester,
+  ) async {
+    // The real-world duplicate is the same dive downloaded twice from one
+    // computer, and DiveConsolidationBuilder refuses to merge those. The
+    // inbox used to offer Consolidate anyway, so the tap could only ever
+    // fail; the card now explains that no automatic fix exists instead.
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'r-dup-same',
+            diveId: 'd1',
+            relatedDiveId: 'd2',
+            detectorId: 'duplicate',
+            category: QualityCategory.duplicate,
+            params: const {
+              'score': 0.9,
+              'timeDiffMinutes': 1,
+              'sameComputer': true,
+            },
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Consolidate'), findsNothing);
+    expect(
+      find.text('No automatic fix. Open the dive to correct this.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('split-source repair reports a failure through a SnackBar', (

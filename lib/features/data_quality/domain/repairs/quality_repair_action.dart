@@ -195,8 +195,15 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       return [GoToDiveRepair(diveId)];
 
     case 'duplicate':
+      // Consolidation folds a SECOND computer's recording into the dive.
+      // DiveConsolidationBuilder rejects a pair that shares one physical
+      // computer, so offering the repair there is a button that can only
+      // ever fail; the card falls back to its no-automatic-fix row instead.
+      // Findings written before the detector reported this (no key at all)
+      // stay repairable until a rescan fills the fact in.
+      final consolidatable = p['sameComputer'] != true;
       return [
-        if (related != null)
+        if (related != null && consolidatable)
           ConsolidateDuplicateRepair(
             targetDiveId: diveId,
             secondaryDiveId: related,
