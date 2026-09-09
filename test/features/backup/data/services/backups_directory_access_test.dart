@@ -85,9 +85,16 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       documents = await Directory.systemTemp.createTemp('live_access_test');
       PathProviderPlatform.instance = _FakePathProvider(documents.path);
+      // Pinned rather than inherited. isSupported is
+      // `Platform.isIOS || Platform.isMacOS`, so a test that leaves it to the
+      // host exercises the Apple branch on a developer's Mac and the non-Apple
+      // branch on a Linux CI runner, which is how the bookmark assertion below
+      // passed locally and failed on shard 4.
+      BackupBookmarkService.debugSupportedOverride = false;
     });
 
     tearDown(() async {
+      BackupBookmarkService.debugSupportedOverride = null;
       if (documents.existsSync()) await documents.delete(recursive: true);
     });
 
@@ -106,9 +113,31 @@ void main() {
       },
     );
 
+    test('a custom location without bookmark support is used as-is', () async {
+      // Linux and Windows desktop, and Android with a plain filesystem path.
+      // Left to the host this branch never runs on a developer's Mac.
+      final custom = await Directory.systemTemp.createTemp('plain_backups');
+      addTearDown(() async {
+        if (custom.existsSync()) await custom.delete(recursive: true);
+      });
+      final prefs = await preferences();
+      await prefs.setBackupLocation(custom.path);
+      await prefs.setBackupLocationBookmark([1, 2, 3]);
+      final port = _FakeBookmarkPort(null);
+
+      final seen = await BackupsDirectoryAccess.live(
+        prefs,
+        bookmarks: port,
+      ).use((path) async => path);
+
+      expect(seen, custom.path);
+      expect(port.resolveCalls, 0);
+    });
+
     test(
       'a custom Apple location is armed and released as a scoped resource',
       () async {
+        BackupBookmarkService.debugSupportedOverride = true;
         // The reason this factory exists rather than a plain path callback. On
         // Apple platforms a custom location is only reachable while its
         // security-scoped bookmark is held, so a factory wired to the unleased
