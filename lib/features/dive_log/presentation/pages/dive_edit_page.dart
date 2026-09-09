@@ -30,6 +30,10 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
@@ -3284,6 +3288,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               icon: Icons.add,
               onPressed: _showEquipmentPicker,
             ),
+            FormOverlineAction(
+              label: context.l10n.equipment_arrange_title,
+              icon: Icons.sort,
+              onPressed: () => showEquipmentArrangeSheet(context),
+            ),
           ],
         ),
         if (_geofenceSuggestion != null)
@@ -3316,35 +3325,59 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                ...List.generate(_selectedEquipment.length, (index) {
-                  final item = _selectedEquipment[index];
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer,
-                      child: Icon(
-                        equipmentTypeIcon(item.type),
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        size: 20,
+                // Rendered through the diver's arrangement (#1486, #1576).
+                // _selectedEquipment keeps its own order as the source of
+                // truth for saving; sorting it would write a pointless
+                // reordering of dive_equipment on every save.
+                for (final group in arrangeEquipment(
+                  _selectedEquipment,
+                  ref.watch(equipmentArrangementProvider),
+                  typeLabel: (type) => type.localizedName(context.l10n),
+                )) ...[
+                  if (group.type != null)
+                    EquipmentGroupHeader(type: group.type!),
+                  ...group.items.map((item) {
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer,
+                        child: Icon(
+                          equipmentTypeIcon(item.type),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                          size: 20,
+                        ),
                       ),
-                    ),
-                    title: Text(item.name),
-                    subtitle: Text(item.type.localizedName(context.l10n)),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.close, size: 18),
-                      tooltip:
-                          context.l10n.diveLog_edit_tooltip_removeEquipment,
-                      onPressed: () {
-                        setState(() {
-                          _markDirty();
-                          _selectedEquipment.removeAt(index);
-                        });
-                      },
-                    ),
-                  );
-                }),
+                      title: Text(item.name),
+                      subtitle: group.type == null
+                          ? Text(item.type.localizedName(context.l10n))
+                          : null,
+                      trailing: IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        tooltip:
+                            context.l10n.diveLog_edit_tooltip_removeEquipment,
+                        onPressed: () {
+                          setState(() {
+                            _markDirty();
+                            // By id, never by display index: the list is
+                            // rendered through the diver's arrangement, so a
+                            // render position addresses a different item and
+                            // the diver would silently lose the wrong gear.
+                            // Rebuilding rather than removeAt also keeps the
+                            // project's immutability rule.
+                            _selectedEquipment = [
+                              for (final e in _selectedEquipment)
+                                if (e.id != item.id) e,
+                            ];
+                          });
+                        },
+                      ),
+                    );
+                  }),
+                ],
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,

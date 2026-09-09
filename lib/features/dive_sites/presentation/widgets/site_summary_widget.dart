@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget shown when no site is selected.
@@ -13,6 +15,7 @@ class SiteSummaryWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sitesAsync = ref.watch(sitesWithCountsProvider);
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -23,7 +26,7 @@ class SiteSummaryWidget extends ConsumerWidget {
             _buildHeader(context),
             const SizedBox(height: 24),
             sitesAsync.when(
-              data: (sites) => _buildOverview(context, sites),
+              data: (sites) => _buildOverview(context, sites, units),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) =>
                   Center(child: Text('${context.l10n.common_label_error}: $e')),
@@ -68,7 +71,11 @@ class SiteSummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, List<SiteWithDiveCount> sites) {
+  Widget _buildOverview(
+    BuildContext context,
+    List<SiteWithDiveCount> sites,
+    UnitFormatter units,
+  ) {
     // Calculate stats
     int totalDives = 0;
     int sitesWithGps = 0;
@@ -84,8 +91,12 @@ class SiteSummaryWidget extends ConsumerWidget {
         ratedSites++;
         totalRating += site.rating!;
       }
-      if (site.country != null && site.country!.isNotEmpty) {
-        countryCounts[site.country!] = (countryCounts[site.country!] ?? 0) + 1;
+      // Trim before testing and before keying, the same rule DiveSite's own
+      // locationString applies: imported and synced rows carry whitespace-only
+      // countries, and untrimmed keys would also split "Malta" from "Malta ".
+      final country = site.country?.trim() ?? '';
+      if (country.isNotEmpty) {
+        countryCounts[country] = (countryCounts[country] ?? 0) + 1;
       }
     }
 
@@ -94,6 +105,7 @@ class SiteSummaryWidget extends ConsumerWidget {
     // Sort countries by count
     final sortedCountries = countryCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
+    final neverDived = sites.where((s) => s.diveCount == 0).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,6 +150,23 @@ class SiteSummaryWidget extends ConsumerWidget {
                 label: context.l10n.diveSites_summary_stat_avgRating,
                 color: Colors.amber,
               ),
+            _buildStatCard(
+              context,
+              icon: Icons.flag,
+              value: '${countryCounts.length}',
+              label: context.l10n.diveSites_summary_stat_countries,
+              color: Colors.indigo,
+            ),
+            // The gap between sites saved and sites actually dived. Nothing
+            // else in the app answers "what have I been meaning to dive?".
+            if (neverDived > 0)
+              _buildStatCard(
+                context,
+                icon: Icons.bookmark_border,
+                value: '$neverDived',
+                label: context.l10n.diveSites_summary_stat_notDived,
+                color: Colors.deepOrange,
+              ),
           ],
         ),
         if (sortedCountries.isNotEmpty) ...[
@@ -146,7 +175,7 @@ class SiteSummaryWidget extends ConsumerWidget {
         ],
         if (sites.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildTopSitesSection(context, sites),
+          _buildTopSitesSection(context, sites, units),
         ],
       ],
     );
@@ -248,9 +277,60 @@ class SiteSummaryWidget extends ConsumerWidget {
     );
   }
 
+  /// One row in the top-sites lists.
+  ///
+  /// [trailingText] is always the value its list ranks by, so the reader can
+  /// see why a site placed where it did: the rating in Top Rated, the dive
+  /// count in Most Dived, the date in Recently Dived.
+  ///
+  /// [secondaryFact] is the other figure, shown after the location on the
+  /// second line. It is passed in rather than fixed because whichever figure
+  /// a list ranks by is already the trailing value, and printing it twice in
+  /// one row reads as a mistake.
+  Widget _buildSiteTile(
+    BuildContext context,
+    SiteWithDiveCount siteData, {
+    required IconData icon,
+    required String trailingText,
+    required String secondaryFact,
+    Color? iconColor,
+  }) {
+    final site = siteData.site;
+    final colorScheme = Theme.of(context).colorScheme;
+    final details = <String>[
+      if (site.locationString.isNotEmpty) site.locationString,
+      secondaryFact,
+    ];
+
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: (iconColor ?? colorScheme.primary).withValues(
+          alpha: 0.15,
+        ),
+        child: Icon(icon, color: iconColor ?? colorScheme.primary),
+      ),
+      title: Text(site.name),
+      subtitle: Text(details.join(' - ')),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(trailingText),
+          const SizedBox(width: 8),
+          const Icon(Icons.chevron_right),
+        ],
+      ),
+      onTap: () {
+        final state = GoRouterState.of(context);
+        final currentPath = state.uri.path;
+        context.go('$currentPath?selected=${site.id}');
+      },
+    );
+  }
+
   Widget _buildTopSitesSection(
     BuildContext context,
     List<SiteWithDiveCount> sites,
+    UnitFormatter units,
   ) {
     // Get top-rated sites
     final ratedSites =
@@ -262,6 +342,12 @@ class SiteSummaryWidget extends ConsumerWidget {
     final mostDived = sites.toList()
       ..sort((a, b) => b.diveCount.compareTo(a.diveCount));
     final topDived = mostDived.where((s) => s.diveCount > 0).take(3).toList();
+
+    // Get most recently dived sites. A site with no dives has no date to rank
+    // by and is excluded rather than sorted to one end.
+    final recentlyDived = sites.where((s) => s.lastDivedAt != null).toList()
+      ..sort((a, b) => b.lastDivedAt!.compareTo(a.lastDivedAt!));
+    final topRecent = recentlyDived.take(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,35 +361,50 @@ class SiteSummaryWidget extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Card(
+            key: const ValueKey('summaryTopRatedList'),
             child: Column(
-              children: topRated.map((siteData) {
-                final site = siteData.site;
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.amber.withValues(alpha: 0.2),
-                    child: const Icon(Icons.star, color: Colors.amber),
-                  ),
-                  title: Text(site.name),
-                  subtitle: site.locationString.isNotEmpty
-                      ? Text(site.locationString)
-                      : null,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      const SizedBox(width: 4),
-                      Text(site.rating!.toStringAsFixed(1)),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right),
-                    ],
-                  ),
-                  onTap: () {
-                    final state = GoRouterState.of(context);
-                    final currentPath = state.uri.path;
-                    context.go('$currentPath?selected=${site.id}');
-                  },
-                );
-              }).toList(),
+              children: topRated
+                  .map(
+                    (siteData) => _buildSiteTile(
+                      context,
+                      siteData,
+                      icon: Icons.star,
+                      iconColor: Colors.amber,
+                      trailingText: siteData.site.rating!.toStringAsFixed(1),
+                      secondaryFact: context.l10n.diveSites_list_tile_diveCount(
+                        siteData.diveCount,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (topRecent.isNotEmpty) ...[
+          Text(
+            context.l10n.diveSites_summary_section_recentlyDived,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            key: const ValueKey('summaryRecentlyDivedList'),
+            child: Column(
+              children: topRecent
+                  .map(
+                    (siteData) => _buildSiteTile(
+                      context,
+                      siteData,
+                      icon: Icons.history,
+                      trailingText: units.formatDate(siteData.lastDivedAt),
+                      secondaryFact: context.l10n.diveSites_list_tile_diveCount(
+                        siteData.diveCount,
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
           const SizedBox(height: 24),
@@ -317,44 +418,24 @@ class SiteSummaryWidget extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Card(
+            key: const ValueKey('summaryMostDivedList'),
             child: Column(
-              children: topDived.map((siteData) {
-                final site = siteData.site;
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(
+              children: topDived
+                  .map(
+                    (siteData) => _buildSiteTile(
                       context,
-                    ).colorScheme.primaryContainer,
-                    child: Icon(
-                      Icons.location_on,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  title: Text(site.name),
-                  subtitle: site.locationString.isNotEmpty
-                      ? Text(site.locationString)
-                      : null,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.scuba_diving,
-                        size: 18,
-                        color: Theme.of(context).colorScheme.primary,
+                      siteData,
+                      icon: Icons.scuba_diving,
+                      trailingText: context.l10n.diveSites_list_tile_diveCount(
+                        siteData.diveCount,
                       ),
-                      const SizedBox(width: 4),
-                      Text('${siteData.diveCount}'),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right),
-                    ],
-                  ),
-                  onTap: () {
-                    final state = GoRouterState.of(context);
-                    final currentPath = state.uri.path;
-                    context.go('$currentPath?selected=${site.id}');
-                  },
-                );
-              }).toList(),
+                      secondaryFact: context.l10n
+                          .diveSites_summary_tile_lastDived(
+                            units.formatDate(siteData.lastDivedAt),
+                          ),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ],

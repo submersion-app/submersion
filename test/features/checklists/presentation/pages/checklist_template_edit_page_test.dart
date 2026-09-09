@@ -156,6 +156,98 @@ void main() {
     expect(find.text('Wetsuit'), findsNothing);
   });
 
+  testWidgets('the page titles itself for add versus edit', (tester) async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+
+    await tester.pumpWidget(
+      testApp(
+        child: const ChecklistTemplateEditPage(),
+        locale: const Locale('en'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(AppBar, 'Add Template'), findsOneWidget);
+
+    final repo = ChecklistTemplateRepository();
+    final created = await repo.createTemplate(
+      ChecklistTemplate(
+        id: '',
+        name: 'Packing',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    await tester.pumpWidget(
+      testApp(
+        child: ChecklistTemplateEditPage(templateId: created.id),
+        locale: const Locale('en'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(AppBar, 'Edit Template'), findsOneWidget);
+  });
+
+  testWidgets('the item dialog titles itself for add versus edit', (
+    tester,
+  ) async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+
+    final repo = ChecklistTemplateRepository();
+    final created = await repo.createTemplate(
+      ChecklistTemplate(
+        id: '',
+        name: 'Packing',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    await repo.saveItems(created.id, [
+      ChecklistTemplateItem(
+        id: '',
+        templateId: created.id,
+        title: 'Wetsuit',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    ]);
+
+    await tester.pumpWidget(
+      testApp(
+        child: ChecklistTemplateEditPage(templateId: created.id),
+        locale: const Locale('en'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tapping an existing row edits it, so the dialog must not say "Add item".
+    // Scoped to the dialog because the page itself carries an "Add item"
+    // button underneath it.
+    await tester.tap(find.text('Wetsuit'));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Edit item'),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, 'Add item'));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Add item'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('saving a new template with items persists them via the '
       'repository', (tester) async {
     await setUpTestDatabase();

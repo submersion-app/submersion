@@ -7,9 +7,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/exposure_interval_input.dart';
+import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -152,6 +155,7 @@ class _ScheduleOverrideDialogState
   late final TextEditingController _dives;
   late final TextEditingController _hours;
   late final TextEditingController _defaultCost;
+  late final Map<ExposureUnit, TextEditingController> _exposure;
 
   /// Null means "inherit": the kind's currency, else the diver's default.
   String? _defaultCurrency;
@@ -182,6 +186,16 @@ class _ScheduleOverrideDialogState
     );
     _defaultCurrency = s.defaultCurrency;
     _anchorDate = s.anchorDate;
+    _exposure = {
+      for (final unit in ExposureUnit.mapUnits)
+        unit: TextEditingController(
+          text: switch (s.exposureIntervals[unit]) {
+            null => '',
+            final v when unit.isFractional => formatDecimalForInput(v),
+            final v => v.round().toString(),
+          },
+        ),
+    };
   }
 
   @override
@@ -190,6 +204,9 @@ class _ScheduleOverrideDialogState
     _dives.dispose();
     _hours.dispose();
     _defaultCost.dispose();
+    for (final c in _exposure.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -247,6 +264,29 @@ class _ScheduleOverrideDialogState
                         ),
                 ),
               ),
+              for (final unit in ExposureUnit.mapUnits) ...[
+                const SizedBox(height: 12),
+                TextField(
+                  key: Key('service-schedule-exposure-${unit.name}'),
+                  controller: _exposure[unit],
+                  keyboardType: unit.isFractional
+                      ? const TextInputType.numberWithOptions(decimal: true)
+                      : TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: unit.intervalLabel(l10n),
+                    hintText: switch (kind.exposureIntervals[unit]) {
+                      null => null,
+                      final v when unit.isFractional =>
+                        l10n.equipment_scheduleDialog_inheritHint(
+                          formatDecimalForInput(v),
+                        ),
+                      final v => l10n.equipment_scheduleDialog_inheritHint(
+                        v.round().toString(),
+                      ),
+                    },
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               // Per-item price override. Blank inherits the kind's value, shown
               // as the hint, exactly like the interval fields above (#829).
@@ -354,6 +394,9 @@ class _ScheduleOverrideDialogState
               intervalDays: parseUserInt(_days.text),
               intervalDives: parseUserInt(_dives.text),
               intervalHours: parseUserDecimal(_hours.text),
+              exposureIntervals: parseExposureIntervals({
+                for (final e in _exposure.entries) e.key: e.value.text,
+              }),
               defaultCost: parseUserDecimal(_defaultCost.text),
               defaultCurrency: _defaultCurrency,
               anchorDate: _anchorDate,

@@ -54,6 +54,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   EquipmentType _selectedType = EquipmentType.regulator;
   EquipmentStatus _selectedStatus = EquipmentStatus.active;
   DateTime? _purchaseDate;
+  String? _parentEquipmentId;
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
@@ -147,6 +148,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         ? EquipmentStatus.retired
         : equipment.status;
     _purchaseDate = equipment.purchaseDate;
+    _parentEquipmentId = equipment.parentEquipmentId;
     _customReminderEnabled = equipment.customReminderEnabled;
     _customReminderDays = equipment.customReminderDays ?? const [7, 14, 30];
   }
@@ -158,6 +160,35 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       context.pop();
     }
   }
+
+  /// [_parentEquipmentId] only when it names an active item whose type can
+  /// hold [type]; a stale choice from a previous type is never written.
+  String? _validParentIdFor(EquipmentType type) {
+    final id = _parentEquipmentId;
+    if (id == null) return null;
+    // While the active list is still loading (or failed) the id is kept as
+    // is: a quick open-and-save must not drop a link the page never got to
+    // check.
+    final items = ref.read(activeEquipmentProvider).valueOrNull;
+    if (items == null) return id;
+    final allowed = _parentTypesFor(type);
+    return items.any((e) => e.id == id && allowed.contains(e.type)) ? id : null;
+  }
+
+  /// Which item types can hold a child of [type]. Empty means the type is
+  /// not a child type and the picker is hidden.
+  static Set<EquipmentType> _parentTypesFor(EquipmentType type) =>
+      switch (type) {
+        EquipmentType.o2Cell => const {EquipmentType.rebreather},
+        EquipmentType.battery => const {
+          EquipmentType.computer,
+          EquipmentType.transmitter,
+          EquipmentType.light,
+          EquipmentType.dpv,
+          EquipmentType.rebreather,
+        },
+        _ => const {},
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -243,6 +274,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               if (value != null) {
                 setState(() {
                   _selectedType = value;
+                  // A parent chosen for the old type may not hold the new
+                  // one (a computer holds a battery, never an O2 cell), and
+                  // the picker would show "none" while the stale id was
+                  // still written on save. Start the choice over.
+                  _parentEquipmentId = null;
                   _hasChanges = true;
                 });
               }
@@ -273,6 +309,48 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             },
           ),
           const SizedBox(height: 16),
+
+          // Parent item, for the child types only (v202).
+          if (_parentTypesFor(_selectedType).isNotEmpty) ...[
+            Builder(
+              builder: (context) {
+                final candidates =
+                    (ref.watch(activeEquipmentProvider).valueOrNull ??
+                            const <EquipmentItem>[])
+                        .where(
+                          (e) =>
+                              e.id != widget.equipmentId &&
+                              _parentTypesFor(_selectedType).contains(e.type),
+                        )
+                        .toList();
+                final known = candidates.any((e) => e.id == _parentEquipmentId);
+                return DropdownButtonFormField<String?>(
+                  key: const Key('equipment-parent-picker'),
+                  initialValue: known ? _parentEquipmentId : null,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.equipment_edit_parentLabel,
+                    prefixIcon: const Icon(Icons.account_tree_outlined),
+                  ),
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text(context.l10n.equipment_edit_parentNone),
+                    ),
+                    for (final e in candidates)
+                      DropdownMenuItem<String?>(
+                        value: e.id,
+                        child: Text(e.name),
+                      ),
+                  ],
+                  onChanged: (value) => setState(() {
+                    _parentEquipmentId = value;
+                    _hasChanges = true;
+                  }),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Name
           TextFormField(
@@ -864,6 +942,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ? null
             : _serialController.text.trim(),
         purchaseDate: _purchaseDate,
+        parentEquipmentId: _parentTypesFor(_selectedType).isEmpty
+            ? null
+            : _validParentIdFor(_selectedType),
         // Blank means "no price"; anything unreadable was already stopped by
         // the field validator, so null here can only mean blank.
         purchasePrice: parseUserDecimal(_purchasePriceController.text),

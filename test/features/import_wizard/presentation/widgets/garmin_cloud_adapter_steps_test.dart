@@ -14,7 +14,6 @@ import 'package:submersion/core/services/garmin_connect/garmin_dive_mapper.dart'
 import 'package:submersion/core/services/garmin_connect/garmin_session_store.dart';
 import 'package:submersion/features/import_wizard/data/adapters/garmin_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/cloud_import_paging.dart';
-import 'package:submersion/features/import_wizard/presentation/providers/cloud_import_page_size_provider.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/garmin_cloud_adapter_steps.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -780,32 +779,7 @@ void main() {
       expect(client.fetchedActivityIds, [1, 2]);
       expect(fetched, hasLength(2));
       expect(find.text('Found 2 dives'), findsOneWidget);
-      expect(client.requestedPageSizes, [CloudImportPaging.defaultPageSize]);
-    });
-
-    testWidgets('asks the client for the configured page size', (tester) async {
-      final client = _FakeGarminClient(
-        dives: [_activity(1)],
-        fitBytesByActivityId: {1: fitBytes},
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            cloudImportPageSizeProvider.overrideWith(
-              (ref) => CloudImportPageSizeNotifier(initial: 7),
-            ),
-          ],
-          child: _host(
-            store: _FakeSessionStore(),
-            clientFactory: _FakeGarminClient.new,
-            child: GarminCloudFetchStep(client: client, onDivesFetched: (_) {}),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(client.requestedPageSizes, [7]);
+      expect(client.requestedPageSizes, [CloudImportPaging.pageSize]);
     });
 
     testWidgets(

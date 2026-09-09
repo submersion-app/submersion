@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
-import 'package:submersion/features/import_wizard/presentation/providers/cloud_import_page_size_provider.dart';
+import 'package:submersion/features/import_wizard/domain/cloud_import_paging.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/cloud_import_dive_list.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/cloud_import_dive_summary.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -73,7 +73,7 @@ class CloudImportFetchStrings {
 
 /// Shared fetch step for cloud dive imports.
 ///
-/// Fetches [cloudImportPageSizeProvider] of the newest dives, offers Load
+/// Fetches [CloudImportPaging.pageSize] of the newest dives, offers Load
 /// More for the next page of the same size, and Fetch All to walk the rest
 /// of the history (which then hides the paging controls). Downloaded dives
 /// are shown in a checkbox list; only the selected ones are reported.
@@ -162,7 +162,7 @@ class _CloudImportFetchStepState<TSummary, TParsed>
     widget.onDivesFetched(const []);
   }
 
-  int get _pageSize => ref.read(cloudImportPageSizeProvider);
+  int get _pageSize => CloudImportPaging.pageSize;
 
   Future<void> _fetchFirstPage() async {
     if (!widget.hasClient) {

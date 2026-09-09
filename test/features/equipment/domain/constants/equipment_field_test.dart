@@ -40,6 +40,26 @@ void main() {
     notes: 'Annual service due',
   );
 
+  group('EquipmentField.components', () {
+    test('extracts the count from the adapter map and defaults to zero', () {
+      final adapter = EquipmentFieldAdapter(componentCounts: {'equip-1': 3});
+      expect(adapter.extractValue(EquipmentField.components, testItem), 3);
+      expect(
+        EquipmentFieldAdapter.instance.extractValue(
+          EquipmentField.components,
+          testItem,
+        ),
+        0,
+      );
+      expect(adapter.formatValue(EquipmentField.components, 3, units), '3');
+    });
+
+    test('is the last value so saved column orders are stable', () {
+      expect(EquipmentField.values.last, EquipmentField.components);
+      expect(EquipmentField.components.categoryName, 'details');
+    });
+  });
+
   group('EquipmentFieldAdapter.allFields', () {
     test('has expected count matching EquipmentField.values', () {
       expect(

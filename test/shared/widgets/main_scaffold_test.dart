@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
@@ -142,6 +143,16 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
 
 /// Fake AppSettingsRepository used by the nav customization tests.
 class _FakeRepo implements AppSettingsRepository {
+  /// The gear arrangement is not exercised by these tests; the notifier falls
+  /// back to EquipmentArrangement.defaults when the read returns null.
+  @override
+  Future<EquipmentArrangement?> getEquipmentArrangement() async => null;
+
+  @override
+  Future<void> setEquipmentArrangement(
+    EquipmentArrangement arrangement,
+  ) async {}
+
   /// Phone order (bottom-bar slots first, then the More menu).
   List<String>? stored;
 

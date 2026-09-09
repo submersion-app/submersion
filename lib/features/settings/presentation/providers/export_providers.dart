@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -372,8 +373,18 @@ class ExportNotifier extends StateNotifier<ExportState> {
     // times follow the diver's preferences (#964); the file name stays ISO.
     final settings = _ref.read(settingsProvider);
 
+    // The arrangement notifier starts at the defaults and adopts the stored
+    // value asynchronously, so reading it straight away would export the
+    // defaults over a saved preference whenever nothing in the session had
+    // instantiated it yet. Awaiting the first load is what the sibling path
+    // in PdfExportService gets by reading the repository directly.
+    await _ref.read(equipmentArrangementNotifierProvider.notifier).loaded;
+
     return builder.buildPdf(
       dives: dives,
+      // The logbook is a document a human reads, so gear follows the diver's
+      // arrangement (#1486, #1576).
+      gearArrangement: _ref.read(equipmentArrangementProvider),
       pageSize: exportOptions.pageSize,
       dates: PdfDateFormatter(
         dateFormat: settings.dateFormat,
