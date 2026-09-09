@@ -199,7 +199,7 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
               ? Theme.of(context).colorScheme.error
               : null,
           onPressed: action.isEnabledForSelection(count, checkedIds)
-              ? () => _invoke(action)
+              ? () => unawaited(_invoke(action))
               : null,
         ),
       if (overflow.isNotEmpty || _hasDelete)
@@ -224,14 +224,17 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
               _buildDeleteItem(context, count),
             ],
           ],
+          // onSelected is synchronous, so the dispatch is deliberately
+          // fire-and-forget: the menu closes now and the bar reacts when the
+          // action reports back.
           onSelected: (id) {
             if (id == _deleteMenuValue) {
-              _invokeDelete();
+              unawaited(_invokeDelete());
               return;
             }
             for (final action in overflow) {
               if (action.id == id) {
-                _invoke(action);
+                unawaited(_invoke(action));
                 return;
               }
             }
