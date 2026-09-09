@@ -11673,6 +11673,42 @@ abstract class AppLocalizations {
   /// **'Search dives...'**
   String get diveLog_listPage_searchFieldLabel;
 
+  /// No description provided for @diveLog_listPage_tripGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TRIP'**
+  String get diveLog_listPage_tripGroupLabel;
+
+  /// Dive count on a dive list trip header when the whole trip is in the list.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String diveLog_listPage_tripGroupDiveCount(int count);
+
+  /// Dive count on a dive list trip header when only some of the trip's dives are in the list, because of paging or a filter.
+  ///
+  /// In en, this message translates to:
+  /// **'{loaded} of {total} dives'**
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total);
+
+  /// Screen-reader label for a collapsed trip header in the dive list.
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives on {tripName}'**
+  String diveLog_listPage_tripGroupExpand(String tripName);
+
+  /// Screen-reader label for an expanded trip header in the dive list.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide dives on {tripName}'**
+  String diveLog_listPage_tripGroupCollapse(String tripName);
+
+  /// Tooltip for the button that opens the trip from its dive list header.
+  ///
+  /// In en, this message translates to:
+  /// **'Open trip {tripName}'**
+  String diveLog_listPage_tripGroupOpenTrip(String tripName);
+
   /// No description provided for @diveLog_listPage_searchLimitNotice.
   ///
   /// In en, this message translates to:

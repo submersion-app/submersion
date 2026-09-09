@@ -3932,6 +3932,12 @@
     }
   },
   "diveLog_listPage_searchFieldLabel": "Search dives...",
+  "diveLog_listPage_tripGroupLabel": "TRIP",
+  "diveLog_listPage_tripGroupDiveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "diveLog_listPage_tripGroupDiveCountPartial": "{loaded} of {total} dives",
+  "diveLog_listPage_tripGroupExpand": "Show dives on {tripName}",
+  "diveLog_listPage_tripGroupCollapse": "Hide dives on {tripName}",
+  "diveLog_listPage_tripGroupOpenTrip": "Open trip {tripName}",
   "diveLog_listPage_searchLimitNotice": "Showing the first {limit} matches. Refine your search to narrow results.",
   "diveLog_listPage_searchNoResults": "No dives found for \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Search by site, buddy, or notes",
@@ -4649,6 +4655,49 @@
     "placeholders": {
       "error": {
         "type": "Object"
+      }
+    }
+  },
+  "@diveLog_listPage_tripGroupDiveCount": {
+    "description": "Dive count on a dive list trip header when the whole trip is in the list.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveLog_listPage_tripGroupDiveCountPartial": {
+    "description": "Dive count on a dive list trip header when only some of the trip's dives are in the list, because of paging or a filter.",
+    "placeholders": {
+      "loaded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@diveLog_listPage_tripGroupExpand": {
+    "description": "Screen-reader label for a collapsed trip header in the dive list.",
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_listPage_tripGroupCollapse": {
+    "description": "Screen-reader label for an expanded trip header in the dive list.",
+    "placeholders": {
+      "tripName": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_listPage_tripGroupOpenTrip": {
+    "description": "Tooltip for the button that opens the trip from its dive list header.",
+    "placeholders": {
+      "tripName": {
+        "type": "String"
       }
     }
   },

@@ -6704,6 +6704,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => '搜索潜水...';
 
   @override
+  String get diveLog_listPage_tripGroupLabel => '旅行';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$total 次中的 $loaded 次潜水';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return '显示 $tripName 的潜水';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return '隐藏 $tripName 的潜水';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return '打开旅行 $tripName';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return '仅显示前 $limit 条匹配结果。请细化搜索以缩小范围。';
   }

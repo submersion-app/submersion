@@ -7100,6 +7100,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Rechercher des plongées...';
 
   @override
+  String get diveLog_listPage_tripGroupLabel => 'VOYAGE';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées',
+      one: '1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded sur $total plongées';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return 'Afficher les plongées de $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return 'Masquer les plongées de $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return 'Ouvrir le voyage $tripName';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'Affichage des $limit premières correspondances. Affinez votre recherche pour réduire les résultats.';
   }
