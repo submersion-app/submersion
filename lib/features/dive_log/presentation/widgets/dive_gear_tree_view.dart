@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
@@ -74,23 +75,35 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             ),
           // The arrangement sees only the top-level items of this bucket;
           // parts keep template order underneath their assembly.
-          for (final group in arrangeEquipment(
-            [for (final n in bucket.roots) n.link.item],
-            arrangement,
-            typeLabel: (type) => type.localizedName(l10n),
-          )) ...[
-            if (group.type != null) EquipmentGroupHeader(type: group.type!),
-            for (final item in group.items)
-              ..._rows(
-                context,
-                bucket.roots.firstWhere((n) => n.link.item.id == item.id),
-                depth: 0,
-                showType: group.type == null,
-              ),
-          ],
+          ..._bucketRows(context, bucket, arrangement),
         ],
       ],
     );
+  }
+
+  List<Widget> _bucketRows(
+    BuildContext context,
+    GearBucket bucket,
+    EquipmentArrangement arrangement,
+  ) {
+    final l10n = context.l10n;
+    final rootsById = {for (final n in bucket.roots) n.link.item.id: n};
+    return [
+      for (final group in arrangeEquipment(
+        [for (final n in bucket.roots) n.link.item],
+        arrangement,
+        typeLabel: (type) => type.localizedName(l10n),
+      )) ...[
+        if (group.type != null) EquipmentGroupHeader(type: group.type!),
+        for (final item in group.items)
+          ..._rows(
+            context,
+            rootsById[item.id]!,
+            depth: 0,
+            showType: group.type == null,
+          ),
+      ],
+    ];
   }
 
   List<Widget> _rows(

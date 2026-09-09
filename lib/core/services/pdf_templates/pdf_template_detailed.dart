@@ -467,17 +467,23 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _Field('Weight', units.formatWeight(dive.weightAmount)),
       if (dive.weightType != null)
         _Field('Weight Type', dive.weightType!.displayName),
-      for (final bucket in buckets)
-        for (final group in arrangeEquipment(
-          [for (final n in bucket.roots) n.link.item],
-          arrangement,
-          typeLabel: (type) => type.displayName,
-        ))
-          for (final item in group.items)
-            ...rows(
-              bucket.roots.firstWhere((n) => n.link.item.id == item.id),
-              0,
-            ),
+      for (final bucket in buckets) ..._bucketRows(bucket, arrangement, rows),
+    ];
+  }
+
+  List<_Field> _bucketRows(
+    GearBucket bucket,
+    EquipmentArrangement arrangement,
+    List<_Field> Function(GearNode node, int depth) rows,
+  ) {
+    final rootsById = {for (final n in bucket.roots) n.link.item.id: n};
+    return [
+      for (final group in arrangeEquipment(
+        [for (final n in bucket.roots) n.link.item],
+        arrangement,
+        typeLabel: (type) => type.displayName,
+      ))
+        for (final item in group.items) ...rows(rootsById[item.id]!, 0),
     ];
   }
 

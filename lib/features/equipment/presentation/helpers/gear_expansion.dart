@@ -23,8 +23,9 @@ typedef GearExpansion = ({
 /// Expands [additions] on a page's in-memory gear list, fetching the parts'
 /// items so the page can show them (issue #1487). [existingItems] must
 /// already contain the items being added. Best-effort on the template: if
-/// the index cannot be read, the additions are attached flat, which is what
-/// the app did before assemblies existed.
+/// the index or the parts cannot be read, the additions are attached flat,
+/// which is what the app did before assemblies existed, rather than
+/// failing the add.
 Future<GearExpansion> expandGearOnPage(
   WidgetRef ref, {
   required List<GearAddition> additions,
@@ -40,11 +41,17 @@ Future<GearExpansion> expandGearOnPage(
   final candidateIds = {
     for (final a in additions) ...index.descendantsOf(a.equipmentId),
   }..removeAll(existingItems.map((e) => e.id));
-  final fetched = candidateIds.isEmpty
-      ? const <EquipmentItem>[]
-      : await ref
-            .read(equipmentRepositoryProvider)
-            .getEquipmentByIds(candidateIds.toList());
+  var fetched = const <EquipmentItem>[];
+  if (candidateIds.isNotEmpty) {
+    try {
+      fetched = await ref
+          .read(equipmentRepositoryProvider)
+          .getEquipmentByIds(candidateIds.toList());
+    } catch (_) {
+      // The repository has logged it; an unknown part is simply not
+      // attached, and the expander skips ids it cannot see.
+    }
+  }
   final itemsById = {
     for (final e in existingItems) e.id: e,
     for (final e in fetched) e.id: e,
