@@ -195,6 +195,20 @@ class EquipmentRepository {
     }
   }
 
+  /// Active items installed in [parentId] (O2 cells, batteries).
+  Future<List<EquipmentItem>> getChildEquipment(String parentId) async {
+    final rows =
+        await (_db.select(_db.equipment)
+              ..where(
+                (t) =>
+                    t.parentEquipmentId.equals(parentId) &
+                    t.isActive.equals(true),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+            .get();
+    return _mapRowsWithAttributes(rows);
+  }
+
   /// Get multiple equipment items by IDs
   Future<List<EquipmentItem>> getEquipmentByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
@@ -250,6 +264,7 @@ class EquipmentRepository {
                     ? jsonEncode(equipment.customReminderDays)
                     : null,
               ),
+              parentEquipmentId: Value(equipment.parentEquipmentId),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -377,6 +392,7 @@ class EquipmentRepository {
                 ? jsonEncode(equipment.customReminderDays)
                 : null,
           ),
+          parentEquipmentId: Value(equipment.parentEquipmentId),
           updatedAt: Value(now),
         ),
       );
@@ -647,6 +663,7 @@ class EquipmentRepository {
                         as List<dynamic>)
                     .cast<int>()
               : null,
+          parentEquipmentId: row.data['parent_equipment_id'] as String?,
         );
       }).toList();
       final attrsById = await getAttributesForEquipmentIds(
@@ -852,6 +869,7 @@ class EquipmentRepository {
       customReminderDays: row.customReminderDays != null
           ? (jsonDecode(row.customReminderDays!) as List<dynamic>).cast<int>()
           : null,
+      parentEquipmentId: row.parentEquipmentId,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     );
   }
