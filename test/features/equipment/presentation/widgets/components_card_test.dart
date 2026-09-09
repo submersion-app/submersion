@@ -112,6 +112,47 @@ void main() {
     expect(find.text('Retired'), findsOneWidget);
   });
 
+  testWidgets('a drag reorders the rows at once and persists the order', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    await tester.pumpWidget(
+      build([
+        part('c1', first, role: 'Primary', order: 0),
+        part('c2', hose, order: 1),
+      ], repo),
+    );
+    await tester.pumpAndSettle();
+    final handles = find.byIcon(Icons.drag_handle);
+    expect(handles, findsNWidgets(2));
+    final firstBefore = tester.getTopLeft(find.text('DGX first stage')).dy;
+    final hoseBefore = tester.getTopLeft(find.text('Long hose')).dy;
+    expect(firstBefore, lessThan(hoseBefore));
+
+    // Drag the first row's handle below the second row. The handle is a
+    // ReorderableDragStartListener, so the drag starts on touch-down.
+    final drag = await tester.startGesture(tester.getCenter(handles.first));
+    await tester.pump();
+    // A row is about 72 px tall; the dragged row must travel past the next
+    // row's midpoint before the list commits the swap, so go well beyond.
+    for (var i = 0; i < 10; i++) {
+      await drag.moveBy(const Offset(0, 16));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await drag.up();
+    await tester.pumpAndSettle();
+
+    // The rows swapped without waiting for the provider to refresh (the
+    // override never changes), and the new order was persisted once.
+    expect(
+      tester.getTopLeft(find.text('Long hose')).dy,
+      lessThan(tester.getTopLeft(find.text('DGX first stage')).dy),
+    );
+    expect(repo.reorders, [
+      ['c2', 'c1'],
+    ]);
+  });
+
   testWidgets('the remove icon calls removeComponent with the row id', (
     tester,
   ) async {

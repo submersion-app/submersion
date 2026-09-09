@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -105,40 +106,86 @@ class ComponentsCard extends ConsumerWidget {
                     ),
                   );
                 }
-                return ReorderableListView(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  buildDefaultDragHandles: false,
-                  // onReorderItem already adjusts newIndex for the removed
-                  // row, unlike the deprecated onReorder.
-                  onReorderItem: (oldIndex, newIndex) {
-                    final ids = parts.map((p) => p.id).toList();
-                    final moved = ids.removeAt(oldIndex);
-                    ids.insert(newIndex, moved);
-                    repository.reorder(equipmentId, ids);
-                  },
-                  children: [
-                    for (final (index, part) in parts.indexed)
-                      _PartTile(
-                        key: ValueKey(part.id),
-                        index: index,
-                        part: part,
-                        dotColor: _dotColor(
-                          context,
-                          worstClocks[part.componentEquipmentId]
-                              ?.status
-                              .severity,
-                        ),
-                        onEditRole: () => _editRole(context, ref, part),
-                        onRemove: () => repository.removeComponent(part.id),
-                      ),
-                  ],
+                return _ComponentsList(
+                  parts: parts,
+                  dotColorFor: (part) => _dotColor(
+                    context,
+                    worstClocks[part.componentEquipmentId]?.status.severity,
+                  ),
+                  onEditRole: (part) => _editRole(context, ref, part),
+                  onRemove: (part) => repository.removeComponent(part.id),
+                  onReorder: (ids) => repository.reorder(equipmentId, ids),
                 );
               },
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The reorderable rows. Holds its own copy of the order so a dragged row
+/// lands where it was dropped at once; the provider's debounced refresh
+/// would otherwise snap it back for up to 300 ms before catching up.
+class _ComponentsList extends StatefulWidget {
+  final List<EquipmentComponent> parts;
+  final Color Function(EquipmentComponent part) dotColorFor;
+  final void Function(EquipmentComponent part) onEditRole;
+  final void Function(EquipmentComponent part) onRemove;
+  final void Function(List<String> orderedIds) onReorder;
+
+  const _ComponentsList({
+    required this.parts,
+    required this.dotColorFor,
+    required this.onEditRole,
+    required this.onRemove,
+    required this.onReorder,
+  });
+
+  @override
+  State<_ComponentsList> createState() => _ComponentsListState();
+}
+
+class _ComponentsListState extends State<_ComponentsList> {
+  late List<EquipmentComponent> _parts = List.of(widget.parts);
+
+  @override
+  void didUpdateWidget(covariant _ComponentsList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A fresh provider value (a part added, removed, renamed, or the persisted
+    // order arriving) replaces the local copy.
+    if (!listEquals(widget.parts, oldWidget.parts)) {
+      _parts = List.of(widget.parts);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ReorderableListView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      buildDefaultDragHandles: false,
+      // onReorderItem already adjusts newIndex for the removed row, unlike
+      // the deprecated onReorder.
+      onReorderItem: (oldIndex, newIndex) {
+        setState(() {
+          final moved = _parts.removeAt(oldIndex);
+          _parts.insert(newIndex, moved);
+        });
+        widget.onReorder([for (final p in _parts) p.id]);
+      },
+      children: [
+        for (final (index, part) in _parts.indexed)
+          _PartTile(
+            key: ValueKey(part.id),
+            index: index,
+            part: part,
+            dotColor: widget.dotColorFor(part),
+            onEditRole: () => widget.onEditRole(part),
+            onRemove: () => widget.onRemove(part),
+          ),
+      ],
     );
   }
 }
