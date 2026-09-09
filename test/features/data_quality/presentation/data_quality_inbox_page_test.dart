@@ -1089,6 +1089,42 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 6));
   });
 
+  testWidgets('a same-computer duplicate offers no Consolidate button', (
+    tester,
+  ) async {
+    // The real-world duplicate is the same dive downloaded twice from one
+    // computer, and DiveConsolidationBuilder refuses to merge those. The
+    // inbox used to offer Consolidate anyway, so the tap could only ever
+    // fail; the card now explains that no automatic fix exists instead.
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'r-dup-same',
+            diveId: 'd1',
+            relatedDiveId: 'd2',
+            detectorId: 'duplicate',
+            category: QualityCategory.duplicate,
+            params: const {
+              'score': 0.9,
+              'timeDiffMinutes': 1,
+              'sameComputer': true,
+            },
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Consolidate'), findsNothing);
+    expect(
+      find.text('No automatic fix. Open the dive to correct this.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('split-source repair reports a failure through a SnackBar', (
     tester,
   ) async {
