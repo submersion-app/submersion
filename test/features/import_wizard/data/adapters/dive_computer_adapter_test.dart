@@ -609,6 +609,8 @@ void main() {
         expect(result.importedCounts[ImportEntityType.dives], 1);
         expect(result.notices, hasLength(1));
         expect(result.notices.single.affectedDives, 1);
+        // The accumulator was started fresh for this run.
+        verify(mockImportService.resetUnmatchedTransmitterSerials()).called(1);
       },
     );
 

@@ -274,9 +274,15 @@ class DiveImportService {
 
   /// Serials seen on tanks imported through this service that matched no
   /// registry entry. Accumulated across the per-dive entry points so the
-  /// wizard can report them once at the end.
+  /// wizard can report them once at the end of a run; [importDives] and the
+  /// wizard adapter call [resetUnmatchedTransmitterSerials] first, since the
+  /// service is a long-lived provider and a stale serial from an earlier
+  /// session must not surface in a later notice.
   List<String> get unmatchedTransmitterSerials =>
       _unmatchedSerials.toList()..sort();
+
+  /// Start a fresh accumulation for the next import run.
+  void resetUnmatchedTransmitterSerials() => _unmatchedSerials.clear();
 
   /// The diver's transmitter registry, or an empty matcher when none is
   /// configured or the load fails: a download must never fail because the
@@ -354,6 +360,7 @@ class DiveImportService {
 
     final defaultTankPreset = await _loadDefaultTankPreset();
     final transmitterMatcher = await _loadTransmitterMatcher();
+    resetUnmatchedTransmitterSerials();
 
     for (final dive in sortedDives) {
       try {

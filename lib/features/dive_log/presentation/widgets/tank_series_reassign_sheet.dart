@@ -88,36 +88,35 @@ class _ReassignSheet extends ConsumerWidget {
         .toList();
     final twoOnly = withSeries.length == 2 && tanks.length == 2;
 
+    // A shrink-wrapped list: sized to its rows on a two-tank dive, scrolling
+    // once a many-cylinder dive would overflow the sheet.
     return SafeArea(
-      child: Padding(
+      child: ListView(
+        shrinkWrap: true,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.diveLog_reassignSheet_title,
-              style: theme.textTheme.titleMedium,
-            ),
+        children: [
+          Text(
+            l10n.diveLog_reassignSheet_title,
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          for (final (index, tank) in tanks.indexed)
+            _row(context, ref, l10n, units, index, tank, twoOnly),
+          if (twoOnly) ...[
             const SizedBox(height: 8),
-            for (final (index, tank) in tanks.indexed)
-              _row(context, ref, l10n, units, index, tank, twoOnly),
-            if (twoOnly) ...[
-              const SizedBox(height: 8),
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: FilledButton.icon(
-                  icon: const Icon(Icons.swap_vert),
-                  label: Text(l10n.diveLog_reassignSheet_swap),
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    await onExchange(withSeries[0].id, withSeries[1].id);
-                  },
-                ),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: FilledButton.icon(
+                icon: const Icon(Icons.swap_vert),
+                label: Text(l10n.diveLog_reassignSheet_swap),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await onExchange(withSeries[0].id, withSeries[1].id);
+                },
               ),
-            ],
+            ),
           ],
-        ),
+        ],
       ),
     );
   }

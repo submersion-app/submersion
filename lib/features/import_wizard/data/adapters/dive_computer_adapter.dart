@@ -492,6 +492,10 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     );
     final diveActions = duplicateActions[ImportEntityType.dives] ?? {};
 
+    // The import service outlives this run; start its unmatched-serial
+    // accumulator fresh so an earlier session cannot leak into this notice.
+    _importService.resetUnmatchedTransmitterSerials();
+
     // Build the final set of indices and track actions.
     final indicesToImport = <int>{};
     final indicesToConsolidate = <int>{};

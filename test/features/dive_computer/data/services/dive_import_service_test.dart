@@ -1057,6 +1057,44 @@ void main() {
         expect(importedTanks().single.role, isNot('oxygenSupply'));
       });
 
+      test('a reset clears serials from an earlier run', () async {
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          transmitterMatcherForImports: () async =>
+              TransmitterMatcher.fromEntries([entry()]),
+        );
+        await service.importSingleDiveAsNew(
+          diveWithSerialTank('555'),
+          computerId: computer.id,
+        );
+        expect(service.unmatchedTransmitterSerials, ['555']);
+
+        service.resetUnmatchedTransmitterSerials();
+
+        expect(service.unmatchedTransmitterSerials, isEmpty);
+      });
+
+      test('importDives reports only its own batch', () async {
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          transmitterMatcherForImports: () async =>
+              TransmitterMatcher.fromEntries([entry()]),
+        );
+        await service.importSingleDiveAsNew(
+          diveWithSerialTank('555'),
+          computerId: computer.id,
+        );
+
+        final result = await service.importDives(
+          dives: [diveWithSerialTank('180777')],
+          computer: computer,
+        );
+
+        expect(result.unmatchedTransmitterSerials, isEmpty);
+      });
+
       test(
         'applies on the import-as-new path and remembers the serial',
         () async {
