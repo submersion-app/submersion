@@ -156,4 +156,59 @@ void main() {
 
     expect(find.byIcon(Icons.label), findsOneWidget);
   });
+
+  testWidgets('jumping to an option outside the built range scrolls to it', (
+    tester,
+  ) async {
+    final many = List<String>.generate(
+      40,
+      (i) => 'Option ${i.toString().padLeft(2, '0')}',
+    );
+    await tester.pumpWidget(_host(suggestions: many, onSelected: (_) {}));
+    await tester.enterText(find.byType(TextField), 'Option');
+    await tester.pumpAndSettle();
+
+    // Ctrl+ArrowDown highlights the last option, which is far outside the
+    // rows the ListView has built.
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pumpAndSettle();
+
+    final row = find.widgetWithText(ListTile, 'Option 39');
+    expect(row, findsOneWidget);
+    expect(tester.widget<ListTile>(row).selected, isTrue);
+
+    // It must actually be on screen, not merely built in the cache extent.
+    final listRect = tester.getRect(find.byType(ListView));
+    final rowRect = tester.getRect(row);
+    expect(rowRect.top, greaterThanOrEqualTo(listRect.top - 0.5));
+    expect(rowRect.bottom, lessThanOrEqualTo(listRect.bottom + 0.5));
+  });
+
+  testWidgets('stepping down a long list keeps the highlight on screen', (
+    tester,
+  ) async {
+    final many = List<String>.generate(
+      40,
+      (i) => 'Option ${i.toString().padLeft(2, '0')}',
+    );
+    await tester.pumpWidget(_host(suggestions: many, onSelected: (_) {}));
+    await tester.enterText(find.byType(TextField), 'Option');
+    await tester.pumpAndSettle();
+
+    for (var i = 0; i < 12; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+    }
+
+    final row = find.widgetWithText(ListTile, 'Option 12');
+    expect(row, findsOneWidget);
+    expect(tester.widget<ListTile>(row).selected, isTrue);
+
+    final listRect = tester.getRect(find.byType(ListView));
+    final rowRect = tester.getRect(row);
+    expect(rowRect.top, greaterThanOrEqualTo(listRect.top - 0.5));
+    expect(rowRect.bottom, lessThanOrEqualTo(listRect.bottom + 0.5));
+  });
 }

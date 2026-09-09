@@ -16,7 +16,7 @@ import 'package:flutter/scheduler.dart';
 /// `onFieldSubmitted: (_) => onFieldSubmitted()` on a [TextFormField], or
 /// `onSubmitted: (_) => onFieldSubmitted()` on a [TextField]. Without it,
 /// Enter has no way to commit the highlighted option.
-class AutocompleteOptionsList<T extends Object> extends StatelessWidget {
+class AutocompleteOptionsList<T extends Object> extends StatefulWidget {
   const AutocompleteOptionsList({
     super.key,
     required this.options,
@@ -43,12 +43,65 @@ class AutocompleteOptionsList<T extends Object> extends StatelessWidget {
   final bool dense;
 
   @override
+  State<AutocompleteOptionsList<T>> createState() =>
+      _AutocompleteOptionsListState<T>();
+}
+
+class _AutocompleteOptionsListState<T extends Object>
+    extends State<AutocompleteOptionsList<T>> {
+  final _scrollController = ScrollController();
+
+  // Keyed by position rather than by option value: two suggestions can be
+  // equal strings, and duplicate global keys would break the tree.
+  final _rowKeys = <int, GlobalKey>{};
+
+  int? _highlighted;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  GlobalKey _rowKey(int index) => _rowKeys.putIfAbsent(index, GlobalKey.new);
+
+  /// Brings the row at [index] on screen after the frame that highlighted it.
+  ///
+  /// Keyboard navigation can land far outside the rows the [ListView] has
+  /// built (jump-to-first/last, PageUp/PageDown), and [Scrollable.ensureVisible]
+  /// needs a live context, so fall back to scrolling to the end the option
+  /// lies past and let the next frame build it.
+  void _scrollHighlightIntoView(int index) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      // A newer highlight has superseded this one, e.g. while an arrow key
+      // is held down; that scroll is already scheduled.
+      if (!mounted || index != _highlighted) return;
+      if (!_scrollController.hasClients) return;
+
+      final rowContext = _rowKeys[index]?.currentContext;
+      if (rowContext == null) {
+        _scrollController.jumpTo(
+          index == 0 ? 0 : _scrollController.position.maxScrollExtent,
+        );
+        return;
+      }
+      Scrollable.ensureVisible(rowContext, alignment: 0.5);
+    }, debugLabel: 'AutocompleteOptionsList.ensureVisible');
+  }
+
+  @override
   Widget build(BuildContext context) {
     final highlighted = AutocompleteHighlightedOption.of(context);
     final theme = Theme.of(context);
     // optionsBuilder commonly returns a lazy Iterable; materialise it once so
     // indexing rows is not quadratic in the number of matches.
-    final items = options.toList(growable: false);
+    final items = widget.options.toList(growable: false);
+
+    if (highlighted != _highlighted) {
+      _highlighted = highlighted;
+      if (highlighted < items.length) _scrollHighlightIntoView(highlighted);
+    }
+
     return Align(
       alignment: AlignmentDirectional.topStart,
       child: Material(
@@ -58,34 +111,22 @@ class AutocompleteOptionsList<T extends Object> extends StatelessWidget {
         // corners of the overlay.
         clipBehavior: Clip.antiAlias,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxHeight),
+          constraints: BoxConstraints(maxHeight: widget.maxHeight),
           child: ListView.builder(
+            controller: _scrollController,
             padding: EdgeInsets.zero,
             shrinkWrap: true,
             itemCount: items.length,
             itemBuilder: (context, index) {
               final option = items[index];
-              final isHighlighted = index == highlighted;
-              return Builder(
-                builder: (context) {
-                  if (isHighlighted) {
-                    // Keep the keyboard-driven selection on screen. Scheduled
-                    // post-frame because the row is being laid out right now.
-                    SchedulerBinding.instance.addPostFrameCallback((_) {
-                      if (context.mounted) {
-                        Scrollable.ensureVisible(context, alignment: 0.5);
-                      }
-                    });
-                  }
-                  return ListTile(
-                    dense: dense,
-                    selected: isHighlighted,
-                    selectedTileColor: theme.focusColor,
-                    leading: leadingFor?.call(context, option),
-                    title: Text(labelFor(option)),
-                    onTap: () => onSelected(option),
-                  );
-                },
+              return ListTile(
+                key: _rowKey(index),
+                dense: widget.dense,
+                selected: index == highlighted,
+                selectedTileColor: theme.focusColor,
+                leading: widget.leadingFor?.call(context, option),
+                title: Text(widget.labelFor(option)),
+                onTap: () => widget.onSelected(option),
               );
             },
           ),
