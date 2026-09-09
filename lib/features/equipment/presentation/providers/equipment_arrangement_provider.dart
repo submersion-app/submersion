@@ -93,7 +93,14 @@ class EquipmentArrangementNotifier extends StateNotifier<EquipmentArrangement> {
     // A newer read started while this one was in flight; that one owns the
     // outcome, whether or not it has landed yet.
     if (seq != _loadSeq) return;
-    if (stored != null && mounted) state = stored;
+    // A successful read of null means the key is absent or its blob was
+    // unreadable, which is exactly what a fresh launch would find, and a
+    // launch shows the defaults. Keeping the loaded value here would leave
+    // the session showing an arrangement storage no longer has, and the
+    // diver would get the defaults on next launch anyway. A read that THREW
+    // is different and returned above: "could not read" is not "nothing
+    // stored", so that path keeps what is already loaded.
+    if (mounted) state = stored ?? EquipmentArrangement.defaults;
   }
 
   /// Persists [arrangement] and updates state.

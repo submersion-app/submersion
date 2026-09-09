@@ -16,11 +16,15 @@ class _FakeSettingsRepository extends AppSettingsRepository {
 
   EquipmentArrangement? stored;
   bool failWrite;
+  bool failRead = false;
   final List<EquipmentArrangement> written = [];
   final StreamController<void> settingsTicks = StreamController<void>();
 
   @override
-  Future<EquipmentArrangement?> getEquipmentArrangement() async => stored;
+  Future<EquipmentArrangement?> getEquipmentArrangement() async {
+    if (failRead) throw StateError('read failed');
+    return stored;
+  }
 
   @override
   Future<void> setEquipmentArrangement(EquipmentArrangement arrangement) async {
@@ -205,6 +209,54 @@ void main() {
         typeOrder: EquipmentTypeOrder.headToToe,
       ),
     );
+    await pumpEventQueue();
+
+    expect(
+      container.read(equipmentArrangementNotifierProvider).typeOrder,
+      EquipmentTypeOrder.dressingOrder,
+    );
+  });
+
+  test('a read returning null reverts to the defaults', () async {
+    // getEquipmentArrangement returns null when the key is absent. A fresh
+    // launch would then show the defaults, so a tick that finds it absent
+    // must not leave the session showing something storage no longer has.
+    final fake = _FakeSettingsRepository(
+      stored: EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.headToToe,
+      ),
+    );
+    final container = containerWith(fake);
+    await container.read(equipmentArrangementNotifierProvider.notifier).loaded;
+    expect(
+      container.read(equipmentArrangementNotifierProvider).typeOrder,
+      EquipmentTypeOrder.headToToe,
+    );
+
+    fake.stored = null;
+    fake.settingsTicks.add(null);
+    await pumpEventQueue();
+
+    expect(
+      container.read(equipmentArrangementNotifierProvider),
+      EquipmentArrangement.defaults,
+    );
+  });
+
+  test('a read that THROWS keeps the arrangement already loaded', () async {
+    // Distinct from the null case: "we could not read" is not "there is
+    // nothing stored", and a transient failure must not cost the diver their
+    // customization.
+    final fake = _FakeSettingsRepository(
+      stored: EquipmentArrangement.defaults.copyWith(
+        typeOrder: EquipmentTypeOrder.dressingOrder,
+      ),
+    );
+    final container = containerWith(fake);
+    await container.read(equipmentArrangementNotifierProvider.notifier).loaded;
+
+    fake.failRead = true;
+    fake.settingsTicks.add(null);
     await pumpEventQueue();
 
     expect(

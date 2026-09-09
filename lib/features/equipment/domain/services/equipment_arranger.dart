@@ -73,11 +73,19 @@ List<EquipmentGroup> arrangeEquipment(
     return arrangement.typeOrderDescending ? -ordered : ordered;
   }
 
+  // Same reasoning as the type labels above: a name is lowercased twice per
+  // comparison (once for the name sort, once for the tie-break that every
+  // sort field falls through to), so the comparator allocated up to four
+  // Strings on each of O(n log n) calls. Keyed by id, one entry per item.
+  final lowerNames = <String, String>{};
+  String lowerName(EquipmentItem item) =>
+      lowerNames[item.id] ??= item.name.toLowerCase();
+
   int compareItems(EquipmentItem a, EquipmentItem b) {
     int primary;
     switch (arrangement.itemSortField) {
       case EquipmentItemSortField.name:
-        primary = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        primary = lowerName(a).compareTo(lowerName(b));
       case EquipmentItemSortField.purchaseDate:
         primary = _compareDates(a.purchaseDate, b.purchaseDate);
       case EquipmentItemSortField.dateAdded:
@@ -98,7 +106,7 @@ List<EquipmentGroup> arrangeEquipment(
     // List.sort is not stable in Dart, so equal-ranked items would reorder
     // between rebuilds and flicker. Tie-break to a total order, never
     // inverted, so the fallback stays predictable in both directions.
-    final byName = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    final byName = lowerName(a).compareTo(lowerName(b));
     return byName != 0 ? byName : a.id.compareTo(b.id);
   }
 
