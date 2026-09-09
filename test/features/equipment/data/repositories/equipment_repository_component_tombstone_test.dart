@@ -84,11 +84,18 @@ void main() {
     expect(await componentTombstones(), {a.id});
   });
 
-  test('watchEquipmentChanges ticks on a component write', () async {
+  test('watchEquipmentChanges stays quiet on a component write', () async {
+    // Every clock evaluation hangs off this stream; a membership edit must
+    // not make it re-run. The assembly providers follow the edge stream.
     var ticks = 0;
     final sub = repo.watchEquipmentChanges().listen((_) => ticks++);
     addTearDown(sub.cancel);
     await components.addComponent(parentId: 'reg', componentId: 'first');
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(ticks, 0);
+    await (db.update(db.equipment)..where((t) => t.id.equals('reg'))).write(
+      const EquipmentCompanion(name: Value('Renamed reg')),
+    );
     for (var i = 0; i < 50 && ticks == 0; i++) {
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }

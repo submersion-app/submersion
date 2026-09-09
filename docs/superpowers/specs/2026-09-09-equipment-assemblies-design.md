@@ -426,10 +426,13 @@ as the hose, not once per assembly containing it. The reporter's second
 scenario (no component has a clock, so the assembly carries its own) needs
 no special case: the assembly is an item and the rollup includes itself.
 
-**Invalidation.** `EquipmentRepository.watchEquipmentChanges()` starts
-ticking on `equipment_components` as well as `equipment`, so a membership
-edit refreshes every badge. `invalidateServiceClockProviders` gains nothing
-because the rollup re-derives from providers that are already invalidated.
+**Invalidation.** The adjacency index follows an edge-only stream on
+`equipment_components`, so a membership edit refreshes the index, the
+rollup that derives from it, and every badge. The wider
+`watchEquipmentChanges()` stays on the `equipment` table alone: every
+clock evaluation hangs off it, and a membership edit changes no schedule
+or record. `invalidateServiceClockProviders` gains nothing because the
+rollup re-derives from providers that are already invalidated.
 
 **Leaf-only rules.** `leafGear(links)` returns every item that has no child
 row on the same dive or plan. `BuoyancyTwinAssembler.composeRigTerms` and
