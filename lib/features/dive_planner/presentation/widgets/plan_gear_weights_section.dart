@@ -7,7 +7,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/plan_buoyancy_twin_provider.dart';
@@ -20,6 +25,54 @@ import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 /// onto the plan.
 class PlanGearWeightsSection extends ConsumerWidget {
   const PlanGearWeightsSection({super.key});
+
+  /// One provenance row per attached id: an id the state has no row for
+  /// (a plan saved before provenance existed) is a loose top-level row.
+  List<GearProvenance> _fullProvenance(DivePlanState state) {
+    final byId = {for (final p in state.gearProvenance) p.equipmentId: p};
+    return [
+      for (final id in state.equipmentIds)
+        byId[id] ?? GearProvenance(equipmentId: id),
+    ];
+  }
+
+  /// Every add funnels here so an assembly expands into its parts the same
+  /// way it does on a dive (issue #1487).
+  Future<void> _addGear(
+    WidgetRef ref,
+    List<EquipmentItem> items, {
+    String? viaSetId,
+  }) async {
+    final state = ref.read(divePlanNotifierProvider);
+    final catalog = ref.read(allEquipmentProvider).valueOrNull ?? const [];
+    final byId = {for (final e in catalog) e.id: e};
+    final existingItems = [
+      for (final id in state.equipmentIds) ?byId[id],
+      for (final item in items)
+        if (!state.equipmentIds.contains(item.id)) item,
+    ];
+    final expansion = await expandGearOnPage(
+      ref,
+      additions: [
+        for (final i in items) (equipmentId: i.id, viaSetId: viaSetId),
+      ],
+      existing: _fullProvenance(state),
+      existingItems: existingItems,
+    );
+    ref.read(divePlanNotifierProvider.notifier).setGear([
+      for (final p in expansion.provenance) p.equipmentId,
+    ], expansion.provenance);
+  }
+
+  /// Removes [id] and every part attached through it.
+  void _removeGear(WidgetRef ref, String id) {
+    final state = ref.read(divePlanNotifierProvider);
+    final provenance = _fullProvenance(state);
+    final kept = GearExpander.removeSubtree(provenance, id);
+    ref.read(divePlanNotifierProvider.notifier).setGear([
+      for (final p in kept) p.equipmentId,
+    ], kept);
+  }
 
   void _showGearPicker(BuildContext context, WidgetRef ref) {
     final state = ref.read(divePlanNotifierProvider);
@@ -35,12 +88,8 @@ class PlanGearWeightsSection extends ConsumerWidget {
           scrollController: scrollController,
           selectedEquipmentIds: state.equipmentIds.toSet(),
           onEquipmentSelected: (equipment) {
-            final notifier = ref.read(divePlanNotifierProvider.notifier);
-            final current = ref.read(divePlanNotifierProvider).equipmentIds;
-            if (!current.contains(equipment.id)) {
-              notifier.setEquipmentIds([...current, equipment.id]);
-            }
             Navigator.of(context).pop();
+            _addGear(ref, [equipment]);
           },
         ),
       ),
@@ -59,11 +108,8 @@ class PlanGearWeightsSection extends ConsumerWidget {
         builder: (context, scrollController) => EquipmentSetPickerSheet(
           scrollController: scrollController,
           onSetSelected: (set, items) {
-            final notifier = ref.read(divePlanNotifierProvider.notifier);
-            final current = ref.read(divePlanNotifierProvider).equipmentIds;
-            final merged = {...current, for (final item in items) item.id};
-            notifier.setEquipmentIds(merged.toList());
             Navigator.of(context).pop();
+            _addGear(ref, items, viaSetId: set.id);
           },
         ),
       ),
@@ -80,6 +126,15 @@ class PlanGearWeightsSection extends ConsumerWidget {
     final equipment = ref.watch(allEquipmentProvider).valueOrNull ?? const [];
     final itemsById = {for (final item in equipment) item.id: item};
     final buoyancy = ref.watch(planBuoyancyTwinProvider);
+    // Parts sit inside their assembly's chip as a count (issue #1487).
+    final partIds = <String>{};
+    final partCounts = <String, int>{};
+    for (final p in state.gearProvenance) {
+      final parent = p.viaEquipmentId;
+      if (parent == null) continue;
+      partIds.add(p.equipmentId);
+      partCounts[parent] = (partCounts[parent] ?? 0) + 1;
+    }
 
     return Card(
       child: Padding(
@@ -130,14 +185,15 @@ class PlanGearWeightsSection extends ConsumerWidget {
                 runSpacing: 4,
                 children: [
                   for (final id in state.equipmentIds)
-                    InputChip(
-                      label: Text(itemsById[id]?.name ?? id),
-                      onDeleted: () => ref
-                          .read(divePlanNotifierProvider.notifier)
-                          .setEquipmentIds(
-                            state.equipmentIds.where((e) => e != id).toList(),
-                          ),
-                    ),
+                    if (!partIds.contains(id))
+                      InputChip(
+                        label: Text(switch (partCounts[id]) {
+                          final n? when n > 0 =>
+                            '${itemsById[id]?.name ?? id} (+$n)',
+                          _ => itemsById[id]?.name ?? id,
+                        }),
+                        onDeleted: () => _removeGear(ref, id),
+                      ),
                 ],
               ),
             if (prediction != null) ...[
