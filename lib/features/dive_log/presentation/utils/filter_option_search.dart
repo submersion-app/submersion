@@ -1,18 +1,31 @@
 import 'package:submersion/core/text/fuzzy_match.dart';
 
-/// Whether [searchText] matches the type-ahead [query] typed into a filter
-/// dropdown.
+/// One type-ahead query, normalized once so that testing it against a long
+/// option list does not re-normalize it per option.
 ///
-/// Matching is a substring test on both sides normalized (trimmed, lowercased,
-/// diacritics stripped), so "cancun" finds "Cancún" and "hole" finds
-/// "Blue Hole". An empty or whitespace-only query matches everything, which is
-/// what keeps the full option list visible before the diver types.
-bool filterOptionMatches(String searchText, String query) {
-  final normalizedQuery = normalize(query);
-  if (normalizedQuery.isEmpty) return true;
+/// Matching is a substring test with both sides normalized (trimmed,
+/// lowercased, diacritics stripped), so "cancun" finds "Cancún" and "hole"
+/// finds "Blue Hole". An empty or whitespace-only query matches everything,
+/// which is what keeps the full option list visible before the diver types.
+class FilterOptionQuery {
+  FilterOptionQuery(String query) : normalizedQuery = normalize(query);
 
-  return normalize(searchText).contains(normalizedQuery);
+  final String normalizedQuery;
+
+  /// Tests one option. [normalizedSearchText] must already have been through
+  /// [normalize]; normalizing it here would put the cost back on every
+  /// keystroke, which is the whole reason this type exists.
+  bool matches(String normalizedSearchText) =>
+      normalizedQuery.isEmpty || normalizedSearchText.contains(normalizedQuery);
 }
+
+/// Whether [searchText] matches the type-ahead [query], normalizing both.
+///
+/// Convenient for one-off checks. Filtering a list per keystroke should build
+/// a [FilterOptionQuery] once and match against search text normalized ahead
+/// of time instead.
+bool filterOptionMatches(String searchText, String query) =>
+    FilterOptionQuery(query).matches(normalize(searchText));
 
 /// Joins the searchable [parts] of one option into the single haystack that
 /// [filterOptionMatches] tests against.

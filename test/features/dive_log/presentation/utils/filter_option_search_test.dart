@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/text/fuzzy_match.dart';
+
 import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
 
 void main() {
@@ -38,6 +40,34 @@ void main() {
 
     test('rejects any query against an empty option', () {
       expect(filterOptionMatches('', 'hole'), isFalse);
+    });
+  });
+
+  group('FilterOptionQuery', () {
+    test('normalizes the query once and matches normalized search text', () {
+      final query = FilterOptionQuery('  CANCÚN ');
+
+      expect(query.normalizedQuery, 'cancun');
+      expect(query.matches(normalize('Cancún Reef')), isTrue);
+      expect(query.matches(normalize('Blue Hole')), isFalse);
+    });
+
+    test('an empty query matches every option', () {
+      final query = FilterOptionQuery('   ');
+
+      expect(query.matches(normalize('Blue Hole')), isTrue);
+      expect(query.matches(''), isTrue);
+    });
+
+    test('agrees with filterOptionMatches', () {
+      const haystack = 'Blue Hole Dahab Egypt';
+      for (final raw in ['', 'blue', 'EGYPT', 'dahab egypt', 'wreck']) {
+        expect(
+          FilterOptionQuery(raw).matches(normalize(haystack)),
+          filterOptionMatches(haystack, raw),
+          reason: 'query "$raw"',
+        );
+      }
     });
   });
 

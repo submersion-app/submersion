@@ -101,6 +101,26 @@ void main() {
     expect(find.text(allSitesLabel), findsOneWidget);
   });
 
+  // The point of the hint is to tell the diver the field can be typed into,
+  // which only works if it is on screen before they touch it. Asserted on the
+  // decoration rather than with find.text: InputDecorator builds a hintText
+  // into the tree even while it is holding it at zero opacity, so find.text
+  // cannot tell a shown hint from a hidden one.
+  testWidgets('shows the search hint without being touched first', (
+    tester,
+  ) async {
+    await pumpDropdown(tester);
+
+    final decoration = tester.widget<TextField>(dropdownField()).decoration;
+    expect(decoration?.helperText, searchHint);
+    expect(
+      decoration?.hintText,
+      isNull,
+      reason: 'a hint under a field that always carries text is never seen',
+    );
+    expect(find.text(searchHint), findsOneWidget);
+  });
+
   testWidgets('shows the selected option label', (tester) async {
     await pumpDropdown(tester, value: 's3');
 
@@ -173,6 +193,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(reported, ['s1']);
+  });
+
+  // The host applies the new filter on its own schedule, so the field must
+  // show what was just picked without waiting to be rebuilt with it.
+  testWidgets('the field shows the option just selected', (tester) async {
+    await pumpDropdown(tester, value: 's3');
+    await openMenu(tester);
+
+    await tester.enterText(dropdownField(), 'blue');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(InkWell, 'Blue Hole').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Blue Hole'), findsOneWidget);
+    expect(
+      find.text('Thistlegorm'),
+      findsNothing,
+      reason: 'the previous selection must not come back',
+    );
   });
 
   testWidgets('selecting the all-options entry reports null', (tester) async {
