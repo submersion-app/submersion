@@ -665,30 +665,29 @@ void main() {
     ) async {
       // The field itself is already locale-aware (seeded through
       // formatDecimalForInput, read through parseUserDecimal), so an ASCII
-      // readout contradicts the comma the diver just typed into it. Both
-      // Intl.defaultLocale and the widget locale are set: the formatters
-      // resolve the process global, so pinning only the widget locale gives a
-      // test that passes against unfixed code.
+      // readout contradicts the comma the diver just typed into it.
+      //
+      // Only Intl.defaultLocale moves; the MaterialApp stays on 'en'. The
+      // formatters resolve the process global, so the two locales are
+      // deliberately independent, and pinning the widget locale alone would
+      // give a test that passes against unfixed code. Leaving the sentence in
+      // English also keeps these assertions off the German translations, so a
+      // reworded string cannot fail a test about numbers.
       final previousLocale = Intl.defaultLocale;
       addTearDown(() => Intl.defaultLocale = previousLocale);
       Intl.defaultLocale = 'de';
 
-      await pumpRunner(
-        tester,
-        s: session(strict: false),
-        items: pair(),
-        locale: const Locale('de'),
-      );
+      await pumpRunner(tester, s: session(strict: false), items: pair());
 
       await tester.tap(find.text('Item 1'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('In Luft: 10,1'), findsOneWidget);
+      expect(find.textContaining('In air: 10,1'), findsOneWidget);
 
       await tester.enterText(find.byType(TextField).first, '48,0');
       await tester.pump();
 
-      expect(find.textContaining('Erwartet 48,3 mV'), findsOneWidget);
+      expect(find.textContaining('Expected 48,3 mV'), findsOneWidget);
       expect(find.textContaining('10.1'), findsNothing);
       expect(find.textContaining('48.3'), findsNothing);
     });
