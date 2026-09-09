@@ -90,6 +90,7 @@ class _PreDiveTemplateEditPageState
         item: item,
         templateId: widget.templateId ?? '',
         defaultSortOrder: _items.length,
+        siblings: _items,
       ),
     );
     if (result == null) return;
@@ -103,6 +104,48 @@ class _PreDiveTemplateEditPageState
         ];
       }
     });
+  }
+
+  /// Whether the item at [index] is a linearity item whose source sorts
+  /// after it. Only meaningful in a strict-order template, where the runner
+  /// gates each item behind the ones above it.
+  bool _readsLaterValue(int index) {
+    final sourceId = _items[index].sourceItemId;
+    if (sourceId == null) return false;
+    final sourceIndex = _items.indexWhere((i) => i.id == sourceId);
+    return sourceIndex >= 0 && sourceIndex > index;
+  }
+
+  /// Removes the item at [index], clearing the link on any item that sourced
+  /// it and naming each one in a snackbar.
+  ///
+  /// The link is cleared rather than the deletion blocked: the diver may be
+  /// mid-restructure and about to add a replacement, and a modal refusal in
+  /// the middle of reordering a checklist would be worse than a broken link
+  /// the composer already degrades gracefully.
+  void _removeItem(int index) {
+    final removed = _items[index];
+    final dependants = [
+      for (final i in _items)
+        if (i.sourceItemId == removed.id) i,
+    ];
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    setState(() {
+      _items = [
+        for (final i in _items)
+          if (i.id != removed.id)
+            if (i.sourceItemId == removed.id)
+              i.copyWith(sourceItemId: null)
+            else
+              i,
+      ];
+    });
+    for (final d in dependants) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.preDive_item_sourceCleared(d.title))),
+      );
+    }
   }
 
   Future<void> _save() async {
@@ -251,13 +294,34 @@ class _PreDiveTemplateEditPageState
                             _items[i].id.isEmpty ? 'new-$i' : _items[i].id,
                           ),
                           title: Text(_items[i].title),
-                          subtitle: Text(
-                            [
-                              if (_items[i].section != null) _items[i].section!,
-                              _typeLabel(context, _items[i].itemType),
-                              if (_items[i].isRequired)
-                                l10n.preDive_item_required,
-                            ].join(' - '),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                [
+                                  if (_items[i].section != null)
+                                    _items[i].section!,
+                                  _typeLabel(context, _items[i].itemType),
+                                  if (_items[i].isRequired)
+                                    l10n.preDive_item_required,
+                                ].join(' - '),
+                              ),
+                              // A linearity row that sorts above its source
+                              // only bites in a strict-order template, where
+                              // the diver would reach it before the air
+                              // reading exists. Warn, never block.
+                              if (_readsLaterValue(i))
+                                Text(
+                                  l10n.preDive_item_sourceBelow,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
+                                ),
+                            ],
                           ),
                           // No leading column at all in read-only mode. An
                           // empty checkbox was standing in as a spacer, but
@@ -271,9 +335,7 @@ class _PreDiveTemplateEditPageState
                               ? null
                               : IconButton(
                                   icon: const Icon(Icons.delete_outline),
-                                  onPressed: () => setState(
-                                    () => _items = [..._items]..removeAt(i),
-                                  ),
+                                  onPressed: () => _removeItem(i),
                                 ),
                           onTap: _readOnly
                               ? null
@@ -307,10 +369,15 @@ class _PreDiveItemDialog extends StatefulWidget {
   final String templateId;
   final int defaultSortOrder;
 
+  /// The other items in this template, so a cell linearity item can name one
+  /// of them as the source of its air reading (issue #986).
+  final List<PreDiveChecklistTemplateItem> siblings;
+
   const _PreDiveItemDialog({
     required this.item,
     required this.templateId,
     required this.defaultSortOrder,
+    this.siblings = const [],
   });
 
   @override
@@ -327,6 +394,16 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
   late final TextEditingController _valueMinController;
   late final TextEditingController _valueMaxController;
   late PreDiveItemType _itemType;
+  String? _sourceItemId;
+
+  /// Items this one may take its air reading from: the plain value items in
+  /// the same template, minus itself (nothing may source itself).
+  List<PreDiveChecklistTemplateItem> get _sourceCandidates => [
+    for (final sibling in widget.siblings)
+      if (sibling.itemType == PreDiveItemType.value &&
+          sibling.id != widget.item?.id)
+        sibling,
+  ];
   late bool _isRequired;
 
   @override
@@ -352,6 +429,7 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
       text: valueMax == null ? '' : formatDecimalForInput(valueMax),
     );
     _itemType = widget.item?.itemType ?? PreDiveItemType.check;
+    _sourceItemId = widget.item?.sourceItemId;
     _isRequired = widget.item?.isRequired ?? false;
   }
 
@@ -384,7 +462,12 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
     final section = _sectionController.text.trim();
     final valueLabel = _valueLabelController.text.trim();
     final valueUnit = _valueUnitController.text.trim();
-    final isValue = _itemType == PreDiveItemType.value;
+    // A cell linearity item records a number exactly as a value item does,
+    // so it carries the same label, unit and threshold fields. Those
+    // thresholds mean a percentage there rather than a unit of measure.
+    final isValue =
+        _itemType == PreDiveItemType.value ||
+        _itemType == PreDiveItemType.cellLinearity;
     Navigator.of(context).pop(
       PreDiveChecklistTemplateItem(
         id: widget.item?.id ?? const Uuid().v4(),
@@ -399,6 +482,9 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
         valueMin: isValue ? parseUserDecimal(_valueMinController.text) : null,
         valueMax: isValue ? parseUserDecimal(_valueMaxController.text) : null,
         isRequired: _isRequired,
+        sourceItemId: _itemType == PreDiveItemType.cellLinearity
+            ? _sourceItemId
+            : null,
         createdAt: widget.item?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       ),
@@ -447,7 +533,33 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
                 onChanged: (value) =>
                     setState(() => _itemType = value ?? PreDiveItemType.check),
               ),
-              if (_itemType == PreDiveItemType.value) ...[
+              if (_itemType == PreDiveItemType.cellLinearity)
+                DropdownButtonFormField<String>(
+                  initialValue: _sourceItemId,
+                  decoration: InputDecoration(
+                    labelText: l10n.preDive_item_sourceItem,
+                  ),
+                  items: [
+                    for (final candidate in _sourceCandidates)
+                      DropdownMenuItem(
+                        value: candidate.id,
+                        child: Text(
+                          candidate.valueLabel == null
+                              ? candidate.title
+                              : '${candidate.title} (${candidate.valueLabel})',
+                        ),
+                      ),
+                  ],
+                  onChanged: (value) => setState(() => _sourceItemId = value),
+                  // Required in the editor. Degradation exists for rows that
+                  // arrive from a clone, from sync, or from a since-deleted
+                  // source, not as a state the editor may author.
+                  validator: (value) => value == null
+                      ? l10n.preDive_item_sourceItemRequired
+                      : null,
+                ),
+              if (_itemType == PreDiveItemType.value ||
+                  _itemType == PreDiveItemType.cellLinearity) ...[
                 TextFormField(
                   controller: _valueLabelController,
                   decoration: InputDecoration(
@@ -466,7 +578,9 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
                     decimal: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: l10n.preDive_item_valueMin,
+                    labelText: _itemType == PreDiveItemType.cellLinearity
+                        ? l10n.preDive_item_linearityMin
+                        : l10n.preDive_item_valueMin,
                   ),
                 ),
                 TextFormField(
@@ -475,7 +589,9 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
                     decimal: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: l10n.preDive_item_valueMax,
+                    labelText: _itemType == PreDiveItemType.cellLinearity
+                        ? l10n.preDive_item_linearityMax
+                        : l10n.preDive_item_valueMax,
                   ),
                 ),
               ],

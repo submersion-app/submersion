@@ -655,4 +655,159 @@ void main() {
       expect(find.text('Save'), findsOneWidget);
     });
   });
+
+  group('cell linearity items (#986)', () {
+    PreDiveChecklistTemplateItem tItem({
+      required String id,
+      required String title,
+      PreDiveItemType type = PreDiveItemType.value,
+      String? valueLabel,
+      String? sourceItemId,
+      int order = 0,
+    }) => PreDiveChecklistTemplateItem(
+      id: id,
+      templateId: 'tpl-1',
+      title: title,
+      sortOrder: order,
+      itemType: type,
+      valueLabel: valueLabel,
+      sourceItemId: sourceItemId,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    testWidgets('choosing the type reveals a source picker and % labels', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(id: 'air1', title: 'Cell 1 mV in air', valueLabel: 'Cell 1'),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+      await openAddItemDialog(tester);
+
+      await tester.tap(find.byType(DropdownButtonFormField<PreDiveItemType>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cell linearity').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Air reading from'), findsOneWidget);
+      expect(find.text('Min linearity % (warning)'), findsOneWidget);
+      expect(find.text('Max linearity % (warning)'), findsOneWidget);
+      // The existing air row is offered as a source, labelled for the diver.
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      expect(find.text('Cell 1 mV in air (Cell 1)'), findsWidgets);
+    });
+
+    testWidgets('the source is required before the item can be saved', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [tItem(id: 'air1', title: 'Cell 1 mV in air')],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+      await openAddItemDialog(tester);
+
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'Cell 1 mV in O2',
+      );
+      await tester.tap(find.byType(DropdownButtonFormField<PreDiveItemType>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cell linearity').last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Choose the item holding the air reading'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('deleting a source clears its dependants and says so', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(id: 'air1', title: 'Cell 1 mV in air'),
+          tItem(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air1',
+            order: 1,
+          ),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      await tester.tap(find.byIcon(Icons.delete_outline).first);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('no longer has an air reading'),
+        findsOneWidget,
+      );
+      expect(find.text('Cell 1 mV in air'), findsNothing);
+      expect(
+        find.text('Cell 1 mV in O2'),
+        findsOneWidget,
+        reason: 'the dependant is kept, only its link is cleared',
+      );
+    });
+
+    testWidgets('a linearity row above its source carries a warning', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air1',
+          ),
+          tItem(id: 'air1', title: 'Cell 1 mV in air', order: 1),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      expect(
+        find.text('Reads a value recorded later in this list'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a linearity row below its source carries no warning', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(id: 'air1', title: 'Cell 1 mV in air'),
+          tItem(
+            id: 'o2-1',
+            title: 'Cell 1 mV in O2',
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air1',
+            order: 1,
+          ),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      expect(
+        find.text('Reads a value recorded later in this list'),
+        findsNothing,
+      );
+    });
+  });
 }
