@@ -183,6 +183,34 @@ void main() {
       expect(_subtitleOf(tester, find.byType(ListTile)), 'PADI - Divemaster');
     });
 
+    testWidgets('a multi-credential card lists every recognition in the row', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+
+      await _pumpSheet(tester, [
+        _makeCert(
+          name: '',
+          agency: CertificationAgency.ffessm,
+          level: CertificationLevel.ffessmN1,
+          additionalCredentials: const [
+            CertificationCredential(
+              agency: CertificationAgency.cmas,
+              level: CertificationLevel.cmas1StarDiver,
+            ),
+          ],
+        ),
+      ]);
+
+      final subtitle = _subtitleOf(tester, find.byType(ListTile));
+      expect(subtitle, contains('FFESSM'));
+      expect(subtitle, contains('CMAS'));
+      // The a11y label also names the extra recognition.
+      expect(find.bySemanticsLabel(RegExp('CMAS')), findsWidgets);
+
+      handle.dispose();
+    });
+
     testWidgets('the accessibility label names the certification too', (
       tester,
     ) async {

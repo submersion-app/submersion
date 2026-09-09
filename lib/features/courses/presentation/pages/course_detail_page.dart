@@ -16,7 +16,6 @@ import 'package:submersion/features/courses/presentation/widgets/course_requirem
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
-import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 
 class CourseDetailPage extends ConsumerWidget {
   final String courseId;
@@ -501,9 +500,7 @@ class CourseDetailPage extends ConsumerWidget {
                         ),
                       ),
                       title: Text(cert.name),
-                      subtitle: Text(
-                        certificationCredentialsLineL10n(cert, context.l10n),
-                      ),
+                      subtitle: Text(cert.agency.localizedName(context.l10n)),
                       trailing: Icon(
                         Icons.chevron_right,
                         color: colorScheme.onSurfaceVariant,
