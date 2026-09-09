@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship the equipment side of assemblies: schema v201, the components template table and repository, sync wiring, eight new equipment types, the Components card on the equipment detail page, list chips, and the service rollup badge.
+**Goal:** Ship the equipment side of assemblies: schema v202, the components template table and repository, sync wiring, eight new equipment types, the Components card on the equipment detail page, list chips, and the service rollup badge.
 
 **Architecture:** An assembly is an ordinary equipment row with child rows in a new clocked `equipment_components` junction (parent, component, role, sort order). Two nullable provenance columns land on `dive_equipment` and `dive_plan_equipment` in the same migration but nothing writes them until PR 2. A `ComponentsIndex` provider holds forward and reverse adjacency; a rollup provider derives the worst service clock across an item and its descendants from the existing all-items clock evaluation.
 
@@ -29,7 +29,7 @@
 
 | Path | Responsibility |
 | --- | --- |
-| `lib/core/database/database.dart` | `EquipmentComponents` table, provenance columns, v201 rung, backstop, `_hlcTables` |
+| `lib/core/database/database.dart` | `EquipmentComponents` table, provenance columns, v202 rung, backstop, `_hlcTables` |
 | `lib/core/database/performance_indexes.dart` | the two component indexes |
 | `lib/features/equipment/domain/entities/equipment_component.dart` | `EquipmentComponent` entity |
 | `lib/features/equipment/data/repositories/equipment_component_repository.dart` | CRUD, cycle guard, reorder, change stream, sync bookkeeping |
@@ -50,12 +50,12 @@
 
 ---
 
-### Task 1: Schema v201
+### Task 1: Schema v202
 
 **Files:**
 - Modify: `lib/core/database/database.dart` (table after `EquipmentAttributes` ~L1055; `DiveEquipment` ~L1058; `DivePlanEquipment` ~L1102; registration list ~L3407; `currentSchemaVersion` L3511; `migrationVersions` ~L4026; helpers after `_assertCertificationCredentialsColumn` ~L4127; `_hlcTables` ~L6883; rung after the v199 rung ~L10580; backstop after the v199 backstop ~L10772)
 - Modify: `lib/core/database/performance_indexes.dart` (after the `idx_equipment_attributes_key_num` entry ~L181)
-- Test: `test/core/database/migration_v201_equipment_assemblies_test.dart`
+- Test: `test/core/database/migration_v202_equipment_assemblies_test.dart`
 
 **Interfaces:**
 - Produces: Drift table `EquipmentComponents` (data class `EquipmentComponentRow`, companion `EquipmentComponentsCompanion`, accessor `db.equipmentComponents`) with columns `id`, `parentEquipmentId`, `componentEquipmentId`, `role`, `sortOrder`, `createdAt`, `updatedAt`, `hlc`; nullable `viaEquipmentId` and `viaSetId` on `DiveEquipment` and `DivePlanEquipment`.
@@ -63,14 +63,14 @@
 - [ ] **Step 1: Write the failing migration test**
 
 ```dart
-// test/core/database/migration_v201_equipment_assemblies_test.dart
+// test/core/database/migration_v202_equipment_assemblies_test.dart
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v201 adds the equipment_components assembly template and the two
+/// v202 adds the equipment_components assembly template and the two
 /// provenance columns on each gear junction (issue #1487). Additive, no
 /// backfill.
 
@@ -101,7 +101,7 @@ Future<Set<String>> _foreignKeys(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v201 is the current schema version and is in the ladder', () {
+  test('v202 is the current schema version and is in the ladder', () {
     // 200 is held by the transmitter registry branch.
     expect(AppDatabase.currentSchemaVersion, 201);
     expect(AppDatabase.migrationVersions, contains(201));
@@ -142,7 +142,7 @@ void main() {
     }
   });
 
-  test('a database stranded before v201 gains the table and columns', () async {
+  test('a database stranded before v202 gains the table and columns', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 200');
@@ -261,7 +261,7 @@ void main() {
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `flutter test test/core/database/migration_v201_equipment_assemblies_test.dart`
+Run: `flutter test test/core/database/migration_v202_equipment_assemblies_test.dart`
 Expected: compile error, `equipmentComponents` and `EquipmentComponentsCompanion` are undefined.
 
 - [ ] **Step 3: Add the table, the columns, and the registration**
@@ -338,7 +338,7 @@ In the `@DriftDatabase(tables: [...])` list add `EquipmentComponents,` on the li
 After `_assertCertificationCredentialsColumn` add:
 
 ```dart
-  /// v201: equipment_components (issue #1487), the assembly template. Pure
+  /// v202: equipment_components (issue #1487), the assembly template. Pure
   /// CREATE IF NOT EXISTS so it is safe from both onUpgrade and the beforeOpen
   /// backstop.
   Future<void> _assertEquipmentComponentsTable() async {
@@ -367,7 +367,7 @@ After `_assertCertificationCredentialsColumn` add:
     );
   }
 
-  /// v201: the two nullable provenance columns on each gear junction
+  /// v202: the two nullable provenance columns on each gear junction
   /// (issue #1487). PRAGMA-guarded per table and per column so a healthy
   /// database no-ops and a partial fixture does not throw. Nothing writes
   /// them until the dive side lands; adding them here keeps the ladder to
@@ -396,21 +396,21 @@ After `_assertCertificationCredentialsColumn` add:
 After the v199 rung (`if (from < 199) await reportProgress();`) add:
 
 ```dart
-        // v201: equipment assemblies (issue #1487). The equipment_components
+        // v202: equipment assemblies (issue #1487). The equipment_components
         // template table plus two nullable provenance columns on each gear
         // junction. Additive, no backfill. 200 is held by the transmitter
         // registry branch.
-        if (from < 201) {
+        if (from < 202) {
           await _assertEquipmentComponentsTable();
           await _assertGearProvenanceColumns();
         }
-        if (from < 201) await reportProgress();
+        if (from < 202) await reportProgress();
 ```
 
 After the v199 backstop (`await _assertCertificationCredentialsColumn();` inside `beforeOpen`) add:
 
 ```dart
-        // v201 backstop: re-assert the equipment_components table and the
+        // v202 backstop: re-assert the equipment_components table and the
         // gear-junction provenance columns (issue #1487). A database that
         // arrives by restore or sync-adopt never runs onUpgrade.
         await _assertEquipmentComponentsTable();
@@ -439,12 +439,12 @@ In `performance_indexes.dart` after the `idx_equipment_attributes_key_num` entry
 - [ ] **Step 5: Run codegen, then the test**
 
 Run the codegen script (see Global Constraints), then:
-`flutter test test/core/database/migration_v201_equipment_assemblies_test.dart`
+`flutter test test/core/database/migration_v202_equipment_assemblies_test.dart`
 Expected: PASS, 5 tests.
 
 - [ ] **Step 6: Relax the v199 exact-version tripwire and run the neighbouring ladder tests**
 
-In `test/core/database/migration_v199_certification_credentials_test.dart` change `expect(AppDatabase.currentSchemaVersion, 199);` to `expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(199));` and add the comment `// Relaxed once v201 (equipment assemblies) landed on top; the newest rung owns the exact assertion.`
+In `test/core/database/migration_v199_certification_credentials_test.dart` change `expect(AppDatabase.currentSchemaVersion, 199);` to `expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(199));` and add the comment `// Relaxed once v202 (equipment assemblies) landed on top; the newest rung owns the exact assertion.`
 
 Run: `flutter test test/core/database/migration_v199_certification_credentials_test.dart test/core/database/migration_v196_weight_presets_test.dart test/core/database/equipment_set_geofence_schema_test.dart`
 Expected: PASS.
@@ -452,9 +452,9 @@ Expected: PASS.
 - [ ] **Step 7: Format and commit**
 
 ```bash
-dart format lib/core/database/database.dart lib/core/database/performance_indexes.dart test/core/database/migration_v201_equipment_assemblies_test.dart test/core/database/migration_v199_certification_credentials_test.dart
-git add lib/core/database/database.dart lib/core/database/performance_indexes.dart test/core/database/migration_v201_equipment_assemblies_test.dart test/core/database/migration_v199_certification_credentials_test.dart
-git commit -m "feat(equipment): schema v201 for assemblies (#1487)
+dart format lib/core/database/database.dart lib/core/database/performance_indexes.dart test/core/database/migration_v202_equipment_assemblies_test.dart test/core/database/migration_v199_certification_credentials_test.dart
+git add lib/core/database/database.dart lib/core/database/performance_indexes.dart test/core/database/migration_v202_equipment_assemblies_test.dart test/core/database/migration_v199_certification_credentials_test.dart
+git commit -m "feat(equipment): schema v202 for assemblies (#1487)
 
 equipment_components template table plus nullable via_equipment_id and
 via_set_id on dive_equipment and dive_plan_equipment. Additive rung with
@@ -4249,4 +4249,4 @@ If files changed, stage them by path and commit with `style(equipment): format a
 
 - [ ] **Step 4: Report**
 
-List the task commits, the test counts from Step 2, and note for the PR body: v201 renumber risk against the transmitter registry branch; the provenance columns are unused until PR 2; the sort-by-service-due order still uses each item's own clocks (only the badge, header, and table column read the rollup).
+List the task commits, the test counts from Step 2, and note for the PR body: v202 renumber risk against the transmitter registry branch; the provenance columns are unused until PR 2; the sort-by-service-due order still uses each item's own clocks (only the badge, header, and table column read the rollup).

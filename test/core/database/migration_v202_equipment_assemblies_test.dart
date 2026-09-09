@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v201 adds the equipment_components assembly template and the two
+/// v202 adds the equipment_components assembly template and the two
 /// provenance columns on each gear junction (issue #1487). Additive, no
 /// backfill.
 
@@ -33,10 +33,11 @@ Future<Set<String>> _foreignKeys(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v201 is the current schema version and is in the ladder', () {
-    // 200 is held by the transmitter registry branch.
-    expect(AppDatabase.currentSchemaVersion, 201);
-    expect(AppDatabase.migrationVersions, contains(201));
+  test('v202 is the current schema version and is in the ladder', () {
+    // Renumbered from 201: the cell linearity link (issue #986) took 201
+    // while this branch was open.
+    expect(AppDatabase.currentSchemaVersion, 202);
+    expect(AppDatabase.migrationVersions, contains(202));
   });
 
   test(
@@ -77,10 +78,10 @@ void main() {
     },
   );
 
-  test('a database stranded before v201 gains the table and columns', () async {
+  test('a database stranded before v202 gains the table and columns', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 200');
+        rawDb.execute('PRAGMA user_version = 201');
         // The helper adds each column only once its parent table exists,
         // so the fixture carries both parents.
         rawDb.execute('CREATE TABLE equipment (id TEXT NOT NULL PRIMARY KEY)');

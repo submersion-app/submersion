@@ -316,4 +316,135 @@ void main() {
       expect(await tombstoneCount('preDiveSessionItems', it.id), 1);
     }
   });
+
+  group('cell linearity persistence (#986)', () {
+    domain.PreDiveSessionItem linearityDraft({
+      required String id,
+      String title = 'Cell 1 mV in O2',
+      String? sourceItemId,
+      int order = 0,
+    }) => domain.PreDiveSessionItem(
+      id: id,
+      sessionId: '',
+      title: title,
+      sortOrder: order,
+      itemType: domain.PreDiveItemType.cellLinearity,
+      valueLabel: 'Cell 1',
+      valueUnit: 'mV',
+      sourceItemId: sourceItemId,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    test('startSession honours ids the composer already minted', () async {
+      final session = await repository.startSession(
+        template: template(),
+        items: [
+          domain.PreDiveSessionItem(
+            id: 'pre-minted-1',
+            sessionId: '',
+            title: 'Cell 1 mV in air',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ],
+      );
+      final items = await repository.getItemsForSession(session.id);
+      expect(items.single.id, 'pre-minted-1');
+    });
+
+    test('startSession still mints an id when one is blank', () async {
+      final session = await repository.startSession(
+        template: template(),
+        items: [draft('Check air')],
+      );
+      final items = await repository.getItemsForSession(session.id);
+      expect(items.single.id, isNotEmpty);
+    });
+
+    test('startSession persists the link', () async {
+      final session = await repository.startSession(
+        template: template(),
+        items: [
+          domain.PreDiveSessionItem(
+            id: 'air1',
+            sessionId: '',
+            title: 'Cell 1 mV in air',
+            itemType: domain.PreDiveItemType.value,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          linearityDraft(id: 'o2-1', sourceItemId: 'air1', order: 1),
+        ],
+      );
+      final items = await repository.getItemsForSession(session.id);
+      final linearity = items.firstWhere((i) => i.id == 'o2-1');
+      expect(linearity.itemType, domain.PreDiveItemType.cellLinearity);
+      expect(linearity.sourceItemId, 'air1');
+    });
+
+    test('resolving a linearity item freezes the air reading', () async {
+      final session = await repository.startSession(
+        template: template(),
+        items: [linearityDraft(id: 'o2-1', sourceItemId: 'air1')],
+      );
+      await repository.updateItemState(
+        sessionId: session.id,
+        itemId: 'o2-1',
+        state: domain.PreDiveItemState.done,
+        valueNumber: 48.0,
+        sourceValueNumber: 10.1,
+      );
+      final item = (await repository.getItemsForSession(session.id)).single;
+      expect(item.valueNumber, 48.0);
+      expect(item.sourceValueNumber, 10.1);
+      expect(item.linearityPercent!.round(), 99);
+    });
+
+    test('resetting clears the frozen reading but keeps the link', () async {
+      final session = await repository.startSession(
+        template: template(),
+        items: [linearityDraft(id: 'o2-1', sourceItemId: 'air1')],
+      );
+      await repository.updateItemState(
+        sessionId: session.id,
+        itemId: 'o2-1',
+        state: domain.PreDiveItemState.done,
+        valueNumber: 48.0,
+        sourceValueNumber: 10.1,
+      );
+      await repository.updateItemState(
+        sessionId: session.id,
+        itemId: 'o2-1',
+        state: domain.PreDiveItemState.pending,
+      );
+      final item = (await repository.getItemsForSession(session.id)).single;
+      expect(item.sourceValueNumber, isNull);
+      expect(item.sourceItemId, 'air1', reason: 'the link itself survives');
+    });
+
+    test('a note edit leaves the frozen reading alone', () async {
+      final session = await repository.startSession(
+        template: template(),
+        items: [linearityDraft(id: 'o2-1', sourceItemId: 'air1')],
+      );
+      await repository.updateItemState(
+        sessionId: session.id,
+        itemId: 'o2-1',
+        state: domain.PreDiveItemState.done,
+        valueNumber: 48.0,
+        sourceValueNumber: 10.1,
+      );
+      // No sourceValueNumber passed: the frozen figure must not be wiped.
+      await repository.updateItemState(
+        sessionId: session.id,
+        itemId: 'o2-1',
+        state: domain.PreDiveItemState.done,
+        note: 'cell 1 a little sluggish',
+      );
+      final item = (await repository.getItemsForSession(session.id)).single;
+      expect(item.sourceValueNumber, 10.1);
+      expect(item.note, 'cell 1 a little sluggish');
+    });
+  });
 }

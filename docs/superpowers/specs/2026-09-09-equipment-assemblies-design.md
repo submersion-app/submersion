@@ -141,7 +141,7 @@ water.
 it belongs to, come from providers, because the entity is hydrated in too
 many places to carry a derived collection.
 
-**Migration v201.** One rung for everything. v200 is claimed by the
+**Migration v202.** One rung for everything. v200 is claimed by the
 transmitter registry branch (`issue-1365-brainstorm-f1e2c7`); whichever
 merges second renumbers, as usual.
 
@@ -150,7 +150,7 @@ merges second renumbers, as usual.
 - `_assertGearProvenanceColumns()`: PRAGMA-guarded `ALTER TABLE ... ADD
   COLUMN` for the four columns, following
   `_assertCertificationCredentialsColumn` (v199).
-- `if (from < 201)` rung calling both, followed by `reportProgress()`.
+- `if (from < 202)` rung calling both, followed by `reportProgress()`.
 - Both re-called from the `beforeOpen` backstop, because a database that
   arrives by restore or sync adopt never runs `onUpgrade`.
 - `currentSchemaVersion` to 201, `migrationVersions` appended.
@@ -481,13 +481,13 @@ type substrings.
   verified in the repository at commit `39a358b6865` on 2026-09-08 and
   2026-09-09.
 - Schema claim: v199 on main, v200 on the transmitter registry branch, so
-  this design claims v201.
+  this design claims v202.
 
 ## Testing
 
 Written first, per task.
 
-- Migration: `test/core/database/migration_v201_equipment_assemblies_test.dart`
+- Migration: `test/core/database/migration_v202_equipment_assemblies_test.dart`
   in the usual shape (fresh open, upgrade from the minimal fixture, backstop re-assert
   idempotent, all four columns and the table present).
 - Components repository: create, unique constraint, cycle guard at depth
@@ -522,7 +522,7 @@ Written first, per task.
 
 Three stacked pull requests, each green on its own:
 
-1. Schema v201, entities, `EquipmentComponentRepository`, sync wiring, new
+1. Schema v202, entities, `EquipmentComponentRepository`, sync wiring, new
    types, Components card and picker, list chips, rollup provider and
    badges, `deleteEquipment` tombstones. Ships the provenance columns
    unused, which is harmless.

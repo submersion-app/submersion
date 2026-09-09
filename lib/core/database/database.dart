@@ -351,6 +351,16 @@ class PreDiveChecklistTemplateItems extends Table {
   /// require the equipment table to exist wherever this table does.
   /// Referential integrity is enforced at the application layer instead.
   TextColumn get equipmentId => text().nullable()();
+
+  /// For a 'cellLinearity' item, the template item holding this cell's air
+  /// reading (issue #986).
+  ///
+  /// Deliberately not a SQL-level FK, for the same reason as [equipmentId]:
+  /// these rows are seeded into isolated schema fixtures and re-seeded at
+  /// every app start, so a REFERENCES clause would demand the referenced row
+  /// exist wherever this table does. Remapped on clone and again at session
+  /// start; every reader tolerates a dangling value.
+  TextColumn get sourceItemId => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -449,6 +459,20 @@ class PreDiveSessionItems extends Table {
   /// runner computes the live overdue list from equipmentId instead) and
   /// cleared back to null on reset. Issue #814 phase 2.
   TextColumn get overdueServices => text().nullable()();
+
+  /// For a 'cellLinearity' item, the session item holding this cell's air
+  /// reading, remapped from the template item id at compose time (issue
+  /// #986).
+  ///
+  /// Not a SQL-level FK: this references a row in the same table, and the
+  /// two rows sync as independent HLC records with no guaranteed order of
+  /// arrival, so a constraint would reject a legitimate out-of-order insert.
+  TextColumn get sourceItemId => text().nullable()();
+
+  /// The air millivolts, frozen when the diver resolved this item. Kept
+  /// rather than re-read so a completed audit record cannot be rewritten by
+  /// a later edit to the source row. Cleared back to null on reset.
+  RealColumn get sourceValueNumber => real().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -2447,86 +2471,95 @@ const String kSeedBuiltInPreDiveTemplateItemsSql = '''
   INSERT OR IGNORE INTO pre_dive_checklist_template_items
     (id, template_id, section, title, notes, sort_order, item_type,
      value_label, value_unit, value_min, value_max, is_required,
-     created_at, updated_at)
+     source_item_id, created_at, updated_at)
   VALUES
     ('builtin-predive-bwraf-0', 'builtin-predive-bwraf', NULL,
      'BCD / Buoyancy: inflate, deflate, dump valves', '', 0, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-bwraf-1', 'builtin-predive-bwraf', NULL,
      'Weights: in place, releases clear', '', 1, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-bwraf-2', 'builtin-predive-bwraf', NULL,
      'Releases: locate and check all buckles', '', 2, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-bwraf-3', 'builtin-predive-bwraf', NULL,
      'Air: valve open, breathe both regs, check gauge', '', 3, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-bwraf-4', 'builtin-predive-bwraf', NULL,
      'Final OK: mask, fins, computer set, buddy signal', '', 4, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-0', 'builtin-predive-gue-edge', NULL,
      'Goal: agree the objective and what turns the dive', '', 0, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-1', 'builtin-predive-gue-edge', NULL,
      'Unified team: roles, order, communication, lost-buddy plan', '',
-     1, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+     1, 'check', NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-2', 'builtin-predive-gue-edge', NULL,
      'Equipment: match and check the team head to toe', '', 2, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-3', 'builtin-predive-gue-edge', NULL,
      'Exposure: suit, thermal protection, planned time in the water', '',
-     3, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+     3, 'check', NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-4', 'builtin-predive-gue-edge', NULL,
      'Decompression: agree the ascent schedule and deco gases', '',
-     4, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+     4, 'check', NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-5', 'builtin-predive-gue-edge', NULL,
      'Gas: analyze, label, confirm MOD and turn pressure', '', 5, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-6', 'builtin-predive-gue-edge', NULL,
      'Environment: conditions, entry/exit, descent reference, hazards', '',
-     6, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+     6, 'check', NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-0', 'builtin-predive-ccr-build', 'Assembly',
      'Scrubber packed and within duration limits', '', 0, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-1', 'builtin-predive-ccr-build', 'Assembly',
      'Loop assembled, mushroom valves checked', '', 1, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-2', 'builtin-predive-ccr-build', 'Tests',
      'Negative pressure test held 60 s', '', 2, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-3', 'builtin-predive-ccr-build', 'Tests',
      'Positive pressure test held 60 s', '', 3, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-4', 'builtin-predive-ccr-build', 'Cells',
      'Cell 1 mV in air', '', 4, 'value',
-     'Cell 1', 'mV', 8.5, 13.0, 1, 0, 0),
+     'Cell 1', 'mV', 8.5, 13.0, 1, NULL, 0, 0),
     ('builtin-predive-ccr-5', 'builtin-predive-ccr-build', 'Cells',
      'Cell 2 mV in air', '', 5, 'value',
-     'Cell 2', 'mV', 8.5, 13.0, 1, 0, 0),
+     'Cell 2', 'mV', 8.5, 13.0, 1, NULL, 0, 0),
     ('builtin-predive-ccr-6', 'builtin-predive-ccr-build', 'Cells',
      'Cell 3 mV in air', '', 6, 'value',
-     'Cell 3', 'mV', 8.5, 13.0, 1, 0, 0),
+     'Cell 3', 'mV', 8.5, 13.0, 1, NULL, 0, 0),
     ('builtin-predive-ccr-7', 'builtin-predive-ccr-build', 'Gas',
      'Diluent and O2 analyzed, MOD labels on', '', 7, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-8', 'builtin-predive-ccr-build', 'Pre-breathe',
      'Five-minute pre-breathe, setpoint holds', '', 8, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-9', 'builtin-predive-ccr-build', 'Bailout',
      'Bailout analyzed, pressurized, clipped', '', 9, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-pack-0', 'builtin-predive-gear-packing', NULL,
      'Certification card and insurance', '', 0, 'check',
-     NULL, NULL, NULL, NULL, 0, 0, 0),
+     NULL, NULL, NULL, NULL, 0, NULL, 0, 0),
     ('builtin-predive-pack-1', 'builtin-predive-gear-packing', NULL,
      'Equipment set', '', 1, 'equipmentSet',
-     NULL, NULL, NULL, NULL, 0, 0, 0),
+     NULL, NULL, NULL, NULL, 0, NULL, 0, 0),
     ('builtin-predive-pack-2', 'builtin-predive-gear-packing', NULL,
      'Save-a-dive kit and spares', '', 2, 'check',
-     NULL, NULL, NULL, NULL, 0, 0, 0),
+     NULL, NULL, NULL, NULL, 0, NULL, 0, 0),
     ('builtin-predive-pack-3', 'builtin-predive-gear-packing', NULL,
      'Water, sun protection, logbook', '', 3, 'check',
-     NULL, NULL, NULL, NULL, 0, 0, 0)
+     NULL, NULL, NULL, NULL, 0, NULL, 0, 0),
+    ('builtin-predive-ccr-cell1-linearity', 'builtin-predive-ccr-build',
+     'Cells', 'Cell 1 mV in O2', '', 7, 'cellLinearity',
+     'Cell 1', 'mV', 95.0, NULL, 1, 'builtin-predive-ccr-4', 0, 0),
+    ('builtin-predive-ccr-cell2-linearity', 'builtin-predive-ccr-build',
+     'Cells', 'Cell 2 mV in O2', '', 8, 'cellLinearity',
+     'Cell 2', 'mV', 95.0, NULL, 1, 'builtin-predive-ccr-5', 0, 0),
+    ('builtin-predive-ccr-cell3-linearity', 'builtin-predive-ccr-build',
+     'Cells', 'Cell 3 mV in O2', '', 9, 'cellLinearity',
+     'Cell 3', 'mV', 95.0, NULL, 1, 'builtin-predive-ccr-6', 0, 0)
 ''';
 
 /// Retires the original four-item GUE EDGE list (ids `builtin-predive-gue-0`
@@ -2541,6 +2574,35 @@ const String kSeedBuiltInPreDiveTemplateItemsSql = '''
 /// read-only in the UI, excluded from sync export, and session items are
 /// independent snapshots taken at start time, so no diver-owned data hangs off
 /// these rows. Idempotent -- a no-op once the legacy ids are gone.
+/// Pushes the CCR build template's Gas, Pre-breathe and Bailout items from
+/// sort_order 7, 8, 9 down to 10, 11, 12, making room for the three cell
+/// linearity rows seeded at 7, 8, 9 (issue #986).
+///
+/// Needed because [kSeedBuiltInPreDiveTemplateItemsSql] uses INSERT OR
+/// IGNORE, which can add the new rows but can never renumber the ones an
+/// already-seeded database holds. Same repair technique as
+/// [kRetireLegacyGueEdgeItemsSql].
+///
+/// Idempotent: it assigns fixed values keyed by id, so re-running it is a
+/// no-op. Safe to run on every open, and unconditionally, because built-in
+/// items are read-only in the UI, excluded from sync export, and session
+/// items are independent snapshots with no foreign key to template items.
+///
+/// The ordering is load-bearing rather than cosmetic: this template is
+/// seeded with strict_order = 1, so a linearity row that sorted above the
+/// air row it reads would be unreachable until the diver answered an item
+/// that comes after it.
+const String kRenumberCcrTailItemsSql = '''
+  UPDATE pre_dive_checklist_template_items
+  SET sort_order = CASE id
+        WHEN 'builtin-predive-ccr-7' THEN 10
+        WHEN 'builtin-predive-ccr-8' THEN 11
+        WHEN 'builtin-predive-ccr-9' THEN 12
+      END
+  WHERE id IN ('builtin-predive-ccr-7', 'builtin-predive-ccr-8',
+               'builtin-predive-ccr-9')
+''';
+
 const String kRetireLegacyGueEdgeItemsSql = '''
   DELETE FROM pre_dive_checklist_template_items
   WHERE template_id = 'builtin-predive-gue-edge'
@@ -3622,7 +3684,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 201;
+  static const int currentSchemaVersion = 202;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4141,8 +4203,13 @@ class AppDatabase extends _$AppDatabase {
     // v200: transmitters registry table (issue #1365) and
     // dive_tanks.source_tank_index (issue #1314).
     200,
-    // 201: equipment assemblies (issue #1487).
+    // v201: the O2 cell linearity link (issue #986). Took 201 rather than
+    // 200 because #1365 held 200 on its own branch while this one was open;
+    // #1365 has since landed, so the two sit in order.
     201,
+    // 202: equipment assemblies (issue #1487). Renumbered from 201, which
+    // the cell linearity link took while this branch was open.
+    202,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4284,7 +4351,7 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  /// v201: equipment_components (issue #1487), the assembly template. Pure
+  /// v202: equipment_components (issue #1487), the assembly template. Pure
   /// CREATE IF NOT EXISTS so it is safe from both onUpgrade and the beforeOpen
   /// backstop.
   Future<void> _assertEquipmentComponentsTable() async {
@@ -4313,7 +4380,7 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  /// v201: the two nullable provenance columns on each gear junction
+  /// v202: the two nullable provenance columns on each gear junction
   /// (issue #1487). PRAGMA-guarded per table and per column so a healthy
   /// database no-ops and a partial fixture does not throw. Nothing writes
   /// them until the dive side lands; adding them here keeps the ladder to
@@ -5134,6 +5201,7 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(kSeedBuiltInPreDiveTemplatesSql);
     await customStatement(kRetireLegacyGueEdgeItemsSql);
     await customStatement(kSeedBuiltInPreDiveTemplateItemsSql);
+    await customStatement(kRenumberCcrTailItemsSql);
   }
 
   /// v120: planner Subsurface-parity columns - plan start time, per-segment
@@ -6480,6 +6548,45 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'ALTER TABLE dive_tanks ADD COLUMN transmitter_serial TEXT',
     );
+  }
+
+  /// Idempotent DDL for the v201 pre_dive_checklist_template_items
+  /// .source_item_id column (issue #986): the cell linearity link. Self-
+  /// guards on the table existing. Same dual-call contract (onUpgrade plus
+  /// beforeOpen backstop) as the other column-assert helpers.
+  Future<void> _assertTemplateItemSourceIdColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('pre_dive_checklist_template_items')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('source_item_id')) return;
+    await customStatement(
+      'ALTER TABLE pre_dive_checklist_template_items ADD COLUMN '
+      'source_item_id TEXT',
+    );
+  }
+
+  /// Idempotent DDL for the v201 pre_dive_session_items linearity columns
+  /// (issue #986). Each column is guarded independently, so an upgrade
+  /// interrupted between the two still picks the second up on the next open.
+  Future<void> _assertSessionItemSourceColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('pre_dive_session_items')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('source_item_id')) {
+      await customStatement(
+        'ALTER TABLE pre_dive_session_items ADD COLUMN source_item_id TEXT',
+      );
+    }
+    if (!names.contains('source_value_number')) {
+      await customStatement(
+        'ALTER TABLE pre_dive_session_items ADD COLUMN source_value_number '
+        'REAL',
+      );
+    }
   }
 
   Future<void> _assertSessionItemOverdueServicesColumn() async {
@@ -10812,18 +10919,30 @@ class AppDatabase extends _$AppDatabase {
           await _assertDiveTankSourceIndexColumn();
         }
         if (from < 200) await reportProgress();
-        // v201: equipment assemblies (issue #1487). The equipment_components
-        // template table plus two nullable provenance columns on each gear
-        // junction. Additive, no backfill.
+        // v201: the O2 cell linearity link (issue #986). Column-only rung,
+        // no backfill: no existing item is a linearity item, and null is the
+        // correct value for all three columns.
         if (from < 201) {
+          await _assertTemplateItemSourceIdColumn();
+          await _assertSessionItemSourceColumns();
+        }
+        if (from < 201) await reportProgress();
+        // v202: equipment assemblies (issue #1487). The equipment_components
+        // template table plus two nullable provenance columns on each gear
+        // junction. Additive, no backfill. Renumbered from 201.
+        if (from < 202) {
           await _assertEquipmentComponentsTable();
           await _assertGearProvenanceColumns();
         }
-        if (from < 201) await reportProgress();
+        if (from < 202) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
+
+        // v201 backstop: re-assert the cell linearity columns.
+        await _assertTemplateItemSourceIdColumn();
+        await _assertSessionItemSourceColumns();
 
         // v103 backstop: re-assert media store schema (the helper is
         // self-guarding when the media table is absent).
@@ -11017,7 +11136,7 @@ class AppDatabase extends _$AppDatabase {
         // column, same restore/sync-adopt reasoning.
         await _assertTransmitterTables();
         await _assertDiveTankSourceIndexColumn();
-        // v201 backstop: re-assert the equipment_components table and the
+        // v202 backstop: re-assert the equipment_components table and the
         // gear-junction provenance columns (issue #1487). A database that
         // arrives by restore or sync-adopt never runs onUpgrade.
         await _assertEquipmentComponentsTable();
