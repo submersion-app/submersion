@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
@@ -127,10 +128,20 @@ void main() {
   /// Labels offered by the open suggestion list.
   Iterable<String> suggestions(WidgetTester tester) => tester
       .widgetList<Text>(
-        find.descendant(of: find.byType(InkWell), matching: find.byType(Text)),
+        find.descendant(
+          of: find.byKey(searchableFilterOptionsKey),
+          matching: find.byType(Text),
+        ),
       )
       .map((text) => text.data ?? '')
       .where((label) => label.isNotEmpty);
+
+  /// The suggestion row offering [label], scoped to the suggestion list so a
+  /// button elsewhere on the surface cannot stand in for it.
+  Finder suggestion(String label) => find.descendant(
+    of: find.byKey(searchableFilterOptionsKey),
+    matching: find.widgetWithText(InkWell, label),
+  );
 
   Future<void> tapText(WidgetTester tester, String label) async {
     await scrollTo(tester, find.text(label));
@@ -171,7 +182,7 @@ void main() {
     expect(suggestions(tester), contains('Coral Garden'));
     expect(suggestions(tester), isNot(contains('Blue Hole')));
 
-    await tester.tap(find.widgetWithText(InkWell, 'Coral Garden').last);
+    await tester.tap(suggestion('Coral Garden'));
     await tester.pumpAndSettle();
     await tapText(tester, 'Apply Filters');
 
@@ -203,7 +214,7 @@ void main() {
     await tester.enterText(fieldShowing('All types'), 'wre');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(InkWell, 'Wreck').last);
+    await tester.tap(suggestion('Wreck'));
     await tester.pumpAndSettle();
     await tapText(tester, 'Apply Filters');
 
@@ -225,7 +236,7 @@ void main() {
     expect(suggestions(tester), contains('Backup unit'));
     expect(suggestions(tester), isNot(contains('Teric')));
 
-    await tester.tap(find.widgetWithText(InkWell, 'Backup unit').last);
+    await tester.tap(suggestion('Backup unit'));
     await tester.pumpAndSettle();
     await tapText(tester, 'Apply Filters');
 

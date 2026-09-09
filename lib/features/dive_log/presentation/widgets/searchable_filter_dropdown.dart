@@ -4,6 +4,13 @@ import 'package:submersion/core/text/fuzzy_match.dart';
 
 import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
 
+/// Identifies the floating suggestion list.
+///
+/// Tests scope their finders to this rather than to every tappable row on the
+/// surface under it, which would otherwise match unrelated buttons and could
+/// mask a failure once a page grows a control sharing an option's label.
+const searchableFilterOptionsKey = Key('searchable-filter-options');
+
 /// One selectable entry in a [SearchableFilterDropdown].
 ///
 /// [label] is what the diver sees; [searchText] is what typing matches
@@ -125,13 +132,15 @@ class _SearchableFilterDropdownState<T>
   @override
   void didUpdateWidget(covariant SearchableFilterDropdown<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // A selection made elsewhere (Clear All, a preset) has to reach the field,
-    // but not while the diver is part way through typing a query.
     if (widget.value != oldWidget.value) {
       _selectedValue = widget.value;
-      if (!_focusNode.hasFocus) {
-        _controller.text = _selectedLabel;
-      }
+    }
+    // While the field is not being edited its text IS the selection's label,
+    // so anything that moves that label has to reach it: a selection made
+    // elsewhere (Clear All, a preset), an option renamed under the same id, an
+    // option list that resolved after the first build, a locale switch.
+    if (!_focusNode.hasFocus && _controller.text != _selectedLabel) {
+      _controller.text = _selectedLabel;
     }
   }
 
@@ -250,6 +259,7 @@ class _FilterOptionsView<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final entries = options.toList();
     return Align(
+      key: searchableFilterOptionsKey,
       alignment: AlignmentDirectional.topStart,
       child: Material(
         elevation: 4,

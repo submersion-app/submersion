@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -81,7 +82,10 @@ void main() {
 
   Iterable<String> suggestions(WidgetTester tester) => tester
       .widgetList<Text>(
-        find.descendant(of: find.byType(InkWell), matching: find.byType(Text)),
+        find.descendant(
+          of: find.byKey(searchableFilterOptionsKey),
+          matching: find.byType(Text),
+        ),
       )
       .map((text) => text.data ?? '')
       .where((label) => label.isNotEmpty);

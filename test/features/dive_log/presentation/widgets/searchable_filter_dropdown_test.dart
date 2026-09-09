@@ -88,6 +88,12 @@ void main() {
     matching: find.byType(TextField),
   );
 
+  /// The suggestion row offering [label], scoped to the suggestion list.
+  Finder suggestion(String label) => find.descendant(
+    of: find.byKey(searchableFilterOptionsKey),
+    matching: find.widgetWithText(InkWell, label),
+  );
+
   Future<void> openMenu(WidgetTester tester) async {
     await tester.tap(dropdownField());
     await tester.pumpAndSettle();
@@ -189,7 +195,7 @@ void main() {
 
     await tester.enterText(dropdownField(), 'blue');
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(InkWell, 'Blue Hole').last);
+    await tester.tap(suggestion('Blue Hole'));
     await tester.pumpAndSettle();
 
     expect(reported, ['s1']);
@@ -203,7 +209,7 @@ void main() {
 
     await tester.enterText(dropdownField(), 'blue');
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(InkWell, 'Blue Hole').last);
+    await tester.tap(suggestion('Blue Hole'));
     await tester.pumpAndSettle();
 
     expect(find.text('Blue Hole'), findsOneWidget);
@@ -218,7 +224,7 @@ void main() {
     await pumpDropdown(tester, value: 's1');
     await openMenu(tester);
 
-    await tester.tap(find.widgetWithText(InkWell, allSitesLabel).last);
+    await tester.tap(suggestion(allSitesLabel));
     await tester.pumpAndSettle();
 
     expect(reported, [null]);
@@ -245,6 +251,45 @@ void main() {
       reason: 'a dead-end query must not strand the diver with an empty menu',
     );
     expect(reported, isEmpty, reason: 'no selection was made');
+  });
+
+  // A site can be renamed, or a host can resolve its list after first build,
+  // without the selected id ever changing.
+  testWidgets('follows a renamed option even though the value is unchanged', (
+    tester,
+  ) async {
+    Future<void> pumpWithLabel(String label) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 400,
+                child: SearchableFilterDropdown<String>(
+                  value: 's1',
+                  options: [
+                    FilterDropdownOption(value: 's1', label: label),
+                    FilterDropdownOption(value: 's2', label: 'Coral Garden'),
+                  ],
+                  allOptionLabel: allSitesLabel,
+                  searchHintText: searchHint,
+                  onChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await pumpWithLabel('Blue Hole');
+    expect(find.text('Blue Hole'), findsOneWidget);
+
+    await pumpWithLabel('Blue Hole (north)');
+
+    expect(find.text('Blue Hole (north)'), findsOneWidget);
+    expect(find.text('Blue Hole'), findsNothing);
   });
 
   testWidgets('moving focus away discards an uncommitted query', (
