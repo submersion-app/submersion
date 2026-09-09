@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/text/fuzzy_match.dart';
@@ -36,6 +37,19 @@ class FilterDropdownOption<T> {
   /// keystroke. Normalizing per keystroke instead costs about 5.8ms per
   /// keystroke over 2000 options, most of a frame; this brings it to 0.1ms.
   late final String normalizedSearchText = normalize(searchText);
+
+  // Value equality so the field can tell a host rebuild that changed nothing
+  // (these are built fresh on every parent build) from one that actually
+  // changed the options, and keep its prepared rows in the first case.
+  @override
+  bool operator ==(Object other) =>
+      other is FilterDropdownOption<T> &&
+      other.value == value &&
+      other.label == label &&
+      other._searchText == _searchText;
+
+  @override
+  int get hashCode => Object.hash(value, label, _searchText);
 }
 
 /// One row offered by the field, including the leading "all options" row that
@@ -121,17 +135,27 @@ class _SearchableFilterDropdownState<T>
   /// label of the selection being replaced.
   late T? _selectedValue;
 
+  /// The rows offered to the diver, prepared once per option list rather than
+  /// on every keystroke: [_optionsFor] runs per keystroke, and rebuilding this
+  /// there allocated a row per option each time.
+  late List<_FilterEntry<T>> _entries;
+
   @override
   void initState() {
     super.initState();
     _selectedValue = widget.value;
     _controller.text = _selectedLabel;
+    _entries = _buildEntries();
     _focusNode.addListener(_onFocusChanged);
   }
 
   @override
   void didUpdateWidget(covariant SearchableFilterDropdown<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!listEquals(oldWidget.options, widget.options) ||
+        oldWidget.allOptionLabel != widget.allOptionLabel) {
+      _entries = _buildEntries();
+    }
     if (widget.value != oldWidget.value) {
       _selectedValue = widget.value;
     }
@@ -183,7 +207,7 @@ class _SearchableFilterDropdownState<T>
     return widget.allOptionLabel;
   }
 
-  List<_FilterEntry<T>> get _entries => [
+  List<_FilterEntry<T>> _buildEntries() => [
     _FilterEntry<T>(
       value: null,
       label: widget.allOptionLabel,

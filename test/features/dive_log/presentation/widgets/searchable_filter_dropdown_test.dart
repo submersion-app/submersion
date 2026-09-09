@@ -292,6 +292,45 @@ void main() {
     expect(find.text('Blue Hole'), findsNothing);
   });
 
+  // The prepared rows are cached, so a genuinely longer list has to invalidate
+  // that cache rather than keep offering the old one.
+  testWidgets('offers an option that appears after the first build', (
+    tester,
+  ) async {
+    Future<void> pumpWith(List<FilterDropdownOption<String>> opts) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 400,
+                child: SearchableFilterDropdown<String>(
+                  value: null,
+                  options: opts,
+                  allOptionLabel: allSitesLabel,
+                  searchHintText: searchHint,
+                  onChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await pumpWith([FilterDropdownOption(value: 's1', label: 'Blue Hole')]);
+    await pumpWith([
+      FilterDropdownOption(value: 's1', label: 'Blue Hole'),
+      FilterDropdownOption(value: 's9', label: 'Late Arrival'),
+    ]);
+
+    await tester.tap(dropdownField());
+    await tester.pumpAndSettle();
+
+    expect(openMenuLabels(tester), contains('Late Arrival'));
+  });
+
   testWidgets('moving focus away discards an uncommitted query', (
     tester,
   ) async {
