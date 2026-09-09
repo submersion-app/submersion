@@ -93,6 +93,7 @@ class SerialDownloadRunner(private val context: Context) {
         var anyOpened = false
         var lastResult = -1
         var lastErrorMsg = ""
+        var lastInfo = IntArray(3)
 
         for (driver in drivers) {
             synchronized(diveBufferLock) { bufferedDives.clear() }
@@ -110,13 +111,15 @@ class SerialDownloadRunner(private val context: Context) {
             }
             anyOpened = true
             val errorBuf = ByteArray(256)
+            val infoOut = IntArray(3)
             var thrownMsg: String? = null
-            NativeTrace.d("nativeDownloadRun begin vendor=${request.vendor} product=${request.product} model=${request.model}")
+            NativeTrace.d("nativeDownloadRun begin vendor=${request.vendor} product=${request.product} model=${request.model} syncClock=${request.syncClock}")
             val result = try {
                 LibdcWrapper.nativeDownloadRun(
                     session, request.vendor, request.product,
                     request.model.toInt(), RUNNER_LIBDC_TRANSPORT_SERIAL,
-                    stream, request.name, fingerprintBytes, downloadCallback, errorBuf
+                    stream, request.name, fingerprintBytes, request.syncClock,
+                    downloadCallback, errorBuf, infoOut
                 )
             } catch (e: Throwable) {
                 NativeTrace.e("nativeDownloadRun threw: ${e.message}")
@@ -126,6 +129,7 @@ class SerialDownloadRunner(private val context: Context) {
             NativeTrace.d("nativeDownloadRun returned rc=$result")
             stream.close()
             lastResult = result
+            lastInfo = infoOut
             lastErrorMsg = String(errorBuf, Charsets.UTF_8).takeWhile { it.code != 0 }
                 .ifEmpty { thrownMsg ?: "Download failed (rc=$result)" }
             if (result == 0 || result == RUNNER_LIBDC_STATUS_CANCELLED) break
@@ -143,7 +147,12 @@ class SerialDownloadRunner(private val context: Context) {
             !anyOpened ->
                 cb.onError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
             lastResult == 0 || lastResult == RUNNER_LIBDC_STATUS_CANCELLED ->
-                cb.onComplete(divesToFlush.size.toLong())
+                cb.onComplete(
+                    divesToFlush.size.toLong(),
+                    libdcUnsignedOrNull(lastInfo[0]),
+                    libdcUnsignedOrNull(lastInfo[1]),
+                    libdcClockSyncStatusName(lastInfo[2]).takeIf { it != "not_requested" },
+                )
             drivers.size > 1 ->
                 cb.onError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
             else ->
