@@ -334,15 +334,11 @@ void main() {
     expect(openMenuLabels(tester), contains('Late Arrival'));
   });
 
-  /// The background colour of the suggestion row offering [label].
-  Color? rowColor(WidgetTester tester, String label) => tester
-      .widget<Container>(
-        find.descendant(
-          of: suggestion(label),
-          matching: find.byType(Container),
-        ),
-      )
-      .color;
+  /// The suggestion row offering [label], as a tile.
+  ListTile rowTile(WidgetTester tester, String label) =>
+      tester.widget<ListTile>(
+        find.ancestor(of: find.text(label), matching: find.byType(ListTile)),
+      );
 
   // Enter commits whichever row the arrow keys have moved to, so a keyboard
   // user has to be able to see which one that is.
@@ -358,9 +354,10 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.pumpAndSettle();
 
-    expect(rowColor(tester, 'Blue Hole'), focusColor);
-    expect(rowColor(tester, allSitesLabel), isNull);
-    expect(rowColor(tester, 'Thistlegorm'), isNull);
+    expect(rowTile(tester, 'Blue Hole').selected, isTrue);
+    expect(rowTile(tester, 'Blue Hole').selectedTileColor, focusColor);
+    expect(rowTile(tester, allSitesLabel).selected, isFalse);
+    expect(rowTile(tester, 'Thistlegorm').selected, isFalse);
   });
 
   testWidgets('the highlighted row is exposed as selected to semantics', (
