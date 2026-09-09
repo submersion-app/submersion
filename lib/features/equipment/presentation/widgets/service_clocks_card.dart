@@ -45,10 +45,7 @@ class ServiceClocksCard extends ConsumerWidget {
     units: units,
     now: status.now,
     dueDate: status.dueDate,
-    divesSinceAnchor: status.divesSinceAnchor,
-    divesRemaining: status.divesRemaining,
-    hoursSinceAnchor: status.hoursSinceAnchor,
-    hoursRemaining: status.hoursRemaining,
+    usageByUnit: status.usageByUnit,
   );
 
   @override
@@ -146,7 +143,9 @@ class ServiceClocksCard extends ConsumerWidget {
                             // identical to rebreather loop time. Say so
                             // rather than leaving a diver to infer it from a
                             // scrubber budget.
-                            if (status.hoursRemaining != null)
+                            if (status.usageByUnit.keys.any(
+                              (u) => u.isFractional,
+                            ))
                               Text(
                                 l10n.equipment_serviceClocks_hoursSource,
                                 style: Theme.of(context).textTheme.bodySmall

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -15,6 +14,9 @@ import 'package:submersion/features/equipment/presentation/widgets/geofence_edit
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:uuid/uuid.dart';
 
 class EquipmentSetEditPage extends ConsumerStatefulWidget {
@@ -296,32 +298,30 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                   );
                 }
 
-                // Group equipment by type
-                final groupedEquipment = <EquipmentType, List<EquipmentItem>>{};
-                for (final item in equipment) {
-                  groupedEquipment.putIfAbsent(item.type, () => []).add(item);
-                }
+                // This grouped by type but ordered neither the groups nor the
+                // items inside them, so the picker had the same unspecified
+                // order the dive surfaces did (#1486, #1576). Selection is
+                // held in a Set of ids, so reordering the render cannot
+                // disturb what is ticked.
+                final groups = arrangeEquipment(
+                  equipment,
+                  ref.watch(equipmentArrangementProvider),
+                  typeLabel: (type) => type.localizedName(context.l10n),
+                );
 
                 return Column(
-                  children: groupedEquipment.entries.map((entry) {
+                  children: groups.map((group) {
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                            child: Text(
-                              entry.key.localizedName(context.l10n),
-                              style: Theme.of(context).textTheme.labelLarge
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
+                          if (group.type != null)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                              child: EquipmentGroupHeader(type: group.type!),
                             ),
-                          ),
-                          ...entry.value.map(
+                          ...group.items.map(
                             (item) => _buildEquipmentCheckbox(context, item),
                           ),
                         ],

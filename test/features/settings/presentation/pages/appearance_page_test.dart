@@ -116,7 +116,10 @@ void main() {
     });
 
     testWidgets('shows all 9 section navigation tiles', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      // Taller since the page gained the gear-arrangement tile (#1486,
+      // #1576); at 2000 the last section tile fell below the surface and the
+      // lazy list never built it.
+      await tester.binding.setSurfaceSize(const Size(400, 2200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(_buildTestWidget());

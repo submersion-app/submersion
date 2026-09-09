@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -58,6 +59,10 @@ void main() {
           equipmentItemProvider(item.id).overrideWith((ref) async => item),
           equipmentDiveCountProvider(item.id).overrideWith((ref) async => 0),
           equipmentTripCountProvider(item.id).overrideWith((ref) async => 0),
+          equipmentComponentsProvider(
+            item.id,
+          ).overrideWith((ref) async => const []),
+          equipmentWorstClockProvider.overrideWith((ref) async => {}),
           serviceRecordNotifierProvider(
             item.id,
           ).overrideWith((ref) => _MockServiceRecordNotifier()),
@@ -88,6 +93,16 @@ void main() {
     );
     await pumpDetail(tester, item: legacyOverdue, clockStatuses: const []);
     expect(find.text('Service is overdue!'), findsNothing);
+  });
+
+  testWidgets('the Components card is on the page', (tester) async {
+    const item = EquipmentItem(
+      id: 'e1',
+      name: 'Reg',
+      type: EquipmentType.regulator,
+    );
+    await pumpDetail(tester, item: item, clockStatuses: const []);
+    expect(find.text('Components'), findsOneWidget);
   });
 
   testWidgets('overdue banner shows when a clock is overdue', (tester) async {

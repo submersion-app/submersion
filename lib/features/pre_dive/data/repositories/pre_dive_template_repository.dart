@@ -243,6 +243,7 @@ class PreDiveTemplateRepository {
                 valueMax: Value(entry.item.valueMax),
                 isRequired: Value(entry.item.isRequired),
                 equipmentId: Value(entry.item.equipmentId),
+                sourceItemId: Value(entry.item.sourceItemId),
                 createdAt: Value(existingCreatedAt[entry.id] ?? now),
                 updatedAt: Value(now),
               ),
@@ -297,8 +298,21 @@ class PreDiveTemplateRepository {
         builtinKey: null,
       ),
     );
+    // Ids are minted here rather than left to saveItems, because a
+    // cellLinearity item's sourceItemId points at a sibling and has to be
+    // rewritten to that sibling's NEW id. Leaving it to saveItems would
+    // clone the template with every air/linearity pair silently unlinked,
+    // which is the most likely way a diver first meets this feature.
+    final newIdByOldId = {for (final i in items) i.id: _uuid.v4()};
     await saveItems(clone.id, [
-      for (final i in items) i.copyWith(id: '', templateId: clone.id),
+      for (final i in items)
+        i.copyWith(
+          id: newIdByOldId[i.id],
+          templateId: clone.id,
+          sourceItemId: i.sourceItemId == null
+              ? null
+              : newIdByOldId[i.sourceItemId],
+        ),
     ]);
     return clone;
   }
@@ -377,6 +391,7 @@ class PreDiveTemplateRepository {
     valueMax: row.valueMax,
     isRequired: row.isRequired,
     equipmentId: row.equipmentId,
+    sourceItemId: row.sourceItemId,
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
   );
