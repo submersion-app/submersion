@@ -167,6 +167,16 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
   /// A list that has not loaded yet says nothing about whether the computer
   /// still exists, so the id is kept: a slow load must not quietly clear the
   /// diver's filter.
+  ///
+  /// Read through this State's own [ref] rather than `widget.ref`. The two
+  /// divide by who owns the provider: `widget.ref` is passed in paired with
+  /// `widget.filterProvider`, so the filter write lands in the caller's
+  /// container and outlives the sheet's pop, while every app-wide provider is
+  /// read through the sheet's own ref, this one and the section's watch of the
+  /// same provider included. Were the two ever to resolve different
+  /// containers, reading the computer list through the caller's ref is what
+  /// would diverge: the applied id would be reconciled against a different
+  /// list from the one the diver was just shown.
   String? _resolveComputerId() {
     final computers = ref.read(allDiveComputersProvider).valueOrNull;
     return computers == null ? _computerId : _computerIdWithin(computers);
