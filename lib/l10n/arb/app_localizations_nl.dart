@@ -13,6 +13,57 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de browser niet openen. Gebruik Link kopiëren en plak het adres in je browser.';
 
   @override
+  String get equipment_components_add => 'Onderdeel toevoegen';
+
+  @override
+  String get equipment_components_cycleError =>
+      'Dat item bevat dit item al, dus het kan niet als onderdeel worden toegevoegd.';
+
+  @override
+  String get equipment_components_editRole => 'Rol bewerken';
+
+  @override
+  String get equipment_components_empty =>
+      'Geen onderdelen. Voeg de delen toe waaruit dit item is opgebouwd.';
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count toevoegen',
+      one: '1 toevoegen',
+      zero: 'Toevoegen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty =>
+      'Er is geen andere actieve uitrusting die hier kan worden toegevoegd.';
+
+  @override
+  String get equipment_components_pickerTitle => 'Onderdelen toevoegen';
+
+  @override
+  String get equipment_components_remove => 'Onderdeel verwijderen';
+
+  @override
+  String get equipment_components_reorder => 'Herschikken';
+
+  @override
+  String get equipment_components_role => 'Rol';
+
+  @override
+  String get equipment_components_roleDialogTitle => 'Rol van onderdeel';
+
+  @override
+  String get equipment_components_roleHint => 'bijv. Primaire tweede trap';
+
+  @override
+  String get equipment_components_title => 'Onderdelen';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Kan het document niet verwijderen: $error';
   }

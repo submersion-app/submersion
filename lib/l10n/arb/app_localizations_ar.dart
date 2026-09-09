@@ -13,6 +13,57 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر فتح المتصفح. استخدم نسخ الرابط والصق العنوان في متصفحك.';
 
   @override
+  String get equipment_components_add => 'إضافة مكوّن';
+
+  @override
+  String get equipment_components_cycleError =>
+      'هذا العنصر يحتوي بالفعل على هذا، لذا لا يمكن إضافته كمكوّن.';
+
+  @override
+  String get equipment_components_editRole => 'تعديل الدور';
+
+  @override
+  String get equipment_components_empty =>
+      'لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.';
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة $count',
+      one: 'إضافة 1',
+      zero: 'إضافة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty =>
+      'لا توجد معدات نشطة أخرى يمكن إضافتها هنا.';
+
+  @override
+  String get equipment_components_pickerTitle => 'إضافة مكوّنات';
+
+  @override
+  String get equipment_components_remove => 'إزالة المكوّن';
+
+  @override
+  String get equipment_components_reorder => 'إعادة ترتيب';
+
+  @override
+  String get equipment_components_role => 'الدور';
+
+  @override
+  String get equipment_components_roleDialogTitle => 'دور المكوّن';
+
+  @override
+  String get equipment_components_roleHint => 'مثال: المرحلة الثانية الرئيسية';
+
+  @override
+  String get equipment_components_title => 'المكوّنات';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'تعذرت إزالة المستند: $error';
   }

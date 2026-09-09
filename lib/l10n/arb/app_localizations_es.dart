@@ -13,6 +13,57 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo abrir el navegador. Usa Copiar enlace y pega la dirección en tu navegador.';
 
   @override
+  String get equipment_components_add => 'Añadir componente';
+
+  @override
+  String get equipment_components_cycleError =>
+      'Ese equipo ya contiene este, por lo que no se puede añadir como componente.';
+
+  @override
+  String get equipment_components_editRole => 'Editar función';
+
+  @override
+  String get equipment_components_empty =>
+      'Sin componentes. Añade las piezas que forman este equipo.';
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Añadir $count',
+      one: 'Añadir 1',
+      zero: 'Añadir',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty =>
+      'No hay más equipo activo que se pueda añadir aquí.';
+
+  @override
+  String get equipment_components_pickerTitle => 'Añadir componentes';
+
+  @override
+  String get equipment_components_remove => 'Quitar componente';
+
+  @override
+  String get equipment_components_reorder => 'Reordenar';
+
+  @override
+  String get equipment_components_role => 'Función';
+
+  @override
+  String get equipment_components_roleDialogTitle => 'Función del componente';
+
+  @override
+  String get equipment_components_roleHint => 'p. ej. Segunda etapa principal';
+
+  @override
+  String get equipment_components_title => 'Componentes';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'No se pudo quitar el documento: $error';
   }

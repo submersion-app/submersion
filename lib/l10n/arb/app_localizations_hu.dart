@@ -13,6 +13,57 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült megnyitni a böngészőt. Használd a Link másolása gombot, és illeszd be a címet a böngésződbe.';
 
   @override
+  String get equipment_components_add => 'Alkatrész hozzáadása';
+
+  @override
+  String get equipment_components_cycleError =>
+      'Az a felszerelés már tartalmazza ezt, ezért nem adható hozzá alkatrészként.';
+
+  @override
+  String get equipment_components_editRole => 'Szerep szerkesztése';
+
+  @override
+  String get equipment_components_empty =>
+      'Nincsenek alkatrészek. Add hozzá azokat a részeket, amelyekből ez a felszerelés áll.';
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hozzáadása',
+      one: '1 hozzáadása',
+      zero: 'Hozzáadás',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty =>
+      'Nincs más aktív felszerelés, amit ide lehetne adni.';
+
+  @override
+  String get equipment_components_pickerTitle => 'Alkatrészek hozzáadása';
+
+  @override
+  String get equipment_components_remove => 'Alkatrész eltávolítása';
+
+  @override
+  String get equipment_components_reorder => 'Átrendezés';
+
+  @override
+  String get equipment_components_role => 'Szerep';
+
+  @override
+  String get equipment_components_roleDialogTitle => 'Alkatrész szerepe';
+
+  @override
+  String get equipment_components_roleHint => 'pl. Fő második fokozat';
+
+  @override
+  String get equipment_components_title => 'Alkatrészek';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'A dokumentum nem távolítható el: $error';
   }

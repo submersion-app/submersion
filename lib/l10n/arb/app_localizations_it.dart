@@ -13,6 +13,57 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile aprire il browser. Usa Copia link e incolla l\'indirizzo nel browser.';
 
   @override
+  String get equipment_components_add => 'Aggiungi componente';
+
+  @override
+  String get equipment_components_cycleError =>
+      'Quell\'articolo contiene già questo, quindi non può essere aggiunto come componente.';
+
+  @override
+  String get equipment_components_editRole => 'Modifica ruolo';
+
+  @override
+  String get equipment_components_empty =>
+      'Nessun componente. Aggiungi le parti che compongono questo articolo.';
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aggiungi $count',
+      one: 'Aggiungi 1',
+      zero: 'Aggiungi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty =>
+      'Nessun\'altra attrezzatura attiva può essere aggiunta qui.';
+
+  @override
+  String get equipment_components_pickerTitle => 'Aggiungi componenti';
+
+  @override
+  String get equipment_components_remove => 'Rimuovi componente';
+
+  @override
+  String get equipment_components_reorder => 'Riordina';
+
+  @override
+  String get equipment_components_role => 'Ruolo';
+
+  @override
+  String get equipment_components_roleDialogTitle => 'Ruolo del componente';
+
+  @override
+  String get equipment_components_roleHint => 'es. Secondo stadio principale';
+
+  @override
+  String get equipment_components_title => 'Componenti';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Impossibile rimuovere il documento: $error';
   }

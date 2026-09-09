@@ -13,6 +13,57 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'ouvrir le navigateur. Utilisez Copier le lien et collez l\'adresse dans votre navigateur.';
 
   @override
+  String get equipment_components_add => 'Ajouter un composant';
+
+  @override
+  String get equipment_components_cycleError =>
+      'Cet équipement contient déjà celui-ci, il ne peut donc pas être ajouté comme composant.';
+
+  @override
+  String get equipment_components_editRole => 'Modifier le rôle';
+
+  @override
+  String get equipment_components_empty =>
+      'Aucun composant. Ajoutez les pièces qui composent cet équipement.';
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ajouter $count',
+      one: 'Ajouter 1',
+      zero: 'Ajouter',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty =>
+      'Aucun autre équipement actif ne peut être ajouté ici.';
+
+  @override
+  String get equipment_components_pickerTitle => 'Ajouter des composants';
+
+  @override
+  String get equipment_components_remove => 'Retirer le composant';
+
+  @override
+  String get equipment_components_reorder => 'Réorganiser';
+
+  @override
+  String get equipment_components_role => 'Rôle';
+
+  @override
+  String get equipment_components_roleDialogTitle => 'Rôle du composant';
+
+  @override
+  String get equipment_components_roleHint => 'p. ex. Deuxième étage principal';
+
+  @override
+  String get equipment_components_title => 'Composants';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Impossible de retirer le document : $error';
   }

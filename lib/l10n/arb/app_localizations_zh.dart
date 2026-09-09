@@ -13,6 +13,54 @@ class AppLocalizationsZh extends AppLocalizations {
       '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
 
   @override
+  String get equipment_components_add => '添加组件';
+
+  @override
+  String get equipment_components_cycleError => '该装备已包含此项，因此无法将其添加为组件。';
+
+  @override
+  String get equipment_components_editRole => '编辑用途';
+
+  @override
+  String get equipment_components_empty => '暂无组件。请添加构成此装备的部件。';
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加 $count 项',
+      one: '添加 1 项',
+      zero: '添加',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty => '没有其他可添加的在用装备。';
+
+  @override
+  String get equipment_components_pickerTitle => '添加组件';
+
+  @override
+  String get equipment_components_remove => '移除组件';
+
+  @override
+  String get equipment_components_reorder => '调整顺序';
+
+  @override
+  String get equipment_components_role => '用途';
+
+  @override
+  String get equipment_components_roleDialogTitle => '组件用途';
+
+  @override
+  String get equipment_components_roleHint => '例如：主二级头';
+
+  @override
+  String get equipment_components_title => '组件';
+
+  @override
   String equipment_documents_removeError(String error) {
     return '无法移除文档：$error';
   }

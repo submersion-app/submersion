@@ -122,6 +122,84 @@ abstract class AppLocalizations {
   /// **'Could not open your browser. Use Copy link and paste the address into your browser.'**
   String get settings_oauth_connect_browserFailed;
 
+  /// No description provided for @equipment_components_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add component'**
+  String get equipment_components_add;
+
+  /// No description provided for @equipment_components_cycleError.
+  ///
+  /// In en, this message translates to:
+  /// **'That item already contains this one, so it cannot be added as a component.'**
+  String get equipment_components_cycleError;
+
+  /// No description provided for @equipment_components_editRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit role'**
+  String get equipment_components_editRole;
+
+  /// No description provided for @equipment_components_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No components. Add the parts this item is assembled from.'**
+  String get equipment_components_empty;
+
+  /// No description provided for @equipment_components_pickerConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Add} =1{Add 1} other{Add {count}}}'**
+  String equipment_components_pickerConfirm(num count);
+
+  /// No description provided for @equipment_components_pickerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No other active gear can be added here.'**
+  String get equipment_components_pickerEmpty;
+
+  /// No description provided for @equipment_components_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add components'**
+  String get equipment_components_pickerTitle;
+
+  /// No description provided for @equipment_components_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove component'**
+  String get equipment_components_remove;
+
+  /// No description provided for @equipment_components_reorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder'**
+  String get equipment_components_reorder;
+
+  /// No description provided for @equipment_components_role.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get equipment_components_role;
+
+  /// No description provided for @equipment_components_roleDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Component role'**
+  String get equipment_components_roleDialogTitle;
+
+  /// No description provided for @equipment_components_roleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Primary second stage'**
+  String get equipment_components_roleHint;
+
+  /// No description provided for @equipment_components_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Components'**
+  String get equipment_components_title;
+
   /// No description provided for @equipment_documents_removeError.
   ///
   /// In en, this message translates to:

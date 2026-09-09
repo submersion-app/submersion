@@ -13,6 +13,57 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 
   @override
+  String get equipment_components_add => 'הוספת רכיב';
+
+  @override
+  String get equipment_components_cycleError =>
+      'הפריט הזה כבר מכיל את זה, ולכן אי אפשר להוסיף אותו כרכיב.';
+
+  @override
+  String get equipment_components_editRole => 'עריכת תפקיד';
+
+  @override
+  String get equipment_components_empty =>
+      'אין רכיבים. הוסיפו את החלקים שמהם מורכב הפריט.';
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוספת $count',
+      one: 'הוספת 1',
+      zero: 'הוספה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty =>
+      'אין ציוד פעיל נוסף שאפשר להוסיף כאן.';
+
+  @override
+  String get equipment_components_pickerTitle => 'הוספת רכיבים';
+
+  @override
+  String get equipment_components_remove => 'הסרת רכיב';
+
+  @override
+  String get equipment_components_reorder => 'סידור מחדש';
+
+  @override
+  String get equipment_components_role => 'תפקיד';
+
+  @override
+  String get equipment_components_roleDialogTitle => 'תפקיד הרכיב';
+
+  @override
+  String get equipment_components_roleHint => 'לדוגמה: שלב שני ראשי';
+
+  @override
+  String get equipment_components_title => 'רכיבים';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'לא ניתן להסיר את המסמך: $error';
   }

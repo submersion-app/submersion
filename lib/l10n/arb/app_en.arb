@@ -1,5 +1,18 @@
 {
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
+  "equipment_components_add": "Add component",
+  "equipment_components_cycleError": "That item already contains this one, so it cannot be added as a component.",
+  "equipment_components_editRole": "Edit role",
+  "equipment_components_empty": "No components. Add the parts this item is assembled from.",
+  "equipment_components_pickerConfirm": "{count, plural, =0{Add} =1{Add 1} other{Add {count}}}",
+  "equipment_components_pickerEmpty": "No other active gear can be added here.",
+  "equipment_components_pickerTitle": "Add components",
+  "equipment_components_remove": "Remove component",
+  "equipment_components_reorder": "Reorder",
+  "equipment_components_role": "Role",
+  "equipment_components_roleDialogTitle": "Component role",
+  "equipment_components_roleHint": "e.g. Primary second stage",
+  "equipment_components_title": "Components",
   "equipment_documents_removeError": "Could not remove the document: {error}",
   "@diveLog_o2tox_label_timeAboveLimit": {
     "placeholders": {

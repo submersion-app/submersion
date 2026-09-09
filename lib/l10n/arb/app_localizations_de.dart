@@ -13,6 +13,57 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Browser konnte nicht geöffnet werden. Verwenden Sie „Link kopieren“ und fügen Sie die Adresse in Ihren Browser ein.';
 
   @override
+  String get equipment_components_add => 'Komponente hinzufügen';
+
+  @override
+  String get equipment_components_cycleError =>
+      'Dieser Gegenstand enthält diesen bereits, daher kann er nicht als Komponente hinzugefügt werden.';
+
+  @override
+  String get equipment_components_editRole => 'Rolle bearbeiten';
+
+  @override
+  String get equipment_components_empty =>
+      'Keine Komponenten. Füge die Teile hinzu, aus denen dieser Gegenstand besteht.';
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hinzufügen',
+      one: '1 hinzufügen',
+      zero: 'Hinzufügen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty =>
+      'Keine weitere aktive Ausrüstung kann hier hinzugefügt werden.';
+
+  @override
+  String get equipment_components_pickerTitle => 'Komponenten hinzufügen';
+
+  @override
+  String get equipment_components_remove => 'Komponente entfernen';
+
+  @override
+  String get equipment_components_reorder => 'Neu anordnen';
+
+  @override
+  String get equipment_components_role => 'Rolle';
+
+  @override
+  String get equipment_components_roleDialogTitle => 'Rolle der Komponente';
+
+  @override
+  String get equipment_components_roleHint => 'z. B. Primäre zweite Stufe';
+
+  @override
+  String get equipment_components_title => 'Komponenten';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Dokument konnte nicht entfernt werden: $error';
   }

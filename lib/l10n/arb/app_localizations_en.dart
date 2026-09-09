@@ -13,6 +13,57 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not open your browser. Use Copy link and paste the address into your browser.';
 
   @override
+  String get equipment_components_add => 'Add component';
+
+  @override
+  String get equipment_components_cycleError =>
+      'That item already contains this one, so it cannot be added as a component.';
+
+  @override
+  String get equipment_components_editRole => 'Edit role';
+
+  @override
+  String get equipment_components_empty =>
+      'No components. Add the parts this item is assembled from.';
+
+  @override
+  String equipment_components_pickerConfirm(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count',
+      one: 'Add 1',
+      zero: 'Add',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_pickerEmpty =>
+      'No other active gear can be added here.';
+
+  @override
+  String get equipment_components_pickerTitle => 'Add components';
+
+  @override
+  String get equipment_components_remove => 'Remove component';
+
+  @override
+  String get equipment_components_reorder => 'Reorder';
+
+  @override
+  String get equipment_components_role => 'Role';
+
+  @override
+  String get equipment_components_roleDialogTitle => 'Component role';
+
+  @override
+  String get equipment_components_roleHint => 'e.g. Primary second stage';
+
+  @override
+  String get equipment_components_title => 'Components';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Could not remove the document: $error';
   }
