@@ -2097,6 +2097,12 @@ class Certifications extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Extra (agency, level) pairs the same physical card grants, as a JSON
+  /// array like `[{"agency":"cmas","level":"cmas1StarDiver"}]` (issue: dual
+  /// credentials). The row's own [agency]/[level] are the first credential;
+  /// this holds the rest. Null / "[]" means a single-agency card.
+  TextColumn get additionalCredentials => text().nullable()();
+
   /// Hybrid Logical Clock for cross-device conflict resolution
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
@@ -3502,7 +3508,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 198;
+  static const int currentSchemaVersion = 199;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4011,6 +4017,13 @@ class AppDatabase extends _$AppDatabase {
     // v198: diver_settings.default_planner_water_type (salt/fresh/custom).
     // Renumbered from 193 for the same reason as 197.
     198,
+    // v199: certifications.additional_credentials -- extra (agency, level)
+    // pairs the same physical card grants (e.g. an FFESSM N1 that is also a
+    // CMAS 1-star). Additive nullable TEXT (a JSON array); no backfill, a
+    // null reads back as "just the primary agency/level". Renumbered from
+    // 197: main landed the planner salinity and water-type rungs (197, 198)
+    // while this branch was open.
+    199,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -4091,6 +4104,24 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'ALTER TABLE certifications ADD COLUMN buddy_id TEXT '
         'REFERENCES buddies (id) ON DELETE CASCADE',
+      );
+    }
+  }
+
+  /// v199: certifications.additional_credentials (JSON array of extra
+  /// agency/level pairs). PRAGMA-guarded, idempotent -- called from the v199
+  /// onUpgrade step and the beforeOpen backstop.
+  Future<void> _assertCertificationCredentialsColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('certifications')",
+    ).get();
+    if (cols.isEmpty) return;
+    final has = cols.any(
+      (c) => c.read<String>('name') == 'additional_credentials',
+    );
+    if (!has) {
+      await customStatement(
+        'ALTER TABLE certifications ADD COLUMN additional_credentials TEXT',
       );
     }
   }
@@ -10540,6 +10571,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertDefaultPlannerWaterTypeColumn();
         }
         if (from < 198) await reportProgress();
+        // v199: certifications.additional_credentials (dual credentials).
+        // Column-only rung, no backfill. Renumbered from 197: main took 197
+        // and 198 while this branch was open.
+        if (from < 199) {
+          await _assertCertificationCredentialsColumn();
+        }
+        if (from < 199) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -10729,6 +10767,9 @@ class AppDatabase extends _$AppDatabase {
 
         // v198 backstop: re-assert diver_settings.default_planner_water_type.
         await _assertDefaultPlannerWaterTypeColumn();
+
+        // v199 backstop: re-assert certifications.additional_credentials.
+        await _assertCertificationCredentialsColumn();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).

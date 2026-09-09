@@ -78,6 +78,12 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
   CertificationAgency _agency = CertificationAgency.padi;
   CertificationLevel? _level;
+
+  /// Recognitions this card grants beyond ([_agency], [_level]). Rendered as
+  /// equal rows in the credential list -- ([_agency], [_level]) is just row 0,
+  /// not a primary. Saved to Certification.additionalCredentials.
+  final List<_Cred> _extraCredentials = [];
+
   DateTime? _issueDate;
   DateTime? _expiryDate;
   Uint8List? _photoFront;
@@ -133,6 +139,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     _notesController.text = cert.notes;
     _agency = cert.agency;
     _level = cert.level;
+    _extraCredentials
+      ..clear()
+      ..addAll(cert.additionalCredentials.map((c) => _Cred(c.agency, c.level)));
 
     _issueDate = cert.issueDate;
     _expiryDate = cert.expiryDate;
@@ -158,6 +167,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         setState(() {
           _agency = cert.agency;
           _level = cert.level;
+          _extraCredentials
+            ..clear()
+            ..addAll(
+              cert.additionalCredentials.map((c) => _Cred(c.agency, c.level)),
+            );
           _issueDate = cert.issueDate;
           _expiryDate = cert.expiryDate;
           _photoFront = cert.photoFront;
@@ -390,6 +404,118 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
     super.dispose();
   }
 
+  CertificationAgency _agencyAt(int i) =>
+      i == 0 ? _agency : _extraCredentials[i - 1].agency;
+  CertificationLevel? _levelAt(int i) =>
+      i == 0 ? _level : _extraCredentials[i - 1].level;
+
+  void _setAgencyAt(int i, CertificationAgency agency) {
+    setState(() {
+      // A level from another agency's catalog is reset -- a visible
+      // consequence of the user's own switch.
+      final level = _levelAt(i);
+      final resetLevel =
+          level != null &&
+          !CertificationLevelCatalog.levelsFor(agency).contains(level);
+      if (i == 0) {
+        _agency = agency;
+        if (resetLevel) _level = null;
+      } else {
+        _extraCredentials[i - 1].agency = agency;
+        if (resetLevel) _extraCredentials[i - 1].level = null;
+      }
+      _hasChanges = true;
+    });
+  }
+
+  void _setLevelAt(int i, CertificationLevel? level) {
+    setState(() {
+      if (i == 0) {
+        _level = level;
+      } else {
+        _extraCredentials[i - 1].level = level;
+      }
+      _hasChanges = true;
+    });
+  }
+
+  void _removeCredentialAt(int i) {
+    setState(() {
+      if (i == 0) {
+        // Promote the next recognition into row 0 so the card keeps one.
+        final next = _extraCredentials.removeAt(0);
+        _agency = next.agency;
+        _level = next.level;
+      } else {
+        _extraCredentials.removeAt(i - 1);
+      }
+      _hasChanges = true;
+    });
+  }
+
+  /// One (agency, level) row. Every row is equal; the trailing remove button
+  /// is shown only when the card has more than one recognition.
+  Widget _credentialRow(BuildContext context, int i) {
+    final agency = _agencyAt(i);
+    final level = _levelAt(i);
+    final canRemove = _extraCredentials.isNotEmpty;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DropdownButtonFormField<CertificationAgency>(
+                key: ValueKey('cred-agency-$i'),
+                initialValue: agency,
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: context.l10n.certifications_edit_label_agency,
+                  prefixIcon: const Icon(Icons.business),
+                  isDense: true,
+                ),
+                items: CertificationAgency.values
+                    .map(
+                      (a) => DropdownMenuItem(
+                        value: a,
+                        child: Text(a.localizedName(context.l10n)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) _setAgencyAt(i, value);
+                },
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<CertificationOption>(
+                // The key forces a remount when the agency changes or the
+                // level is reset externally, so initialValue is re-read.
+                key: ValueKey('cred-level-$i-${agency.name}-${level?.name}'),
+                initialValue: CertificationOption.value(level),
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText:
+                      context.l10n.certifications_edit_label_certification,
+                  prefixIcon: const Icon(Icons.workspace_premium),
+                  isDense: true,
+                ),
+                items: _certificationItems(context, agency, level),
+                onChanged: (option) => _setLevelAt(i, option?.level),
+              ),
+            ],
+          ),
+        ),
+        if (canRemove)
+          IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: context.l10n.certifications_edit_removeRecognition,
+            onPressed: () => _removeCredentialAt(i),
+          ),
+      ],
+    );
+  }
+
   /// Items for the certification dropdown, grouped into the agency's
   /// progression ladder and the cross-agency specialties.
   ///
@@ -399,13 +525,14 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   /// the clear-selection choice, not for any correctness reason.
   List<DropdownMenuItem<CertificationOption>> _certificationItems(
     BuildContext context,
+    CertificationAgency agency,
+    CertificationLevel? level,
   ) {
     final theme = Theme.of(context);
-    final ladder = CertificationLevelCatalog.ladderFor(_agency);
-    final specialties = CertificationLevelCatalog.specialtiesFor(_agency);
+    final ladder = CertificationLevelCatalog.ladderFor(agency);
+    final specialties = CertificationLevelCatalog.specialtiesFor(agency);
 
     // A stored value from another agency's catalog still has to render.
-    final level = _level;
     final extra =
         (level != null &&
             level != CertificationLevel.other &&
@@ -460,58 +587,25 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Agency dropdown
-                  DropdownButtonFormField<CertificationAgency>(
-                    initialValue: _agency,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.certifications_edit_label_agency,
-                      prefixIcon: const Icon(Icons.business),
-                    ),
-                    items: CertificationAgency.values.map((agency) {
-                      return DropdownMenuItem(
-                        value: agency,
-                        child: Text(agency.localizedName(context.l10n)),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _agency = value;
-                          // A level from another agency's catalog is reset -
-                          // a visible consequence of the user's own switch.
-                          if (_level != null &&
-                              !CertificationLevelCatalog.levelsFor(
-                                value,
-                              ).contains(_level)) {
-                            _level = null;
-                          }
-                          _hasChanges = true;
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Certification dropdown (options depend on the agency)
-                  DropdownButtonFormField<CertificationOption>(
-                    // DropdownButtonFormField keeps its selection in its own
-                    // FormFieldState; the key forces a remount when the
-                    // agency changes or the level is reset externally, so
-                    // initialValue is re-read.
-                    key: ValueKey('level-${_agency.name}-${_level?.name}'),
-                    initialValue: CertificationOption.value(_level),
-                    decoration: InputDecoration(
-                      labelText:
-                          context.l10n.certifications_edit_label_certification,
-                      prefixIcon: const Icon(Icons.workspace_premium),
-                    ),
-                    items: _certificationItems(context),
-                    onChanged: (option) {
-                      setState(() {
-                        _level = option?.level;
+                  // Credential list: each row is an equal (agency, level)
+                  // recognition the card grants. Row 0 is stored in
+                  // _agency/_level, the rest in _extraCredentials -- no primary.
+                  for (var i = 0; i < 1 + _extraCredentials.length; i++) ...[
+                    _credentialRow(context, i),
+                    const SizedBox(height: 16),
+                  ],
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () => setState(() {
+                        _extraCredentials.add(_Cred(_agency, null));
                         _hasChanges = true;
-                      });
-                    },
+                      }),
+                      icon: const Icon(Icons.add),
+                      label: Text(
+                        context.l10n.certifications_edit_addRecognition,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -940,6 +1034,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         name: _nameController.text.trim(),
         agency: _agency,
         level: _level,
+        additionalCredentials: _extraCredentials
+            .map(
+              (c) => CertificationCredential(agency: c.agency, level: c.level),
+            )
+            .toList(),
         cardNumber: _cardNumberController.text.trim().isEmpty
             ? null
             : _cardNumberController.text.trim(),
@@ -986,6 +1085,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         name: _nameController.text.trim(),
         agency: _agency,
         level: _level,
+        additionalCredentials: _extraCredentials
+            .map(
+              (c) => CertificationCredential(agency: c.agency, level: c.level),
+            )
+            .toList(),
         cardNumber: _cardNumberController.text.trim().isEmpty
             ? null
             : _cardNumberController.text.trim(),
@@ -1050,6 +1154,13 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
       }
     }
   }
+}
+
+/// A mutable (agency, level) pair while the credential list is being edited.
+class _Cred {
+  CertificationAgency agency;
+  CertificationLevel? level;
+  _Cred(this.agency, this.level);
 }
 
 class _DatePickerField extends ConsumerWidget {

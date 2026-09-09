@@ -1664,6 +1664,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_detail_label_agency => 'Organisme';
 
   @override
+  String get certifications_detail_label_alsoRecognized =>
+      'Aussi reconnu comme';
+
+  @override
   String get certifications_detail_label_cardNumber => 'Numéro de carte';
 
   @override
@@ -1779,6 +1783,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_ecardStack_empty_title => 'Aucune certification';
 
   @override
+  String certifications_ecard_alsoRecognized(String recognitions) {
+    return 'Aussi : $recognitions';
+  }
+
+  @override
   String get certifications_ecard_label_cardNumber => 'N° DE CARTE';
 
   @override
@@ -1879,6 +1888,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get certifications_edit_label_agency => 'Organisme *';
+
+  @override
+  String get certifications_edit_addRecognition =>
+      'Ajouter une autre reconnaissance';
+
+  @override
+  String get certifications_edit_removeRecognition =>
+      'Retirer cette reconnaissance';
 
   @override
   String get certifications_edit_label_cardNumber => 'Numéro de carte';
@@ -17536,10 +17553,35 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Enregistrez un lestage depuis l\'éditeur de plongée pour le réutiliser ici.';
+      'Enregistrez un lestage depuis l\'éditeur de plongée, ou touchez + pour en créer un ici.';
 
   @override
   String get weightPresets_action_rename => 'Renommer';
+
+  @override
+  String get weightPresets_action_new => 'Nouvelle présélection';
+
+  @override
+  String get weightPresets_action_edit => 'Modifier';
+
+  @override
+  String get weightPresets_new_title => 'Nouvelle présélection de lestage';
+
+  @override
+  String get weightPresets_edit_title => 'Modifier la présélection de lestage';
+
+  @override
+  String get weightPresets_editor_addWeight => 'Ajouter un lest';
+
+  @override
+  String get weightPresets_editor_needName => 'Donnez un nom à la présélection';
+
+  @override
+  String get weightPresets_editor_needWeight => 'Ajoutez au moins un lest';
+
+  @override
+  String get weightPresets_editor_notFound =>
+      'Cette présélection de lestage n\'existe plus.';
 
   @override
   String get weightPresets_rename_title => 'Renommer la présélection';

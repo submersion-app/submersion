@@ -4,6 +4,38 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 
+/// One (agency, level) recognition on a certification card. A card can grant
+/// several at once -- e.g. an FFESSM Niveau 1 that is also a CMAS 1-star --
+/// with no primary among them.
+class CertificationCredential extends Equatable {
+  final CertificationAgency agency;
+  final CertificationLevel? level;
+
+  const CertificationCredential({required this.agency, this.level});
+
+  Map<String, dynamic> toJson() => {
+    'agency': agency.name,
+    if (level != null) 'level': level!.name,
+  };
+
+  factory CertificationCredential.fromJson(Map<String, dynamic> json) =>
+      CertificationCredential(
+        agency: CertificationAgency.values.firstWhere(
+          (a) => a.name == json['agency'],
+          orElse: () => CertificationAgency.other,
+        ),
+        level: json['level'] == null
+            ? null
+            : CertificationLevel.values.firstWhere(
+                (l) => l.name == json['level'],
+                orElse: () => CertificationLevel.other,
+              ),
+      );
+
+  @override
+  List<Object?> get props => [agency, level];
+}
+
 /// Represents a diver certification
 class Certification extends Equatable {
   final String id;
@@ -16,6 +48,13 @@ class Certification extends Equatable {
   final String name;
   final CertificationAgency agency;
   final CertificationLevel? level;
+
+  /// Extra recognitions the same card grants beyond [agency]/[level] (e.g. a
+  /// CMAS 1-star equivalence on an FFESSM N1). Empty for a single-agency card.
+  /// None of them outranks [agency]/[level]; the card simply is all of them.
+  /// [credentials] is the full list, in the stable display order the UI uses.
+  final List<CertificationCredential> additionalCredentials;
+
   final String? cardNumber;
   final DateTime? issueDate;
   final DateTime? expiryDate;
@@ -35,6 +74,7 @@ class Certification extends Equatable {
     required this.name,
     required this.agency,
     this.level,
+    this.additionalCredentials = const [],
     this.cardNumber,
     this.issueDate,
     this.expiryDate,
@@ -47,6 +87,19 @@ class Certification extends Equatable {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  /// Every (agency, level) this card grants. No entry is the primary one --
+  /// they are equal recognitions -- but the list order is stable and is what
+  /// the list tile, detail page and wallet card render: the row's own
+  /// [agency]/[level] first, then [additionalCredentials] in stored order.
+  /// Always at least one entry.
+  List<CertificationCredential> get credentials => [
+    CertificationCredential(agency: agency, level: level),
+    ...additionalCredentials,
+  ];
+
+  /// Whether the card grants more than one agency's credential.
+  bool get hasMultipleCredentials => additionalCredentials.isNotEmpty;
 
   /// Check if certification has any photos
   bool get hasPhotos => photoFront != null || photoBack != null;
@@ -89,6 +142,7 @@ class Certification extends Equatable {
     String? name,
     CertificationAgency? agency,
     CertificationLevel? level,
+    List<CertificationCredential>? additionalCredentials,
     String? cardNumber,
     DateTime? issueDate,
     DateTime? expiryDate,
@@ -108,6 +162,8 @@ class Certification extends Equatable {
       name: name ?? this.name,
       agency: agency ?? this.agency,
       level: level ?? this.level,
+      additionalCredentials:
+          additionalCredentials ?? this.additionalCredentials,
       cardNumber: cardNumber ?? this.cardNumber,
       issueDate: issueDate ?? this.issueDate,
       expiryDate: expiryDate ?? this.expiryDate,
@@ -131,6 +187,7 @@ class Certification extends Equatable {
       name: name,
       agency: agency,
       level: level,
+      additionalCredentials: additionalCredentials,
       cardNumber: cardNumber,
       issueDate: issueDate,
       expiryDate: expiryDate,
@@ -165,6 +222,7 @@ class Certification extends Equatable {
     name,
     agency,
     level,
+    additionalCredentials,
     cardNumber,
     issueDate,
     expiryDate,

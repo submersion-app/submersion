@@ -21,8 +21,9 @@ void main() {
   test('v196 is the current schema version and is in the ladder', () {
     // Renumbered from 192 then 195: main landed the transmitter-serial rung
     // (194) and the media-species-clock rung (195) while this branch was
-    // open. Relaxed once v197/v198 (planner water type) landed on top; the
-    // exact assertion moves to the newest rung.
+    // open. Relaxed once v197/v198 (planner salinity and water type) and
+    // v199 (certification dual credentials) landed on top; the newest rung
+    // owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(196));
     expect(AppDatabase.migrationVersions, contains(196));
   });

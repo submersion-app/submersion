@@ -13,21 +13,11 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-/// Records the rename/delete calls the page makes; every read path is served
-/// by the overridden [weightPresetsProvider], so the page never touches a
-/// real database here.
+/// Records the delete calls the page makes; every read path is served by the
+/// overridden [weightPresetsProvider], so the page never touches a real
+/// database here.
 class _RecordingRepo extends WeightPresetRepository {
-  final renamed = <({String id, String name})>[];
   final deleted = <String>[];
-
-  @override
-  Future<void> renamePreset({
-    required String id,
-    required String displayName,
-    String? notes,
-  }) async {
-    renamed.add((id: id, name: displayName));
-  }
 
   @override
   Future<void> deletePreset(String id) async => deleted.add(id);
@@ -68,7 +58,24 @@ void main() {
     final base = await getBaseOverrides();
     final router = GoRouter(
       routes: [
-        GoRoute(path: '/', builder: (_, _) => const WeightPresetsPage()),
+        GoRoute(
+          path: '/',
+          builder: (_, _) => const WeightPresetsPage(),
+          routes: [
+            GoRoute(
+              path: 'new',
+              name: 'newWeightPreset',
+              builder: (_, _) => const Scaffold(body: Text('editor: new')),
+            ),
+            GoRoute(
+              path: ':presetId/edit',
+              name: 'editWeightPreset',
+              builder: (_, s) => Scaffold(
+                body: Text('editor: ${s.pathParameters['presetId']}'),
+              ),
+            ),
+          ],
+        ),
       ],
     );
     await tester.pumpWidget(
@@ -112,42 +119,65 @@ void main() {
     expect(find.textContaining('dive editor'), findsOneWidget);
   });
 
-  testWidgets('the rename action writes the new name through the repository', (
+  testWidgets('the add button is a floating action button, not an app-bar '
+      'action', (tester) async {
+    await pump(tester, []);
+
+    expect(
+      find.widgetWithIcon(FloatingActionButton, Icons.add),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.byIcon(Icons.add),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('the add button opens the new-preset editor', (tester) async {
+    await pump(tester, []);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('editor: new'), findsOneWidget);
+  });
+
+  testWidgets('tapping a preset opens the editor for it', (tester) async {
+    await pump(tester, [_preset('p1', 'Drysuit')]);
+
+    await tester.tap(find.text('Drysuit'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('editor: p1'), findsOneWidget);
+  });
+
+  testWidgets('each preset offers edit and delete icons, no overflow menu', (
     tester,
   ) async {
     await pump(tester, [_preset('p1', 'Drysuit')]);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Rename'));
-    await tester.pumpAndSettle();
-
-    await tester.enterText(find.byType(TextField), 'Drysuit + argon');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(repo.renamed, [(id: 'p1', name: 'Drysuit + argon')]);
+    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+    expect(find.byType(PopupMenuButton<String>), findsNothing);
+    expect(find.byIcon(Icons.more_vert), findsNothing);
   });
 
-  testWidgets('an unchanged name is not written back', (tester) async {
+  testWidgets('the edit icon opens the editor for that preset', (tester) async {
     await pump(tester, [_preset('p1', 'Drysuit')]);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Rename'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.byIcon(Icons.edit_outlined));
     await tester.pumpAndSettle();
 
-    expect(repo.renamed, isEmpty);
+    expect(find.text('editor: p1'), findsOneWidget);
   });
 
   testWidgets('delete asks first, then removes the preset', (tester) async {
     await pump(tester, [_preset('p1', 'Drysuit')]);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete'));
+    await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
 
     // The confirm dialog names the preset.
@@ -162,9 +192,7 @@ void main() {
   testWidgets('cancelling the delete dialog keeps the preset', (tester) async {
     await pump(tester, [_preset('p1', 'Drysuit')]);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete'));
+    await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
     await tester.pumpAndSettle();

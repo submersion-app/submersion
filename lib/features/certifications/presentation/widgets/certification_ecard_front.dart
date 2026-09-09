@@ -138,6 +138,7 @@ class CertificationEcardFront extends StatelessWidget {
 
   Widget _buildHero(AppLocalizations l10n) {
     final subtitle = certificationSubtitleL10n(certification, l10n);
+    final alsoRecognized = additionalCredentialsLineL10n(certification, l10n);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,6 +169,21 @@ class CertificationEcardFront extends StatelessWidget {
               fontWeight: FontWeight.w400,
             ),
             maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+        // The equal-rank recognitions this one card also grants. The title is
+        // the first credential; this lists the rest, no "primary" among them.
+        if (alsoRecognized != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            l10n.certifications_ecard_alsoRecognized(alsoRecognized),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+            ),
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ],

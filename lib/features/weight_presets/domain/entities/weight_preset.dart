@@ -75,6 +75,14 @@ class WeightPreset extends Equatable {
   ];
 }
 
+/// A weight row being composed in the preset editor, before it has database
+/// ids. The repository assigns the id, presetId and sortOrder on write.
+typedef WeightEntryDraft = ({
+  WeightType weightType,
+  double amountKg,
+  String notes,
+});
+
 /// One weight entry inside a [WeightPreset]. Same shape as a per-dive
 /// [DiveWeight] minus the dive link.
 class WeightPresetEntry extends Equatable {

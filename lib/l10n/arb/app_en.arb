@@ -1085,6 +1085,7 @@
   "certifications_detail_dialog_deleteContent": "Are you sure you want to delete \"{name}\"?",
   "certifications_detail_dialog_deleteTitle": "Delete Certification?",
   "certifications_detail_label_agency": "Agency",
+  "certifications_detail_label_alsoRecognized": "Also recognized as",
   "certifications_detail_label_cardNumber": "Card Number",
   "certifications_detail_label_certification": "Certification",
   "certifications_detail_label_expiryDate": "Expiry Date",
@@ -1116,6 +1117,7 @@
   "certifications_detail_tooltip_moreOptions": "More options",
   "certifications_ecardStack_empty_subtitle": "Add your first certification to see it here",
   "certifications_ecardStack_empty_title": "No certifications yet",
+  "certifications_ecard_alsoRecognized": "Also: {recognitions}",
   "certifications_ecard_label_cardNumber": "CARD NO.",
   "certifications_ecard_label_certifiedBy": "Certified by {agency}",
   "certifications_ecard_label_diver": "DIVER",
@@ -1146,6 +1148,8 @@
   "certifications_edit_hint_instructorNumber": "Instructor certification number",
   "certifications_edit_hint_notes": "Any additional notes",
   "certifications_edit_label_agency": "Agency *",
+  "certifications_edit_addRecognition": "Add another recognition",
+  "certifications_edit_removeRecognition": "Remove this recognition",
   "certifications_edit_label_cardNumber": "Card Number",
   "certifications_edit_label_certification": "Certification",
   "certifications_edit_label_expiryDate": "Expiry Date",
@@ -1276,6 +1280,14 @@
     "placeholders": {
       "date": {
         "type": "Object"
+      }
+    }
+  },
+  "@certifications_ecard_alsoRecognized": {
+    "description": "Secondary line on the generated wallet card listing the other agency recognitions the same card grants, all at equal rank",
+    "placeholders": {
+      "recognitions": {
+        "type": "String"
       }
     }
   },
@@ -10236,8 +10248,16 @@
   "settings_manage_weightPresets": "Weight Presets",
   "settings_manage_weightPresets_subtitle": "Reusable sets of weights for a dive",
   "weightPresets_page_title": "Weight Presets",
-  "weightPresets_page_empty": "Save a weighting from the dive editor and it will appear here to reuse.",
+  "weightPresets_page_empty": "Save a weighting from the dive editor, or tap + to build one here.",
   "weightPresets_action_rename": "Rename",
+  "weightPresets_action_new": "New preset",
+  "weightPresets_action_edit": "Edit",
+  "weightPresets_new_title": "New weight preset",
+  "weightPresets_edit_title": "Edit weight preset",
+  "weightPresets_editor_addWeight": "Add weight",
+  "weightPresets_editor_needName": "Give the preset a name",
+  "weightPresets_editor_needWeight": "Add at least one weight",
+  "weightPresets_editor_notFound": "This weighting rig no longer exists.",
   "weightPresets_rename_title": "Rename preset",
   "weightPresets_delete_title": "Delete this preset?",
   "weightPresets_delete_body": "“{name}” will be removed. Dives that used it keep their own weights.",
