@@ -31,7 +31,9 @@ void main() {
     importService = MockDiveImportService();
     // The registry notice reads this after every import; no unmatched
     // serials unless a test says otherwise.
-    when(importService.unmatchedTransmitterSerials).thenReturn(const <String>[]);
+    when(
+      importService.unmatchedTransmitterSerials,
+    ).thenReturn(const <String>[]);
     computerRepo = MockDiveComputerRepository();
     diveRepo = MockDiveRepository();
     consolidationService = MockDiveConsolidationService();

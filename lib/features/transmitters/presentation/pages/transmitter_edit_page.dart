@@ -178,7 +178,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
         expand: false,
         builder: (context, scrollController) => EquipmentPickerSheet(
           scrollController: scrollController,
-          selectedEquipmentIds: {if (_equipmentId != null) _equipmentId!},
+          selectedEquipmentIds: {?_equipmentId},
           typeFilter: EquipmentType.tank,
           onEquipmentSelected: (item) {
             _applyGear(item);
