@@ -110,7 +110,12 @@ class _PreDiveTemplateEditPageState
   /// after it. Only meaningful in a strict-order template, where the runner
   /// gates each item behind the ones above it.
   bool _readsLaterValue(int index) {
-    final sourceId = _items[index].sourceItemId;
+    final item = _items[index];
+    // Guarded on the type as well as on the link, so malformed data (a
+    // sourceItemId arriving on some other type via sync) cannot raise a
+    // warning that talks about a reading this item never makes.
+    if (item.itemType != PreDiveItemType.cellLinearity) return false;
+    final sourceId = item.sourceItemId;
     if (sourceId == null) return false;
     final sourceIndex = _items.indexWhere((i) => i.id == sourceId);
     return sourceIndex >= 0 && sourceIndex > index;

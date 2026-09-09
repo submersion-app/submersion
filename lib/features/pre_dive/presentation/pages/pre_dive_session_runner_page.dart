@@ -409,8 +409,14 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
   }
 }
 
-/// Value entry for a `value` item. Owns its controllers and disposes them in
-/// its own [State.dispose] (see the checklist item dialog for why).
+/// Number entry for a `value` item or a `cellLinearity` one.
+///
+/// A linearity item additionally shows the cell's air reading above the
+/// field and a live expected-mV and linearity readout below it, recomputed
+/// on each keystroke so the diver sees the result before committing to it.
+///
+/// Owns its controllers and disposes them in its own [State.dispose] (see
+/// the checklist item dialog for why).
 class _ValueEntryDialog extends StatefulWidget {
   final PreDiveSessionItem item;
 

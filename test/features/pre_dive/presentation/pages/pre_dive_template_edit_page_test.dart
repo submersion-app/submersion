@@ -786,6 +786,27 @@ void main() {
       );
     });
 
+    testWidgets('a stray link on a non-linearity item raises no warning', (
+      tester,
+    ) async {
+      // Malformed data: sourceItemId set on a plain value item, which the
+      // editor cannot author but sync could deliver. The warning talks about
+      // a reading this item never makes, so it must stay silent.
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          tItem(id: 'o2-1', title: 'Something else', sourceItemId: 'air1'),
+          tItem(id: 'air1', title: 'Cell 1 mV in air', order: 1),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      expect(
+        find.text('Reads a value recorded later in this list'),
+        findsNothing,
+      );
+    });
+
     testWidgets('a linearity row below its source carries no warning', (
       tester,
     ) async {
