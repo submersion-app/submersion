@@ -6,6 +6,8 @@
   "universalImport_action_importFromGarmin": "استيراد من جهاز Garmin",
   "enum_equipmentType_backplate": "لوحة ظهر",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "خلية أكسجين",
+  "enum_equipmentType_battery": "بطارية",
   "diveLog_tank_saveAsPreset": "حفظ كإعداد مسبق",
   "diveLog_tank_saveAsPreset_needSpecs": "أدخل الحجم وضغط العمل أولاً",
   "diveLog_tank_saveAsPreset_nameTitle": "حفظ إعداد الأسطوانة المسبق",
@@ -2694,6 +2696,8 @@
   "diveLog_tank_selectPreset": "اختر إعداداً مسبقاً...",
   "diveLog_tank_title": "أسطوانة {number}",
   "diveLog_tank_tooltip_remove": "إزالة الأسطوانة",
+  "diveLog_tank_regulatorLabel": "منظم التنفس",
+  "diveLog_tank_regulatorNone": "لا شيء",
   "diveLog_tissue_label_ceiling": "السقف",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3766,6 +3770,61 @@
   "cylinderConfigs_sectionTitle": "الإعدادات",
   "equipment_serviceClocks_hoursSource": "محسوب من زمن الغوص المسجل",
   "equipment_serviceClocks_hoursLeft": "متبقٍ {remaining} من {total} ساعة",
+  "equipment_serviceClocks_saltHoursLeft": "تبقى {remaining} من {total} ساعة في الماء المالح",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "تبقى {remaining} من {total} غطسة في الماء البارد",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "تبقى {remaining} من {total} ساعة بأكسجين مرتفع",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "تبقى {remaining} من {total} غطسة عميقة",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "تبقى {remaining} من {total} دورة بطارية",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "إدارة أنواع الصيانة",
   "equipment_serviceClocks_appliesToClock": "ينطبق على العداد",
   "equipment_serviceClocks_noClockOption": "غير مرتبط بعداد",
@@ -3773,6 +3832,11 @@
   "equipment_scheduleDialog_intervalDays": "الفترة (أيام)",
   "equipment_scheduleDialog_intervalDives": "الفترة (غوصات)",
   "equipment_scheduleDialog_intervalHours": "الفترة (ساعات)",
+  "equipment_scheduleDialog_intervalSaltHours": "الفاصل (ساعات في الماء المالح)",
+  "equipment_scheduleDialog_intervalColdDives": "الفاصل (غطسات في الماء البارد)",
+  "equipment_scheduleDialog_intervalO2Hours": "الفاصل (ساعات بأكسجين مرتفع)",
+  "equipment_scheduleDialog_intervalDeepCycles": "الفاصل (غطسات عميقة)",
+  "equipment_scheduleDialog_intervalCycles": "الفاصل (دورات البطارية)",
   "equipment_scheduleDialog_inheritHint": "الافتراضي: {value}",
   "equipment_scheduleDialog_anchorDate": "تاريخ الأساس",
   "equipment_scheduleDialog_anchorHint": "يُستخدم عندما لا يوجد بعد سجل صيانة من هذا النوع",
@@ -3871,6 +3935,8 @@
   "equipment_edit_snackbar_error": "خطأ في حفظ المعدات: {error}",
   "equipment_edit_snackbar_updated": "تم تحديث المعدات",
   "equipment_edit_statusLabel": "الحالة",
+  "equipment_edit_parentLabel": "مركّب في",
+  "equipment_edit_parentNone": "غير مركّب في أي شيء",
   "equipment_edit_thicknessDesignationHint": "مثلاً 5، 5/4، 7/5/3",
   "equipment_edit_webLinkHint": "مثال: shop.example.com/product",
   "equipment_edit_thicknessHint": "مثلاً 5 مم، 7 مم",
@@ -6652,10 +6718,6 @@
   "settings_siteMatch_subtitle": "مدى صرامة مطابقة الغوصات التي تم تنزيلها بالمواقع",
   "settings_tankPressureAtSurfacing_title": "ضغط الأسطوانة عند الصعود إلى السطح",
   "settings_tankPressureAtSurfacing_subtitle": "قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل",
-  "settings_cloudImportPageSize_title": "حجم صفحة الاستيراد السحابي",
-  "settings_cloudImportPageSize_subtitle": "عدد أحدث الغوصات التي يتم جلبها في كل مرة من Suunto Cloud أو Garmin Connect. «تحميل المزيد» يجلب الدفعة التالية بنفس الحجم.",
-  "settings_cloudImportPageSize_dialogTitle": "غوصات لكل صفحة",
-  "settings_cloudImportPageSize_range": "بين {min} و{max}",
   "settings_siteMatch_strict": "صارم",
   "settings_siteMatch_balanced": "متوازن",
   "settings_siteMatch_relaxed": "متساهل",
@@ -7527,6 +7589,9 @@
   "attrLabel_o2_cylinder_l": "أسطوانة O2",
   "attrLabel_dpv_style": "النمط",
   "attrLabel_burn_time_h": "زمن التشغيل",
+  "attrLabel_cell_slot": "موضع الخلية",
+  "attrLabel_installed_date": "تاريخ التركيب",
+  "attrLabel_rechargeable": "قابلة لإعادة الشحن",
   "attrLabel_battery_type": "البطارية",
   "attrLabel_battery_capacity_wh": "سعة البطارية (واط·ساعة)",
   "attrLabel_motor_type": "المحرك",
@@ -7636,6 +7701,8 @@
   "attrChoice_battery_type_lithium_ion": "ليثيوم أيون",
   "attrChoice_battery_type_nimh": "نيكل هيدريد فلزي",
   "attrChoice_battery_type_lead_acid": "حمض الرصاص",
+  "attrChoice_battery_type_alkaline": "قلوية",
+  "attrChoice_battery_type_lithium_primary": "ليثيوم (غير قابلة لإعادة الشحن)",
   "attrChoice_motor_type_brushless": "بدون فرشات",
   "attrChoice_motor_type_brushed": "بفرشات",
   "attrChoice_sleeve_length_short": "قصيرة",
@@ -8090,6 +8157,16 @@
   "planning_card_noFly_subtitle": "عدّاد إرشادي منذ آخر غطساتك",
   "settings_section_safety_title": "السلامة",
   "settings_section_safety_subtitle": "قواعد المراجعة والطيران بعد الغوص",
+  "settings_section_equipmentCondition_title": "حالة المعدات",
+  "settings_section_equipmentCondition_subtitle": "حدود التعرض لساعات الصيانة",
+  "equipmentConditionSettings_title": "حالة المعدات",
+  "equipmentConditionSettings_thresholdsHeader": "حدود التعرض",
+  "equipmentConditionSettings_thresholdsHelp": "تُحتسب الغطسة باردة أو عميقة أو بأكسجين مرتفع لساعات الصيانة عندما تتجاوز هذه الحدود.",
+  "equipmentConditionSettings_coldLabel": "ماء بارد تحت",
+  "equipmentConditionSettings_deepLabel": "غطسة عميقة من",
+  "equipmentConditionSettings_o2Label": "خليط بأكسجين مرتفع فوق (% O2)",
+  "equipmentConditionSettings_invalid": "أدخل رقمًا",
+  "equipmentConditionSettings_saveFailed": "تعذر الحفظ. حاول مرة أخرى.",
   "dataQuality_inbox_title": "جودة البيانات",
   "dataQuality_dive_unknown": "تفاصيل الغطسة غير متاحة",
   "dataQuality_dive_number": "#{number}",

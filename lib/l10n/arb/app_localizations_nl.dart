@@ -7759,6 +7759,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'Fles verwijderen';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'Ademautomaat';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'Geen';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'Plafond';
 
   @override
@@ -10498,6 +10504,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'O2-cel';
+
+  @override
+  String get enum_equipmentType_battery => 'Batterij';
+
+  @override
   String get enum_equipmentType_computer => 'Duikcomputer';
 
   @override
@@ -11365,6 +11377,34 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return '$remaining van $total uren in zout water over';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return '$remaining van $total koudwaterduiken over';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return '$remaining van $total uren met hoog O2 over';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return '$remaining van $total diepe duiken over';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return '$remaining van $total batterijcycli over';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'Servicetypen beheren';
 
   @override
@@ -11385,6 +11425,26 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'Interval (uren)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'Interval (uren in zout water)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'Interval (koudwaterduiken)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'Interval (uren met hoog O2)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'Interval (diepe duiken)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles =>
+      'Interval (batterijcycli)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -11740,6 +11800,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_edit_statusLabel => 'Status';
+
+  @override
+  String get equipment_edit_parentLabel => 'Geplaatst in';
+
+  @override
+  String get equipment_edit_parentNone => 'Nergens geplaatst';
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'bijv. 5, 5/4, 7/5/3';
@@ -23887,22 +23953,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Neem de einddruk op het moment van bovenkomen, niet aan het einde van de opname';
 
   @override
-  String get settings_cloudImportPageSize_title =>
-      'Paginagrootte voor cloudimport';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'Hoeveel van de nieuwste duiken per keer op te halen van Suunto Cloud of Garmin Connect. „Meer laden” haalt de volgende batch van dezelfde grootte op.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Duiken per pagina';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'Tussen $min en $max';
-  }
-
-  @override
   String get settings_siteMatch_strict => 'Strikt';
 
   @override
@@ -25680,6 +25730,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_burn_time_h => 'Looptijd';
 
   @override
+  String get attrLabel_cell_slot => 'Celpositie';
+
+  @override
+  String get attrLabel_installed_date => 'Geplaatst op';
+
+  @override
+  String get attrLabel_rechargeable => 'Oplaadbaar';
+
+  @override
   String get attrLabel_battery_type => 'Accu';
 
   @override
@@ -26006,6 +26065,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'Loodzuur';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'Alkaline';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary =>
+      'Lithium (niet oplaadbaar)';
 
   @override
   String get attrChoice_motor_type_brushless => 'Borstelloos';
@@ -26546,6 +26612,42 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_section_safety_subtitle =>
       'Controleregels & vliegen na het duiken';
+
+  @override
+  String get settings_section_equipmentCondition_title =>
+      'Staat van uitrusting';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Blootstellingsdrempels voor onderhoudsklokken';
+
+  @override
+  String get equipmentConditionSettings_title => 'Staat van uitrusting';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader =>
+      'Blootstellingsdrempels';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Een duik telt voor onderhoudsklokken als koud, diep of met hoog O2 wanneer hij deze grenzen overschrijdt.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Koud water onder';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'Diepe duik vanaf';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'Mengsel met hoog O2 boven (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Voer een getal in';
+
+  @override
+  String get equipmentConditionSettings_saveFailed =>
+      'Opslaan mislukt. Probeer het opnieuw.';
 
   @override
   String get settings_section_security_title => 'App-beveiliging';

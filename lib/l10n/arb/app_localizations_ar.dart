@@ -7661,6 +7661,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'إزالة الأسطوانة';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'منظم التنفس';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'لا شيء';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'السقف';
 
   @override
@@ -10387,6 +10393,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'خلية أكسجين';
+
+  @override
+  String get enum_equipmentType_battery => 'بطارية';
+
+  @override
   String get enum_equipmentType_computer => 'حاسوب غوص';
 
   @override
@@ -11252,6 +11264,34 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total ساعة في الماء المالح';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total غطسة في الماء البارد';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total ساعة بأكسجين مرتفع';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return 'تبقى $remaining من $total غطسة عميقة';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total دورة بطارية';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'إدارة أنواع الصيانة';
 
   @override
@@ -11271,6 +11311,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'الفترة (ساعات)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'الفاصل (ساعات في الماء المالح)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'الفاصل (غطسات في الماء البارد)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'الفاصل (ساعات بأكسجين مرتفع)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'الفاصل (غطسات عميقة)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles =>
+      'الفاصل (دورات البطارية)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -11624,6 +11684,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_statusLabel => 'الحالة';
+
+  @override
+  String get equipment_edit_parentLabel => 'مركّب في';
+
+  @override
+  String get equipment_edit_parentNone => 'غير مركّب في أي شيء';
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'مثلاً 5، 5/4، 7/5/3';
@@ -23648,21 +23714,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل';
 
   @override
-  String get settings_cloudImportPageSize_title => 'حجم صفحة الاستيراد السحابي';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'عدد أحدث الغوصات التي يتم جلبها في كل مرة من Suunto Cloud أو Garmin Connect. «تحميل المزيد» يجلب الدفعة التالية بنفس الحجم.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'غوصات لكل صفحة';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'بين $min و$max';
-  }
-
-  @override
   String get settings_siteMatch_strict => 'صارم';
 
   @override
@@ -25413,6 +25464,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_burn_time_h => 'زمن التشغيل';
 
   @override
+  String get attrLabel_cell_slot => 'موضع الخلية';
+
+  @override
+  String get attrLabel_installed_date => 'تاريخ التركيب';
+
+  @override
+  String get attrLabel_rechargeable => 'قابلة لإعادة الشحن';
+
+  @override
   String get attrLabel_battery_type => 'البطارية';
 
   @override
@@ -25738,6 +25798,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'حمض الرصاص';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'قلوية';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary =>
+      'ليثيوم (غير قابلة لإعادة الشحن)';
 
   @override
   String get attrChoice_motor_type_brushless => 'بدون فرشات';
@@ -26272,6 +26339,40 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_section_safety_subtitle =>
       'قواعد المراجعة والطيران بعد الغوص';
+
+  @override
+  String get settings_section_equipmentCondition_title => 'حالة المعدات';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'حدود التعرض لساعات الصيانة';
+
+  @override
+  String get equipmentConditionSettings_title => 'حالة المعدات';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => 'حدود التعرض';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'تُحتسب الغطسة باردة أو عميقة أو بأكسجين مرتفع لساعات الصيانة عندما تتجاوز هذه الحدود.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'ماء بارد تحت';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'غطسة عميقة من';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'خليط بأكسجين مرتفع فوق (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'أدخل رقمًا';
+
+  @override
+  String get equipmentConditionSettings_saveFailed =>
+      'تعذر الحفظ. حاول مرة أخرى.';
 
   @override
   String get settings_section_security_title => 'أمان التطبيق';

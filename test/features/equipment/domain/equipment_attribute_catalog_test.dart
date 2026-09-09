@@ -230,10 +230,14 @@ void main() {
         'ride_on',
         'handheld',
       ]);
+      // v202 added the two primary-cell chemistries a computer or
+      // transmitter battery is usually made of; a scooter never is.
       expect(EquipmentAttributeCatalog.defFor('battery_type')!.choiceKeys, [
         'lithium_ion',
         'nimh',
         'lead_acid',
+        'alkaline',
+        'lithium_primary',
       ]);
       expect(EquipmentAttributeCatalog.defFor('motor_type')!.choiceKeys, [
         'brushless',

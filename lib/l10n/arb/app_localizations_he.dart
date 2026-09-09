@@ -7618,6 +7618,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'הסר בלון';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'וסת';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'ללא';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'תקרה';
 
   @override
@@ -10328,6 +10334,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'תא חמצן';
+
+  @override
+  String get enum_equipmentType_battery => 'סוללה';
+
+  @override
   String get enum_equipmentType_computer => 'מחשב צלילה';
 
   @override
@@ -11191,6 +11203,34 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total שעות במים מלוחים';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total צלילות במים קרים';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total שעות בחמצן גבוה';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return 'נותרו $remaining מתוך $total צלילות עמוקות';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total מחזורי סוללה';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'ניהול סוגי טיפול';
 
   @override
@@ -11210,6 +11250,25 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'מרווח (שעות)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'מרווח (שעות במים מלוחים)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'מרווח (צלילות במים קרים)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'מרווח (שעות בחמצן גבוה)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'מרווח (צלילות עמוקות)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles => 'מרווח (מחזורי סוללה)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -11559,6 +11618,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_statusLabel => 'סטטוס';
+
+  @override
+  String get equipment_edit_parentLabel => 'מותקן ב';
+
+  @override
+  String get equipment_edit_parentNone => 'לא מותקן בשום פריט';
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'למשל, 5, 5/4, 7/5/3';
@@ -23477,21 +23542,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה';
 
   @override
-  String get settings_cloudImportPageSize_title => 'גודל עמוד בייבוא מהענן';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'צלילות לעמוד';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'בין $min ל-$max';
-  }
-
-  @override
   String get settings_siteMatch_strict => 'קפדני';
 
   @override
@@ -25232,6 +25282,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_burn_time_h => 'זמן פעולה';
 
   @override
+  String get attrLabel_cell_slot => 'מיקום התא';
+
+  @override
+  String get attrLabel_installed_date => 'תאריך התקנה';
+
+  @override
+  String get attrLabel_rechargeable => 'נטענת';
+
+  @override
   String get attrLabel_battery_type => 'סוללה';
 
   @override
@@ -25557,6 +25616,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'עופרת-חומצה';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'אלקליין';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary => 'ליתיום (לא נטענת)';
 
   @override
   String get attrChoice_motor_type_brushless => 'ללא מברשות';
@@ -26088,6 +26153,39 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle => 'כללי סקירה וטיסה אחרי צלילה';
+
+  @override
+  String get settings_section_equipmentCondition_title => 'מצב הציוד';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'ספי חשיפה לשעוני תחזוקה';
+
+  @override
+  String get equipmentConditionSettings_title => 'מצב הציוד';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => 'ספי חשיפה';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'צלילה נחשבת קרה, עמוקה או בחמצן גבוה לשעוני התחזוקה כאשר היא חוצה ספים אלה.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'מים קרים מתחת ל';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'צלילה עמוקה החל מ';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'תערובת בחמצן גבוה מעל (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'יש להזין מספר';
+
+  @override
+  String get equipmentConditionSettings_saveFailed => 'השמירה נכשלה. נסו שוב.';
 
   @override
   String get settings_section_security_title => 'אבטחת האפליקציה';

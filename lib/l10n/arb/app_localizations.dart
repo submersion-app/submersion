@@ -12993,6 +12993,18 @@ abstract class AppLocalizations {
   /// **'Remove tank'**
   String get diveLog_tank_tooltip_remove;
 
+  /// No description provided for @diveLog_tank_regulatorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Regulator'**
+  String get diveLog_tank_regulatorLabel;
+
+  /// No description provided for @diveLog_tank_regulatorNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get diveLog_tank_regulatorNone;
+
   /// No description provided for @diveLog_tissue_label_ceiling.
   ///
   /// In en, this message translates to:
@@ -17722,6 +17734,18 @@ abstract class AppLocalizations {
   /// **'DPV'**
   String get enum_equipmentType_dpv;
 
+  /// No description provided for @enum_equipmentType_o2Cell.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 cell'**
+  String get enum_equipmentType_o2Cell;
+
+  /// No description provided for @enum_equipmentType_battery.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery'**
+  String get enum_equipmentType_battery;
+
   /// No description provided for @enum_equipmentType_computer.
   ///
   /// In en, this message translates to:
@@ -19318,6 +19342,36 @@ abstract class AppLocalizations {
   /// **'{remaining} of {total} hours left'**
   String equipment_serviceClocks_hoursLeft(String remaining, String total);
 
+  /// No description provided for @equipment_serviceClocks_saltHoursLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} of {total} salt-water hours left'**
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_coldDivesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} of {total} cold dives left'**
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_o2HoursLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} of {total} high-O2 hours left'**
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_deepCyclesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} of {total} deep dives left'**
+  String equipment_serviceClocks_deepCyclesLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_cyclesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} of {total} battery cycles left'**
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total);
+
   /// No description provided for @equipment_serviceClocks_manageKinds.
   ///
   /// In en, this message translates to:
@@ -19359,6 +19413,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Interval (hours)'**
   String get equipment_scheduleDialog_intervalHours;
+
+  /// No description provided for @equipment_scheduleDialog_intervalSaltHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (salt-water hours)'**
+  String get equipment_scheduleDialog_intervalSaltHours;
+
+  /// No description provided for @equipment_scheduleDialog_intervalColdDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (cold dives)'**
+  String get equipment_scheduleDialog_intervalColdDives;
+
+  /// No description provided for @equipment_scheduleDialog_intervalO2Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (high-O2 hours)'**
+  String get equipment_scheduleDialog_intervalO2Hours;
+
+  /// No description provided for @equipment_scheduleDialog_intervalDeepCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (deep dives)'**
+  String get equipment_scheduleDialog_intervalDeepCycles;
+
+  /// No description provided for @equipment_scheduleDialog_intervalCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval (battery cycles)'**
+  String get equipment_scheduleDialog_intervalCycles;
 
   /// No description provided for @equipment_scheduleDialog_inheritHint.
   ///
@@ -19947,6 +20031,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get equipment_edit_statusLabel;
+
+  /// No description provided for @equipment_edit_parentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed in'**
+  String get equipment_edit_parentLabel;
+
+  /// No description provided for @equipment_edit_parentNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not installed in anything'**
+  String get equipment_edit_parentNone;
 
   /// No description provided for @equipment_edit_thicknessDesignationHint.
   ///
@@ -39543,30 +39639,6 @@ abstract class AppLocalizations {
   /// **'Read end pressure when you reached the surface, not when the computer stopped recording'**
   String get settings_tankPressureAtSurfacing_subtitle;
 
-  /// No description provided for @settings_cloudImportPageSize_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud import page size'**
-  String get settings_cloudImportPageSize_title;
-
-  /// No description provided for @settings_cloudImportPageSize_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.'**
-  String get settings_cloudImportPageSize_subtitle;
-
-  /// No description provided for @settings_cloudImportPageSize_dialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives per page'**
-  String get settings_cloudImportPageSize_dialogTitle;
-
-  /// Helper text under the cloud import page size field showing the allowed range
-  ///
-  /// In en, this message translates to:
-  /// **'Between {min} and {max}'**
-  String settings_cloudImportPageSize_range(Object min, Object max);
-
   /// No description provided for @settings_siteMatch_strict.
   ///
   /// In en, this message translates to:
@@ -42585,6 +42657,24 @@ abstract class AppLocalizations {
   /// **'Burn time'**
   String get attrLabel_burn_time_h;
 
+  /// No description provided for @attrLabel_cell_slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell slot'**
+  String get attrLabel_cell_slot;
+
+  /// No description provided for @attrLabel_installed_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get attrLabel_installed_date;
+
+  /// No description provided for @attrLabel_rechargeable.
+  ///
+  /// In en, this message translates to:
+  /// **'Rechargeable'**
+  String get attrLabel_rechargeable;
+
   /// No description provided for @attrLabel_battery_type.
   ///
   /// In en, this message translates to:
@@ -43238,6 +43328,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lead-acid'**
   String get attrChoice_battery_type_lead_acid;
+
+  /// No description provided for @attrChoice_battery_type_alkaline.
+  ///
+  /// In en, this message translates to:
+  /// **'Alkaline'**
+  String get attrChoice_battery_type_alkaline;
+
+  /// No description provided for @attrChoice_battery_type_lithium_primary.
+  ///
+  /// In en, this message translates to:
+  /// **'Lithium (non-rechargeable)'**
+  String get attrChoice_battery_type_lithium_primary;
 
   /// No description provided for @attrChoice_motor_type_brushless.
   ///
@@ -44144,6 +44246,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Review rules & flying after diving'**
   String get settings_section_safety_subtitle;
+
+  /// No description provided for @settings_section_equipmentCondition_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment condition'**
+  String get settings_section_equipmentCondition_title;
+
+  /// No description provided for @settings_section_equipmentCondition_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure thresholds for service clocks'**
+  String get settings_section_equipmentCondition_subtitle;
+
+  /// No description provided for @equipmentConditionSettings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment condition'**
+  String get equipmentConditionSettings_title;
+
+  /// No description provided for @equipmentConditionSettings_thresholdsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure thresholds'**
+  String get equipmentConditionSettings_thresholdsHeader;
+
+  /// No description provided for @equipmentConditionSettings_thresholdsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'A dive counts as cold, deep or high-O2 for service clocks when it crosses these lines.'**
+  String get equipmentConditionSettings_thresholdsHelp;
+
+  /// No description provided for @equipmentConditionSettings_coldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold water below'**
+  String get equipmentConditionSettings_coldLabel;
+
+  /// No description provided for @equipmentConditionSettings_deepLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep dive at or beyond'**
+  String get equipmentConditionSettings_deepLabel;
+
+  /// No description provided for @equipmentConditionSettings_o2Label.
+  ///
+  /// In en, this message translates to:
+  /// **'High-O2 mix above (% O2)'**
+  String get equipmentConditionSettings_o2Label;
+
+  /// No description provided for @equipmentConditionSettings_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number'**
+  String get equipmentConditionSettings_invalid;
+
+  /// No description provided for @equipmentConditionSettings_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save. Try again.'**
+  String get equipmentConditionSettings_saveFailed;
 
   /// No description provided for @settings_section_security_title.
   ///

@@ -51,6 +51,30 @@ Three asks, all from the issue thread:
 | Equipment list | Stays flat, with count and "part of" chips. |
 | Per-dive deviation | A single component row can be removed from one dive without touching the template. |
 
+## Relationship to the installed-in link
+
+The equipment condition intelligence program (spec
+`2026-09-09-equipment-condition-intelligence-design.md`, landed as v202)
+added `equipment.parent_equipment_id`: a single "installed in" parent for a
+consumable such as an O2 cell in a rebreather or a battery in a computer.
+That child inherits its parent's dives live from its install date, and
+deleting the parent orphans the child. It answers "what is this consumable
+inside right now".
+
+Assemblies answer a different question, "what was this rig built from on
+that dive", and the two deliberately stay separate:
+
+- An assembly template is many-to-many. The reporter's second stage is
+  listed under both the DIN reg and the yoke reg; a single parent column
+  cannot express that.
+- An assembly is snapshotted onto each dive, so a part's usage history is
+  what it was actually on, not what it is installed in today.
+- Roles and order belong to the template, not to the part.
+
+In the UI the wording stays distinct: "Installed in" for the parent link,
+"Part of" and "Components" for assemblies. A consumable can be both: a cell
+installed in a rebreather that is itself a component of a CCR rig.
+
 ## Why an equipment item and not a separate entity
 
 Eight tables hold a foreign key to `equipment`: the dive and plan junctions,
@@ -141,7 +165,7 @@ water.
 it belongs to, come from providers, because the entity is hydrated in too
 many places to carry a derived collection.
 
-**Migration v202.** One rung for everything. v200 is claimed by the
+**Migration v203.** One rung for everything. v200 is claimed by the
 transmitter registry branch (`issue-1365-brainstorm-f1e2c7`); whichever
 merges second renumbers, as usual.
 
@@ -150,7 +174,7 @@ merges second renumbers, as usual.
 - `_assertGearProvenanceColumns()`: PRAGMA-guarded `ALTER TABLE ... ADD
   COLUMN` for the four columns, following
   `_assertCertificationCredentialsColumn` (v199).
-- `if (from < 202)` rung calling both, followed by `reportProgress()`.
+- `if (from < 203)` rung calling both, followed by `reportProgress()`.
 - Both re-called from the `beforeOpen` backstop, because a database that
   arrives by restore or sync adopt never runs `onUpgrade`.
 - `currentSchemaVersion` to 201, `migrationVersions` appended.
@@ -481,13 +505,13 @@ type substrings.
   verified in the repository at commit `39a358b6865` on 2026-09-08 and
   2026-09-09.
 - Schema claim: v199 on main, v200 on the transmitter registry branch, so
-  this design claims v202.
+  this design claims v203.
 
 ## Testing
 
 Written first, per task.
 
-- Migration: `test/core/database/migration_v202_equipment_assemblies_test.dart`
+- Migration: `test/core/database/migration_v203_equipment_assemblies_test.dart`
   in the usual shape (fresh open, upgrade from the minimal fixture, backstop re-assert
   idempotent, all four columns and the table present).
 - Components repository: create, unique constraint, cycle guard at depth
@@ -522,7 +546,7 @@ Written first, per task.
 
 Three stacked pull requests, each green on its own:
 
-1. Schema v202, entities, `EquipmentComponentRepository`, sync wiring, new
+1. Schema v203, entities, `EquipmentComponentRepository`, sync wiring, new
    types, Components card and picker, list chips, rollup provider and
    badges, `deleteEquipment` tombstones. Ships the provenance columns
    unused, which is harmless.

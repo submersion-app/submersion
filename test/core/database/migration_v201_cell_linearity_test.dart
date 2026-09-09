@@ -17,9 +17,9 @@ Future<Set<String>> _columns(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v201 is the current schema version and is in the ladder', () {
-    // Relaxed once v202 (equipment assemblies) landed on top; the newest
-    // rung owns the exact assertion.
+  test('v201 is in the ladder and shipped', () {
+    // v202 (equipment condition intelligence) owns the exact assertion now;
+    // this one only claims its rung is still in the ladder.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(201));
     expect(AppDatabase.migrationVersions, contains(201));
   });

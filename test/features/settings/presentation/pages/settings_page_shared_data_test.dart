@@ -182,6 +182,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setSafetyReviewEnabled(bool value) async =>
       state = state.copyWith(safetyReviewEnabled: value);
   @override
+  Future<void> setColdWaterThresholdC(double value) async =>
+      state = state.copyWith(coldWaterThresholdC: value);
+  @override
+  Future<void> setDeepDiveThresholdM(double value) async =>
+      state = state.copyWith(deepDiveThresholdM: value);
+  @override
+  Future<void> setHighO2ThresholdPercent(double value) async =>
+      state = state.copyWith(highO2ThresholdPercent: value);
+  @override
   Future<void> setNoFlyPreset(NoFlyPreset preset) async =>
       state = state.copyWith(noFlyPreset: preset);
   @override
