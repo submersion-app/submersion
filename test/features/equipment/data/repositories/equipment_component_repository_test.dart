@@ -132,6 +132,28 @@ void main() {
     expect(await repo.getComponents('hose'), isEmpty);
   });
 
+  test('parts that collide on sort order come back in row id order', () async {
+    // A sync merge of concurrent reorders can leave two parts on one
+    // sort_order; the repository must still answer in one fixed order.
+    final t = DateTime.now().millisecondsSinceEpoch;
+    for (final (id, child) in [('zz', 'second'), ('aa', 'first')]) {
+      await db
+          .into(db.equipmentComponents)
+          .insert(
+            EquipmentComponentsCompanion.insert(
+              id: id,
+              parentEquipmentId: 'reg',
+              componentEquipmentId: child,
+              sortOrder: const Value(0),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+    }
+    expect((await repo.getComponents('reg')).map((p) => p.id), ['aa', 'zz']);
+    expect((await repo.getAllComponents()).map((p) => p.id), ['aa', 'zz']);
+  });
+
   test('ancestorsOf walks upward and terminates', () async {
     await repo.addComponent(parentId: 'kit', componentId: 'reg');
     await repo.addComponent(parentId: 'reg', componentId: 'hose');

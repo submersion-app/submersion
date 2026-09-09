@@ -76,24 +76,32 @@ class EquipmentComponentRepository {
     component: component,
   );
 
-  /// Every row, unhydrated, ordered by parent then position. The adjacency
-  /// index is built from this in one read.
+  /// Every row, unhydrated, ordered by parent then position, with the row
+  /// id as the final key so two parts that collide on sort_order (a sync
+  /// merge of concurrent reorders) still come back in one fixed order. The
+  /// adjacency index is built from this in one read.
   Future<List<EquipmentComponent>> getAllComponents() async {
     final rows =
         await (_db.select(_db.equipmentComponents)..orderBy([
               (t) => OrderingTerm.asc(t.parentEquipmentId),
               (t) => OrderingTerm.asc(t.sortOrder),
+              (t) => OrderingTerm.asc(t.id),
             ]))
             .get();
     return rows.map(_map).toList();
   }
 
-  /// The parts of [parentId] with their items hydrated, in sort order.
+  /// The parts of [parentId] with their items hydrated, in sort order, the
+  /// row id breaking ties so a sort_order collision cannot reshuffle rows
+  /// between reads.
   Future<List<EquipmentComponent>> getComponents(String parentId) async {
     final rows =
         await (_db.select(_db.equipmentComponents)
               ..where((t) => t.parentEquipmentId.equals(parentId))
-              ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.sortOrder),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
             .get();
     if (rows.isEmpty) return const [];
     final items = await _equipment.getEquipmentByIds(

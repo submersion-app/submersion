@@ -32,6 +32,30 @@ void main() {
     expect(index.isAssembly('first'), isFalse);
   });
 
+  test('equal sort orders fall back to row id so the order is fixed', () {
+    final a = EquipmentComponent(
+      id: 'zz',
+      parentEquipmentId: 'reg',
+      componentEquipmentId: 'second',
+      createdAt: t0,
+      updatedAt: t0,
+    );
+    final b = EquipmentComponent(
+      id: 'aa',
+      parentEquipmentId: 'reg',
+      componentEquipmentId: 'first',
+      createdAt: t0,
+      updatedAt: t0,
+    );
+    for (final rows in [
+      [a, b],
+      [b, a],
+    ]) {
+      final index = ComponentsIndex.fromRows(rows);
+      expect(index.byParent['reg']!.map((c) => c.id), ['aa', 'zz']);
+    }
+  });
+
   test('descendantsOf walks every level and excludes the root', () {
     final index = ComponentsIndex.fromRows([
       edge('kit', 'reg'),
