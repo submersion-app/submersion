@@ -79,4 +79,24 @@ void main() {
     );
     expect(GearTree.build(loop).single.roots, isNotEmpty);
   });
+
+  test('a corrupt loop still rolls up one row and keeps one leaf', () {
+    // A and B each name the other as parent. Every row is a parent, so a
+    // naive reading would roll up everything and leave no leaf; buoyancy
+    // would then count no gear at all. The placement walk promotes the
+    // first row to a root and nests the other under it instead.
+    const loop = [
+      GearProvenance(equipmentId: 'a', viaEquipmentId: 'b'),
+      GearProvenance(equipmentId: 'b', viaEquipmentId: 'a'),
+    ];
+    final links = gearLinksFor([
+      item('a', EquipmentType.bcd),
+      item('b', EquipmentType.wing),
+    ], loop);
+    expect(GearTree.rolledUpIds(loop), {'a'});
+    expect(GearTree.leafItems(links).map((i) => i.id), ['b']);
+    final root = GearTree.build(links).single.roots.single;
+    expect(root.link.item.id, 'a');
+    expect(root.children.single.link.item.id, 'b');
+  });
 }

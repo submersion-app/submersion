@@ -16,45 +16,29 @@ class GearBucket {
   const GearBucket({required this.setId, required this.roots});
 }
 
+/// Where each row landed once every row was placed exactly once: the
+/// top-level ids in order, and each id's children in row order.
+typedef _Placement = ({List<String> roots, Map<String, List<String>> children});
+
 /// Turns a flat link list into set buckets and parent-child nesting, the
 /// shape both dive pages and the PDF render (issue #1487). Pure and
 /// cycle-safe: a row whose parent is absent, or part of a loop, is shown
-/// as a top-level row rather than dropped.
+/// as a top-level row rather than dropped, and the two buoyancy helpers
+/// read the same placement so a loop never rolls up every row at once.
 abstract final class GearTree {
   static List<GearBucket> build(List<GearLink> links) {
-    final present = {for (final l in links) l.item.id};
-    final childrenOf = <String, List<GearLink>>{};
-    final roots = <GearLink>[];
-    for (final l in links) {
-      final parent = l.viaEquipmentId;
-      if (parent != null && present.contains(parent) && parent != l.item.id) {
-        childrenOf.putIfAbsent(parent, () => []).add(l);
-      } else {
-        roots.add(l);
-      }
-    }
-    // Every row reachable from a root is nested; anything left over sits
-    // in a loop with no root and is promoted so it is never invisible.
-    final placed = <String>{};
-    GearNode node(GearLink l) {
-      placed.add(l.item.id);
-      return GearNode(
-        link: l,
-        children: [
-          for (final c in childrenOf[l.item.id] ?? const <GearLink>[])
-            if (!placed.contains(c.item.id)) node(c),
-        ],
-      );
-    }
-
-    final rootNodes = [for (final r in roots) node(r)];
-    for (final l in links) {
-      if (!placed.contains(l.item.id)) rootNodes.add(node(l));
-    }
+    final byId = {for (final l in links) l.item.id: l};
+    final placement = _place([
+      for (final l in links) (id: l.item.id, parent: l.viaEquipmentId),
+    ]);
+    GearNode node(String id) => GearNode(
+      link: byId[id]!,
+      children: [for (final c in placement.children[id]!) node(c)],
+    );
 
     final buckets = <String?, List<GearNode>>{};
-    for (final n in rootNodes) {
-      buckets.putIfAbsent(n.link.viaSetId, () => []).add(n);
+    for (final id in placement.roots) {
+      buckets.putIfAbsent(byId[id]!.viaSetId, () => []).add(node(id));
     }
     final loose = buckets.remove(null);
     return [
@@ -63,22 +47,73 @@ abstract final class GearTree {
     ];
   }
 
-  /// Ids that have at least one child row: an assembly's own attributes
-  /// must not count toward buoyancy when its parts are on the dive.
-  static Set<String> rolledUpIds(Iterable<GearProvenance> rows) => {
-    for (final r in rows)
-      if (r.viaEquipmentId != null) r.viaEquipmentId!,
-  };
-
-  /// Items with no child row on this dive, in link order.
-  static List<EquipmentItem> leafItems(List<GearLink> links) {
-    final parents = {
-      for (final l in links)
-        if (l.viaEquipmentId != null) l.viaEquipmentId!,
+  /// Ids that have at least one child row once placed: an assembly's own
+  /// attributes must not count toward buoyancy when its parts are on the
+  /// dive. In a corrupt loop one row is promoted to a root and the other
+  /// nests under it, so at least one row always stays counted.
+  static Set<String> rolledUpIds(Iterable<GearProvenance> rows) {
+    final placement = _place([
+      for (final r in rows) (id: r.equipmentId, parent: r.viaEquipmentId),
+    ]);
+    return {
+      for (final e in placement.children.entries)
+        if (e.value.isNotEmpty) e.key,
     };
+  }
+
+  /// Items with no child row on this dive once placed, in link order.
+  static List<EquipmentItem> leafItems(List<GearLink> links) {
+    final placement = _place([
+      for (final l in links) (id: l.item.id, parent: l.viaEquipmentId),
+    ]);
     return [
       for (final l in links)
-        if (!parents.contains(l.item.id)) l.item,
+        if (placement.children[l.item.id]!.isEmpty) l.item,
     ];
+  }
+
+  /// Places every id exactly once. A row nests under its parent when the
+  /// parent is present and not itself; every row reachable from a root is
+  /// nested; anything left over sits in a loop with no root and is promoted
+  /// so it is never invisible. Rows keep their input order throughout.
+  static _Placement _place(List<({String id, String? parent})> rows) {
+    final present = {for (final r in rows) r.id};
+    final childrenOf = <String, List<String>>{};
+    final roots = <String>[];
+    for (final r in rows) {
+      final parent = r.parent;
+      if (parent != null && present.contains(parent) && parent != r.id) {
+        childrenOf.putIfAbsent(parent, () => []).add(r.id);
+      } else {
+        roots.add(r.id);
+      }
+    }
+    final placed = <String>{};
+    final children = <String, List<String>>{};
+    void place(String id) {
+      final kids = <String>[];
+      for (final c in childrenOf[id] ?? const <String>[]) {
+        if (placed.add(c)) {
+          kids.add(c);
+          place(c);
+        }
+      }
+      children[id] = kids;
+    }
+
+    final allRoots = <String>[];
+    for (final id in roots) {
+      if (placed.add(id)) {
+        allRoots.add(id);
+        place(id);
+      }
+    }
+    for (final r in rows) {
+      if (placed.add(r.id)) {
+        allRoots.add(r.id);
+        place(r.id);
+      }
+    }
+    return (roots: allRoots, children: children);
   }
 }
