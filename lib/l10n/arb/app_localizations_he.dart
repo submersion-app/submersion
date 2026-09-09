@@ -5823,6 +5823,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'השנה';
 
   @override
+  String get diveLog_filter_searchComputersHint => 'הקלד כדי לחפש מחשבי צלילה';
+
+  @override
+  String get diveLog_filter_searchSitesHint => 'הקלד כדי לחפש אתרים';
+
+  @override
+  String get diveLog_filter_searchTypesHint => 'הקלד כדי לחפש סוגים';
+
+  @override
+  String get diveLog_filter_searchCentersHint => 'הקלד כדי לחפש מרכזי צלילה';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'הקלד כדי לחפש שדות';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'הקלד כדי לחפש טיולים';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'שותף';
 
   @override
@@ -36733,4 +36751,81 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_assignTransmitter => 'שיוך משדר';
+
+  @override
+  String get backup_unrecognized_appBar_title => 'גיבויים לא מזוהים';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'הקבצים האלה נמצאים בתיקיית הגיבויים שלך אך לא בהיסטוריית הגיבויים של המכשיר הזה. אפשר למחוק כאן רק קובץ שהמכשיר הזה כתב: כל קובץ אחר עלול להיות העותק היחיד של מכשיר אחר.';
+
+  @override
+  String get backup_unrecognized_empty => 'אין קובצי גיבוי לא מזוהים.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'לא ניתן לקרוא את תיקיית הגיבויים.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'המכשיר הזה אינו יכול להציג את תוכן תיקיית הגיבויים שבחרת, ולכן לא ניתן לאתר קבצים לא מזוהים.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'מכשיר אחר';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'מכשיר לא ידוע';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מחיקת $count קבצים ($size)',
+      one: 'מחיקת קובץ אחד ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title => 'למחוק את קובצי הגיבוי האלה?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קובצי גיבוי יימחקו לצמיתות. לא ניתן לבטל את הפעולה.',
+      one: 'קובץ גיבוי אחד יימחק לצמיתות. לא ניתן לבטל את הפעולה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'לא ניתן היה למחוק את הקבצים שנבחרו.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size פונו';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים שאינם בהיסטוריית הגיבויים שלך',
+      one: 'קובץ אחד שאינו בהיסטוריית הגיבויים שלך',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'בדיקה';
 }

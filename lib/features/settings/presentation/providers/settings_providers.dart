@@ -24,6 +24,7 @@ import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
+import 'package:submersion/core/presentation/startup_theme.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/notifications/data/services/notification_scheduler.dart';
@@ -1172,7 +1173,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           perdixOverlayY: perdixOverlayY,
           seascapeAppearance: seascapeAppearance,
         );
-        await _writeCachedThemeMode(prefs);
+        await _writeCachedTheme(prefs);
         return;
       }
 
@@ -1213,7 +1214,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         await prefs.remove(SettingsKeys.seascapeAppearance);
       }
 
-      await _writeCachedThemeMode(prefs);
+      await _writeCachedTheme(prefs);
 
       // Schedule notifications with the loaded settings
       _scheduleNotificationsIfNeeded();
@@ -1288,7 +1289,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     if (perdixY != null) {
       await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
     }
-    await _writeCachedThemeMode(prefs);
+    await _writeCachedTheme(prefs);
 
     final diverId = _validatedDiverId;
     if (diverId == null) {
@@ -1304,14 +1305,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _repository.updateSettingsForDiver(diverId, state);
   }
 
-  /// Mirrors the effective theme mode into SharedPreferences so the startup
-  /// splash and setup wizard (which render before the database opens) can
-  /// resolve dark mode. See [resolveStartupBrightness].
-  Future<void> _writeCachedThemeMode(SharedPreferences prefs) async {
+  /// Mirrors the effective theme into SharedPreferences so the startup splash
+  /// and setup wizard (which render before the database opens) can resolve
+  /// both halves of it. See [resolveStartupBrightness] for the mode and
+  /// [resolveStartupThemePreset] for the preset.
+  Future<void> _writeCachedTheme(SharedPreferences prefs) async {
     await prefs.setString(
       cachedThemeModeKey,
       cachedThemeModeValue(state.themeMode),
     );
+    // Mirrored raw, not normalised through AppThemeRegistry. Normalising on
+    // write would be lossy in the one case that matters: a database written
+    // by a beta build can name a preset this build does not ship, and the
+    // splash renders before hydration, so a build that ships that preset
+    // again would meet a default already burned into the mirror. Reading is
+    // where an unknown id is resolved; see [resolveStartupThemePreset].
+    await prefs.setString(cachedThemePresetKey, state.themePresetId);
   }
 
   Future<void> setDepthUnit(DepthUnit unit) async {

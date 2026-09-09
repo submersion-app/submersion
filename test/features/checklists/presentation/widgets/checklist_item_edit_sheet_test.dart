@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
@@ -20,6 +21,9 @@ Future<void> _openSheet(
 }) async {
   await tester.pumpWidget(
     testApp(
+      // Every finder below matches a localized label, so the UI language has
+      // to be deterministic rather than the host machine's.
+      locale: const Locale('en'),
       child: Builder(
         builder: (context) => TextButton(
           onPressed: () => showChecklistItemEditSheet(
@@ -229,4 +233,109 @@ void main() {
     // A due-date chip with a clear button now replaces the calendar icon.
     expect(find.byIcon(Icons.clear), findsOneWidget);
   });
+
+  testWidgets(
+    'the category suggestion list is navigable with the arrow keys and '
+    'committed with Enter',
+    (tester) async {
+      await _openSheet(
+        tester,
+        tripId: trip.id,
+        categorySuggestions: const ['Gases', 'Galley', 'Bookings'],
+      );
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Category'),
+        'Ga',
+      );
+      await tester.pumpAndSettle();
+
+      // Both matches are offered, with the first one highlighted.
+      expect(
+        tester
+            .widget<ListTile>(find.widgetWithText(ListTile, 'Gases'))
+            .selected,
+        isTrue,
+      );
+      expect(
+        tester
+            .widget<ListTile>(find.widgetWithText(ListTile, 'Galley'))
+            .selected,
+        isFalse,
+      );
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<ListTile>(find.widgetWithText(ListTile, 'Galley'))
+            .selected,
+        isTrue,
+      );
+
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Title'),
+        'Fill twinset',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final items = await checklistRepository.getByTripId(trip.id);
+      expect(items.single.category, 'Galley');
+    },
+  );
+
+  testWidgets('a category typed in a different case folds onto the existing '
+      'one', (tester) async {
+    await _openSheet(
+      tester,
+      tripId: trip.id,
+      categorySuggestions: const ['Diving', 'Bookings'],
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Title'),
+      'Check torch',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Category'),
+      'diving',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    final items = await checklistRepository.getByTripId(trip.id);
+    expect(items.single.category, 'Diving');
+  });
+
+  testWidgets(
+    'a category with no case-insensitive match keeps what was typed',
+    (tester) async {
+      await _openSheet(
+        tester,
+        tripId: trip.id,
+        categorySuggestions: const ['Diving'],
+      );
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Title'),
+        'Renew insurance',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Category'),
+        'paperwork',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final items = await checklistRepository.getByTripId(trip.id);
+      expect(items.single.category, 'paperwork');
+    },
+  );
 }

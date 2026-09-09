@@ -7,6 +7,7 @@ import 'package:submersion/features/checklists/presentation/providers/checklist_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 
 /// Bottom sheet for creating or editing a trip checklist item.
 Future<void> showChecklistItemEditSheet({
@@ -81,10 +82,22 @@ class _ChecklistItemEditSheetState
     if (picked != null) setState(() => _dueDate = picked);
   }
 
+  /// Folds a typed category onto an existing one that differs only in case,
+  /// so 'diving' lands in the existing 'Diving' group rather than creating a
+  /// near-duplicate. Unmatched input keeps the casing the user typed.
+  String _canonicalCategory(String typed) {
+    if (typed.isEmpty) return typed;
+    final lower = typed.toLowerCase();
+    for (final suggestion in widget.categorySuggestions) {
+      if (suggestion.toLowerCase() == lower) return suggestion;
+    }
+    return typed;
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final repository = ref.read(tripChecklistRepositoryProvider);
-    final category = _categoryController.text.trim();
+    final category = _canonicalCategory(_categoryController.text.trim());
     final existing = widget.item;
     if (existing == null) {
       await repository.createItem(
@@ -145,26 +158,12 @@ class _ChecklistItemEditSheetState
               optionsBuilder: (value) => widget.categorySuggestions.where(
                 (c) => c.toLowerCase().contains(value.text.toLowerCase()),
               ),
-              onSelected: (selection) => _categoryController.text = selection,
-              optionsViewBuilder: (context, onSelected, options) => Align(
-                alignment: AlignmentDirectional.topStart,
-                child: Material(
-                  elevation: 4,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 200),
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: [
-                        for (final option in options)
-                          ListTile(
-                            title: Text(option),
-                            onTap: () => onSelected(option),
-                          ),
-                      ],
-                    ),
+              optionsViewBuilder: (context, onSelected, options) =>
+                  AutocompleteOptionsList<String>(
+                    options: options,
+                    onSelected: onSelected,
+                    labelFor: (option) => option,
                   ),
-                ),
-              ),
               fieldViewBuilder:
                   (context, controller, focusNode, onFieldSubmitted) =>
                       TextFormField(
@@ -173,6 +172,9 @@ class _ChecklistItemEditSheetState
                         decoration: InputDecoration(
                           labelText: context.l10n.checklists_item_categoryLabel,
                         ),
+                        // Commits the arrow-key highlight; a no-op when no
+                        // suggestion list is open, so free text still saves.
+                        onFieldSubmitted: (_) => onFieldSubmitted(),
                       ),
             ),
             const SizedBox(height: 8),

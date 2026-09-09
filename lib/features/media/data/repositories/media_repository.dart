@@ -909,6 +909,60 @@ class MediaRepository {
     }
   }
 
+  /// Points every row that references the local file at [from] to [to]
+  /// instead, in `file_path` and, where it mirrors the same path, in
+  /// `local_path`.
+  ///
+  /// The row half of a file move (the scanned-logs folder migration, issue
+  /// #1645). Rows are marked pending like any other edit: a peer that later
+  /// touches the row would otherwise sync the stale path back over this one.
+  ///
+  /// Returns the number of rows rewritten. Zero is not an error: a file with
+  /// no row behind it is simply moved.
+  Future<int> relocateLocalFile({
+    required String from,
+    required String to,
+  }) async {
+    try {
+      final rows =
+          await (_db.select(_db.media)..where(
+                (t) => t.filePath.equals(from) | t.localPath.equals(from),
+              ))
+              .get();
+      if (rows.isEmpty) return 0;
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db.transaction(() async {
+        for (final row in rows) {
+          await (_db.update(
+            _db.media,
+          )..where((t) => t.id.equals(row.id))).write(
+            MediaCompanion(
+              filePath: Value(row.filePath == from ? to : row.filePath),
+              localPath: Value(row.localPath == from ? to : row.localPath),
+              updatedAt: Value(now),
+            ),
+          );
+          await _syncRepository.markRecordPending(
+            entityType: 'media',
+            recordId: row.id,
+            localUpdatedAt: now,
+          );
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+      _log.info('Relocated ${rows.length} media rows from $from to $to');
+      return rows.length;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to relocate media rows from $from',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get all orphaned media
   /// Includes enrichment data (depth, temperature) if available
   Future<List<domain.MediaItem>> getOrphanedMedia() async {

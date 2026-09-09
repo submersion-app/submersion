@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
@@ -61,5 +62,46 @@ void main() {
     formKey.currentState!.validate();
     await tester.pump();
     expect(find.text('Name required'), findsOneWidget);
+  });
+
+  testWidgets('arrow keys move the highlight and Enter commits it', (
+    tester,
+  ) async {
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Material(
+            child: SuggestionFormRow(
+              label: 'Country',
+              controller: controller,
+              suggestions: const ['Mexico', 'Mexico City', 'USA'],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextFormField), 'Mex');
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<ListTile>(find.widgetWithText(ListTile, 'Mexico')).selected,
+      isTrue,
+    );
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ListTile>(find.widgetWithText(ListTile, 'Mexico City'))
+          .selected,
+      isTrue,
+    );
+
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(controller.text, 'Mexico City');
   });
 }

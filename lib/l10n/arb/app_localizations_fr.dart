@@ -6004,6 +6004,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'Cette année';
 
   @override
+  String get diveLog_filter_searchComputersHint =>
+      'Saisissez pour rechercher des ordinateurs';
+
+  @override
+  String get diveLog_filter_searchSitesHint =>
+      'Saisissez pour rechercher des sites';
+
+  @override
+  String get diveLog_filter_searchTypesHint =>
+      'Saisissez pour rechercher des types';
+
+  @override
+  String get diveLog_filter_searchCentersHint =>
+      'Saisissez pour rechercher des centres de plongée';
+
+  @override
+  String get diveLog_filter_searchFieldsHint =>
+      'Saisissez pour rechercher des champs';
+
+  @override
+  String get diveLog_filter_searchTripsHint =>
+      'Saisissez pour rechercher des voyages';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Binôme';
 
   @override
@@ -37583,4 +37607,85 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_assignTransmitter =>
       'Associer l\'émetteur';
+
+  @override
+  String get backup_unrecognized_appBar_title => 'Sauvegardes non reconnues';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Ces fichiers se trouvent dans votre dossier de sauvegardes mais pas dans l\'historique de sauvegarde de cet appareil. Seul un fichier écrit par cet appareil peut être supprimé ici : tout autre fichier peut être l\'unique copie d\'un autre appareil.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Aucun fichier de sauvegarde non reconnu.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'Impossible de lire le dossier de sauvegardes.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Cet appareil ne peut pas lister le dossier de sauvegardes que vous avez choisi ; les fichiers non reconnus ne peuvent donc pas être trouvés.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Un autre appareil';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'Appareil inconnu';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimer $count fichiers ($size)',
+      one: 'Supprimer 1 fichier ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Supprimer ces fichiers de sauvegarde ?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fichiers de sauvegarde seront définitivement supprimés. Cette action est irréversible.',
+      one:
+          '1 fichier de sauvegarde sera définitivement supprimé. Cette action est irréversible.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Impossible de supprimer les fichiers sélectionnés.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size libéré';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fichiers absents de votre historique de sauvegarde',
+      one: '1 fichier absent de votre historique de sauvegarde',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Examiner';
 }

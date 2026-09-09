@@ -3322,6 +3322,12 @@
   "diveLog_filter_presetLast12Months": "Last 12 months",
   "diveLog_filter_presetLastYear": "Last year",
   "diveLog_filter_presetThisYear": "This year",
+  "diveLog_filter_searchComputersHint": "Type to search computers",
+  "diveLog_filter_searchSitesHint": "Type to search sites",
+  "diveLog_filter_searchTypesHint": "Type to search dive types",
+  "diveLog_filter_searchCentersHint": "Type to search dive centers",
+  "diveLog_filter_searchFieldsHint": "Type to search fields",
+  "diveLog_filter_searchTripsHint": "Type to search trips",
   "diveLog_filter_sectionBuddy": "Buddy",
   "diveLog_filter_sectionDateRange": "Date Range",
   "diveLog_filter_sectionDepthRange": "Depth Range (meters)",
@@ -22270,7 +22276,7 @@
     "description": "Collapsed Statistics group hint when the dive is not excluded"
   },
   "suuntoCloud_signIn_title": "Sign in to Suunto",
-  "suuntoCloud_signIn_description": "Sign in with your app.suunto.com account to import your dives directly. Your password is never stored — only the resulting session is cached.",
+  "suuntoCloud_signIn_description": "Sign in with your app.suunto.com account to import your dives directly. Your password is never stored; only the resulting session is cached.",
   "suuntoCloud_signIn_emailLabel": "Email",
   "suuntoCloud_signIn_emailRequired": "Email is required",
   "suuntoCloud_signIn_passwordLabel": "Password",
@@ -22334,7 +22340,7 @@
     }
   },
   "garminConnect_signIn_title": "Sign in to Garmin Connect",
-  "garminConnect_signIn_description": "Sign in with your Garmin Connect account to import your dives directly. Your password is never stored — only the resulting session is cached.",
+  "garminConnect_signIn_description": "Sign in with your Garmin Connect account to import your dives directly. Your password is never stored; only the resulting session is cached.",
   "garminConnect_signIn_emailLabel": "Email",
   "garminConnect_signIn_emailRequired": "Email is required",
   "garminConnect_signIn_passwordLabel": "Password",
@@ -22673,5 +22679,25 @@
       "serial": { "type": "String" }
     }
   },
-  "dataQuality_repairLabel_assignTransmitter": "Assign transmitter"
+  "dataQuality_repairLabel_assignTransmitter": "Assign transmitter",
+  "backup_unrecognized_appBar_title": "Unrecognized Backups",
+  "backup_unrecognized_explanation": "These files are in your backups folder but not in this device's backup history. Only a file this device wrote can be deleted here: anything else may be another device's only copy.",
+  "backup_unrecognized_empty": "No unrecognized backup files.",
+  "backup_unrecognized_loadFailed": "Could not read the backups folder.",
+  "backup_unrecognized_unavailable": "This device cannot list the backup folder you chose, so unrecognized files cannot be found.",
+  "backup_unrecognized_ownership_otherDevice": "Another device",
+  "backup_unrecognized_ownership_unattributed": "Unknown device",
+  "backup_unrecognized_fileDetail": "{size} \u2022 {date}",
+  "@backup_unrecognized_fileDetail": { "placeholders": { "size": { "type": "String" }, "date": { "type": "String" } } },
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{Delete 1 file ({size})} other{Delete {count} files ({size})}}",
+  "@backup_unrecognized_deleteSelected": { "placeholders": { "count": { "type": "int" }, "size": { "type": "String" } } },
+  "backup_unrecognized_confirm_title": "Delete these backup files?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{1 backup file will be permanently deleted. This cannot be undone.} other{{count} backup files will be permanently deleted. This cannot be undone.}}",
+  "@backup_unrecognized_confirm_message": { "placeholders": { "count": { "type": "int" } } },
+  "backup_unrecognized_deleteFailed": "Could not delete the selected files.",
+  "backup_unrecognized_freed": "Freed {size}",
+  "@backup_unrecognized_freed": { "placeholders": { "size": { "type": "String" } } },
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 file not in your backup history} other{{count} files not in your backup history}}",
+  "@settings_storageUsage_unrecognized_title": { "placeholders": { "count": { "type": "int" } } },
+  "settings_storageUsage_unrecognized_action": "Review"
 }

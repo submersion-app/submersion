@@ -5982,6 +5982,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'Este ano';
 
   @override
+  String get diveLog_filter_searchComputersHint =>
+      'Digite para buscar computadores';
+
+  @override
+  String get diveLog_filter_searchSitesHint => 'Digite para buscar pontos';
+
+  @override
+  String get diveLog_filter_searchTypesHint => 'Digite para buscar tipos';
+
+  @override
+  String get diveLog_filter_searchCentersHint =>
+      'Digite para buscar centros de mergulho';
+
+  @override
+  String get diveLog_filter_searchFieldsHint => 'Digite para buscar campos';
+
+  @override
+  String get diveLog_filter_searchTripsHint => 'Digite para buscar viagens';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Dupla';
 
   @override
@@ -37490,4 +37510,88 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_assignTransmitter =>
       'Atribuir transmissor';
+
+  @override
+  String get backup_unrecognized_appBar_title =>
+      'Cópias de segurança não reconhecidas';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Estes ficheiros estão na sua pasta de cópias de segurança mas não no histórico deste dispositivo. Só pode ser excluído aqui um ficheiro escrito por este dispositivo: qualquer outro pode ser a única cópia de outro dispositivo.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Não há ficheiros de cópia de segurança não reconhecidos.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'Não foi possível ler a pasta de cópias de segurança.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Este dispositivo não consegue listar a pasta de cópias de segurança que escolheu, por isso não é possível encontrar ficheiros não reconhecidos.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Outro dispositivo';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed =>
+      'Dispositivo desconhecido';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir $count ficheiros ($size)',
+      one: 'Excluir 1 ficheiro ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Excluir estes ficheiros de cópia de segurança?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ficheiros de cópia de segurança serão excluídos permanentemente. Não é possível anular.',
+      one:
+          '1 ficheiro de cópia de segurança será excluído permanentemente. Não é possível anular.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Não foi possível excluir os ficheiros selecionados.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size libertados';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ficheiros que não estão no seu histórico de cópias de segurança',
+      one: '1 ficheiro que não está no seu histórico de cópias de segurança',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Rever';
 }

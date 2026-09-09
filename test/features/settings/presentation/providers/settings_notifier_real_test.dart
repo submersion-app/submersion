@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
+import 'package:submersion/core/presentation/startup_theme.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -852,6 +853,37 @@ void main() {
 
       await notifier.setThemeMode(ThemeMode.system);
       expect(prefs.getString(cachedThemeModeKey), 'system');
+    });
+
+    test('hydration writes the default theme preset into prefs', () {
+      final prefs = container.read(sharedPreferencesProvider);
+      expect(prefs.getString(cachedThemePresetKey), 'submersion');
+    });
+
+    test('setThemePresetId mirrors the new preset into prefs', () async {
+      // The splash reads this mirror to theme its error screens, so a diver
+      // who switched presets must not meet the previous one on next launch.
+      final notifier = container.read(settingsProvider.notifier);
+      final prefs = container.read(sharedPreferencesProvider);
+
+      await notifier.setThemePresetId('console');
+      expect(prefs.getString(cachedThemePresetKey), 'console');
+
+      await notifier.setThemePresetId('deep');
+      expect(prefs.getString(cachedThemePresetKey), 'deep');
+    });
+
+    test('a preset this build cannot resolve is mirrored unchanged', () async {
+      // A database written by a beta build can name a preset the running
+      // build does not ship. The mirror keeps the diver's actual choice, so
+      // a build that ships it again honours it on its first launch; the
+      // splash resolves the fallback at read time instead.
+      final notifier = container.read(settingsProvider.notifier);
+      final prefs = container.read(sharedPreferencesProvider);
+
+      await notifier.setThemePresetId('kelp');
+
+      expect(prefs.getString(cachedThemePresetKey), 'kelp');
     });
   });
 }
