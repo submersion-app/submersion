@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import 'package:submersion/core/text/fuzzy_match.dart';
 
 import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
+import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 
-/// Identifies the floating suggestion list.
+/// Identifies this field's floating suggestion list.
 ///
 /// Tests scope their finders to this rather than to every tappable row on the
 /// surface under it, which would otherwise match unrelated buttons and could
@@ -268,115 +268,13 @@ class _SearchableFilterDropdownState<T>
             onSubmitted: (_) => onFieldSubmitted(),
           ),
       optionsViewBuilder: (context, onSelected, options) =>
-          _FilterOptionsView<T>(onSelected: onSelected, options: options),
-    );
-  }
-}
-
-/// The suggestion list floated under the field.
-class _FilterOptionsView<T> extends StatelessWidget {
-  const _FilterOptionsView({required this.onSelected, required this.options});
-
-  final void Function(_FilterEntry<T>) onSelected;
-  final Iterable<_FilterEntry<T>> options;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      key: searchableFilterOptionsKey,
-      alignment: AlignmentDirectional.topStart,
-      child: Material(
-        elevation: 4,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 240),
-          child: _FilterOptionsList<T>(
+          AutocompleteOptionsList<_FilterEntry<T>>(
+            key: searchableFilterOptionsKey,
+            options: options,
             onSelected: onSelected,
-            options: options.toList(),
-            // RawAutocomplete tracks which row the arrow keys have moved to,
-            // and Enter commits that row, so it has to be visible.
-            highlightedIndex: AutocompleteHighlightedOption.of(context),
+            labelFor: (entry) => entry.label,
+            maxHeight: 240,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The rows themselves, following Material's own autocomplete list: the
-/// highlighted row is tinted and kept scrolled into view as the arrow keys
-/// move it.
-class _FilterOptionsList<T> extends StatefulWidget {
-  const _FilterOptionsList({
-    required this.onSelected,
-    required this.options,
-    required this.highlightedIndex,
-  });
-
-  final void Function(_FilterEntry<T>) onSelected;
-  final List<_FilterEntry<T>> options;
-  final int highlightedIndex;
-
-  @override
-  State<_FilterOptionsList<T>> createState() => _FilterOptionsListState<T>();
-}
-
-class _FilterOptionsListState<T> extends State<_FilterOptionsList<T>> {
-  final _scrollController = ScrollController();
-
-  @override
-  void didUpdateWidget(covariant _FilterOptionsList<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.highlightedIndex == oldWidget.highlightedIndex) return;
-    if (widget.highlightedIndex >= widget.options.length) return;
-
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final highlightedContext = GlobalObjectKey(
-        widget.options[widget.highlightedIndex],
-      ).currentContext;
-      if (highlightedContext == null) {
-        // The row is not built yet, so jump to the end it moved towards.
-        _scrollController.jumpTo(
-          widget.highlightedIndex == 0
-              ? 0.0
-              : _scrollController.position.maxScrollExtent,
-        );
-      } else {
-        Scrollable.ensureVisible(highlightedContext, alignment: 0.5);
-      }
-    }, debugLabel: 'SearchableFilterDropdown.ensureVisible');
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: EdgeInsets.zero,
-      shrinkWrap: true,
-      controller: _scrollController,
-      itemCount: widget.options.length,
-      itemBuilder: (context, index) {
-        final entry = widget.options[index];
-        final highlighted = index == widget.highlightedIndex;
-        return Semantics(
-          button: true,
-          selected: highlighted,
-          child: InkWell(
-            key: GlobalObjectKey(entry),
-            onTap: () => widget.onSelected(entry),
-            child: Container(
-              color: highlighted ? Theme.of(context).focusColor : null,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Text(entry.label),
-            ),
-          ),
-        );
-      },
     );
   }
 }
