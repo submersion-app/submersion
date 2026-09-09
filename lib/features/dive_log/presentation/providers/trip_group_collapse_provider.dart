@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -23,6 +26,8 @@ String collapsedTripIdsPrefsKeyFor(String? diverId) => diverId == null
 
 /// Trips folded shut in the dive list, persisted across restarts.
 class CollapsedTripsNotifier extends StateNotifier<Set<String>> {
+  static final _log = LoggerService.forClass(CollapsedTripsNotifier);
+
   CollapsedTripsNotifier(this._prefs, this._diverId)
     : super(
         _prefs.getStringList(collapsedTripIdsPrefsKeyFor(_diverId))?.toSet() ??
@@ -49,9 +54,26 @@ class CollapsedTripsNotifier extends StateNotifier<Set<String>> {
 
   void _write(Set<String> next) {
     state = next;
-    // Fire and forget: the in-memory set is the source of truth for this
-    // session, and a failed write costs a folded trip, never data.
-    _prefs.setStringList(_key, next.toList());
+    // Not awaited: every caller is a tap handler, and folding a trip must not
+    // wait on disk. The in-memory set is the source of truth for the session,
+    // so a failed write costs one forgotten fold, never data.
+    //
+    // The failure is swallowed explicitly rather than left on an unhandled
+    // future, which would surface as an unhandled async error far away from
+    // here with nothing naming the cause.
+    unawaited(
+      _prefs.setStringList(_key, next.toList()).then<void>((_) {}).catchError((
+        Object error,
+        StackTrace stackTrace,
+      ) {
+        _log.warning(
+          'Could not persist collapsed trips; they will reappear expanded '
+          'on the next launch',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }),
+    );
   }
 }
 

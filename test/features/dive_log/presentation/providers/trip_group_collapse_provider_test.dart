@@ -105,6 +105,29 @@ void main() {
       );
     });
 
+    test(
+      'a failing write does not escape as an unhandled async error',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final failing = _ThrowingPrefs(await SharedPreferences.getInstance());
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(failing),
+            currentDiverIdProvider.overrideWith((ref) => _FixedDiverId(null)),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        container.read(collapsedTripIdsProvider.notifier).toggle('t1');
+
+        // The in-memory set still moved; only the disk write failed.
+        expect(container.read(collapsedTripIdsProvider), {'t1'});
+        // Give the rejected future a turn to surface if it were unhandled.
+        await Future<void>.delayed(Duration.zero);
+        expect(failing.writeAttempts, 1);
+      },
+    );
+
     test('expandAll clears everything', () async {
       final container = await makeContainer();
       final notifier = container.read(collapsedTripIdsProvider.notifier);
@@ -121,6 +144,27 @@ void main() {
 class _FixedDiverId extends StateNotifier<String?>
     implements CurrentDiverIdNotifier {
   _FixedDiverId(super.state);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// SharedPreferences whose writes always reject, standing in for a full disk
+/// or a revoked container.
+class _ThrowingPrefs implements SharedPreferences {
+  _ThrowingPrefs(this._inner);
+
+  final SharedPreferences _inner;
+  int writeAttempts = 0;
+
+  @override
+  Future<bool> setStringList(String key, List<String> value) {
+    writeAttempts++;
+    return Future<bool>.error(Exception('disk full'));
+  }
+
+  @override
+  List<String>? getStringList(String key) => _inner.getStringList(key);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
