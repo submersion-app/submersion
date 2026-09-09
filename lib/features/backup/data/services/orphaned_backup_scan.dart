@@ -104,10 +104,21 @@ class OrphanedBackupScan {
 
   /// Deletes the reclaimable entries in [candidates], returning bytes freed.
   ///
-  /// Re-checks [UnrecognizedBackup.isReclaimable] rather than trusting the
-  /// caller. This is the last gate before an irreversible delete of what may
-  /// be another device's only backup, and a UI bug upstream must not be able
-  /// to reach past it.
+  /// Decides for itself which entries it may delete, from the filename and the
+  /// live device id, rather than reading [UnrecognizedBackup.isReclaimable].
+  /// That field was computed when the directory was listed, so re-reading it
+  /// would only re-consult this class's own earlier answer: it cannot catch a
+  /// caller that built an entry some other way, and it cannot notice the device
+  /// identity changing between the listing and the tap. This is the last gate
+  /// before an irreversible delete of what may be another device's only backup,
+  /// so it derives the answer again.
+  ///
+  /// Deletes are also confined to the backups directory. Nothing in the app
+  /// produces an entry from anywhere else, which is exactly why the constraint
+  /// belongs here rather than in the caller: it makes the guarantee a property
+  /// of this method instead of a property of where its arguments came from. The
+  /// comparison normalizes both paths but does not resolve symlinks, so it
+  /// constrains honest callers rather than defeating a hostile one.
   ///
   /// The freed total is measured immediately before each delete rather than
   /// summed from [UnrecognizedBackup.sizeBytes]. That field is whatever the
@@ -115,9 +126,18 @@ class OrphanedBackupScan {
   /// reads it; a cloud client rewriting a file in that window would turn the
   /// reported figure into a number the app made up rather than one it measured.
   Future<int> reclaim(Iterable<UnrecognizedBackup> candidates) async {
+    // No directory to be inside means nothing here can be shown to be ours.
+    final directoryPath = await _backupsDirectory();
+    if (directoryPath == null) return 0;
+    final directory = p.canonicalize(directoryPath);
+    final deviceId = await _thisDeviceId();
+
     var bytes = 0;
     for (final candidate in candidates) {
-      if (!candidate.isReclaimable) continue;
+      if (!_mayDelete(candidate.path, directory, deviceId)) {
+        _log.warning('Refused to reclaim ${candidate.filename}');
+        continue;
+      }
       try {
         final file = File(candidate.path);
         if (!await file.exists()) continue;
@@ -131,6 +151,15 @@ class OrphanedBackupScan {
     }
     if (bytes > 0) _log.info('Reclaimed $bytes bytes of forgotten backups');
     return bytes;
+  }
+
+  /// Whether [path] is a backup in [directory] that this device wrote.
+  static bool _mayDelete(String path, String directory, String deviceId) {
+    final name = p.basename(path);
+    if (!_isBackupFile(name)) return false;
+    if (p.canonicalize(p.dirname(path)) != directory) return false;
+    return classifyBackupFile(filename: name, thisDeviceId: deviceId) ==
+        BackupOwnership.thisDevice;
   }
 
   /// A backup this app wrote: our prefix, and a plaintext or encrypted

@@ -154,6 +154,66 @@ void main() {
     expect(await scan.reclaim(found), 4096);
   });
 
+  group('reclaim re-derives its own permission to delete', () {
+    // isReclaimable reads a field computed when the directory was listed.
+    // Re-reading it is not a re-check, so these three cases hand reclaim an
+    // entry that claims to be reclaimable and confirm it decides for itself.
+    UnrecognizedBackup claiming(String path) => UnrecognizedBackup(
+      path: path,
+      sizeBytes: 100,
+      modified: DateTime(2026, 9, 1),
+      ownership: BackupOwnership.thisDevice,
+    );
+
+    test('a file outside the backups directory is refused', () async {
+      final elsewhere = await Directory.systemTemp.createTemp('not_backups');
+      addTearDown(() async {
+        if (elsewhere.existsSync()) await elsewhere.delete(recursive: true);
+      });
+      final outsider = File(
+        p.join(
+          elsewhere.path,
+          buildBackupFilename(
+            timestamp: '2026-09-01_1200',
+            deviceId: thisDevice,
+          ),
+        ),
+      );
+      await outsider.writeAsBytes(List<int>.filled(100, 0));
+
+      expect(await build().reclaim([claiming(outsider.path)]), 0);
+      expect(outsider.existsSync(), isTrue);
+    });
+
+    test('a name tagged for another device is refused', () async {
+      final path = await writeBackup(
+        deviceId: otherDevice,
+        timestamp: '2026-09-01_1200',
+      );
+
+      expect(await build().reclaim([claiming(path)]), 0);
+      expect(File(path).existsSync(), isTrue);
+    });
+
+    test(
+      'nothing is deleted when the directory cannot be enumerated',
+      () async {
+        final path = await writeBackup(
+          deviceId: thisDevice,
+          timestamp: '2026-09-01_1200',
+        );
+        final scan = OrphanedBackupScan(
+          backupsDirectory: () async => null,
+          knownPaths: () async => const {},
+          thisDeviceId: () async => thisDevice,
+        );
+
+        expect(await scan.reclaim([claiming(path)]), 0);
+        expect(File(path).existsSync(), isTrue);
+      },
+    );
+  });
+
   test('a directory that cannot be enumerated yields nothing', () async {
     final scan = OrphanedBackupScan(
       backupsDirectory: () async => null,
