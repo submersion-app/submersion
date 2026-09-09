@@ -36130,6 +36130,72 @@ abstract class AppLocalizations {
   /// **'This certifies that'**
   String get certifications_certificate_thisCertifies;
 
+  /// No description provided for @diveComputer_clockSync_appSettingOff.
+  ///
+  /// In en, this message translates to:
+  /// **'App setting: off'**
+  String get diveComputer_clockSync_appSettingOff;
+
+  /// No description provided for @diveComputer_clockSync_appSettingOn.
+  ///
+  /// In en, this message translates to:
+  /// **'App setting: on'**
+  String get diveComputer_clockSync_appSettingOn;
+
+  /// No description provided for @diveComputer_clockSync_cardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock sync'**
+  String get diveComputer_clockSync_cardTitle;
+
+  /// No description provided for @diveComputer_clockSync_checkAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get diveComputer_clockSync_checkAgain;
+
+  /// No description provided for @diveComputer_clockSync_globalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets the clock to this device\'s time after each download. Applies to this device only.'**
+  String get diveComputer_clockSync_globalSubtitle;
+
+  /// No description provided for @diveComputer_clockSync_globalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync dive computer clocks'**
+  String get diveComputer_clockSync_globalTitle;
+
+  /// No description provided for @diveComputer_clockSync_overrideAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get diveComputer_clockSync_overrideAlways;
+
+  /// No description provided for @diveComputer_clockSync_overrideInherit.
+  ///
+  /// In en, this message translates to:
+  /// **'App setting'**
+  String get diveComputer_clockSync_overrideInherit;
+
+  /// No description provided for @diveComputer_clockSync_overrideNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get diveComputer_clockSync_overrideNever;
+
+  /// No description provided for @diveComputer_clockSync_supported.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported by this model'**
+  String get diveComputer_clockSync_supported;
+
+  /// No description provided for @diveComputer_clockSync_unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This model does not support clock sync'**
+  String get diveComputer_clockSync_unsupported;
+
   /// No description provided for @diveComputer_connectionType_ble.
   ///
   /// In en, this message translates to:
@@ -36501,6 +36567,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download cancelled'**
   String get diveComputer_downloadStep_cancelled;
+
+  /// No description provided for @diveComputer_downloadStep_clockSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock sync failed'**
+  String get diveComputer_downloadStep_clockSyncFailed;
+
+  /// No description provided for @diveComputer_downloadStep_clockSyncUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock sync is not supported by this model'**
+  String get diveComputer_downloadStep_clockSyncUnsupported;
+
+  /// No description provided for @diveComputer_downloadStep_clockSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock synced'**
+  String get diveComputer_downloadStep_clockSynced;
 
   /// No description provided for @diveComputer_downloadStep_depthMeters.
   ///
@@ -60481,7 +60565,7 @@ abstract class AppLocalizations {
   /// No description provided for @suuntoCloud_signIn_description.
   ///
   /// In en, this message translates to:
-  /// **'Sign in with your app.suunto.com account to import your dives directly. Your password is never stored — only the resulting session is cached.'**
+  /// **'Sign in with your app.suunto.com account to import your dives directly. Your password is never stored; only the resulting session is cached.'**
   String get suuntoCloud_signIn_description;
 
   /// No description provided for @suuntoCloud_signIn_emailLabel.
@@ -60589,7 +60673,7 @@ abstract class AppLocalizations {
   /// No description provided for @garminConnect_signIn_description.
   ///
   /// In en, this message translates to:
-  /// **'Sign in with your Garmin Connect account to import your dives directly. Your password is never stored — only the resulting session is cached.'**
+  /// **'Sign in with your Garmin Connect account to import your dives directly. Your password is never stored; only the resulting session is cached.'**
   String get garminConnect_signIn_description;
 
   /// No description provided for @garminConnect_signIn_emailLabel.
@@ -61175,6 +61259,96 @@ abstract class AppLocalizations {
     int siteCount,
     String size,
   );
+
+  /// No description provided for @backup_unrecognized_appBar_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Unrecognized Backups'**
+  String get backup_unrecognized_appBar_title;
+
+  /// No description provided for @backup_unrecognized_explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'These files are in your backups folder but not in this device\'s backup history. Only a file this device wrote can be deleted here: anything else may be another device\'s only copy.'**
+  String get backup_unrecognized_explanation;
+
+  /// No description provided for @backup_unrecognized_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No unrecognized backup files.'**
+  String get backup_unrecognized_empty;
+
+  /// No description provided for @backup_unrecognized_loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the backups folder.'**
+  String get backup_unrecognized_loadFailed;
+
+  /// No description provided for @backup_unrecognized_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot list the backup folder you chose, so unrecognized files cannot be found.'**
+  String get backup_unrecognized_unavailable;
+
+  /// No description provided for @backup_unrecognized_ownership_otherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device'**
+  String get backup_unrecognized_ownership_otherDevice;
+
+  /// No description provided for @backup_unrecognized_ownership_unattributed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown device'**
+  String get backup_unrecognized_ownership_unattributed;
+
+  /// No description provided for @backup_unrecognized_fileDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} • {date}'**
+  String backup_unrecognized_fileDetail(String size, String date);
+
+  /// No description provided for @backup_unrecognized_deleteSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete 1 file ({size})} other{Delete {count} files ({size})}}'**
+  String backup_unrecognized_deleteSelected(int count, String size);
+
+  /// No description provided for @backup_unrecognized_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete these backup files?'**
+  String get backup_unrecognized_confirm_title;
+
+  /// No description provided for @backup_unrecognized_confirm_message.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 backup file will be permanently deleted. This cannot be undone.} other{{count} backup files will be permanently deleted. This cannot be undone.}}'**
+  String backup_unrecognized_confirm_message(int count);
+
+  /// No description provided for @backup_unrecognized_deleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the selected files.'**
+  String get backup_unrecognized_deleteFailed;
+
+  /// No description provided for @backup_unrecognized_freed.
+  ///
+  /// In en, this message translates to:
+  /// **'Freed {size}'**
+  String backup_unrecognized_freed(String size);
+
+  /// No description provided for @settings_storageUsage_unrecognized_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file not in your backup history} other{{count} files not in your backup history}}'**
+  String settings_storageUsage_unrecognized_title(int count);
+
+  /// No description provided for @settings_storageUsage_unrecognized_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get settings_storageUsage_unrecognized_action;
 }
 
 class _AppLocalizationsDelegate

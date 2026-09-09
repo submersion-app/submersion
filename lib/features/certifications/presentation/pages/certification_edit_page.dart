@@ -17,6 +17,7 @@ import 'package:submersion/features/certifications/domain/certification_title.da
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
@@ -901,22 +902,11 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                 : context.l10n.certifications_edit_appBar_add,
           ),
           actions: [
-            if (_isSaving)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              )
-            else
-              TextButton(
-                onPressed: _saveCertification,
-                child: Text(context.l10n.certifications_edit_button_save),
-              ),
+            AppBarTextAction(
+              label: context.l10n.certifications_edit_button_save,
+              onPressed: _isSaving ? null : _saveCertification,
+              busy: _isSaving,
+            ),
           ],
         ),
         body: body,

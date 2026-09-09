@@ -10,6 +10,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 /// Picks photos to tag with one species, from the dives where the diver
 /// logged it. Pops with the [TagPhotosResult] after tagging, or null.
@@ -66,10 +67,10 @@ class _SpeciesTagPickerPageState extends ConsumerState<SpeciesTagPickerPage> {
             title: Text(l10n.marineLife_tagPicker_title),
             actions: [
               if (allIds.isNotEmpty)
-                TextButton(
+                AppBarTextAction(
                   key: const ValueKey('tag_picker_select_all'),
+                  label: l10n.marineLife_tagPicker_selectAll,
                   onPressed: () => _selection.selectAll(allIds),
-                  child: Text(l10n.marineLife_tagPicker_selectAll),
                 ),
             ],
           ),

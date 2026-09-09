@@ -11,6 +11,7 @@ class MockDiveComputerHostApi implements DiveComputerHostApi {
   Future<void> startDownload(
     DiscoveredDevice device,
     String? fingerprint,
+    bool syncClock,
   ) async {
     lastDownloadDevice = device;
     lastDownloadFingerprint = fingerprint;

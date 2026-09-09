@@ -29,3 +29,22 @@ String formatFixedForDisplay(double value, int fractionDigits) =>
 /// has to run on ASCII text and hand the result here afterwards; run the other
 /// way round, the '.' it matches under de is the grouping separator.
 String localiseDecimalText(String text) => localiseNumberSeparators(text);
+
+/// [value] rendered for display in the active locale, keeping whatever
+/// precision the value itself carries: 200.0 renders "200,0" under de, not
+/// "200".
+///
+/// The display twin of `formatDecimalForInput`. The two differ only in that
+/// trailing ".0", and the difference is load bearing: the input form strips it
+/// because a field seeded "1250.0" reads as a half-finished edit, while a
+/// recorded reading is not an edit. A diver who logged 200.0 bar logged one
+/// decimal of precision, so dropping it changes what the value claims.
+///
+/// Use this where the value's own precision is the message and there is no
+/// unit-driven number of decimals to pin; use [formatFixedForDisplay] where
+/// there is. Unlike that one, this renders a non-finite value as empty text
+/// rather than "NaN", matching its input twin.
+String formatDecimalForDisplay(double value) {
+  if (!value.isFinite) return '';
+  return localiseDoubleText(value, stripTrailingZero: false);
+}

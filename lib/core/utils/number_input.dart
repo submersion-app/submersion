@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 import 'package:submersion/core/utils/locale_number_symbols.dart';
 
 /// Locale-aware conversion between a number and the text a diver types into a
@@ -10,6 +8,10 @@ import 'package:submersion/core/utils/locale_number_symbols.dart';
 /// everything a diver in a comma-decimal locale types ("12,50" -> null), and
 /// because the repositories write `Value(null)` rather than `Value.absent()`,
 /// that null erases the stored value instead of leaving it alone (#1091).
+///
+/// The same separator problem applies to numbers a diver only reads, so the
+/// display-side twin [formatDecimalForDisplay] lives here too, sharing the
+/// locale cache and separator swap rather than growing a second copy of them.
 ///
 /// The seeded text and the parser must share one convention. Seeding a field
 /// with `double.toString()` and reading it back through a locale-aware parser
@@ -101,18 +103,7 @@ int? parseUserInt(String text) {
 /// "12.050000000000001"). Callers wanting fewer decimals round before calling.
 String formatDecimalForInput(double value) {
   if (!value.isFinite) return '';
-  var text = value.toString();
-  // Very large or very small magnitudes stringify in exponent notation, which
-  // no diver can meaningfully edit and no parser here reads back.
-  if (text.contains('e') || text.contains('E')) {
-    final format = NumberFormat.decimalPattern()
-      ..turnOffGrouping()
-      ..maximumFractionDigits = 15;
-    return format.format(value);
-  }
-  // "1250.0" reads as a half-finished edit; the field wants "1250".
-  if (text.endsWith('.0')) text = text.substring(0, text.length - 2);
-  return localiseNumberSeparators(text);
+  return localiseDoubleText(value, stripTrailingZero: true);
 }
 
 /// [value] rounded to [fractionDigits] and rendered for seeding, with trailing

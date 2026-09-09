@@ -52,3 +52,27 @@ String localiseNumberSeparators(String text) {
       .replaceFirst('.', symbols.DECIMAL_SEP)
       .replaceFirst('-', symbols.MINUS_SIGN);
 }
+
+/// [value] as locale-aware text at whatever precision the value itself carries.
+///
+/// The shared body of `formatDecimalForInput` and `formatDecimalForDisplay`,
+/// which differ only in [stripTrailingZero]. That strip happens here rather
+/// than in either caller because it matches on the ASCII '.' that
+/// [double.toString] emits; once the text has been localised it carries the
+/// locale's separator instead, and under de the '.' it would then match is the
+/// grouping separator.
+String localiseDoubleText(double value, {required bool stripTrailingZero}) {
+  var text = value.toString();
+  // Very large or very small magnitudes stringify in exponent notation, which
+  // no diver can meaningfully read or edit and no parser here reads back.
+  if (text.contains('e') || text.contains('E')) {
+    final format = NumberFormat.decimalPattern()
+      ..turnOffGrouping()
+      ..maximumFractionDigits = 15;
+    return format.format(value);
+  }
+  if (stripTrailingZero && text.endsWith('.0')) {
+    text = text.substring(0, text.length - 2);
+  }
+  return localiseNumberSeparators(text);
+}

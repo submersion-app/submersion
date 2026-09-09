@@ -13,6 +13,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_picker.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
 
@@ -349,9 +350,9 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           Semantics(
             button: true,
             label: context.l10n.courses_action_saveSemantic,
-            child: TextButton(
+            child: AppBarTextAction(
+              label: context.l10n.common_action_save,
               onPressed: _isLoading ? null : () => _save(existingCourse),
-              child: Text(context.l10n.common_action_save),
             ),
           ),
         ],

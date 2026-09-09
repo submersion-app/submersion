@@ -87,6 +87,7 @@ void main() {
   Future<WidgetRef> openSheet(
     WidgetTester tester, {
     DiveFilterState initial = const DiveFilterState(),
+    List<DiveComputer>? registeredComputers,
   }) async {
     final overrides = await getBaseOverrides();
     late WidgetRef capturedRef;
@@ -98,7 +99,9 @@ void main() {
           filterProvider.overrideWith((ref) => initial),
           diveTypesProvider.overrideWith((ref) async => diveTypes),
           sitesProvider.overrideWith((ref) async => sites),
-          allDiveComputersProvider.overrideWith((ref) async => computers),
+          allDiveComputersProvider.overrideWith(
+            (ref) async => registeredComputers ?? computers,
+          ),
         ].cast(),
         child: MaterialApp(
           // Pinned: this suite drives the sheet by English label.
@@ -254,6 +257,28 @@ void main() {
 
     await tapText(tester, 'Apply Filters');
     expect(ref.read(filterProvider).computerId, 'c2');
+  });
+
+  // The saved filter is reconciled against the registered computers so a
+  // computer deleted since the filter was set falls back to All computers.
+  // Reconciling inside the section's builder missed the case below, because
+  // the empty-list branch returns before reaching it: the diver kept
+  // filtering on a computer that no longer exists and saw an empty dive log.
+  testWidgets('deleted computer resolves to All computers when none remain', (
+    tester,
+  ) async {
+    final ref = await openSheet(
+      tester,
+      initial: const DiveFilterState(computerId: 'GHOST'),
+      registeredComputers: const [],
+    );
+
+    // Confirms the section took its empty-list branch, the one that returns
+    // before any reconciliation the builder could do.
+    await scrollTo(tester, find.text('No dive computers registered'));
+
+    await tapText(tester, 'Apply Filters');
+    expect(ref.read(filterProvider).computerId, isNull);
   });
 
   testWidgets('depth, buddy and duration text fields write values', (

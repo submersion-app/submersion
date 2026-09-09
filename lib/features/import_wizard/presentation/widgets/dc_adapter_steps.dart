@@ -7,6 +7,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/domain/services/known_computer_reacquisition.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_step_widget.dart';
@@ -568,6 +569,19 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
           serialNumber: state.serialNumber,
           firmwareVersion: state.firmwareVersion,
         );
+        if (!mounted) return;
+
+        // Remember what the model answered about clock sync so the detail
+        // page can say so (issue #1216). ensureComputer resolved the
+        // computer in both the first-download and known-computer flows, so
+        // this one site covers every download.
+        final computer = widget.adapter.computer;
+        final clockSyncStatus = state.clockSyncStatus;
+        if (computer != null && clockSyncStatus != null) {
+          await ref
+              .read(clockSyncSettingsNotifierProvider.notifier)
+              .recordSupport(computer.id, clockSyncStatus);
+        }
       }
 
       // Only a download that actually produced dives has a Review step to

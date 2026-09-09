@@ -14,6 +14,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 class TripEditPage extends ConsumerStatefulWidget {
@@ -626,26 +627,15 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                 : context.l10n.trips_edit_appBar_add,
           ),
           actions: [
-            if (_isSaving)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              )
-            else
-              Semantics(
-                button: true,
-                label: context.l10n.trips_edit_semanticLabel_save,
-                child: TextButton(
-                  onPressed: _saveTrip,
-                  child: Text(context.l10n.trips_edit_button_save),
-                ),
+            Semantics(
+              button: true,
+              label: context.l10n.trips_edit_semanticLabel_save,
+              child: AppBarTextAction(
+                label: context.l10n.trips_edit_button_save,
+                onPressed: _isSaving ? null : _saveTrip,
+                busy: _isSaving,
               ),
+            ),
           ],
         ),
         body: body,

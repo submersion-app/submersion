@@ -2435,8 +2435,10 @@ static void libdivecomputer_plugin_dive_computer_host_api_start_download_cb(FlBa
   LibdivecomputerPluginDiscoveredDevice* device = LIBDIVECOMPUTER_PLUGIN_DISCOVERED_DEVICE(fl_value_get_custom_value_object(value0));
   FlValue* value1 = fl_value_get_list_value(message_, 1);
   const gchar* fingerprint = fl_value_get_string(value1);
+  FlValue* value2 = fl_value_get_list_value(message_, 2);
+  gboolean sync_clock = fl_value_get_bool(value2);
   g_autoptr(LibdivecomputerPluginDiveComputerHostApiResponseHandle) handle = libdivecomputer_plugin_dive_computer_host_api_response_handle_new(channel, response_handle);
-  self->vtable->start_download(device, fingerprint, handle, self->user_data);
+  self->vtable->start_download(device, fingerprint, sync_clock, handle, self->user_data);
 }
 
 static void libdivecomputer_plugin_dive_computer_host_api_cancel_download_cb(FlBasicMessageChannel* channel, FlValue* message_, FlBasicMessageChannelResponseHandle* response_handle, gpointer user_data) {
@@ -3045,11 +3047,12 @@ static void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complet
   g_task_return_pointer(task, result, g_object_unref);
 }
 
-void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* self, int64_t total_dives, const gchar* serial_number, const gchar* firmware_version, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data) {
+void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* self, int64_t total_dives, const gchar* serial_number, const gchar* firmware_version, const gchar* clock_sync_status, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data) {
   g_autoptr(FlValue) args = fl_value_new_list();
   fl_value_append_take(args, fl_value_new_int(total_dives));
   fl_value_append_take(args, serial_number != nullptr ? fl_value_new_string(serial_number) : fl_value_new_null());
   fl_value_append_take(args, firmware_version != nullptr ? fl_value_new_string(firmware_version) : fl_value_new_null());
+  fl_value_append_take(args, clock_sync_status != nullptr ? fl_value_new_string(clock_sync_status) : fl_value_new_null());
   g_autofree gchar* channel_name = g_strdup_printf("dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete%s", self->suffix);
   g_autoptr(LibdivecomputerPluginMessageCodec) codec = libdivecomputer_plugin_message_codec_new();
   FlBasicMessageChannel* channel = fl_basic_message_channel_new(self->messenger, channel_name, FL_MESSAGE_CODEC(codec));

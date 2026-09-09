@@ -14015,6 +14015,17 @@
     }
   },
   "certifications_certificate_thisCertifies": "This certifies that",
+  "diveComputer_clockSync_appSettingOff": "App setting: off",
+  "diveComputer_clockSync_appSettingOn": "App setting: on",
+  "diveComputer_clockSync_cardTitle": "Clock sync",
+  "diveComputer_clockSync_checkAgain": "Check again",
+  "diveComputer_clockSync_globalSubtitle": "Sets the clock to this device's time after each download. Applies to this device only.",
+  "diveComputer_clockSync_globalTitle": "Sync dive computer clocks",
+  "diveComputer_clockSync_overrideAlways": "Always",
+  "diveComputer_clockSync_overrideInherit": "App setting",
+  "diveComputer_clockSync_overrideNever": "Never",
+  "diveComputer_clockSync_supported": "Supported by this model",
+  "diveComputer_clockSync_unsupported": "This model does not support clock sync",
   "diveComputer_connectionType_ble": "Bluetooth LE",
   "diveComputer_connectionType_bluetooth": "Bluetooth",
   "diveComputer_connectionType_infrared": "Infrared",
@@ -14113,6 +14124,9 @@
   },
   "diveComputer_downloadStep_cancel": "Cancel",
   "diveComputer_downloadStep_cancelled": "Download cancelled",
+  "diveComputer_downloadStep_clockSyncFailed": "Clock sync failed",
+  "diveComputer_downloadStep_clockSyncUnsupported": "Clock sync is not supported by this model",
+  "diveComputer_downloadStep_clockSynced": "Clock synced",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
   "@diveComputer_downloadStep_depthMeters": {
     "placeholders": {
@@ -22276,7 +22290,7 @@
     "description": "Collapsed Statistics group hint when the dive is not excluded"
   },
   "suuntoCloud_signIn_title": "Sign in to Suunto",
-  "suuntoCloud_signIn_description": "Sign in with your app.suunto.com account to import your dives directly. Your password is never stored — only the resulting session is cached.",
+  "suuntoCloud_signIn_description": "Sign in with your app.suunto.com account to import your dives directly. Your password is never stored; only the resulting session is cached.",
   "suuntoCloud_signIn_emailLabel": "Email",
   "suuntoCloud_signIn_emailRequired": "Email is required",
   "suuntoCloud_signIn_passwordLabel": "Password",
@@ -22340,7 +22354,7 @@
     }
   },
   "garminConnect_signIn_title": "Sign in to Garmin Connect",
-  "garminConnect_signIn_description": "Sign in with your Garmin Connect account to import your dives directly. Your password is never stored — only the resulting session is cached.",
+  "garminConnect_signIn_description": "Sign in with your Garmin Connect account to import your dives directly. Your password is never stored; only the resulting session is cached.",
   "garminConnect_signIn_emailLabel": "Email",
   "garminConnect_signIn_emailRequired": "Email is required",
   "garminConnect_signIn_passwordLabel": "Password",
@@ -22575,5 +22589,25 @@
         "type": "String"
       }
     }
-  }
+  },
+  "backup_unrecognized_appBar_title": "Unrecognized Backups",
+  "backup_unrecognized_explanation": "These files are in your backups folder but not in this device's backup history. Only a file this device wrote can be deleted here: anything else may be another device's only copy.",
+  "backup_unrecognized_empty": "No unrecognized backup files.",
+  "backup_unrecognized_loadFailed": "Could not read the backups folder.",
+  "backup_unrecognized_unavailable": "This device cannot list the backup folder you chose, so unrecognized files cannot be found.",
+  "backup_unrecognized_ownership_otherDevice": "Another device",
+  "backup_unrecognized_ownership_unattributed": "Unknown device",
+  "backup_unrecognized_fileDetail": "{size} \u2022 {date}",
+  "@backup_unrecognized_fileDetail": { "placeholders": { "size": { "type": "String" }, "date": { "type": "String" } } },
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{Delete 1 file ({size})} other{Delete {count} files ({size})}}",
+  "@backup_unrecognized_deleteSelected": { "placeholders": { "count": { "type": "int" }, "size": { "type": "String" } } },
+  "backup_unrecognized_confirm_title": "Delete these backup files?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{1 backup file will be permanently deleted. This cannot be undone.} other{{count} backup files will be permanently deleted. This cannot be undone.}}",
+  "@backup_unrecognized_confirm_message": { "placeholders": { "count": { "type": "int" } } },
+  "backup_unrecognized_deleteFailed": "Could not delete the selected files.",
+  "backup_unrecognized_freed": "Freed {size}",
+  "@backup_unrecognized_freed": { "placeholders": { "size": { "type": "String" } } },
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 file not in your backup history} other{{count} files not in your backup history}}",
+  "@settings_storageUsage_unrecognized_title": { "placeholders": { "count": { "type": "int" } } },
+  "settings_storageUsage_unrecognized_action": "Review"
 }

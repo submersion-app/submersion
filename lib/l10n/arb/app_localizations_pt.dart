@@ -21921,6 +21921,43 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'Isto certifica que';
 
   @override
+  String get diveComputer_clockSync_appSettingOff =>
+      'Definição da app: desligada';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'Definição da app: ligada';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Sincronização do relógio';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Verificar novamente';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Acerta o relógio pela hora deste dispositivo após cada download. Aplica-se apenas a este dispositivo.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Sincronizar relógios dos computadores de mergulho';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Sempre';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'Definição da app';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Nunca';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Suportado por este modelo';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Este modelo não suporta a sincronização do relógio';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -22130,6 +22167,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download cancelado';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Falha na sincronização do relógio';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'A sincronização do relógio não é suportada por este modelo';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Relógio sincronizado';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -37316,4 +37364,88 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automático)';
   }
+
+  @override
+  String get backup_unrecognized_appBar_title =>
+      'Cópias de segurança não reconhecidas';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Estes ficheiros estão na sua pasta de cópias de segurança mas não no histórico deste dispositivo. Só pode ser excluído aqui um ficheiro escrito por este dispositivo: qualquer outro pode ser a única cópia de outro dispositivo.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Não há ficheiros de cópia de segurança não reconhecidos.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'Não foi possível ler a pasta de cópias de segurança.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Este dispositivo não consegue listar a pasta de cópias de segurança que escolheu, por isso não é possível encontrar ficheiros não reconhecidos.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Outro dispositivo';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed =>
+      'Dispositivo desconhecido';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir $count ficheiros ($size)',
+      one: 'Excluir 1 ficheiro ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Excluir estes ficheiros de cópia de segurança?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ficheiros de cópia de segurança serão excluídos permanentemente. Não é possível anular.',
+      one:
+          '1 ficheiro de cópia de segurança será excluído permanentemente. Não é possível anular.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Não foi possível excluir os ficheiros selecionados.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size libertados';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ficheiros que não estão no seu histórico de cópias de segurança',
+      one: '1 ficheiro que não está no seu histórico de cópias de segurança',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Rever';
 }
