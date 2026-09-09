@@ -146,6 +146,11 @@ Future<Widget> _wrap(_FakeFindingsRepository repo) async {
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     child: const MaterialApp(
+      // Every assertion in this file is an English literal, and an unpinned
+      // MaterialApp resolves against the HOST machine's locale list (not a
+      // fixed en_US), so the app's own translations would win on a
+      // non-English dev machine and the finders would match nothing.
+      locale: Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: DataQualityInboxPage(),
@@ -232,6 +237,9 @@ Widget _scope(
     diveRepository: diveRepository,
   ).cast(),
   child: localizedMaterialApp(
+    // See the note in _wrap: pinned so the English finders below survive a
+    // non-English host locale.
+    locale: const Locale('en'),
     home: DataQualityInboxPage(filterDiveId: filterDiveId),
   ),
 );
