@@ -130,6 +130,10 @@ Future<void> pumpCombineDialog(
           ),
       ],
       child: MaterialApp(
+        // The tests assert English literals; without a pinned locale the app
+        // resolves against the host machine's locale list and a translated
+        // UI makes every find.text miss.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
