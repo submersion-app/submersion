@@ -2400,86 +2400,95 @@ const String kSeedBuiltInPreDiveTemplateItemsSql = '''
   INSERT OR IGNORE INTO pre_dive_checklist_template_items
     (id, template_id, section, title, notes, sort_order, item_type,
      value_label, value_unit, value_min, value_max, is_required,
-     created_at, updated_at)
+     source_item_id, created_at, updated_at)
   VALUES
     ('builtin-predive-bwraf-0', 'builtin-predive-bwraf', NULL,
      'BCD / Buoyancy: inflate, deflate, dump valves', '', 0, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-bwraf-1', 'builtin-predive-bwraf', NULL,
      'Weights: in place, releases clear', '', 1, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-bwraf-2', 'builtin-predive-bwraf', NULL,
      'Releases: locate and check all buckles', '', 2, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-bwraf-3', 'builtin-predive-bwraf', NULL,
      'Air: valve open, breathe both regs, check gauge', '', 3, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-bwraf-4', 'builtin-predive-bwraf', NULL,
      'Final OK: mask, fins, computer set, buddy signal', '', 4, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-0', 'builtin-predive-gue-edge', NULL,
      'Goal: agree the objective and what turns the dive', '', 0, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-1', 'builtin-predive-gue-edge', NULL,
      'Unified team: roles, order, communication, lost-buddy plan', '',
-     1, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+     1, 'check', NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-2', 'builtin-predive-gue-edge', NULL,
      'Equipment: match and check the team head to toe', '', 2, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-3', 'builtin-predive-gue-edge', NULL,
      'Exposure: suit, thermal protection, planned time in the water', '',
-     3, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+     3, 'check', NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-4', 'builtin-predive-gue-edge', NULL,
      'Decompression: agree the ascent schedule and deco gases', '',
-     4, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+     4, 'check', NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-5', 'builtin-predive-gue-edge', NULL,
      'Gas: analyze, label, confirm MOD and turn pressure', '', 5, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-gue-edge-6', 'builtin-predive-gue-edge', NULL,
      'Environment: conditions, entry/exit, descent reference, hazards', '',
-     6, 'check', NULL, NULL, NULL, NULL, 1, 0, 0),
+     6, 'check', NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-0', 'builtin-predive-ccr-build', 'Assembly',
      'Scrubber packed and within duration limits', '', 0, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-1', 'builtin-predive-ccr-build', 'Assembly',
      'Loop assembled, mushroom valves checked', '', 1, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-2', 'builtin-predive-ccr-build', 'Tests',
      'Negative pressure test held 60 s', '', 2, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-3', 'builtin-predive-ccr-build', 'Tests',
      'Positive pressure test held 60 s', '', 3, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-4', 'builtin-predive-ccr-build', 'Cells',
      'Cell 1 mV in air', '', 4, 'value',
-     'Cell 1', 'mV', 8.5, 13.0, 1, 0, 0),
+     'Cell 1', 'mV', 8.5, 13.0, 1, NULL, 0, 0),
     ('builtin-predive-ccr-5', 'builtin-predive-ccr-build', 'Cells',
      'Cell 2 mV in air', '', 5, 'value',
-     'Cell 2', 'mV', 8.5, 13.0, 1, 0, 0),
+     'Cell 2', 'mV', 8.5, 13.0, 1, NULL, 0, 0),
     ('builtin-predive-ccr-6', 'builtin-predive-ccr-build', 'Cells',
      'Cell 3 mV in air', '', 6, 'value',
-     'Cell 3', 'mV', 8.5, 13.0, 1, 0, 0),
+     'Cell 3', 'mV', 8.5, 13.0, 1, NULL, 0, 0),
     ('builtin-predive-ccr-7', 'builtin-predive-ccr-build', 'Gas',
      'Diluent and O2 analyzed, MOD labels on', '', 7, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-8', 'builtin-predive-ccr-build', 'Pre-breathe',
      'Five-minute pre-breathe, setpoint holds', '', 8, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-ccr-9', 'builtin-predive-ccr-build', 'Bailout',
      'Bailout analyzed, pressurized, clipped', '', 9, 'check',
-     NULL, NULL, NULL, NULL, 1, 0, 0),
+     NULL, NULL, NULL, NULL, 1, NULL, 0, 0),
     ('builtin-predive-pack-0', 'builtin-predive-gear-packing', NULL,
      'Certification card and insurance', '', 0, 'check',
-     NULL, NULL, NULL, NULL, 0, 0, 0),
+     NULL, NULL, NULL, NULL, 0, NULL, 0, 0),
     ('builtin-predive-pack-1', 'builtin-predive-gear-packing', NULL,
      'Equipment set', '', 1, 'equipmentSet',
-     NULL, NULL, NULL, NULL, 0, 0, 0),
+     NULL, NULL, NULL, NULL, 0, NULL, 0, 0),
     ('builtin-predive-pack-2', 'builtin-predive-gear-packing', NULL,
      'Save-a-dive kit and spares', '', 2, 'check',
-     NULL, NULL, NULL, NULL, 0, 0, 0),
+     NULL, NULL, NULL, NULL, 0, NULL, 0, 0),
     ('builtin-predive-pack-3', 'builtin-predive-gear-packing', NULL,
      'Water, sun protection, logbook', '', 3, 'check',
-     NULL, NULL, NULL, NULL, 0, 0, 0)
+     NULL, NULL, NULL, NULL, 0, NULL, 0, 0),
+    ('builtin-predive-ccr-cell1-linearity', 'builtin-predive-ccr-build',
+     'Cells', 'Cell 1 mV in O2', '', 7, 'cellLinearity',
+     'Cell 1', 'mV', 95.0, NULL, 1, 'builtin-predive-ccr-4', 0, 0),
+    ('builtin-predive-ccr-cell2-linearity', 'builtin-predive-ccr-build',
+     'Cells', 'Cell 2 mV in O2', '', 8, 'cellLinearity',
+     'Cell 2', 'mV', 95.0, NULL, 1, 'builtin-predive-ccr-5', 0, 0),
+    ('builtin-predive-ccr-cell3-linearity', 'builtin-predive-ccr-build',
+     'Cells', 'Cell 3 mV in O2', '', 9, 'cellLinearity',
+     'Cell 3', 'mV', 95.0, NULL, 1, 'builtin-predive-ccr-6', 0, 0)
 ''';
 
 /// Retires the original four-item GUE EDGE list (ids `builtin-predive-gue-0`
@@ -2494,6 +2503,35 @@ const String kSeedBuiltInPreDiveTemplateItemsSql = '''
 /// read-only in the UI, excluded from sync export, and session items are
 /// independent snapshots taken at start time, so no diver-owned data hangs off
 /// these rows. Idempotent -- a no-op once the legacy ids are gone.
+/// Pushes the CCR build template's Gas, Pre-breathe and Bailout items from
+/// sort_order 7, 8, 9 down to 10, 11, 12, making room for the three cell
+/// linearity rows seeded at 7, 8, 9 (issue #986).
+///
+/// Needed because [kSeedBuiltInPreDiveTemplateItemsSql] uses INSERT OR
+/// IGNORE, which can add the new rows but can never renumber the ones an
+/// already-seeded database holds. Same repair technique as
+/// [kRetireLegacyGueEdgeItemsSql].
+///
+/// Idempotent: it assigns fixed values keyed by id, so re-running it is a
+/// no-op. Safe to run on every open, and unconditionally, because built-in
+/// items are read-only in the UI, excluded from sync export, and session
+/// items are independent snapshots with no foreign key to template items.
+///
+/// The ordering is load-bearing rather than cosmetic: this template is
+/// seeded with strict_order = 1, so a linearity row that sorted above the
+/// air row it reads would be unreachable until the diver answered an item
+/// that comes after it.
+const String kRenumberCcrTailItemsSql = '''
+  UPDATE pre_dive_checklist_template_items
+  SET sort_order = CASE id
+        WHEN 'builtin-predive-ccr-7' THEN 10
+        WHEN 'builtin-predive-ccr-8' THEN 11
+        WHEN 'builtin-predive-ccr-9' THEN 12
+      END
+  WHERE id IN ('builtin-predive-ccr-7', 'builtin-predive-ccr-8',
+               'builtin-predive-ccr-9')
+''';
+
 const String kRetireLegacyGueEdgeItemsSql = '''
   DELETE FROM pre_dive_checklist_template_items
   WHERE template_id = 'builtin-predive-gue-edge'
@@ -4938,6 +4976,7 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(kSeedBuiltInPreDiveTemplatesSql);
     await customStatement(kRetireLegacyGueEdgeItemsSql);
     await customStatement(kSeedBuiltInPreDiveTemplateItemsSql);
+    await customStatement(kRenumberCcrTailItemsSql);
   }
 
   /// v120: planner Subsurface-parity columns - plan start time, per-segment
