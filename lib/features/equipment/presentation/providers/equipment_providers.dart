@@ -634,7 +634,7 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
       .getRecordsForEquipment(item.id);
   final usage = await ref
       .watch(equipmentRepositoryProvider)
-      .getUsageSamplesForEquipment(item.id);
+      .getExposureSamplesForEquipment(item.id);
   final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
   return const ServiceDueEngine().evaluate(
     schedules: schedules,

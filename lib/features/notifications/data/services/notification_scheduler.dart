@@ -106,7 +106,7 @@ class NotificationScheduler {
     final records = await _serviceRecordRepository.getRecordsForEquipment(
       item.id,
     );
-    final usage = await _equipmentRepository.getUsageSamplesForEquipment(
+    final usage = await _equipmentRepository.getExposureSamplesForEquipment(
       item.id,
     );
     final window = settings.serviceReminderDays.isEmpty
