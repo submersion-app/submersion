@@ -16,7 +16,10 @@ Future<void> _pump(
   Set<String> selectedIds = const {},
   void Function(EquipmentItem)? onSelected,
 }) async {
-  tester.view.physicalSize = const Size(900, 2400);
+  // Tall enough to render every row without scrolling. The picker groups
+  // by type (#1486, #1576), and this fixture gives every type exactly one
+  // item, so the list is 28 headings plus 28 tiles rather than 28 rows.
+  tester.view.physicalSize = const Size(900, 5000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
