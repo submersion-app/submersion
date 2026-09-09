@@ -5934,6 +5934,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'Dit jaar';
 
   @override
+  String get diveLog_filter_searchComputersHint => 'Typ om computers te zoeken';
+
+  @override
+  String get diveLog_filter_searchSitesHint => 'Typ om stekken te zoeken';
+
+  @override
+  String get diveLog_filter_searchTypesHint => 'Typ om types te zoeken';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override

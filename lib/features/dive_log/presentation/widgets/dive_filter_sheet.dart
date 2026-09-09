@@ -13,6 +13,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -421,29 +423,24 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                               context.l10n.diveLog_listPage_errorLoading(e),
                             ),
                             data: (diveTypes) =>
-                                DropdownButtonFormField<String?>(
-                                  initialValue: _diveTypeId,
-                                  decoration: InputDecoration(
-                                    hintText:
-                                        context.l10n.diveLog_filter_allTypes,
-                                    prefixIcon: const Icon(Icons.category),
-                                  ),
-                                  items: [
-                                    DropdownMenuItem(
-                                      value: null,
-                                      child: Text(
-                                        context.l10n.diveLog_filter_allTypes,
-                                      ),
-                                    ),
-                                    ...diveTypes.map((type) {
-                                      return DropdownMenuItem(
-                                        value: type.id,
-                                        child: Text(
-                                          type.localizedName(context.l10n),
+                                SearchableFilterDropdown<String>(
+                                  value: _diveTypeId,
+                                  allOptionLabel:
+                                      context.l10n.diveLog_filter_allTypes,
+                                  searchHintText: context
+                                      .l10n
+                                      .diveLog_filter_searchTypesHint,
+                                  icon: Icons.category,
+                                  options: diveTypes
+                                      .map(
+                                        (type) => FilterDropdownOption(
+                                          value: type.id,
+                                          label: type.localizedName(
+                                            context.l10n,
+                                          ),
                                         ),
-                                      );
-                                    }),
-                                  ],
+                                      )
+                                      .toList(),
                                   onChanged: (value) {
                                     setState(() => _diveTypeId = value);
                                   },
@@ -460,24 +457,29 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                       ),
                       const SizedBox(height: 8),
                       sites.when(
-                        data: (siteList) => DropdownButtonFormField<String?>(
-                          initialValue: _siteId,
-                          decoration: InputDecoration(
-                            hintText: context.l10n.diveLog_filter_allSites,
-                            prefixIcon: const Icon(Icons.location_on),
-                          ),
-                          items: [
-                            DropdownMenuItem(
-                              value: null,
-                              child: Text(context.l10n.diveLog_filter_allSites),
-                            ),
-                            ...siteList.map((site) {
-                              return DropdownMenuItem(
-                                value: site.id,
-                                child: Text(site.name),
-                              );
-                            }),
-                          ],
+                        data: (siteList) => SearchableFilterDropdown<String>(
+                          value: _siteId,
+                          allOptionLabel: context.l10n.diveLog_filter_allSites,
+                          searchHintText:
+                              context.l10n.diveLog_filter_searchSitesHint,
+                          icon: Icons.location_on,
+                          options: siteList
+                              .map(
+                                (site) => FilterDropdownOption(
+                                  value: site.id,
+                                  label: site.name,
+                                  // Typing a country or region finds the site
+                                  // as well, matching the fields the site
+                                  // picker in dive edit already searches.
+                                  searchText: buildFilterSearchText([
+                                    site.name,
+                                    site.locationString,
+                                    site.country,
+                                    site.region,
+                                  ]),
+                                ),
+                              )
+                              .toList(),
                           onChanged: (value) {
                             setState(() => _siteId = value);
                           },
@@ -532,27 +534,29 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                               if (validId != _computerId) {
                                 _computerId = validId;
                               }
-                              return DropdownButtonFormField<String?>(
-                                initialValue: validId,
-                                decoration: InputDecoration(
-                                  hintText:
-                                      context.l10n.diveLog_filter_allComputers,
-                                  prefixIcon: const Icon(Icons.watch),
-                                ),
-                                items: [
-                                  DropdownMenuItem(
-                                    value: null,
-                                    child: Text(
-                                      context.l10n.diveLog_filter_allComputers,
-                                    ),
-                                  ),
-                                  ...computers.map(
-                                    (c) => DropdownMenuItem(
-                                      value: c.id,
-                                      child: Text(c.displayName),
-                                    ),
-                                  ),
-                                ],
+                              return SearchableFilterDropdown<String>(
+                                value: validId,
+                                allOptionLabel:
+                                    context.l10n.diveLog_filter_allComputers,
+                                searchHintText: context
+                                    .l10n
+                                    .diveLog_filter_searchComputersHint,
+                                icon: Icons.watch,
+                                options: computers
+                                    .map(
+                                      (c) => FilterDropdownOption(
+                                        value: c.id,
+                                        label: c.displayName,
+                                        // A renamed computer is still findable
+                                        // by the make and model printed on it.
+                                        searchText: buildFilterSearchText([
+                                          c.displayName,
+                                          c.manufacturer,
+                                          c.model,
+                                        ]),
+                                      ),
+                                    )
+                                    .toList(),
                                 onChanged: (value) {
                                   setState(() => _computerId = value);
                                 },

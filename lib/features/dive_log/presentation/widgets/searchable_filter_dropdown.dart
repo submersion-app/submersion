@@ -1,0 +1,245 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
+
+/// One selectable entry in a [SearchableFilterDropdown].
+///
+/// [label] is what the diver sees; [searchText] is what typing matches
+/// against, which lets an option be found by text that is not on its label
+/// (a dive site by its country, for example). Build [searchText] with
+/// [buildFilterSearchText].
+@immutable
+class FilterDropdownOption<T> {
+  const FilterDropdownOption({
+    required this.value,
+    required this.label,
+    String? searchText,
+  }) : _searchText = searchText;
+
+  final T value;
+  final String label;
+  final String? _searchText;
+
+  /// The haystack typing is matched against, defaulting to the label.
+  String get searchText => _searchText ?? label;
+}
+
+/// One row offered by the field, including the leading "all options" row that
+/// clears the filter and so carries a null value.
+@immutable
+class _FilterEntry<T> {
+  const _FilterEntry({
+    required this.value,
+    required this.label,
+    required this.searchText,
+  });
+
+  final T? value;
+  final String label;
+  final String searchText;
+}
+
+/// A filter field that narrows its options as the diver types.
+///
+/// Built on [RawAutocomplete] rather than [DropdownMenu] deliberately.
+/// DropdownMenu's menu is a [RawMenuAnchor], which listens to the nearest
+/// ancestor scrollable and closes on any scroll; focusing its text field makes
+/// the caret animate into view, which scrolls the filter sheet's list, so the
+/// menu closed the frame after it opened. RawAutocomplete's overlay has no
+/// such listener, and it is already the pattern the buddy field in this same
+/// sheet uses.
+///
+/// The selection is always one of [options] or null. Typed text is only ever a
+/// query, never a value: text that matches nothing is discarded when the field
+/// loses focus, so the field never shows something that is not the filter
+/// actually in force.
+class SearchableFilterDropdown<T> extends StatefulWidget {
+  const SearchableFilterDropdown({
+    super.key,
+    required this.value,
+    required this.options,
+    required this.allOptionLabel,
+    required this.searchHintText,
+    required this.onChanged,
+    this.icon,
+  });
+
+  /// The currently selected option value, or null for "no filter".
+  final T? value;
+
+  final List<FilterDropdownOption<T>> options;
+
+  /// Label of the leading entry that clears the filter.
+  final String allOptionLabel;
+
+  /// Hint shown while the field is empty and the diver is typing a query.
+  final String searchHintText;
+
+  final IconData? icon;
+
+  final ValueChanged<T?> onChanged;
+
+  @override
+  State<SearchableFilterDropdown<T>> createState() =>
+      _SearchableFilterDropdownState<T>();
+}
+
+class _SearchableFilterDropdownState<T>
+    extends State<SearchableFilterDropdown<T>> {
+  final _controller = TextEditingController();
+  final _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.text = _labelForValue(widget.value);
+    _focusNode.addListener(_onFocusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant SearchableFilterDropdown<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A selection made elsewhere (Clear All, a preset) has to reach the field,
+    // but not while the diver is part way through typing a query.
+    if (widget.value != oldWidget.value && !_focusNode.hasFocus) {
+      _controller.text = _labelForValue(widget.value);
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChanged);
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChanged() {
+    final label = _labelForValue(widget.value);
+    if (_focusNode.hasFocus) {
+      // Select the whole label so the first keystroke starts a fresh query
+      // instead of appending to the name of the current selection.
+      _controller.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _controller.text.length,
+      );
+      return;
+    }
+    // Discard a query the diver typed but never committed, so the field falls
+    // back to showing the filter that is actually in force.
+    if (_controller.text != label) {
+      _controller.text = label;
+    }
+  }
+
+  String _labelForValue(T? value) {
+    if (value == null) return widget.allOptionLabel;
+    for (final option in widget.options) {
+      if (option.value == value) return option.label;
+    }
+    // The option went away (deleted since the filter was set); the caller
+    // resets the id, so show the unfiltered label rather than a stale name.
+    return widget.allOptionLabel;
+  }
+
+  List<_FilterEntry<T>> get _entries => [
+    _FilterEntry<T>(
+      value: null,
+      label: widget.allOptionLabel,
+      searchText: widget.allOptionLabel,
+    ),
+    ...widget.options.map(
+      (option) => _FilterEntry<T>(
+        value: option.value,
+        label: option.label,
+        searchText: option.searchText,
+      ),
+    ),
+  ];
+
+  Iterable<_FilterEntry<T>> _optionsFor(TextEditingValue textEditingValue) {
+    final query = textEditingValue.text;
+    // The field carries the current selection's label when it is not being
+    // edited. Treating that as a query would offer only the row already
+    // chosen, so opening the field always offers everything.
+    if (query.trim().isEmpty || query == _labelForValue(widget.value)) {
+      return _entries;
+    }
+    return _entries.where(
+      (entry) => filterOptionMatches(entry.searchText, query),
+    );
+  }
+
+  void _onSelected(_FilterEntry<T> entry) {
+    _controller.text = entry.label;
+    _controller.selection = TextSelection.collapsed(offset: entry.label.length);
+    _focusNode.unfocus();
+    widget.onChanged(entry.value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RawAutocomplete<_FilterEntry<T>>(
+      textEditingController: _controller,
+      focusNode: _focusNode,
+      optionsBuilder: _optionsFor,
+      displayStringForOption: (entry) => entry.label,
+      onSelected: _onSelected,
+      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) =>
+          TextField(
+            controller: controller,
+            focusNode: focusNode,
+            decoration: InputDecoration(
+              hintText: widget.searchHintText,
+              prefixIcon: widget.icon == null ? null : Icon(widget.icon),
+              suffixIcon: const Icon(Icons.arrow_drop_down),
+            ),
+            // Commits the highlighted suggestion; a no-op when the option list
+            // is closed, so a stray submit cannot change the filter.
+            onSubmitted: (_) => onFieldSubmitted(),
+          ),
+      optionsViewBuilder: (context, onSelected, options) =>
+          _FilterOptionsView<T>(onSelected: onSelected, options: options),
+    );
+  }
+}
+
+/// The suggestion list floated under the field.
+class _FilterOptionsView<T> extends StatelessWidget {
+  const _FilterOptionsView({required this.onSelected, required this.options});
+
+  final void Function(_FilterEntry<T>) onSelected;
+  final Iterable<_FilterEntry<T>> options;
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = options.toList();
+    return Align(
+      alignment: AlignmentDirectional.topStart,
+      child: Material(
+        elevation: 4,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 240),
+          child: ListView.builder(
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            itemCount: entries.length,
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              return InkWell(
+                onTap: () => onSelected(entry),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Text(entry.label),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}

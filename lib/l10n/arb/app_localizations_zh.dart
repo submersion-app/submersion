@@ -5676,6 +5676,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_presetThisYear => '今年';
 
   @override
+  String get diveLog_filter_searchComputersHint => '输入以搜索潜水电脑';
+
+  @override
+  String get diveLog_filter_searchSitesHint => '输入以搜索潜水点';
+
+  @override
+  String get diveLog_filter_searchTypesHint => '输入以搜索类型';
+
+  @override
   String get diveLog_filter_sectionBuddy => '潜伴';
 
   @override

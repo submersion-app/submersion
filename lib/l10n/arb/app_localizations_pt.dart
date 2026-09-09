@@ -5982,6 +5982,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filter_presetThisYear => 'Este ano';
 
   @override
+  String get diveLog_filter_searchComputersHint =>
+      'Digite para buscar computadores';
+
+  @override
+  String get diveLog_filter_searchSitesHint => 'Digite para buscar pontos';
+
+  @override
+  String get diveLog_filter_searchTypesHint => 'Digite para buscar tipos';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Dupla';
 
   @override
