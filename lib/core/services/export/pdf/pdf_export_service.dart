@@ -6,6 +6,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -182,8 +184,16 @@ class PdfExportService {
     // The legacy builder never did this, so accented site names were dropped.
     await PdfFonts.instance.initialize();
 
+    // The printed logbook follows the diver's gear arrangement (#1486,
+    // #1576). Read here rather than threaded through every caller, matching
+    // how this method already reaches for SignatureStorageService.
+    final gearArrangement =
+        await AppSettingsRepository().getEquipmentArrangement() ??
+        EquipmentArrangement.defaults;
+
     final builder = PdfTemplateFactory().getBuilder(options.template);
     final pdfBytes = await builder.buildPdf(
+      gearArrangement: gearArrangement,
       dives: dives,
       pageSize: options.pageSize,
       dates: dates,
