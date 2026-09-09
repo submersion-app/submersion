@@ -439,9 +439,9 @@ void main() {
       reason: 'the last row must start unbuilt for this to test anything',
     );
 
-    await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
     await tester.pumpAndSettle();
 
     expect(openMenuLabels(tester), contains('Site 40'));
