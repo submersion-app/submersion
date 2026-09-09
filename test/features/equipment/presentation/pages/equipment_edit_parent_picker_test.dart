@@ -82,6 +82,36 @@ void main() {
     );
   });
 
+  testWidgets('switching child type drops a parent the new type cannot use', (
+    tester,
+  ) async {
+    final computer = await repository.createEquipment(
+      const EquipmentItem(id: '', name: 'Perdix', type: EquipmentType.computer),
+    );
+    final battery = await repository.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'AA cell',
+        type: EquipmentType.battery,
+        parentEquipmentId: computer.id,
+      ),
+    );
+    await pumpEditor(tester, battery.id);
+
+    // A computer cannot hold an O2 cell, so the picker reads "none" after
+    // the switch; the stale id must not be written on save.
+    await tester.tap(find.byType(DropdownButtonFormField<EquipmentType>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('O2 cell').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final saved = await repository.getEquipmentById(battery.id);
+    expect(saved!.type, EquipmentType.o2Cell);
+    expect(saved.parentEquipmentId, isNull);
+  });
+
   testWidgets('a regulator shows no parent picker', (tester) async {
     final reg = await repository.createEquipment(
       const EquipmentItem(id: '', name: 'Apeks', type: EquipmentType.regulator),

@@ -302,6 +302,8 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_sharedData_sectionTitle;
       case 'safety':
         return context.l10n.settings_section_safety_title;
+      case 'equipmentCondition':
+        return context.l10n.settings_section_equipmentCondition_title;
       case 'security':
         return context.l10n.settings_section_security_title;
       case 'debug':
@@ -335,6 +337,8 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_sharedData_sectionSubtitle;
       case 'safety':
         return context.l10n.settings_section_safety_subtitle;
+      case 'equipmentCondition':
+        return context.l10n.settings_section_equipmentCondition_subtitle;
       case 'security':
         return context.l10n.settings_section_security_subtitle;
       case 'debug':

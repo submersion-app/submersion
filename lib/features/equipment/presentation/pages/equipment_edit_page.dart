@@ -161,6 +161,18 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     }
   }
 
+  /// [_parentEquipmentId] only when it names an active item whose type can
+  /// hold [type]; a stale choice from a previous type is never written.
+  String? _validParentIdFor(EquipmentType type) {
+    final id = _parentEquipmentId;
+    if (id == null) return null;
+    final items =
+        ref.read(activeEquipmentProvider).valueOrNull ??
+        const <EquipmentItem>[];
+    final allowed = _parentTypesFor(type);
+    return items.any((e) => e.id == id && allowed.contains(e.type)) ? id : null;
+  }
+
   /// Which item types can hold a child of [type]. Empty means the type is
   /// not a child type and the picker is hidden.
   static Set<EquipmentType> _parentTypesFor(EquipmentType type) =>
@@ -260,6 +272,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               if (value != null) {
                 setState(() {
                   _selectedType = value;
+                  // A parent chosen for the old type may not hold the new
+                  // one (a computer holds a battery, never an O2 cell), and
+                  // the picker would show "none" while the stale id was
+                  // still written on save. Start the choice over.
+                  _parentEquipmentId = null;
                   _hasChanges = true;
                 });
               }
@@ -925,7 +942,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         purchaseDate: _purchaseDate,
         parentEquipmentId: _parentTypesFor(_selectedType).isEmpty
             ? null
-            : _parentEquipmentId,
+            : _validParentIdFor(_selectedType),
         // Blank means "no price"; anything unreadable was already stopped by
         // the field validator, so null here can only mean blank.
         purchasePrice: parseUserDecimal(_purchasePriceController.text),
