@@ -10,6 +10,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/widgets/species_category_chips.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -315,9 +316,9 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
     );
   }
 
-  Future<void> _confirmAndDeleteSelected() async {
+  Future<BulkActionOutcome> _confirmAndDeleteSelected() async {
     final ids = _selectedIds.toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -339,7 +340,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return BulkActionOutcome.cancelled;
 
     final messenger = ScaffoldMessenger.of(context);
     final notifier = ref.read(speciesListNotifierProvider.notifier);
@@ -360,7 +361,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
       }
     }
 
-    if (!mounted) return;
+    if (!mounted) return BulkActionOutcome.completed;
     ref.invalidate(speciesSightingCountsProvider);
     ref.invalidate(speciesTagCountsProvider);
     messenger.showSnackBar(
@@ -374,6 +375,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
         ),
       ),
     );
+    return BulkActionOutcome.completed;
   }
 
   Future<void> _confirmDelete(Species species) async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -13,6 +14,26 @@ import '../../../../helpers/test_app.dart';
 
 void main() {
   final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+
+  // The value line formats through Intl.getCurrentLocale(), which resolves the
+  // Intl.defaultLocale process global rather than the MaterialApp locale. The
+  // app assigns it from the diver's locale (lib/app.dart); a widget test that
+  // pumps the tile alone never runs that.
+  //
+  // Pinned rather than merely saved. Left unset, getCurrentLocale falls back to
+  // Intl.systemLocale, and the assertions below that spell out a '.' would then
+  // rest on that fallback happening to be en_US: a default owned by intl, not
+  // by this file. Tests that need another locale set it in the test body.
+  late String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
 
   PreDiveSession session({bool locked = false, bool strict = false}) =>
       PreDiveSession(
@@ -76,10 +97,11 @@ void main() {
     VoidCallback? onAddNote,
     VoidCallback? onReset,
     List<dynamic> overrides = const [],
+    Locale locale = const Locale('en'),
   }) async {
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: overrides,
         child: SessionItemTile(
           session: s,
@@ -190,6 +212,26 @@ void main() {
         ),
       );
       expect(find.text('SPG: 200.0 bar'), findsOneWidget);
+    });
+
+    testWidgets('value line follows a comma-decimal locale', (tester) async {
+      // double.toString() always emits '.', so the recorded reading read
+      // "200.0 bar" to a German diver while every number they typed used a
+      // comma. Both the process global and the MaterialApp locale are set:
+      // the first drives the separator, the second the surrounding strings.
+      Intl.defaultLocale = 'de';
+      await pumpTile(
+        tester,
+        s: session(),
+        it: item(
+          type: PreDiveItemType.value,
+          valueLabel: 'SPG',
+          valueNumber: 200,
+          valueUnit: 'bar',
+        ),
+        locale: const Locale('de'),
+      );
+      expect(find.text('SPG: 200,0 bar'), findsOneWidget);
     });
 
     testWidgets('out-of-range value line is bold', (tester) async {

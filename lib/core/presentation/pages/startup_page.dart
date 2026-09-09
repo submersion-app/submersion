@@ -26,6 +26,7 @@ import 'package:submersion/core/presentation/pages/lock_escape_dialogs.dart';
 import 'package:submersion/core/presentation/pages/lock_screen_view.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/startup_failure.dart';
+import 'package:submersion/core/presentation/startup_theme.dart';
 import 'package:submersion/core/presentation/widgets/backup_status_views.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
@@ -43,6 +44,7 @@ import 'package:submersion/core/services/security/database_security_sidecar.dart
 import 'package:submersion/core/services/security/locked_database_escape.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
@@ -58,6 +60,7 @@ import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/scanned_logs_migration.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_orphan_backlog_sweep.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -753,6 +756,22 @@ class _StartupWrapperState extends State<StartupWrapper>
       }
     }());
 
+    // Scanned-page folder migration (issue #1645), every launch. The common
+    // case is one directory stat that finds nothing; on an install that
+    // still has `<documents>/scanned_logs/` it moves the pages under
+    // `Submersion` and relinks their rows. Fire-and-forget like the media
+    // sweep above, but with no try/catch: run() folds every failure into
+    // its report by contract, so the report is the only diagnostic.
+    unawaited(() async {
+      final report = await ScannedLogsMigration(
+        relocateRows: (from, to) =>
+            mediaRepository.relocateLocalFile(from: from, to: to),
+      ).run();
+      if (report.outcome != ScannedLogsMigrationOutcome.noLegacyData) {
+        debugPrint('Scanned logs migration: $report');
+      }
+    }());
+
     // Tombstone GC for a library that never syncs, every launch. The cloud
     // path runs GC at the tail of a successful sync, which a device with no
     // provider never reaches, so its deletion log otherwise grows forever.
@@ -1313,6 +1332,21 @@ class _StartupWrapperState extends State<StartupWrapper>
     final textColor = isDark ? Colors.white : Colors.black87;
     final subtitleColor = isDark ? Colors.white70 : Colors.black54;
 
+    // The splash paints its plain text from the palette above, but every
+    // themed descendant (the restore Card, the buttons, the progress
+    // indicators, the escape-hatch dialogs) reads Theme.of instead. A
+    // MaterialApp with no theme gets Flutter's default, which is always
+    // LIGHT: in dark mode that put a near-white card surface under white
+    // text and made the restore offer unreadable. The theme therefore has to
+    // follow the same brightness the palette does.
+    //
+    // The preset comes from the same pre-database mirror the brightness does,
+    // so a diver on Console or Deep is not handed an ocean-blue error screen.
+    final splashTheme = AppThemeRegistry.resolveTheme(
+      resolveStartupThemePreset(widget.prefs),
+      brightness,
+    );
+
     final isReady = _state == _StartupState.ready;
 
     // Splash layer: stays at full opacity while initializing/migrating/error,
@@ -1331,6 +1365,7 @@ class _StartupWrapperState extends State<StartupWrapper>
               child: MaterialApp(
                 debugShowCheckedModeBanner: false,
                 navigatorKey: _splashNavigatorKey,
+                theme: splashTheme,
                 // The splash runs before the database (and therefore the
                 // diver's saved locale preference) is readable, so it can
                 // only resolve the system locale. Without these delegates

@@ -144,8 +144,6 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   }
   // coverage:ignore-end
 
-  void _exitSelectionMode() => _selection.exit();
-
   /// Grid indices for the checked ids, against the current ordering.
   ///
   /// Derived every build rather than stored: the ids are the truth and the
@@ -161,13 +159,13 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
       .map((i) => media[i].id)
       .toList();
 
-  Future<void> _unlinkSelected(
+  Future<BulkActionOutcome> _unlinkSelected(
     BuildContext context,
     List<MediaItem> media,
   ) async {
     final selectedIds = _selection.value.checkedIds.toList();
 
-    if (selectedIds.isEmpty) return;
+    if (selectedIds.isEmpty) return BulkActionOutcome.cancelled;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -205,8 +203,6 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             .read(mediaListNotifierProvider(widget.diveId).notifier)
             .unlinkMultipleMedia(selectedIds);
 
-        _exitSelectionMode();
-
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -218,6 +214,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             ),
           );
         }
+        return BulkActionOutcome.completed;
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -227,8 +224,10 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             ),
           );
         }
+        return BulkActionOutcome.failed;
       }
     }
+    return BulkActionOutcome.cancelled;
   }
 
   // coverage:ignore-start

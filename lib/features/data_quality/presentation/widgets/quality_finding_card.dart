@@ -91,6 +91,8 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
         l10n.dataQuality_repairLabel_reassignSeries,
       CompareSourcesRepair() => l10n.dataQuality_repairLabel_compare,
       GoToDiveRepair() => l10n.dataQuality_action_goToDive,
+      AssignTransmitterRepair() =>
+        l10n.dataQuality_repairLabel_assignTransmitter,
     };
   }
 

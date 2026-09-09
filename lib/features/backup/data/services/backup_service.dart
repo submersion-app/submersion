@@ -1146,13 +1146,28 @@ class BackupService {
   /// PreMigrationBackupService. Unlike [resolveBackupsDirectory] this ignores
   /// any configured custom location by design.
   static Future<String> resolveDefaultBackupsDirectory() async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final backupDir = Directory(p.join(appDir.path, _localBackupFolder));
+    final backupDir = Directory(await defaultBackupsDirectoryPath());
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
     }
     return backupDir.path;
   }
+
+  /// Where the sandbox backups directory would be, without creating it.
+  ///
+  /// [resolveDefaultBackupsDirectory] creates it, which is right for a caller
+  /// about to write a backup and wrong for one that only wants to look. Both
+  /// read the folder name from the same constant so a reader cannot end up
+  /// looking somewhere the writer does not use.
+  static Future<String> defaultBackupsDirectoryPath() async {
+    final appDir = await getApplicationDocumentsDirectory();
+    return p.join(appDir.path, _localBackupFolder);
+  }
+
+  /// The bookmark port production uses. Exposed so a read-only resolver can
+  /// arm the same security-scoped access without reaching for a private type.
+  static const BackupBookmarkPort defaultBookmarkPort =
+      _DefaultBackupBookmarkPort();
 
   /// Resolves the backups directory and arms any security-scoped access needed
   /// to write into it, returning a [BackupDirLease]. Callers MUST call

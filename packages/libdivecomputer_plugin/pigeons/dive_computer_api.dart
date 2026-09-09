@@ -272,7 +272,11 @@ abstract class DiveComputerHostApi {
   void stopDiscovery();
 
   @async
-  void startDownload(DiscoveredDevice device, String? fingerprint);
+  void startDownload(
+    DiscoveredDevice device,
+    String? fingerprint,
+    bool syncClock,
+  );
 
   void cancelDownload();
 
@@ -301,6 +305,7 @@ abstract class DiveComputerFlutterApi {
     int totalDives,
     String? serialNumber,
     String? firmwareVersion,
+    String? clockSyncStatus,
   );
   void onError(DiveComputerError error);
   void onPinCodeRequired(String deviceAddress);

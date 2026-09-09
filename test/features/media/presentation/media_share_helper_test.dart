@@ -33,9 +33,14 @@ class _FakePathProvider extends PathProviderPlatform
 class _FakeSharePlatform extends SharePlatform {
   final List<ShareParams> calls = [];
 
+  /// Makes the platform call fail after it has been recorded, which is how a
+  /// real share sheet fails: invoked, then thrown out of.
+  bool throwOnShare = false;
+
   @override
   Future<ShareResult> share(ShareParams params) async {
     calls.add(params);
+    if (throwOnShare) throw StateError('share sheet unavailable');
     return const ShareResult('ok', ShareResultStatus.success);
   }
 }
@@ -59,16 +64,24 @@ void main() {
   // is exactly one, reset between tests.
   final platform = _FakeSharePlatform();
   late Directory tempDir;
+  late PathProviderPlatform originalPathProvider;
 
   setUpAll(() => SharePlatform.instance = platform);
 
   setUp(() async {
     platform.calls.clear();
     tempDir = await Directory.systemTemp.createTemp('share-helper-test');
+    // Unlike SharePlatform above, PathProviderPlatform is read per call, so
+    // leaving the fake installed points later tests in this isolate at a temp
+    // directory tearDown has already deleted.
+    originalPathProvider = PathProviderPlatform.instance;
     PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
   });
 
-  tearDown(() => tempDir.delete(recursive: true));
+  tearDown(() async {
+    PathProviderPlatform.instance = originalPathProvider;
+    await tempDir.delete(recursive: true);
+  });
 
   Widget host({
     required List<MediaItem> items,
@@ -153,16 +166,33 @@ void main() {
     expect(platform.calls, isEmpty);
   });
 
-  /// Taps Share and lets the real event loop run.
+  /// Taps Share and waits for the share to reach the platform.
   ///
   /// writeShareTempFile does genuine file I/O, and testWidgets' fake async
   /// clock never advances real time -- pumpAndSettle would spin through its
   /// whole budget while the write sits pending. runAsync hands control back
   /// to the real loop for the duration.
+  ///
+  /// It polls for the recorded call rather than sleeping a fixed span: how
+  /// long the resolve and the temp-file write take is a property of the
+  /// filesystem, so any constant is a race that a slow CI runner eventually
+  /// loses. The deadline only bounds a share that never arrives, and the
+  /// caller's own assertion is what fails when it does not.
+  ///
+  /// Every caller is a success-path test, so "a call was recorded" is the
+  /// right thing to wait for. A test asserting the sheet never opens has
+  /// nothing to wait for and drives the tap itself.
   Future<void> tapShareAndDrain(WidgetTester tester) async {
     await tester.runAsync(() async {
       await tester.tap(find.text('SHARE'));
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      final deadline = DateTime.now().add(const Duration(seconds: 10));
+      while (platform.calls.isEmpty && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+      }
+      // The call is recorded on entry to the fake's share(), so yield one
+      // more turn to let the awaiting handler resume and report its result.
+      // A scheduling yield, not a wall-clock guess.
+      await Future<void>.delayed(Duration.zero);
     });
     await tester.pump();
   }
@@ -253,6 +283,94 @@ void main() {
     expect(platform.calls, isEmpty);
   });
 
+  group('what the share reports back', () {
+    // The library's selection bar leaves multi-select only when its action
+    // says it finished (#1262), so this return value is what stops Share
+    // being the one bulk action that strands the diver in the mode.
+    Widget recordingHost({
+      required ResolvedAssetResult Function(MediaItem) resolve,
+      required List<bool?> log,
+    }) {
+      return ProviderScope(
+        overrides: [
+          resolvedFullResolutionProvider.overrideWith(
+            (ref, MediaItem arg) async => resolve(arg),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) => TextButton(
+                onPressed: () async =>
+                    log.add(await shareMediaItems(context, ref, [item('a')])),
+                child: const Text('SHARE'),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('an opened share sheet reports success', (tester) async {
+      final log = <bool?>[];
+      await tester.pumpWidget(
+        recordingHost(resolve: (_) => resolved(), log: log),
+      );
+      // Real temp-file I/O on the success path, so this needs runAsync the
+      // same way the other success assertions do.
+      await tapShareAndDrain(tester);
+
+      expect(platform.calls, hasLength(1));
+      expect(log, [true]);
+    });
+
+    testWidgets('nothing resolvable reports failure', (tester) async {
+      final log = <bool?>[];
+      await tester.pumpWidget(
+        recordingHost(resolve: (_) => unavailable, log: log),
+      );
+      await tester.tap(find.text('SHARE'));
+      await tester.pumpAndSettle();
+
+      expect(platform.calls, isEmpty);
+      expect(log, [false]);
+    });
+
+    testWidgets('a throwing resolve reports failure', (tester) async {
+      final log = <bool?>[];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            resolvedFullResolutionProvider.overrideWith(
+              (ref, MediaItem arg) async => throw StateError('disk gone'),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => TextButton(
+                  onPressed: () async =>
+                      log.add(await shareMediaItems(context, ref, [item('a')])),
+                  child: const Text('SHARE'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('SHARE'));
+      await tester.pumpAndSettle();
+
+      expect(log, [false]);
+    });
+  });
+
   group('iPad share popover anchor', () {
     // On iPad the share sheet is a popover and must point at the control that
     // opened it. share_plus takes that as ShareParams.sharePositionOrigin;
@@ -285,6 +403,73 @@ void main() {
       // TextButton, not just its label.
       expect(origin, tester.getRect(find.byType(TextButton)));
       expect(origin!.isEmpty, isFalse);
+    });
+  });
+
+  group('a failing share leaves the page it was opened from', () {
+    // The progress dialog is popped before the platform call, and the catch
+    // popped again. A throwing share therefore took the route UNDERNEATH the
+    // dialog with it, dropping the diver out of the page they shared from.
+    testWidgets('a throwing share sheet does not pop the page underneath', (
+      tester,
+    ) async {
+      platform.throwOnShare = true;
+      addTearDown(() => platform.throwOnShare = false);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            resolvedFullResolutionProvider.overrideWith(
+              (ref, MediaItem arg) async => resolved(),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => Scaffold(
+                        body: Consumer(
+                          builder: (context, ref, _) => Column(
+                            children: [
+                              const Text('DETAIL'),
+                              TextButton(
+                                onPressed: () =>
+                                    shareMediaItems(context, ref, [item('a')]),
+                                child: const Text('SHARE'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: const Text('OPEN'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('OPEN'));
+      await tester.pumpAndSettle();
+      expect(find.text('DETAIL'), findsOneWidget);
+
+      await tapShareAndDrain(tester);
+      await tester.pumpAndSettle();
+
+      expect(platform.calls, hasLength(1));
+      expect(
+        find.text('DETAIL'),
+        findsOneWidget,
+        reason: 'a failed share must dismiss its own dialog, nothing else',
+      );
+      expect(find.textContaining('Failed to share'), findsOneWidget);
     });
   });
 }

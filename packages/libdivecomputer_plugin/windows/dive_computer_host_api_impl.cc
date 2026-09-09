@@ -137,6 +137,7 @@ std::optional<FlutterError> DiveComputerHostApiImpl::StopDiscovery() {
 void DiveComputerHostApiImpl::StartDownload(
     const DiscoveredDevice& device,
     const std::string* fingerprint,
+    bool sync_clock,
     std::function<void(std::optional<FlutterError> reply)> result) {
     // Acknowledge start immediately.
     result(std::nullopt);
@@ -151,8 +152,8 @@ void DiveComputerHostApiImpl::StartDownload(
     std::optional<std::string> fp_copy =
         fingerprint ? std::optional<std::string>(*fingerprint) : std::nullopt;
     download_thread_ = std::thread(
-        [this, dev = std::move(device_copy), fp = std::move(fp_copy)]() {
-            PerformDownload(dev, fp);
+        [this, dev = std::move(device_copy), fp = std::move(fp_copy), sync_clock]() {
+            PerformDownload(dev, fp, sync_clock);
         });
 }
 
@@ -223,7 +224,8 @@ ErrorOr<std::string> DiveComputerHostApiImpl::GetLibdivecomputerVersion() {
 
 void DiveComputerHostApiImpl::PerformDownload(
     const DiscoveredDevice& device,
-    const std::optional<std::string>& fingerprint) {
+    const std::optional<std::string>& fingerprint,
+    bool sync_clock) {
     // Create download session. The session holds a dc_context_t (logging) and a
     // cancelled flag. It is intentionally reused across multiple libdc_download_run
     // calls during multi-port probing — each call creates its own internal state.
@@ -301,6 +303,7 @@ void DiveComputerHostApiImpl::PerformDownload(
     int rc = -1;
     unsigned int serial = 0;
     unsigned int firmware = 0;
+    libdc_clock_sync_status_t clock_sync = LIBDC_CLOCK_SYNC_NOT_REQUESTED;
     char error_buf[256] = {};
 
     if (device.transport() == TransportType::kSerial ||
@@ -410,6 +413,7 @@ void DiveComputerHostApiImpl::PerformDownload(
 
             serial = 0;
             firmware = 0;
+            clock_sync = LIBDC_CLOCK_SYNC_NOT_REQUESTED;
             memset(error_buf, 0, sizeof(error_buf));
 
             rc = libdc_download_run(
@@ -420,8 +424,9 @@ void DiveComputerHostApiImpl::PerformDownload(
                 &io_callbacks,
                 fp_bytes.empty() ? nullptr : fp_bytes.data(),
                 static_cast<unsigned int>(fp_bytes.size()),
+                sync_clock ? 1 : 0,
                 &dl_callbacks,
-                &serial, &firmware,
+                &serial, &firmware, &clock_sync,
                 error_buf, sizeof(error_buf));
 
             serial_stream_.reset();
@@ -513,8 +518,9 @@ void DiveComputerHostApiImpl::PerformDownload(
             &io_callbacks,
             fp_bytes.empty() ? nullptr : fp_bytes.data(),
             static_cast<unsigned int>(fp_bytes.size()),
+            sync_clock ? 1 : 0,
             &dl_callbacks,
-            &serial, &firmware,
+            &serial, &firmware, &clock_sync,
             error_buf, sizeof(error_buf));
 
         ble_stream_.reset();
@@ -527,6 +533,11 @@ void DiveComputerHostApiImpl::PerformDownload(
     std::optional<std::string> firmware_str =
         (firmware > 0) ? std::optional<std::string>(std::to_string(firmware))
                        : std::nullopt;
+    // Null means no sync was requested, so the Dart side shows no line.
+    std::optional<std::string> clock_sync_str =
+        (clock_sync != LIBDC_CLOCK_SYNC_NOT_REQUESTED)
+            ? std::optional<std::string>(libdc_clock_sync_status_name(clock_sync))
+            : std::nullopt;
 
     // Report completion or error.
     if (rc == 0 || rc == LIBDC_STATUS_CANCELLED) {
@@ -534,6 +545,7 @@ void DiveComputerHostApiImpl::PerformDownload(
             0,
             serial_str ? &*serial_str : nullptr,
             firmware_str ? &*firmware_str : nullptr,
+            clock_sync_str ? &*clock_sync_str : nullptr,
             [] {}, [](const auto&) {});
     } else {
         flutter_api_->OnError(

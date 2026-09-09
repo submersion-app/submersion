@@ -120,6 +120,56 @@ void main() {
       expect(out.single.params['score'], closeTo(1.0, 1e-9));
     });
 
+    test('records that the pair came from one physical computer', () {
+      // A re-download from the same computer cannot be consolidated (the
+      // builder rejects it on serial), so the finding has to say so and the
+      // inbox has to withhold the Consolidate repair.
+      final ctx = makeContext(
+        dive: makeTestDive(id: 'dB', entry: entry, maxDepth: 30, serial: 'S1'),
+        neighbors: [
+          QualityNeighbor(
+            id: 'dA',
+            entryTime: entry.add(const Duration(minutes: 5)),
+            maxDepth: 30,
+            durationSeconds: 2400,
+            computerSerial: 'S1',
+          ),
+        ],
+      );
+      expect(det.detect(ctx).single.params['sameComputer'], isTrue);
+    });
+
+    test('two different computers are consolidatable', () {
+      final ctx = makeContext(
+        dive: makeTestDive(id: 'dB', entry: entry, maxDepth: 30, serial: 'S1'),
+        neighbors: [
+          QualityNeighbor(
+            id: 'dA',
+            entryTime: entry.add(const Duration(minutes: 5)),
+            maxDepth: 30,
+            durationSeconds: 2400,
+            computerSerial: 'S2',
+          ),
+        ],
+      );
+      expect(det.detect(ctx).single.params['sameComputer'], isFalse);
+    });
+
+    test('an unknown serial on either side is not assumed same-computer', () {
+      final ctx = makeContext(
+        dive: makeTestDive(id: 'dB', entry: entry, maxDepth: 30),
+        neighbors: [
+          QualityNeighbor(
+            id: 'dA',
+            entryTime: entry.add(const Duration(minutes: 5)),
+            maxDepth: 30,
+            durationSeconds: 2400,
+          ),
+        ],
+      );
+      expect(det.detect(ctx).single.params['sameComputer'], isFalse);
+    });
+
     test('12 min apart, same profile -> 0.65 -> warning', () {
       // timeScore = 1 - (12-5)/(15-5) = 0.3; score = .5*.3 + .3 + .2 = 0.65.
       final ctx = makeContext(

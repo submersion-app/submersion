@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -37,6 +38,10 @@ class ImportResult {
   bool get allSucceeded => failures.isEmpty;
 }
 
+/// Where the OCR scan flow files its logbook-page copies, relative to
+/// [kAppDocumentsFolder].
+const String kScannedLogsSubdirectory = 'scanned_logs';
+
 /// Service for importing photos from the device gallery into the app.
 ///
 /// Handles the full import flow:
@@ -64,12 +69,24 @@ class MediaImportService {
   /// enqueue an upload. Null when no store is configured.
   final void Function(String mediaId)? onMediaCreated;
 
-  /// Copies [sourceFile] into the app documents directory (subdir
-  /// [subdirectory]) and creates a localFile media row linked to [diveId].
+  /// The directory [importLocalFileForDive] writes into for [subdirectory]:
+  /// `<documents>/Submersion/<subdirectory>`, the same [kAppDocumentsFolder]
+  /// the database lives in.
   ///
-  /// [subdirectory] defaults to 'scanned_logs' for the OCR scan flow that
-  /// introduced this method; file imports pass their own so an imported
-  /// logbook's photos are not filed as scanned pages.
+  /// Public so the one-time folder migration can name the same destination
+  /// without a second copy of the layout.
+  static Directory destinationDirectory(
+    Directory documents,
+    String subdirectory,
+  ) => Directory(p.join(documents.path, kAppDocumentsFolder, subdirectory));
+
+  /// Copies [sourceFile] into the app's own folder under the documents
+  /// directory (see [destinationDirectory]) and creates a localFile media
+  /// row linked to [diveId].
+  ///
+  /// [subdirectory] defaults to [kScannedLogsSubdirectory] for the OCR scan
+  /// flow that introduced this method; file imports pass their own so an
+  /// imported logbook's photos are not filed as scanned pages.
   ///
   /// [latitude] and [longitude] are the photo's own coordinates when the
   /// source recorded them, which is not the same as the dive site's.
@@ -79,10 +96,10 @@ class MediaImportService {
     DateTime? takenAt,
     double? latitude,
     double? longitude,
-    String subdirectory = 'scanned_logs',
+    String subdirectory = kScannedLogsSubdirectory,
   }) async {
     final docs = await _documentsDirectory();
-    final dir = Directory(p.join(docs.path, subdirectory));
+    final dir = destinationDirectory(docs, subdirectory);
     await dir.create(recursive: true);
     final sourceExt = p.extension(sourceFile.path);
     final ext = sourceExt.isEmpty ? '.jpg' : sourceExt;

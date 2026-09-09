@@ -130,5 +130,59 @@ void main() {
         isNull,
       );
     });
+    group('totalDurationSeconds clamp', () {
+      // Issue #1642: a 13 s dive to 1.77 m whose sample stream keeps logging
+      // at the surface. Threshold = min(max(6, 0.58), 0.85 * 1.77 = 1.50) =
+      // 1.50 m, so the 1.55 m noise sample at t=368 becomes the ascent start
+      // and the unbounded answer is 368 s, longer than the whole dive.
+      const shallowWithSurfaceTail = [
+        (timestamp: 0, depth: 0.0),
+        (timestamp: 5, depth: 1.77),
+        (timestamp: 10, depth: 1.6),
+        (timestamp: 13, depth: 0.3),
+        (timestamp: 60, depth: 0.2),
+        (timestamp: 120, depth: 0.4),
+        (timestamp: 240, depth: 0.9),
+        (timestamp: 368, depth: 1.55),
+        (timestamp: 400, depth: 0.0),
+      ];
+
+      test('without a total duration the surface tail is counted', () {
+        expect(
+          BottomTimeCalculator.secondsFromSamples(shallowWithSurfaceTail),
+          368,
+        );
+      });
+
+      test('never exceeds the dive\'s own total duration', () {
+        expect(
+          BottomTimeCalculator.secondsFromSamples(
+            shallowWithSurfaceTail,
+            totalDurationSeconds: 13,
+          ),
+          13,
+        );
+      });
+
+      test('is a no-op when the result is already within bounds', () {
+        expect(
+          BottomTimeCalculator.secondsFromSamples(
+            multilevel,
+            totalDurationSeconds: 3600,
+          ),
+          3060,
+        );
+      });
+
+      test('a zero total duration yields null rather than zero', () {
+        expect(
+          BottomTimeCalculator.secondsFromSamples(
+            shallowWithSurfaceTail,
+            totalDurationSeconds: 0,
+          ),
+          isNull,
+        );
+      });
+    });
   });
 }

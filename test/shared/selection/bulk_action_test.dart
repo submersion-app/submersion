@@ -14,7 +14,7 @@ void main() {
     minCount: minCount,
     maxCount: maxCount,
     alwaysEnabled: alwaysEnabled,
-    onInvoke: () {},
+    onInvoke: () => BulkActionOutcome.completed,
   );
 
   group('BulkAction.isEnabledFor', () {
@@ -55,7 +55,7 @@ void main() {
         id: 'retire',
         icon: Icons.archive,
         label: 'Retire',
-        onInvoke: () {},
+        onInvoke: () => BulkActionOutcome.completed,
         isEnabled: (ids) => ids.every((id) => id.startsWith('active-')),
       );
       expect(action.isEnabledForSelection(2, {'active-1', 'active-2'}), isTrue);
@@ -72,7 +72,7 @@ void main() {
         icon: Icons.merge_type,
         label: 'Merge',
         minCount: 2,
-        onInvoke: () {},
+        onInvoke: () => BulkActionOutcome.completed,
         isEnabled: (ids) => true,
       );
       expect(action.isEnabledForSelection(1, {'a'}), isFalse);

@@ -88,16 +88,22 @@ Future<void> runDiveConsolidation({
 /// Maps a [DiveConsolidationService.apply] failure to user-visible text.
 ///
 /// `apply` throws [ArgumentError] whose message either starts with
-/// `sameComputer` (the service's own FK-level guard) or is
+/// `sameComputer` (the service's own FK-level guard) or embeds
 /// `DiveConsolidationBuilder.build`'s `ConsolidationInvalid(reason.name)`
-/// wrapper, which encodes the invalid-consolidation reason by name. Only the
-/// reasons that are actually surfaced with distinct copy are matched here;
-/// anything else -- including tooFewDives/mixedDivers, which do not have
-/// dedicated error strings -- falls back to the generic error text.
+/// wrapper, which encodes the invalid-consolidation reason by name. Both
+/// shapes are matched by substring: the wrapper prefixes the reason with
+/// `build() requires a consolidatable selection; got `, so a `startsWith`
+/// test could never see it, and a same-computer re-download -- which
+/// `classify` rejects on serial, long before the service reaches the
+/// computer FK -- reported only the generic "nothing was changed" text.
+///
+/// Only the reasons that are actually surfaced with distinct copy are
+/// matched here; anything else -- including tooFewDives/mixedDivers, which
+/// do not have dedicated error strings -- falls back to the generic text.
 String consolidationErrorText(AppLocalizations l10n, Object error) {
   if (error is ArgumentError) {
     final message = error.message?.toString() ?? '';
-    if (message.startsWith('sameComputer')) {
+    if (message.contains('sameComputer')) {
       return l10n.diveLog_consolidate_error_sameComputer;
     }
     if (message.contains('notOverlapping')) {

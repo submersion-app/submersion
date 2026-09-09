@@ -36,6 +36,7 @@ class _RecordingHostApi extends pigeon.DiveComputerHostApi {
   Future<void> startDownload(
     pigeon.DiscoveredDevice device,
     String? fingerprint,
+    bool syncClock,
   ) async {
     calls.add('startDownload');
     downloads.add(device);

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -15,7 +17,7 @@ void main() {
   Widget host({
     SelectionBarShell shell = SelectionBarShell.appBar,
     List<BulkAction> actions = const [],
-    VoidCallback? onDelete,
+    FutureOr<BulkActionOutcome> Function()? onDelete,
     int maxInlineActions = 3,
     List<String> selectableIds = const ['a', 'b', 'c'],
   }) {
@@ -24,7 +26,7 @@ void main() {
       selectableIds: selectableIds,
       actions: actions,
       shell: shell,
-      onDelete: onDelete ?? () {},
+      onDelete: onDelete ?? () => BulkActionOutcome.completed,
       maxInlineActions: maxInlineActions,
     );
     return testApp(
@@ -134,7 +136,14 @@ void main() {
     ) async {
       var deleted = false;
       controller.enterImplicit('a');
-      await tester.pumpWidget(host(onDelete: () => deleted = true));
+      await tester.pumpWidget(
+        host(
+          onDelete: () {
+            deleted = true;
+            return BulkActionOutcome.completed;
+          },
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('selection_overflow')));
       await tester.pumpAndSettle();
@@ -154,7 +163,7 @@ void main() {
               id: '__selection_delete__',
               icon: Icons.merge_type,
               label: 'Collides',
-              onInvoke: () {},
+              onInvoke: () => BulkActionOutcome.completed,
             ),
           ],
         ),
@@ -175,7 +184,7 @@ void main() {
               id: 'merge',
               icon: Icons.merge_type,
               label: 'Merge',
-              onInvoke: () {},
+              onInvoke: () => BulkActionOutcome.completed,
             ),
           ],
         ),
@@ -243,7 +252,7 @@ void main() {
               icon: Icons.merge_type,
               label: 'Merge',
               minCount: 2,
-              onInvoke: () {},
+              onInvoke: () => BulkActionOutcome.completed,
             ),
           ],
         ),
@@ -267,7 +276,10 @@ void main() {
               icon: Icons.merge_type,
               label: 'Merge',
               minCount: 2,
-              onInvoke: () => invoked = true,
+              onInvoke: () {
+                invoked = true;
+                return BulkActionOutcome.completed;
+              },
             ),
           ],
         ),
@@ -290,7 +302,7 @@ void main() {
               icon: Icons.date_range,
               label: 'By date range',
               alwaysEnabled: true,
-              onInvoke: () {},
+              onInvoke: () => BulkActionOutcome.completed,
             ),
           ],
         ),
@@ -314,13 +326,13 @@ void main() {
               id: 'one',
               icon: Icons.merge_type,
               label: 'One',
-              onInvoke: () {},
+              onInvoke: () => BulkActionOutcome.completed,
             ),
             BulkAction(
               id: 'two',
               icon: Icons.ios_share,
               label: 'Two',
-              onInvoke: () {},
+              onInvoke: () => BulkActionOutcome.completed,
             ),
           ],
         ),
@@ -347,7 +359,10 @@ void main() {
               id: 'two',
               icon: Icons.ios_share,
               label: 'Two',
-              onInvoke: () => invoked = true,
+              onInvoke: () {
+                invoked = true;
+                return BulkActionOutcome.completed;
+              },
             ),
           ],
         ),
@@ -372,7 +387,7 @@ void main() {
               id: 'merge',
               icon: Icons.merge_type,
               label: 'Merge',
-              onInvoke: () {},
+              onInvoke: () => BulkActionOutcome.completed,
             ),
           ],
         ),
@@ -391,6 +406,159 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('selection_overflow')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('selection_delete')), findsOneWidget);
+    });
+  });
+
+  group('SelectionAppBar action outcomes', () {
+    /// Puts the bar in an explicitly entered mode with one item checked, so
+    /// nothing but the dispatch under test can end the mode: an explicit mode
+    /// survives at zero checked, and one checked item enables every action.
+    void enterWithOneChecked() {
+      controller.enterExplicit();
+      controller.toggle('a');
+    }
+
+    BulkAction merge(
+      BulkActionOutcome outcome, {
+      bool exitsSelectionOnComplete = true,
+    }) => BulkAction(
+      id: 'merge',
+      icon: Icons.merge_type,
+      label: 'Merge',
+      exitsSelectionOnComplete: exitsSelectionOnComplete,
+      onInvoke: () async => outcome,
+    );
+
+    testWidgets('a completed action leaves selection mode', (tester) async {
+      enterWithOneChecked();
+      await tester.pumpWidget(
+        host(actions: [merge(BulkActionOutcome.completed)]),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_action_merge')));
+      await tester.pumpAndSettle();
+      expect(controller.value.isActive, isFalse);
+    });
+
+    testWidgets('a cancelled action keeps the selection', (tester) async {
+      enterWithOneChecked();
+      await tester.pumpWidget(
+        host(actions: [merge(BulkActionOutcome.cancelled)]),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_action_merge')));
+      await tester.pumpAndSettle();
+
+      // Backing out of a dialog did nothing, so the selection the diver built
+      // must still be there to act on.
+      expect(controller.value.isActive, isTrue);
+      expect(controller.value.checkedIds, {'a'});
+    });
+
+    testWidgets('a failed action keeps the selection for a retry', (
+      tester,
+    ) async {
+      enterWithOneChecked();
+      await tester.pumpWidget(host(actions: [merge(BulkActionOutcome.failed)]));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_action_merge')));
+      await tester.pumpAndSettle();
+      expect(controller.value.isActive, isTrue);
+      expect(controller.value.checkedIds, {'a'});
+    });
+
+    testWidgets('an action that builds the selection does not end the mode', (
+      tester,
+    ) async {
+      enterWithOneChecked();
+      await tester.pumpWidget(
+        host(
+          actions: [
+            merge(BulkActionOutcome.completed, exitsSelectionOnComplete: false),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_action_merge')));
+      await tester.pumpAndSettle();
+      expect(controller.value.isActive, isTrue);
+    });
+
+    testWidgets('a handler that throws keeps the selection', (tester) async {
+      // A throw is not a reported outcome, so the contract has to hold
+      // anyway: nothing completed, so the mode must survive and the diver
+      // keeps the rows they picked. The error itself belongs to the log, not
+      // to the zone, or it lands on whichever test happens to be running when
+      // it surfaces.
+      enterWithOneChecked();
+      await tester.pumpWidget(
+        host(
+          actions: [
+            BulkAction(
+              id: 'merge',
+              icon: Icons.merge_type,
+              label: 'Merge',
+              onInvoke: () async => throw StateError('merge blew up'),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_action_merge')));
+      await tester.pumpAndSettle();
+
+      expect(controller.value.isActive, isTrue);
+      expect(controller.value.checkedIds, {'a'});
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'the failure is logged against the bar, not left to the zone',
+      );
+    });
+
+    testWidgets('an overflow entry exits on the same rule as an inline icon', (
+      tester,
+    ) async {
+      enterWithOneChecked();
+      await tester.pumpWidget(
+        host(
+          maxInlineActions: 0,
+          actions: [merge(BulkActionOutcome.completed)],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_menu_merge')));
+      await tester.pumpAndSettle();
+      expect(controller.value.isActive, isFalse);
+    });
+
+    testWidgets('a completed delete leaves selection mode', (tester) async {
+      enterWithOneChecked();
+      await tester.pumpWidget(
+        host(onDelete: () async => BulkActionOutcome.completed),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_delete')));
+      await tester.pumpAndSettle();
+      expect(controller.value.isActive, isFalse);
+    });
+
+    testWidgets('a cancelled delete keeps the selection', (tester) async {
+      enterWithOneChecked();
+      await tester.pumpWidget(
+        host(onDelete: () async => BulkActionOutcome.cancelled),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_delete')));
+      await tester.pumpAndSettle();
+      expect(controller.value.isActive, isTrue);
+      expect(controller.value.checkedIds, {'a'});
     });
   });
 }

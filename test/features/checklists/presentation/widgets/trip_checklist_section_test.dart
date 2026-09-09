@@ -400,4 +400,33 @@ void main() {
       expect(clearItem.enabled, isFalse);
     });
   });
+
+  testWidgets('categories differing only in case form one group', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          tripChecklistProvider('t1').overrideWith(
+            (ref) async => [
+              _item(id: 'i1', title: 'Service regulator', category: 'Diving'),
+              _item(id: 'i2', title: 'Pack fins', category: 'diving'),
+              _item(id: 'i3', title: 'Book flights', category: 'Bookings'),
+            ],
+          ),
+        ],
+        child: SingleChildScrollView(
+          child: TripChecklistSection(trip: _trip(upcoming: true)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // One heading, labelled with the casing that appeared first.
+    expect(find.text('Diving'), findsOneWidget);
+    expect(find.text('diving'), findsNothing);
+    expect(find.text('Service regulator'), findsOneWidget);
+    expect(find.text('Pack fins'), findsOneWidget);
+    expect(find.text('Bookings'), findsOneWidget);
+  });
 }

@@ -14,16 +14,25 @@ import 'package:submersion/features/dive_log/domain/services/profile_series_merg
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 
 class QualityContextBuilder {
   QualityContextBuilder({
     DiveRepository? diveRepository,
     DiverSettingsRepository? settingsRepository,
+    TransmitterRepository? transmitterRepository,
   }) : _diveRepo = diveRepository ?? DiveRepository(),
-       _settingsRepo = settingsRepository ?? DiverSettingsRepository();
+       _settingsRepo = settingsRepository ?? DiverSettingsRepository(),
+       _transmitterRepo = transmitterRepository ?? TransmitterRepository();
 
   final DiveRepository _diveRepo;
   final DiverSettingsRepository _settingsRepo;
+  final TransmitterRepository _transmitterRepo;
+
+  /// Registered transmitter serials per diver id, resolved once per
+  /// [buildAll] batch. '' stands for the null diver, like the ppO2 cache.
+  final Map<String, Set<String>> _knownSerialsByDiver = {};
   final _profileSeries = ProfileSeriesRepository();
   final _tankSeries = TankPressureSeriesRepository();
   AppDatabase get _db => DatabaseService.instance.database;
@@ -38,6 +47,7 @@ class QualityContextBuilder {
   }) async {
     final effectiveNow = now ?? DateTime.now();
     _ppO2MaxByDiver.clear();
+    _knownSerialsByDiver.clear();
     final dives = await _diveRepo.getDivesByIds(diveIds);
     final out = <DiveQualityContext>[];
     for (final dive in dives) {
@@ -58,6 +68,22 @@ class QualityContextBuilder {
       if (settings != null) value = settings.ppO2MaxDeco;
     }
     _ppO2MaxByDiver[key] = value;
+    return value;
+  }
+
+  Future<Set<String>> _knownSerials(String? diverId) async {
+    final key = diverId ?? '';
+    final cached = _knownSerialsByDiver[key];
+    if (cached != null) return cached;
+    Set<String> value;
+    try {
+      value = Transmitter.knownSerials(
+        await _transmitterRepo.getForDiver(diverId),
+      );
+    } catch (_) {
+      value = const {};
+    }
+    _knownSerialsByDiver[key] = value;
     return value;
   }
 
@@ -118,6 +144,7 @@ class QualityContextBuilder {
       gasSwitches: switches,
       neighbors: neighbors,
       ppO2MaxBar: await _ppO2Max(dive.diverId),
+      knownTransmitterSerials: await _knownSerials(dive.diverId),
     );
   }
 
