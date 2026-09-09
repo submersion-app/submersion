@@ -24,7 +24,10 @@ import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dia
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sections.dart';
+import 'package:submersion/features/dive_log/presentation/providers/trip_group_collapse_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
@@ -1540,10 +1543,83 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       fullDiveLookup = {};
     }
 
-    // +1 for loading indicator when more pages are available
-    final itemCount =
-        dives.length +
-        (paginatedState.hasMore || paginatedState.isLoadingMore ? 1 : 0);
+    // Trip grouping (#1193). Disabled unless the toggle is on, the sort is
+    // chronological and the view mode is a card mode; see
+    // [diveListGroupingEnabledProvider].
+    final groupingEnabled = ref.watch(diveListGroupingEnabledProvider);
+    final collapsedTripIds = ref.watch(collapsedTripIdsProvider);
+    final tripTotals =
+        ref.watch(tripDiveCountsProvider).whenOrNull(data: (m) => m) ??
+        const <String, int>{};
+
+    // Never fold away the dive the diver is looking at: the row open in the
+    // detail pane, or the highlighted one, keeps its trip expanded.
+    final openDiveId =
+        widget.selectedId ?? ref.watch(highlightedDiveIdProvider);
+    String? openDiveTripId;
+    if (openDiveId != null) {
+      for (final dive in dives) {
+        if (dive.id == openDiveId) {
+          openDiveTripId = dive.tripId;
+          break;
+        }
+      }
+    }
+
+    final sections = buildDiveListSections(
+      dives: dives,
+      groupingEnabled: groupingEnabled,
+      collapsedTripIds: collapsedTripIds,
+      tripTotals: tripTotals,
+      forceExpandedTripId: openDiveTripId,
+    );
+
+    // Taps, ranges and prev/next walk what the diver can actually see, so a
+    // shift-range never sweeps up rows folded inside a collapsed trip.
+    final visibleDives = visibleDivesOf(sections);
+
+    // One closure over every per-build value, shared by all the sliver
+    // builders below. Hoisting these to fields would risk a row reading a
+    // stale one; a closure cannot.
+    Widget rowFor(DiveListEntry entry) {
+      final dive = entry.dive;
+      final isSelected = _selectedIds.contains(dive.id);
+      final isMasterSelected = widget.selectedId == dive.id;
+      final isHighlighted = ref.watch(highlightedDiveIdProvider) == dive.id;
+      // Shared renderer: honours the active view mode and card config, and
+      // keeps the home Recent dives list in sync (#506). Nothing here varies
+      // with grouping, which is what keeps a grouped card exactly as wide as
+      // a loose one (#1193).
+      return DiveListItem(
+        summary: dive,
+        diveTypeLabelResolver: diveTypeLabelResolver,
+        diveTypeShortLabelResolver: diveTypeShortLabelResolver,
+        diveTypeListVisibilityPredicate: diveTypeListVisibilityPredicate,
+        fullDive: fullDiveLookup[dive.id],
+        // The flat index, not a position within the section: the badge
+        // numbers dives by their place in the whole list.
+        diveNumber: dive.diveNumber ?? entry.flatIndex + 1,
+        colorValue: getCardColorValue(dive, colorAttribute),
+        minValueInList: minValue,
+        maxValueInList: maxValue,
+        gradientStartColor: gradientColors.start,
+        gradientEndColor: gradientColors.end,
+        isSelectionMode: _isSelectionMode,
+        isChecked: isSelected,
+        isHighlighted: isMasterSelected || isHighlighted,
+        onTap: () => _handleRowTap(dive.id, visibleDives),
+      );
+    }
+
+    Widget sliverForEntries(List<DiveListEntry> entries) {
+      return SliverList.builder(
+        itemCount: entries.length,
+        itemBuilder: (context, index) => rowFor(entries[index]),
+      );
+    }
+
+    final showTrailingRow =
+        paginatedState.hasMore || paginatedState.isLoadingMore;
 
     return RefreshIndicator(
       onRefresh: () => ref.read(paginatedDiveListProvider.notifier).refresh(),
@@ -1551,51 +1627,103 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         children: [
           if (hasActiveFilters) _buildActiveFiltersBar(context),
           Expanded(
-            child: ListView.builder(
+            child: CustomScrollView(
               controller: _scrollController,
-              padding: const EdgeInsets.only(bottom: 80),
-              itemCount: itemCount,
-              itemBuilder: (context, index) {
-                // Loading indicator at the end
-                if (index >= dives.length) {
-                  if (paginatedState.loadMoreFailed) {
-                    return _buildLoadMoreFailedRow(context);
-                  }
-                  _loadNextPageIfStranded(paginatedState);
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
+              slivers: [
+                for (final section in sections)
+                  if (section is TripSection)
+                    _buildTripSectionSliver(context, section, sliverForEntries)
+                  else
+                    sliverForEntries(section.entries),
+                if (showTrailingRow)
+                  SliverToBoxAdapter(
+                    child: _buildTrailingRow(context, paginatedState),
+                  ),
+                // Clears the FAB, matching the old list's bottom padding.
+                const SliverToBoxAdapter(child: SizedBox(height: 80)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-                final dive = dives[index];
-                final isSelected = _selectedIds.contains(dive.id);
-                final isMasterSelected = widget.selectedId == dive.id;
-                final isHighlighted =
-                    ref.watch(highlightedDiveIdProvider) == dive.id;
-                // Shared renderer: honours the active view mode and card
-                // config, and keeps the home Recent dives list in sync (#506).
-                return DiveListItem(
-                  summary: dive,
-                  diveTypeLabelResolver: diveTypeLabelResolver,
-                  diveTypeShortLabelResolver: diveTypeShortLabelResolver,
-                  diveTypeListVisibilityPredicate:
-                      diveTypeListVisibilityPredicate,
-                  fullDive: fullDiveLookup[dive.id],
-                  diveNumber: dive.diveNumber ?? index + 1,
-                  colorValue: getCardColorValue(dive, colorAttribute),
-                  minValueInList: minValue,
-                  maxValueInList: maxValue,
-                  gradientStartColor: gradientColors.start,
-                  gradientEndColor: gradientColors.end,
-                  isSelectionMode: _isSelectionMode,
-                  isChecked: isSelected,
-                  isHighlighted: isMasterSelected || isHighlighted,
-                  onTap: () => _handleRowTap(dive.id, dives),
-                );
+  /// The trailing loader or retry row.
+  ///
+  /// Deliberately a built widget rather than a scroll-offset check: when the
+  /// list shrinks under a position already at the bottom, or when collapsed
+  /// trips leave a freshly loaded page almost entirely invisible, Flutter
+  /// clamps the offset during layout without notifying scroll listeners.
+  /// Building this row is the only signal that survives (#1610).
+  Widget _buildTrailingRow(
+    BuildContext context,
+    PaginatedDiveListState paginatedState,
+  ) {
+    if (paginatedState.loadMoreFailed) {
+      return _buildLoadMoreFailedRow(context);
+    }
+    _loadNextPageIfStranded(paginatedState);
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 16),
+      child: Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  /// One trip: a faint full-bleed band behind a pinned header and its dives.
+  ///
+  /// The band is a [DecoratedSliver] rather than a widget wrapping the rows,
+  /// for two reasons. It keeps the rows lazily built, and it makes the grouped
+  /// region WIDER than the cards it contains rather than narrower, which is
+  /// the whole constraint of #1193. Nothing in here may touch the cards' own
+  /// margins.
+  Widget _buildTripSectionSliver(
+    BuildContext context,
+    TripSection section,
+    Widget Function(List<DiveListEntry>) sliverForEntries,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    final groupIds = section.entries.map((e) => e.dive.id).toList();
+    final checkedInGroup = groupIds.where(_selectedIds.contains).length;
+    final bool? groupChecked = checkedInGroup == 0
+        ? false
+        : (checkedInGroup == groupIds.length ? true : null);
+
+    return DecoratedSliver(
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer.withValues(alpha: 0.14),
+        border: Border(
+          top: BorderSide(color: scheme.secondary.withValues(alpha: 0.22)),
+          bottom: BorderSide(color: scheme.secondary.withValues(alpha: 0.22)),
+        ),
+      ),
+      sliver: SliverMainAxisGroup(
+        slivers: [
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: TripGroupHeaderDelegate(
+              section: section,
+              extent: tripGroupHeaderExtent(context),
+              onToggle: () => ref
+                  .read(collapsedTripIdsProvider.notifier)
+                  .toggle(section.tripId),
+              onOpenTrip: () => context.push('/trips/${section.tripId}'),
+              isSelectionMode: _isSelectionMode,
+              groupChecked: groupChecked,
+              onGroupCheckedChanged: (_) {
+                // Loaded dives only, matching the existing select-all: the
+                // list can only act on rows it holds.
+                if (checkedInGroup == groupIds.length) {
+                  _selection.replaceChecked(
+                    _selectedIds.where((id) => !groupIds.contains(id)).toList(),
+                  );
+                } else {
+                  _selection.selectAll([..._selectedIds, ...groupIds]);
+                }
               },
             ),
           ),
+          if (!section.collapsed) sliverForEntries(section.entries),
         ],
       ),
     );
