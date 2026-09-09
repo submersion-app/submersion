@@ -2329,6 +2329,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_item_valueMax => '最大值（警告）';
 
   @override
+  String get preDive_item_type_cellLinearity => '氧电池线性度';
+
+  @override
+  String get preDive_item_sourceItem => '空气读数来自';
+
+  @override
+  String get preDive_item_sourceItemRequired => '选择包含空气读数的项目';
+
+  @override
+  String get preDive_item_linearityMin => '最小线性度 %（警告）';
+
+  @override
+  String get preDive_item_linearityMax => '最大线性度 %（警告）';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return '$title 已没有可对比的空气读数';
+  }
+
+  @override
+  String get preDive_item_sourceBelow => '引用的数值在本列表中位于其后';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done/$total';
   }
@@ -2364,6 +2387,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => '输入数值';
+
+  @override
+  String get preDive_runner_cellInAir => '空气中';
+
+  @override
+  String get preDive_runner_cellInAirMissing => '尚未记录';
+
+  @override
+  String get preDive_runner_enterO2Value => '输入纯氧中的数值';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return '预期 $expected mV，线性度 $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return '空气 $air mV，预期 $expected mV，线性度 $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged => '空气读数此后已更改';
 
   @override
   String preDive_runner_flaggedBadge(int count) {
@@ -7304,6 +7353,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => '移除气瓶';
 
   @override
+  String get diveLog_tank_regulatorLabel => '调节器';
+
+  @override
+  String get diveLog_tank_regulatorNone => '无';
+
+  @override
   String get diveLog_tissue_label_ceiling => '上升限制';
 
   @override
@@ -9955,6 +10010,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => '氧电池';
+
+  @override
+  String get enum_equipmentType_battery => '电池';
+
+  @override
   String get enum_equipmentType_computer => '潜水电脑';
 
   @override
@@ -10786,6 +10847,34 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return '海水小时数剩余 $remaining / $total';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return '冷水潜水剩余 $remaining / $total 次';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return '高氧小时数剩余 $remaining / $total';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return '深潜剩余 $remaining / $total 次';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return '电池循环剩余 $remaining / $total 次';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => '管理维护类型';
 
   @override
@@ -10805,6 +10894,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => '间隔（小时）';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours => '间隔（海水小时数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives => '间隔（冷水潜水次数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours => '间隔（高氧小时数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles => '间隔（深潜次数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles => '间隔（电池循环次数）';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -11140,6 +11244,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_statusLabel => '状态';
+
+  @override
+  String get equipment_edit_parentLabel => '安装于';
+
+  @override
+  String get equipment_edit_parentNone => '未安装';
 
   @override
   String get equipment_edit_thicknessDesignationHint => '例如：5, 5/4, 7/5/3';
@@ -22688,21 +22798,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '以到达水面时的压力作为结束压力，而不是记录结束时的压力';
 
   @override
-  String get settings_cloudImportPageSize_title => '云导入分页大小';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      '每次从 Suunto Cloud 或 Garmin Connect 获取多少条最新潜水记录。「加载更多」会获取同样大小的下一批。';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => '每页潜水次数';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return '$min 到 $max 之间';
-  }
-
-  @override
   String get settings_siteMatch_strict => '严格';
 
   @override
@@ -24379,6 +24474,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_burn_time_h => '续航时间';
 
   @override
+  String get attrLabel_cell_slot => '电池槽位';
+
+  @override
+  String get attrLabel_installed_date => '安装日期';
+
+  @override
+  String get attrLabel_rechargeable => '可充电';
+
+  @override
   String get attrLabel_battery_type => '电池';
 
   @override
@@ -24695,6 +24799,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => '铅酸';
+
+  @override
+  String get attrChoice_battery_type_alkaline => '碱性';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary => '锂（不可充电）';
 
   @override
   String get attrChoice_motor_type_brushless => '无刷';
@@ -25210,6 +25320,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle => '回顾规则与潜水后飞行';
+
+  @override
+  String get settings_section_equipmentCondition_title => '装备状况';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle => '保养计时的暴露阈值';
+
+  @override
+  String get equipmentConditionSettings_title => '装备状况';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => '暴露阈值';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      '潜水越过这些界线时，保养计时将其计为冷水、深潜或高氧。';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => '冷水低于';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => '深潜达到或超过';
+
+  @override
+  String get equipmentConditionSettings_o2Label => '高氧混合气高于（% O2）';
+
+  @override
+  String get equipmentConditionSettings_invalid => '请输入数字';
+
+  @override
+  String get equipmentConditionSettings_saveFailed => '无法保存。请重试。';
 
   @override
   String get settings_section_security_title => '应用安全';

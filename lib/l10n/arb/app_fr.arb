@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "Lien copié. Collez-le dans votre navigateur pour autoriser l'accès.",
   "universalImport_action_importFromGarmin": "Importer depuis l'appareil Garmin",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "Cellule O2",
+  "enum_equipmentType_battery": "Batterie",
   "diveLog_tank_saveAsPreset": "Enregistrer comme preset",
   "diveLog_tank_saveAsPreset_needSpecs": "Saisissez d'abord un volume et une pression de service",
   "diveLog_tank_saveAsPreset_nameTitle": "Enregistrer le preset de bloc",
@@ -976,6 +978,20 @@
   "preDive_item_valueUnit": "Unité",
   "preDive_item_valueMin": "Min (avertissement)",
   "preDive_item_valueMax": "Max (avertissement)",
+  "preDive_item_type_cellLinearity": "Linéarité de la cellule",
+  "preDive_item_sourceItem": "Mesure dans l'air de",
+  "preDive_item_sourceItemRequired": "Choisis l'élément contenant la mesure dans l'air",
+  "preDive_item_linearityMin": "Linéarité min. % (alerte)",
+  "preDive_item_linearityMax": "Linéarité max. % (alerte)",
+  "preDive_item_sourceCleared": "{title} n'a plus de mesure dans l'air à laquelle se comparer",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Utilise une valeur enregistrée plus loin dans cette liste",
   "preDive_runner_progress": "{done} sur {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1020,35 @@
   "preDive_runner_serviceOverdue": "Entretien en retard",
   "preDive_runner_addNote": "Ajouter une note",
   "preDive_runner_enterValue": "Saisir une valeur",
+  "preDive_runner_cellInAir": "Dans l'air",
+  "preDive_runner_cellInAirMissing": "Pas encore enregistré",
+  "preDive_runner_enterO2Value": "Saisir la valeur en O2",
+  "preDive_runner_linearityReadout": "Attendu {expected} mV, linéarité {percent} %",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Air {air} mV, attendu {expected} mV, linéarité {percent} %",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "La mesure dans l'air a changé depuis",
   "preDive_runner_flaggedBadge": "{count} signalés",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2549,6 +2594,8 @@
   "diveLog_tank_selectPreset": "Sélectionner un preset...",
   "diveLog_tank_title": "Bloc {number}",
   "diveLog_tank_tooltip_remove": "Retirer le bloc",
+  "diveLog_tank_regulatorLabel": "Détendeur",
+  "diveLog_tank_regulatorNone": "Aucun",
   "diveLog_tissue_label_ceiling": "Plafond",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3615,6 +3662,61 @@
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Calculé à partir du temps de plongée enregistré",
   "equipment_serviceClocks_hoursLeft": "{remaining} heures restantes sur {total}",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} sur {total} heures en eau salée restantes",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} sur {total} plongées en eau froide restantes",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} sur {total} heures à haut O2 restantes",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} sur {total} plongées profondes restantes",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} sur {total} cycles de batterie restants",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Gérer les types d'entretien",
   "equipment_serviceClocks_appliesToClock": "S'applique au compteur",
   "equipment_serviceClocks_noClockOption": "Non lié à un compteur",
@@ -3622,6 +3724,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervalle (jours)",
   "equipment_scheduleDialog_intervalDives": "Intervalle (plongées)",
   "equipment_scheduleDialog_intervalHours": "Intervalle (heures)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervalle (heures en eau salée)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervalle (plongées en eau froide)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervalle (heures à haut O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervalle (plongées profondes)",
+  "equipment_scheduleDialog_intervalCycles": "Intervalle (cycles de batterie)",
   "equipment_scheduleDialog_inheritHint": "Par défaut : {value}",
   "equipment_scheduleDialog_anchorDate": "Date de référence",
   "equipment_scheduleDialog_anchorHint": "Utilisée lorsqu'aucun entretien de ce type n'a encore été enregistré",
@@ -3720,6 +3827,8 @@
   "equipment_edit_snackbar_error": "Erreur d'enregistrement de l'équipement : {error}",
   "equipment_edit_snackbar_updated": "Équipement mis à jour",
   "equipment_edit_statusLabel": "Statut",
+  "equipment_edit_parentLabel": "Installé dans",
+  "equipment_edit_parentNone": "Installé nulle part",
   "equipment_edit_thicknessDesignationHint": "ex: 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "par ex. shop.example.com/product",
   "equipment_edit_thicknessHint": "ex: 5mm, 7mm",
@@ -6501,10 +6610,6 @@
   "settings_siteMatch_subtitle": "À quel point les plongées téléchargées sont associées aux sites",
   "settings_tankPressureAtSurfacing_title": "Pression du bloc à l'arrivée en surface",
   "settings_tankPressureAtSurfacing_subtitle": "Relever la pression finale à l'arrivée en surface, et non à la fin de l'enregistrement",
-  "settings_cloudImportPageSize_title": "Taille de page d'import cloud",
-  "settings_cloudImportPageSize_subtitle": "Combien des plongées les plus récentes charger à la fois depuis Suunto Cloud ou Garmin Connect. « Charger plus » récupère le lot suivant de la même taille.",
-  "settings_cloudImportPageSize_dialogTitle": "Plongées par page",
-  "settings_cloudImportPageSize_range": "Entre {min} et {max}",
   "settings_siteMatch_strict": "Strict",
   "settings_siteMatch_balanced": "Équilibré",
   "settings_siteMatch_relaxed": "Souple",
@@ -7458,6 +7563,9 @@
   "attrLabel_o2_cylinder_l": "Bouteille d'O2",
   "attrLabel_dpv_style": "Style",
   "attrLabel_burn_time_h": "Autonomie",
+  "attrLabel_cell_slot": "Emplacement de la cellule",
+  "attrLabel_installed_date": "Installée le",
+  "attrLabel_rechargeable": "Rechargeable",
   "attrLabel_battery_type": "Batterie",
   "attrLabel_battery_capacity_wh": "Capacité de la batterie (Wh)",
   "attrLabel_motor_type": "Moteur",
@@ -7564,6 +7672,8 @@
   "attrChoice_battery_type_lithium_ion": "Lithium-ion",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Plomb-acide",
+  "attrChoice_battery_type_alkaline": "Alcaline",
+  "attrChoice_battery_type_lithium_primary": "Lithium (non rechargeable)",
   "attrChoice_motor_type_brushless": "Sans balais",
   "attrChoice_motor_type_brushed": "À balais",
   "attrChoice_sleeve_length_short": "Courtes",
@@ -8018,6 +8128,16 @@
   "planning_card_noFly_subtitle": "Compte à rebours indicatif depuis vos dernières plongées",
   "settings_section_safety_title": "Sécurité",
   "settings_section_safety_subtitle": "Règles du bilan et vol après la plongée",
+  "settings_section_equipmentCondition_title": "État du matériel",
+  "settings_section_equipmentCondition_subtitle": "Seuils d'exposition pour les compteurs d'entretien",
+  "equipmentConditionSettings_title": "État du matériel",
+  "equipmentConditionSettings_thresholdsHeader": "Seuils d'exposition",
+  "equipmentConditionSettings_thresholdsHelp": "Une plongée compte comme froide, profonde ou à haut O2 pour les compteurs d'entretien lorsqu'elle franchit ces seuils.",
+  "equipmentConditionSettings_coldLabel": "Eau froide en dessous de",
+  "equipmentConditionSettings_deepLabel": "Plongée profonde à partir de",
+  "equipmentConditionSettings_o2Label": "Mélange à haut O2 au-dessus de (% O2)",
+  "equipmentConditionSettings_invalid": "Saisissez un nombre",
+  "equipmentConditionSettings_saveFailed": "Enregistrement impossible. Réessayez.",
   "dataQuality_inbox_title": "Qualité des données",
   "dataQuality_dive_unknown": "Détails de la plongée indisponibles",
   "dataQuality_dive_number": "n°{number}",

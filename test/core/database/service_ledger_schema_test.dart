@@ -47,7 +47,6 @@ void main() {
       'o2-clean',
       'regulator-service',
       'computer-battery',
-      'transmitter-battery',
       'bcd-inspection',
       'drysuit-seals',
       'general-service',
@@ -65,6 +64,10 @@ void main() {
         reason: '$id must not gain an hours interval',
       );
     }
+    // v202: the transmitter battery is the one calendar-era kind that gained
+    // an hours clock (250 h sits below the roughly 300 h published for
+    // common transmitters).
+    expect(byId['transmitter-battery']!.defaultIntervalHours, 250.0);
 
     expect(byId['vip']!.defaultIntervalDays, 365);
     expect(byId['o2-clean']!.autoAttach, isFalse);
@@ -100,8 +103,12 @@ void main() {
 
     expect(byId['rebreather-annual']!.defaultIntervalDays, 365);
 
+    // v202: cells became child items, so their replacement clock can sit on
+    // the cell itself as well as on the unit.
+    expect(cells.applicableTypes, '["rebreather","o2Cell"]');
+    expect(scrubber.applicableTypes, '["rebreather"]');
+    expect(byId['rebreather-annual']!.applicableTypes, '["rebreather"]');
     for (final kind in byId.values) {
-      expect(kind.applicableTypes, '["rebreather"]', reason: kind.id);
       expect(kind.isBuiltIn, isTrue, reason: kind.id);
     }
   });

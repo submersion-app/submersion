@@ -43,6 +43,11 @@ enum EquipmentType {
   gloves('Gloves'),
   boots('Boots'),
   dpv('DPV'),
+  // Consumable parts that live inside another item (spec: equipment
+  // condition intelligence). Both are children of a parent item and inherit
+  // its dives from their install date.
+  o2Cell('O2 Cell'),
+  battery('Battery'),
   other('Other');
 
   final String displayName;

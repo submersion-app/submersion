@@ -74,6 +74,11 @@ abstract final class EquipmentAttrKeys {
   static const sku = 'sku';
   static const retailer = 'retailer';
   static const productUrl = 'product_url';
+
+  // Child items (o2Cell, battery).
+  static const cellSlot = 'cell_slot';
+  static const installedDate = 'installed_date';
+  static const rechargeable = 'rechargeable';
 }
 
 class EquipmentAttributeDef {
@@ -448,7 +453,13 @@ abstract final class EquipmentAttributeCatalog {
       EquipmentAttributeDef(
         key: 'battery_type',
         kind: AttributeKind.choice,
-        choiceKeys: ['lithium_ion', 'nimh', 'lead_acid'],
+        choiceKeys: [
+          'lithium_ion',
+          'nimh',
+          'lead_acid',
+          'alkaline',
+          'lithium_primary',
+        ],
       ),
       // Watt-hours: the figure printed on the pack and the one airlines ask
       // about, universal in every market.
@@ -551,6 +562,37 @@ abstract final class EquipmentAttributeCatalog {
         key: 'sole_type',
         kind: AttributeKind.choice,
         choiceKeys: ['hard', 'soft'],
+      ),
+    ],
+    EquipmentType.o2Cell: [
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.cellSlot,
+        kind: AttributeKind.number,
+      ),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.installedDate,
+        kind: AttributeKind.date,
+      ),
+    ],
+    EquipmentType.battery: [
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.installedDate,
+        kind: AttributeKind.date,
+      ),
+      EquipmentAttributeDef(
+        key: 'battery_type',
+        kind: AttributeKind.choice,
+        choiceKeys: [
+          'lithium_ion',
+          'nimh',
+          'lead_acid',
+          'alkaline',
+          'lithium_primary',
+        ],
+      ),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.rechargeable,
+        kind: AttributeKind.flag,
       ),
     ],
     EquipmentType.other: [],

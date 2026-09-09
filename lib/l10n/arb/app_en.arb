@@ -1554,6 +1554,20 @@
   "preDive_item_valueUnit": "Unit",
   "preDive_item_valueMin": "Min (warning)",
   "preDive_item_valueMax": "Max (warning)",
+  "preDive_item_type_cellLinearity": "Cell linearity",
+  "preDive_item_sourceItem": "Air reading from",
+  "preDive_item_sourceItemRequired": "Choose the item holding the air reading",
+  "preDive_item_linearityMin": "Min linearity % (warning)",
+  "preDive_item_linearityMax": "Max linearity % (warning)",
+  "preDive_item_sourceCleared": "{title} no longer has an air reading to compare against",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Reads a value recorded later in this list",
   "preDive_runner_progress": "{done} of {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1582,6 +1596,35 @@
   "preDive_runner_serviceOverdue": "Service overdue",
   "preDive_runner_addNote": "Add note",
   "preDive_runner_enterValue": "Enter value",
+  "preDive_runner_cellInAir": "In air",
+  "preDive_runner_cellInAirMissing": "Not yet recorded",
+  "preDive_runner_enterO2Value": "Enter value in O2",
+  "preDive_runner_linearityReadout": "Expected {expected} mV, linearity {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Air {air} mV, expected {expected} mV, linearity {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "Air reading has changed since",
   "preDive_runner_flaggedBadge": "{count} flagged",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -4099,6 +4142,8 @@
   },
   "diveLog_tank_title": "Tank {number}",
   "diveLog_tank_tooltip_remove": "Remove tank",
+  "diveLog_tank_regulatorLabel": "Regulator",
+  "diveLog_tank_regulatorNone": "None",
   "diveLog_tissue_label_ceiling": "Ceiling",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -6090,6 +6135,8 @@
   "enum_equipmentType_boots": "Boots",
   "enum_equipmentType_camera": "Camera",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "O2 cell",
+  "enum_equipmentType_battery": "Battery",
   "enum_equipmentType_computer": "Dive Computer",
   "enum_equipmentType_drysuit": "Drysuit",
   "enum_equipmentType_baselayer": "Base Layer",
@@ -6395,6 +6442,61 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} of {total} salt-water hours left",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} of {total} cold dives left",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} of {total} high-O2 hours left",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} of {total} deep dives left",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} of {total} battery cycles left",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Manage service types",
   "equipment_serviceClocks_appliesToClock": "Applies to clock",
   "equipment_serviceClocks_noClockOption": "Not tied to a clock",
@@ -6402,6 +6504,11 @@
   "equipment_scheduleDialog_intervalDays": "Interval (days)",
   "equipment_scheduleDialog_intervalDives": "Interval (dives)",
   "equipment_scheduleDialog_intervalHours": "Interval (hours)",
+  "equipment_scheduleDialog_intervalSaltHours": "Interval (salt-water hours)",
+  "equipment_scheduleDialog_intervalColdDives": "Interval (cold dives)",
+  "equipment_scheduleDialog_intervalO2Hours": "Interval (high-O2 hours)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Interval (deep dives)",
+  "equipment_scheduleDialog_intervalCycles": "Interval (battery cycles)",
   "equipment_scheduleDialog_inheritHint": "Default: {value}",
   "@equipment_scheduleDialog_inheritHint": {
     "placeholders": {
@@ -6593,6 +6700,8 @@
   "equipment_edit_snackbar_error": "Error saving equipment: {error}",
   "equipment_edit_snackbar_updated": "Equipment updated",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_parentLabel": "Installed in",
+  "equipment_edit_parentNone": "Not installed in anything",
   "equipment_edit_thicknessDesignationHint": "e.g., 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "e.g., shop.example.com/product",
   "equipment_edit_thicknessHint": "e.g., 5mm, 7mm",
@@ -15356,23 +15465,6 @@
   "settings_siteMatch_subtitle": "How aggressively downloaded dives are matched to sites",
   "settings_tankPressureAtSurfacing_title": "Tank pressure at surfacing",
   "settings_tankPressureAtSurfacing_subtitle": "Read end pressure when you reached the surface, not when the computer stopped recording",
-  "settings_cloudImportPageSize_title": "Cloud import page size",
-  "settings_cloudImportPageSize_subtitle": "How many of the latest dives to fetch at a time from Suunto Cloud or Garmin Connect. Load More fetches the next batch of the same size.",
-  "settings_cloudImportPageSize_dialogTitle": "Dives per page",
-  "settings_cloudImportPageSize_range": "Between {min} and {max}",
-  "@settings_cloudImportPageSize_range": {
-    "description": "Helper text under the cloud import page size field showing the allowed range",
-    "placeholders": {
-      "min": {
-        "type": "Object",
-        "example": "1"
-      },
-      "max": {
-        "type": "Object",
-        "example": "100"
-      }
-    }
-  },
   "settings_siteMatch_strict": "Strict",
   "settings_siteMatch_balanced": "Balanced",
   "settings_siteMatch_relaxed": "Relaxed",
@@ -16568,6 +16660,9 @@
   "attrLabel_o2_cylinder_l": "O2 cylinder",
   "attrLabel_dpv_style": "Style",
   "attrLabel_burn_time_h": "Burn time",
+  "attrLabel_cell_slot": "Cell slot",
+  "attrLabel_installed_date": "Installed",
+  "attrLabel_rechargeable": "Rechargeable",
   "attrLabel_battery_type": "Battery",
   "attrLabel_battery_capacity_wh": "Battery capacity (Wh)",
   "attrLabel_motor_type": "Motor",
@@ -16674,6 +16769,8 @@
   "attrChoice_battery_type_lithium_ion": "Lithium-ion",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Lead-acid",
+  "attrChoice_battery_type_alkaline": "Alkaline",
+  "attrChoice_battery_type_lithium_primary": "Lithium (non-rechargeable)",
   "attrChoice_motor_type_brushless": "Brushless",
   "attrChoice_motor_type_brushed": "Brushed",
   "attrChoice_sleeve_length_short": "Short",
@@ -16965,6 +17062,16 @@
   "planning_card_noFly_subtitle": "Guideline countdown from your last dives",
   "settings_section_safety_title": "Safety",
   "settings_section_safety_subtitle": "Review rules & flying after diving",
+  "settings_section_equipmentCondition_title": "Equipment condition",
+  "settings_section_equipmentCondition_subtitle": "Exposure thresholds for service clocks",
+  "equipmentConditionSettings_title": "Equipment condition",
+  "equipmentConditionSettings_thresholdsHeader": "Exposure thresholds",
+  "equipmentConditionSettings_thresholdsHelp": "A dive counts as cold, deep or high-O2 for service clocks when it crosses these lines.",
+  "equipmentConditionSettings_coldLabel": "Cold water below",
+  "equipmentConditionSettings_deepLabel": "Deep dive at or beyond",
+  "equipmentConditionSettings_o2Label": "High-O2 mix above (% O2)",
+  "equipmentConditionSettings_invalid": "Enter a number",
+  "equipmentConditionSettings_saveFailed": "Could not save. Try again.",
   "settings_section_security_title": "App Security",
   "settings_section_security_subtitle": "App lock & database encryption",
   "settings_section_trimixMixer_title": "Trimix Mixer",

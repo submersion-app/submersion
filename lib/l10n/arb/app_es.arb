@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "Enlace copiado. Pégalo en tu navegador para autorizar.",
   "universalImport_action_importFromGarmin": "Importar desde dispositivo Garmin",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "Célula de O2",
+  "enum_equipmentType_battery": "Batería",
   "diveLog_tank_saveAsPreset": "Guardar como preajuste",
   "diveLog_tank_saveAsPreset_needSpecs": "Introduce primero un volumen y una presión de trabajo",
   "diveLog_tank_saveAsPreset_nameTitle": "Guardar preajuste de tanque",
@@ -976,6 +978,20 @@
   "preDive_item_valueUnit": "Unidad",
   "preDive_item_valueMin": "Mín. (aviso)",
   "preDive_item_valueMax": "Máx. (aviso)",
+  "preDive_item_type_cellLinearity": "Linealidad de la célula",
+  "preDive_item_sourceItem": "Lectura en aire de",
+  "preDive_item_sourceItemRequired": "Elige el elemento con la lectura en aire",
+  "preDive_item_linearityMin": "Linealidad mín. % (aviso)",
+  "preDive_item_linearityMax": "Linealidad máx. % (aviso)",
+  "preDive_item_sourceCleared": "{title} ya no tiene una lectura en aire con la que compararse",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Usa un valor registrado más adelante en esta lista",
   "preDive_runner_progress": "{done} de {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1020,35 @@
   "preDive_runner_serviceOverdue": "Mantenimiento vencido",
   "preDive_runner_addNote": "Agregar nota",
   "preDive_runner_enterValue": "Introducir valor",
+  "preDive_runner_cellInAir": "En aire",
+  "preDive_runner_cellInAirMissing": "Aún no registrado",
+  "preDive_runner_enterO2Value": "Introduce el valor en O2",
+  "preDive_runner_linearityReadout": "Esperado {expected} mV, linealidad {percent} %",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Aire {air} mV, esperado {expected} mV, linealidad {percent} %",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "La lectura en aire ha cambiado desde entonces",
   "preDive_runner_flaggedBadge": "{count} marcados",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2633,6 +2678,8 @@
   "diveLog_tank_selectPreset": "Seleccionar preajuste...",
   "diveLog_tank_title": "Tanque {number}",
   "diveLog_tank_tooltip_remove": "Eliminar tanque",
+  "diveLog_tank_regulatorLabel": "Regulador",
+  "diveLog_tank_regulatorNone": "Ninguno",
   "diveLog_tissue_label_ceiling": "Techo",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3699,6 +3746,61 @@
   "cylinderConfigs_sectionTitle": "Configuraciones",
   "equipment_serviceClocks_hoursSource": "Calculado a partir del tiempo de buceo registrado",
   "equipment_serviceClocks_hoursLeft": "Quedan {remaining} de {total} horas",
+  "equipment_serviceClocks_saltHoursLeft": "Quedan {remaining} de {total} horas en agua salada",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "Quedan {remaining} de {total} inmersiones en agua fría",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "Quedan {remaining} de {total} horas con alto O2",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "Quedan {remaining} de {total} inmersiones profundas",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "Quedan {remaining} de {total} ciclos de batería",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Gestionar tipos de mantenimiento",
   "equipment_serviceClocks_appliesToClock": "Se aplica al intervalo",
   "equipment_serviceClocks_noClockOption": "No vinculado a un intervalo",
@@ -3706,6 +3808,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervalo (días)",
   "equipment_scheduleDialog_intervalDives": "Intervalo (inmersiones)",
   "equipment_scheduleDialog_intervalHours": "Intervalo (horas)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervalo (horas en agua salada)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervalo (inmersiones en agua fría)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervalo (horas con alto O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervalo (inmersiones profundas)",
+  "equipment_scheduleDialog_intervalCycles": "Intervalo (ciclos de batería)",
   "equipment_scheduleDialog_inheritHint": "Predeterminado: {value}",
   "equipment_scheduleDialog_anchorDate": "Fecha de referencia",
   "equipment_scheduleDialog_anchorHint": "Se usa cuando todavía no existe ningún registro de mantenimiento de este tipo",
@@ -3804,6 +3911,8 @@
   "equipment_edit_snackbar_error": "Error al guardar el equipo: {error}",
   "equipment_edit_snackbar_updated": "Equipo actualizado",
   "equipment_edit_statusLabel": "Estado",
+  "equipment_edit_parentLabel": "Instalado en",
+  "equipment_edit_parentNone": "No instalado en nada",
   "equipment_edit_thicknessDesignationHint": "p. ej., 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "p. ej. shop.example.com/product",
   "equipment_edit_thicknessHint": "p. ej., 5mm, 7mm",
@@ -6585,10 +6694,6 @@
   "settings_siteMatch_subtitle": "Con qué intensidad se asocian a puntos de buceo las inmersiones descargadas",
   "settings_tankPressureAtSurfacing_title": "Presión de la botella al salir a superficie",
   "settings_tankPressureAtSurfacing_subtitle": "Tomar la presión final al llegar a la superficie, no al terminar el registro",
-  "settings_cloudImportPageSize_title": "Tamaño de página de importación en la nube",
-  "settings_cloudImportPageSize_subtitle": "Cuántas de las inmersiones más recientes se obtienen cada vez desde Suunto Cloud o Garmin Connect. «Cargar más» obtiene el siguiente lote del mismo tamaño.",
-  "settings_cloudImportPageSize_dialogTitle": "Inmersiones por página",
-  "settings_cloudImportPageSize_range": "Entre {min} y {max}",
   "settings_siteMatch_strict": "Estricto",
   "settings_siteMatch_balanced": "Equilibrado",
   "settings_siteMatch_relaxed": "Relajado",
@@ -7458,6 +7563,9 @@
   "attrLabel_o2_cylinder_l": "Botella de O2",
   "attrLabel_dpv_style": "Estilo",
   "attrLabel_burn_time_h": "Autonomía",
+  "attrLabel_cell_slot": "Posición de la célula",
+  "attrLabel_installed_date": "Instalada el",
+  "attrLabel_rechargeable": "Recargable",
   "attrLabel_battery_type": "Batería",
   "attrLabel_battery_capacity_wh": "Capacidad de batería (Wh)",
   "attrLabel_motor_type": "Motor",
@@ -7564,6 +7672,8 @@
   "attrChoice_battery_type_lithium_ion": "Iones de litio",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Plomo-ácido",
+  "attrChoice_battery_type_alkaline": "Alcalina",
+  "attrChoice_battery_type_lithium_primary": "Litio (no recargable)",
   "attrChoice_motor_type_brushless": "Sin escobillas",
   "attrChoice_motor_type_brushed": "Con escobillas",
   "attrChoice_sleeve_length_short": "Cortas",
@@ -8018,6 +8128,16 @@
   "planning_card_noFly_subtitle": "Cuenta atrás orientativa desde tus últimas inmersiones",
   "settings_section_safety_title": "Seguridad",
   "settings_section_safety_subtitle": "Reglas de revisión y volar tras bucear",
+  "settings_section_equipmentCondition_title": "Estado del equipo",
+  "settings_section_equipmentCondition_subtitle": "Umbrales de exposición para los relojes de mantenimiento",
+  "equipmentConditionSettings_title": "Estado del equipo",
+  "equipmentConditionSettings_thresholdsHeader": "Umbrales de exposición",
+  "equipmentConditionSettings_thresholdsHelp": "Una inmersión cuenta como fría, profunda o con alto O2 para los relojes de mantenimiento cuando cruza estos límites.",
+  "equipmentConditionSettings_coldLabel": "Agua fría por debajo de",
+  "equipmentConditionSettings_deepLabel": "Inmersión profunda a partir de",
+  "equipmentConditionSettings_o2Label": "Mezcla con alto O2 por encima de (% O2)",
+  "equipmentConditionSettings_invalid": "Introduce un número",
+  "equipmentConditionSettings_saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
   "dataQuality_inbox_title": "Calidad de datos",
   "dataQuality_dive_unknown": "Detalles de la inmersión no disponibles",
   "dataQuality_dive_number": "#{number}",

@@ -6509,6 +6509,11 @@ class SyncDataSerializer {
       // additional non-nullable
       'safetyReviewEnabled': true,
       'noFlyPreset': 'standard',
+      // v202: non-nullable; seed them so payloads predating the columns
+      // hydrate instead of throwing in DiverSetting.fromJson.
+      'coldWaterThresholdC': 10.0,
+      'deepDiveThresholdM': 30.0,
+      'highO2ThresholdPercent': 40.0,
       'notificationsEnabled': true,
       'serviceReminderDays': '[7, 14, 30]',
       'reminderTime': '09:00',

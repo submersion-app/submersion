@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "הקישור הועתק. הדבק אותו בדפדפן שלך כדי לאשר.",
   "universalImport_action_importFromGarmin": "ייבוא מהתקן Garmin",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "תא חמצן",
+  "enum_equipmentType_battery": "סוללה",
   "diveLog_tank_saveAsPreset": "שמור כתבנית",
   "diveLog_tank_saveAsPreset_needSpecs": "הזן תחילה נפח ולחץ עבודה",
   "diveLog_tank_saveAsPreset_nameTitle": "שמור תבנית בלון",
@@ -976,6 +978,20 @@
   "preDive_item_valueUnit": "יחידה",
   "preDive_item_valueMin": "מינימום (אזהרה)",
   "preDive_item_valueMax": "מקסימום (אזהרה)",
+  "preDive_item_type_cellLinearity": "ליניאריות התא",
+  "preDive_item_sourceItem": "קריאת אוויר מתוך",
+  "preDive_item_sourceItemRequired": "בחר את הפריט שמכיל את קריאת האוויר",
+  "preDive_item_linearityMin": "ליניאריות מזערית % (אזהרה)",
+  "preDive_item_linearityMax": "ליניאריות מרבית % (אזהרה)",
+  "preDive_item_sourceCleared": "ל־{title} אין יותר קריאת אוויר להשוואה",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "קורא ערך שנרשם בהמשך הרשימה",
   "preDive_runner_progress": "{done} מתוך {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1020,35 @@
   "preDive_runner_serviceOverdue": "פג תוקף הטיפול",
   "preDive_runner_addNote": "הוסף הערה",
   "preDive_runner_enterValue": "הזן ערך",
+  "preDive_runner_cellInAir": "באוויר",
+  "preDive_runner_cellInAirMissing": "טרם נרשם",
+  "preDive_runner_enterO2Value": "הזן ערך בחמצן טהור",
+  "preDive_runner_linearityReadout": "צפוי {expected} mV, ליניאריות {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "אוויר {air} mV, צפוי {expected} mV, ליניאריות {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "קריאת האוויר השתנתה מאז",
   "preDive_runner_flaggedBadge": "{count} מסומנים בדגל",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -2549,6 +2594,8 @@
   "diveLog_tank_selectPreset": "בחר תבנית...",
   "diveLog_tank_title": "בלון {number}",
   "diveLog_tank_tooltip_remove": "הסר בלון",
+  "diveLog_tank_regulatorLabel": "וסת",
+  "diveLog_tank_regulatorNone": "ללא",
   "diveLog_tissue_label_ceiling": "תקרה",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3615,6 +3662,61 @@
   "cylinderConfigs_sectionTitle": "תצורות",
   "equipment_serviceClocks_hoursSource": "מחושב מזמן הצלילה המתועד",
   "equipment_serviceClocks_hoursLeft": "נותרו {remaining} מתוך {total} שעות",
+  "equipment_serviceClocks_saltHoursLeft": "נותרו {remaining} מתוך {total} שעות במים מלוחים",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "נותרו {remaining} מתוך {total} צלילות במים קרים",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "נותרו {remaining} מתוך {total} שעות בחמצן גבוה",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "נותרו {remaining} מתוך {total} צלילות עמוקות",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "נותרו {remaining} מתוך {total} מחזורי סוללה",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "ניהול סוגי טיפול",
   "equipment_serviceClocks_appliesToClock": "חל על שעון",
   "equipment_serviceClocks_noClockOption": "לא משויך לשעון",
@@ -3622,6 +3724,11 @@
   "equipment_scheduleDialog_intervalDays": "מרווח (ימים)",
   "equipment_scheduleDialog_intervalDives": "מרווח (צלילות)",
   "equipment_scheduleDialog_intervalHours": "מרווח (שעות)",
+  "equipment_scheduleDialog_intervalSaltHours": "מרווח (שעות במים מלוחים)",
+  "equipment_scheduleDialog_intervalColdDives": "מרווח (צלילות במים קרים)",
+  "equipment_scheduleDialog_intervalO2Hours": "מרווח (שעות בחמצן גבוה)",
+  "equipment_scheduleDialog_intervalDeepCycles": "מרווח (צלילות עמוקות)",
+  "equipment_scheduleDialog_intervalCycles": "מרווח (מחזורי סוללה)",
   "equipment_scheduleDialog_inheritHint": "ברירת מחדל: {value}",
   "equipment_scheduleDialog_anchorDate": "תאריך בסיס",
   "equipment_scheduleDialog_anchorHint": "בשימוש כאשר עדיין אין רשומת טיפול מסוג זה",
@@ -3720,6 +3827,8 @@
   "equipment_edit_snackbar_error": "שגיאה בשמירת ציוד: {error}",
   "equipment_edit_snackbar_updated": "הציוד עודכן",
   "equipment_edit_statusLabel": "סטטוס",
+  "equipment_edit_parentLabel": "מותקן ב",
+  "equipment_edit_parentNone": "לא מותקן בשום פריט",
   "equipment_edit_thicknessDesignationHint": "למשל, 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "למשל shop.example.com/product",
   "equipment_edit_thicknessHint": "למשל, 5 מ\"מ, 7 מ\"מ",
@@ -6585,10 +6694,6 @@
   "settings_siteMatch_subtitle": "באיזו מידה צלילות שהורדו מותאמות לאתרים",
   "settings_tankPressureAtSurfacing_title": "לחץ המיכל בעלייה לפני השטח",
   "settings_tankPressureAtSurfacing_subtitle": "קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה",
-  "settings_cloudImportPageSize_title": "גודל עמוד בייבוא מהענן",
-  "settings_cloudImportPageSize_subtitle": "כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.",
-  "settings_cloudImportPageSize_dialogTitle": "צלילות לעמוד",
-  "settings_cloudImportPageSize_range": "בין {min} ל-{max}",
   "settings_siteMatch_strict": "קפדני",
   "settings_siteMatch_balanced": "מאוזן",
   "settings_siteMatch_relaxed": "גמיש",
@@ -7458,6 +7563,9 @@
   "attrLabel_o2_cylinder_l": "בלון O2",
   "attrLabel_dpv_style": "סגנון",
   "attrLabel_burn_time_h": "זמן פעולה",
+  "attrLabel_cell_slot": "מיקום התא",
+  "attrLabel_installed_date": "תאריך התקנה",
+  "attrLabel_rechargeable": "נטענת",
   "attrLabel_battery_type": "סוללה",
   "attrLabel_battery_capacity_wh": "קיבולת סוללה (Wh)",
   "attrLabel_motor_type": "מנוע",
@@ -7564,6 +7672,8 @@
   "attrChoice_battery_type_lithium_ion": "ליתיום-יון",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "עופרת-חומצה",
+  "attrChoice_battery_type_alkaline": "אלקליין",
+  "attrChoice_battery_type_lithium_primary": "ליתיום (לא נטענת)",
   "attrChoice_motor_type_brushless": "ללא מברשות",
   "attrChoice_motor_type_brushed": "עם מברשות",
   "attrChoice_sleeve_length_short": "קצרים",
@@ -8018,6 +8128,16 @@
   "planning_card_noFly_subtitle": "ספירה לאחור מנחה מהצלילות האחרונות שלך",
   "settings_section_safety_title": "בטיחות",
   "settings_section_safety_subtitle": "כללי סקירה וטיסה אחרי צלילה",
+  "settings_section_equipmentCondition_title": "מצב הציוד",
+  "settings_section_equipmentCondition_subtitle": "ספי חשיפה לשעוני תחזוקה",
+  "equipmentConditionSettings_title": "מצב הציוד",
+  "equipmentConditionSettings_thresholdsHeader": "ספי חשיפה",
+  "equipmentConditionSettings_thresholdsHelp": "צלילה נחשבת קרה, עמוקה או בחמצן גבוה לשעוני התחזוקה כאשר היא חוצה ספים אלה.",
+  "equipmentConditionSettings_coldLabel": "מים קרים מתחת ל",
+  "equipmentConditionSettings_deepLabel": "צלילה עמוקה החל מ",
+  "equipmentConditionSettings_o2Label": "תערובת בחמצן גבוה מעל (% O2)",
+  "equipmentConditionSettings_invalid": "יש להזין מספר",
+  "equipmentConditionSettings_saveFailed": "השמירה נכשלה. נסו שוב.",
   "dataQuality_inbox_title": "איכות הנתונים",
   "dataQuality_dive_unknown": "פרטי הצלילה אינם זמינים",
   "dataQuality_dive_number": "#{number}",
