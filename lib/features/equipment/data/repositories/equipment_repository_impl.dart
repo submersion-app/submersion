@@ -833,6 +833,9 @@ class EquipmentRepository {
 
   /// The regulator last paired with a cylinder preset, for prefilling the
   /// tank editor: the newest dive whose tank of that preset names one.
+  /// Operational, not descriptive: an excluded dive still tells us which
+  /// regulator the diver hangs on that cylinder.
+  // stats-scope-exempt: editor prefill, not a statistic
   Future<String?> getLastRegulatorForPreset(String presetName) async {
     final rows = await _db
         .customSelect(

@@ -111,9 +111,53 @@ void main() {
         .toList();
   }
 
+  /// Foreign keys among [table]'s NOT NULL columns get a parent row with id
+  /// 'x' (the TEXT placeholder) so the seed satisfies the constraint. The
+  /// parent's own diver_id stays null: it must not count as a duplicate-owned
+  /// row when the parent table is itself a diver_id table. v202's
+  /// equipment_observations (diver_id plus a required equipment_id) is the
+  /// first table that needs this.
+  Future<void> ensureParentRows(String table) async {
+    final fks = await db
+        .customSelect(
+          'SELECT "table" AS parent, "from" AS col FROM pragma_foreign_key_list(?)',
+          variables: [Variable.withString(table)],
+        )
+        .get();
+    final required = (await requiredColumns(table)).map((c) => c.name).toSet();
+    for (final fk in fks) {
+      final col = fk.read<String>('col');
+      final parent = fk.read<String>('parent');
+      if (!required.contains(col) || col == 'diver_id') continue;
+      final cols = await requiredColumns(parent);
+      final names = <String>['"id"'];
+      final values = <Object?>['x'];
+      for (final c in cols) {
+        if (c.name == 'id' || c.name == 'diver_id') continue;
+        names.add('"${c.name}"');
+        final t = c.type.toUpperCase();
+        values.add(
+          t.contains('INT')
+              ? 0
+              : (t.contains('REAL') || t.contains('FLOA') || t.contains('DOUB'))
+              ? 0.0
+              : t.contains('BLOB')
+              ? Uint8List(0)
+              : 'x',
+        );
+      }
+      await db.customStatement(
+        'INSERT OR IGNORE INTO "$parent" (${names.join(",")}) '
+        'VALUES (${List.filled(names.length, "?").join(",")})',
+        values,
+      );
+    }
+  }
+
   /// Insert one minimal row into [table] with diver_id = [diverId], filling
   /// every required column with a type-appropriate placeholder.
   Future<void> seedRow(String table, String diverId, String pk) async {
+    await ensureParentRows(table);
     final cols = await requiredColumns(table);
     final names = <String>[];
     final placeholders = <String>[];
