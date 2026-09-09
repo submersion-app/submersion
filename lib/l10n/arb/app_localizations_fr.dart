@@ -8337,6 +8337,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_detail_depth_maximum => 'Maximum';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => 'Profondeur atteinte';
+
+  @override
   String get diveSites_detail_depth_minimum => 'Minimum';
 
   @override
@@ -8459,6 +8462,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => 'Non disponible';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Voir les $count plongées',
+      one: 'Voir 1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label, ouvrir cette plongée';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9555,6 +9574,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'Avec GPS';
+
+  @override
+  String get diveSites_summary_stat_countries => 'Pays';
+
+  @override
+  String get diveSites_summary_stat_notDived => 'Non plongés';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => 'Plongés récemment';
 
   @override
   String get diveType_builtin_altitude => 'Altitude';
@@ -28031,6 +28059,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_siteField_maxDepthReached => 'Votre prof. max';
+
+  @override
+  String get enum_siteField_firstDived => 'Première plongée';
+
+  @override
+  String get enum_siteField_firstDived_short => 'Première';
+
+  @override
+  String get enum_siteField_averageDepthReached => 'Prof. moyenne';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => 'Moyenne';
+
+  @override
+  String get enum_siteField_longestDive => 'Plongée la plus longue';
+
+  @override
+  String get enum_siteField_longestDive_short => 'La plus longue';
+
+  @override
+  String get enum_siteField_averageDuration => 'Durée moyenne';
+
+  @override
+  String get enum_siteField_averageDuration_short => 'Durée moy.';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'Votre max';

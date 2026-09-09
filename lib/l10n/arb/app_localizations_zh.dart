@@ -7895,6 +7895,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_depth_maximum => '最大';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => '实际到达深度';
+
+  @override
   String get diveSites_detail_depth_minimum => '最小';
 
   @override
@@ -8016,6 +8019,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => '不可用';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '查看全部 $count 次潜水',
+      one: '查看 1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label，打开此次潜水';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9041,6 +9060,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => '与 GPS';
+
+  @override
+  String get diveSites_summary_stat_countries => '国家';
+
+  @override
+  String get diveSites_summary_stat_notDived => '未潜过';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => '最近潜水';
 
   @override
   String get diveType_builtin_altitude => '高原潜水';
@@ -26512,6 +26540,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_siteField_maxDepthReached => '你的最大深度';
+
+  @override
+  String get enum_siteField_firstDived => '首次潜水';
+
+  @override
+  String get enum_siteField_firstDived_short => '首次';
+
+  @override
+  String get enum_siteField_averageDepthReached => '平均深度';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => '平均';
+
+  @override
+  String get enum_siteField_longestDive => '最长潜水';
+
+  @override
+  String get enum_siteField_longestDive_short => '最长';
+
+  @override
+  String get enum_siteField_averageDuration => '平均时长';
+
+  @override
+  String get enum_siteField_averageDuration_short => '平均时长';
 
   @override
   String get enum_siteField_maxDepthReached_short => '你的最大';

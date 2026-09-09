@@ -8132,6 +8132,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_depth_maximum => 'الأقصى';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => 'العمق المُحقَّق';
+
+  @override
   String get diveSites_detail_depth_minimum => 'الأدنى';
 
   @override
@@ -8253,6 +8256,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => 'غير متوفر';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض كل الغطسات ($count)',
+      one: 'عرض غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label، فتح هذه الغطسة';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9326,6 +9345,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'مع GPS';
+
+  @override
+  String get diveSites_summary_stat_countries => 'الدول';
+
+  @override
+  String get diveSites_summary_stat_notDived => 'لم تُغطس';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => 'غُطست مؤخرًا';
 
   @override
   String get diveType_builtin_altitude => 'ارتفاع';
@@ -27448,6 +27476,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_siteField_maxDepthReached => 'أقصى عمق لك';
+
+  @override
+  String get enum_siteField_firstDived => 'أول غطسة';
+
+  @override
+  String get enum_siteField_firstDived_short => 'الأولى';
+
+  @override
+  String get enum_siteField_averageDepthReached => 'متوسط عمقك';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => 'المتوسط';
+
+  @override
+  String get enum_siteField_longestDive => 'أطول غطسة';
+
+  @override
+  String get enum_siteField_longestDive_short => 'الأطول';
+
+  @override
+  String get enum_siteField_averageDuration => 'متوسط المدة';
+
+  @override
+  String get enum_siteField_averageDuration_short => 'المدة';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'أقصاك';

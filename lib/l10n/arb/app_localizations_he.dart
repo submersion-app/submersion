@@ -8086,6 +8086,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_depth_maximum => 'מקסימום';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => 'עומק שהושג';
+
+  @override
   String get diveSites_detail_depth_minimum => 'מינימום';
 
   @override
@@ -8207,6 +8210,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => 'לא זמין';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצג את כל $count הצלילות',
+      one: 'הצג צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label, פתח צלילה זו';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9269,6 +9288,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'עם GPS';
+
+  @override
+  String get diveSites_summary_stat_countries => 'מדינות';
+
+  @override
+  String get diveSites_summary_stat_notDived => 'לא נצללו';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => 'נצללו לאחרונה';
 
   @override
   String get diveType_builtin_altitude => 'גובה רב';
@@ -27253,6 +27281,30 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_siteField_maxDepthReached => 'העומק המרבי שלך';
+
+  @override
+  String get enum_siteField_firstDived => 'צלילה ראשונה';
+
+  @override
+  String get enum_siteField_firstDived_short => 'ראשונה';
+
+  @override
+  String get enum_siteField_averageDepthReached => 'עומק ממוצע';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => 'ממוצע';
+
+  @override
+  String get enum_siteField_longestDive => 'הצלילה הארוכה';
+
+  @override
+  String get enum_siteField_longestDive_short => 'הארוכה';
+
+  @override
+  String get enum_siteField_averageDuration => 'משך ממוצע';
+
+  @override
+  String get enum_siteField_averageDuration_short => 'משך';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'המרבי שלך';

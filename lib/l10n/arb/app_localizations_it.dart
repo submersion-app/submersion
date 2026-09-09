@@ -8296,6 +8296,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_detail_depth_maximum => 'Massima';
 
   @override
+  String get diveSites_detail_depth_reachedHeading => 'Profondità raggiunta';
+
+  @override
   String get diveSites_detail_depth_minimum => 'Minima';
 
   @override
@@ -8421,6 +8424,22 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_detail_stats_notAvailable => 'Non disponibile';
+
+  @override
+  String diveSites_detail_stats_viewAllDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vedi tutte le $count immersioni',
+      one: 'Vedi 1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_detail_semantics_openLinkedDive(Object label) {
+    return '$label, apri questa immersione';
+  }
 
   @override
   String diveSites_detail_semantics_copyToClipboard(Object label) {
@@ -9511,6 +9530,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'Con GPS';
+
+  @override
+  String get diveSites_summary_stat_countries => 'Paesi';
+
+  @override
+  String get diveSites_summary_stat_notDived => 'Mai immersi';
+
+  @override
+  String get diveSites_summary_section_recentlyDived => 'Immersioni recenti';
 
   @override
   String get diveType_builtin_altitude => 'Altitudine';
@@ -27932,6 +27960,30 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_siteField_maxDepthReached => 'La tua prof. max';
+
+  @override
+  String get enum_siteField_firstDived => 'Prima immersione';
+
+  @override
+  String get enum_siteField_firstDived_short => 'Prima';
+
+  @override
+  String get enum_siteField_averageDepthReached => 'Prof. media';
+
+  @override
+  String get enum_siteField_averageDepthReached_short => 'Media';
+
+  @override
+  String get enum_siteField_longestDive => 'Immersione più lunga';
+
+  @override
+  String get enum_siteField_longestDive_short => 'Più lunga';
+
+  @override
+  String get enum_siteField_averageDuration => 'Durata media';
+
+  @override
+  String get enum_siteField_averageDuration_short => 'Durata';
 
   @override
   String get enum_siteField_maxDepthReached_short => 'Tuo max';
