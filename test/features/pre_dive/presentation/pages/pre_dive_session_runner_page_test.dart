@@ -24,6 +24,7 @@ class _FakeSessionRepo implements PreDiveSessionRepository {
           double? valueNumber,
           String? note,
           List<OverdueServiceEntry>? overdueServices,
+          double? sourceValueNumber,
         })
       >[];
   final completed = <String>[];
@@ -38,6 +39,7 @@ class _FakeSessionRepo implements PreDiveSessionRepository {
     String? valueText,
     String? note,
     List<OverdueServiceEntry>? overdueServices,
+    double? sourceValueNumber,
   }) async {
     calls.add((
       itemId: itemId,
@@ -45,6 +47,7 @@ class _FakeSessionRepo implements PreDiveSessionRepository {
       valueNumber: valueNumber,
       note: note,
       overdueServices: overdueServices,
+      sourceValueNumber: sourceValueNumber,
     ));
   }
 
