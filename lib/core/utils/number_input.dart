@@ -9,6 +9,10 @@ import 'package:intl/intl.dart';
 /// because the repositories write `Value(null)` rather than `Value.absent()`,
 /// that null erases the stored value instead of leaving it alone (#1091).
 ///
+/// The same separator problem applies to numbers a diver only reads, so the
+/// display-side twin [formatDecimalForDisplay] lives here too, sharing the
+/// locale cache and separator swap rather than growing a second copy of them.
+///
 /// The seeded text and the parser must share one convention. Seeding a field
 /// with `double.toString()` and reading it back through a locale-aware parser
 /// is worse than the original bug: under de/es/it, '.' is the GROUPING
@@ -119,18 +123,24 @@ int? parseUserInt(String text) {
 /// "12.050000000000001"). Callers wanting fewer decimals round before calling.
 String formatDecimalForInput(double value) {
   if (!value.isFinite) return '';
-  var text = value.toString();
-  // Very large or very small magnitudes stringify in exponent notation, which
-  // no diver can meaningfully edit and no parser here reads back.
-  if (text.contains('e') || text.contains('E')) {
-    final format = NumberFormat.decimalPattern()
-      ..turnOffGrouping()
-      ..maximumFractionDigits = 15;
-    return format.format(value);
-  }
-  // "1250.0" reads as a half-finished edit; the field wants "1250".
-  if (text.endsWith('.0')) text = text.substring(0, text.length - 2);
-  return _localiseSeparators(text);
+  return _localiseDouble(value, stripTrailingZero: true);
+}
+
+/// [value] rendered for display in the active locale, keeping whatever
+/// precision the value itself carries: 200.0 renders "200,0" under de, not
+/// "200".
+///
+/// The display twin of [formatDecimalForInput]. The two differ only in that
+/// trailing ".0", and the difference is load bearing: the input form strips it
+/// because a field seeded "1250.0" reads as a half-finished edit, while a
+/// recorded reading is not an edit. A diver who logged 200.0 bar logged one
+/// decimal of precision, so dropping it changes what the value claims.
+///
+/// Use this for anything a diver only reads. Callers wanting a pinned number
+/// of decimals should round before calling.
+String formatDecimalForDisplay(double value) {
+  if (!value.isFinite) return '';
+  return _localiseDouble(value, stripTrailingZero: false);
 }
 
 /// [value] rounded to [fractionDigits] and rendered for seeding, with trailing
@@ -156,6 +166,28 @@ String formatRoundedForInput(double value, int fractionDigits) {
 String formatFixedForInput(double value, int fractionDigits) {
   if (!value.isFinite) return '';
   return _localiseSeparators(value.toStringAsFixed(fractionDigits));
+}
+
+/// The shared body of [formatDecimalForInput] and [formatDecimalForDisplay].
+///
+/// [stripTrailingZero] is applied here rather than by either caller because it
+/// matches on the ASCII '.' that [double.toString] emits; once the text has
+/// been localised it carries the locale's separator instead, and under de the
+/// '.' it would then match is the grouping separator.
+String _localiseDouble(double value, {required bool stripTrailingZero}) {
+  var text = value.toString();
+  // Very large or very small magnitudes stringify in exponent notation, which
+  // no diver can meaningfully read or edit and no parser here reads back.
+  if (text.contains('e') || text.contains('E')) {
+    final format = NumberFormat.decimalPattern()
+      ..turnOffGrouping()
+      ..maximumFractionDigits = 15;
+    return format.format(value);
+  }
+  if (stripTrailingZero && text.endsWith('.0')) {
+    text = text.substring(0, text.length - 2);
+  }
+  return _localiseSeparators(text);
 }
 
 /// Swaps the ASCII '.' and '-' produced by Dart's own number formatting for the

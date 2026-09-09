@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -106,7 +107,8 @@ class SessionItemTile extends ConsumerWidget {
         ? [
             if (item.valueLabel != null) item.valueLabel!,
             if (item.valueNumber != null)
-              '${item.valueNumber}${item.valueUnit == null ? '' : ' ${item.valueUnit}'}',
+              '${formatDecimalForDisplay(item.valueNumber!)}'
+                  '${item.valueUnit == null ? '' : ' ${item.valueUnit}'}',
           ].join(': ')
         : null;
 
