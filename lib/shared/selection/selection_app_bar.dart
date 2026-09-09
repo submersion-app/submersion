@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -153,6 +154,21 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
     exitsOnComplete: action.exitsSelectionOnComplete,
   );
 
+  /// Start a dispatch from a synchronous widget callback.
+  ///
+  /// Fire-and-forget by necessity -- onPressed and onSelected cannot await --
+  /// but not unlistened. A handler that throws instead of reporting
+  /// [BulkActionOutcome.failed] would otherwise send its error to the zone,
+  /// where the running app logs it as a bare uncaught error and a test blames
+  /// whichever case happens to be running when it surfaces. [logFailure]
+  /// attaches the listener and names the action in the log.
+  ///
+  /// The contract still holds on that path: the throw aborts
+  /// [_runAndMaybeExit] before it can exit, so a failed action leaves the
+  /// selection standing exactly as a reported failure would.
+  void _start(Future<void> dispatch, String actionId) =>
+      logFailure(dispatch, SelectionAppBar, 'run the $actionId bulk action');
+
   /// Baseline controls plus extras, in a fixed order, identical in both
   /// shells.
   List<Widget> _buildControls(
@@ -199,7 +215,7 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
               ? Theme.of(context).colorScheme.error
               : null,
           onPressed: action.isEnabledForSelection(count, checkedIds)
-              ? () => unawaited(_invoke(action))
+              ? () => _start(_invoke(action), action.id)
               : null,
         ),
       if (overflow.isNotEmpty || _hasDelete)
@@ -229,12 +245,12 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
           // action reports back.
           onSelected: (id) {
             if (id == _deleteMenuValue) {
-              unawaited(_invokeDelete());
+              _start(_invokeDelete(), 'delete');
               return;
             }
             for (final action in overflow) {
               if (action.id == id) {
-                unawaited(_invoke(action));
+                _start(_invoke(action), action.id);
                 return;
               }
             }

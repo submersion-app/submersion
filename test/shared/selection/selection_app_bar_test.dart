@@ -484,6 +484,38 @@ void main() {
       expect(controller.value.isActive, isTrue);
     });
 
+    testWidgets('a handler that throws keeps the selection', (tester) async {
+      // A throw is not a reported outcome, so the contract has to hold
+      // anyway: nothing completed, so the mode must survive and the diver
+      // keeps the rows they picked. The error itself belongs to the log, not
+      // to the zone, or it lands on whichever test happens to be running when
+      // it surfaces.
+      enterWithOneChecked();
+      await tester.pumpWidget(
+        host(
+          actions: [
+            BulkAction(
+              id: 'merge',
+              icon: Icons.merge_type,
+              label: 'Merge',
+              onInvoke: () async => throw StateError('merge blew up'),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_action_merge')));
+      await tester.pumpAndSettle();
+
+      expect(controller.value.isActive, isTrue);
+      expect(controller.value.checkedIds, {'a'});
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'the failure is logged against the bar, not left to the zone',
+      );
+    });
+
     testWidgets('an overflow entry exits on the same rule as an inline icon', (
       tester,
     ) async {
