@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "Link kopiert. Fügen Sie ihn zum Autorisieren in Ihren Browser ein.",
   "universalImport_action_importFromGarmin": "Von Garmin-Gerät importieren",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "O2-Zelle",
+  "enum_equipmentType_battery": "Batterie",
   "diveLog_tank_saveAsPreset": "Als Vorlage speichern",
   "diveLog_tank_saveAsPreset_needSpecs": "Zuerst Volumen und Arbeitsdruck eingeben",
   "diveLog_tank_saveAsPreset_nameTitle": "Flaschenvorlage speichern",
@@ -976,6 +978,20 @@
   "preDive_item_valueUnit": "Einheit",
   "preDive_item_valueMin": "Min. (Warnung)",
   "preDive_item_valueMax": "Max. (Warnung)",
+  "preDive_item_type_cellLinearity": "Zellenlinearität",
+  "preDive_item_sourceItem": "Luftmesswert von",
+  "preDive_item_sourceItemRequired": "Wähle das Element mit dem Luftmesswert",
+  "preDive_item_linearityMin": "Min. Linearität % (Warnung)",
+  "preDive_item_linearityMax": "Max. Linearität % (Warnung)",
+  "preDive_item_sourceCleared": "{title} hat keinen Luftmesswert mehr zum Vergleich",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Verwendet einen Wert, der später in dieser Liste erfasst wird",
   "preDive_runner_progress": "{done} von {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1020,35 @@
   "preDive_runner_serviceOverdue": "Wartung überfällig",
   "preDive_runner_addNote": "Notiz hinzufügen",
   "preDive_runner_enterValue": "Wert eingeben",
+  "preDive_runner_cellInAir": "In Luft",
+  "preDive_runner_cellInAirMissing": "Noch nicht erfasst",
+  "preDive_runner_enterO2Value": "Wert in O2 eingeben",
+  "preDive_runner_linearityReadout": "Erwartet {expected} mV, Linearität {percent} %",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Luft {air} mV, erwartet {expected} mV, Linearität {percent} %",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "Luftmesswert wurde seitdem geändert",
   "preDive_runner_flaggedBadge": "{count} markiert",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -1504,6 +1549,9 @@
   "diveComputer_downloadStep_andMoreDives": "... und {count} weitere",
   "diveComputer_downloadStep_cancel": "Abbrechen",
   "diveComputer_downloadStep_cancelled": "Download abgebrochen",
+  "diveComputer_downloadStep_clockSyncFailed": "Uhrzeit-Abgleich fehlgeschlagen",
+  "diveComputer_downloadStep_clockSyncUnsupported": "Uhrzeit-Abgleich wird von diesem Modell nicht unterstützt",
+  "diveComputer_downloadStep_clockSynced": "Uhrzeit abgeglichen",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
   "diveComputer_downloadStep_downloadAll": "Alle Tauchgänge herunterladen",
   "diveComputer_downloadStep_downloadFailed": "Download fehlgeschlagen",
@@ -2630,6 +2678,8 @@
   "diveLog_tank_selectPreset": "Vorlage auswählen...",
   "diveLog_tank_title": "Flasche {number}",
   "diveLog_tank_tooltip_remove": "Flasche entfernen",
+  "diveLog_tank_regulatorLabel": "Atemregler",
+  "diveLog_tank_regulatorNone": "Keiner",
   "diveLog_tissue_label_ceiling": "Ceiling",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3695,6 +3745,61 @@
   "cylinderConfigs_sectionTitle": "Konfigurationen",
   "equipment_serviceClocks_hoursSource": "Aus der protokollierten Tauchzeit berechnet",
   "equipment_serviceClocks_hoursLeft": "{remaining} von {total} Stunden übrig",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} von {total} Salzwasserstunden übrig",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} von {total} Kaltwassertauchgängen übrig",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} von {total} Stunden mit hohem O2 übrig",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} von {total} tiefen Tauchgängen übrig",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} von {total} Batteriezyklen übrig",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Wartungsarten verwalten",
   "equipment_serviceClocks_appliesToClock": "Zugehöriges Intervall",
   "equipment_serviceClocks_noClockOption": "Keinem Intervall zugeordnet",
@@ -3702,6 +3807,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervall (Tage)",
   "equipment_scheduleDialog_intervalDives": "Intervall (Tauchgänge)",
   "equipment_scheduleDialog_intervalHours": "Intervall (Stunden)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervall (Salzwasserstunden)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervall (Kaltwassertauchgänge)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervall (Stunden mit hohem O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervall (tiefe Tauchgänge)",
+  "equipment_scheduleDialog_intervalCycles": "Intervall (Batteriezyklen)",
   "equipment_scheduleDialog_inheritHint": "Standard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referenzdatum",
   "equipment_scheduleDialog_anchorHint": "Wird verwendet, solange noch kein Wartungseintrag dieser Art vorliegt",
@@ -3800,6 +3910,8 @@
   "equipment_edit_snackbar_error": "Fehler beim Speichern der Ausrüstung: {error}",
   "equipment_edit_snackbar_updated": "Ausrüstung aktualisiert",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_parentLabel": "Eingebaut in",
+  "equipment_edit_parentNone": "Nirgends eingebaut",
   "equipment_edit_thicknessDesignationHint": "z.B. 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "z.B. shop.example.com/product",
   "equipment_edit_thicknessHint": "z.B. 5mm, 7mm",
@@ -6581,10 +6693,6 @@
   "settings_siteMatch_subtitle": "Wie aggressiv heruntergeladene Tauchgänge Tauchplätzen zugeordnet werden",
   "settings_tankPressureAtSurfacing_title": "Flaschendruck beim Auftauchen",
   "settings_tankPressureAtSurfacing_subtitle": "Enddruck beim Erreichen der Oberfläche übernehmen, nicht am Ende der Aufzeichnung",
-  "settings_cloudImportPageSize_title": "Seitengröße für Cloud-Import",
-  "settings_cloudImportPageSize_subtitle": "Wie viele der neuesten Tauchgänge jeweils von Suunto Cloud oder Garmin Connect geladen werden. „Mehr laden“ holt den nächsten Stapel derselben Größe.",
-  "settings_cloudImportPageSize_dialogTitle": "Tauchgänge pro Seite",
-  "settings_cloudImportPageSize_range": "Zwischen {min} und {max}",
   "settings_siteMatch_strict": "Streng",
   "settings_siteMatch_balanced": "Ausgewogen",
   "settings_siteMatch_relaxed": "Locker",
@@ -6841,6 +6949,17 @@
   "diveComputer_connectionType_unknown": "Unbekannt",
   "diveComputer_connectionType_usb": "USB",
   "diveComputer_connectionType_wifi": "WLAN",
+  "diveComputer_clockSync_appSettingOff": "App-Einstellung: aus",
+  "diveComputer_clockSync_appSettingOn": "App-Einstellung: ein",
+  "diveComputer_clockSync_cardTitle": "Uhrzeit-Abgleich",
+  "diveComputer_clockSync_checkAgain": "Erneut prüfen",
+  "diveComputer_clockSync_globalSubtitle": "Stellt die Uhr nach jedem Download auf die Zeit dieses Geräts. Gilt nur für dieses Gerät.",
+  "diveComputer_clockSync_globalTitle": "Uhren der Tauchcomputer abgleichen",
+  "diveComputer_clockSync_overrideAlways": "Immer",
+  "diveComputer_clockSync_overrideInherit": "App-Einstellung",
+  "diveComputer_clockSync_overrideNever": "Nie",
+  "diveComputer_clockSync_supported": "Von diesem Modell unterstützt",
+  "diveComputer_clockSync_unsupported": "Dieses Modell unterstützt keinen Uhrzeit-Abgleich",
   "diveComputer_detail_deleteDialogContent": "Möchten Sie \"{name}\" wirklich entfernen? Dadurch werden keine von diesem Computer importierten Tauchgänge gelöscht.",
   "diveComputer_detail_deleteDialogTitle": "Computer löschen?",
   "diveComputer_detail_divesImported": "Importierte Tauchgänge",
@@ -7443,6 +7562,9 @@
   "attrLabel_o2_cylinder_l": "O2-Flasche",
   "attrLabel_dpv_style": "Bauart",
   "attrLabel_burn_time_h": "Laufzeit",
+  "attrLabel_cell_slot": "Zellenplatz",
+  "attrLabel_installed_date": "Eingebaut am",
+  "attrLabel_rechargeable": "Wiederaufladbar",
   "attrLabel_battery_type": "Akku",
   "attrLabel_battery_capacity_wh": "Akkukapazität (Wh)",
   "attrLabel_motor_type": "Motor",
@@ -7549,6 +7671,8 @@
   "attrChoice_battery_type_lithium_ion": "Lithium-Ionen",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Blei-Säure",
+  "attrChoice_battery_type_alkaline": "Alkali",
+  "attrChoice_battery_type_lithium_primary": "Lithium (nicht wiederaufladbar)",
   "attrChoice_motor_type_brushless": "Bürstenlos",
   "attrChoice_motor_type_brushed": "Mit Bürsten",
   "attrChoice_sleeve_length_short": "Kurz",
@@ -8003,6 +8127,16 @@
   "planning_card_noFly_subtitle": "Richtwert-Countdown ab deinen letzten Tauchgängen",
   "settings_section_safety_title": "Sicherheit",
   "settings_section_safety_subtitle": "Überprüfungsregeln & Fliegen nach dem Tauchen",
+  "settings_section_equipmentCondition_title": "Ausrüstungszustand",
+  "settings_section_equipmentCondition_subtitle": "Belastungsgrenzen für Wartungsuhren",
+  "equipmentConditionSettings_title": "Ausrüstungszustand",
+  "equipmentConditionSettings_thresholdsHeader": "Belastungsgrenzen",
+  "equipmentConditionSettings_thresholdsHelp": "Ein Tauchgang zählt für Wartungsuhren als kalt, tief oder O2-reich, wenn er diese Grenzen überschreitet.",
+  "equipmentConditionSettings_coldLabel": "Kaltwasser unter",
+  "equipmentConditionSettings_deepLabel": "Tiefer Tauchgang ab",
+  "equipmentConditionSettings_o2Label": "O2-reiches Gemisch über (% O2)",
+  "equipmentConditionSettings_invalid": "Bitte eine Zahl eingeben",
+  "equipmentConditionSettings_saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
   "dataQuality_inbox_title": "Datenqualität",
   "dataQuality_dive_unknown": "Tauchgangsdetails nicht verfügbar",
   "dataQuality_dive_number": "#{number}",
@@ -10905,5 +11039,70 @@
   "startup_versionMismatch_restore_warning": "Alles, was du nach dem Upgrade eingetragen hast, liegt nur in der neueren Datei. Diese Datei wird als angeheftete Sicherung behalten; installiere die neuere Version erneut, um sie zurückzuholen.",
   "backup_history_preDowngradeSubtitle": "Neuere Datenbank, beim Zurückwechseln behalten - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size} (automatisch)"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size} (automatisch)",
+  "settings_manage_transmitters": "Sender",
+  "settings_manage_transmitters_subtitle": "Luftintegrations-Sender mit Flaschen verknüpfen",
+  "transmitters_title": "Sender",
+  "transmitters_add": "Sender hinzufügen",
+  "transmitters_header_assigned": "Zugewiesene Sender",
+  "transmitters_header_unassigned": "In Downloads gesehen, nicht zugewiesen",
+  "transmitters_empty": "Noch keine Sender. Füge einen hinzu oder weise nach dem nächsten Download eine Seriennummer zu.",
+  "transmitters_action_assign": "Zuweisen",
+  "transmitters_action_edit": "Sender bearbeiten",
+  "transmitters_action_delete": "Sender löschen",
+  "transmitters_action_apply": "Auf vorhandene Tauchgänge anwenden",
+  "transmitters_apply_title": "Auf vorhandene Tauchgänge anwenden?",
+  "transmitters_apply_content": "{tanks} Flaschen in {dives} Tauchgängen tragen diesen Sender. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte Rolle wird ersetzt.",
+  "transmitters_apply_done": "{tanks} Flaschen in {dives} Tauchgängen aktualisiert",
+  "transmitters_apply_nothing": "Keine Flasche trägt diesen Sender",
+  "transmitters_delete_title": "Sender löschen?",
+  "transmitters_delete_content": "Künftige Downloads von {label} verwenden wieder die Standardvorlage.",
+  "transmitters_channel": "{computer}, Kanal {channel}",
+  "transmitters_serial": "Sender {serial}",
+  "transmitters_dives": "{count, plural, =1{1 Tauchgang} other{{count} Tauchgänge}}",
+  "transmitters_edit_title": "Sender bearbeiten",
+  "transmitters_new_title": "Neuer Sender",
+  "transmitters_field_label": "Bezeichnung",
+  "transmitters_field_serial": "Seriennummer des Senders",
+  "transmitters_field_computer": "Tauchcomputer (wenn keine Seriennummer gemeldet wird)",
+  "transmitters_field_channel": "Kanal",
+  "transmitters_field_role": "Rolle",
+  "transmitters_field_gear": "Flasche aus der Ausrüstung",
+  "transmitters_field_material": "Material",
+  "transmitters_gear_none": "Keine",
+  "transmitters_validation_key": "Gib eine Seriennummer ein oder wähle Tauchcomputer und Kanal",
+  "transmitters_validation_positive": "Gib einen Wert größer als null ein",
+  "transmitters_validation_duplicate": "Bereits {label} zugewiesen",
+  "transmitters_saved": "Sender gespeichert",
+  "diveComputer_detail_transmitters": "Sender",
+  "diveComputer_detail_transmittersSummary": "{known} bekannt, {unassigned} nicht zugewiesen",
+  "diveLog_tank_assignTransmitter": "Sender zuweisen",
+  "diveLog_tank_reassignSeries": "Druckverlauf neu zuordnen",
+  "diveLog_reassignSheet_title": "Druckverläufe",
+  "diveLog_reassignSheet_swap": "Tauschen",
+  "diveLog_reassignSheet_moveTo": "Verschieben nach",
+  "diveLog_reassignSheet_readings": "{count, plural, =1{1 Messwert} other{{count} Messwerte}}",
+  "diveLog_reassignSheet_noSeries": "Kein Druckverlauf",
+  "diveLog_reassignSheet_applied": "Druckverlauf neu zugeordnet",
+  "universalImport_summary_noticeUnknownTransmitterTitle": "Nicht zugewiesene Sender",
+  "universalImport_summary_noticeUnknownTransmitterBody": "Ein oder mehrere Sender in diesem Download sind keiner Flasche zugewiesen. Weise sie zu, damit künftige Downloads die richtige Größe und Rolle erhalten.",
+  "universalImport_summary_noticeAssignTransmitters": "Sender zuweisen",
+  "dataQuality_detector_unknown_transmitter": "Nicht zugewiesener Sender",
+  "dataQuality_msg_unknownTransmitter": "Sender {serial} ist keiner Flasche zugewiesen",
+  "dataQuality_repairLabel_assignTransmitter": "Sender zuweisen",
+  "backup_unrecognized_appBar_title": "Nicht erkannte Sicherungen",
+  "backup_unrecognized_explanation": "Diese Dateien liegen in Ihrem Sicherungsordner, stehen aber nicht im Sicherungsverlauf dieses Geräts. Hier kann nur eine von diesem Gerät geschriebene Datei gelöscht werden: alles andere könnte die einzige Kopie eines anderen Geräts sein.",
+  "backup_unrecognized_empty": "Keine nicht erkannten Sicherungsdateien.",
+  "backup_unrecognized_loadFailed": "Der Sicherungsordner konnte nicht gelesen werden.",
+  "backup_unrecognized_unavailable": "Dieses Gerät kann den gewählten Sicherungsordner nicht auflisten, daher können nicht erkannte Dateien nicht gefunden werden.",
+  "backup_unrecognized_ownership_otherDevice": "Anderes Gerät",
+  "backup_unrecognized_ownership_unattributed": "Unbekanntes Gerät",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{1 Datei löschen ({size})} other{{count} Dateien löschen ({size})}}",
+  "backup_unrecognized_confirm_title": "Diese Sicherungsdateien löschen?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{1 Sicherungsdatei wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.} other{{count} Sicherungsdateien werden endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.}}",
+  "backup_unrecognized_deleteFailed": "Die ausgewählten Dateien konnten nicht gelöscht werden.",
+  "backup_unrecognized_freed": "{size} freigegeben",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 Datei fehlt im Sicherungsverlauf} other{{count} Dateien fehlen im Sicherungsverlauf}}",
+  "settings_storageUsage_unrecognized_action": "Prüfen"
 }

@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "链接已复制。请粘贴到浏览器中进行授权。",
   "universalImport_action_importFromGarmin": "从 Garmin 设备导入",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "氧电池",
+  "enum_equipmentType_battery": "电池",
   "diveLog_tank_saveAsPreset": "另存为预设",
   "diveLog_tank_saveAsPreset_needSpecs": "请先输入容积和工作压力",
   "diveLog_tank_saveAsPreset_nameTitle": "保存气瓶预设",
@@ -1070,6 +1072,20 @@
   "preDive_item_valueUnit": "单位",
   "preDive_item_valueMin": "最小值（警告）",
   "preDive_item_valueMax": "最大值（警告）",
+  "preDive_item_type_cellLinearity": "氧电池线性度",
+  "preDive_item_sourceItem": "空气读数来自",
+  "preDive_item_sourceItemRequired": "选择包含空气读数的项目",
+  "preDive_item_linearityMin": "最小线性度 %（警告）",
+  "preDive_item_linearityMax": "最大线性度 %（警告）",
+  "preDive_item_sourceCleared": "{title} 已没有可对比的空气读数",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "引用的数值在本列表中位于其后",
   "preDive_runner_progress": "{done}/{total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1098,6 +1114,35 @@
   "preDive_runner_serviceOverdue": "维护已逾期",
   "preDive_runner_addNote": "添加备注",
   "preDive_runner_enterValue": "输入数值",
+  "preDive_runner_cellInAir": "空气中",
+  "preDive_runner_cellInAirMissing": "尚未记录",
+  "preDive_runner_enterO2Value": "输入纯氧中的数值",
+  "preDive_runner_linearityReadout": "预期 {expected} mV，线性度 {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "空气 {air} mV，预期 {expected} mV，线性度 {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "空气读数此后已更改",
   "preDive_runner_flaggedBadge": "{count} 个已标记",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -1598,6 +1643,9 @@
   "diveComputer_downloadStep_andMoreDives": "... 以及 {count} 次更多",
   "diveComputer_downloadStep_cancel": "取消",
   "diveComputer_downloadStep_cancelled": "下载已取消",
+  "diveComputer_downloadStep_clockSyncFailed": "时钟同步失败",
+  "diveComputer_downloadStep_clockSyncUnsupported": "此型号不支持时钟同步",
+  "diveComputer_downloadStep_clockSynced": "时钟已同步",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
   "diveComputer_downloadStep_downloadAll": "下载所有潜水记录",
   "diveComputer_downloadStep_downloadFailed": "下载失败",
@@ -2763,6 +2811,8 @@
   "diveLog_tank_selectPreset": "选择预设...",
   "diveLog_tank_title": "气瓶 {number}",
   "diveLog_tank_tooltip_remove": "移除气瓶",
+  "diveLog_tank_regulatorLabel": "调节器",
+  "diveLog_tank_regulatorNone": "无",
   "diveLog_tissue_label_ceiling": "上升限制",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "免减压极限",
@@ -3840,6 +3890,61 @@
   "cylinderConfigs_sectionTitle": "配置",
   "equipment_serviceClocks_hoursSource": "根据已记录的潜水时间计算",
   "equipment_serviceClocks_hoursLeft": "剩余 {remaining}/{total} 小时",
+  "equipment_serviceClocks_saltHoursLeft": "海水小时数剩余 {remaining} / {total}",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "冷水潜水剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "高氧小时数剩余 {remaining} / {total}",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "深潜剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "电池循环剩余 {remaining} / {total} 次",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "管理维护类型",
   "equipment_serviceClocks_appliesToClock": "适用的倒计时",
   "equipment_serviceClocks_noClockOption": "不关联倒计时",
@@ -3847,6 +3952,11 @@
   "equipment_scheduleDialog_intervalDays": "间隔（天）",
   "equipment_scheduleDialog_intervalDives": "间隔（潜水次数）",
   "equipment_scheduleDialog_intervalHours": "间隔（小时）",
+  "equipment_scheduleDialog_intervalSaltHours": "间隔（海水小时数）",
+  "equipment_scheduleDialog_intervalColdDives": "间隔（冷水潜水次数）",
+  "equipment_scheduleDialog_intervalO2Hours": "间隔（高氧小时数）",
+  "equipment_scheduleDialog_intervalDeepCycles": "间隔（深潜次数）",
+  "equipment_scheduleDialog_intervalCycles": "间隔（电池循环次数）",
   "equipment_scheduleDialog_inheritHint": "默认：{value}",
   "equipment_scheduleDialog_anchorDate": "基准日期",
   "equipment_scheduleDialog_anchorHint": "在尚无此类维护记录时使用",
@@ -3945,6 +4055,8 @@
   "equipment_edit_snackbar_error": "保存装备出错：{error}",
   "equipment_edit_snackbar_updated": "装备已更新",
   "equipment_edit_statusLabel": "状态",
+  "equipment_edit_parentLabel": "安装于",
+  "equipment_edit_parentNone": "未安装",
   "equipment_edit_thicknessDesignationHint": "例如：5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "例如 shop.example.com/product",
   "equipment_edit_thicknessHint": "例如：5mm, 7mm",
@@ -5504,10 +5616,6 @@
   "settings_siteMatch_subtitle": "下载的潜水与潜水点匹配的积极程度",
   "settings_tankPressureAtSurfacing_title": "出水时的气瓶压力",
   "settings_tankPressureAtSurfacing_subtitle": "以到达水面时的压力作为结束压力，而不是记录结束时的压力",
-  "settings_cloudImportPageSize_title": "云导入分页大小",
-  "settings_cloudImportPageSize_subtitle": "每次从 Suunto Cloud 或 Garmin Connect 获取多少条最新潜水记录。「加载更多」会获取同样大小的下一批。",
-  "settings_cloudImportPageSize_dialogTitle": "每页潜水次数",
-  "settings_cloudImportPageSize_range": "{min} 到 {max} 之间",
   "settings_siteMatch_strict": "严格",
   "settings_siteMatch_balanced": "平衡",
   "settings_siteMatch_relaxed": "宽松",
@@ -6841,6 +6949,17 @@
   "diveComputer_connectionType_unknown": "未知",
   "diveComputer_connectionType_usb": "USB",
   "diveComputer_connectionType_wifi": "Wi-Fi",
+  "diveComputer_clockSync_appSettingOff": "应用设置：关",
+  "diveComputer_clockSync_appSettingOn": "应用设置：开",
+  "diveComputer_clockSync_cardTitle": "时钟同步",
+  "diveComputer_clockSync_checkAgain": "重新检查",
+  "diveComputer_clockSync_globalSubtitle": "每次下载后将时钟设为本设备的时间。仅适用于本设备。",
+  "diveComputer_clockSync_globalTitle": "同步潜水电脑时钟",
+  "diveComputer_clockSync_overrideAlways": "总是",
+  "diveComputer_clockSync_overrideInherit": "应用设置",
+  "diveComputer_clockSync_overrideNever": "从不",
+  "diveComputer_clockSync_supported": "此型号支持",
+  "diveComputer_clockSync_unsupported": "此型号不支持时钟同步",
   "diveComputer_detail_deleteDialogContent": "确定要移除“{name}”吗?这不会删除从此电脑导入的任何潜水记录。",
   "diveComputer_detail_deleteDialogTitle": "删除电脑?",
   "diveComputer_detail_divesImported": "已导入潜水",
@@ -7443,6 +7562,9 @@
   "attrLabel_o2_cylinder_l": "O2 气瓶",
   "attrLabel_dpv_style": "款式",
   "attrLabel_burn_time_h": "续航时间",
+  "attrLabel_cell_slot": "电池槽位",
+  "attrLabel_installed_date": "安装日期",
+  "attrLabel_rechargeable": "可充电",
   "attrLabel_battery_type": "电池",
   "attrLabel_battery_capacity_wh": "电池容量（瓦时）",
   "attrLabel_motor_type": "电机",
@@ -7549,6 +7671,8 @@
   "attrChoice_battery_type_lithium_ion": "锂离子",
   "attrChoice_battery_type_nimh": "镍氢",
   "attrChoice_battery_type_lead_acid": "铅酸",
+  "attrChoice_battery_type_alkaline": "碱性",
+  "attrChoice_battery_type_lithium_primary": "锂（不可充电）",
   "attrChoice_motor_type_brushless": "无刷",
   "attrChoice_motor_type_brushed": "有刷",
   "attrChoice_sleeve_length_short": "短袖",
@@ -8003,6 +8127,16 @@
   "planning_card_noFly_subtitle": "基于最近潜水的指导倒计时",
   "settings_section_safety_title": "安全",
   "settings_section_safety_subtitle": "回顾规则与潜水后飞行",
+  "settings_section_equipmentCondition_title": "装备状况",
+  "settings_section_equipmentCondition_subtitle": "保养计时的暴露阈值",
+  "equipmentConditionSettings_title": "装备状况",
+  "equipmentConditionSettings_thresholdsHeader": "暴露阈值",
+  "equipmentConditionSettings_thresholdsHelp": "潜水越过这些界线时，保养计时将其计为冷水、深潜或高氧。",
+  "equipmentConditionSettings_coldLabel": "冷水低于",
+  "equipmentConditionSettings_deepLabel": "深潜达到或超过",
+  "equipmentConditionSettings_o2Label": "高氧混合气高于（% O2）",
+  "equipmentConditionSettings_invalid": "请输入数字",
+  "equipmentConditionSettings_saveFailed": "无法保存。请重试。",
   "dataQuality_inbox_title": "数据质量",
   "dataQuality_dive_unknown": "无法获取潜水详情",
   "dataQuality_dive_number": "#{number}",
@@ -10905,5 +11039,70 @@
   "startup_versionMismatch_restore_warning": "升级之后记录的内容只存在于较新的文件中。该文件会作为已固定的备份保留，重新安装较新版本即可取回。",
   "backup_history_preDowngradeSubtitle": "较新的数据库，回退时保留 - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{{diveCount} 次潜水} other{{diveCount} 次潜水}}, {siteCount, plural, =1{{siteCount} 个潜点} other{{siteCount} 个潜点}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{{diveCount} 次潜水} other{{diveCount} 次潜水}}, {siteCount, plural, =1{{siteCount} 个潜点} other{{siteCount} 个潜点}} - {size}（自动）"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{{diveCount} 次潜水} other{{diveCount} 次潜水}}, {siteCount, plural, =1{{siteCount} 个潜点} other{{siteCount} 个潜点}} - {size}（自动）",
+  "settings_manage_transmitters": "发射器",
+  "settings_manage_transmitters_subtitle": "将气瓶压力发射器关联到气瓶",
+  "transmitters_title": "发射器",
+  "transmitters_add": "添加发射器",
+  "transmitters_header_assigned": "已分配的发射器",
+  "transmitters_header_unassigned": "下载中出现但未分配",
+  "transmitters_empty": "还没有发射器。添加一个，或在下次下载后分配序列号。",
+  "transmitters_action_assign": "分配",
+  "transmitters_action_edit": "编辑发射器",
+  "transmitters_action_delete": "删除发射器",
+  "transmitters_action_apply": "应用到现有潜水",
+  "transmitters_apply_title": "应用到现有潜水？",
+  "transmitters_apply_content": "{dives} 次潜水中的 {tanks} 个气瓶带有此发射器。空白的容量、材质、名称和装备字段将被填充，仍为背气的用途将被替换。",
+  "transmitters_apply_done": "已更新 {dives} 次潜水中的 {tanks} 个气瓶",
+  "transmitters_apply_nothing": "没有气瓶带有此发射器",
+  "transmitters_delete_title": "删除发射器？",
+  "transmitters_delete_content": "今后从 {label} 的下载将重新使用默认预设。",
+  "transmitters_channel": "{computer}，通道 {channel}",
+  "transmitters_serial": "发射器 {serial}",
+  "transmitters_dives": "{count, plural, =1{1 次潜水} other{{count} 次潜水}}",
+  "transmitters_edit_title": "编辑发射器",
+  "transmitters_new_title": "新发射器",
+  "transmitters_field_label": "标签",
+  "transmitters_field_serial": "发射器序列号",
+  "transmitters_field_computer": "潜水电脑（未报告序列号时使用）",
+  "transmitters_field_channel": "通道",
+  "transmitters_field_role": "用途",
+  "transmitters_field_gear": "来自装备的气瓶",
+  "transmitters_field_material": "材质",
+  "transmitters_gear_none": "无",
+  "transmitters_validation_key": "请输入发射器序列号，或选择潜水电脑和通道",
+  "transmitters_validation_positive": "请输入大于零的值",
+  "transmitters_validation_duplicate": "已分配给 {label}",
+  "transmitters_saved": "发射器已保存",
+  "diveComputer_detail_transmitters": "发射器",
+  "diveComputer_detail_transmittersSummary": "{known} 个已知，{unassigned} 个未分配",
+  "diveLog_tank_assignTransmitter": "分配发射器",
+  "diveLog_tank_reassignSeries": "重新分配压力曲线",
+  "diveLog_reassignSheet_title": "压力曲线",
+  "diveLog_reassignSheet_swap": "交换",
+  "diveLog_reassignSheet_moveTo": "移动到",
+  "diveLog_reassignSheet_readings": "{count, plural, =1{1 个读数} other{{count} 个读数}}",
+  "diveLog_reassignSheet_noSeries": "没有压力曲线",
+  "diveLog_reassignSheet_applied": "压力曲线已重新分配",
+  "universalImport_summary_noticeUnknownTransmitterTitle": "未分配的发射器",
+  "universalImport_summary_noticeUnknownTransmitterBody": "此次下载中有一个或多个发射器未分配到气瓶。分配后，今后的下载将获得正确的容量和用途。",
+  "universalImport_summary_noticeAssignTransmitters": "分配发射器",
+  "dataQuality_detector_unknown_transmitter": "未分配的发射器",
+  "dataQuality_msg_unknownTransmitter": "发射器 {serial} 未分配到气瓶",
+  "dataQuality_repairLabel_assignTransmitter": "分配发射器",
+  "backup_unrecognized_appBar_title": "无法识别的备份",
+  "backup_unrecognized_explanation": "这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此处只能删除本设备写入的文件：其他文件可能是另一台设备的唯一副本。",
+  "backup_unrecognized_empty": "没有无法识别的备份文件。",
+  "backup_unrecognized_loadFailed": "无法读取备份文件夹。",
+  "backup_unrecognized_unavailable": "本设备无法列出您选择的备份文件夹，因此找不到无法识别的文件。",
+  "backup_unrecognized_ownership_otherDevice": "其他设备",
+  "backup_unrecognized_ownership_unattributed": "未知设备",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{删除 1 个文件（{size}）} other{删除 {count} 个文件（{size}）}}",
+  "backup_unrecognized_confirm_title": "删除这些备份文件？",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{将永久删除 1 个备份文件。此操作无法撤销。} other{将永久删除 {count} 个备份文件。此操作无法撤销。}}",
+  "backup_unrecognized_deleteFailed": "无法删除所选文件。",
+  "backup_unrecognized_freed": "已释放 {size}",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 个文件不在您的备份历史记录中} other{{count} 个文件不在您的备份历史记录中}}",
+  "settings_storageUsage_unrecognized_action": "查看"
 }

@@ -110,11 +110,13 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
+import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
+import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
@@ -135,6 +137,8 @@ import 'package:submersion/features/tank_presets/presentation/pages/tank_presets
 import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_page.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitters_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
@@ -1033,6 +1037,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'storage-usage',
                 name: 'storageUsage',
                 builder: (context, state) => const StorageUsagePage(),
+                routes: [
+                  GoRoute(
+                    path: 'unrecognized-backups',
+                    name: 'unrecognizedBackups',
+                    builder: (context, state) =>
+                        const UnrecognizedBackupsPage(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'data-quality',
@@ -1121,6 +1133,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'safety',
                 name: 'safetySettings',
                 builder: (context, state) => const SafetySettingsPage(),
+              ),
+              GoRoute(
+                path: 'equipment-condition',
+                name: 'equipmentConditionSettings',
+                builder: (context, state) =>
+                    const EquipmentConditionSettingsPage(),
               ),
               GoRoute(
                 path: 'default-metrics',
@@ -1323,6 +1341,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dive-roles',
             name: 'diveRoles',
             builder: (context, state) => const DiveRolesPage(),
+          ),
+
+          // Transmitter registry (issue #1365)
+          GoRoute(
+            path: '/transmitters',
+            name: 'transmitters',
+            builder: (context, state) => const TransmittersPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newTransmitter',
+                builder: (context, state) => TransmitterEditPage(
+                  initialSerial: state.uri.queryParameters['serial'],
+                ),
+              ),
+              GoRoute(
+                path: ':transmitterId/edit',
+                name: 'editTransmitter',
+                builder: (context, state) => TransmitterEditPage(
+                  transmitterId: state.pathParameters['transmitterId'],
+                ),
+              ),
+            ],
           ),
 
           // Tank Presets Management

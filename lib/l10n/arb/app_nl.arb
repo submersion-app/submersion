@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "Link gekopieerd. Plak hem in je browser om toegang te verlenen.",
   "universalImport_action_importFromGarmin": "Importeren vanaf Garmin-apparaat",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "O2-cel",
+  "enum_equipmentType_battery": "Batterij",
   "diveLog_tank_saveAsPreset": "Als voorinstelling opslaan",
   "diveLog_tank_saveAsPreset_needSpecs": "Voer eerst een volume en werkdruk in",
   "diveLog_tank_saveAsPreset_nameTitle": "Flesvoorinstelling opslaan",
@@ -976,6 +978,20 @@
   "preDive_item_valueUnit": "Eenheid",
   "preDive_item_valueMin": "Min (waarschuwing)",
   "preDive_item_valueMax": "Max (waarschuwing)",
+  "preDive_item_type_cellLinearity": "Cellineariteit",
+  "preDive_item_sourceItem": "Luchtmeting van",
+  "preDive_item_sourceItemRequired": "Kies het item met de luchtmeting",
+  "preDive_item_linearityMin": "Min. lineariteit % (waarschuwing)",
+  "preDive_item_linearityMax": "Max. lineariteit % (waarschuwing)",
+  "preDive_item_sourceCleared": "{title} heeft geen luchtmeting meer om mee te vergelijken",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Gebruikt een waarde die verderop in deze lijst wordt vastgelegd",
   "preDive_runner_progress": "{done} van {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1020,35 @@
   "preDive_runner_serviceOverdue": "Onderhoud verlopen",
   "preDive_runner_addNote": "Notitie toevoegen",
   "preDive_runner_enterValue": "Waarde invoeren",
+  "preDive_runner_cellInAir": "In lucht",
+  "preDive_runner_cellInAirMissing": "Nog niet vastgelegd",
+  "preDive_runner_enterO2Value": "Voer de waarde in O2 in",
+  "preDive_runner_linearityReadout": "Verwacht {expected} mV, lineariteit {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Lucht {air} mV, verwacht {expected} mV, lineariteit {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "Luchtmeting is sindsdien gewijzigd",
   "preDive_runner_flaggedBadge": "{count} gemarkeerd",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -1504,6 +1549,9 @@
   "diveComputer_downloadStep_andMoreDives": "... en nog {count} meer",
   "diveComputer_downloadStep_cancel": "Annuleren",
   "diveComputer_downloadStep_cancelled": "Download geannuleerd",
+  "diveComputer_downloadStep_clockSyncFailed": "Kloksynchronisatie mislukt",
+  "diveComputer_downloadStep_clockSyncUnsupported": "Kloksynchronisatie wordt niet ondersteund door dit model",
+  "diveComputer_downloadStep_clockSynced": "Klok gesynchroniseerd",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
   "diveComputer_downloadStep_downloadAll": "Alle duiken downloaden",
   "diveComputer_downloadStep_downloadFailed": "Download mislukt",
@@ -2630,6 +2678,8 @@
   "diveLog_tank_selectPreset": "Selecteer voorinstelling...",
   "diveLog_tank_title": "Fles {number}",
   "diveLog_tank_tooltip_remove": "Fles verwijderen",
+  "diveLog_tank_regulatorLabel": "Ademautomaat",
+  "diveLog_tank_regulatorNone": "Geen",
   "diveLog_tissue_label_ceiling": "Plafond",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3695,6 +3745,61 @@
   "cylinderConfigs_sectionTitle": "Configuraties",
   "equipment_serviceClocks_hoursSource": "Berekend op basis van geregistreerde duiktijd",
   "equipment_serviceClocks_hoursLeft": "{remaining} van {total} uur resterend",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} van {total} uren in zout water over",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} van {total} koudwaterduiken over",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} van {total} uren met hoog O2 over",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} van {total} diepe duiken over",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} van {total} batterijcycli over",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Servicetypen beheren",
   "equipment_serviceClocks_appliesToClock": "Gekoppeld aan interval",
   "equipment_serviceClocks_noClockOption": "Niet aan een interval gekoppeld",
@@ -3702,6 +3807,11 @@
   "equipment_scheduleDialog_intervalDays": "Interval (dagen)",
   "equipment_scheduleDialog_intervalDives": "Interval (duiken)",
   "equipment_scheduleDialog_intervalHours": "Interval (uren)",
+  "equipment_scheduleDialog_intervalSaltHours": "Interval (uren in zout water)",
+  "equipment_scheduleDialog_intervalColdDives": "Interval (koudwaterduiken)",
+  "equipment_scheduleDialog_intervalO2Hours": "Interval (uren met hoog O2)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Interval (diepe duiken)",
+  "equipment_scheduleDialog_intervalCycles": "Interval (batterijcycli)",
   "equipment_scheduleDialog_inheritHint": "Standaard: {value}",
   "equipment_scheduleDialog_anchorDate": "Referentiedatum",
   "equipment_scheduleDialog_anchorHint": "Wordt gebruikt zolang er nog geen servicerecord van dit type bestaat",
@@ -3800,6 +3910,8 @@
   "equipment_edit_snackbar_error": "Fout bij opslaan van uitrusting: {error}",
   "equipment_edit_snackbar_updated": "Uitrusting bijgewerkt",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_parentLabel": "Geplaatst in",
+  "equipment_edit_parentNone": "Nergens geplaatst",
   "equipment_edit_thicknessDesignationHint": "bijv. 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "bijv. shop.example.com/product",
   "equipment_edit_thicknessHint": "bijv. 5mm, 7mm",
@@ -6581,10 +6693,6 @@
   "settings_siteMatch_subtitle": "Hoe agressief gedownloade duiken aan stekken worden gekoppeld",
   "settings_tankPressureAtSurfacing_title": "Flesdruk bij bovenkomen",
   "settings_tankPressureAtSurfacing_subtitle": "Neem de einddruk op het moment van bovenkomen, niet aan het einde van de opname",
-  "settings_cloudImportPageSize_title": "Paginagrootte voor cloudimport",
-  "settings_cloudImportPageSize_subtitle": "Hoeveel van de nieuwste duiken per keer op te halen van Suunto Cloud of Garmin Connect. „Meer laden” haalt de volgende batch van dezelfde grootte op.",
-  "settings_cloudImportPageSize_dialogTitle": "Duiken per pagina",
-  "settings_cloudImportPageSize_range": "Tussen {min} en {max}",
   "settings_siteMatch_strict": "Strikt",
   "settings_siteMatch_balanced": "Gebalanceerd",
   "settings_siteMatch_relaxed": "Soepel",
@@ -6841,6 +6949,17 @@
   "diveComputer_connectionType_unknown": "Onbekend",
   "diveComputer_connectionType_usb": "USB",
   "diveComputer_connectionType_wifi": "Wi-Fi",
+  "diveComputer_clockSync_appSettingOff": "App-instelling: uit",
+  "diveComputer_clockSync_appSettingOn": "App-instelling: aan",
+  "diveComputer_clockSync_cardTitle": "Kloksynchronisatie",
+  "diveComputer_clockSync_checkAgain": "Opnieuw controleren",
+  "diveComputer_clockSync_globalSubtitle": "Zet de klok na elke download op de tijd van dit apparaat. Geldt alleen voor dit apparaat.",
+  "diveComputer_clockSync_globalTitle": "Klok van duikcomputers synchroniseren",
+  "diveComputer_clockSync_overrideAlways": "Altijd",
+  "diveComputer_clockSync_overrideInherit": "App-instelling",
+  "diveComputer_clockSync_overrideNever": "Nooit",
+  "diveComputer_clockSync_supported": "Ondersteund door dit model",
+  "diveComputer_clockSync_unsupported": "Dit model ondersteunt geen kloksynchronisatie",
   "diveComputer_detail_deleteDialogContent": "Weet je zeker dat je \"{name}\" wilt verwijderen? Dit verwijdert geen duiken die van deze computer zijn geimporteerd.",
   "diveComputer_detail_deleteDialogTitle": "Computer verwijderen?",
   "diveComputer_detail_divesImported": "Geimporteerde duiken",
@@ -7443,6 +7562,9 @@
   "attrLabel_o2_cylinder_l": "O2-fles",
   "attrLabel_dpv_style": "Stijl",
   "attrLabel_burn_time_h": "Looptijd",
+  "attrLabel_cell_slot": "Celpositie",
+  "attrLabel_installed_date": "Geplaatst op",
+  "attrLabel_rechargeable": "Oplaadbaar",
   "attrLabel_battery_type": "Accu",
   "attrLabel_battery_capacity_wh": "Accucapaciteit (Wh)",
   "attrLabel_motor_type": "Motor",
@@ -7549,6 +7671,8 @@
   "attrChoice_battery_type_lithium_ion": "Lithium-ion",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Loodzuur",
+  "attrChoice_battery_type_alkaline": "Alkaline",
+  "attrChoice_battery_type_lithium_primary": "Lithium (niet oplaadbaar)",
   "attrChoice_motor_type_brushless": "Borstelloos",
   "attrChoice_motor_type_brushed": "Met borstels",
   "attrChoice_sleeve_length_short": "Kort",
@@ -8003,6 +8127,16 @@
   "planning_card_noFly_subtitle": "Richtlijn-aftelling vanaf je laatste duiken",
   "settings_section_safety_title": "Veiligheid",
   "settings_section_safety_subtitle": "Controleregels & vliegen na het duiken",
+  "settings_section_equipmentCondition_title": "Staat van uitrusting",
+  "settings_section_equipmentCondition_subtitle": "Blootstellingsdrempels voor onderhoudsklokken",
+  "equipmentConditionSettings_title": "Staat van uitrusting",
+  "equipmentConditionSettings_thresholdsHeader": "Blootstellingsdrempels",
+  "equipmentConditionSettings_thresholdsHelp": "Een duik telt voor onderhoudsklokken als koud, diep of met hoog O2 wanneer hij deze grenzen overschrijdt.",
+  "equipmentConditionSettings_coldLabel": "Koud water onder",
+  "equipmentConditionSettings_deepLabel": "Diepe duik vanaf",
+  "equipmentConditionSettings_o2Label": "Mengsel met hoog O2 boven (% O2)",
+  "equipmentConditionSettings_invalid": "Voer een getal in",
+  "equipmentConditionSettings_saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
   "dataQuality_inbox_title": "Datakwaliteit",
   "dataQuality_dive_unknown": "Duikgegevens niet beschikbaar",
   "dataQuality_dive_number": "#{number}",
@@ -10905,5 +11039,70 @@
   "startup_versionMismatch_restore_warning": "Alles wat je na de upgrade hebt gelogd, bestaat alleen in het nieuwere bestand. Dat bestand wordt bewaard als vastgezette back-up, dus je krijgt het terug door de nieuwere versie opnieuw te installeren.",
   "backup_history_preDowngradeSubtitle": "Nieuwere database, bewaard bij het teruggaan - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size} (automatisch)"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size} (automatisch)",
+  "settings_manage_transmitters": "Zenders",
+  "settings_manage_transmitters_subtitle": "Koppel drukzenders aan flessen",
+  "transmitters_title": "Zenders",
+  "transmitters_add": "Zender toevoegen",
+  "transmitters_header_assigned": "Toegewezen zenders",
+  "transmitters_header_unassigned": "Gezien in downloads, niet toegewezen",
+  "transmitters_empty": "Nog geen zenders. Voeg er een toe, of wijs na je volgende download een serienummer toe.",
+  "transmitters_action_assign": "Toewijzen",
+  "transmitters_action_edit": "Zender bewerken",
+  "transmitters_action_delete": "Zender verwijderen",
+  "transmitters_action_apply": "Toepassen op bestaande duiken",
+  "transmitters_apply_title": "Toepassen op bestaande duiken?",
+  "transmitters_apply_content": "{tanks} flessen in {dives} duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat wordt vervangen.",
+  "transmitters_apply_done": "{tanks} flessen bijgewerkt in {dives} duiken",
+  "transmitters_apply_nothing": "Geen enkele fles draagt deze zender",
+  "transmitters_delete_title": "Zender verwijderen?",
+  "transmitters_delete_content": "Toekomstige downloads van {label} gebruiken weer de standaardvoorinstelling.",
+  "transmitters_channel": "{computer}, kanaal {channel}",
+  "transmitters_serial": "Zender {serial}",
+  "transmitters_dives": "{count, plural, =1{1 duik} other{{count} duiken}}",
+  "transmitters_edit_title": "Zender bewerken",
+  "transmitters_new_title": "Nieuwe zender",
+  "transmitters_field_label": "Label",
+  "transmitters_field_serial": "Serienummer van de zender",
+  "transmitters_field_computer": "Duikcomputer (als er geen serienummer wordt gemeld)",
+  "transmitters_field_channel": "Kanaal",
+  "transmitters_field_role": "Rol",
+  "transmitters_field_gear": "Fles uit uitrusting",
+  "transmitters_field_material": "Materiaal",
+  "transmitters_gear_none": "Geen",
+  "transmitters_validation_key": "Voer een serienummer in, of kies een duikcomputer en kanaal",
+  "transmitters_validation_positive": "Voer een waarde groter dan nul in",
+  "transmitters_validation_duplicate": "Al toegewezen aan {label}",
+  "transmitters_saved": "Zender opgeslagen",
+  "diveComputer_detail_transmitters": "Zenders",
+  "diveComputer_detail_transmittersSummary": "{known} bekend, {unassigned} niet toegewezen",
+  "diveLog_tank_assignTransmitter": "Zender toewijzen",
+  "diveLog_tank_reassignSeries": "Drukreeks opnieuw toewijzen",
+  "diveLog_reassignSheet_title": "Drukreeksen",
+  "diveLog_reassignSheet_swap": "Wisselen",
+  "diveLog_reassignSheet_moveTo": "Verplaatsen naar",
+  "diveLog_reassignSheet_readings": "{count, plural, =1{1 meting} other{{count} metingen}}",
+  "diveLog_reassignSheet_noSeries": "Geen drukreeks",
+  "diveLog_reassignSheet_applied": "Drukreeks opnieuw toegewezen",
+  "universalImport_summary_noticeUnknownTransmitterTitle": "Niet-toegewezen zenders",
+  "universalImport_summary_noticeUnknownTransmitterBody": "Een of meer zenders in deze download zijn niet aan een fles toegewezen. Wijs ze toe zodat toekomstige downloads de juiste inhoud en rol krijgen.",
+  "universalImport_summary_noticeAssignTransmitters": "Zenders toewijzen",
+  "dataQuality_detector_unknown_transmitter": "Niet-toegewezen zender",
+  "dataQuality_msg_unknownTransmitter": "Zender {serial} is niet aan een fles toegewezen",
+  "dataQuality_repairLabel_assignTransmitter": "Zender toewijzen",
+  "backup_unrecognized_appBar_title": "Niet-herkende back-ups",
+  "backup_unrecognized_explanation": "Deze bestanden staan in je back-upmap maar niet in de back-upgeschiedenis van dit apparaat. Alleen een bestand dat dit apparaat heeft geschreven kan hier worden verwijderd: al het andere kan de enige kopie van een ander apparaat zijn.",
+  "backup_unrecognized_empty": "Geen niet-herkende back-upbestanden.",
+  "backup_unrecognized_loadFailed": "Kon de back-upmap niet lezen.",
+  "backup_unrecognized_unavailable": "Dit apparaat kan de gekozen back-upmap niet uitlezen, dus niet-herkende bestanden kunnen niet worden gevonden.",
+  "backup_unrecognized_ownership_otherDevice": "Ander apparaat",
+  "backup_unrecognized_ownership_unattributed": "Onbekend apparaat",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{1 bestand verwijderen ({size})} other{{count} bestanden verwijderen ({size})}}",
+  "backup_unrecognized_confirm_title": "Deze back-upbestanden verwijderen?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{1 back-upbestand wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.} other{{count} back-upbestanden worden permanent verwijderd. Dit kan niet ongedaan worden gemaakt.}}",
+  "backup_unrecognized_deleteFailed": "Kon de geselecteerde bestanden niet verwijderen.",
+  "backup_unrecognized_freed": "{size} vrijgemaakt",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 bestand ontbreekt in je back-upgeschiedenis} other{{count} bestanden ontbreken in je back-upgeschiedenis}}",
+  "settings_storageUsage_unrecognized_action": "Bekijken"
 }

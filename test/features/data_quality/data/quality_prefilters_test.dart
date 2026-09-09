@@ -22,9 +22,9 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  test('registry contains all 11 detectors with unique ids', () {
+  test('registry contains all 12 detectors with unique ids', () {
     final ids = kQualityDetectors.map((d) => d.id).toList();
-    expect(ids.toSet(), hasLength(11));
+    expect(ids.toSet(), hasLength(12));
     expect(
       ids.toSet(),
       containsAll({
@@ -38,6 +38,7 @@ void main() {
         'pressure_anomaly',
         'gas_mod',
         'tank_assignment',
+        'unknown_transmitter',
         'source_conflict',
       }),
     );

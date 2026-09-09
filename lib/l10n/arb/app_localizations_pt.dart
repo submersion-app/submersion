@@ -2471,6 +2471,31 @@ class AppLocalizationsPt extends AppLocalizations {
   String get preDive_item_valueMax => 'Máx (aviso)';
 
   @override
+  String get preDive_item_type_cellLinearity => 'Linearidade da célula';
+
+  @override
+  String get preDive_item_sourceItem => 'Leitura no ar de';
+
+  @override
+  String get preDive_item_sourceItemRequired =>
+      'Escolhe o item com a leitura no ar';
+
+  @override
+  String get preDive_item_linearityMin => 'Linearidade mín. % (aviso)';
+
+  @override
+  String get preDive_item_linearityMax => 'Linearidade máx. % (aviso)';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return '$title já não tem uma leitura no ar com que comparar';
+  }
+
+  @override
+  String get preDive_item_sourceBelow =>
+      'Usa um valor registado mais à frente nesta lista';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done de $total';
   }
@@ -2507,6 +2532,32 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => 'Inserir valor';
+
+  @override
+  String get preDive_runner_cellInAir => 'No ar';
+
+  @override
+  String get preDive_runner_cellInAirMissing => 'Ainda não registado';
+
+  @override
+  String get preDive_runner_enterO2Value => 'Introduz o valor em O2';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return 'Esperado $expected mV, linearidade $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return 'Ar $air mV, esperado $expected mV, linearidade $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged => 'A leitura no ar mudou entretanto';
 
   @override
   String preDive_runner_flaggedBadge(int count) {
@@ -7686,6 +7737,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'Remover cilindro';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'Regulador';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'Nenhum';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'Teto';
 
   @override
@@ -10442,6 +10499,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'Célula de O2';
+
+  @override
+  String get enum_equipmentType_battery => 'Bateria';
+
+  @override
   String get enum_equipmentType_computer => 'Computador de Mergulho';
 
   @override
@@ -11289,6 +11352,34 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return 'Restam $remaining de $total horas em água salgada';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return 'Restam $remaining de $total mergulhos em água fria';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return 'Restam $remaining de $total horas com O2 elevado';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return 'Restam $remaining de $total mergulhos profundos';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return 'Restam $remaining de $total ciclos de bateria';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds =>
       'Gerenciar tipos de manutenção';
 
@@ -11310,6 +11401,26 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'Intervalo (horas)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'Intervalo (horas em água salgada)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'Intervalo (mergulhos em água fria)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'Intervalo (horas com O2 elevado)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'Intervalo (mergulhos profundos)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles =>
+      'Intervalo (ciclos de bateria)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -11667,6 +11778,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_edit_statusLabel => 'Status';
+
+  @override
+  String get equipment_edit_parentLabel => 'Instalado em';
+
+  @override
+  String get equipment_edit_parentNone => 'Não instalado';
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'ex: 5, 5/4, 7/5/3';
@@ -21921,6 +22038,43 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'Isto certifica que';
 
   @override
+  String get diveComputer_clockSync_appSettingOff =>
+      'Definição da app: desligada';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'Definição da app: ligada';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Sincronização do relógio';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Verificar novamente';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Acerta o relógio pela hora deste dispositivo após cada download. Aplica-se apenas a este dispositivo.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Sincronizar relógios dos computadores de mergulho';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Sempre';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'Definição da app';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Nunca';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Suportado por este modelo';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Este modelo não suporta a sincronização do relógio';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -22130,6 +22284,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download cancelado';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Falha na sincronização do relógio';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'A sincronização do relógio não é suportada por este modelo';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Relógio sincronizado';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -23869,22 +24034,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'Usar a pressão final ao chegar à superfície, não no fim da gravação';
-
-  @override
-  String get settings_cloudImportPageSize_title =>
-      'Tamanho da página de importação na nuvem';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'Quantos dos mergulhos mais recentes obter de cada vez do Suunto Cloud ou Garmin Connect. «Carregar mais» obtém o lote seguinte do mesmo tamanho.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Mergulhos por página';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'Entre $min e $max';
-  }
 
   @override
   String get settings_siteMatch_strict => 'Rigoroso';
@@ -25662,6 +25811,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attrLabel_burn_time_h => 'Autonomia';
 
   @override
+  String get attrLabel_cell_slot => 'Posição da célula';
+
+  @override
+  String get attrLabel_installed_date => 'Instalada em';
+
+  @override
+  String get attrLabel_rechargeable => 'Recarregável';
+
+  @override
   String get attrLabel_battery_type => 'Bateria';
 
   @override
@@ -25981,6 +26139,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'Chumbo-ácido';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'Alcalina';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary =>
+      'Lítio (não recarregável)';
 
   @override
   String get attrChoice_motor_type_brushless => 'Sem escovas';
@@ -26521,6 +26686,43 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_section_safety_subtitle =>
       'Regras de revisão e voar após mergulhar';
+
+  @override
+  String get settings_section_equipmentCondition_title =>
+      'Estado do equipamento';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Limites de exposição para os relógios de manutenção';
+
+  @override
+  String get equipmentConditionSettings_title => 'Estado do equipamento';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader =>
+      'Limites de exposição';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Um mergulho conta como frio, profundo ou com O2 elevado para os relógios de manutenção quando ultrapassa estes limites.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Água fria abaixo de';
+
+  @override
+  String get equipmentConditionSettings_deepLabel =>
+      'Mergulho profundo a partir de';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'Mistura com O2 elevado acima de (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Introduza um número';
+
+  @override
+  String get equipmentConditionSettings_saveFailed =>
+      'Não foi possível guardar. Tente novamente.';
 
   @override
   String get settings_section_security_title => 'Segurança do app';
@@ -37337,4 +37539,282 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automático)';
   }
+
+  @override
+  String get settings_manage_transmitters => 'Transmissores';
+
+  @override
+  String get settings_manage_transmitters_subtitle =>
+      'Associar transmissores de pressão a cilindros';
+
+  @override
+  String get transmitters_title => 'Transmissores';
+
+  @override
+  String get transmitters_add => 'Adicionar transmissor';
+
+  @override
+  String get transmitters_header_assigned => 'Transmissores atribuídos';
+
+  @override
+  String get transmitters_header_unassigned =>
+      'Vistos em downloads, não atribuídos';
+
+  @override
+  String get transmitters_empty =>
+      'Ainda não há transmissores. Adicione um ou atribua um número de série após o próximo download.';
+
+  @override
+  String get transmitters_action_assign => 'Atribuir';
+
+  @override
+  String get transmitters_action_edit => 'Editar transmissor';
+
+  @override
+  String get transmitters_action_delete => 'Excluir transmissor';
+
+  @override
+  String get transmitters_action_apply => 'Aplicar a mergulhos existentes';
+
+  @override
+  String get transmitters_apply_title => 'Aplicar a mergulhos existentes?';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks cilindros em $dives mergulhos carregam este transmissor. Campos vazios de tamanho, material, nome e equipamento serão preenchidos, e uma função ainda definida como Gás de fundo será substituída.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return '$tanks cilindros atualizados em $dives mergulhos';
+  }
+
+  @override
+  String get transmitters_apply_nothing =>
+      'Nenhum cilindro carrega este transmissor';
+
+  @override
+  String get transmitters_delete_title => 'Excluir transmissor?';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'Os próximos downloads de $label voltarão a usar a predefinição padrão.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer, canal $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return 'Transmissor $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '1 mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'Editar transmissor';
+
+  @override
+  String get transmitters_new_title => 'Novo transmissor';
+
+  @override
+  String get transmitters_field_label => 'Rótulo';
+
+  @override
+  String get transmitters_field_serial => 'Número de série do transmissor';
+
+  @override
+  String get transmitters_field_computer =>
+      'Computador de mergulho (quando nenhum número de série é informado)';
+
+  @override
+  String get transmitters_field_channel => 'Canal';
+
+  @override
+  String get transmitters_field_role => 'Função';
+
+  @override
+  String get transmitters_field_gear => 'Cilindro do equipamento';
+
+  @override
+  String get transmitters_field_material => 'Material';
+
+  @override
+  String get transmitters_gear_none => 'Nenhum';
+
+  @override
+  String get transmitters_validation_key =>
+      'Informe um número de série ou escolha um computador e um canal';
+
+  @override
+  String get transmitters_validation_positive =>
+      'Informe um valor maior que zero';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'Já atribuído a $label';
+  }
+
+  @override
+  String get transmitters_saved => 'Transmissor salvo';
+
+  @override
+  String get diveComputer_detail_transmitters => 'Transmissores';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known conhecidos, $unassigned não atribuídos';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'Atribuir transmissor';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'Reatribuir série de pressão';
+
+  @override
+  String get diveLog_reassignSheet_title => 'Séries de pressão';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'Trocar';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'Mover para';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count leituras',
+      one: '1 leitura',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'Sem série de pressão';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'Série de pressão reatribuída';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'Transmissores não atribuídos';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'Um ou mais transmissores deste download não estão atribuídos a um cilindro. Atribua-os para que os próximos downloads tenham o tamanho e a função corretos.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters =>
+      'Atribuir transmissores';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter =>
+      'Transmissor não atribuído';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'O transmissor $serial não está atribuído a nenhum cilindro';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter =>
+      'Atribuir transmissor';
+
+  @override
+  String get backup_unrecognized_appBar_title =>
+      'Cópias de segurança não reconhecidas';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Estes ficheiros estão na sua pasta de cópias de segurança mas não no histórico deste dispositivo. Só pode ser excluído aqui um ficheiro escrito por este dispositivo: qualquer outro pode ser a única cópia de outro dispositivo.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Não há ficheiros de cópia de segurança não reconhecidos.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'Não foi possível ler a pasta de cópias de segurança.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Este dispositivo não consegue listar a pasta de cópias de segurança que escolheu, por isso não é possível encontrar ficheiros não reconhecidos.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Outro dispositivo';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed =>
+      'Dispositivo desconhecido';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir $count ficheiros ($size)',
+      one: 'Excluir 1 ficheiro ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Excluir estes ficheiros de cópia de segurança?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ficheiros de cópia de segurança serão excluídos permanentemente. Não é possível anular.',
+      one:
+          '1 ficheiro de cópia de segurança será excluído permanentemente. Não é possível anular.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Não foi possível excluir os ficheiros selecionados.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size libertados';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ficheiros que não estão no seu histórico de cópias de segurança',
+      one: '1 ficheiro que não está no seu histórico de cópias de segurança',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Rever';
 }

@@ -1070,6 +1070,18 @@ class DiveTank extends Equatable {
   /// transmitter, whatever gas mix each computer had programmed.
   final String? transmitterSerial;
 
+  /// Parsed tank index this row's computer-owned data comes from (v200). Null
+  /// on rows from before v200 means "same as order"; -1 (kNoSourceTankIndex
+  /// in tank_source_index.dart) means the row takes no parsed tank.
+  /// Computer-owned identity, like [computerId] and [transmitterSerial]:
+  /// user edits never rewrite it.
+  final int? sourceTankIndex;
+
+  /// The regulator this cylinder was breathed through (v202), so high-O2
+  /// contact reaches the regulator's service clocks. User-authored: the
+  /// tank editor sets it and downloads never touch it.
+  final String? regulatorEquipmentId;
+
   /// Deco gas-switch depth override in meters (planning only); null = auto
   /// (MOD at the deco pO2). Subsurface per-cylinder "Deco switch at", v120.
   /// Unused for logged-dive tanks.
@@ -1097,6 +1109,8 @@ class DiveTank extends Equatable {
     this.presetName,
     this.computerId,
     this.transmitterSerial,
+    this.sourceTankIndex,
+    this.regulatorEquipmentId,
     this.decoSwitchDepth,
     this.isTravelGas = false,
   });
@@ -1125,6 +1139,10 @@ class DiveTank extends Equatable {
     String? computerId,
     String? transmitterSerial,
     bool clearTransmitterSerial = false,
+    int? sourceTankIndex,
+    bool clearSourceTankIndex = false,
+    String? regulatorEquipmentId,
+    bool clearRegulatorEquipmentId = false,
     double? decoSwitchDepth,
     bool clearDecoSwitchDepth = false,
     bool? isTravelGas,
@@ -1145,6 +1163,12 @@ class DiveTank extends Equatable {
       transmitterSerial: clearTransmitterSerial
           ? null
           : (transmitterSerial ?? this.transmitterSerial),
+      sourceTankIndex: clearSourceTankIndex
+          ? null
+          : (sourceTankIndex ?? this.sourceTankIndex),
+      regulatorEquipmentId: clearRegulatorEquipmentId
+          ? null
+          : (regulatorEquipmentId ?? this.regulatorEquipmentId),
       decoSwitchDepth: clearDecoSwitchDepth
           ? null
           : (decoSwitchDepth ?? this.decoSwitchDepth),
@@ -1167,6 +1191,8 @@ class DiveTank extends Equatable {
     presetName,
     computerId,
     transmitterSerial,
+    sourceTankIndex,
+    regulatorEquipmentId,
     decoSwitchDepth,
     isTravelGas,
   ];

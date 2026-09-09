@@ -54,8 +54,6 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
     super.dispose();
   }
 
-  void _exitSelectionMode() => _selection.exit();
-
   /// Grid indices for the checked ids, against the current ordering.
   Set<int> _indicesFor(List<MediaItem> media) => {
     for (var i = 0; i < media.length; i++)
@@ -68,13 +66,13 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
       .map((i) => media[i].id)
       .toList();
 
-  Future<void> _unlinkSelected(
+  Future<BulkActionOutcome> _unlinkSelected(
     BuildContext context,
     List<MediaItem> media,
   ) async {
     final selectedIds = _selection.value.checkedIds.toList();
 
-    if (selectedIds.isEmpty) return;
+    if (selectedIds.isEmpty) return BulkActionOutcome.cancelled;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -108,8 +106,6 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
             .read(siteMediaListNotifierProvider(widget.siteId).notifier)
             .unlinkMultipleMedia(selectedIds);
 
-        _exitSelectionMode();
-
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -121,6 +117,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
             ),
           );
         }
+        return BulkActionOutcome.completed;
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -130,8 +127,10 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
             ),
           );
         }
+        return BulkActionOutcome.failed;
       }
     }
+    return BulkActionOutcome.cancelled;
   }
 
   void _openItem(BuildContext context, MediaItem item, SiteViewerScope scope) {

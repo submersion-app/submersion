@@ -41,6 +41,7 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
   void StartDownload(
       const DiscoveredDevice& device,
       const std::string* fingerprint,
+      bool sync_clock,
       std::function<void(std::optional<FlutterError> reply)> result) override;
 
   std::optional<FlutterError> CancelDownload() override;
@@ -58,7 +59,8 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
 
  private:
   void PerformDownload(const DiscoveredDevice& device,
-                       const std::optional<std::string>& fingerprint = std::nullopt);
+                       const std::optional<std::string>& fingerprint = std::nullopt,
+                       bool sync_clock = false);
 
   std::unique_ptr<DiveComputerFlutterApi> flutter_api_;
   std::unique_ptr<BleScanner> ble_scanner_;

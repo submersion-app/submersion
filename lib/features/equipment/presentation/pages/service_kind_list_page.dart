@@ -5,10 +5,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/exposure_interval_input.dart';
+import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_category_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -178,9 +182,9 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
     );
   }
 
-  Future<void> _confirmAndDeleteSelected() async {
+  Future<BulkActionOutcome> _confirmAndDeleteSelected() async {
     final ids = _selectedIds.toList();
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -202,7 +206,7 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return BulkActionOutcome.cancelled;
 
     final messenger = ScaffoldMessenger.of(context);
     final repo = ref.read(serviceKindRepositoryProvider);
@@ -210,7 +214,7 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
     for (final id in ids) {
       await repo.deleteKind(id);
     }
-    if (!mounted) return;
+    if (!mounted) return BulkActionOutcome.completed;
     // Mirrors the per-row delete: the kind list and the equipment clocks that
     // reference cascaded schedules both need re-reading.
     ref.invalidate(serviceKindsProvider);
@@ -220,6 +224,7 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
         content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
       ),
     );
+    return BulkActionOutcome.completed;
   }
 
   Future<void> _confirmDelete(
@@ -301,6 +306,7 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
   late final TextEditingController _dives;
   late final TextEditingController _hours;
   late final TextEditingController _defaultCost;
+  late final Map<ExposureUnit, TextEditingController> _exposure;
 
   /// Null means "no opinion, use the diver's default currency". A dropdown
   /// entry maps to it explicitly so a chosen currency can be cleared again.
@@ -340,6 +346,16 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
     _defaultCategory = k?.defaultCategory;
     _types = {...(k?.applicableTypes ?? const [])};
     _autoAttach = k?.autoAttach ?? false;
+    _exposure = {
+      for (final unit in ExposureUnit.mapUnits)
+        unit: TextEditingController(
+          text: switch (k?.exposureIntervals[unit]) {
+            null => '',
+            final v when unit.isFractional => formatDecimalForInput(v),
+            final v => v.round().toString(),
+          },
+        ),
+    };
   }
 
   @override
@@ -348,6 +364,9 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
     _days.dispose();
     _dives.dispose();
     _hours.dispose();
+    for (final c in _exposure.values) {
+      c.dispose();
+    }
     _defaultCost.dispose();
     super.dispose();
   }
@@ -405,6 +424,19 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                     labelText: l10n.equipment_scheduleDialog_intervalHours,
                   ),
                 ),
+                for (final unit in ExposureUnit.mapUnits) ...[
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: Key('service-kind-exposure-${unit.name}'),
+                    controller: _exposure[unit],
+                    keyboardType: unit.isFractional
+                        ? const TextInputType.numberWithOptions(decimal: true)
+                        : TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: unit.intervalLabel(l10n),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 // Default price for this maintenance, prefilled when a record
                 // is logged. A per-item schedule can override it (#829).
@@ -553,6 +585,9 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
           defaultIntervalDays: parseUserInt(_days.text),
           defaultIntervalDives: parseUserInt(_dives.text),
           defaultIntervalHours: parseUserDecimal(_hours.text),
+          exposureIntervals: parseExposureIntervals({
+            for (final e in _exposure.entries) e.key: e.value.text,
+          }),
           defaultCost: parseUserDecimal(_defaultCost.text),
           defaultCurrency: _defaultCurrency,
           defaultCategory: _defaultCategory,
@@ -572,6 +607,9 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
           defaultIntervalDays: parseUserInt(_days.text),
           defaultIntervalDives: parseUserInt(_dives.text),
           defaultIntervalHours: parseUserDecimal(_hours.text),
+          exposureIntervals: parseExposureIntervals({
+            for (final e in _exposure.entries) e.key: e.value.text,
+          }),
           defaultCost: parseUserDecimal(_defaultCost.text),
           defaultCurrency: _defaultCurrency,
           defaultCategory: _defaultCategory,

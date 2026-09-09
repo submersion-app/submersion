@@ -2457,6 +2457,31 @@ class AppLocalizationsNl extends AppLocalizations {
   String get preDive_item_valueMax => 'Max (waarschuwing)';
 
   @override
+  String get preDive_item_type_cellLinearity => 'Cellineariteit';
+
+  @override
+  String get preDive_item_sourceItem => 'Luchtmeting van';
+
+  @override
+  String get preDive_item_sourceItemRequired =>
+      'Kies het item met de luchtmeting';
+
+  @override
+  String get preDive_item_linearityMin => 'Min. lineariteit % (waarschuwing)';
+
+  @override
+  String get preDive_item_linearityMax => 'Max. lineariteit % (waarschuwing)';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return '$title heeft geen luchtmeting meer om mee te vergelijken';
+  }
+
+  @override
+  String get preDive_item_sourceBelow =>
+      'Gebruikt een waarde die verderop in deze lijst wordt vastgelegd';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done van $total';
   }
@@ -2493,6 +2518,33 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => 'Waarde invoeren';
+
+  @override
+  String get preDive_runner_cellInAir => 'In lucht';
+
+  @override
+  String get preDive_runner_cellInAirMissing => 'Nog niet vastgelegd';
+
+  @override
+  String get preDive_runner_enterO2Value => 'Voer de waarde in O2 in';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return 'Verwacht $expected mV, lineariteit $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return 'Lucht $air mV, verwacht $expected mV, lineariteit $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged =>
+      'Luchtmeting is sindsdien gewijzigd';
 
   @override
   String preDive_runner_flaggedBadge(int count) {
@@ -7624,6 +7676,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'Fles verwijderen';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'Ademautomaat';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'Geen';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'Plafond';
 
   @override
@@ -10360,6 +10418,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'O2-cel';
+
+  @override
+  String get enum_equipmentType_battery => 'Batterij';
+
+  @override
   String get enum_equipmentType_computer => 'Duikcomputer';
 
   @override
@@ -11206,6 +11270,34 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return '$remaining van $total uren in zout water over';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return '$remaining van $total koudwaterduiken over';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return '$remaining van $total uren met hoog O2 over';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return '$remaining van $total diepe duiken over';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return '$remaining van $total batterijcycli over';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'Servicetypen beheren';
 
   @override
@@ -11226,6 +11318,26 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'Interval (uren)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'Interval (uren in zout water)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'Interval (koudwaterduiken)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'Interval (uren met hoog O2)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'Interval (diepe duiken)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles =>
+      'Interval (batterijcycli)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -11581,6 +11693,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_edit_statusLabel => 'Status';
+
+  @override
+  String get equipment_edit_parentLabel => 'Geplaatst in';
+
+  @override
+  String get equipment_edit_parentNone => 'Nergens geplaatst';
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'bijv. 5, 5/4, 7/5/3';
@@ -21740,6 +21858,42 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hierbij wordt verklaard dat';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'App-instelling: uit';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'App-instelling: aan';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'Kloksynchronisatie';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'Opnieuw controleren';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'Zet de klok na elke download op de tijd van dit apparaat. Geldt alleen voor dit apparaat.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'Klok van duikcomputers synchroniseren';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'Altijd';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'App-instelling';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'Nooit';
+
+  @override
+  String get diveComputer_clockSync_supported => 'Ondersteund door dit model';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'Dit model ondersteunt geen kloksynchronisatie';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21948,6 +22102,17 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'Download geannuleerd';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed =>
+      'Kloksynchronisatie mislukt';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'Kloksynchronisatie wordt niet ondersteund door dit model';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'Klok gesynchroniseerd';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -23679,22 +23844,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'Neem de einddruk op het moment van bovenkomen, niet aan het einde van de opname';
-
-  @override
-  String get settings_cloudImportPageSize_title =>
-      'Paginagrootte voor cloudimport';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'Hoeveel van de nieuwste duiken per keer op te halen van Suunto Cloud of Garmin Connect. „Meer laden” haalt de volgende batch van dezelfde grootte op.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'Duiken per pagina';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'Tussen $min en $max';
-  }
 
   @override
   String get settings_siteMatch_strict => 'Strikt';
@@ -25468,6 +25617,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_burn_time_h => 'Looptijd';
 
   @override
+  String get attrLabel_cell_slot => 'Celpositie';
+
+  @override
+  String get attrLabel_installed_date => 'Geplaatst op';
+
+  @override
+  String get attrLabel_rechargeable => 'Oplaadbaar';
+
+  @override
   String get attrLabel_battery_type => 'Accu';
 
   @override
@@ -25785,6 +25943,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'Loodzuur';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'Alkaline';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary =>
+      'Lithium (niet oplaadbaar)';
 
   @override
   String get attrChoice_motor_type_brushless => 'Borstelloos';
@@ -26325,6 +26490,42 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_section_safety_subtitle =>
       'Controleregels & vliegen na het duiken';
+
+  @override
+  String get settings_section_equipmentCondition_title =>
+      'Staat van uitrusting';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'Blootstellingsdrempels voor onderhoudsklokken';
+
+  @override
+  String get equipmentConditionSettings_title => 'Staat van uitrusting';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader =>
+      'Blootstellingsdrempels';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'Een duik telt voor onderhoudsklokken als koud, diep of met hoog O2 wanneer hij deze grenzen overschrijdt.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'Koud water onder';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'Diepe duik vanaf';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'Mengsel met hoog O2 boven (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'Voer een getal in';
+
+  @override
+  String get equipmentConditionSettings_saveFailed =>
+      'Opslaan mislukt. Probeer het opnieuw.';
 
   @override
   String get settings_section_security_title => 'App-beveiliging';
@@ -37071,4 +37272,277 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (automatisch)';
   }
+
+  @override
+  String get settings_manage_transmitters => 'Zenders';
+
+  @override
+  String get settings_manage_transmitters_subtitle =>
+      'Koppel drukzenders aan flessen';
+
+  @override
+  String get transmitters_title => 'Zenders';
+
+  @override
+  String get transmitters_add => 'Zender toevoegen';
+
+  @override
+  String get transmitters_header_assigned => 'Toegewezen zenders';
+
+  @override
+  String get transmitters_header_unassigned =>
+      'Gezien in downloads, niet toegewezen';
+
+  @override
+  String get transmitters_empty =>
+      'Nog geen zenders. Voeg er een toe, of wijs na je volgende download een serienummer toe.';
+
+  @override
+  String get transmitters_action_assign => 'Toewijzen';
+
+  @override
+  String get transmitters_action_edit => 'Zender bewerken';
+
+  @override
+  String get transmitters_action_delete => 'Zender verwijderen';
+
+  @override
+  String get transmitters_action_apply => 'Toepassen op bestaande duiken';
+
+  @override
+  String get transmitters_apply_title => 'Toepassen op bestaande duiken?';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks flessen in $dives duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat wordt vervangen.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return '$tanks flessen bijgewerkt in $dives duiken';
+  }
+
+  @override
+  String get transmitters_apply_nothing =>
+      'Geen enkele fles draagt deze zender';
+
+  @override
+  String get transmitters_delete_title => 'Zender verwijderen?';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'Toekomstige downloads van $label gebruiken weer de standaardvoorinstelling.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer, kanaal $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return 'Zender $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'Zender bewerken';
+
+  @override
+  String get transmitters_new_title => 'Nieuwe zender';
+
+  @override
+  String get transmitters_field_label => 'Label';
+
+  @override
+  String get transmitters_field_serial => 'Serienummer van de zender';
+
+  @override
+  String get transmitters_field_computer =>
+      'Duikcomputer (als er geen serienummer wordt gemeld)';
+
+  @override
+  String get transmitters_field_channel => 'Kanaal';
+
+  @override
+  String get transmitters_field_role => 'Rol';
+
+  @override
+  String get transmitters_field_gear => 'Fles uit uitrusting';
+
+  @override
+  String get transmitters_field_material => 'Materiaal';
+
+  @override
+  String get transmitters_gear_none => 'Geen';
+
+  @override
+  String get transmitters_validation_key =>
+      'Voer een serienummer in, of kies een duikcomputer en kanaal';
+
+  @override
+  String get transmitters_validation_positive =>
+      'Voer een waarde groter dan nul in';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'Al toegewezen aan $label';
+  }
+
+  @override
+  String get transmitters_saved => 'Zender opgeslagen';
+
+  @override
+  String get diveComputer_detail_transmitters => 'Zenders';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known bekend, $unassigned niet toegewezen';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'Zender toewijzen';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'Drukreeks opnieuw toewijzen';
+
+  @override
+  String get diveLog_reassignSheet_title => 'Drukreeksen';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'Wisselen';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'Verplaatsen naar';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count metingen',
+      one: '1 meting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'Geen drukreeks';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'Drukreeks opnieuw toegewezen';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'Niet-toegewezen zenders';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'Een of meer zenders in deze download zijn niet aan een fles toegewezen. Wijs ze toe zodat toekomstige downloads de juiste inhoud en rol krijgen.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters =>
+      'Zenders toewijzen';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter =>
+      'Niet-toegewezen zender';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'Zender $serial is niet aan een fles toegewezen';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter => 'Zender toewijzen';
+
+  @override
+  String get backup_unrecognized_appBar_title => 'Niet-herkende back-ups';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'Deze bestanden staan in je back-upmap maar niet in de back-upgeschiedenis van dit apparaat. Alleen een bestand dat dit apparaat heeft geschreven kan hier worden verwijderd: al het andere kan de enige kopie van een ander apparaat zijn.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'Geen niet-herkende back-upbestanden.';
+
+  @override
+  String get backup_unrecognized_loadFailed => 'Kon de back-upmap niet lezen.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'Dit apparaat kan de gekozen back-upmap niet uitlezen, dus niet-herkende bestanden kunnen niet worden gevonden.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'Ander apparaat';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'Onbekend apparaat';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden verwijderen ($size)',
+      one: '1 bestand verwijderen ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'Deze back-upbestanden verwijderen?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count back-upbestanden worden permanent verwijderd. Dit kan niet ongedaan worden gemaakt.',
+      one:
+          '1 back-upbestand wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'Kon de geselecteerde bestanden niet verwijderen.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size vrijgemaakt';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden ontbreken in je back-upgeschiedenis',
+      one: '1 bestand ontbreekt in je back-upgeschiedenis',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'Bekijken';
 }

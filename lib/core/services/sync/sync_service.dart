@@ -1388,6 +1388,11 @@ class SyncService {
             records: data.diveComputers,
             hasUpdatedAt: true,
           ),
+          (
+            type: 'transmitters',
+            records: data.transmitters,
+            hasUpdatedAt: true,
+          ),
           (type: 'species', records: data.species, hasUpdatedAt: false),
           (type: 'tags', records: data.tags, hasUpdatedAt: true),
           // Courses must apply before dives/certifications that reference them.
@@ -2228,6 +2233,7 @@ class SyncService {
     'weightPresets': true,
     'weightPresetEntries': false,
     'diveComputers': true,
+    'transmitters': true,
     'species': false,
     'tags': true,
     'courses': true,
@@ -2333,9 +2339,23 @@ class SyncService {
     'diveComputers': [
       (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
+    // Both gear FKs are nullable: the registry entry outlives a deleted
+    // cylinder or computer (set null), so a missing parent must not drop it.
+    'transmitters': [
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
+      (field: 'diveComputerId', parent: 'diveComputers', nullable: true),
+    ],
+    // v202: a child item (O2 cell, battery) points at the item it is installed
+    // in. Nullable: deleting the parent orphans the child, never drops it.
+    'equipment': [
+      (field: 'parentEquipmentId', parent: 'equipment', nullable: true),
+    ],
     'diveTanks': [
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: true),
+      // v202: the regulator breathed from the cylinder; user-authored and
+      // nullable, so a deleted regulator only clears the link.
+      (field: 'regulatorEquipmentId', parent: 'equipment', nullable: true),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
     ],
     'diveWeights': [(field: 'diveId', parent: 'dives', nullable: false)],
@@ -2364,6 +2384,8 @@ class SyncService {
     'incidents': [
       (field: 'diverId', parent: 'divers', nullable: true),
       (field: 'diveId', parent: 'dives', nullable: true),
+      // v202: the item an equipment incident attributes to; nullable.
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
     'diveSafetyReviews': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveSafetyFindings': [(field: 'diveId', parent: 'dives', nullable: false)],

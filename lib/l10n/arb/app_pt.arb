@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "Link copiado. Cole-o no navegador para autorizar.",
   "universalImport_action_importFromGarmin": "Importar do dispositivo Garmin",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "Célula de O2",
+  "enum_equipmentType_battery": "Bateria",
   "diveLog_tank_saveAsPreset": "Guardar como preset",
   "diveLog_tank_saveAsPreset_needSpecs": "Introduza primeiro um volume e uma pressão de trabalho",
   "diveLog_tank_saveAsPreset_nameTitle": "Guardar preset do cilindro",
@@ -976,6 +978,20 @@
   "preDive_item_valueUnit": "Unidade",
   "preDive_item_valueMin": "Mín (aviso)",
   "preDive_item_valueMax": "Máx (aviso)",
+  "preDive_item_type_cellLinearity": "Linearidade da célula",
+  "preDive_item_sourceItem": "Leitura no ar de",
+  "preDive_item_sourceItemRequired": "Escolhe o item com a leitura no ar",
+  "preDive_item_linearityMin": "Linearidade mín. % (aviso)",
+  "preDive_item_linearityMax": "Linearidade máx. % (aviso)",
+  "preDive_item_sourceCleared": "{title} já não tem uma leitura no ar com que comparar",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "Usa um valor registado mais à frente nesta lista",
   "preDive_runner_progress": "{done} de {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1020,35 @@
   "preDive_runner_serviceOverdue": "Manutenção vencida",
   "preDive_runner_addNote": "Adicionar nota",
   "preDive_runner_enterValue": "Inserir valor",
+  "preDive_runner_cellInAir": "No ar",
+  "preDive_runner_cellInAirMissing": "Ainda não registado",
+  "preDive_runner_enterO2Value": "Introduz o valor em O2",
+  "preDive_runner_linearityReadout": "Esperado {expected} mV, linearidade {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Ar {air} mV, esperado {expected} mV, linearidade {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "A leitura no ar mudou entretanto",
   "preDive_runner_flaggedBadge": "{count} sinalizados",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -1504,6 +1549,9 @@
   "diveComputer_downloadStep_andMoreDives": "... e mais {count}",
   "diveComputer_downloadStep_cancel": "Cancelar",
   "diveComputer_downloadStep_cancelled": "Download cancelado",
+  "diveComputer_downloadStep_clockSyncFailed": "Falha na sincronização do relógio",
+  "diveComputer_downloadStep_clockSyncUnsupported": "A sincronização do relógio não é suportada por este modelo",
+  "diveComputer_downloadStep_clockSynced": "Relógio sincronizado",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
   "diveComputer_downloadStep_downloadAll": "Baixar todos os mergulhos",
   "diveComputer_downloadStep_downloadFailed": "Falha no download",
@@ -2630,6 +2678,8 @@
   "diveLog_tank_selectPreset": "Selecionar Preset...",
   "diveLog_tank_title": "Cilindro {number}",
   "diveLog_tank_tooltip_remove": "Remover cilindro",
+  "diveLog_tank_regulatorLabel": "Regulador",
+  "diveLog_tank_regulatorNone": "Nenhum",
   "diveLog_tissue_label_ceiling": "Teto",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3695,6 +3745,61 @@
   "cylinderConfigs_sectionTitle": "Configurações",
   "equipment_serviceClocks_hoursSource": "Calculado a partir do tempo de mergulho registado",
   "equipment_serviceClocks_hoursLeft": "Restam {remaining} de {total} horas",
+  "equipment_serviceClocks_saltHoursLeft": "Restam {remaining} de {total} horas em água salgada",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "Restam {remaining} de {total} mergulhos em água fria",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "Restam {remaining} de {total} horas com O2 elevado",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "Restam {remaining} de {total} mergulhos profundos",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "Restam {remaining} de {total} ciclos de bateria",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Gerenciar tipos de manutenção",
   "equipment_serviceClocks_appliesToClock": "Aplica-se ao prazo",
   "equipment_serviceClocks_noClockOption": "Não vinculado a um prazo",
@@ -3702,6 +3807,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervalo (dias)",
   "equipment_scheduleDialog_intervalDives": "Intervalo (mergulhos)",
   "equipment_scheduleDialog_intervalHours": "Intervalo (horas)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervalo (horas em água salgada)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervalo (mergulhos em água fria)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervalo (horas com O2 elevado)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervalo (mergulhos profundos)",
+  "equipment_scheduleDialog_intervalCycles": "Intervalo (ciclos de bateria)",
   "equipment_scheduleDialog_inheritHint": "Padrão: {value}",
   "equipment_scheduleDialog_anchorDate": "Data de referência",
   "equipment_scheduleDialog_anchorHint": "Usada quando ainda não existe nenhum registro de manutenção deste tipo",
@@ -3800,6 +3910,8 @@
   "equipment_edit_snackbar_error": "Erro ao salvar equipamento: {error}",
   "equipment_edit_snackbar_updated": "Equipamento atualizado",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_parentLabel": "Instalado em",
+  "equipment_edit_parentNone": "Não instalado",
   "equipment_edit_thicknessDesignationHint": "ex: 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "p. ex. shop.example.com/product",
   "equipment_edit_thicknessHint": "ex: 5mm, 7mm",
@@ -6581,10 +6693,6 @@
   "settings_siteMatch_subtitle": "Com que intensidade os mergulhos baixados são associados aos pontos",
   "settings_tankPressureAtSurfacing_title": "Pressão da garrafa à superfície",
   "settings_tankPressureAtSurfacing_subtitle": "Usar a pressão final ao chegar à superfície, não no fim da gravação",
-  "settings_cloudImportPageSize_title": "Tamanho da página de importação na nuvem",
-  "settings_cloudImportPageSize_subtitle": "Quantos dos mergulhos mais recentes obter de cada vez do Suunto Cloud ou Garmin Connect. «Carregar mais» obtém o lote seguinte do mesmo tamanho.",
-  "settings_cloudImportPageSize_dialogTitle": "Mergulhos por página",
-  "settings_cloudImportPageSize_range": "Entre {min} e {max}",
   "settings_siteMatch_strict": "Rigoroso",
   "settings_siteMatch_balanced": "Equilibrado",
   "settings_siteMatch_relaxed": "Flexível",
@@ -6841,6 +6949,17 @@
   "diveComputer_connectionType_unknown": "Desconhecido",
   "diveComputer_connectionType_usb": "USB",
   "diveComputer_connectionType_wifi": "Wi-Fi",
+  "diveComputer_clockSync_appSettingOff": "Definição da app: desligada",
+  "diveComputer_clockSync_appSettingOn": "Definição da app: ligada",
+  "diveComputer_clockSync_cardTitle": "Sincronização do relógio",
+  "diveComputer_clockSync_checkAgain": "Verificar novamente",
+  "diveComputer_clockSync_globalSubtitle": "Acerta o relógio pela hora deste dispositivo após cada download. Aplica-se apenas a este dispositivo.",
+  "diveComputer_clockSync_globalTitle": "Sincronizar relógios dos computadores de mergulho",
+  "diveComputer_clockSync_overrideAlways": "Sempre",
+  "diveComputer_clockSync_overrideInherit": "Definição da app",
+  "diveComputer_clockSync_overrideNever": "Nunca",
+  "diveComputer_clockSync_supported": "Suportado por este modelo",
+  "diveComputer_clockSync_unsupported": "Este modelo não suporta a sincronização do relógio",
   "diveComputer_detail_deleteDialogContent": "Tem certeza de que deseja remover \"{name}\"? Isto nao excluira os mergulhos importados deste computador.",
   "diveComputer_detail_deleteDialogTitle": "Excluir computador?",
   "diveComputer_detail_divesImported": "Mergulhos importados",
@@ -7443,6 +7562,9 @@
   "attrLabel_o2_cylinder_l": "Cilindro de O2",
   "attrLabel_dpv_style": "Estilo",
   "attrLabel_burn_time_h": "Autonomia",
+  "attrLabel_cell_slot": "Posição da célula",
+  "attrLabel_installed_date": "Instalada em",
+  "attrLabel_rechargeable": "Recarregável",
   "attrLabel_battery_type": "Bateria",
   "attrLabel_battery_capacity_wh": "Capacidade da bateria (Wh)",
   "attrLabel_motor_type": "Motor",
@@ -7549,6 +7671,8 @@
   "attrChoice_battery_type_lithium_ion": "Iões de lítio",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Chumbo-ácido",
+  "attrChoice_battery_type_alkaline": "Alcalina",
+  "attrChoice_battery_type_lithium_primary": "Lítio (não recarregável)",
   "attrChoice_motor_type_brushless": "Sem escovas",
   "attrChoice_motor_type_brushed": "Com escovas",
   "attrChoice_sleeve_length_short": "Curtas",
@@ -8003,6 +8127,16 @@
   "planning_card_noFly_subtitle": "Contagem orientativa desde seus últimos mergulhos",
   "settings_section_safety_title": "Segurança",
   "settings_section_safety_subtitle": "Regras de revisão e voar após mergulhar",
+  "settings_section_equipmentCondition_title": "Estado do equipamento",
+  "settings_section_equipmentCondition_subtitle": "Limites de exposição para os relógios de manutenção",
+  "equipmentConditionSettings_title": "Estado do equipamento",
+  "equipmentConditionSettings_thresholdsHeader": "Limites de exposição",
+  "equipmentConditionSettings_thresholdsHelp": "Um mergulho conta como frio, profundo ou com O2 elevado para os relógios de manutenção quando ultrapassa estes limites.",
+  "equipmentConditionSettings_coldLabel": "Água fria abaixo de",
+  "equipmentConditionSettings_deepLabel": "Mergulho profundo a partir de",
+  "equipmentConditionSettings_o2Label": "Mistura com O2 elevado acima de (% O2)",
+  "equipmentConditionSettings_invalid": "Introduza um número",
+  "equipmentConditionSettings_saveFailed": "Não foi possível guardar. Tente novamente.",
   "dataQuality_inbox_title": "Qualidade dos dados",
   "dataQuality_dive_unknown": "Detalhes do mergulho indisponíveis",
   "dataQuality_dive_number": "#{number}",
@@ -10905,5 +11039,70 @@
   "startup_versionMismatch_restore_warning": "Tudo o que registaste depois da atualização existe apenas no ficheiro mais recente. Esse ficheiro fica guardado como cópia fixada, por isso instalar de novo a versão mais recente recupera-o.",
   "backup_history_preDowngradeSubtitle": "Base de dados mais recente, guardada ao recuar - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 mergulho} other{{diveCount} mergulhos}}, {siteCount, plural, =1{1 local} other{{siteCount} locais}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 mergulho} other{{diveCount} mergulhos}}, {siteCount, plural, =1{1 local} other{{siteCount} locais}} - {size} (automático)"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 mergulho} other{{diveCount} mergulhos}}, {siteCount, plural, =1{1 local} other{{siteCount} locais}} - {size} (automático)",
+  "settings_manage_transmitters": "Transmissores",
+  "settings_manage_transmitters_subtitle": "Associar transmissores de pressão a cilindros",
+  "transmitters_title": "Transmissores",
+  "transmitters_add": "Adicionar transmissor",
+  "transmitters_header_assigned": "Transmissores atribuídos",
+  "transmitters_header_unassigned": "Vistos em downloads, não atribuídos",
+  "transmitters_empty": "Ainda não há transmissores. Adicione um ou atribua um número de série após o próximo download.",
+  "transmitters_action_assign": "Atribuir",
+  "transmitters_action_edit": "Editar transmissor",
+  "transmitters_action_delete": "Excluir transmissor",
+  "transmitters_action_apply": "Aplicar a mergulhos existentes",
+  "transmitters_apply_title": "Aplicar a mergulhos existentes?",
+  "transmitters_apply_content": "{tanks} cilindros em {dives} mergulhos carregam este transmissor. Campos vazios de tamanho, material, nome e equipamento serão preenchidos, e uma função ainda definida como Gás de fundo será substituída.",
+  "transmitters_apply_done": "{tanks} cilindros atualizados em {dives} mergulhos",
+  "transmitters_apply_nothing": "Nenhum cilindro carrega este transmissor",
+  "transmitters_delete_title": "Excluir transmissor?",
+  "transmitters_delete_content": "Os próximos downloads de {label} voltarão a usar a predefinição padrão.",
+  "transmitters_channel": "{computer}, canal {channel}",
+  "transmitters_serial": "Transmissor {serial}",
+  "transmitters_dives": "{count, plural, =1{1 mergulho} other{{count} mergulhos}}",
+  "transmitters_edit_title": "Editar transmissor",
+  "transmitters_new_title": "Novo transmissor",
+  "transmitters_field_label": "Rótulo",
+  "transmitters_field_serial": "Número de série do transmissor",
+  "transmitters_field_computer": "Computador de mergulho (quando nenhum número de série é informado)",
+  "transmitters_field_channel": "Canal",
+  "transmitters_field_role": "Função",
+  "transmitters_field_gear": "Cilindro do equipamento",
+  "transmitters_field_material": "Material",
+  "transmitters_gear_none": "Nenhum",
+  "transmitters_validation_key": "Informe um número de série ou escolha um computador e um canal",
+  "transmitters_validation_positive": "Informe um valor maior que zero",
+  "transmitters_validation_duplicate": "Já atribuído a {label}",
+  "transmitters_saved": "Transmissor salvo",
+  "diveComputer_detail_transmitters": "Transmissores",
+  "diveComputer_detail_transmittersSummary": "{known} conhecidos, {unassigned} não atribuídos",
+  "diveLog_tank_assignTransmitter": "Atribuir transmissor",
+  "diveLog_tank_reassignSeries": "Reatribuir série de pressão",
+  "diveLog_reassignSheet_title": "Séries de pressão",
+  "diveLog_reassignSheet_swap": "Trocar",
+  "diveLog_reassignSheet_moveTo": "Mover para",
+  "diveLog_reassignSheet_readings": "{count, plural, =1{1 leitura} other{{count} leituras}}",
+  "diveLog_reassignSheet_noSeries": "Sem série de pressão",
+  "diveLog_reassignSheet_applied": "Série de pressão reatribuída",
+  "universalImport_summary_noticeUnknownTransmitterTitle": "Transmissores não atribuídos",
+  "universalImport_summary_noticeUnknownTransmitterBody": "Um ou mais transmissores deste download não estão atribuídos a um cilindro. Atribua-os para que os próximos downloads tenham o tamanho e a função corretos.",
+  "universalImport_summary_noticeAssignTransmitters": "Atribuir transmissores",
+  "dataQuality_detector_unknown_transmitter": "Transmissor não atribuído",
+  "dataQuality_msg_unknownTransmitter": "O transmissor {serial} não está atribuído a nenhum cilindro",
+  "dataQuality_repairLabel_assignTransmitter": "Atribuir transmissor",
+  "backup_unrecognized_appBar_title": "Cópias de segurança não reconhecidas",
+  "backup_unrecognized_explanation": "Estes ficheiros estão na sua pasta de cópias de segurança mas não no histórico deste dispositivo. Só pode ser excluído aqui um ficheiro escrito por este dispositivo: qualquer outro pode ser a única cópia de outro dispositivo.",
+  "backup_unrecognized_empty": "Não há ficheiros de cópia de segurança não reconhecidos.",
+  "backup_unrecognized_loadFailed": "Não foi possível ler a pasta de cópias de segurança.",
+  "backup_unrecognized_unavailable": "Este dispositivo não consegue listar a pasta de cópias de segurança que escolheu, por isso não é possível encontrar ficheiros não reconhecidos.",
+  "backup_unrecognized_ownership_otherDevice": "Outro dispositivo",
+  "backup_unrecognized_ownership_unattributed": "Dispositivo desconhecido",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{Excluir 1 ficheiro ({size})} other{Excluir {count} ficheiros ({size})}}",
+  "backup_unrecognized_confirm_title": "Excluir estes ficheiros de cópia de segurança?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{1 ficheiro de cópia de segurança será excluído permanentemente. Não é possível anular.} other{{count} ficheiros de cópia de segurança serão excluídos permanentemente. Não é possível anular.}}",
+  "backup_unrecognized_deleteFailed": "Não foi possível excluir os ficheiros selecionados.",
+  "backup_unrecognized_freed": "{size} libertados",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 ficheiro que não está no seu histórico de cópias de segurança} other{{count} ficheiros que não estão no seu histórico de cópias de segurança}}",
+  "settings_storageUsage_unrecognized_action": "Rever"
 }

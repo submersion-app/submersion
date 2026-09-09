@@ -62,6 +62,7 @@ class DiveQualityContext {
     this.gasSwitches = const [],
     this.neighbors = const [],
     this.ppO2MaxBar = QualityThresholds.ppO2WarnBar,
+    this.knownTransmitterSerials = const {},
   });
 
   final domain.Dive dive;
@@ -85,4 +86,8 @@ class DiveQualityContext {
   /// as suspect above this, and genuinely wrong further above it. Defaults to
   /// [QualityThresholds.ppO2WarnBar] (1.6) when settings are unavailable.
   final double ppO2MaxBar;
+
+  /// Normalized serials of the diver's registered transmitters (issue #1365),
+  /// so a detector can tell a downloaded tank nobody has assigned yet.
+  final Set<String> knownTransmitterSerials;
 }

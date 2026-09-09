@@ -65,10 +65,20 @@ abstract final class EquipmentAttrKeys {
   static const insulationLevel = 'insulation_level';
   static const fillMaterial = 'fill_material';
 
+  // Cylinder specs (issue #1365): read by the transmitter registry editor.
+  static const volumeL = 'volume_l';
+  static const workingPressureBar = 'working_pressure_bar';
+  static const tankMaterial = 'tank_material';
+
   // Purchase record (issue #1517).
   static const sku = 'sku';
   static const retailer = 'retailer';
   static const productUrl = 'product_url';
+
+  // Child items (o2Cell, battery).
+  static const cellSlot = 'cell_slot';
+  static const installedDate = 'installed_date';
+  static const rechargeable = 'rechargeable';
 }
 
 class EquipmentAttributeDef {
@@ -220,17 +230,17 @@ abstract final class EquipmentAttributeCatalog {
     ],
     EquipmentType.tank: [
       EquipmentAttributeDef(
-        key: 'volume_l',
+        key: EquipmentAttrKeys.volumeL,
         kind: AttributeKind.number,
         dimension: AttributeDimension.volumeL,
       ),
       EquipmentAttributeDef(
-        key: 'working_pressure_bar',
+        key: EquipmentAttrKeys.workingPressureBar,
         kind: AttributeKind.number,
         dimension: AttributeDimension.pressureBar,
       ),
       EquipmentAttributeDef(
-        key: 'tank_material',
+        key: EquipmentAttrKeys.tankMaterial,
         kind: AttributeKind.choice,
         choiceKeys: ['aluminum', 'steel', 'carbon_composite'],
       ),
@@ -443,7 +453,13 @@ abstract final class EquipmentAttributeCatalog {
       EquipmentAttributeDef(
         key: 'battery_type',
         kind: AttributeKind.choice,
-        choiceKeys: ['lithium_ion', 'nimh', 'lead_acid'],
+        choiceKeys: [
+          'lithium_ion',
+          'nimh',
+          'lead_acid',
+          'alkaline',
+          'lithium_primary',
+        ],
       ),
       // Watt-hours: the figure printed on the pack and the one airlines ask
       // about, universal in every market.
@@ -546,6 +562,37 @@ abstract final class EquipmentAttributeCatalog {
         key: 'sole_type',
         kind: AttributeKind.choice,
         choiceKeys: ['hard', 'soft'],
+      ),
+    ],
+    EquipmentType.o2Cell: [
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.cellSlot,
+        kind: AttributeKind.number,
+      ),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.installedDate,
+        kind: AttributeKind.date,
+      ),
+    ],
+    EquipmentType.battery: [
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.installedDate,
+        kind: AttributeKind.date,
+      ),
+      EquipmentAttributeDef(
+        key: 'battery_type',
+        kind: AttributeKind.choice,
+        choiceKeys: [
+          'lithium_ion',
+          'nimh',
+          'lead_acid',
+          'alkaline',
+          'lithium_primary',
+        ],
+      ),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.rechargeable,
+        kind: AttributeKind.flag,
       ),
     ],
     EquipmentType.other: [],

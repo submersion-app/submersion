@@ -195,6 +195,20 @@ class EquipmentRepository {
     }
   }
 
+  /// Active items installed in [parentId] (O2 cells, batteries).
+  Future<List<EquipmentItem>> getChildEquipment(String parentId) async {
+    final rows =
+        await (_db.select(_db.equipment)
+              ..where(
+                (t) =>
+                    t.parentEquipmentId.equals(parentId) &
+                    t.isActive.equals(true),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+            .get();
+    return _mapRowsWithAttributes(rows);
+  }
+
   /// Get multiple equipment items by IDs
   Future<List<EquipmentItem>> getEquipmentByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
@@ -250,6 +264,7 @@ class EquipmentRepository {
                     ? jsonEncode(equipment.customReminderDays)
                     : null,
               ),
+              parentEquipmentId: Value(equipment.parentEquipmentId),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -377,6 +392,7 @@ class EquipmentRepository {
                 ? jsonEncode(equipment.customReminderDays)
                 : null,
           ),
+          parentEquipmentId: Value(equipment.parentEquipmentId),
           updatedAt: Value(now),
         ),
       );
@@ -647,6 +663,7 @@ class EquipmentRepository {
                         as List<dynamic>)
                     .cast<int>()
               : null,
+          parentEquipmentId: row.data['parent_equipment_id'] as String?,
         );
       }).toList();
       final attrsById = await getAttributesForEquipmentIds(
@@ -696,17 +713,28 @@ class EquipmentRepository {
     }
   }
 
-  /// (date, duration) samples of dives linked to this equipment via the
-  /// dive_equipment junction or dive_tanks.equipment_id, for usage-based
-  /// service clocks. Duration is COALESCE(runtime, bottom_time) seconds.
+  /// Every dive this item was on, with what it was exposed to. One SQL union
+  /// over the four link paths (junction, cylinder, regulator, parent),
+  /// left-joined to the sensor summary so profile extremes win over the dive
+  /// header when a summary exists.
+  ///
+  /// [parentEquipmentId] and [installedSince] make a child inherit its
+  /// parent's dives from its install date. [rebreatherContact] enables the
+  /// diluent and oxygen-supply cylinder path and the CCR fallback (a CCR
+  /// dive with no supply cylinder recorded is still 100 percent O2 contact
+  /// for the unit).
+  ///
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
   /// from statistics still physically happened: it cycled this gear and put
   /// hours on it. Suppressing it here would push a real service interval
   /// later than it should be, a safety-relevant error rather than a cosmetic
   /// one. Do not "fix" this.
   // stats-scope-exempt: gear wear is physical, not descriptive
-  Future<List<DiveUsageSample>> getUsageSamplesForEquipment(
+  Future<List<EquipmentExposureSample>> getExposureSamplesForEquipment(
     String equipmentId, {
+    String? parentEquipmentId,
+    DateTime? installedSince,
+    bool rebreatherContact = false,
     DateTime? since,
   }) async {
     try {
@@ -714,47 +742,115 @@ class EquipmentRepository {
           .customSelect(
             '''
         SELECT d.dive_date_time AS date_ms,
-               COALESCE(d.runtime, d.bottom_time, 0) AS duration_sec
+               COALESCE(d.runtime, d.bottom_time, 0) AS duration_sec,
+               d.dive_mode AS dive_mode,
+               d.water_type AS water_type,
+               COALESCE(s.max_depth, d.max_depth) AS max_depth,
+               COALESCE(s.min_temperature, d.water_temp) AS min_temp,
+               MAX(je.contact_o2) AS contact_o2
         FROM (
-          SELECT dive_id FROM dive_equipment WHERE equipment_id = ?1
-          UNION
-          SELECT dive_id FROM dive_tanks
-            WHERE equipment_id = ?1 AND dive_id IS NOT NULL
+          SELECT dive_id, NULL AS contact_o2, 0 AS via_parent
+            FROM dive_equipment WHERE equipment_id = ?1
+          UNION ALL
+          SELECT dive_id, o2_percent, 0 FROM dive_tanks
+            WHERE equipment_id = ?1 OR regulator_equipment_id = ?1
+          UNION ALL
+          SELECT de.dive_id, t.o2_percent, 0
+            FROM dive_equipment de
+            JOIN dive_tanks t ON t.dive_id = de.dive_id
+              AND t.tank_role IN ('diluent', 'oxygenSupply')
+            WHERE de.equipment_id = ?1 AND ?5 = 1
+          UNION ALL
+          SELECT dive_id, NULL, 1 FROM dive_equipment WHERE equipment_id = ?2
+          UNION ALL
+          SELECT dive_id, o2_percent, 1 FROM dive_tanks
+            WHERE equipment_id = ?2 OR regulator_equipment_id = ?2
+          UNION ALL
+          SELECT de.dive_id, t.o2_percent, 1
+            FROM dive_equipment de
+            JOIN dive_tanks t ON t.dive_id = de.dive_id
+              AND t.tank_role IN ('diluent', 'oxygenSupply')
+            WHERE de.equipment_id = ?2 AND ?5 = 1
         ) je
         JOIN dives d ON d.id = je.dive_id
-        WHERE (?2 IS NULL OR d.dive_date_time >= ?2)
+        LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
+        WHERE (je.via_parent = 0 OR ?3 IS NULL OR d.dive_date_time >= ?3)
+          AND (?4 IS NULL OR d.dive_date_time >= ?4)
+        GROUP BY d.id
         ORDER BY d.dive_date_time
       ''',
             variables: [
               Variable.withString(equipmentId),
+              // An empty string never matches an id, so "no parent" needs
+              // no second query shape.
+              Variable.withString(parentEquipmentId ?? ''),
+              Variable(installedSince?.millisecondsSinceEpoch),
               Variable(since?.millisecondsSinceEpoch),
+              Variable.withInt(rebreatherContact ? 1 : 0),
             ],
           )
           .get();
-      return rows
-          .map(
-            (r) => DiveUsageSample(
-              // dives.dive_date_time is epoch millis with wall-clock-as-UTC
-              // semantics (see dive_filter_sql.dart); decode with isUtc: true
-              // like the other dive-date mappers so the engine's
-              // date.isAfter(anchor) usage comparison is not shifted by the
-              // local offset around day boundaries.
-              date: DateTime.fromMillisecondsSinceEpoch(
-                r.data['date_ms'] as int,
-                isUtc: true,
-              ),
-              durationSeconds: (r.data['duration_sec'] as num).toInt(),
-            ),
-          )
-          .toList();
+      return rows.map((r) {
+        final mode = DiveMode.values.firstWhere(
+          (m) => m.name == r.data['dive_mode'],
+          orElse: () => DiveMode.oc,
+        );
+        final waterName = r.data['water_type'] as String?;
+        final water = waterName == null
+            ? null
+            : WaterType.values.where((w) => w.name == waterName).firstOrNull;
+        final o2Percent = (r.data['contact_o2'] as num?)?.toDouble();
+        final contact = o2Percent != null
+            ? o2Percent / 100.0
+            : (rebreatherContact && mode == DiveMode.ccr ? 1.0 : null);
+        return EquipmentExposureSample(
+          // dives.dive_date_time is epoch millis with wall-clock-as-UTC
+          // semantics (see dive_filter_sql.dart); decode with isUtc: true
+          // like the other dive-date mappers so the engine's
+          // date.isAfter(anchor) usage comparison is not shifted by the
+          // local offset around day boundaries.
+          date: DateTime.fromMillisecondsSinceEpoch(
+            r.data['date_ms'] as int,
+            isUtc: true,
+          ),
+          durationSeconds: (r.data['duration_sec'] as num).toInt(),
+          diveMode: mode,
+          maxDepth: (r.data['max_depth'] as num?)?.toDouble(),
+          minTemperature: (r.data['min_temp'] as num?)?.toDouble(),
+          waterType: water,
+          contactO2Fraction: contact,
+        );
+      }).toList();
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get usage samples for equipment: $equipmentId',
+        'Failed to get exposure samples for equipment: $equipmentId',
         error: e,
         stackTrace: stackTrace,
       );
       rethrow;
     }
+  }
+
+  /// The regulator last paired with a cylinder preset, for prefilling the
+  /// tank editor: the newest dive whose tank of that preset names one.
+  /// Operational, not descriptive: an excluded dive still tells us which
+  /// regulator the diver hangs on that cylinder.
+  // stats-scope-exempt: editor prefill, not a statistic
+  Future<String?> getLastRegulatorForPreset(String presetName) async {
+    final rows = await _db
+        .customSelect(
+          '''
+      SELECT t.regulator_equipment_id AS reg
+      FROM dive_tanks t
+      JOIN dives d ON d.id = t.dive_id
+      WHERE t.preset_name = ?1 AND t.regulator_equipment_id IS NOT NULL
+      ORDER BY d.dive_date_time DESC
+      LIMIT 1
+    ''',
+          variables: [Variable.withString(presetName)],
+        )
+        .get();
+    return rows.isEmpty ? null : rows.first.data['reg'] as String?;
   }
 
   /// Get trip count for equipment item (unique trips from dives using this equipment)
@@ -852,6 +948,7 @@ class EquipmentRepository {
       customReminderDays: row.customReminderDays != null
           ? (jsonDecode(row.customReminderDays!) as List<dynamic>).cast<int>()
           : null,
+      parentEquipmentId: row.parentEquipmentId,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     );
   }

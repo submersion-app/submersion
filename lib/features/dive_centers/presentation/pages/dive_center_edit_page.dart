@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
@@ -618,15 +619,10 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
               : context.l10n.diveCenters_title_add,
         ),
         actions: [
-          TextButton(
+          AppBarTextAction(
+            label: context.l10n.common_action_save,
             onPressed: _isLoading ? null : _save,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(context.l10n.common_action_save),
+            busy: _isLoading,
           ),
         ],
       ),

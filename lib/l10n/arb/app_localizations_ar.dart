@@ -2422,6 +2422,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_item_valueMax => 'الحد الأقصى (تحذير)';
 
   @override
+  String get preDive_item_type_cellLinearity => 'خطية الخلية';
+
+  @override
+  String get preDive_item_sourceItem => 'قراءة الهواء من';
+
+  @override
+  String get preDive_item_sourceItemRequired =>
+      'اختر العنصر الذي يحتوي على قراءة الهواء';
+
+  @override
+  String get preDive_item_linearityMin => 'أدنى خطية % (تحذير)';
+
+  @override
+  String get preDive_item_linearityMax => 'أقصى خطية % (تحذير)';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return 'لم يعد لدى $title قراءة هواء للمقارنة بها';
+  }
+
+  @override
+  String get preDive_item_sourceBelow =>
+      'يقرأ قيمة مسجلة لاحقًا في هذه القائمة';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done من $total';
   }
@@ -2458,6 +2483,32 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => 'أدخل القيمة';
+
+  @override
+  String get preDive_runner_cellInAir => 'في الهواء';
+
+  @override
+  String get preDive_runner_cellInAirMissing => 'لم تُسجل بعد';
+
+  @override
+  String get preDive_runner_enterO2Value => 'أدخل القيمة في الأكسجين النقي';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return 'المتوقع $expected mV، الخطية $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return 'الهواء $air mV، المتوقع $expected mV، الخطية $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged => 'تغيرت قراءة الهواء منذ ذلك الحين';
 
   @override
   String preDive_runner_flaggedBadge(int count) {
@@ -7527,6 +7578,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'إزالة الأسطوانة';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'منظم التنفس';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'لا شيء';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'السقف';
 
   @override
@@ -10250,6 +10307,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'خلية أكسجين';
+
+  @override
+  String get enum_equipmentType_battery => 'بطارية';
+
+  @override
   String get enum_equipmentType_computer => 'حاسوب غوص';
 
   @override
@@ -11094,6 +11157,34 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total ساعة في الماء المالح';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total غطسة في الماء البارد';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total ساعة بأكسجين مرتفع';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return 'تبقى $remaining من $total غطسة عميقة';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return 'تبقى $remaining من $total دورة بطارية';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'إدارة أنواع الصيانة';
 
   @override
@@ -11113,6 +11204,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'الفترة (ساعات)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'الفاصل (ساعات في الماء المالح)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'الفاصل (غطسات في الماء البارد)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'الفاصل (ساعات بأكسجين مرتفع)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'الفاصل (غطسات عميقة)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles =>
+      'الفاصل (دورات البطارية)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -11466,6 +11577,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_statusLabel => 'الحالة';
+
+  @override
+  String get equipment_edit_parentLabel => 'مركّب في';
+
+  @override
+  String get equipment_edit_parentNone => 'غير مركّب في أي شيء';
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'مثلاً 5، 5/4، 7/5/3';
@@ -21518,6 +21635,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'يشهد هذا بأن';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'إعداد التطبيق: معطّل';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'إعداد التطبيق: مفعّل';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'مزامنة الساعة';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'التحقق مرة أخرى';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'يضبط الساعة على وقت هذا الجهاز بعد كل تنزيل. ينطبق على هذا الجهاز فقط.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle =>
+      'مزامنة ساعات كمبيوترات الغوص';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'دائمًا';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'إعداد التطبيق';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'أبدًا';
+
+  @override
+  String get diveComputer_clockSync_supported => 'مدعومة في هذا الطراز';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'هذا الطراز لا يدعم مزامنة الساعة';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21723,6 +21876,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'تم إلغاء التنزيل';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => 'فشلت مزامنة الساعة';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'مزامنة الساعة غير مدعومة في هذا الطراز';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'تمت مزامنة الساعة';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -23442,21 +23605,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل';
-
-  @override
-  String get settings_cloudImportPageSize_title => 'حجم صفحة الاستيراد السحابي';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'عدد أحدث الغوصات التي يتم جلبها في كل مرة من Suunto Cloud أو Garmin Connect. «تحميل المزيد» يجلب الدفعة التالية بنفس الحجم.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'غوصات لكل صفحة';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'بين $min و$max';
-  }
 
   @override
   String get settings_siteMatch_strict => 'صارم';
@@ -25203,6 +25351,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_burn_time_h => 'زمن التشغيل';
 
   @override
+  String get attrLabel_cell_slot => 'موضع الخلية';
+
+  @override
+  String get attrLabel_installed_date => 'تاريخ التركيب';
+
+  @override
+  String get attrLabel_rechargeable => 'قابلة لإعادة الشحن';
+
+  @override
   String get attrLabel_battery_type => 'البطارية';
 
   @override
@@ -25519,6 +25676,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'حمض الرصاص';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'قلوية';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary =>
+      'ليثيوم (غير قابلة لإعادة الشحن)';
 
   @override
   String get attrChoice_motor_type_brushless => 'بدون فرشات';
@@ -26053,6 +26217,40 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_section_safety_subtitle =>
       'قواعد المراجعة والطيران بعد الغوص';
+
+  @override
+  String get settings_section_equipmentCondition_title => 'حالة المعدات';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'حدود التعرض لساعات الصيانة';
+
+  @override
+  String get equipmentConditionSettings_title => 'حالة المعدات';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => 'حدود التعرض';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'تُحتسب الغطسة باردة أو عميقة أو بأكسجين مرتفع لساعات الصيانة عندما تتجاوز هذه الحدود.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'ماء بارد تحت';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'غطسة عميقة من';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'خليط بأكسجين مرتفع فوق (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'أدخل رقمًا';
+
+  @override
+  String get equipmentConditionSettings_saveFailed =>
+      'تعذر الحفظ. حاول مرة أخرى.';
 
   @override
   String get settings_section_security_title => 'أمان التطبيق';
@@ -36948,4 +37146,273 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (تلقائي)';
   }
+
+  @override
+  String get settings_manage_transmitters => 'أجهزة الإرسال';
+
+  @override
+  String get settings_manage_transmitters_subtitle =>
+      'ربط أجهزة إرسال الضغط بالأسطوانات';
+
+  @override
+  String get transmitters_title => 'أجهزة الإرسال';
+
+  @override
+  String get transmitters_add => 'إضافة جهاز إرسال';
+
+  @override
+  String get transmitters_header_assigned => 'أجهزة إرسال معيّنة';
+
+  @override
+  String get transmitters_header_unassigned => 'ظهرت في التنزيلات ولم تُعيّن';
+
+  @override
+  String get transmitters_empty =>
+      'لا توجد أجهزة إرسال بعد. أضف واحدًا، أو عيّن رقمًا تسلسليًا بعد التنزيل التالي.';
+
+  @override
+  String get transmitters_action_assign => 'تعيين';
+
+  @override
+  String get transmitters_action_edit => 'تعديل جهاز الإرسال';
+
+  @override
+  String get transmitters_action_delete => 'حذف جهاز الإرسال';
+
+  @override
+  String get transmitters_action_apply => 'تطبيق على الغطسات الحالية';
+
+  @override
+  String get transmitters_apply_title => 'تطبيق على الغطسات الحالية؟';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks أسطوانة في $dives غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return 'تم تحديث $tanks أسطوانة في $dives غطسة';
+  }
+
+  @override
+  String get transmitters_apply_nothing =>
+      'لا توجد أسطوانة تحمل جهاز الإرسال هذا';
+
+  @override
+  String get transmitters_delete_title => 'حذف جهاز الإرسال؟';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'ستستخدم التنزيلات القادمة من $label الإعداد الافتراضي مجددًا.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer، القناة $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return 'جهاز الإرسال $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'تعديل جهاز الإرسال';
+
+  @override
+  String get transmitters_new_title => 'جهاز إرسال جديد';
+
+  @override
+  String get transmitters_field_label => 'التسمية';
+
+  @override
+  String get transmitters_field_serial => 'الرقم التسلسلي لجهاز الإرسال';
+
+  @override
+  String get transmitters_field_computer =>
+      'كمبيوتر الغوص (عند عدم الإبلاغ عن رقم تسلسلي)';
+
+  @override
+  String get transmitters_field_channel => 'القناة';
+
+  @override
+  String get transmitters_field_role => 'الدور';
+
+  @override
+  String get transmitters_field_gear => 'أسطوانة من المعدات';
+
+  @override
+  String get transmitters_field_material => 'المادة';
+
+  @override
+  String get transmitters_gear_none => 'لا شيء';
+
+  @override
+  String get transmitters_validation_key =>
+      'أدخل رقمًا تسلسليًا، أو اختر كمبيوتر غوص وقناة';
+
+  @override
+  String get transmitters_validation_positive => 'أدخل قيمة أكبر من صفر';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'معيّن بالفعل إلى $label';
+  }
+
+  @override
+  String get transmitters_saved => 'تم حفظ جهاز الإرسال';
+
+  @override
+  String get diveComputer_detail_transmitters => 'أجهزة الإرسال';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known معروف، $unassigned غير معيّن';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'تعيين جهاز إرسال';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'إعادة تعيين سلسلة الضغط';
+
+  @override
+  String get diveLog_reassignSheet_title => 'سلاسل الضغط';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'تبديل';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'نقل إلى';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قراءة',
+      one: 'قراءة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'لا توجد سلسلة ضغط';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'تمت إعادة تعيين سلسلة الضغط';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'أجهزة إرسال غير معيّنة';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'جهاز إرسال واحد أو أكثر في هذا التنزيل غير معيّن لأسطوانة. عيّنها لتحصل التنزيلات القادمة على الحجم والدور الصحيحين.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters =>
+      'تعيين أجهزة الإرسال';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter => 'جهاز إرسال غير معيّن';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'جهاز الإرسال $serial غير معيّن لأسطوانة';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter => 'تعيين جهاز إرسال';
+
+  @override
+  String get backup_unrecognized_appBar_title => 'نسخ احتياطية غير معروفة';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. لا يمكن حذف سوى ملف كتبه هذا الجهاز هنا: أي ملف آخر قد يكون النسخة الوحيدة لجهاز آخر.';
+
+  @override
+  String get backup_unrecognized_empty =>
+      'لا توجد ملفات نسخ احتياطي غير معروفة.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'تعذّرت قراءة مجلد النسخ الاحتياطي.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'لا يستطيع هذا الجهاز سرد مجلد النسخ الاحتياطي الذي اخترته، لذا لا يمكن العثور على الملفات غير المعروفة.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'جهاز آخر';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'جهاز غير معروف';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف $count ملفات ($size)',
+      one: 'حذف ملف واحد ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title =>
+      'حذف ملفات النسخ الاحتياطي هذه؟';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ستُحذف $count من ملفات النسخ الاحتياطي نهائيًا. لا يمكن التراجع عن ذلك.',
+      one: 'سيُحذف ملف نسخ احتياطي واحد نهائيًا. لا يمكن التراجع عن ذلك.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed => 'تعذّر حذف الملفات المحددة.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return 'تم تحرير $size';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملفات غير موجودة في سجل النسخ الاحتياطي',
+      one: 'ملف واحد غير موجود في سجل النسخ الاحتياطي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'مراجعة';
 }

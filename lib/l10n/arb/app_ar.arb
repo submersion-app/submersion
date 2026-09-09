@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "تم نسخ الرابط. الصقه في متصفحك للتفويض.",
   "universalImport_action_importFromGarmin": "استيراد من جهاز Garmin",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "خلية أكسجين",
+  "enum_equipmentType_battery": "بطارية",
   "diveLog_tank_saveAsPreset": "حفظ كإعداد مسبق",
   "diveLog_tank_saveAsPreset_needSpecs": "أدخل الحجم وضغط العمل أولاً",
   "diveLog_tank_saveAsPreset_nameTitle": "حفظ إعداد الأسطوانة المسبق",
@@ -976,6 +978,20 @@
   "preDive_item_valueUnit": "الوحدة",
   "preDive_item_valueMin": "الحد الأدنى (تحذير)",
   "preDive_item_valueMax": "الحد الأقصى (تحذير)",
+  "preDive_item_type_cellLinearity": "خطية الخلية",
+  "preDive_item_sourceItem": "قراءة الهواء من",
+  "preDive_item_sourceItemRequired": "اختر العنصر الذي يحتوي على قراءة الهواء",
+  "preDive_item_linearityMin": "أدنى خطية % (تحذير)",
+  "preDive_item_linearityMax": "أقصى خطية % (تحذير)",
+  "preDive_item_sourceCleared": "لم يعد لدى {title} قراءة هواء للمقارنة بها",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "يقرأ قيمة مسجلة لاحقًا في هذه القائمة",
   "preDive_runner_progress": "{done} من {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1020,35 @@
   "preDive_runner_serviceOverdue": "الصيانة متأخرة",
   "preDive_runner_addNote": "إضافة ملاحظة",
   "preDive_runner_enterValue": "أدخل القيمة",
+  "preDive_runner_cellInAir": "في الهواء",
+  "preDive_runner_cellInAirMissing": "لم تُسجل بعد",
+  "preDive_runner_enterO2Value": "أدخل القيمة في الأكسجين النقي",
+  "preDive_runner_linearityReadout": "المتوقع {expected} mV، الخطية {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "الهواء {air} mV، المتوقع {expected} mV، الخطية {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "تغيرت قراءة الهواء منذ ذلك الحين",
   "preDive_runner_flaggedBadge": "{count} معلَّمة",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -1588,6 +1633,9 @@
   "diveComputer_downloadStep_andMoreDives": "... و{count} أخرى",
   "diveComputer_downloadStep_cancel": "إلغاء",
   "diveComputer_downloadStep_cancelled": "تم إلغاء التنزيل",
+  "diveComputer_downloadStep_clockSyncFailed": "فشلت مزامنة الساعة",
+  "diveComputer_downloadStep_clockSyncUnsupported": "مزامنة الساعة غير مدعومة في هذا الطراز",
+  "diveComputer_downloadStep_clockSynced": "تمت مزامنة الساعة",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
   "diveComputer_downloadStep_downloadAll": "تنزيل جميع الغطسات",
   "diveComputer_downloadStep_downloadFailed": "فشل التنزيل",
@@ -2630,6 +2678,8 @@
   "diveLog_tank_selectPreset": "اختر إعداداً مسبقاً...",
   "diveLog_tank_title": "أسطوانة {number}",
   "diveLog_tank_tooltip_remove": "إزالة الأسطوانة",
+  "diveLog_tank_regulatorLabel": "منظم التنفس",
+  "diveLog_tank_regulatorNone": "لا شيء",
   "diveLog_tissue_label_ceiling": "السقف",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3695,6 +3745,61 @@
   "cylinderConfigs_sectionTitle": "الإعدادات",
   "equipment_serviceClocks_hoursSource": "محسوب من زمن الغوص المسجل",
   "equipment_serviceClocks_hoursLeft": "متبقٍ {remaining} من {total} ساعة",
+  "equipment_serviceClocks_saltHoursLeft": "تبقى {remaining} من {total} ساعة في الماء المالح",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "تبقى {remaining} من {total} غطسة في الماء البارد",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "تبقى {remaining} من {total} ساعة بأكسجين مرتفع",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "تبقى {remaining} من {total} غطسة عميقة",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "تبقى {remaining} من {total} دورة بطارية",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "إدارة أنواع الصيانة",
   "equipment_serviceClocks_appliesToClock": "ينطبق على العداد",
   "equipment_serviceClocks_noClockOption": "غير مرتبط بعداد",
@@ -3702,6 +3807,11 @@
   "equipment_scheduleDialog_intervalDays": "الفترة (أيام)",
   "equipment_scheduleDialog_intervalDives": "الفترة (غوصات)",
   "equipment_scheduleDialog_intervalHours": "الفترة (ساعات)",
+  "equipment_scheduleDialog_intervalSaltHours": "الفاصل (ساعات في الماء المالح)",
+  "equipment_scheduleDialog_intervalColdDives": "الفاصل (غطسات في الماء البارد)",
+  "equipment_scheduleDialog_intervalO2Hours": "الفاصل (ساعات بأكسجين مرتفع)",
+  "equipment_scheduleDialog_intervalDeepCycles": "الفاصل (غطسات عميقة)",
+  "equipment_scheduleDialog_intervalCycles": "الفاصل (دورات البطارية)",
   "equipment_scheduleDialog_inheritHint": "الافتراضي: {value}",
   "equipment_scheduleDialog_anchorDate": "تاريخ الأساس",
   "equipment_scheduleDialog_anchorHint": "يُستخدم عندما لا يوجد بعد سجل صيانة من هذا النوع",
@@ -3800,6 +3910,8 @@
   "equipment_edit_snackbar_error": "خطأ في حفظ المعدات: {error}",
   "equipment_edit_snackbar_updated": "تم تحديث المعدات",
   "equipment_edit_statusLabel": "الحالة",
+  "equipment_edit_parentLabel": "مركّب في",
+  "equipment_edit_parentNone": "غير مركّب في أي شيء",
   "equipment_edit_thicknessDesignationHint": "مثلاً 5، 5/4، 7/5/3",
   "equipment_edit_webLinkHint": "مثال: shop.example.com/product",
   "equipment_edit_thicknessHint": "مثلاً 5 مم، 7 مم",
@@ -6581,10 +6693,6 @@
   "settings_siteMatch_subtitle": "مدى صرامة مطابقة الغوصات التي تم تنزيلها بالمواقع",
   "settings_tankPressureAtSurfacing_title": "ضغط الأسطوانة عند الصعود إلى السطح",
   "settings_tankPressureAtSurfacing_subtitle": "قراءة ضغط النهاية عند الوصول إلى السطح، وليس عند انتهاء التسجيل",
-  "settings_cloudImportPageSize_title": "حجم صفحة الاستيراد السحابي",
-  "settings_cloudImportPageSize_subtitle": "عدد أحدث الغوصات التي يتم جلبها في كل مرة من Suunto Cloud أو Garmin Connect. «تحميل المزيد» يجلب الدفعة التالية بنفس الحجم.",
-  "settings_cloudImportPageSize_dialogTitle": "غوصات لكل صفحة",
-  "settings_cloudImportPageSize_range": "بين {min} و{max}",
   "settings_siteMatch_strict": "صارم",
   "settings_siteMatch_balanced": "متوازن",
   "settings_siteMatch_relaxed": "متساهل",
@@ -6841,6 +6949,17 @@
   "diveComputer_connectionType_unknown": "غير معروف",
   "diveComputer_connectionType_usb": "USB",
   "diveComputer_connectionType_wifi": "Wi-Fi",
+  "diveComputer_clockSync_appSettingOff": "إعداد التطبيق: معطّل",
+  "diveComputer_clockSync_appSettingOn": "إعداد التطبيق: مفعّل",
+  "diveComputer_clockSync_cardTitle": "مزامنة الساعة",
+  "diveComputer_clockSync_checkAgain": "التحقق مرة أخرى",
+  "diveComputer_clockSync_globalSubtitle": "يضبط الساعة على وقت هذا الجهاز بعد كل تنزيل. ينطبق على هذا الجهاز فقط.",
+  "diveComputer_clockSync_globalTitle": "مزامنة ساعات كمبيوترات الغوص",
+  "diveComputer_clockSync_overrideAlways": "دائمًا",
+  "diveComputer_clockSync_overrideInherit": "إعداد التطبيق",
+  "diveComputer_clockSync_overrideNever": "أبدًا",
+  "diveComputer_clockSync_supported": "مدعومة في هذا الطراز",
+  "diveComputer_clockSync_unsupported": "هذا الطراز لا يدعم مزامنة الساعة",
   "diveComputer_detail_deleteDialogContent": "هل تريد حقا إزالة \"{name}\"؟ لن يؤدي هذا إلى حذف أي غطسات تم استيرادها من هذا الكمبيوتر.",
   "diveComputer_detail_deleteDialogTitle": "حذف الكمبيوتر؟",
   "diveComputer_detail_divesImported": "الغطسات المستوردة",
@@ -7443,6 +7562,9 @@
   "attrLabel_o2_cylinder_l": "أسطوانة O2",
   "attrLabel_dpv_style": "النمط",
   "attrLabel_burn_time_h": "زمن التشغيل",
+  "attrLabel_cell_slot": "موضع الخلية",
+  "attrLabel_installed_date": "تاريخ التركيب",
+  "attrLabel_rechargeable": "قابلة لإعادة الشحن",
   "attrLabel_battery_type": "البطارية",
   "attrLabel_battery_capacity_wh": "سعة البطارية (واط·ساعة)",
   "attrLabel_motor_type": "المحرك",
@@ -7549,6 +7671,8 @@
   "attrChoice_battery_type_lithium_ion": "ليثيوم أيون",
   "attrChoice_battery_type_nimh": "نيكل هيدريد فلزي",
   "attrChoice_battery_type_lead_acid": "حمض الرصاص",
+  "attrChoice_battery_type_alkaline": "قلوية",
+  "attrChoice_battery_type_lithium_primary": "ليثيوم (غير قابلة لإعادة الشحن)",
   "attrChoice_motor_type_brushless": "بدون فرشات",
   "attrChoice_motor_type_brushed": "بفرشات",
   "attrChoice_sleeve_length_short": "قصيرة",
@@ -8003,6 +8127,16 @@
   "planning_card_noFly_subtitle": "عدّاد إرشادي منذ آخر غطساتك",
   "settings_section_safety_title": "السلامة",
   "settings_section_safety_subtitle": "قواعد المراجعة والطيران بعد الغوص",
+  "settings_section_equipmentCondition_title": "حالة المعدات",
+  "settings_section_equipmentCondition_subtitle": "حدود التعرض لساعات الصيانة",
+  "equipmentConditionSettings_title": "حالة المعدات",
+  "equipmentConditionSettings_thresholdsHeader": "حدود التعرض",
+  "equipmentConditionSettings_thresholdsHelp": "تُحتسب الغطسة باردة أو عميقة أو بأكسجين مرتفع لساعات الصيانة عندما تتجاوز هذه الحدود.",
+  "equipmentConditionSettings_coldLabel": "ماء بارد تحت",
+  "equipmentConditionSettings_deepLabel": "غطسة عميقة من",
+  "equipmentConditionSettings_o2Label": "خليط بأكسجين مرتفع فوق (% O2)",
+  "equipmentConditionSettings_invalid": "أدخل رقمًا",
+  "equipmentConditionSettings_saveFailed": "تعذر الحفظ. حاول مرة أخرى.",
   "dataQuality_inbox_title": "جودة البيانات",
   "dataQuality_dive_unknown": "تفاصيل الغطسة غير متاحة",
   "dataQuality_dive_number": "#{number}",
@@ -10905,5 +11039,70 @@
   "startup_versionMismatch_restore_warning": "كل ما سجّلته بعد الترقية موجود في الملف الأحدث فقط. يُحتفظ بذلك الملف كنسخة احتياطية مثبّتة، لذا فإن إعادة تثبيت الإصدار الأحدث تستعيده.",
   "backup_history_preDowngradeSubtitle": "قاعدة بيانات أحدث، محفوظة عند الرجوع - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصات}}, {siteCount, plural, =1{موقع غوص واحد} other{{siteCount} مواقع غوص}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصات}}, {siteCount, plural, =1{موقع غوص واحد} other{{siteCount} مواقع غوص}} - {size} (تلقائي)"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{غوصة واحدة} other{{diveCount} غوصات}}, {siteCount, plural, =1{موقع غوص واحد} other{{siteCount} مواقع غوص}} - {size} (تلقائي)",
+  "settings_manage_transmitters": "أجهزة الإرسال",
+  "settings_manage_transmitters_subtitle": "ربط أجهزة إرسال الضغط بالأسطوانات",
+  "transmitters_title": "أجهزة الإرسال",
+  "transmitters_add": "إضافة جهاز إرسال",
+  "transmitters_header_assigned": "أجهزة إرسال معيّنة",
+  "transmitters_header_unassigned": "ظهرت في التنزيلات ولم تُعيّن",
+  "transmitters_empty": "لا توجد أجهزة إرسال بعد. أضف واحدًا، أو عيّن رقمًا تسلسليًا بعد التنزيل التالي.",
+  "transmitters_action_assign": "تعيين",
+  "transmitters_action_edit": "تعديل جهاز الإرسال",
+  "transmitters_action_delete": "حذف جهاز الإرسال",
+  "transmitters_action_apply": "تطبيق على الغطسات الحالية",
+  "transmitters_apply_title": "تطبيق على الغطسات الحالية؟",
+  "transmitters_apply_content": "{tanks} أسطوانة في {dives} غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر.",
+  "transmitters_apply_done": "تم تحديث {tanks} أسطوانة في {dives} غطسة",
+  "transmitters_apply_nothing": "لا توجد أسطوانة تحمل جهاز الإرسال هذا",
+  "transmitters_delete_title": "حذف جهاز الإرسال؟",
+  "transmitters_delete_content": "ستستخدم التنزيلات القادمة من {label} الإعداد الافتراضي مجددًا.",
+  "transmitters_channel": "{computer}، القناة {channel}",
+  "transmitters_serial": "جهاز الإرسال {serial}",
+  "transmitters_dives": "{count, plural, =1{غطسة واحدة} other{{count} غطسة}}",
+  "transmitters_edit_title": "تعديل جهاز الإرسال",
+  "transmitters_new_title": "جهاز إرسال جديد",
+  "transmitters_field_label": "التسمية",
+  "transmitters_field_serial": "الرقم التسلسلي لجهاز الإرسال",
+  "transmitters_field_computer": "كمبيوتر الغوص (عند عدم الإبلاغ عن رقم تسلسلي)",
+  "transmitters_field_channel": "القناة",
+  "transmitters_field_role": "الدور",
+  "transmitters_field_gear": "أسطوانة من المعدات",
+  "transmitters_field_material": "المادة",
+  "transmitters_gear_none": "لا شيء",
+  "transmitters_validation_key": "أدخل رقمًا تسلسليًا، أو اختر كمبيوتر غوص وقناة",
+  "transmitters_validation_positive": "أدخل قيمة أكبر من صفر",
+  "transmitters_validation_duplicate": "معيّن بالفعل إلى {label}",
+  "transmitters_saved": "تم حفظ جهاز الإرسال",
+  "diveComputer_detail_transmitters": "أجهزة الإرسال",
+  "diveComputer_detail_transmittersSummary": "{known} معروف، {unassigned} غير معيّن",
+  "diveLog_tank_assignTransmitter": "تعيين جهاز إرسال",
+  "diveLog_tank_reassignSeries": "إعادة تعيين سلسلة الضغط",
+  "diveLog_reassignSheet_title": "سلاسل الضغط",
+  "diveLog_reassignSheet_swap": "تبديل",
+  "diveLog_reassignSheet_moveTo": "نقل إلى",
+  "diveLog_reassignSheet_readings": "{count, plural, =1{قراءة واحدة} other{{count} قراءة}}",
+  "diveLog_reassignSheet_noSeries": "لا توجد سلسلة ضغط",
+  "diveLog_reassignSheet_applied": "تمت إعادة تعيين سلسلة الضغط",
+  "universalImport_summary_noticeUnknownTransmitterTitle": "أجهزة إرسال غير معيّنة",
+  "universalImport_summary_noticeUnknownTransmitterBody": "جهاز إرسال واحد أو أكثر في هذا التنزيل غير معيّن لأسطوانة. عيّنها لتحصل التنزيلات القادمة على الحجم والدور الصحيحين.",
+  "universalImport_summary_noticeAssignTransmitters": "تعيين أجهزة الإرسال",
+  "dataQuality_detector_unknown_transmitter": "جهاز إرسال غير معيّن",
+  "dataQuality_msg_unknownTransmitter": "جهاز الإرسال {serial} غير معيّن لأسطوانة",
+  "dataQuality_repairLabel_assignTransmitter": "تعيين جهاز إرسال",
+  "backup_unrecognized_appBar_title": "نسخ احتياطية غير معروفة",
+  "backup_unrecognized_explanation": "هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. لا يمكن حذف سوى ملف كتبه هذا الجهاز هنا: أي ملف آخر قد يكون النسخة الوحيدة لجهاز آخر.",
+  "backup_unrecognized_empty": "لا توجد ملفات نسخ احتياطي غير معروفة.",
+  "backup_unrecognized_loadFailed": "تعذّرت قراءة مجلد النسخ الاحتياطي.",
+  "backup_unrecognized_unavailable": "لا يستطيع هذا الجهاز سرد مجلد النسخ الاحتياطي الذي اخترته، لذا لا يمكن العثور على الملفات غير المعروفة.",
+  "backup_unrecognized_ownership_otherDevice": "جهاز آخر",
+  "backup_unrecognized_ownership_unattributed": "جهاز غير معروف",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{حذف ملف واحد ({size})} other{حذف {count} ملفات ({size})}}",
+  "backup_unrecognized_confirm_title": "حذف ملفات النسخ الاحتياطي هذه؟",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{سيُحذف ملف نسخ احتياطي واحد نهائيًا. لا يمكن التراجع عن ذلك.} other{ستُحذف {count} من ملفات النسخ الاحتياطي نهائيًا. لا يمكن التراجع عن ذلك.}}",
+  "backup_unrecognized_deleteFailed": "تعذّر حذف الملفات المحددة.",
+  "backup_unrecognized_freed": "تم تحرير {size}",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{ملف واحد غير موجود في سجل النسخ الاحتياطي} other{{count} ملفات غير موجودة في سجل النسخ الاحتياطي}}",
+  "settings_storageUsage_unrecognized_action": "مراجعة"
 }

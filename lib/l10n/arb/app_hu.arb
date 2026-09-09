@@ -5,6 +5,8 @@
   "settings_oauth_connect_linkCopied": "Link másolva. Illeszd be a böngésződbe az engedélyezéshez.",
   "universalImport_action_importFromGarmin": "Importálás Garmin eszközről",
   "enum_equipmentType_dpv": "DPV",
+  "enum_equipmentType_o2Cell": "O2-cella",
+  "enum_equipmentType_battery": "Akkumulátor",
   "diveLog_tank_saveAsPreset": "Mentés előre beállításként",
   "diveLog_tank_saveAsPreset_needSpecs": "Először adjon meg térfogatot és üzemi nyomást",
   "diveLog_tank_saveAsPreset_nameTitle": "Palack előre beállítás mentése",
@@ -976,6 +978,20 @@
   "preDive_item_valueUnit": "Mértékegység",
   "preDive_item_valueMin": "Minimum (figyelmeztetés)",
   "preDive_item_valueMax": "Maximum (figyelmeztetés)",
+  "preDive_item_type_cellLinearity": "Cella linearitása",
+  "preDive_item_sourceItem": "Levegős mérés innen",
+  "preDive_item_sourceItemRequired": "Válaszd ki a levegős mérést tartalmazó elemet",
+  "preDive_item_linearityMin": "Min. linearitás % (figyelmeztetés)",
+  "preDive_item_linearityMax": "Max. linearitás % (figyelmeztetés)",
+  "preDive_item_sourceCleared": "{title} elemhez már nincs összehasonlítható levegős mérés",
+  "@preDive_item_sourceCleared": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_item_sourceBelow": "A listában később rögzített értéket használ",
   "preDive_runner_progress": "{done} / {total}",
   "@preDive_runner_progress": {
     "placeholders": {
@@ -1004,6 +1020,35 @@
   "preDive_runner_serviceOverdue": "A karbantartás lejárt",
   "preDive_runner_addNote": "Megjegyzés hozzáadása",
   "preDive_runner_enterValue": "Érték megadása",
+  "preDive_runner_cellInAir": "Levegőben",
+  "preDive_runner_cellInAirMissing": "Még nincs rögzítve",
+  "preDive_runner_enterO2Value": "Add meg az O2-ben mért értéket",
+  "preDive_runner_linearityReadout": "Várt {expected} mV, linearitás {percent}%",
+  "@preDive_runner_linearityReadout": {
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_linearityLine": "Levegő {air} mV, várt {expected} mV, linearitás {percent}%",
+  "@preDive_runner_linearityLine": {
+    "placeholders": {
+      "air": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "preDive_runner_sourceChanged": "A levegős mérés azóta megváltozott",
   "preDive_runner_flaggedBadge": "{count} megjelölve",
   "@preDive_runner_flaggedBadge": {
     "placeholders": {
@@ -1504,6 +1549,9 @@
   "diveComputer_downloadStep_andMoreDives": "... es meg {count} tovabbi",
   "diveComputer_downloadStep_cancel": "Megse",
   "diveComputer_downloadStep_cancelled": "Letoltes megszakitva",
+  "diveComputer_downloadStep_clockSyncFailed": "Az óraszinkronizálás nem sikerült",
+  "diveComputer_downloadStep_clockSyncUnsupported": "Az óraszinkronizálást ez a modell nem támogatja",
+  "diveComputer_downloadStep_clockSynced": "Óra szinkronizálva",
   "diveComputer_downloadStep_depthMeters": "{depth}m",
   "diveComputer_downloadStep_downloadAll": "Összes merülés letöltése",
   "diveComputer_downloadStep_downloadFailed": "A letoltes sikertelen",
@@ -2546,6 +2594,8 @@
   "diveLog_tank_selectPreset": "Valasszon elore beallitast...",
   "diveLog_tank_title": "{number}. palack",
   "diveLog_tank_tooltip_remove": "Palack eltavolitasa",
+  "diveLog_tank_regulatorLabel": "Reduktor",
+  "diveLog_tank_regulatorNone": "Nincs",
   "diveLog_tissue_label_ceiling": "Plafon",
   "diveLog_tissue_label_gf": "GF",
   "diveLog_tissue_label_ndl": "NDL",
@@ -3611,6 +3661,61 @@
   "cylinderConfigs_sectionTitle": "Konfigurációk",
   "equipment_serviceClocks_hoursSource": "A naplózott merülési idő alapján számolva",
   "equipment_serviceClocks_hoursLeft": "{remaining} / {total} óra van hátra",
+  "equipment_serviceClocks_saltHoursLeft": "{remaining} / {total} sós vízi óra van hátra",
+  "@equipment_serviceClocks_saltHoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_coldDivesLeft": "{remaining} / {total} hideg vízi merülés van hátra",
+  "@equipment_serviceClocks_coldDivesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursLeft": "{remaining} / {total} magas O2-tartalmú óra van hátra",
+  "@equipment_serviceClocks_o2HoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_deepCyclesLeft": "{remaining} / {total} mély merülés van hátra",
+  "@equipment_serviceClocks_deepCyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesLeft": "{remaining} / {total} akkumulátorciklus van hátra",
+  "@equipment_serviceClocks_cyclesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_manageKinds": "Szerviztípusok kezelése",
   "equipment_serviceClocks_appliesToClock": "Kapcsolódó intervallum",
   "equipment_serviceClocks_noClockOption": "Nem tartozik intervallumhoz",
@@ -3618,6 +3723,11 @@
   "equipment_scheduleDialog_intervalDays": "Intervallum (nap)",
   "equipment_scheduleDialog_intervalDives": "Intervallum (merülés)",
   "equipment_scheduleDialog_intervalHours": "Intervallum (óra)",
+  "equipment_scheduleDialog_intervalSaltHours": "Intervallum (sós vízi órák)",
+  "equipment_scheduleDialog_intervalColdDives": "Intervallum (hideg vízi merülések)",
+  "equipment_scheduleDialog_intervalO2Hours": "Intervallum (magas O2-tartalmú órák)",
+  "equipment_scheduleDialog_intervalDeepCycles": "Intervallum (mély merülések)",
+  "equipment_scheduleDialog_intervalCycles": "Intervallum (akkumulátorciklusok)",
   "equipment_scheduleDialog_inheritHint": "Alapértelmezés: {value}",
   "equipment_scheduleDialog_anchorDate": "Kiindulási dátum",
   "equipment_scheduleDialog_anchorHint": "Akkor használjuk, ha még nincs ilyen típusú szervizbejegyzés",
@@ -3716,6 +3826,8 @@
   "equipment_edit_snackbar_error": "Hiba a felszereles mentesekor: {error}",
   "equipment_edit_snackbar_updated": "Felszereles frissitve",
   "equipment_edit_statusLabel": "Allapot",
+  "equipment_edit_parentLabel": "Beszerelve ebbe",
+  "equipment_edit_parentNone": "Nincs beszerelve",
   "equipment_edit_thicknessDesignationHint": "pl. 5, 5/4, 7/5/3",
   "equipment_edit_webLinkHint": "pl. shop.example.com/product",
   "equipment_edit_thicknessHint": "pl. 5mm, 7mm",
@@ -6497,10 +6609,6 @@
   "settings_siteMatch_subtitle": "Mennyire agresszíven rendelődnek a letöltött merülések a helyekhez",
   "settings_tankPressureAtSurfacing_title": "Palacknyomás felbukkanáskor",
   "settings_tankPressureAtSurfacing_subtitle": "A végnyomás a felszínre érkezéskor legyen leolvasva, ne a rögzítés végén",
-  "settings_cloudImportPageSize_title": "Felhőimport oldalmérete",
-  "settings_cloudImportPageSize_subtitle": "Hány legutóbbi merülést töltsön le egyszerre a Suunto Cloudból vagy a Garmin Connectből. A „Továbbiak betöltése” ugyanekkora következő köteget kér.",
-  "settings_cloudImportPageSize_dialogTitle": "Merülések oldalanként",
-  "settings_cloudImportPageSize_range": "{min} és {max} között",
   "settings_siteMatch_strict": "Szigorú",
   "settings_siteMatch_balanced": "Kiegyensúlyozott",
   "settings_siteMatch_relaxed": "Laza",
@@ -6841,6 +6949,17 @@
   "diveComputer_connectionType_unknown": "Ismeretlen",
   "diveComputer_connectionType_usb": "USB",
   "diveComputer_connectionType_wifi": "Wi-Fi",
+  "diveComputer_clockSync_appSettingOff": "Alkalmazásbeállítás: ki",
+  "diveComputer_clockSync_appSettingOn": "Alkalmazásbeállítás: be",
+  "diveComputer_clockSync_cardTitle": "Óraszinkronizálás",
+  "diveComputer_clockSync_checkAgain": "Ellenőrzés újra",
+  "diveComputer_clockSync_globalSubtitle": "Minden letöltés után ennek az eszköznek az idejére állítja az órát. Csak erre az eszközre vonatkozik.",
+  "diveComputer_clockSync_globalTitle": "Búvárkomputerek órájának szinkronizálása",
+  "diveComputer_clockSync_overrideAlways": "Mindig",
+  "diveComputer_clockSync_overrideInherit": "Alkalmazásbeállítás",
+  "diveComputer_clockSync_overrideNever": "Soha",
+  "diveComputer_clockSync_supported": "Ez a modell támogatja",
+  "diveComputer_clockSync_unsupported": "Ez a modell nem támogatja az óraszinkronizálást",
   "diveComputer_detail_deleteDialogContent": "Biztosan eltavolitod a(z) \"{name}\" eszkozt? Ez nem torli az errol a szamitogeprol importalt merulseket.",
   "diveComputer_detail_deleteDialogTitle": "Szamitogep torlese?",
   "diveComputer_detail_divesImported": "Importalt merulesek",
@@ -7443,6 +7562,9 @@
   "attrLabel_o2_cylinder_l": "O2 palack",
   "attrLabel_dpv_style": "Fazon",
   "attrLabel_burn_time_h": "Üzemidő",
+  "attrLabel_cell_slot": "Cellahely",
+  "attrLabel_installed_date": "Beszerelve",
+  "attrLabel_rechargeable": "Újratölthető",
   "attrLabel_battery_type": "Akkumulátor",
   "attrLabel_battery_capacity_wh": "Akkukapacitás (Wh)",
   "attrLabel_motor_type": "Motor",
@@ -7549,6 +7671,8 @@
   "attrChoice_battery_type_lithium_ion": "Lítium-ion",
   "attrChoice_battery_type_nimh": "NiMH",
   "attrChoice_battery_type_lead_acid": "Ólom-savas",
+  "attrChoice_battery_type_alkaline": "Alkáli",
+  "attrChoice_battery_type_lithium_primary": "Lítium (nem újratölthető)",
   "attrChoice_motor_type_brushless": "Szénkefe nélküli",
   "attrChoice_motor_type_brushed": "Szénkefés",
   "attrChoice_sleeve_length_short": "Rövid",
@@ -8003,6 +8127,16 @@
   "planning_card_noFly_subtitle": "Irányadó visszaszámlálás az utolsó merüléseidtől",
   "settings_section_safety_title": "Biztonság",
   "settings_section_safety_subtitle": "Áttekintési szabályok és repülés merülés után",
+  "settings_section_equipmentCondition_title": "Felszerelés állapota",
+  "settings_section_equipmentCondition_subtitle": "Terhelési küszöbök a szervizórákhoz",
+  "equipmentConditionSettings_title": "Felszerelés állapota",
+  "equipmentConditionSettings_thresholdsHeader": "Terhelési küszöbök",
+  "equipmentConditionSettings_thresholdsHelp": "Egy merülés akkor számít hidegnek, mélynek vagy magas O2-tartalmúnak a szervizórák számára, ha átlépi ezeket a határokat.",
+  "equipmentConditionSettings_coldLabel": "Hideg víz ez alatt",
+  "equipmentConditionSettings_deepLabel": "Mély merülés ettől",
+  "equipmentConditionSettings_o2Label": "Magas O2-tartalmú keverék e felett (% O2)",
+  "equipmentConditionSettings_invalid": "Adjon meg egy számot",
+  "equipmentConditionSettings_saveFailed": "A mentés nem sikerült. Próbálja újra.",
   "dataQuality_inbox_title": "Adatminőség",
   "dataQuality_dive_unknown": "A merülés adatai nem érhetők el",
   "dataQuality_dive_number": "#{number}.",
@@ -10905,5 +11039,70 @@
   "startup_versionMismatch_restore_warning": "Minden, amit a frissítés után rögzítettél, csak az újabb fájlban létezik. Azt a fájlt rögzített biztonsági mentésként megőrizzük, így az újabb verzió ismételt telepítésével visszakapod.",
   "backup_history_preDowngradeSubtitle": "Újabb adatbázis, visszalépéskor megőrizve - {size}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 merülés} other{{diveCount} merülés}}, {siteCount, plural, =1{1 merülőhely} other{{siteCount} merülőhely}} - {size}",
-  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 merülés} other{{diveCount} merülés}}, {siteCount, plural, =1{1 merülőhely} other{{siteCount} merülőhely}} - {size} (automatikus)"
+  "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 merülés} other{{diveCount} merülés}}, {siteCount, plural, =1{1 merülőhely} other{{siteCount} merülőhely}} - {size} (automatikus)",
+  "settings_manage_transmitters": "Jeladók",
+  "settings_manage_transmitters_subtitle": "Nyomásjeladók hozzárendelése palackokhoz",
+  "transmitters_title": "Jeladók",
+  "transmitters_add": "Jeladó hozzáadása",
+  "transmitters_header_assigned": "Hozzárendelt jeladók",
+  "transmitters_header_unassigned": "Letöltésekben látott, nincs hozzárendelve",
+  "transmitters_empty": "Még nincs jeladó. Adj hozzá egyet, vagy rendelj hozzá sorozatszámot a következő letöltés után.",
+  "transmitters_action_assign": "Hozzárendelés",
+  "transmitters_action_edit": "Jeladó szerkesztése",
+  "transmitters_action_delete": "Jeladó törlése",
+  "transmitters_action_apply": "Alkalmazás meglévő merülésekre",
+  "transmitters_apply_title": "Alkalmazod a meglévő merülésekre?",
+  "transmitters_apply_content": "{tanks} palack {dives} merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított szerep lecserélődik.",
+  "transmitters_apply_done": "{tanks} palack frissítve {dives} merülésben",
+  "transmitters_apply_nothing": "Egyetlen palack sem viseli ezt a jeladót",
+  "transmitters_delete_title": "Törlöd a jeladót?",
+  "transmitters_delete_content": "A(z) {label} jövőbeli letöltései ismét az alapértelmezett sablont használják.",
+  "transmitters_channel": "{computer}, {channel}. csatorna",
+  "transmitters_serial": "{serial} jeladó",
+  "transmitters_dives": "{count, plural, =1{1 merülés} other{{count} merülés}}",
+  "transmitters_edit_title": "Jeladó szerkesztése",
+  "transmitters_new_title": "Új jeladó",
+  "transmitters_field_label": "Címke",
+  "transmitters_field_serial": "Jeladó sorozatszáma",
+  "transmitters_field_computer": "Búvárkomputer (ha nincs sorozatszám)",
+  "transmitters_field_channel": "Csatorna",
+  "transmitters_field_role": "Szerep",
+  "transmitters_field_gear": "Palack a felszerelésből",
+  "transmitters_field_material": "Anyag",
+  "transmitters_gear_none": "Nincs",
+  "transmitters_validation_key": "Adj meg egy sorozatszámot, vagy válassz komputert és csatornát",
+  "transmitters_validation_positive": "Nullánál nagyobb értéket adj meg",
+  "transmitters_validation_duplicate": "Már hozzá van rendelve: {label}",
+  "transmitters_saved": "Jeladó mentve",
+  "diveComputer_detail_transmitters": "Jeladók",
+  "diveComputer_detail_transmittersSummary": "{known} ismert, {unassigned} nincs hozzárendelve",
+  "diveLog_tank_assignTransmitter": "Jeladó hozzárendelése",
+  "diveLog_tank_reassignSeries": "Nyomásgörbe áthelyezése",
+  "diveLog_reassignSheet_title": "Nyomásgörbék",
+  "diveLog_reassignSheet_swap": "Csere",
+  "diveLog_reassignSheet_moveTo": "Áthelyezés ide",
+  "diveLog_reassignSheet_readings": "{count, plural, =1{1 mérés} other{{count} mérés}}",
+  "diveLog_reassignSheet_noSeries": "Nincs nyomásgörbe",
+  "diveLog_reassignSheet_applied": "Nyomásgörbe áthelyezve",
+  "universalImport_summary_noticeUnknownTransmitterTitle": "Hozzá nem rendelt jeladók",
+  "universalImport_summary_noticeUnknownTransmitterBody": "A letöltés egy vagy több jeladója nincs palackhoz rendelve. Rendeld hozzá őket, hogy a jövőbeli letöltések a helyes méretet és szerepet kapják.",
+  "universalImport_summary_noticeAssignTransmitters": "Jeladók hozzárendelése",
+  "dataQuality_detector_unknown_transmitter": "Hozzá nem rendelt jeladó",
+  "dataQuality_msg_unknownTransmitter": "A(z) {serial} jeladó nincs palackhoz rendelve",
+  "dataQuality_repairLabel_assignTransmitter": "Jeladó hozzárendelése",
+  "backup_unrecognized_appBar_title": "Ismeretlen biztonsági mentések",
+  "backup_unrecognized_explanation": "Ezek a fájlok a biztonsági mentések mappájában vannak, de nem szerepelnek ennek az eszköznek a mentési előzményeiben. Itt csak olyan fájl törölhető, amelyet ez az eszköz írt: bármi más lehet egy másik eszköz egyetlen másolata.",
+  "backup_unrecognized_empty": "Nincs ismeretlen biztonsági mentési fájl.",
+  "backup_unrecognized_loadFailed": "A biztonsági mentések mappája nem olvasható.",
+  "backup_unrecognized_unavailable": "Ez az eszköz nem tudja kilistázni a kiválasztott mentési mappát, ezért az ismeretlen fájlok nem találhatók meg.",
+  "backup_unrecognized_ownership_otherDevice": "Másik eszköz",
+  "backup_unrecognized_ownership_unattributed": "Ismeretlen eszköz",
+  "backup_unrecognized_fileDetail": "{size} • {date}",
+  "backup_unrecognized_deleteSelected": "{count, plural, =1{1 fájl törlése ({size})} other{{count} fájl törlése ({size})}}",
+  "backup_unrecognized_confirm_title": "Törli ezeket a biztonsági mentési fájlokat?",
+  "backup_unrecognized_confirm_message": "{count, plural, =1{1 biztonsági mentési fájl véglegesen törlődik. A művelet nem vonható vissza.} other{{count} biztonsági mentési fájl véglegesen törlődik. A művelet nem vonható vissza.}}",
+  "backup_unrecognized_deleteFailed": "A kiválasztott fájlok törlése nem sikerült.",
+  "backup_unrecognized_freed": "{size} felszabadítva",
+  "settings_storageUsage_unrecognized_title": "{count, plural, =1{1 fájl hiányzik a mentési előzményekből} other{{count} fájl hiányzik a mentési előzményekből}}",
+  "settings_storageUsage_unrecognized_action": "Áttekintés"
 }

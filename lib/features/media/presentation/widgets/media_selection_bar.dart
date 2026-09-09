@@ -50,9 +50,12 @@ class MediaSelectionBar extends ConsumerWidget {
   ///
   /// Routed through the deletion coordinator so the remote-blob delete
   /// intent is enqueued before the rows die (orphan-prevention spec 5.2).
-  Future<void> _unlinkSelected(BuildContext context, WidgetRef ref) async {
+  Future<BulkActionOutcome> _unlinkSelected(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final ids = _ids;
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return BulkActionOutcome.cancelled;
 
     // Everything else an unlink discards is derived and rebuilds from the
     // source file on a re-link. A caption and the favorite flag live only in
@@ -60,7 +63,7 @@ class MediaSelectionBar extends ConsumerWidget {
     final atRisk = await ref
         .read(mediaRepositoryProvider)
         .idsWithUserMetadata(ids);
-    if (!context.mounted) return;
+    if (!context.mounted) return BulkActionOutcome.cancelled;
 
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
@@ -85,17 +88,20 @@ class MediaSelectionBar extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true) return BulkActionOutcome.cancelled;
 
     await ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids);
-    controller.exit();
+    return BulkActionOutcome.completed;
   }
 
-  Future<void> _moveToDive(BuildContext context, WidgetRef ref) async {
+  Future<BulkActionOutcome> _moveToDive(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final diveId = await showDivePickerSheet(context);
-    if (diveId == null) return;
+    if (diveId == null) return BulkActionOutcome.cancelled;
     await ref.read(mediaRepositoryProvider).reassignMediaToDive(_ids, diveId);
-    controller.exit();
+    return BulkActionOutcome.completed;
   }
 
   @override
@@ -120,7 +126,10 @@ class MediaSelectionBar extends ConsumerWidget {
           id: 'share',
           icon: Icons.share,
           label: l10n.common_action_share,
-          onInvoke: () => shareMediaItems(context, ref, selectedItems),
+          onInvoke: () async =>
+              await shareMediaItems(context, ref, selectedItems)
+              ? BulkActionOutcome.completed
+              : BulkActionOutcome.failed,
         ),
         BulkAction(
           id: 'move_to_dive',

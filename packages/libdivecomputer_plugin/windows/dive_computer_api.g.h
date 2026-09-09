@@ -787,6 +787,7 @@ class DiveComputerHostApi {
   virtual void StartDownload(
     const DiscoveredDevice& device,
     const std::string* fingerprint,
+    bool sync_clock,
     std::function<void(std::optional<FlutterError> reply)> result) = 0;
   virtual std::optional<FlutterError> CancelDownload() = 0;
   virtual std::optional<FlutterError> SubmitPinCode(const std::string& pin_code) = 0;
@@ -842,6 +843,7 @@ class DiveComputerFlutterApi {
     int64_t total_dives,
     const std::string* serial_number,
     const std::string* firmware_version,
+    const std::string* clock_sync_status,
     std::function<void(void)>&& on_success,
     std::function<void(const FlutterError&)>&& on_error);
   void OnError(

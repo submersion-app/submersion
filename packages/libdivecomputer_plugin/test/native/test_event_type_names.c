@@ -82,10 +82,28 @@ static void test_codes_outside_the_enum_are_unknown(void) {
     printf("PASS: test_codes_outside_the_enum_are_unknown\n");
 }
 
+/* The clock sync outcome crosses every binding as one of these names; the
+   Dart side switches on the spelling, so it is pinned here beside the event
+   table (issue #1216). */
+static void test_clock_sync_status_names(void) {
+    assert(strcmp(libdc_clock_sync_status_name(LIBDC_CLOCK_SYNC_NOT_REQUESTED),
+                  "not_requested") == 0);
+    assert(strcmp(libdc_clock_sync_status_name(LIBDC_CLOCK_SYNC_SYNCED),
+                  "synced") == 0);
+    assert(strcmp(libdc_clock_sync_status_name(LIBDC_CLOCK_SYNC_UNSUPPORTED),
+                  "unsupported") == 0);
+    assert(strcmp(libdc_clock_sync_status_name(LIBDC_CLOCK_SYNC_FAILED),
+                  "failed") == 0);
+    assert(strcmp(libdc_clock_sync_status_name((libdc_clock_sync_status_t)99),
+                  "unknown") == 0);
+    printf("PASS: test_clock_sync_status_names\n");
+}
+
 int main(void) {
     test_every_enum_member_has_its_name();
     test_ascent_alarm_is_not_a_ceiling();
     test_codes_outside_the_enum_are_unknown();
+    test_clock_sync_status_names();
     printf("All event type name tests passed.\n");
     return 0;
 }

@@ -30,6 +30,9 @@ class EquipmentItem extends Equatable {
   final bool? customReminderEnabled; // NULL = use global
   final List<int>? customReminderDays; // Override reminder days
 
+  /// The item this one is installed in (v202). Null for a standalone item.
+  final String? parentEquipmentId;
+
   /// Row creation time (null for entities built before persistence); used as
   /// the last anchor fallback for service clocks.
   final DateTime? createdAt;
@@ -53,6 +56,7 @@ class EquipmentItem extends Equatable {
     this.attributes = const [],
     this.customReminderEnabled,
     this.customReminderDays,
+    this.parentEquipmentId,
     this.createdAt,
   });
 
@@ -78,10 +82,32 @@ class EquipmentItem extends Equatable {
   double? get buoyancyKg => attrNum(EquipmentAttrKeys.buoyancyKg);
   double? get weightKg => attrNum(EquipmentAttrKeys.dryWeightKg);
 
+  /// When a child item was installed in its parent; the parent's dives on or
+  /// after this date count for the child.
+  DateTime? get installedDate {
+    final ms = attrNum(EquipmentAttrKeys.installedDate);
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms.round());
+  }
+
   /// Wing/BCD rated lift capacity in kg (curated attribute; see the BCD entry
   /// in [EquipmentAttributeCatalog]). Feeds the buoyancy twin's peak-lift
   /// demand comparison; null when unspecified.
   double? get liftCapacityKg => attrNum(EquipmentAttrKeys.liftCapacityKg);
+
+  /// Cylinder specs (curated tank attributes). Null when unspecified.
+  double? get volumeL => attrNum(EquipmentAttrKeys.volumeL);
+  double? get workingPressureBar =>
+      attrNum(EquipmentAttrKeys.workingPressureBar);
+
+  /// The catalog stores the choice key ('aluminum', 'steel',
+  /// 'carbon_composite'); the enum name for the last one differs.
+  TankMaterial? get tankMaterial =>
+      switch (attrText(EquipmentAttrKeys.tankMaterial)) {
+        'aluminum' => TankMaterial.aluminum,
+        'steel' => TankMaterial.steel,
+        'carbon_composite' => TankMaterial.carbonFiber,
+        _ => null,
+      };
 
   /// Purchase record (issue #1517): the manufacturer or retailer SKU, who it
   /// was bought from, and the product/receipt listing. Null when unrecorded.
@@ -142,6 +168,8 @@ class EquipmentItem extends Equatable {
     List<EquipmentAttribute>? attributes,
     bool? customReminderEnabled,
     List<int>? customReminderDays,
+    String? parentEquipmentId,
+    bool clearParentEquipmentId = false,
     DateTime? createdAt,
   }) {
     return EquipmentItem(
@@ -164,6 +192,9 @@ class EquipmentItem extends Equatable {
       customReminderEnabled:
           customReminderEnabled ?? this.customReminderEnabled,
       customReminderDays: customReminderDays ?? this.customReminderDays,
+      parentEquipmentId: clearParentEquipmentId
+          ? null
+          : (parentEquipmentId ?? this.parentEquipmentId),
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -188,6 +219,7 @@ class EquipmentItem extends Equatable {
     attributes,
     customReminderEnabled,
     customReminderDays,
+    parentEquipmentId,
     createdAt,
   ];
 }

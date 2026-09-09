@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -31,6 +34,14 @@ enum SelectionBarShell {
 /// are identical in both shells; only the split between inline icons and the
 /// overflow menu depends on [maxInlineActions]. That is what stops the pane
 /// variant from quietly offering fewer actions than the full-width one.
+///
+/// Leaving selection mode after an action is the third property injected
+/// here rather than left to each surface. Every control -- inline icon,
+/// overflow entry and the baseline delete -- routes through
+/// [_runAndMaybeExit], which ends the mode on [BulkActionOutcome.completed]
+/// and leaves it alone otherwise, so a finished action always returns the
+/// diver to the normal list (#1262) while a cancelled or failed one keeps the
+/// selection they built.
 class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Menu value for the baseline delete entry.
   ///
@@ -49,14 +60,15 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   final SelectionBarShell shell;
 
-  /// Invoked by the baseline delete entry in the overflow menu.
+  /// Invoked by the baseline delete entry in the overflow menu, reporting
+  /// whether the diver went through with it.
   ///
   /// Null only for surfaces that have no true delete -- the dive media section
   /// unlinks media from a dive without destroying files, so a trash entry
   /// there would misdescribe what it does. When null the delete entry is
   /// omitted entirely rather than rendered disabled, so the menu never shows a
   /// dead row. Every surface that can delete must pass this.
-  final VoidCallback? onDelete;
+  final FutureOr<BulkActionOutcome> Function()? onDelete;
 
   /// How many extras render as inline icons before the rest overflow.
   ///
@@ -118,6 +130,45 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
+  /// Run [handler] and end selection mode if it reports it finished.
+  ///
+  /// The single place the mode ends after an action, for inline icons,
+  /// overflow entries and the baseline delete alike. A handler is free to
+  /// call `exit()` earlier for its own reasons -- the delete paths do, so the
+  /// bar disappears the instant the diver confirms rather than lingering
+  /// through a slow bulk delete -- and this stays a no-op when it does:
+  /// [SelectionState] defines `==`, so re-assigning the inactive state
+  /// notifies nobody.
+  Future<void> _runAndMaybeExit(
+    FutureOr<BulkActionOutcome> Function() handler, {
+    bool exitsOnComplete = true,
+  }) async {
+    final outcome = await handler();
+    if (outcome == BulkActionOutcome.completed && exitsOnComplete) {
+      controller.exit();
+    }
+  }
+
+  Future<void> _invoke(BulkAction action) => _runAndMaybeExit(
+    action.onInvoke,
+    exitsOnComplete: action.exitsSelectionOnComplete,
+  );
+
+  /// Start a dispatch from a synchronous widget callback.
+  ///
+  /// Fire-and-forget by necessity -- onPressed and onSelected cannot await --
+  /// but not unlistened. A handler that throws instead of reporting
+  /// [BulkActionOutcome.failed] would otherwise send its error to the zone,
+  /// where the running app logs it as a bare uncaught error and a test blames
+  /// whichever case happens to be running when it surfaces. [logFailure]
+  /// attaches the listener and names the action in the log.
+  ///
+  /// The contract still holds on that path: the throw aborts
+  /// [_runAndMaybeExit] before it can exit, so a failed action leaves the
+  /// selection standing exactly as a reported failure would.
+  void _start(Future<void> dispatch, String actionId) =>
+      logFailure(dispatch, SelectionAppBar, 'run the $actionId bulk action');
+
   /// Baseline controls plus extras, in a fixed order, identical in both
   /// shells.
   List<Widget> _buildControls(
@@ -164,7 +215,7 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
               ? Theme.of(context).colorScheme.error
               : null,
           onPressed: action.isEnabledForSelection(count, checkedIds)
-              ? action.onInvoke
+              ? () => _start(_invoke(action), action.id)
               : null,
         ),
       if (overflow.isNotEmpty || _hasDelete)
@@ -189,20 +240,33 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
               _buildDeleteItem(context, count),
             ],
           ],
+          // onSelected is synchronous, so the dispatch is deliberately
+          // fire-and-forget: the menu closes now and the bar reacts when the
+          // action reports back.
           onSelected: (id) {
             if (id == _deleteMenuValue) {
-              onDelete?.call();
+              _start(_invokeDelete(), 'delete');
               return;
             }
             for (final action in overflow) {
               if (action.id == id) {
-                action.onInvoke();
+                _start(_invoke(action), action.id);
                 return;
               }
             }
           },
         ),
     ];
+  }
+
+  /// Run the baseline delete under the same exit rule as any other action.
+  ///
+  /// Destroying the checked rows always ends the mode, so there is no opt-out
+  /// to carry here; the decision itself still lives in [_runAndMaybeExit].
+  Future<void> _invokeDelete() async {
+    final handler = onDelete;
+    if (handler == null) return;
+    await _runAndMaybeExit(handler);
   }
 
   /// The baseline delete entry.

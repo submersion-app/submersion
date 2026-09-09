@@ -90,6 +90,7 @@ class SyncRepository {
     // clock (see _exportWeightPresetEntries), like the equipmentSetItems
     // junction above.
     'diveComputers': (table: 'dive_computers', pk: 'id'),
+    'transmitters': (table: 'transmitters', pk: 'id'),
     'tags': (table: 'tags', pk: 'id'),
     'courses': (table: 'courses', pk: 'id'),
     // HLC merge-root only: the courseRequirementDives junction is clockless
@@ -115,6 +116,10 @@ class SyncRepository {
     'qualityFindings': (table: 'quality_findings', pk: 'id'),
     'emergencyChambers': (table: 'emergency_chambers', pk: 'id'),
     'incidents': (table: 'incidents', pk: 'id'),
+    // v202: gear check-ins. The serializer wires them in the condition
+    // findings phase; registering the clock target now keeps the hlc census
+    // honest about the table carrying a clock column.
+    'equipmentObservations': (table: 'equipment_observations', pk: 'id'),
     'mediaSmartAlbums': (table: 'media_smart_albums', pk: 'id'),
   };
 

@@ -2400,6 +2400,30 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_item_valueMax => 'מקסימום (אזהרה)';
 
   @override
+  String get preDive_item_type_cellLinearity => 'ליניאריות התא';
+
+  @override
+  String get preDive_item_sourceItem => 'קריאת אוויר מתוך';
+
+  @override
+  String get preDive_item_sourceItemRequired =>
+      'בחר את הפריט שמכיל את קריאת האוויר';
+
+  @override
+  String get preDive_item_linearityMin => 'ליניאריות מזערית % (אזהרה)';
+
+  @override
+  String get preDive_item_linearityMax => 'ליניאריות מרבית % (אזהרה)';
+
+  @override
+  String preDive_item_sourceCleared(String title) {
+    return 'ל־$title אין יותר קריאת אוויר להשוואה';
+  }
+
+  @override
+  String get preDive_item_sourceBelow => 'קורא ערך שנרשם בהמשך הרשימה';
+
+  @override
   String preDive_runner_progress(int done, int total) {
     return '$done מתוך $total';
   }
@@ -2436,6 +2460,32 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get preDive_runner_enterValue => 'הזן ערך';
+
+  @override
+  String get preDive_runner_cellInAir => 'באוויר';
+
+  @override
+  String get preDive_runner_cellInAirMissing => 'טרם נרשם';
+
+  @override
+  String get preDive_runner_enterO2Value => 'הזן ערך בחמצן טהור';
+
+  @override
+  String preDive_runner_linearityReadout(String expected, String percent) {
+    return 'צפוי $expected mV, ליניאריות $percent%';
+  }
+
+  @override
+  String preDive_runner_linearityLine(
+    String air,
+    String expected,
+    String percent,
+  ) {
+    return 'אוויר $air mV, צפוי $expected mV, ליניאריות $percent%';
+  }
+
+  @override
+  String get preDive_runner_sourceChanged => 'קריאת האוויר השתנתה מאז';
 
   @override
   String preDive_runner_flaggedBadge(int count) {
@@ -7485,6 +7535,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'הסר בלון';
 
   @override
+  String get diveLog_tank_regulatorLabel => 'וסת';
+
+  @override
+  String get diveLog_tank_regulatorNone => 'ללא';
+
+  @override
   String get diveLog_tissue_label_ceiling => 'תקרה';
 
   @override
@@ -10192,6 +10248,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_dpv => 'DPV';
 
   @override
+  String get enum_equipmentType_o2Cell => 'תא חמצן';
+
+  @override
+  String get enum_equipmentType_battery => 'סוללה';
+
+  @override
   String get enum_equipmentType_computer => 'מחשב צלילה';
 
   @override
@@ -11034,6 +11096,34 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total שעות במים מלוחים';
+  }
+
+  @override
+  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total צלילות במים קרים';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total שעות בחמצן גבוה';
+  }
+
+  @override
+  String equipment_serviceClocks_deepCyclesLeft(
+    String remaining,
+    String total,
+  ) {
+    return 'נותרו $remaining מתוך $total צלילות עמוקות';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total מחזורי סוללה';
+  }
+
+  @override
   String get equipment_serviceClocks_manageKinds => 'ניהול סוגי טיפול';
 
   @override
@@ -11053,6 +11143,25 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_scheduleDialog_intervalHours => 'מרווח (שעות)';
+
+  @override
+  String get equipment_scheduleDialog_intervalSaltHours =>
+      'מרווח (שעות במים מלוחים)';
+
+  @override
+  String get equipment_scheduleDialog_intervalColdDives =>
+      'מרווח (צלילות במים קרים)';
+
+  @override
+  String get equipment_scheduleDialog_intervalO2Hours =>
+      'מרווח (שעות בחמצן גבוה)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDeepCycles =>
+      'מרווח (צלילות עמוקות)';
+
+  @override
+  String get equipment_scheduleDialog_intervalCycles => 'מרווח (מחזורי סוללה)';
 
   @override
   String equipment_scheduleDialog_inheritHint(String value) {
@@ -11402,6 +11511,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_statusLabel => 'סטטוס';
+
+  @override
+  String get equipment_edit_parentLabel => 'מותקן ב';
+
+  @override
+  String get equipment_edit_parentNone => 'לא מותקן בשום פריט';
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'למשל, 5, 5/4, 7/5/3';
@@ -21367,6 +21482,41 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_certificate_thisCertifies => 'בזאת מאושר כי';
 
   @override
+  String get diveComputer_clockSync_appSettingOff => 'הגדרת האפליקציה: כבויה';
+
+  @override
+  String get diveComputer_clockSync_appSettingOn => 'הגדרת האפליקציה: פעילה';
+
+  @override
+  String get diveComputer_clockSync_cardTitle => 'סנכרון שעון';
+
+  @override
+  String get diveComputer_clockSync_checkAgain => 'בדיקה חוזרת';
+
+  @override
+  String get diveComputer_clockSync_globalSubtitle =>
+      'מכוון את השעון לשעת המכשיר הזה אחרי כל הורדה. חל על מכשיר זה בלבד.';
+
+  @override
+  String get diveComputer_clockSync_globalTitle => 'סנכרון שעוני מחשבי צלילה';
+
+  @override
+  String get diveComputer_clockSync_overrideAlways => 'תמיד';
+
+  @override
+  String get diveComputer_clockSync_overrideInherit => 'הגדרת האפליקציה';
+
+  @override
+  String get diveComputer_clockSync_overrideNever => 'אף פעם';
+
+  @override
+  String get diveComputer_clockSync_supported => 'נתמך בדגם זה';
+
+  @override
+  String get diveComputer_clockSync_unsupported =>
+      'דגם זה אינו תומך בסנכרון שעון';
+
+  @override
   String get diveComputer_connectionType_ble => 'Bluetooth LE';
 
   @override
@@ -21568,6 +21718,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_cancelled => 'ההורדה בוטלה';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncFailed => 'סנכרון השעון נכשל';
+
+  @override
+  String get diveComputer_downloadStep_clockSyncUnsupported =>
+      'סנכרון שעון אינו נתמך בדגם זה';
+
+  @override
+  String get diveComputer_downloadStep_clockSynced => 'השעון סונכרן';
 
   @override
   String diveComputer_downloadStep_depthMeters(Object depth) {
@@ -23273,21 +23433,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
       'קריאת לחץ הסיום ברגע ההגעה לפני השטח, ולא בסוף ההקלטה';
-
-  @override
-  String get settings_cloudImportPageSize_title => 'גודל עמוד בייבוא מהענן';
-
-  @override
-  String get settings_cloudImportPageSize_subtitle =>
-      'כמה מהצלילות האחרונות לטעון בכל פעם מ-Suunto Cloud או Garmin Connect. «טען עוד» טוען את האצווה הבאה באותו גודל.';
-
-  @override
-  String get settings_cloudImportPageSize_dialogTitle => 'צלילות לעמוד';
-
-  @override
-  String settings_cloudImportPageSize_range(Object min, Object max) {
-    return 'בין $min ל-$max';
-  }
 
   @override
   String get settings_siteMatch_strict => 'קפדני';
@@ -25024,6 +25169,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_burn_time_h => 'זמן פעולה';
 
   @override
+  String get attrLabel_cell_slot => 'מיקום התא';
+
+  @override
+  String get attrLabel_installed_date => 'תאריך התקנה';
+
+  @override
+  String get attrLabel_rechargeable => 'נטענת';
+
+  @override
   String get attrLabel_battery_type => 'סוללה';
 
   @override
@@ -25340,6 +25494,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_battery_type_lead_acid => 'עופרת-חומצה';
+
+  @override
+  String get attrChoice_battery_type_alkaline => 'אלקליין';
+
+  @override
+  String get attrChoice_battery_type_lithium_primary => 'ליתיום (לא נטענת)';
 
   @override
   String get attrChoice_motor_type_brushless => 'ללא מברשות';
@@ -25871,6 +26031,39 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle => 'כללי סקירה וטיסה אחרי צלילה';
+
+  @override
+  String get settings_section_equipmentCondition_title => 'מצב הציוד';
+
+  @override
+  String get settings_section_equipmentCondition_subtitle =>
+      'ספי חשיפה לשעוני תחזוקה';
+
+  @override
+  String get equipmentConditionSettings_title => 'מצב הציוד';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHeader => 'ספי חשיפה';
+
+  @override
+  String get equipmentConditionSettings_thresholdsHelp =>
+      'צלילה נחשבת קרה, עמוקה או בחמצן גבוה לשעוני התחזוקה כאשר היא חוצה ספים אלה.';
+
+  @override
+  String get equipmentConditionSettings_coldLabel => 'מים קרים מתחת ל';
+
+  @override
+  String get equipmentConditionSettings_deepLabel => 'צלילה עמוקה החל מ';
+
+  @override
+  String get equipmentConditionSettings_o2Label =>
+      'תערובת בחמצן גבוה מעל (% O2)';
+
+  @override
+  String get equipmentConditionSettings_invalid => 'יש להזין מספר';
+
+  @override
+  String get equipmentConditionSettings_saveFailed => 'השמירה נכשלה. נסו שוב.';
 
   @override
   String get settings_section_security_title => 'אבטחת האפליקציה';
@@ -36584,4 +36777,268 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0, $_temp1 - $size (אוטומטי)';
   }
+
+  @override
+  String get settings_manage_transmitters => 'משדרים';
+
+  @override
+  String get settings_manage_transmitters_subtitle => 'קישור משדרי לחץ למיכלים';
+
+  @override
+  String get transmitters_title => 'משדרים';
+
+  @override
+  String get transmitters_add => 'הוספת משדר';
+
+  @override
+  String get transmitters_header_assigned => 'משדרים משויכים';
+
+  @override
+  String get transmitters_header_unassigned => 'נראו בהורדות, לא משויכים';
+
+  @override
+  String get transmitters_empty =>
+      'אין משדרים עדיין. הוסיפו אחד, או שייכו מספר סידורי אחרי ההורדה הבאה.';
+
+  @override
+  String get transmitters_action_assign => 'שיוך';
+
+  @override
+  String get transmitters_action_edit => 'עריכת משדר';
+
+  @override
+  String get transmitters_action_delete => 'מחיקת משדר';
+
+  @override
+  String get transmitters_action_apply => 'החלה על צלילות קיימות';
+
+  @override
+  String get transmitters_apply_title => 'להחיל על צלילות קיימות?';
+
+  @override
+  String transmitters_apply_content(int tanks, int dives) {
+    return '$tanks מיכלים ב-$dives צלילות נושאים משדר זה. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב יוחלף.';
+  }
+
+  @override
+  String transmitters_apply_done(int tanks, int dives) {
+    return 'עודכנו $tanks מיכלים ב-$dives צלילות';
+  }
+
+  @override
+  String get transmitters_apply_nothing => 'אף מיכל אינו נושא משדר זה';
+
+  @override
+  String get transmitters_delete_title => 'למחוק את המשדר?';
+
+  @override
+  String transmitters_delete_content(String label) {
+    return 'הורדות עתידיות מ-$label ישתמשו שוב בהגדרה המוגדרת כברירת מחדל.';
+  }
+
+  @override
+  String transmitters_channel(String computer, int channel) {
+    return '$computer, ערוץ $channel';
+  }
+
+  @override
+  String transmitters_serial(String serial) {
+    return 'משדר $serial';
+  }
+
+  @override
+  String transmitters_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transmitters_edit_title => 'עריכת משדר';
+
+  @override
+  String get transmitters_new_title => 'משדר חדש';
+
+  @override
+  String get transmitters_field_label => 'תווית';
+
+  @override
+  String get transmitters_field_serial => 'מספר סידורי של המשדר';
+
+  @override
+  String get transmitters_field_computer =>
+      'מחשב צלילה (כשלא מדווח מספר סידורי)';
+
+  @override
+  String get transmitters_field_channel => 'ערוץ';
+
+  @override
+  String get transmitters_field_role => 'תפקיד';
+
+  @override
+  String get transmitters_field_gear => 'מיכל מהציוד';
+
+  @override
+  String get transmitters_field_material => 'חומר';
+
+  @override
+  String get transmitters_gear_none => 'ללא';
+
+  @override
+  String get transmitters_validation_key =>
+      'הזינו מספר סידורי, או בחרו מחשב צלילה וערוץ';
+
+  @override
+  String get transmitters_validation_positive => 'הזינו ערך גדול מאפס';
+
+  @override
+  String transmitters_validation_duplicate(String label) {
+    return 'כבר משויך ל-$label';
+  }
+
+  @override
+  String get transmitters_saved => 'המשדר נשמר';
+
+  @override
+  String get diveComputer_detail_transmitters => 'משדרים';
+
+  @override
+  String diveComputer_detail_transmittersSummary(int known, int unassigned) {
+    return '$known מוכרים, $unassigned לא משויכים';
+  }
+
+  @override
+  String get diveLog_tank_assignTransmitter => 'שיוך משדר';
+
+  @override
+  String get diveLog_tank_reassignSeries => 'שיוך מחדש של סדרת הלחץ';
+
+  @override
+  String get diveLog_reassignSheet_title => 'סדרות לחץ';
+
+  @override
+  String get diveLog_reassignSheet_swap => 'החלפה';
+
+  @override
+  String get diveLog_reassignSheet_moveTo => 'העברה אל';
+
+  @override
+  String diveLog_reassignSheet_readings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קריאות',
+      one: 'קריאה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_reassignSheet_noSeries => 'אין סדרת לחץ';
+
+  @override
+  String get diveLog_reassignSheet_applied => 'סדרת הלחץ שויכה מחדש';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterTitle =>
+      'משדרים לא משויכים';
+
+  @override
+  String get universalImport_summary_noticeUnknownTransmitterBody =>
+      'משדר אחד או יותר בהורדה זו אינם משויכים למיכל. שייכו אותם כדי שהורדות עתידיות יקבלו את הנפח והתפקיד הנכונים.';
+
+  @override
+  String get universalImport_summary_noticeAssignTransmitters => 'שיוך משדרים';
+
+  @override
+  String get dataQuality_detector_unknown_transmitter => 'משדר לא משויך';
+
+  @override
+  String dataQuality_msg_unknownTransmitter(String serial) {
+    return 'משדר $serial אינו משויך למיכל';
+  }
+
+  @override
+  String get dataQuality_repairLabel_assignTransmitter => 'שיוך משדר';
+
+  @override
+  String get backup_unrecognized_appBar_title => 'גיבויים לא מזוהים';
+
+  @override
+  String get backup_unrecognized_explanation =>
+      'הקבצים האלה נמצאים בתיקיית הגיבויים שלך אך לא בהיסטוריית הגיבויים של המכשיר הזה. אפשר למחוק כאן רק קובץ שהמכשיר הזה כתב: כל קובץ אחר עלול להיות העותק היחיד של מכשיר אחר.';
+
+  @override
+  String get backup_unrecognized_empty => 'אין קובצי גיבוי לא מזוהים.';
+
+  @override
+  String get backup_unrecognized_loadFailed =>
+      'לא ניתן לקרוא את תיקיית הגיבויים.';
+
+  @override
+  String get backup_unrecognized_unavailable =>
+      'המכשיר הזה אינו יכול להציג את תוכן תיקיית הגיבויים שבחרת, ולכן לא ניתן לאתר קבצים לא מזוהים.';
+
+  @override
+  String get backup_unrecognized_ownership_otherDevice => 'מכשיר אחר';
+
+  @override
+  String get backup_unrecognized_ownership_unattributed => 'מכשיר לא ידוע';
+
+  @override
+  String backup_unrecognized_fileDetail(String size, String date) {
+    return '$size • $date';
+  }
+
+  @override
+  String backup_unrecognized_deleteSelected(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מחיקת $count קבצים ($size)',
+      one: 'מחיקת קובץ אחד ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_confirm_title => 'למחוק את קובצי הגיבוי האלה?';
+
+  @override
+  String backup_unrecognized_confirm_message(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קובצי גיבוי יימחקו לצמיתות. לא ניתן לבטל את הפעולה.',
+      one: 'קובץ גיבוי אחד יימחק לצמיתות. לא ניתן לבטל את הפעולה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_unrecognized_deleteFailed =>
+      'לא ניתן היה למחוק את הקבצים שנבחרו.';
+
+  @override
+  String backup_unrecognized_freed(String size) {
+    return '$size פונו';
+  }
+
+  @override
+  String settings_storageUsage_unrecognized_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים שאינם בהיסטוריית הגיבויים שלך',
+      one: 'קובץ אחד שאינו בהיסטוריית הגיבויים שלך',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_storageUsage_unrecognized_action => 'בדיקה';
 }

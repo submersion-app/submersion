@@ -424,10 +424,19 @@ class _NoticeCard extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = context.l10n;
 
-    final (title, body) = switch (notice.kind) {
+    final (title, body, action) = switch (notice.kind) {
       ImportNoticeKind.noTankPressure => (
         l10n.universalImport_summary_noticeNoTankPressureTitle,
         l10n.universalImport_summary_noticeNoTankPressureBody,
+        null,
+      ),
+      ImportNoticeKind.unknownTransmitter => (
+        l10n.universalImport_summary_noticeUnknownTransmitterTitle,
+        l10n.universalImport_summary_noticeUnknownTransmitterBody,
+        (
+          label: l10n.universalImport_summary_noticeAssignTransmitters,
+          route: '/transmitters',
+        ),
       ),
     };
 
@@ -467,6 +476,16 @@ class _NoticeCard extends StatelessWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
+                  if (action != null) ...[
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: FilledButton.tonal(
+                        onPressed: () => context.push(action.route),
+                        child: Text(action.label),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

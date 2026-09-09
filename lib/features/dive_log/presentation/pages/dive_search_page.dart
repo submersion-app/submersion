@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Advanced search page with all filter options in collapsible sections.
@@ -203,9 +204,9 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       appBar: AppBar(
         title: Text(context.l10n.diveLog_search_appBar),
         actions: [
-          TextButton(
+          AppBarTextAction(
+            label: context.l10n.diveLog_search_clearAll,
             onPressed: _clearAll,
-            child: Text(context.l10n.diveLog_search_clearAll),
           ),
         ],
       ),

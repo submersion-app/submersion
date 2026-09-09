@@ -189,6 +189,16 @@ const char *libdc_event_type_name(unsigned int type) {
     }
 }
 
+const char *libdc_clock_sync_status_name(libdc_clock_sync_status_t status) {
+    switch (status) {
+    case LIBDC_CLOCK_SYNC_NOT_REQUESTED: return "not_requested";
+    case LIBDC_CLOCK_SYNC_SYNCED: return "synced";
+    case LIBDC_CLOCK_SYNC_UNSUPPORTED: return "unsupported";
+    case LIBDC_CLOCK_SYNC_FAILED: return "failed";
+    default: return "unknown";
+    }
+}
+
 static void push_event(libdc_parsed_dive_t *dive,
                         unsigned int time_ms,
                         unsigned int type,
@@ -812,6 +822,45 @@ static void libdc_logfunc_wrapper(dc_context_t *context, dc_loglevel_t loglevel,
     }
 }
 
+libdc_clock_sync_status_t libdc_sync_device_clock(struct dc_device_t *device,
+                                                   int requested,
+                                                   int download_succeeded) {
+    if (!requested || !download_succeeded) {
+        return LIBDC_CLOCK_SYNC_NOT_REQUESTED;
+    }
+
+    // Host wall-clock time with the host's UTC offset filled in. Each backend
+    // applies its own conversion (Shearwater sends UTC to a Teric and local
+    // time to everything else, Mares strips the offset, OSTC sends the raw
+    // fields), so no timezone logic lives here.
+    dc_datetime_t now;
+    memset(&now, 0, sizeof(now));
+    if (dc_datetime_localtime(&now, dc_datetime_now()) == NULL) {
+        if (g_log_callback != NULL) {
+            g_log_callback((int)DC_LOGLEVEL_WARNING,
+                           "Clock sync failed: host time unavailable",
+                           g_log_userdata);
+        }
+        return LIBDC_CLOCK_SYNC_FAILED;
+    }
+
+    dc_status_t status = dc_device_timesync(device, &now);
+    if (status == DC_STATUS_SUCCESS) {
+        return LIBDC_CLOCK_SYNC_SYNCED;
+    }
+    if (status == DC_STATUS_UNSUPPORTED) {
+        // The normal answer for most models, not an error.
+        return LIBDC_CLOCK_SYNC_UNSUPPORTED;
+    }
+    if (g_log_callback != NULL) {
+        char msg[96];
+        snprintf(msg, sizeof(msg),
+                 "Clock sync failed (libdivecomputer status %d)", (int)status);
+        g_log_callback((int)DC_LOGLEVEL_WARNING, msg, g_log_userdata);
+    }
+    return LIBDC_CLOCK_SYNC_FAILED;
+}
+
 libdc_download_session_t *libdc_download_session_new(void) {
     libdc_download_session_t *session = calloc(1, sizeof(*session));
     if (session == NULL) {
@@ -855,9 +904,11 @@ int libdc_download_run(
     unsigned int transport,
     const libdc_io_callbacks_t *io_callbacks,
     const unsigned char *fingerprint, unsigned int fsize,
+    int sync_clock,
     const libdc_download_callbacks_t *callbacks,
     unsigned int *serial_out,
     unsigned int *firmware_out,
+    libdc_clock_sync_status_t *clock_sync_out,
     char *error_buf, size_t error_buf_size)
 {
     if (session == NULL || vendor == NULL || product == NULL ||
@@ -944,6 +995,14 @@ int libdc_download_run(
     // 7. Download dives.
     status = dc_device_foreach(device, dive_callback, &state);
 
+    // 7b. Optional clock sync, only after a fully successful download so a
+    // slow or failing timesync can never cost the diver their dives, and
+    // never after a cancel (issue #1216). Its outcome is reported separately
+    // and never changes `result` or the error buffer.
+    libdc_clock_sync_status_t clock_sync = libdc_sync_device_clock(
+        device, sync_clock,
+        status == DC_STATUS_SUCCESS && !session->cancelled);
+
     int result = 0;
     if (status != DC_STATUS_SUCCESS) {
         if (session->cancelled) {
@@ -969,6 +1028,9 @@ int libdc_download_run(
     }
     if (firmware_out != NULL) {
         *firmware_out = state.firmware;
+    }
+    if (clock_sync_out != NULL) {
+        *clock_sync_out = clock_sync;
     }
 
     // 9. Cleanup.
