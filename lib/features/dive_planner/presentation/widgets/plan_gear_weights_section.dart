@@ -7,10 +7,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
-import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
@@ -26,16 +24,6 @@ import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 /// onto the plan.
 class PlanGearWeightsSection extends ConsumerWidget {
   const PlanGearWeightsSection({super.key});
-
-  /// One provenance row per attached id: an id the state has no row for
-  /// (a plan saved before provenance existed) is a loose top-level row.
-  List<GearProvenance> _fullProvenance(DivePlanState state) {
-    final byId = {for (final p in state.gearProvenance) p.equipmentId: p};
-    return [
-      for (final id in state.equipmentIds)
-        byId[id] ?? GearProvenance(equipmentId: id),
-    ];
-  }
 
   /// Every add funnels here so an assembly expands into its parts the same
   /// way it does on a dive (issue #1487).
@@ -57,7 +45,7 @@ class PlanGearWeightsSection extends ConsumerWidget {
       additions: [
         for (final i in items) (equipmentId: i.id, viaSetId: viaSetId),
       ],
-      existing: _fullProvenance(state),
+      existing: state.fullGearProvenance,
       existingItems: existingItems,
     );
     ref.read(divePlanNotifierProvider.notifier).setGear([
@@ -68,8 +56,7 @@ class PlanGearWeightsSection extends ConsumerWidget {
   /// Removes [id] and every part attached through it.
   void _removeGear(WidgetRef ref, String id) {
     final state = ref.read(divePlanNotifierProvider);
-    final provenance = _fullProvenance(state);
-    final kept = GearExpander.removeSubtree(provenance, id);
+    final kept = GearExpander.removeSubtree(state.fullGearProvenance, id);
     ref.read(divePlanNotifierProvider.notifier).setGear([
       for (final p in kept) p.equipmentId,
     ], kept);
@@ -130,7 +117,7 @@ class PlanGearWeightsSection extends ConsumerWidget {
     // Parts sit inside their assembly's chip as a count (issue #1487). The
     // tree's placement decides what is a part, so an orphaned row whose
     // parent is not on the plan stays visible as its own chip.
-    final rows = _fullProvenance(state);
+    final rows = state.fullGearProvenance;
     final partIds = GearTree.partIds(rows);
     final partCounts = GearTree.partCounts(rows);
 

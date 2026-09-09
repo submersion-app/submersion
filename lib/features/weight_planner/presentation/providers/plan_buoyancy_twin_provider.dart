@@ -108,7 +108,7 @@ final planBuoyancyTwinProvider = Provider<BuoyancyTwinOutcome?>((ref) {
     waterType: state.waterType ?? WaterType.salt,
     salinityPpt: state.salinityPpt,
     bodyWeightKg: latestWeight?.weightKg,
-    rolledUpIds: GearTree.rolledUpIds(state.gearProvenance),
+    rolledUpIds: GearTree.rolledUpIds(state.fullGearProvenance),
   );
 
   // Some planned lead may be non-ditchable (e.g. backplate/trim). When the

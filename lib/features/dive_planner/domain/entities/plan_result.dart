@@ -573,6 +573,20 @@ class DivePlanState extends Equatable {
   /// it was attached through and the set applied.
   final List<GearProvenance> gearProvenance;
 
+  /// One provenance row per attached id, in [equipmentIds] order. An id
+  /// with no row (a state assembled before provenance existed) is a loose
+  /// top-level row. Readers that walk the tree must use this rather than
+  /// [gearProvenance]: a missing assembly row would leave its parts as
+  /// orphans with nothing rolled up, and buoyancy would count the assembly
+  /// and its parts.
+  List<GearProvenance> get fullGearProvenance {
+    final byId = {for (final p in gearProvenance) p.equipmentId: p};
+    return [
+      for (final id in equipmentIds)
+        byId[id] ?? GearProvenance(equipmentId: id),
+    ];
+  }
+
   /// Accepted weight-prediction snapshot; placement keyed by
   /// WeightType.name -> kg.
   final double? plannedWeightKg;
