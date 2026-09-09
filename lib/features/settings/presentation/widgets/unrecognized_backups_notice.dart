@@ -13,10 +13,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// Renders nothing at all unless the scan came back with something. A row that
 /// said "0 forgotten files" would be noise on every launch for every user whose
-/// backups are in order, which is nearly all of them, and the states that are
-/// not a clean folder (still scanning, failed, or a location this device cannot
-/// list) have no honest one-line summary here. The page behind the button says
-/// which of those happened.
+/// backups are in order, which is nearly all of them.
+///
+/// It also hides while the scan is still running, when it failed, and when the
+/// location cannot be listed. Hiding is the whole behaviour in those cases:
+/// there is no button, so the page is not reachable and says nothing to the
+/// user about them. What makes that acceptable is the backups size row directly
+/// above, which measures the same directory and already reports "Not available"
+/// for a location with no directory behind it and "Could not measure" when the
+/// walk fails. A second line here would restate what that row just said, and
+/// only for the one category that has a scan.
 class UnrecognizedBackupsNotice extends ConsumerWidget {
   const UnrecognizedBackupsNotice({super.key});
 
