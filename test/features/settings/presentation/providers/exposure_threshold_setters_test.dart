@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -38,6 +42,31 @@ void main() {
     expect(container.read(settingsProvider).highO2ThresholdPercent, 0.0);
     await notifier.setHighO2ThresholdPercent(32);
     expect(container.read(settingsProvider).highO2ThresholdPercent, 32.0);
+  });
+
+  test('a failed write rolls the in-memory value back', () async {
+    // A selected diver routes the save through diver_settings; dropping that
+    // table is the one seam that makes the write throw.
+    container.dispose();
+    final now = DateTime.now();
+    final diver = await DiverRepository().createDiver(
+      Diver(id: '', name: 'A', createdAt: now, updatedAt: now),
+    );
+    SharedPreferences.setMockInitialValues({currentDiverIdKey: diver.id});
+    final prefs = await SharedPreferences.getInstance();
+    container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
+    final notifier = container.read(settingsProvider.notifier);
+    await notifier.initialLoad;
+    await notifier.setDeepDiveThresholdM(25);
+    expect(container.read(settingsProvider).deepDiveThresholdM, 25.0);
+
+    await DatabaseService.instance.database.customStatement(
+      'DROP TABLE diver_settings',
+    );
+    await expectLater(notifier.setDeepDiveThresholdM(40), throwsA(anything));
+    expect(container.read(settingsProvider).deepDiveThresholdM, 25.0);
   });
 
   test('the cold line accepts sub-zero water', () async {
