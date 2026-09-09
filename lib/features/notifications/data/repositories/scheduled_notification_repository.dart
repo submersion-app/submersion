@@ -63,12 +63,13 @@ class ScheduledNotificationRepository {
     }
   }
 
-  /// Whether a usage-clock reminder for [scheduleId] has been recorded
-  /// since [since] (the clock's anchor). One reminder per anchor: logging a
-  /// service record moves the anchor and re-arms it.
+  /// Whether a usage-clock reminder for [scheduleId] is recorded against
+  /// [anchor]. A usage row stores the clock anchor it was armed against in
+  /// `created_at` (see [recordScheduled]), so one reminder exists per anchor:
+  /// a service record moves the anchor and the scheduler re-arms.
   Future<bool> hasUsageReminder({
     required String scheduleId,
-    required DateTime since,
+    required DateTime anchor,
   }) async {
     final row =
         await (_db.select(_db.scheduledNotifications)
@@ -76,11 +77,7 @@ class ScheduledNotificationRepository {
               ..where(
                 (t) => t.reminderDaysBefore.equals(kUsageReminderDaysBefore),
               )
-              ..where(
-                (t) => t.createdAt.isBiggerOrEqualValue(
-                  since.millisecondsSinceEpoch,
-                ),
-              )
+              ..where((t) => t.createdAt.equals(anchor.millisecondsSinceEpoch))
               ..limit(1))
             .getSingleOrNull();
     return row != null;
@@ -94,17 +91,20 @@ class ScheduledNotificationRepository {
     )..where((t) => t.id.equals(id))).go();
   }
 
-  /// Record a scheduled notification
+  /// Record a scheduled notification. [createdAt] defaults to now; usage
+  /// reminders pass the clock anchor instead, so the row is tied to the
+  /// anchor it was armed against rather than to the wall clock.
   Future<void> recordScheduled({
     required String equipmentId,
     required DateTime scheduledDate,
     required int reminderDaysBefore,
     required int notificationId,
     String? scheduleId,
+    int? createdAt,
   }) async {
     try {
       final id = _uuid.v4();
-      final now = DateTime.now().millisecondsSinceEpoch;
+      final now = createdAt ?? DateTime.now().millisecondsSinceEpoch;
 
       await _db
           .into(_db.scheduledNotifications)

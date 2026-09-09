@@ -75,6 +75,9 @@ void main() {
     );
     expect(usage, hasLength(1));
     expect(usage.single.scheduleId, regService.id);
+    // The row is tied to the anchor it was armed against (the purchase
+    // date, with no record yet), not to the wall clock.
+    expect(usage.single.createdAt, DateTime(2025, 1, 1).millisecondsSinceEpoch);
 
     // Idempotent across runs and across the expiry sweep.
     await NotificationScheduler().scheduleAll(settings: const AppSettings());
@@ -162,20 +165,12 @@ void main() {
       final first = (await db.select(db.scheduledNotifications).get())
           .where((r) => r.reminderDaysBefore == kUsageReminderDaysBefore)
           .single;
-      // The reminder was armed two days ago, in wall-clock terms.
-      await db.customStatement(
-        'UPDATE scheduled_notifications SET created_at = ? WHERE id = ?',
-        [
-          DateTime.now()
-              .subtract(const Duration(days: 2))
-              .millisecondsSinceEpoch,
-          first.id,
-        ],
-      );
+      // The row carries the purchase-date anchor it was armed against.
+      expect(first.createdAt, DateTime(2025, 1, 1).millisecondsSinceEpoch);
 
-      // Today's record moves the anchor past that reminder, and a dive after
-      // the record keeps the one-dive clock overdue: the old reminder must
-      // go and exactly one new one must stand.
+      // Today's record moves the anchor, and a dive after the record keeps
+      // the one-dive clock overdue: the old reminder must go and exactly one
+      // new one, tied to the new anchor, must stand.
       await linkDive('d2', reg.id, daysAgo: -1);
       final now = DateTime.now();
       await ServiceRecordRepository().createRecord(
@@ -195,10 +190,7 @@ void main() {
           .toList();
       expect(rows, hasLength(1));
       expect(rows.single.id, isNot(first.id));
-      expect(
-        rows.single.createdAt,
-        greaterThanOrEqualTo(now.millisecondsSinceEpoch),
-      );
+      expect(rows.single.createdAt, now.millisecondsSinceEpoch);
     },
   );
 

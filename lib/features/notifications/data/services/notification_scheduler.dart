@@ -236,11 +236,12 @@ class NotificationScheduler {
 
   /// Cancel usage reminders that no longer belong to their clock's current
   /// anchor: the clock is no longer due (a service record moved the anchor,
-  /// or the schedule was removed or paused), or the reminder predates the
-  /// anchor (the clock is still due, but against a newer anchor that gets
-  /// its own reminder). The platform notification is cancelled by its
-  /// recorded id and the ledger row dropped, so [_scheduleUsageReminder]
-  /// can arm exactly one against the current anchor.
+  /// or the schedule was removed or paused), or the reminder was armed
+  /// against a different anchor (the clock is still due, but a record moved
+  /// the anchor in either direction). The platform notification is
+  /// cancelled by its recorded id and the ledger row dropped, so
+  /// [_scheduleUsageReminder] can arm exactly one against the current
+  /// anchor.
   Future<void> _reconcileUsageReminders({
     required EquipmentItem item,
     required List<ServiceClockStatus> statuses,
@@ -255,7 +256,7 @@ class NotificationScheduler {
       final current =
           status != null &&
           _usageDue(status) &&
-          row.createdAt >= status.anchor.millisecondsSinceEpoch;
+          row.createdAt == status.anchor.millisecondsSinceEpoch;
       if (current) continue;
       await _notificationService.cancelNotification(row.notificationId);
       await _scheduledNotificationRepository.deleteById(row.id);
@@ -288,7 +289,7 @@ class NotificationScheduler {
     if (item.customReminderEnabled == false) return;
     final already = await _scheduledNotificationRepository.hasUsageReminder(
       scheduleId: status.schedule.id,
-      since: status.anchor,
+      anchor: status.anchor,
     );
     if (already) return;
 
@@ -320,6 +321,9 @@ class NotificationScheduler {
       reminderDaysBefore: kUsageReminderDaysBefore,
       notificationId: notificationId,
       scheduleId: status.schedule.id,
+      // The anchor this reminder was armed against, not the wall clock, so
+      // a backdated record still reads as a different anchor.
+      createdAt: status.anchor.millisecondsSinceEpoch,
     );
   }
 
