@@ -58,9 +58,11 @@ class CylindersCard extends ConsumerWidget {
     final showSourceBadges = dataSources.length >= 2;
     final computerNames = _computerDisplayNames(context, dataSources);
     // Serials with a registry entry get a plain caption; the rest get an
-    // Assign chip (issue #1365).
+    // Assign chip (issue #1365). Read through `.value`, which keeps the
+    // previous list while a diver change reloads the provider; `valueOrNull`
+    // would drop to an empty registry and flash the chip for every tank.
     final knownSerials = Transmitter.knownSerials(
-      ref.watch(transmittersProvider).valueOrNull ?? const <Transmitter>[],
+      ref.watch(transmittersProvider).value ?? const <Transmitter>[],
     );
 
     return Card(

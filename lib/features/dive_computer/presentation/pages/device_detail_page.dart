@@ -876,9 +876,11 @@ class _TransmittersRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    // `.value` keeps the last counts through a dependency reload instead of
+    // collapsing the row for a frame.
     final summary = ref
         .watch(transmitterComputerSummaryProvider(computerId))
-        .valueOrNull;
+        .value;
     if (summary == null || summary.known + summary.unassigned == 0) {
       return const SizedBox.shrink();
     }
