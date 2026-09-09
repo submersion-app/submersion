@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
@@ -10,6 +11,10 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+
+/// Bumped to force a dependency-driven reload of the statistics provider,
+/// which is what switching the active diver does in the real app.
+final _reloadTrigger = StateProvider<int>((ref) => 0);
 
 /// The detail page was a single column of full-width cards, several of which
 /// restated something the page already showed. These tests pin the density
@@ -198,6 +203,66 @@ void main() {
         ),
         findsNothing,
       );
+    });
+  });
+  group('statistics survive a provider reload', () {
+    testWidgets('the depth card keeps its reached depths while reloading', (
+      tester,
+    ) async {
+      // A reload is not a refresh: `when(loading:)` fires for a dependency
+      // change (skipLoadingOnReload defaults to false) even though the
+      // previous value is still there. Reading through a helper that maps
+      // loading to null therefore blanks the section mid-reload.
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(600, 1400);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+      final container = ProviderContainer(
+        overrides: [
+          ...overrides,
+          siteProvider(site.id).overrideWith((_) async => site),
+          siteDiveCountProvider(site.id).overrideWith((_) async => 4),
+          siteDiveStatisticsProvider(site.id).overrideWith((ref) async {
+            final n = ref.watch(_reloadTrigger);
+            if (n > 0) {
+              await Future<void>.delayed(const Duration(milliseconds: 50));
+            }
+            return stats;
+          }),
+        ].cast<Override>(),
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: 'site-1', embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Deepest Dive'), findsOneWidget);
+
+      // Force the reload and look before it settles.
+      container.read(_reloadTrigger.notifier).state++;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 10));
+
+      expect(
+        find.text('Deepest Dive'),
+        findsOneWidget,
+        reason: 'the previously loaded depths must survive the reload',
+      );
+
+      await tester.pumpAndSettle();
     });
   });
 }

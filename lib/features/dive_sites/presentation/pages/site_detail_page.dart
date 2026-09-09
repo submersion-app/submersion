@@ -195,7 +195,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           // Map Section (if coordinates exist)
           if (site.hasCoordinates) ...[
             _buildMapSection(context, ref, site),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
 
           // Dives at this Site: the count and the aggregates derived from
@@ -219,7 +219,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           // Altitude Section (only if altitude is set)
           if (site.altitude != null) ...[
             _buildAltitudeSection(context, ref, site),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
 
           // Site Features Section (diver-placed annotations; placement happens
@@ -231,7 +231,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onAddFeature: () =>
                   _showFullscreenMap(context, ref, site, startPlacing: true),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
 
           // Tide Section (only for non-freshwater sites with coordinates:
@@ -239,13 +239,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           // not leak in)
           if (site.hasCoordinates && site.waterType != WaterType.fresh) ...[
             TideSection(location: site.location!),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
 
           // Reef Section (only if site has coordinates)
           if (site.hasCoordinates) ...[
             ReefSection(location: site.location!, waterType: site.waterType),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
 
           // Marine Life Section
@@ -278,12 +278,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           // waste most of a wide pane on their own.
           if (difficultyAndRating != null) ...[
             difficultyAndRating,
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
 
           if (hazardsAndAccess != null) ...[
             hazardsAndAccess,
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
 
           // Notes Section
@@ -896,7 +896,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    final stats = ref.watch(siteDiveStatisticsProvider(site.id)).valueOrNull;
+    // `.value` (Riverpod's own) rather than the project's `valueOrNull`
+    // helper: that helper is `when(loading: () => null)`, and `when` skips the
+    // loading branch on a refresh but NOT on a reload
+    // (skipLoadingOnReload defaults to false). This provider watches
+    // validatedCurrentDiverIdProvider, so switching diver is a real reload,
+    // and the helper would blank the reached depths mid-reload even though
+    // the previous values are still there.
+    final stats = ref.watch(siteDiveStatisticsProvider(site.id)).value;
     // Gated on there being dives at all, not on the depths being present: a
     // site with dives that recorded no depth is told so, rather than being
     // shown a card that silently omits the question.
@@ -1070,8 +1077,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     // unscoped provider. Sourcing them from SiteDiveStatistics.diveCount would
     // promise fewer dives than the list then shows for any diver who has
     // excluded a dive from statistics.
-    final countAsync = ref.watch(siteDiveCountProvider(site.id));
-    final totalDiveCount = countAsync.valueOrNull;
+    // `.value` for the same reason as the depth card: it retains the last
+    // known count across a reload instead of dropping to the placeholder.
+    final totalDiveCount = ref.watch(siteDiveCountProvider(site.id)).value;
 
     // Null while the count is still in flight. Defaulting it to 0 would make
     // a site with dives read "No dives logged yet" for a frame, which is a
