@@ -262,12 +262,14 @@ List<String> _inferSensorlessRoles(
     final lowestO2 = unranked
         .map((i) => gasMixes[i].o2Percent)
         .reduce((a, b) => a < b ? a : b);
-    final atLowestO2 = unranked.where((i) => gasMixes[i].o2Percent == lowestO2);
+    final atLowestO2 = unranked.where(
+      (i) => _nearlyEqualPercent(gasMixes[i].o2Percent, lowestO2),
+    );
     final highestHeAtLowestO2 = atLowestO2
         .map((i) => gasMixes[i].hePercent)
         .reduce((a, b) => a > b ? a : b);
     for (final i in atLowestO2) {
-      if (gasMixes[i].hePercent == highestHeAtLowestO2) {
+      if (_nearlyEqualPercent(gasMixes[i].hePercent, highestHeAtLowestO2)) {
         roles[i] = TankRole.bailout.name;
       }
     }
@@ -281,6 +283,14 @@ List<String> _inferSensorlessRoles(
 
   return [for (final role in roles) role!];
 }
+
+/// Whether two gas percentages are the same value within floating-point
+/// noise. Each of the four platform converters independently computes
+/// `fraction * 100.0` from the native `dc_gasmix_t`, so two mixes the diver
+/// set to the same nominal percentage can differ by a few ULPs; an exact
+/// `==` would then miss a real tie in [_inferSensorlessRoles]'s bailout
+/// ranking.
+bool _nearlyEqualPercent(double a, double b) => (a - b).abs() < 1e-6;
 
 /// The gas-mix index (position in [gasMixes]) for [tank], preferring the gas
 /// actually breathed on it. Returns null only when there are no gas mixes.

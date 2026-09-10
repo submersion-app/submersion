@@ -484,6 +484,27 @@ void main() {
         expect(tanks.every((t) => t.role == 'bailout'), isTrue);
       });
 
+      test('sensorless CCR bailout tie: floating-point noise from the native '
+          'fraction * 100.0 conversion does not defeat the tie detection', () {
+        // Each platform converter computes o2/he percent independently from
+        // the native fraction, so two mixes the diver set to the same
+        // nominal percentage can differ by a few ULPs rather than being
+        // bit-identical.
+        final parsed = makeParsedDive(
+          diveMode: 'ccr',
+          gasMixes: [
+            pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
+            pigeon.GasMix(
+              index: 1,
+              o2Percent: 18.0 + 4e-14,
+              hePercent: 45.0 - 4e-14,
+            ),
+          ],
+        );
+        final tanks = resolveParsedTanks(parsed);
+        expect(tanks.every((t) => t.role == 'bailout'), isTrue);
+      });
+
       test('sensorless SCR keeps the original single-threshold heuristic, '
           'unaffected by the CCR bailout ranking', () {
         final parsed = makeParsedDive(
