@@ -212,7 +212,7 @@ void main() {
         cells(190, [1.0, 1.0, 1.5]),
       ]);
       final slot3 = metrics.firstWhere((m) => m.slot == 3);
-      // round(0.95 * 19) = 18 -> the 19th sorted value, still 0.02.
+      // ceil(0.95 * 20) = 19 -> the 19th sorted value, still 0.02.
       expect(slot3.p95DivergenceBar, closeTo(0.02, 1e-9));
     });
 
@@ -412,6 +412,39 @@ void main() {
         tank([0, 50, 100], id: 't2'),
       ]);
       expect(gaps.map((g) => g.tankId), ['t2']);
+    });
+  });
+
+  group('percentile', () {
+    // Nearest-rank, the definition the p95 divergence figure is built on:
+    // the smallest value at or above which the requested share of the data
+    // sits, at rank ceil(fraction * n) counting from one.
+    test('takes the value at the ceiling rank, not a rounded index', () {
+      expect(DiveSensorSummaryService.percentile([1, 2, 3, 4], 0.5), 2);
+      expect(DiveSensorSummaryService.percentile([1, 2, 3, 4], 0.25), 1);
+      expect(DiveSensorSummaryService.percentile([1, 2, 3, 4], 0.75), 3);
+    });
+
+    test('a rank that lands exactly on a value takes that value', () {
+      // ceil(0.4 * 5) = 2 -> the second smallest.
+      expect(DiveSensorSummaryService.percentile([5, 1, 4, 2, 3], 0.4), 2);
+    });
+
+    test('the ends clamp to the smallest and largest', () {
+      expect(DiveSensorSummaryService.percentile([3, 1, 2], 0), 1);
+      expect(DiveSensorSummaryService.percentile([3, 1, 2], 1), 3);
+    });
+
+    test('a single value is every percentile of itself', () {
+      expect(DiveSensorSummaryService.percentile([7], 0.95), 7);
+      expect(DiveSensorSummaryService.percentile([7], 0), 7);
+    });
+
+    test('p95 of twenty values is the nineteenth, sorted', () {
+      // The shipped call site: 19 small readings and one large one leave
+      // p95 on the small side, so a lone spike never sets the figure.
+      final values = [for (var i = 0; i < 19; i++) 0.02, 0.5];
+      expect(DiveSensorSummaryService.percentile(values, 0.95), 0.02);
     });
   });
 }

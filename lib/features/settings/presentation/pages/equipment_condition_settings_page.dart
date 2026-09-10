@@ -197,8 +197,14 @@ class _EquipmentConditionSettingsPageState
   /// Forces every dive of the active diver through the sensor summary,
   /// oldest first, with the same progress and leave-to-cancel contract as
   /// the safety review's "Analyze all dives".
+  ///
+  /// The diver comes from the VALIDATED provider: the raw notifier starts
+  /// null and fills in asynchronously, so reading it could hand the sweep
+  /// a null the moment the page opened and force every diver's dives
+  /// through on a shared device. A null here is the real answer for a
+  /// library with no diver, whose dives carry no diver id either, and the
+  /// unscoped sweep is what covers them.
   Future<void> _rebuildSummaries() async {
-    final diverId = ref.read(currentDiverIdProvider);
     setState(() {
       _rebuilding = true;
       _rebuildDone = 0;
@@ -207,6 +213,8 @@ class _EquipmentConditionSettingsPageState
 
     final EquipmentConditionSweepResult result;
     try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (!mounted) return;
       result = await ref
           .read(equipmentConditionSweepProvider)
           .run(
@@ -223,7 +231,7 @@ class _EquipmentConditionSettingsPageState
           );
     } catch (error, stackTrace) {
       // run() swallows per-dive failures itself, so reaching here means the
-      // sweep could not start at all (no dive list, no database).
+      // sweep could not start at all (no diver, no dive list, no database).
       _log.error(
         'Sensor summary rebuild failed',
         error: error,

@@ -322,11 +322,19 @@ class DiveSensorSummaryService {
         : (sorted[mid - 1] + sorted[mid]) / 2;
   }
 
-  /// Nearest-rank percentile of a non-empty list, [fraction] in 0 to 1.
+  /// Nearest-rank percentile of a non-empty list, [fraction] in 0 to 1:
+  /// the value at rank `ceil(fraction * n)` counting from one, which is
+  /// the smallest value with at least that share of the data at or below
+  /// it. No interpolation, so the figure is always a reading that was
+  /// actually taken.
+  ///
+  /// The epsilon keeps an exact product on its own rank: `0.4 * 5` can
+  /// land a hair above 2 in binary floating point, and a bare ceiling
+  /// would then step to the next reading.
   static double percentile(List<double> values, double fraction) {
     assert(values.isNotEmpty, 'percentile of nothing');
     final sorted = List<double>.of(values)..sort();
-    final index = (fraction * (sorted.length - 1)).round();
-    return sorted[math.max(0, math.min(sorted.length - 1, index))];
+    final rank = (fraction * sorted.length - _epsilon).ceil();
+    return sorted[math.max(0, math.min(sorted.length - 1, rank - 1))];
   }
 }
