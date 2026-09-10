@@ -186,8 +186,9 @@ class EquipmentConditionEngine {
       final m = _metricsFor(input, s.diveId, slot);
       if (m == null) continue;
       final gain = m.gainMvPerBar;
-      if (gain != null)
+      if (gain != null) {
         gains.add((diveId: s.diveId, date: s.date, value: gain));
+      }
       final p95 = m.p95DivergenceBar;
       if (p95 != null) p95s.add((diveId: s.diveId, date: s.date, value: p95));
       final low = m.lowAtHighFraction;

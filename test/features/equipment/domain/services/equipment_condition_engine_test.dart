@@ -266,7 +266,7 @@ void main() {
         for (var i = 0; i < 3; i++)
           'd$i': summary(
             'd$i',
-            cells: [
+            cells: const [
               CellMetrics(slot: 1, samples: 10, gainMvPerBar: 30),
               CellMetrics(slot: 3, samples: 10, gainMvPerBar: 55),
             ],
@@ -291,7 +291,7 @@ void main() {
         for (var i = 0; i < 3; i++)
           'd$i': summary(
             'd$i',
-            cells: [CellMetrics(slot: 1, samples: 10, gainMvPerBar: 30)],
+            cells: const [CellMetrics(slot: 1, samples: 10, gainMvPerBar: 30)],
           ),
       };
       final findings = engine.evaluate(
@@ -311,7 +311,7 @@ void main() {
         for (var i = 0; i < 3; i++)
           'd$i': summary(
             'd$i',
-            cells: [CellMetrics(slot: 1, samples: 10, gainMvPerBar: 30)],
+            cells: const [CellMetrics(slot: 1, samples: 10, gainMvPerBar: 30)],
           ),
       };
       final findings = engine.evaluate(
