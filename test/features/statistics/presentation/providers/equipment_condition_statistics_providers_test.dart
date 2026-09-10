@@ -109,6 +109,22 @@ void main() {
     expect(byCold.single.count, 2);
   });
 
+  test('an item whose total rounds to zero is left out', () async {
+    // Filtering on the raw total while displaying the rounded one put an
+    // item in the list reading "0 hours" with an empty bar, and the bar
+    // scales off the same count, so it also skewed every other row.
+    final trace = await EquipmentRepository().createEquipment(
+      const EquipmentItem(id: '', name: 'Torch', type: EquipmentType.light),
+    );
+    // 100 seconds on the loop is 0.03 hours: real, but not a whole hour.
+    await dive('brief', 6, runtime: 100, temp: 22);
+    await link('brief', trace.id);
+
+    final byHours = await container.read(exposureRankingProvider.future);
+    expect(byHours.map((r) => r.id), isNot(contains(trace.id)));
+    expect(byHours.every((r) => r.count > 0), isTrue);
+  });
+
   test(
     'findings by rule counts open findings and hides a disabled rule',
     () async {

@@ -45,12 +45,17 @@ final exposureRankingProvider = FutureProvider<List<RankingItem>>((ref) async {
     for (final sample in inputs.samples) {
       total += inputs.classifier.contribution(sample, unit);
     }
-    if (total <= 0) continue;
+    // Filter on what the row will SHOW, not on the raw total: a tenth of
+    // an hour is real exposure but renders as "0 hours" with an empty
+    // bar, and the bar scales off the same count, so one such row also
+    // flattens every other.
+    final count = total.round();
+    if (count <= 0) continue;
     out.add(
       RankingItem(
         id: item.id,
         name: item.name,
-        count: total.round(),
+        count: count,
         value: total,
         subtitle: l10n.equipmentCondition_exposure_dives(inputs.samples.length),
       ),
