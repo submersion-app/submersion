@@ -62,18 +62,18 @@ class ComponentsCard extends ConsumerWidget {
     WidgetRef ref,
     EquipmentComponent part,
   ) async {
-    final choice = await askAssemblyHistory(
-      context,
-      ref,
-      assemblyId: equipmentId,
-      change: AssemblyHistoryChange.removed,
-    );
-    if (choice == null || !context.mounted) return;
-    // The replay is a second write after the row is already gone, so a
-    // failure there leaves the template and the past dives out of step.
-    // Surfacing it beats an unhandled exception from the icon callback.
+    // Every step here can fail against the database, the dive count the
+    // question is built from included, and none of it may escape the icon
+    // callback as an unhandled exception with nothing shown to the diver.
     final messenger = ScaffoldMessenger.of(context);
     try {
+      final choice = await askAssemblyHistory(
+        context,
+        ref,
+        assemblyId: equipmentId,
+        change: AssemblyHistoryChange.removed,
+      );
+      if (choice == null) return;
       await ref
           .read(equipmentComponentRepositoryProvider)
           .removeComponent(part.id);

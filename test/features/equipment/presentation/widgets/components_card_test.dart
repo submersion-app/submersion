@@ -34,11 +34,16 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
 }
 
 /// How many logged dives carry the assembly, as the history dialog sees it.
+/// The real one logs and rethrows on a query failure.
 class _FakeEquipmentRepository extends EquipmentRepository {
   int diveCount = 0;
+  Object? throwOnCount;
 
   @override
-  Future<int> getDiveCountForEquipment(String equipmentId) async => diveCount;
+  Future<int> getDiveCountForEquipment(String equipmentId) async {
+    if (throwOnCount != null) throw throwOnCount!;
+    return diveCount;
+  }
 }
 
 /// DiveRepository only has a factory, so a Fake stands in for it.
@@ -242,6 +247,29 @@ void main() {
       expect(dives.rewrites.single.$2, const [GearPartRemoved('first')]);
     },
   );
+
+  testWidgets('a failed dive count is reported, and removes nothing', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    final dives = _FakeDiveRepository();
+    await tester.pumpWidget(
+      build(
+        [part('c1', first)],
+        repo,
+        equipment: _FakeEquipmentRepository()
+          ..throwOnCount = StateError('no database'),
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    expect(find.text('Update past dives?'), findsNothing);
+    expect(find.textContaining('no database'), findsOneWidget);
+    expect(repo.removed, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('a failed replay is reported instead of going unhandled', (
     tester,

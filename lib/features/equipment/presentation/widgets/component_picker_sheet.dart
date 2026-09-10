@@ -104,22 +104,34 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
   Future<void> _confirm() async {
     if (_selected.isEmpty || _saving) return;
     final replacing = widget.replacing;
+    final messenger = ScaffoldMessenger.of(context);
+    final cycleText = context.l10n.equipment_components_cycleError;
     // Asked once per batch, before any write, so a cancel costs nothing.
-    final choice = await askAssemblyHistory(
-      context,
-      ref,
-      assemblyId: widget.parentId,
-      change: replacing == null
-          ? AssemblyHistoryChange.added
-          : AssemblyHistoryChange.replaced,
-    );
+    // The count behind the question is a database read, so it fails like
+    // any write below rather than escaping the button callback.
+    AssemblyHistoryChoice? choice;
+    try {
+      choice = await askAssemblyHistory(
+        context,
+        ref,
+        assemblyId: widget.parentId,
+        change: replacing == null
+            ? AssemblyHistoryChange.added
+            : AssemblyHistoryChange.replaced,
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      return;
+    }
     if (choice == null || !mounted) return;
     setState(() => _saving = true);
     final repository = ref.read(equipmentComponentRepositoryProvider);
     final dives = ref.read(diveRepositoryProvider);
     final alsoPast = choice == AssemblyHistoryChoice.alsoPast;
-    final messenger = ScaffoldMessenger.of(context);
-    final cycleText = context.l10n.equipment_components_cycleError;
+    // What actually reached the template, so a partial save can drop those
+    // from the selection: they stop being candidates once they are parts,
+    // and a selected id with no row left on screen cannot be unticked.
+    final applied = <String>[];
     var popped = false;
     try {
       // A snapshot: the checkboxes are disabled while saving, but a copy
@@ -130,6 +142,7 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
         if (replacing != null) {
           final newId = ids.single;
           await repository.replaceComponent(replacing.id, newId);
+          applied.add(newId);
           changes.add(
             GearPartReplaced(
               oldPartId: replacing.componentEquipmentId,
@@ -142,6 +155,7 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
               parentId: widget.parentId,
               componentId: id,
             );
+            applied.add(id);
             changes.add(GearPartAdded(id));
           }
         }
@@ -164,7 +178,12 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
       // the sheet disabled with no way out.
       messenger.showSnackBar(SnackBar(content: Text('$e')));
     } finally {
-      if (!popped && mounted) setState(() => _saving = false);
+      if (!popped && mounted) {
+        setState(() {
+          _selected.removeAll(applied);
+          _saving = false;
+        });
+      }
     }
   }
 

@@ -67,11 +67,16 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
 }
 
 /// How many logged dives carry the assembly, as the history dialog sees it.
+/// The real one logs and rethrows on a query failure.
 class _FakeEquipmentRepository extends EquipmentRepository {
   int diveCount = 0;
+  Object? throwOnCount;
 
   @override
-  Future<int> getDiveCountForEquipment(String equipmentId) async => diveCount;
+  Future<int> getDiveCountForEquipment(String equipmentId) async {
+    if (throwOnCount != null) throw throwOnCount!;
+    return diveCount;
+  }
 }
 
 /// DiveRepository only has a factory, so a Fake stands in for it.
@@ -208,6 +213,55 @@ void main() {
         const GearPartAdded('fins'),
       ]),
     );
+  });
+
+  testWidgets('a failed dive count is reported, and adds nothing', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    await tester.pumpWidget(
+      build(
+        repo,
+        equipment: _FakeEquipmentRepository()
+          ..throwOnCount = StateError('no database'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Add 1'));
+    await tester.pumpAndSettle();
+    expect(find.text('Update past dives?'), findsNothing);
+    expect(find.textContaining('no database'), findsOneWidget);
+    expect(repo.added, isEmpty);
+    expect(tester.takeException(), isNull);
+    // The sheet is still usable: the selection and the button survive.
+    expect(find.text('Add 1'), findsOneWidget);
+    final button = tester.widget<FilledButton>(find.byType(FilledButton));
+    expect(button.onPressed, isNotNull);
+  });
+
+  testWidgets('a partial save drops the saved parts from the selection', (
+    tester,
+  ) async {
+    // The saved part stops being a candidate, so leaving it selected would
+    // count a row the diver can no longer see or untick.
+    final repo = _FakeComponentRepository()..throwCycleAfter = 1;
+    await tester.pumpWidget(
+      build(repo, equipment: _FakeEquipmentRepository()..diveCount = 0),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Name fins'));
+    await tester.pump();
+    expect(find.text('Add 2'), findsOneWidget);
+    await tester.tap(find.text('Add 2'));
+    await tester.pumpAndSettle();
+    expect(repo.added, hasLength(1));
+    // One saved, one refused: the count drops to the one still pending.
+    expect(find.text('Add 1'), findsOneWidget);
+    expect(find.text('Add 2'), findsNothing);
   });
 
   testWidgets('parts added before a refusal are still replayed', (
