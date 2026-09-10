@@ -254,8 +254,11 @@ class DiveSensorSummaryService {
   ///
   /// The dive spans from the earlier of the profile start and the series
   /// start to the later of their ends, so a transmitter that woke up late
-  /// or died early is charged for the span the depth series covered
-  /// without it.
+  /// or died early can be charged for the span the depth series covered
+  /// without it. Those two uncovered spans face the same test as an
+  /// interval between readings: only one longer than
+  /// [gapCadenceFactor] cadences counts. Starting a cadence or two into
+  /// the dive is the first reading landing normally, not a dropout.
   static List<TransmitterGap> transmitterGaps(
     List<ProfileSample> samples,
     List<TankSensorSeries> tanks,
