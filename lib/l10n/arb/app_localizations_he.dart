@@ -26263,6 +26263,194 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה לבנות מחדש את סיכומי החיישנים.';
 
   @override
+  String get equipmentObservation_tag_freeFlow => 'זרימה חופשית';
+
+  @override
+  String get equipmentObservation_tag_hardBreathing => 'נשימה קשה';
+
+  @override
+  String get equipmentObservation_tag_wetBreathing => 'נשימה רטובה';
+
+  @override
+  String get equipmentObservation_tag_leak => 'דליפה';
+
+  @override
+  String get equipmentObservation_tag_hoseDamage => 'נזק לצינור';
+
+  @override
+  String get equipmentObservation_tag_inflatorStuck => 'מנפח תקוע';
+
+  @override
+  String get equipmentObservation_tag_inflatorSlow => 'מנפח איטי';
+
+  @override
+  String get equipmentObservation_tag_bladderLeak => 'דליפה בשלפוחית';
+
+  @override
+  String get equipmentObservation_tag_dumpLeak => 'דליפה בשסתום פריקה';
+
+  @override
+  String get equipmentObservation_tag_leakNeck => 'דליפה באטם הצוואר';
+
+  @override
+  String get equipmentObservation_tag_leakWrist => 'דליפה באטם שורש כף היד';
+
+  @override
+  String get equipmentObservation_tag_leakZip => 'דליפה ברוכסן';
+
+  @override
+  String get equipmentObservation_tag_leakBoot => 'דליפה במגף';
+
+  @override
+  String get equipmentObservation_tag_leakValve => 'דליפה בשסתום';
+
+  @override
+  String get equipmentObservation_tag_leakSeam => 'דליפה בתפר';
+
+  @override
+  String get equipmentObservation_tag_tear => 'קרע';
+
+  @override
+  String get equipmentObservation_tag_seamFailure => 'תפר נפרם';
+
+  @override
+  String get equipmentObservation_tag_dim => 'עמום';
+
+  @override
+  String get equipmentObservation_tag_died => 'הפסיק לפעול';
+
+  @override
+  String get equipmentObservation_tag_flooded => 'הוצף';
+
+  @override
+  String get equipmentObservation_tag_switchFault => 'תקלת מתג';
+
+  @override
+  String get equipmentObservation_tag_batteryLow => 'סוללה חלשה';
+
+  @override
+  String get equipmentObservation_tag_screenFault => 'תקלת מסך';
+
+  @override
+  String get equipmentObservation_tag_connectionFault => 'תקלת חיבור';
+
+  @override
+  String get equipmentObservation_tag_dropout => 'נפילת אות';
+
+  @override
+  String get equipmentObservation_tag_cellWarning => 'אזהרת תא';
+
+  @override
+  String get equipmentObservation_tag_loopLeak => 'דליפה בלולאה';
+
+  @override
+  String get equipmentObservation_tag_solenoidFault => 'תקלת סולנואיד';
+
+  @override
+  String get equipmentObservation_tag_scrubberBreakthrough => 'פריצת סופג';
+
+  @override
+  String get equipmentObservation_tag_slowResponse => 'תגובה איטית';
+
+  @override
+  String get equipmentObservation_tag_erratic => 'לא יציב';
+
+  @override
+  String get equipmentObservation_tag_lowCapacity => 'קיבולת נמוכה';
+
+  @override
+  String get equipmentObservation_tag_propFault => 'תקלת מדחף';
+
+  @override
+  String get equipmentObservation_tag_strapBroke => 'רצועה נקרעה';
+
+  @override
+  String get equipmentObservation_tag_other => 'אחר';
+
+  @override
+  String get equipmentObservation_status_ok => 'תקין';
+
+  @override
+  String get equipmentObservation_status_issue => 'בעיה';
+
+  @override
+  String equipmentObservation_sheet_title(String item) {
+    return 'בדיקה: $item';
+  }
+
+  @override
+  String get equipmentObservation_sheet_empty => 'עדיין אין בדיקות בצלילה זו.';
+
+  @override
+  String get equipmentObservation_sheet_emptyBench => 'עדיין אין בדיקות.';
+
+  @override
+  String get equipmentObservation_sheet_add => 'הוספת בדיקה';
+
+  @override
+  String get equipmentObservation_sheet_edit => 'עריכת בדיקה';
+
+  @override
+  String get equipmentObservation_sheet_delete => 'מחיקת בדיקה';
+
+  @override
+  String get equipmentObservation_sheet_deleteConfirm => 'למחוק בדיקה זו?';
+
+  @override
+  String get equipmentObservation_sheet_noteLabel => 'הערה';
+
+  @override
+  String get equipmentObservation_sheet_tagsLabel => 'מה קרה';
+
+  @override
+  String get equipmentObservation_sheet_dateLabel => 'נצפה';
+
+  @override
+  String get equipmentObservation_sheet_diveLabel => 'צלילה';
+
+  @override
+  String get equipmentObservation_sheet_noDive => 'ללא צלילה (שולחן עבודה)';
+
+  @override
+  String get equipmentObservation_sheet_pickDive => 'בחירת צלילה';
+
+  @override
+  String get equipmentObservation_sheet_save => 'שמירה';
+
+  @override
+  String get equipmentObservation_sheet_cancel => 'ביטול';
+
+  @override
+  String get equipmentObservation_sheet_tagRequired =>
+      'בחרו לפחות תגית אחת לבעיה';
+
+  @override
+  String get equipmentObservation_chip_ok => 'נבדק, תקין';
+
+  @override
+  String get equipmentObservation_chip_issue => 'דווחה בעיה';
+
+  @override
+  String get equipmentObservation_chip_none => 'בדיקה';
+
+  @override
+  String get equipmentObservation_card_title => 'בדיקות';
+
+  @override
+  String get equipmentObservation_card_empty => 'לא נרשמו בדיקות לפריט זה.';
+
+  @override
+  String get equipmentObservation_card_add => 'הוספת בדיקה';
+
+  @override
+  String equipmentObservation_card_onDive(int number) {
+    return 'צלילה מס\' $number';
+  }
+
+  @override
+  String get equipmentObservation_card_bench => 'שולחן עבודה';
+
+  @override
   String get settings_section_security_title => 'אבטחת האפליקציה';
 
   @override

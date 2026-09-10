@@ -26821,6 +26821,197 @@ class AppLocalizationsHu extends AppLocalizations {
       'A szenzor-összegzéseket nem sikerült újraépíteni.';
 
   @override
+  String get equipmentObservation_tag_freeFlow => 'Szabadáramlás';
+
+  @override
+  String get equipmentObservation_tag_hardBreathing => 'Nehéz légzés';
+
+  @override
+  String get equipmentObservation_tag_wetBreathing => 'Nedves légzés';
+
+  @override
+  String get equipmentObservation_tag_leak => 'Szivárgás';
+
+  @override
+  String get equipmentObservation_tag_hoseDamage => 'Tömlősérülés';
+
+  @override
+  String get equipmentObservation_tag_inflatorStuck => 'Inflátor beragadt';
+
+  @override
+  String get equipmentObservation_tag_inflatorSlow => 'Inflátor lassú';
+
+  @override
+  String get equipmentObservation_tag_bladderLeak => 'Hólyag szivárog';
+
+  @override
+  String get equipmentObservation_tag_dumpLeak => 'Leeresztő szelep szivárog';
+
+  @override
+  String get equipmentObservation_tag_leakNeck => 'Nyakmandzsetta szivárog';
+
+  @override
+  String get equipmentObservation_tag_leakWrist => 'Csuklómandzsetta szivárog';
+
+  @override
+  String get equipmentObservation_tag_leakZip => 'Cipzár szivárog';
+
+  @override
+  String get equipmentObservation_tag_leakBoot => 'Csizma szivárog';
+
+  @override
+  String get equipmentObservation_tag_leakValve => 'Szelep szivárog';
+
+  @override
+  String get equipmentObservation_tag_leakSeam => 'Varrás szivárog';
+
+  @override
+  String get equipmentObservation_tag_tear => 'Szakadás';
+
+  @override
+  String get equipmentObservation_tag_seamFailure => 'Varrás szétnyílt';
+
+  @override
+  String get equipmentObservation_tag_dim => 'Halvány';
+
+  @override
+  String get equipmentObservation_tag_died => 'Leállt';
+
+  @override
+  String get equipmentObservation_tag_flooded => 'Beázott';
+
+  @override
+  String get equipmentObservation_tag_switchFault => 'Kapcsolóhiba';
+
+  @override
+  String get equipmentObservation_tag_batteryLow => 'Alacsony akkumulátor';
+
+  @override
+  String get equipmentObservation_tag_screenFault => 'Kijelzőhiba';
+
+  @override
+  String get equipmentObservation_tag_connectionFault => 'Kapcsolati hiba';
+
+  @override
+  String get equipmentObservation_tag_dropout => 'Jelkimaradás';
+
+  @override
+  String get equipmentObservation_tag_cellWarning => 'Cellafigyelmeztetés';
+
+  @override
+  String get equipmentObservation_tag_loopLeak => 'Kör szivárog';
+
+  @override
+  String get equipmentObservation_tag_solenoidFault => 'Mágnesszelep-hiba';
+
+  @override
+  String get equipmentObservation_tag_scrubberBreakthrough => 'Szűrő áttörés';
+
+  @override
+  String get equipmentObservation_tag_slowResponse => 'Lassú válasz';
+
+  @override
+  String get equipmentObservation_tag_erratic => 'Ingadozó';
+
+  @override
+  String get equipmentObservation_tag_lowCapacity => 'Alacsony kapacitás';
+
+  @override
+  String get equipmentObservation_tag_propFault => 'Propellerhiba';
+
+  @override
+  String get equipmentObservation_tag_strapBroke => 'Pánt elszakadt';
+
+  @override
+  String get equipmentObservation_tag_other => 'Egyéb';
+
+  @override
+  String get equipmentObservation_status_ok => 'OK';
+
+  @override
+  String get equipmentObservation_status_issue => 'Probléma';
+
+  @override
+  String equipmentObservation_sheet_title(String item) {
+    return 'Ellenőrzés: $item';
+  }
+
+  @override
+  String get equipmentObservation_sheet_empty =>
+      'Ehhez a merüléshez még nincs ellenőrzés.';
+
+  @override
+  String get equipmentObservation_sheet_emptyBench => 'Még nincs ellenőrzés.';
+
+  @override
+  String get equipmentObservation_sheet_add => 'Ellenőrzés hozzáadása';
+
+  @override
+  String get equipmentObservation_sheet_edit => 'Ellenőrzés szerkesztése';
+
+  @override
+  String get equipmentObservation_sheet_delete => 'Ellenőrzés törlése';
+
+  @override
+  String get equipmentObservation_sheet_deleteConfirm =>
+      'Törli ezt az ellenőrzést?';
+
+  @override
+  String get equipmentObservation_sheet_noteLabel => 'Megjegyzés';
+
+  @override
+  String get equipmentObservation_sheet_tagsLabel => 'Mi történt';
+
+  @override
+  String get equipmentObservation_sheet_dateLabel => 'Megfigyelve';
+
+  @override
+  String get equipmentObservation_sheet_diveLabel => 'Merülés';
+
+  @override
+  String get equipmentObservation_sheet_noDive => 'Nincs merülés (műhely)';
+
+  @override
+  String get equipmentObservation_sheet_pickDive => 'Merülés választása';
+
+  @override
+  String get equipmentObservation_sheet_save => 'Mentés';
+
+  @override
+  String get equipmentObservation_sheet_cancel => 'Mégse';
+
+  @override
+  String get equipmentObservation_sheet_tagRequired =>
+      'Problémához válasszon legalább egy címkét';
+
+  @override
+  String get equipmentObservation_chip_ok => 'Ellenőrizve, OK';
+
+  @override
+  String get equipmentObservation_chip_issue => 'Probléma jelentve';
+
+  @override
+  String get equipmentObservation_chip_none => 'Ellenőrzés';
+
+  @override
+  String get equipmentObservation_card_title => 'Ellenőrzések';
+
+  @override
+  String get equipmentObservation_card_empty =>
+      'Ehhez az eszközhöz nincs rögzített ellenőrzés.';
+
+  @override
+  String get equipmentObservation_card_add => 'Ellenőrzés hozzáadása';
+
+  @override
+  String equipmentObservation_card_onDive(int number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String get equipmentObservation_card_bench => 'Műhely';
+
+  @override
   String get settings_section_security_title => 'Alkalmazásbiztonság';
 
   @override

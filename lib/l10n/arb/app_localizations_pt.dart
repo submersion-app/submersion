@@ -26923,6 +26923,198 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível reconstruir os resumos de sensores.';
 
   @override
+  String get equipmentObservation_tag_freeFlow => 'Fluxo contínuo';
+
+  @override
+  String get equipmentObservation_tag_hardBreathing => 'Respiração dura';
+
+  @override
+  String get equipmentObservation_tag_wetBreathing => 'Respiração húmida';
+
+  @override
+  String get equipmentObservation_tag_leak => 'Fuga';
+
+  @override
+  String get equipmentObservation_tag_hoseDamage => 'Mangueira danificada';
+
+  @override
+  String get equipmentObservation_tag_inflatorStuck => 'Inflador preso';
+
+  @override
+  String get equipmentObservation_tag_inflatorSlow => 'Inflador lento';
+
+  @override
+  String get equipmentObservation_tag_bladderLeak => 'Fuga na bexiga';
+
+  @override
+  String get equipmentObservation_tag_dumpLeak => 'Fuga na válvula de purga';
+
+  @override
+  String get equipmentObservation_tag_leakNeck => 'Fuga no vedante do pescoço';
+
+  @override
+  String get equipmentObservation_tag_leakWrist => 'Fuga no vedante do pulso';
+
+  @override
+  String get equipmentObservation_tag_leakZip => 'Fuga no fecho';
+
+  @override
+  String get equipmentObservation_tag_leakBoot => 'Fuga na bota';
+
+  @override
+  String get equipmentObservation_tag_leakValve => 'Fuga na válvula';
+
+  @override
+  String get equipmentObservation_tag_leakSeam => 'Fuga na costura';
+
+  @override
+  String get equipmentObservation_tag_tear => 'Rasgo';
+
+  @override
+  String get equipmentObservation_tag_seamFailure => 'Costura aberta';
+
+  @override
+  String get equipmentObservation_tag_dim => 'Fraco';
+
+  @override
+  String get equipmentObservation_tag_died => 'Avariou';
+
+  @override
+  String get equipmentObservation_tag_flooded => 'Inundado';
+
+  @override
+  String get equipmentObservation_tag_switchFault => 'Falha do interruptor';
+
+  @override
+  String get equipmentObservation_tag_batteryLow => 'Bateria fraca';
+
+  @override
+  String get equipmentObservation_tag_screenFault => 'Falha do ecrã';
+
+  @override
+  String get equipmentObservation_tag_connectionFault => 'Falha de ligação';
+
+  @override
+  String get equipmentObservation_tag_dropout => 'Perda de sinal';
+
+  @override
+  String get equipmentObservation_tag_cellWarning => 'Aviso de célula';
+
+  @override
+  String get equipmentObservation_tag_loopLeak => 'Fuga no circuito';
+
+  @override
+  String get equipmentObservation_tag_solenoidFault => 'Falha do solenoide';
+
+  @override
+  String get equipmentObservation_tag_scrubberBreakthrough =>
+      'Rutura do absorvente';
+
+  @override
+  String get equipmentObservation_tag_slowResponse => 'Resposta lenta';
+
+  @override
+  String get equipmentObservation_tag_erratic => 'Errático';
+
+  @override
+  String get equipmentObservation_tag_lowCapacity => 'Pouca capacidade';
+
+  @override
+  String get equipmentObservation_tag_propFault => 'Falha da hélice';
+
+  @override
+  String get equipmentObservation_tag_strapBroke => 'Fita partida';
+
+  @override
+  String get equipmentObservation_tag_other => 'Outro';
+
+  @override
+  String get equipmentObservation_status_ok => 'OK';
+
+  @override
+  String get equipmentObservation_status_issue => 'Problema';
+
+  @override
+  String equipmentObservation_sheet_title(String item) {
+    return 'Verificação: $item';
+  }
+
+  @override
+  String get equipmentObservation_sheet_empty =>
+      'Ainda sem verificações neste mergulho.';
+
+  @override
+  String get equipmentObservation_sheet_emptyBench => 'Ainda sem verificações.';
+
+  @override
+  String get equipmentObservation_sheet_add => 'Adicionar verificação';
+
+  @override
+  String get equipmentObservation_sheet_edit => 'Editar verificação';
+
+  @override
+  String get equipmentObservation_sheet_delete => 'Eliminar verificação';
+
+  @override
+  String get equipmentObservation_sheet_deleteConfirm =>
+      'Eliminar esta verificação?';
+
+  @override
+  String get equipmentObservation_sheet_noteLabel => 'Nota';
+
+  @override
+  String get equipmentObservation_sheet_tagsLabel => 'O que aconteceu';
+
+  @override
+  String get equipmentObservation_sheet_dateLabel => 'Observado';
+
+  @override
+  String get equipmentObservation_sheet_diveLabel => 'Mergulho';
+
+  @override
+  String get equipmentObservation_sheet_noDive => 'Sem mergulho (bancada)';
+
+  @override
+  String get equipmentObservation_sheet_pickDive => 'Escolher um mergulho';
+
+  @override
+  String get equipmentObservation_sheet_save => 'Guardar';
+
+  @override
+  String get equipmentObservation_sheet_cancel => 'Cancelar';
+
+  @override
+  String get equipmentObservation_sheet_tagRequired =>
+      'Escolha pelo menos uma etiqueta para um problema';
+
+  @override
+  String get equipmentObservation_chip_ok => 'Verificado, OK';
+
+  @override
+  String get equipmentObservation_chip_issue => 'Problema reportado';
+
+  @override
+  String get equipmentObservation_chip_none => 'Verificar';
+
+  @override
+  String get equipmentObservation_card_title => 'Verificações';
+
+  @override
+  String get equipmentObservation_card_empty =>
+      'Sem verificações registadas para este item.';
+
+  @override
+  String get equipmentObservation_card_add => 'Adicionar verificação';
+
+  @override
+  String equipmentObservation_card_onDive(int number) {
+    return 'Mergulho n.º $number';
+  }
+
+  @override
+  String get equipmentObservation_card_bench => 'Bancada';
+
+  @override
   String get settings_section_security_title => 'Segurança do app';
 
   @override

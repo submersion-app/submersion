@@ -44403,6 +44403,372 @@ abstract class AppLocalizations {
   /// **'Could not rebuild the sensor summaries.'**
   String get equipmentConditionSettings_rebuild_failed;
 
+  /// No description provided for @equipmentObservation_tag_freeFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Free flow'**
+  String get equipmentObservation_tag_freeFlow;
+
+  /// No description provided for @equipmentObservation_tag_hardBreathing.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard breathing'**
+  String get equipmentObservation_tag_hardBreathing;
+
+  /// No description provided for @equipmentObservation_tag_wetBreathing.
+  ///
+  /// In en, this message translates to:
+  /// **'Wet breathing'**
+  String get equipmentObservation_tag_wetBreathing;
+
+  /// No description provided for @equipmentObservation_tag_leak.
+  ///
+  /// In en, this message translates to:
+  /// **'Leak'**
+  String get equipmentObservation_tag_leak;
+
+  /// No description provided for @equipmentObservation_tag_hoseDamage.
+  ///
+  /// In en, this message translates to:
+  /// **'Hose damage'**
+  String get equipmentObservation_tag_hoseDamage;
+
+  /// No description provided for @equipmentObservation_tag_inflatorStuck.
+  ///
+  /// In en, this message translates to:
+  /// **'Inflator stuck'**
+  String get equipmentObservation_tag_inflatorStuck;
+
+  /// No description provided for @equipmentObservation_tag_inflatorSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Inflator slow'**
+  String get equipmentObservation_tag_inflatorSlow;
+
+  /// No description provided for @equipmentObservation_tag_bladderLeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Bladder leak'**
+  String get equipmentObservation_tag_bladderLeak;
+
+  /// No description provided for @equipmentObservation_tag_dumpLeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Dump valve leak'**
+  String get equipmentObservation_tag_dumpLeak;
+
+  /// No description provided for @equipmentObservation_tag_leakNeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Neck seal leak'**
+  String get equipmentObservation_tag_leakNeck;
+
+  /// No description provided for @equipmentObservation_tag_leakWrist.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrist seal leak'**
+  String get equipmentObservation_tag_leakWrist;
+
+  /// No description provided for @equipmentObservation_tag_leakZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Zip leak'**
+  String get equipmentObservation_tag_leakZip;
+
+  /// No description provided for @equipmentObservation_tag_leakBoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Boot leak'**
+  String get equipmentObservation_tag_leakBoot;
+
+  /// No description provided for @equipmentObservation_tag_leakValve.
+  ///
+  /// In en, this message translates to:
+  /// **'Valve leak'**
+  String get equipmentObservation_tag_leakValve;
+
+  /// No description provided for @equipmentObservation_tag_leakSeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Seam leak'**
+  String get equipmentObservation_tag_leakSeam;
+
+  /// No description provided for @equipmentObservation_tag_tear.
+  ///
+  /// In en, this message translates to:
+  /// **'Tear'**
+  String get equipmentObservation_tag_tear;
+
+  /// No description provided for @equipmentObservation_tag_seamFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Seam failure'**
+  String get equipmentObservation_tag_seamFailure;
+
+  /// No description provided for @equipmentObservation_tag_dim.
+  ///
+  /// In en, this message translates to:
+  /// **'Dim'**
+  String get equipmentObservation_tag_dim;
+
+  /// No description provided for @equipmentObservation_tag_died.
+  ///
+  /// In en, this message translates to:
+  /// **'Died'**
+  String get equipmentObservation_tag_died;
+
+  /// No description provided for @equipmentObservation_tag_flooded.
+  ///
+  /// In en, this message translates to:
+  /// **'Flooded'**
+  String get equipmentObservation_tag_flooded;
+
+  /// No description provided for @equipmentObservation_tag_switchFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch fault'**
+  String get equipmentObservation_tag_switchFault;
+
+  /// No description provided for @equipmentObservation_tag_batteryLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery low'**
+  String get equipmentObservation_tag_batteryLow;
+
+  /// No description provided for @equipmentObservation_tag_screenFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen fault'**
+  String get equipmentObservation_tag_screenFault;
+
+  /// No description provided for @equipmentObservation_tag_connectionFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection fault'**
+  String get equipmentObservation_tag_connectionFault;
+
+  /// No description provided for @equipmentObservation_tag_dropout.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropout'**
+  String get equipmentObservation_tag_dropout;
+
+  /// No description provided for @equipmentObservation_tag_cellWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell warning'**
+  String get equipmentObservation_tag_cellWarning;
+
+  /// No description provided for @equipmentObservation_tag_loopLeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop leak'**
+  String get equipmentObservation_tag_loopLeak;
+
+  /// No description provided for @equipmentObservation_tag_solenoidFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Solenoid fault'**
+  String get equipmentObservation_tag_solenoidFault;
+
+  /// No description provided for @equipmentObservation_tag_scrubberBreakthrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber breakthrough'**
+  String get equipmentObservation_tag_scrubberBreakthrough;
+
+  /// No description provided for @equipmentObservation_tag_slowResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow response'**
+  String get equipmentObservation_tag_slowResponse;
+
+  /// No description provided for @equipmentObservation_tag_erratic.
+  ///
+  /// In en, this message translates to:
+  /// **'Erratic'**
+  String get equipmentObservation_tag_erratic;
+
+  /// No description provided for @equipmentObservation_tag_lowCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Low capacity'**
+  String get equipmentObservation_tag_lowCapacity;
+
+  /// No description provided for @equipmentObservation_tag_propFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Prop fault'**
+  String get equipmentObservation_tag_propFault;
+
+  /// No description provided for @equipmentObservation_tag_strapBroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Strap broke'**
+  String get equipmentObservation_tag_strapBroke;
+
+  /// No description provided for @equipmentObservation_tag_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get equipmentObservation_tag_other;
+
+  /// No description provided for @equipmentObservation_status_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get equipmentObservation_status_ok;
+
+  /// No description provided for @equipmentObservation_status_issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue'**
+  String get equipmentObservation_status_issue;
+
+  /// No description provided for @equipmentObservation_sheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in: {item}'**
+  String equipmentObservation_sheet_title(String item);
+
+  /// No description provided for @equipmentObservation_sheet_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-ins on this dive yet.'**
+  String get equipmentObservation_sheet_empty;
+
+  /// No description provided for @equipmentObservation_sheet_emptyBench.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-ins yet.'**
+  String get equipmentObservation_sheet_emptyBench;
+
+  /// No description provided for @equipmentObservation_sheet_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add check-in'**
+  String get equipmentObservation_sheet_add;
+
+  /// No description provided for @equipmentObservation_sheet_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit check-in'**
+  String get equipmentObservation_sheet_edit;
+
+  /// No description provided for @equipmentObservation_sheet_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete check-in'**
+  String get equipmentObservation_sheet_delete;
+
+  /// No description provided for @equipmentObservation_sheet_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this check-in?'**
+  String get equipmentObservation_sheet_deleteConfirm;
+
+  /// No description provided for @equipmentObservation_sheet_noteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get equipmentObservation_sheet_noteLabel;
+
+  /// No description provided for @equipmentObservation_sheet_tagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened'**
+  String get equipmentObservation_sheet_tagsLabel;
+
+  /// No description provided for @equipmentObservation_sheet_dateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed'**
+  String get equipmentObservation_sheet_dateLabel;
+
+  /// No description provided for @equipmentObservation_sheet_diveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get equipmentObservation_sheet_diveLabel;
+
+  /// No description provided for @equipmentObservation_sheet_noDive.
+  ///
+  /// In en, this message translates to:
+  /// **'No dive (bench)'**
+  String get equipmentObservation_sheet_noDive;
+
+  /// No description provided for @equipmentObservation_sheet_pickDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a dive'**
+  String get equipmentObservation_sheet_pickDive;
+
+  /// No description provided for @equipmentObservation_sheet_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get equipmentObservation_sheet_save;
+
+  /// No description provided for @equipmentObservation_sheet_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get equipmentObservation_sheet_cancel;
+
+  /// No description provided for @equipmentObservation_sheet_tagRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one tag for an issue'**
+  String get equipmentObservation_sheet_tagRequired;
+
+  /// No description provided for @equipmentObservation_chip_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked OK'**
+  String get equipmentObservation_chip_ok;
+
+  /// No description provided for @equipmentObservation_chip_issue.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue reported'**
+  String get equipmentObservation_chip_issue;
+
+  /// No description provided for @equipmentObservation_chip_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in'**
+  String get equipmentObservation_chip_none;
+
+  /// No description provided for @equipmentObservation_card_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins'**
+  String get equipmentObservation_card_title;
+
+  /// No description provided for @equipmentObservation_card_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-ins recorded for this item.'**
+  String get equipmentObservation_card_empty;
+
+  /// No description provided for @equipmentObservation_card_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add check-in'**
+  String get equipmentObservation_card_add;
+
+  /// No description provided for @equipmentObservation_card_onDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String equipmentObservation_card_onDive(int number);
+
+  /// No description provided for @equipmentObservation_card_bench.
+  ///
+  /// In en, this message translates to:
+  /// **'Bench'**
+  String get equipmentObservation_card_bench;
+
   /// No description provided for @settings_section_security_title.
   ///
   /// In en, this message translates to:

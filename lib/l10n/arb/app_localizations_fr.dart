@@ -27026,6 +27026,198 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de reconstruire les synthèses des capteurs.';
 
   @override
+  String get equipmentObservation_tag_freeFlow => 'Débit continu';
+
+  @override
+  String get equipmentObservation_tag_hardBreathing => 'Respiration dure';
+
+  @override
+  String get equipmentObservation_tag_wetBreathing => 'Respiration humide';
+
+  @override
+  String get equipmentObservation_tag_leak => 'Fuite';
+
+  @override
+  String get equipmentObservation_tag_hoseDamage => 'Flexible endommagé';
+
+  @override
+  String get equipmentObservation_tag_inflatorStuck => 'Inflateur bloqué';
+
+  @override
+  String get equipmentObservation_tag_inflatorSlow => 'Inflateur lent';
+
+  @override
+  String get equipmentObservation_tag_bladderLeak => 'Fuite de la vessie';
+
+  @override
+  String get equipmentObservation_tag_dumpLeak => 'Fuite de purge';
+
+  @override
+  String get equipmentObservation_tag_leakNeck => 'Fuite au joint de cou';
+
+  @override
+  String get equipmentObservation_tag_leakWrist => 'Fuite au joint de poignet';
+
+  @override
+  String get equipmentObservation_tag_leakZip => 'Fuite à la fermeture';
+
+  @override
+  String get equipmentObservation_tag_leakBoot => 'Fuite au chausson';
+
+  @override
+  String get equipmentObservation_tag_leakValve => 'Fuite de valve';
+
+  @override
+  String get equipmentObservation_tag_leakSeam => 'Fuite de couture';
+
+  @override
+  String get equipmentObservation_tag_tear => 'Déchirure';
+
+  @override
+  String get equipmentObservation_tag_seamFailure => 'Couture ouverte';
+
+  @override
+  String get equipmentObservation_tag_dim => 'Faible';
+
+  @override
+  String get equipmentObservation_tag_died => 'En panne';
+
+  @override
+  String get equipmentObservation_tag_flooded => 'Inondé';
+
+  @override
+  String get equipmentObservation_tag_switchFault => 'Défaut d\'interrupteur';
+
+  @override
+  String get equipmentObservation_tag_batteryLow => 'Batterie faible';
+
+  @override
+  String get equipmentObservation_tag_screenFault => 'Défaut d\'écran';
+
+  @override
+  String get equipmentObservation_tag_connectionFault => 'Défaut de connexion';
+
+  @override
+  String get equipmentObservation_tag_dropout => 'Perte de signal';
+
+  @override
+  String get equipmentObservation_tag_cellWarning => 'Alerte cellule';
+
+  @override
+  String get equipmentObservation_tag_loopLeak => 'Fuite de boucle';
+
+  @override
+  String get equipmentObservation_tag_solenoidFault => 'Défaut de solénoïde';
+
+  @override
+  String get equipmentObservation_tag_scrubberBreakthrough =>
+      'Percée de la chaux';
+
+  @override
+  String get equipmentObservation_tag_slowResponse => 'Réponse lente';
+
+  @override
+  String get equipmentObservation_tag_erratic => 'Erratique';
+
+  @override
+  String get equipmentObservation_tag_lowCapacity => 'Faible capacité';
+
+  @override
+  String get equipmentObservation_tag_propFault => 'Défaut d\'hélice';
+
+  @override
+  String get equipmentObservation_tag_strapBroke => 'Sangle cassée';
+
+  @override
+  String get equipmentObservation_tag_other => 'Autre';
+
+  @override
+  String get equipmentObservation_status_ok => 'OK';
+
+  @override
+  String get equipmentObservation_status_issue => 'Problème';
+
+  @override
+  String equipmentObservation_sheet_title(String item) {
+    return 'Bilan : $item';
+  }
+
+  @override
+  String get equipmentObservation_sheet_empty =>
+      'Aucun bilan sur cette plongée pour l\'instant.';
+
+  @override
+  String get equipmentObservation_sheet_emptyBench =>
+      'Aucun bilan pour l\'instant.';
+
+  @override
+  String get equipmentObservation_sheet_add => 'Ajouter un bilan';
+
+  @override
+  String get equipmentObservation_sheet_edit => 'Modifier le bilan';
+
+  @override
+  String get equipmentObservation_sheet_delete => 'Supprimer le bilan';
+
+  @override
+  String get equipmentObservation_sheet_deleteConfirm => 'Supprimer ce bilan ?';
+
+  @override
+  String get equipmentObservation_sheet_noteLabel => 'Note';
+
+  @override
+  String get equipmentObservation_sheet_tagsLabel => 'Ce qui s\'est passé';
+
+  @override
+  String get equipmentObservation_sheet_dateLabel => 'Observé';
+
+  @override
+  String get equipmentObservation_sheet_diveLabel => 'Plongée';
+
+  @override
+  String get equipmentObservation_sheet_noDive => 'Sans plongée (atelier)';
+
+  @override
+  String get equipmentObservation_sheet_pickDive => 'Choisir une plongée';
+
+  @override
+  String get equipmentObservation_sheet_save => 'Enregistrer';
+
+  @override
+  String get equipmentObservation_sheet_cancel => 'Annuler';
+
+  @override
+  String get equipmentObservation_sheet_tagRequired =>
+      'Choisissez au moins une étiquette pour un problème';
+
+  @override
+  String get equipmentObservation_chip_ok => 'Vérifié, OK';
+
+  @override
+  String get equipmentObservation_chip_issue => 'Problème signalé';
+
+  @override
+  String get equipmentObservation_chip_none => 'Faire un bilan';
+
+  @override
+  String get equipmentObservation_card_title => 'Bilans';
+
+  @override
+  String get equipmentObservation_card_empty =>
+      'Aucun bilan enregistré pour cet élément.';
+
+  @override
+  String get equipmentObservation_card_add => 'Ajouter un bilan';
+
+  @override
+  String equipmentObservation_card_onDive(int number) {
+    return 'Plongée n° $number';
+  }
+
+  @override
+  String get equipmentObservation_card_bench => 'Atelier';
+
+  @override
   String get settings_section_security_title => 'Sécurité de l\'application';
 
   @override

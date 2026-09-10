@@ -26725,6 +26725,198 @@ class AppLocalizationsNl extends AppLocalizations {
       'De sensorsamenvattingen konden niet opnieuw worden opgebouwd.';
 
   @override
+  String get equipmentObservation_tag_freeFlow => 'Vrije flow';
+
+  @override
+  String get equipmentObservation_tag_hardBreathing => 'Zwaar ademen';
+
+  @override
+  String get equipmentObservation_tag_wetBreathing => 'Nat ademen';
+
+  @override
+  String get equipmentObservation_tag_leak => 'Lek';
+
+  @override
+  String get equipmentObservation_tag_hoseDamage => 'Slangschade';
+
+  @override
+  String get equipmentObservation_tag_inflatorStuck => 'Inflator zit vast';
+
+  @override
+  String get equipmentObservation_tag_inflatorSlow => 'Inflator traag';
+
+  @override
+  String get equipmentObservation_tag_bladderLeak => 'Blaaslek';
+
+  @override
+  String get equipmentObservation_tag_dumpLeak => 'Dumpventiel lekt';
+
+  @override
+  String get equipmentObservation_tag_leakNeck => 'Nekseal lekt';
+
+  @override
+  String get equipmentObservation_tag_leakWrist => 'Polsseal lekt';
+
+  @override
+  String get equipmentObservation_tag_leakZip => 'Rits lekt';
+
+  @override
+  String get equipmentObservation_tag_leakBoot => 'Laars lekt';
+
+  @override
+  String get equipmentObservation_tag_leakValve => 'Ventiel lekt';
+
+  @override
+  String get equipmentObservation_tag_leakSeam => 'Naad lekt';
+
+  @override
+  String get equipmentObservation_tag_tear => 'Scheur';
+
+  @override
+  String get equipmentObservation_tag_seamFailure => 'Naad losgelaten';
+
+  @override
+  String get equipmentObservation_tag_dim => 'Zwak';
+
+  @override
+  String get equipmentObservation_tag_died => 'Uitgevallen';
+
+  @override
+  String get equipmentObservation_tag_flooded => 'Ondergelopen';
+
+  @override
+  String get equipmentObservation_tag_switchFault => 'Schakelaarstoring';
+
+  @override
+  String get equipmentObservation_tag_batteryLow => 'Batterij bijna leeg';
+
+  @override
+  String get equipmentObservation_tag_screenFault => 'Schermstoring';
+
+  @override
+  String get equipmentObservation_tag_connectionFault => 'Verbindingsstoring';
+
+  @override
+  String get equipmentObservation_tag_dropout => 'Signaaluitval';
+
+  @override
+  String get equipmentObservation_tag_cellWarning => 'Celwaarschuwing';
+
+  @override
+  String get equipmentObservation_tag_loopLeak => 'Loop lekt';
+
+  @override
+  String get equipmentObservation_tag_solenoidFault => 'Solenoïdestoring';
+
+  @override
+  String get equipmentObservation_tag_scrubberBreakthrough =>
+      'Scrubber doorgeslagen';
+
+  @override
+  String get equipmentObservation_tag_slowResponse => 'Trage reactie';
+
+  @override
+  String get equipmentObservation_tag_erratic => 'Grillig';
+
+  @override
+  String get equipmentObservation_tag_lowCapacity => 'Lage capaciteit';
+
+  @override
+  String get equipmentObservation_tag_propFault => 'Schroefstoring';
+
+  @override
+  String get equipmentObservation_tag_strapBroke => 'Band gebroken';
+
+  @override
+  String get equipmentObservation_tag_other => 'Overig';
+
+  @override
+  String get equipmentObservation_status_ok => 'OK';
+
+  @override
+  String get equipmentObservation_status_issue => 'Probleem';
+
+  @override
+  String equipmentObservation_sheet_title(String item) {
+    return 'Check-in: $item';
+  }
+
+  @override
+  String get equipmentObservation_sheet_empty =>
+      'Nog geen check-ins bij deze duik.';
+
+  @override
+  String get equipmentObservation_sheet_emptyBench => 'Nog geen check-ins.';
+
+  @override
+  String get equipmentObservation_sheet_add => 'Check-in toevoegen';
+
+  @override
+  String get equipmentObservation_sheet_edit => 'Check-in bewerken';
+
+  @override
+  String get equipmentObservation_sheet_delete => 'Check-in verwijderen';
+
+  @override
+  String get equipmentObservation_sheet_deleteConfirm =>
+      'Deze check-in verwijderen?';
+
+  @override
+  String get equipmentObservation_sheet_noteLabel => 'Notitie';
+
+  @override
+  String get equipmentObservation_sheet_tagsLabel => 'Wat er gebeurde';
+
+  @override
+  String get equipmentObservation_sheet_dateLabel => 'Waargenomen';
+
+  @override
+  String get equipmentObservation_sheet_diveLabel => 'Duik';
+
+  @override
+  String get equipmentObservation_sheet_noDive => 'Geen duik (werkbank)';
+
+  @override
+  String get equipmentObservation_sheet_pickDive => 'Kies een duik';
+
+  @override
+  String get equipmentObservation_sheet_save => 'Opslaan';
+
+  @override
+  String get equipmentObservation_sheet_cancel => 'Annuleren';
+
+  @override
+  String get equipmentObservation_sheet_tagRequired =>
+      'Kies minstens één label voor een probleem';
+
+  @override
+  String get equipmentObservation_chip_ok => 'Gecontroleerd, OK';
+
+  @override
+  String get equipmentObservation_chip_issue => 'Probleem gemeld';
+
+  @override
+  String get equipmentObservation_chip_none => 'Inchecken';
+
+  @override
+  String get equipmentObservation_card_title => 'Check-ins';
+
+  @override
+  String get equipmentObservation_card_empty =>
+      'Geen check-ins vastgelegd voor dit item.';
+
+  @override
+  String get equipmentObservation_card_add => 'Check-in toevoegen';
+
+  @override
+  String equipmentObservation_card_onDive(int number) {
+    return 'Duik nr. $number';
+  }
+
+  @override
+  String get equipmentObservation_card_bench => 'Werkbank';
+
+  @override
   String get settings_section_security_title => 'App-beveiliging';
 
   @override

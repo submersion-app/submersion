@@ -26450,6 +26450,195 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّرت إعادة بناء ملخصات المستشعرات.';
 
   @override
+  String get equipmentObservation_tag_freeFlow => 'تدفق حر';
+
+  @override
+  String get equipmentObservation_tag_hardBreathing => 'تنفس صعب';
+
+  @override
+  String get equipmentObservation_tag_wetBreathing => 'تنفس رطب';
+
+  @override
+  String get equipmentObservation_tag_leak => 'تسرب';
+
+  @override
+  String get equipmentObservation_tag_hoseDamage => 'تلف الخرطوم';
+
+  @override
+  String get equipmentObservation_tag_inflatorStuck => 'نافخ عالق';
+
+  @override
+  String get equipmentObservation_tag_inflatorSlow => 'نافخ بطيء';
+
+  @override
+  String get equipmentObservation_tag_bladderLeak => 'تسرب الكيس';
+
+  @override
+  String get equipmentObservation_tag_dumpLeak => 'تسرب صمام التفريغ';
+
+  @override
+  String get equipmentObservation_tag_leakNeck => 'تسرب عازل الرقبة';
+
+  @override
+  String get equipmentObservation_tag_leakWrist => 'تسرب عازل المعصم';
+
+  @override
+  String get equipmentObservation_tag_leakZip => 'تسرب السحّاب';
+
+  @override
+  String get equipmentObservation_tag_leakBoot => 'تسرب الحذاء';
+
+  @override
+  String get equipmentObservation_tag_leakValve => 'تسرب الصمام';
+
+  @override
+  String get equipmentObservation_tag_leakSeam => 'تسرب الدرزة';
+
+  @override
+  String get equipmentObservation_tag_tear => 'تمزق';
+
+  @override
+  String get equipmentObservation_tag_seamFailure => 'انفتاق الدرزة';
+
+  @override
+  String get equipmentObservation_tag_dim => 'خافت';
+
+  @override
+  String get equipmentObservation_tag_died => 'تعطل';
+
+  @override
+  String get equipmentObservation_tag_flooded => 'غمرته المياه';
+
+  @override
+  String get equipmentObservation_tag_switchFault => 'عطل المفتاح';
+
+  @override
+  String get equipmentObservation_tag_batteryLow => 'بطارية منخفضة';
+
+  @override
+  String get equipmentObservation_tag_screenFault => 'عطل الشاشة';
+
+  @override
+  String get equipmentObservation_tag_connectionFault => 'عطل الاتصال';
+
+  @override
+  String get equipmentObservation_tag_dropout => 'انقطاع';
+
+  @override
+  String get equipmentObservation_tag_cellWarning => 'تحذير الخلية';
+
+  @override
+  String get equipmentObservation_tag_loopLeak => 'تسرب الحلقة';
+
+  @override
+  String get equipmentObservation_tag_solenoidFault => 'عطل الملف اللولبي';
+
+  @override
+  String get equipmentObservation_tag_scrubberBreakthrough => 'اختراق المنظّف';
+
+  @override
+  String get equipmentObservation_tag_slowResponse => 'استجابة بطيئة';
+
+  @override
+  String get equipmentObservation_tag_erratic => 'غير منتظم';
+
+  @override
+  String get equipmentObservation_tag_lowCapacity => 'سعة منخفضة';
+
+  @override
+  String get equipmentObservation_tag_propFault => 'عطل المروحة';
+
+  @override
+  String get equipmentObservation_tag_strapBroke => 'انقطع الحزام';
+
+  @override
+  String get equipmentObservation_tag_other => 'أخرى';
+
+  @override
+  String get equipmentObservation_status_ok => 'سليم';
+
+  @override
+  String get equipmentObservation_status_issue => 'مشكلة';
+
+  @override
+  String equipmentObservation_sheet_title(String item) {
+    return 'فحص: $item';
+  }
+
+  @override
+  String get equipmentObservation_sheet_empty => 'لا فحوصات لهذه الغطسة بعد.';
+
+  @override
+  String get equipmentObservation_sheet_emptyBench => 'لا فحوصات بعد.';
+
+  @override
+  String get equipmentObservation_sheet_add => 'إضافة فحص';
+
+  @override
+  String get equipmentObservation_sheet_edit => 'تعديل الفحص';
+
+  @override
+  String get equipmentObservation_sheet_delete => 'حذف الفحص';
+
+  @override
+  String get equipmentObservation_sheet_deleteConfirm =>
+      'هل تريد حذف هذا الفحص؟';
+
+  @override
+  String get equipmentObservation_sheet_noteLabel => 'ملاحظة';
+
+  @override
+  String get equipmentObservation_sheet_tagsLabel => 'ماذا حدث';
+
+  @override
+  String get equipmentObservation_sheet_dateLabel => 'لوحظ في';
+
+  @override
+  String get equipmentObservation_sheet_diveLabel => 'الغطسة';
+
+  @override
+  String get equipmentObservation_sheet_noDive => 'بدون غطسة (على الطاولة)';
+
+  @override
+  String get equipmentObservation_sheet_pickDive => 'اختر غطسة';
+
+  @override
+  String get equipmentObservation_sheet_save => 'حفظ';
+
+  @override
+  String get equipmentObservation_sheet_cancel => 'إلغاء';
+
+  @override
+  String get equipmentObservation_sheet_tagRequired =>
+      'اختر وسمًا واحدًا على الأقل للمشكلة';
+
+  @override
+  String get equipmentObservation_chip_ok => 'تم الفحص، سليم';
+
+  @override
+  String get equipmentObservation_chip_issue => 'تم الإبلاغ عن مشكلة';
+
+  @override
+  String get equipmentObservation_chip_none => 'فحص';
+
+  @override
+  String get equipmentObservation_card_title => 'الفحوصات';
+
+  @override
+  String get equipmentObservation_card_empty => 'لا فحوصات مسجلة لهذه القطعة.';
+
+  @override
+  String get equipmentObservation_card_add => 'إضافة فحص';
+
+  @override
+  String equipmentObservation_card_onDive(int number) {
+    return 'الغطسة رقم $number';
+  }
+
+  @override
+  String get equipmentObservation_card_bench => 'على الطاولة';
+
+  @override
   String get settings_section_security_title => 'أمان التطبيق';
 
   @override
