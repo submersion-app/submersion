@@ -48,6 +48,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/components_index.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
@@ -5810,6 +5811,51 @@ class DiveRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _writeGearDiff(diveId, rows, now);
     await _bumpDives([diveId], now);
+  }
+
+  /// Ids of the dives that carry [equipmentId] as a gear row.
+  Future<List<String>> diveIdsWithEquipment(String equipmentId) async {
+    final rows =
+        await (_db.selectOnly(_db.diveEquipment, distinct: true)
+              ..addColumns([_db.diveEquipment.diveId])
+              ..where(_db.diveEquipment.equipmentId.equals(equipmentId)))
+            .get();
+    return [for (final r in rows) r.read(_db.diveEquipment.diveId)!];
+  }
+
+  /// Replays a change to an assembly's template on every past dive that
+  /// carries the assembly (issue #1487, "also update N past dives"). One
+  /// transaction; each dive whose rows changed goes through the diff
+  /// writer, so unchanged rows are neither tombstoned nor re-marked, and
+  /// is re-stamped so sync carries it. Returns how many dives changed.
+  Future<int> rewriteAssemblyOnPastDives(
+    String assemblyId,
+    GearHistoryRewrite rewrite,
+  ) async {
+    final diveIds = await diveIdsWithEquipment(assemblyId);
+    if (diveIds.isEmpty) return 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final touched = <String>[];
+    await _db.transaction(() async {
+      for (final diveId in diveIds) {
+        final rows = await _provenanceOf(diveId);
+        final next = rewrite.applyTo(rows, assemblyId);
+        if (_sameRows(rows, next)) continue;
+        await _writeGearDiff(diveId, next, now);
+        touched.add(diveId);
+      }
+      if (touched.isNotEmpty) await _bumpDives(touched, now);
+    });
+    if (touched.isNotEmpty) SyncEventBus.notifyLocalChange();
+    return touched.length;
+  }
+
+  static bool _sameRows(List<GearProvenance> a, List<GearProvenance> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   /// The assembly template as an adjacency index, read directly rather than
