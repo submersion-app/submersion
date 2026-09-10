@@ -140,4 +140,40 @@ void main() {
     expect(gear['First']!.viaSetId, setId);
     expect(gear['Hose']!.viaSetId, setId);
   });
+
+  test('a component row with a non-string role still imports', () async {
+    // Import input is untrusted: a role that is not a string must cost
+    // that row its role, not the whole logbook.
+    final diverId = await createTestDiver();
+    const parsed = UddfImportResult(
+      equipment: [
+        {
+          'uddfId': 'equip_reg',
+          'name': 'Reg',
+          'type': EquipmentType.regulator,
+          'components': [
+            {'componentRef': 'equip_hose', 'role': 42, 'sortOrder': 0},
+          ],
+        },
+        {'uddfId': 'equip_hose', 'name': 'Hose', 'type': EquipmentType.hose},
+      ],
+    );
+
+    await UddfEntityImporter().import(
+      data: parsed,
+      selections: UddfImportSelections.selectAll(parsed),
+      repositories: buildRepositories(),
+      diverId: diverId,
+    );
+
+    final byName = {
+      for (final e in await EquipmentRepository().getAllEquipment())
+        e.name: e.id,
+    };
+    final rows = await EquipmentComponentRepository().getAllComponents();
+    expect(rows, hasLength(1), reason: 'the row survived the bad role');
+    expect(rows.single.parentEquipmentId, byName['Reg']);
+    expect(rows.single.componentEquipmentId, byName['Hose']);
+    expect(rows.single.role, '');
+  });
 }

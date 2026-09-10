@@ -56,6 +56,14 @@ class PayloadMerger {
   /// [key] list through [rewrite], copying rather than mutating the
   /// nested maps. A null reference stays null; a map without the list is
   /// left without it.
+  ///
+  /// Matches a bare [Map] rather than `Map<String, dynamic>`: parsers hand
+  /// these lists over with whatever type argument the literal inferred
+  /// (`Map<String, String?>` from the gear-link parser today), and a map
+  /// that failed the narrower check would be passed through with its refs
+  /// un-namespaced, which merges two files' rows together instead of
+  /// failing loudly. Entries are re-keyed to `Map<String, dynamic>` so the
+  /// list is uniform whatever arrived.
   static void _rewriteNested(
     Map<String, dynamic> item,
     String key,
@@ -66,9 +74,9 @@ class PayloadMerger {
     if (value is! List) return;
     item[key] = [
       for (final entry in value)
-        if (entry is Map<String, dynamic>)
-          {
-            ...entry,
+        if (entry is Map)
+          <String, dynamic>{
+            for (final pair in entry.entries) '${pair.key}': pair.value,
             for (final field in fields)
               if (entry[field] case final String ref when ref.isNotEmpty)
                 field: rewrite(ref),

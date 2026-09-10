@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
@@ -106,5 +107,85 @@ void main() {
         merged.entitiesOf(ImportEntityType.dives)[0]['gearLinks'] as List;
     expect(links.single['itemRef'], 'f0:h1');
     expect(links.single['viaRef'], 'f1:r2');
+  });
+
+  test('an entry with no type argument is namespaced, not passed through', () {
+    // A parser that builds its nested maps untyped hands over
+    // Map<dynamic, dynamic>. Skipping those would merge two files' rows
+    // together silently rather than failing, so the rewrite takes any Map.
+    final untyped = <dynamic, dynamic>{
+      'itemRef': 'equip_hose',
+      'viaRef': 'equip_reg',
+      'setRef': null,
+    };
+    final merged = merger.merge([
+      FilePayload(
+        fileId: 'f0',
+        fileName: 'a.uddf',
+        payload: payloadWith(
+          dives: [
+            {
+              'dateTime': DateTime(2026, 1, 1, 9),
+              'gearLinks': [untyped],
+            },
+          ],
+        ),
+      ),
+    ]);
+    final link =
+        (merged.entitiesOf(ImportEntityType.dives)[0]['gearLinks'] as List)
+            .single;
+    expect(link['itemRef'], 'f0:equip_hose');
+    expect(link['viaRef'], 'f0:equip_reg');
+    expect(link['setRef'], isNull);
+  });
+
+  test('the real parser output flows through the merger namespaced', () async {
+    // The unit cases above build their maps as Dart literals; this one
+    // takes whatever type the gear-link and component parsers actually
+    // produce, so a change in either is caught here.
+    const uddf = '''<?xml version="1.0" encoding="UTF-8"?>
+<uddf version="3.2.0">
+  <applicationdata><submersion version="1.0">
+    <equipment>
+      <item id="equip_reg"><name>Reg</name><type>regulator</type></item>
+      <item id="equip_hose"><name>Hose</name><type>hose</type></item>
+    </equipment>
+    <components>
+      <component parent="equip_reg" component="equip_hose" order="0"><role>Primary</role></component>
+    </components>
+    <gearlinks>
+      <dive ref="dive_d1">
+        <link item="equip_hose" via="equip_reg" set="set_winter"/>
+      </dive>
+    </gearlinks>
+  </submersion></applicationdata>
+  <profiledata><repetitiongroup id="rg1">
+    <dive id="dive_d1">
+      <informationbeforedive><datetime>2026-03-01T10:00:00</datetime></informationbeforedive>
+      <informationafterdive><greatestdepth>18</greatestdepth><diveduration>2400</diveduration></informationafterdive>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+    final parsed = await UddfFullImportService().importAllDataFromUddf(uddf);
+
+    final merged = merger.merge([
+      FilePayload(
+        fileId: 'f0',
+        fileName: 'a.uddf',
+        payload: payloadWith(dives: parsed.dives, equipment: parsed.equipment),
+      ),
+    ]);
+
+    final reg = merged
+        .entitiesOf(ImportEntityType.equipment)
+        .firstWhere((e) => e['name'] == 'Reg');
+    expect((reg['components'] as List).single['componentRef'], 'f0:equip_hose');
+    final link =
+        (merged.entitiesOf(ImportEntityType.dives).single['gearLinks'] as List)
+            .single;
+    expect(link['itemRef'], 'f0:equip_hose');
+    expect(link['viaRef'], 'f0:equip_reg');
+    expect(link['setRef'], 'f0:set_winter');
   });
 }

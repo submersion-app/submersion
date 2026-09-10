@@ -43,14 +43,16 @@ class _FakeEquipmentRepository extends EquipmentRepository {
 
 /// DiveRepository only has a factory, so a Fake stands in for it.
 class _FakeDiveRepository extends Fake implements DiveRepository {
-  final rewrites = <(String, GearHistoryRewrite)>[];
+  final rewrites = <(String, List<GearHistoryRewrite>)>[];
+  Object? throwOnRewrite;
 
   @override
   Future<int> rewriteAssemblyOnPastDives(
     String assemblyId,
-    GearHistoryRewrite rewrite,
+    List<GearHistoryRewrite> rewrites_,
   ) async {
-    rewrites.add((assemblyId, rewrite));
+    if (throwOnRewrite != null) throw throwOnRewrite!;
+    rewrites.add((assemblyId, rewrites_));
     return 1;
   }
 }
@@ -233,9 +235,36 @@ void main() {
       await tester.tap(find.text('Also update 2 dives'));
       await tester.pumpAndSettle();
       expect(repo.removed, ['c1']);
-      expect(dives.rewrites, [('reg', const GearPartRemoved('first'))]);
+      // Compared field by field: a record holding a List compares that
+      // field by identity, so two equal lists never match as one record.
+      expect(dives.rewrites, hasLength(1));
+      expect(dives.rewrites.single.$1, 'reg');
+      expect(dives.rewrites.single.$2, const [GearPartRemoved('first')]);
     },
   );
+
+  testWidgets('a failed replay is reported instead of going unhandled', (
+    tester,
+  ) async {
+    final repo = _FakeComponentRepository();
+    final dives = _FakeDiveRepository()..throwOnRewrite = StateError('boom');
+    await tester.pumpWidget(
+      build(
+        [part('c1', first)],
+        repo,
+        equipment: _FakeEquipmentRepository()..diveCount = 2,
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Also update 2 dives'));
+    await tester.pumpAndSettle();
+    expect(repo.removed, ['c1']);
+    expect(find.textContaining('boom'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('from now on removes the part and leaves past dives alone', (
     tester,

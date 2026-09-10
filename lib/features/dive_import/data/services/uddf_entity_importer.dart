@@ -1250,7 +1250,9 @@ class UddfEntityImporter {
           await repository.addComponent(
             parentId: parentId,
             componentId: componentId,
-            role: part['role'] as String? ?? '',
+            // Untrusted input: a role that is not a string is dropped
+            // rather than casting and aborting the whole import.
+            role: part['role'] is String ? part['role'] as String : '',
           );
           count++;
         } on EquipmentComponentCycleException {

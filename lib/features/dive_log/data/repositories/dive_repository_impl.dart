@@ -5823,15 +5823,21 @@ class DiveRepository {
     return [for (final r in rows) r.read(_db.diveEquipment.diveId)!];
   }
 
-  /// Replays a change to an assembly's template on every past dive that
+  /// Replays changes to an assembly's template on every past dive that
   /// carries the assembly (issue #1487, "also update N past dives"). One
   /// transaction; each dive whose rows changed goes through the diff
   /// writer, so unchanged rows are neither tombstoned nor re-marked, and
   /// is re-stamped so sync carries it. Returns how many dives changed.
+  ///
+  /// [rewrites] are applied in order to each dive's rows and written once,
+  /// so adding several parts at once costs one pass over the dives rather
+  /// than one pass per part. The result is the same either way: the rules
+  /// compose, and the diff writer compares against the rows on disk.
   Future<int> rewriteAssemblyOnPastDives(
     String assemblyId,
-    GearHistoryRewrite rewrite,
+    List<GearHistoryRewrite> rewrites,
   ) async {
+    if (rewrites.isEmpty) return 0;
     final diveIds = await diveIdsWithEquipment(assemblyId);
     if (diveIds.isEmpty) return 0;
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -5839,7 +5845,10 @@ class DiveRepository {
     await _db.transaction(() async {
       for (final diveId in diveIds) {
         final rows = await _provenanceOf(diveId);
-        final next = rewrite.applyTo(rows, assemblyId);
+        var next = rows;
+        for (final rewrite in rewrites) {
+          next = rewrite.applyTo(next, assemblyId);
+        }
         if (_sameRows(rows, next)) continue;
         await _writeGearDiff(diveId, next, now);
         touched.add(diveId);

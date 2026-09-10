@@ -68,17 +68,23 @@ class ComponentsCard extends ConsumerWidget {
       assemblyId: equipmentId,
       change: AssemblyHistoryChange.removed,
     );
-    if (choice == null) return;
-    await ref
-        .read(equipmentComponentRepositoryProvider)
-        .removeComponent(part.id);
-    if (choice == AssemblyHistoryChoice.alsoPast) {
+    if (choice == null || !context.mounted) return;
+    // The replay is a second write after the row is already gone, so a
+    // failure there leaves the template and the past dives out of step.
+    // Surfacing it beats an unhandled exception from the icon callback.
+    final messenger = ScaffoldMessenger.of(context);
+    try {
       await ref
-          .read(diveRepositoryProvider)
-          .rewriteAssemblyOnPastDives(
-            equipmentId,
-            GearPartRemoved(part.componentEquipmentId),
-          );
+          .read(equipmentComponentRepositoryProvider)
+          .removeComponent(part.id);
+      if (choice == AssemblyHistoryChoice.alsoPast) {
+        await ref.read(diveRepositoryProvider).rewriteAssemblyOnPastDives(
+          equipmentId,
+          [GearPartRemoved(part.componentEquipmentId)],
+        );
+      }
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
     }
   }
 

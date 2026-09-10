@@ -125,30 +125,32 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
       // A snapshot: the checkboxes are disabled while saving, but a copy
       // keeps the loop safe regardless of what mutates the set later.
       final ids = _selected.toList();
-      if (replacing != null) {
-        final newId = ids.single;
-        await repository.replaceComponent(replacing.id, newId);
-        if (alsoPast) {
-          await dives.rewriteAssemblyOnPastDives(
-            widget.parentId,
+      final changes = <GearHistoryRewrite>[];
+      try {
+        if (replacing != null) {
+          final newId = ids.single;
+          await repository.replaceComponent(replacing.id, newId);
+          changes.add(
             GearPartReplaced(
               oldPartId: replacing.componentEquipmentId,
               newPartId: newId,
             ),
           );
-        }
-      } else {
-        for (final id in ids) {
-          await repository.addComponent(
-            parentId: widget.parentId,
-            componentId: id,
-          );
-          if (alsoPast) {
-            await dives.rewriteAssemblyOnPastDives(
-              widget.parentId,
-              GearPartAdded(id),
+        } else {
+          for (final id in ids) {
+            await repository.addComponent(
+              parentId: widget.parentId,
+              componentId: id,
             );
+            changes.add(GearPartAdded(id));
           }
+        }
+      } finally {
+        // One pass over the dives for the whole batch rather than one per
+        // part, and it runs even when a later part was refused, so what
+        // reached the template and what reached the dives cannot drift.
+        if (alsoPast && changes.isNotEmpty) {
+          await dives.rewriteAssemblyOnPastDives(widget.parentId, changes);
         }
       }
       popped = true;

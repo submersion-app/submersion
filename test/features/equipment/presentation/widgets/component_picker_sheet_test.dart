@@ -20,6 +20,9 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
   final added = <(String, String)>[];
   final replaced = <(String, String)>[];
   bool throwCycle = false;
+
+  /// Refuse as a cycle once this many adds have landed.
+  int? throwCycleAfter;
   Object? throwOther;
 
   /// When set, every add waits on it, so a test can act mid-save.
@@ -31,7 +34,8 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
     required String componentId,
     String role = '',
   }) async {
-    if (throwCycle) {
+    if (throwCycle ||
+        (throwCycleAfter != null && added.length >= throwCycleAfter!)) {
       throw EquipmentComponentCycleException(parentId, componentId);
     }
     if (throwOther != null) throw throwOther!;
@@ -72,14 +76,14 @@ class _FakeEquipmentRepository extends EquipmentRepository {
 
 /// DiveRepository only has a factory, so a Fake stands in for it.
 class _FakeDiveRepository extends Fake implements DiveRepository {
-  final rewrites = <(String, GearHistoryRewrite)>[];
+  final rewrites = <(String, List<GearHistoryRewrite>)>[];
 
   @override
   Future<int> rewriteAssemblyOnPastDives(
     String assemblyId,
-    GearHistoryRewrite rewrite,
+    List<GearHistoryRewrite> rewrites_,
   ) async {
-    rewrites.add((assemblyId, rewrite));
+    rewrites.add((assemblyId, rewrites_));
     return 1;
   }
 }
@@ -193,14 +197,48 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Update past dives?'), findsNothing);
     expect(repo.added, unorderedEquals([('reg', 'hose'), ('reg', 'fins')]));
+    // One call carrying both parts, not one call per part: the replay
+    // makes a single pass over the dives.
+    expect(dives.rewrites, hasLength(1));
+    expect(dives.rewrites.single.$1, 'reg');
     expect(
-      dives.rewrites.map((r) => r.$2),
+      dives.rewrites.single.$2,
       unorderedEquals([
         const GearPartAdded('hose'),
         const GearPartAdded('fins'),
       ]),
     );
-    expect(dives.rewrites.map((r) => r.$1).toSet(), {'reg'});
+  });
+
+  testWidgets('parts added before a refusal are still replayed', (
+    tester,
+  ) async {
+    // The second add is refused; the first already reached the template,
+    // so it has to reach the past dives too or the two drift apart.
+    final repo = _FakeComponentRepository()..throwCycleAfter = 1;
+    final dives = _FakeDiveRepository();
+    await tester.pumpWidget(
+      build(
+        repo,
+        equipment: _FakeEquipmentRepository()..diveCount = 2,
+        dives: dives,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Name hose'));
+    await tester.pump();
+    await tester.tap(find.text('Name fins'));
+    await tester.pump();
+    await tester.tap(find.text('Add 2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Also update 2 dives'));
+    await tester.pumpAndSettle();
+    expect(repo.added, hasLength(1));
+    expect(dives.rewrites.single.$2, [GearPartAdded(repo.added.single.$2)]);
+    expect(
+      find.textContaining('cannot be added as a component'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('from now on adds without touching past dives', (tester) async {
@@ -277,8 +315,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(repo.replaced, [(row.id, 'fins')]);
     expect(repo.added, isEmpty);
-    expect(dives.rewrites, [
-      ('reg', const GearPartReplaced(oldPartId: 'first', newPartId: 'fins')),
+    expect(dives.rewrites, hasLength(1));
+    expect(dives.rewrites.single.$1, 'reg');
+    expect(dives.rewrites.single.$2, const [
+      GearPartReplaced(oldPartId: 'first', newPartId: 'fins'),
     ]);
   });
 
