@@ -3611,6 +3611,7 @@ class DiveRepository {
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
               regulatorEquipmentId: t.regulatorEquipmentId,
+              equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
             ),
           )
@@ -4019,6 +4020,7 @@ class DiveRepository {
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
           regulatorEquipmentId: t.regulatorEquipmentId,
+          equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
         );
       }).toList(),
