@@ -71,8 +71,15 @@ class ScrubberMargin extends Equatable {
   final double remainingBefore;
   final int expectedDives;
   final int expectedDivesN;
+
+  /// Whether the diver set this figure on the trip. An n of zero alone
+  /// cannot say: a default with no history to average has no n either,
+  /// and calling that an override would credit the diver with a number
+  /// they never entered.
+  final bool divesFromOverride;
   final double minutesPerDive;
   final int minutesPerDiveN;
+  final bool minutesFromOverride;
   final double expectedUse;
 
   /// Remaining minus expected use; null when there is no rating.
@@ -88,8 +95,10 @@ class ScrubberMargin extends Equatable {
     required this.remainingBefore,
     required this.expectedDives,
     required this.expectedDivesN,
+    this.divesFromOverride = false,
     required this.minutesPerDive,
     required this.minutesPerDiveN,
+    this.minutesFromOverride = false,
     required this.expectedUse,
     required this.marginAfter,
     required this.caution,
@@ -103,8 +112,10 @@ class ScrubberMargin extends Equatable {
     remainingBefore,
     expectedDives,
     expectedDivesN,
+    divesFromOverride,
     minutesPerDive,
     minutesPerDiveN,
+    minutesFromOverride,
     expectedUse,
     marginAfter,
     caution,

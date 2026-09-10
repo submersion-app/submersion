@@ -157,6 +157,53 @@ void main() {
     },
   );
 
+  test('a repack on the trip start date is the anchor', () async {
+    // Service dates come from a date picker, so a repack logged on the
+    // day the trip starts is a real case. Excluding it would charge the
+    // trip for every loop dive before a scrubber that was just packed.
+    final ccr = await EquipmentRepository().createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'CCR',
+        type: EquipmentType.rebreather,
+        attributes: [
+          EquipmentAttribute(
+            id: '',
+            equipmentId: '',
+            key: 'scrubber_duration_h',
+            valueNum: 5,
+          ),
+        ],
+      ),
+    );
+    await ServiceRecordRepository().createRecord(
+      ServiceRecord(
+        id: '',
+        equipmentId: ccr.id,
+        serviceCategory: ServiceCategory.values.first,
+        serviceKindId: 'scrubber-repack',
+        serviceDate: DateTime(2026, 2, 1),
+        currency: 'USD',
+        notes: '',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    await ccrDive('older', DateTime(2026, 1, 15), ccr.id, scrubber: 30);
+    final sameDay = await trip(
+      'SameDay',
+      DateTime(2026, 2, 1),
+      DateTime(2026, 2, 5),
+    );
+
+    final margins = await container.read(
+      tripScrubberMarginsProvider(sameDay.id).future,
+    );
+    // The January dive predates the repack, so nothing is consumed.
+    expect(margins.single.consumedMinutes, 0);
+    expect(margins.single.remainingBefore, 300);
+  });
+
   test('a diver with no active rebreather gets an empty list', () async {
     await EquipmentRepository().createEquipment(
       const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),

@@ -91,12 +91,20 @@ class _MarginBlock extends StatelessWidget {
     final theme = Theme.of(context);
     final body = theme.textTheme.bodyMedium;
     final m = margin;
-    final divesSource = m.expectedDivesN == 0
-        ? l10n.trips_scrubber_fromOverride
-        : l10n.trips_scrubber_fromTrips(m.expectedDivesN);
-    final perDiveSource = m.minutesPerDiveN == 0
-        ? l10n.trips_scrubber_fromOverride
-        : l10n.trips_scrubber_fromDives(m.minutesPerDiveN);
+    // An n of zero is not an override: a default with no history to
+    // average has none either, and claiming the diver set it would credit
+    // them with a number they never entered. With neither, the figure
+    // stands unattributed.
+    final divesSource = m.divesFromOverride
+        ? ' ${l10n.trips_scrubber_fromOverride}'
+        : m.expectedDivesN == 0
+        ? ''
+        : ' ${l10n.trips_scrubber_fromTrips(m.expectedDivesN)}';
+    final perDiveSource = m.minutesFromOverride
+        ? ' ${l10n.trips_scrubber_fromOverride}'
+        : m.minutesPerDiveN == 0
+        ? ''
+        : ' ${l10n.trips_scrubber_fromDives(m.minutesPerDiveN)}';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -114,11 +122,11 @@ class _MarginBlock extends StatelessWidget {
             style: body,
           ),
         Text(
-          '${l10n.trips_scrubber_expectedDives(m.expectedDives)} $divesSource',
+          '${l10n.trips_scrubber_expectedDives(m.expectedDives)}$divesSource',
           style: body,
         ),
         Text(
-          '${l10n.trips_scrubber_perDive(_minutes(m.minutesPerDive))} '
+          '${l10n.trips_scrubber_perDive(_minutes(m.minutesPerDive))}'
           '$perDiveSource',
           style: body,
         ),

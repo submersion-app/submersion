@@ -40,6 +40,8 @@ void main() {
     );
     expect(m.expectedDives, 12);
     expect(m.expectedDivesN, 0);
+    expect(m.divesFromOverride, isTrue);
+    expect(m.minutesFromOverride, isTrue);
     expect(m.minutesPerDive, 70);
     expect(m.minutesPerDiveN, 0);
     expect(m.expectedUse, 840);
@@ -115,5 +117,17 @@ void main() {
     expect(m.marginAfter, isNull);
     expect(m.caution, isFalse);
     expect(m.expectedUse, 450);
+  });
+
+  test('a default with no history is not an override', () {
+    // n is 0 either way, so the flags are what tell the card whether the
+    // diver set this figure or the app fell back to a default.
+    final m = computeScrubberMargin(
+      inputs(divesPerDay: const [], scrubber: const [], runtime: const []),
+    );
+    expect(m.expectedDivesN, 0);
+    expect(m.divesFromOverride, isFalse);
+    expect(m.minutesPerDiveN, 0);
+    expect(m.minutesFromOverride, isFalse);
   });
 }

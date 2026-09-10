@@ -91,7 +91,8 @@ class StatisticsEquipmentPage extends ConsumerWidget {
   }
 
   /// Exposure per active item in the unit the dropdown selects; the row
-  /// count is the rounded total, the subtitle the exact figure.
+  /// count is the rounded total and the subtitle the dive count behind
+  /// it, since a total means little without the n it was gathered over.
   Widget _buildExposureSection(
     BuildContext context,
     WidgetRef ref,

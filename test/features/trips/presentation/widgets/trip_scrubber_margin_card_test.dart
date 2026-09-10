@@ -40,6 +40,8 @@ ScrubberMargin margin({
   bool caution = true,
   int divesN = 0,
   int minutesN = 2,
+  bool divesFromOverride = true,
+  bool minutesFromOverride = false,
 }) => ScrubberMargin(
   item: ccr,
   ratedMinutes: rated,
@@ -47,6 +49,8 @@ ScrubberMargin margin({
   remainingBefore: rated == null ? 0 : 210,
   expectedDives: 10,
   expectedDivesN: divesN,
+  divesFromOverride: divesFromOverride,
+  minutesFromOverride: minutesFromOverride,
   minutesPerDive: 35,
   minutesPerDiveN: minutesN,
   expectedUse: 350,
@@ -110,7 +114,14 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      host([margin(marginAfter: 100, caution: false, divesN: 3)]),
+      host([
+        margin(
+          marginAfter: 100,
+          caution: false,
+          divesN: 3,
+          divesFromOverride: false,
+        ),
+      ]),
     );
     await tester.pumpAndSettle();
     expect(
@@ -175,5 +186,25 @@ void main() {
       tripScrubberMarginSummary(l10n, [margin(rated: null, marginAfter: null)]),
       isNull,
     );
+  });
+
+  testWidgets('a fallback with no history claims no source', (tester) async {
+    // n is 0 for a default too, so keying the "(set on this trip)" suffix
+    // off n told a diver with no trip history that they had set a figure
+    // they never touched.
+    await tester.pumpWidget(
+      host([
+        margin(
+          divesN: 0,
+          divesFromOverride: false,
+          minutesN: 0,
+          minutesFromOverride: false,
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('10 expected dives'), findsOneWidget);
+    expect(find.textContaining('set on this trip'), findsNothing);
+    expect(find.textContaining('from your last'), findsNothing);
   });
 }

@@ -81,7 +81,10 @@ final tripScrubberMarginsProvider =
             .where(
               (r) =>
                   r.serviceKindId == scrubberRepackKindId &&
-                  r.serviceDate.isBefore(start),
+                  // Inclusive: service dates come from a date picker, so
+                  // a repack logged on the day the trip starts is the last
+                  // one as of that start, not one that happened after it.
+                  !r.serviceDate.isAfter(start),
             )
             .firstOrNull;
         final inputs = await ref.watch(
