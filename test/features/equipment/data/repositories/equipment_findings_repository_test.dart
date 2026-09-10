@@ -88,6 +88,43 @@ void main() {
       if (t.entityType == 'equipmentFindings') t.recordId,
   };
 
+  test(
+    'a review that changes no synced row does not touch the clock',
+    () async {
+      // The marker is device-local. With no findings before and none now,
+      // nothing that syncs has changed, so bumping the parent's clock would
+      // hand every peer a version to fetch for the commonest case of all.
+      await repo.saveReview(
+        equipmentId: 'reg',
+        inputFingerprint: 'fp-empty',
+        findings: const [],
+        engineVersion: 1,
+        now: t0,
+      );
+      expect(
+        (await db.select(db.syncRecords).get())
+            .where((r) => r.entityType == 'equipment')
+            .map((r) => r.recordId),
+        isEmpty,
+      );
+
+      // A findings row IS synced, so writing one does bump it.
+      await repo.saveReview(
+        equipmentId: 'reg',
+        inputFingerprint: 'fp1',
+        findings: [incident()],
+        engineVersion: 1,
+        now: t0,
+      );
+      expect(
+        (await db.select(db.syncRecords).get())
+            .where((r) => r.entityType == 'equipment')
+            .map((r) => r.recordId),
+        ['reg'],
+      );
+    },
+  );
+
   test('a review with no findings still records the engine version', () async {
     // An item the engine cleared is the common case. Recording 0 here (the
     // newest version among no rows) made the marker read as stale forever,
