@@ -43,6 +43,12 @@ final tripScrubberMarginsProvider =
       );
       ref.invalidateSelfWhen(records.watchServiceRecordsChanges());
       ref.invalidateSelfWhen(schedules.watchSchedulesChanges());
+      // The rated duration falls back to the repack KIND's interval, and
+      // the built-ins are re-seeded on open and can arrive by sync, so a
+      // stale kind would keep an old rating alive.
+      ref.invalidateSelfWhen(
+        ref.watch(serviceKindRepositoryProvider).watchServiceKindsChanges(),
+      );
       ref.invalidateSelfWhen(trips.watchTripsChanges());
       ref.invalidateSelfWhen(itinerary.watchItineraryChanges());
 

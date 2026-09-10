@@ -35,11 +35,17 @@ final exposureRankingProvider = FutureProvider<List<RankingItem>>((ref) async {
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   final l10n = ref.watch(appLocalizationsProvider);
   final items = await repository.getActiveEquipment(diverId: diverId);
+  // Every item's inputs are asked for before any is awaited: watching in
+  // a sync loop registers each dependency, and awaiting them together
+  // stops a locker of gear turning into a queue of round trips.
+  final pending = [
+    for (final item in items)
+      ref.watch(equipmentExposureInputsProvider(item.id).future),
+  ];
+  final loaded = await Future.wait(pending);
   final out = <RankingItem>[];
-  for (final item in items) {
-    final inputs = await ref.watch(
-      equipmentExposureInputsProvider(item.id).future,
-    );
+  for (final (index, item) in items.indexed) {
+    final inputs = loaded[index];
     if (inputs == null || inputs.samples.isEmpty) continue;
     var total = 0.0;
     for (final sample in inputs.samples) {
