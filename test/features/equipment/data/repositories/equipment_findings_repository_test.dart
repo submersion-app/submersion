@@ -163,6 +163,21 @@ void main() {
     },
   );
 
+  /// Dive dates for the carry-over rule: d1 to d3 are the dives the
+  /// finding was dismissed with, d4 to d6 happened afterwards, and the
+  /// b-prefixed ones are an imported backlog from years before.
+  final diveDates = <String, DateTime>{
+    'd1': t0,
+    'd2': t0.add(const Duration(days: 1)),
+    'd3': t0.add(const Duration(days: 1)),
+    'd4': t0.add(const Duration(days: 4)),
+    'd5': t0.add(const Duration(days: 5)),
+    'd6': t0.add(const Duration(days: 8)),
+    'b1': t0.subtract(const Duration(days: 900)),
+    'b2': t0.subtract(const Duration(days: 800)),
+    'b3': t0.subtract(const Duration(days: 700)),
+  };
+
   test('a dismissed finding stays dismissed until three new dives', () async {
     await repo.saveReview(
       equipmentId: 'reg',
@@ -171,6 +186,7 @@ void main() {
         recurring(['d1', 'd2', 'd3']),
       ],
       engineVersion: 1,
+      diveDates: diveDates,
       now: t0,
     );
     final id = conditionFindingId(
@@ -193,6 +209,7 @@ void main() {
         recurring(['d1', 'd2', 'd3', 'd4', 'd5']),
       ],
       engineVersion: 1,
+      diveDates: diveDates,
       now: t0.add(const Duration(days: 5)),
     );
     expect((await repo.getFindings('reg')).single.isDismissed, isTrue);
@@ -205,6 +222,58 @@ void main() {
         recurring(['d1', 'd2', 'd3', 'd4', 'd5', 'd6']),
       ],
       engineVersion: 1,
+      diveDates: diveDates,
+      now: t0.add(const Duration(days: 9)),
+    );
+    expect((await repo.getFindings('reg')).single.isDismissed, isFalse);
+  });
+
+  test('an imported backlog of older dives leaves a dismissal alone', () async {
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp1',
+      findings: [
+        recurring(['d1', 'd2', 'd3']),
+      ],
+      engineVersion: 1,
+      diveDates: diveDates,
+      now: t0,
+    );
+    await repo.setDismissed(
+      findingId: conditionFindingId(
+        'reg',
+        ConditionRuleId.issueRecurring,
+        tag: 'freeFlow',
+      ),
+      dismissed: true,
+      now: t0.add(const Duration(days: 1)),
+    );
+
+    // Three dive ids the evidence has not seen, but every one of them
+    // happened years before the dismissal. Nothing has been learned since
+    // the diver said they had seen this, so it stays dismissed: otherwise
+    // importing a logbook would re-raise every dismissed finding at once.
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp2',
+      findings: [
+        recurring(['d1', 'd2', 'd3', 'b1', 'b2', 'b3']),
+      ],
+      engineVersion: 1,
+      diveDates: diveDates,
+      now: t0.add(const Duration(days: 2)),
+    );
+    expect((await repo.getFindings('reg')).single.isDismissed, isTrue);
+
+    // Three dives that did happen after it do clear it.
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp3',
+      findings: [
+        recurring(['d1', 'd2', 'd3', 'b1', 'b2', 'b3', 'd4', 'd5', 'd6']),
+      ],
+      engineVersion: 1,
+      diveDates: diveDates,
       now: t0.add(const Duration(days: 9)),
     );
     expect((await repo.getFindings('reg')).single.isDismissed, isFalse);
