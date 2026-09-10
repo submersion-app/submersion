@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -14,9 +16,16 @@ const double _kHeaderBaseExtent = 62;
 /// A pinned sliver header needs a fixed extent, so this cannot be left to
 /// intrinsic sizing: at 200% text a hardcoded height would clip the second
 /// line, and widget tests running at standard density would never see it.
+///
+/// Grows without an upper bound. An earlier version capped the factor at 2.0,
+/// which reintroduced exactly the clipping this function exists to prevent for
+/// anyone running the larger accessibility sizes (iOS and Android both go well
+/// past 200%). A very tall header on a 300% display is the correct outcome:
+/// the text is that big. Only the lower bound is held, so the header never
+/// shrinks below its designed height when a platform reports a scale under 1.
 double tripGroupHeaderExtent(BuildContext context) {
   final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
-  return _kHeaderBaseExtent * scale.clamp(1.0, 2.0);
+  return _kHeaderBaseExtent * math.max(1.0, scale);
 }
 
 /// Header for one run of same-trip dives in the dive list (issue #1193).

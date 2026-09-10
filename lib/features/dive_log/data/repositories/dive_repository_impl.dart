@@ -151,6 +151,30 @@ class DiveRepository {
       .tableUpdates(TableUpdateQuery.onTable(_db.dives))
       .debounce(changeTickDebounce);
 
+  /// Change-tick for the dive LIST: fires when any table the list's own SELECT
+  /// reads is written.
+  ///
+  /// Broader than [watchDivesChanges] by exactly two tables, and no more. The
+  /// paginated summary query LEFT JOINs `dive_sites` and `trips` to render the
+  /// site line and the trip group header (#1193), so renaming a trip or a site,
+  /// or moving a trip's dates, changes what the list displays without touching
+  /// the `dives` table at all. On the dives-only tick those edits stayed on
+  /// screen stale until some unrelated dive write happened to shake the list.
+  ///
+  /// Deliberately NOT [watchDiveDetailChanges]: that also watches profile
+  /// series, tank pressures, equipment and safety findings, none of which the
+  /// list reads, and every one of which would reload the whole list for
+  /// nothing.
+  Stream<void> watchDiveListChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.dives),
+          TableUpdateQuery.onTable(_db.diveSites),
+          TableUpdateQuery.onTable(_db.trips),
+        ]),
+      )
+      .debounce(changeTickDebounce);
+
   /// Aggregate change-tick for the dive DETAIL page: fires when ANY table that
   /// feeds a dive's detail view is written -- including a sync applying remote
   /// changes directly to the DB (which bypasses the notifier paths that

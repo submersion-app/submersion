@@ -9,6 +9,8 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 void main() {
+  _extentTests();
+
   TripSection section({
     int loaded = 2,
     int total = 2,
@@ -156,6 +158,67 @@ void main() {
       );
 
       expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isNull);
+    });
+  });
+}
+
+void _extentTests() {
+  group('tripGroupHeaderExtent', () {
+    testWidgets('grows past 200% instead of capping', (tester) async {
+      // The cap this replaced reintroduced the very clipping the fixed extent
+      // exists to prevent: both iOS and Android offer accessibility text sizes
+      // well beyond 200%.
+      late double at2x;
+      late double at3x;
+
+      Widget probe(double factor, void Function(double) sink) => MediaQuery(
+        data: MediaQueryData(textScaler: TextScaler.linear(factor)),
+        child: Builder(
+          builder: (context) {
+            sink(tripGroupHeaderExtent(context));
+            return const SizedBox();
+          },
+        ),
+      );
+
+      await tester.pumpWidget(probe(2.0, (v) => at2x = v));
+      await tester.pumpWidget(probe(3.0, (v) => at3x = v));
+
+      expect(
+        at3x,
+        greaterThan(at2x),
+        reason: 'a 300% reader must get a taller header, not a clipped one',
+      );
+    });
+
+    testWidgets('never shrinks below the designed height', (tester) async {
+      late double small;
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(0.5)),
+          child: Builder(
+            builder: (context) {
+              small = tripGroupHeaderExtent(context);
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+
+      late double normal;
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.0)),
+          child: Builder(
+            builder: (context) {
+              normal = tripGroupHeaderExtent(context);
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+
+      expect(small, normal);
     });
   });
 }

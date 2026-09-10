@@ -26,6 +26,9 @@ class _FakeDiveRepo implements DiveRepository {
   Stream<void> watchDivesChanges() => const Stream.empty();
 
   @override
+  Stream<void> watchDiveListChanges() => const Stream.empty();
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

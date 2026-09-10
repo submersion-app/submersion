@@ -717,10 +717,15 @@ class PaginatedDiveListNotifier
     });
     loadFirstPage();
 
-    // Reload silently when the `dives` table is written directly (e.g. a sync
-    // applies remote changes) without going through this notifier's mutation
-    // methods. Silent so a multi-write sync doesn't flash a loading spinner.
-    final divesChangeSub = _repository.watchDivesChanges().listen(
+    // Reload silently when a table the list renders from is written directly
+    // (e.g. a sync applies remote changes) without going through this
+    // notifier's mutation methods. Silent so a multi-write sync doesn't flash
+    // a loading spinner.
+    //
+    // The list tick, not the dives one: the summary query joins sites and
+    // trips, so a trip rename or a site rename changes what is on screen
+    // without touching the dives table (#1193).
+    final divesChangeSub = _repository.watchDiveListChanges().listen(
       (_) => _silentReloadLoadedPages(),
     );
     _ref.onDispose(divesChangeSub.cancel);
