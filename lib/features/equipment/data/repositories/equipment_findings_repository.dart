@@ -149,6 +149,21 @@ class EquipmentFindingsRepository {
             dismissedAt = null;
           }
         }
+        // An identical row is left exactly where it is. Most recomputes
+        // land on the same finding, and rewriting it would mark it pending
+        // and hand every peer the same record to fetch again. It is still
+        // in `keep`, so the deletion pass below does not mistake it for a
+        // rule that stopped firing.
+        if (old != null &&
+            old.evidenceFingerprint == finding.evidenceFingerprint &&
+            old.ruleId == finding.ruleId.dbValue &&
+            old.severity == finding.severity.dbValue &&
+            old.value == finding.value &&
+            old.engineVersion == finding.engineVersion &&
+            old.dismissedAt == dismissedAt &&
+            old.createdAt == createdAt) {
+          continue;
+        }
         await _db
             .into(_db.equipmentFindings)
             .insertOnConflictUpdate(

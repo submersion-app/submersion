@@ -125,6 +125,36 @@ void main() {
     },
   );
 
+  test('re-emitting an identical finding writes nothing', () async {
+    // The sweep recomputes an item whenever anything about a dive moves,
+    // and most of those recomputes land on the same finding. Rewriting an
+    // identical row would hand every peer the same record to fetch again.
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp1',
+      findings: [incident()],
+      engineVersion: 1,
+      now: t0,
+    );
+    await db.delete(db.syncRecords).go();
+
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp2',
+      findings: [incident()],
+      engineVersion: 1,
+      now: t0.add(const Duration(days: 1)),
+    );
+    expect(await db.select(db.syncRecords).get(), isEmpty);
+    // Still stored, and still the only row: skipping the write must not
+    // let the deletion pass mistake it for a rule that stopped firing.
+    expect(
+      (await repo.getFindings('reg')).single.ruleId,
+      ConditionRuleId.incidentLinked,
+    );
+    expect(await tombstones(), isEmpty);
+  });
+
   test('a review with no findings still records the engine version', () async {
     // An item the engine cleared is the common case. Recording 0 here (the
     // newest version among no rows) made the marker read as stale forever,
