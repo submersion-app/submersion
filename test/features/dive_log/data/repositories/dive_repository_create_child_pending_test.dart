@@ -54,7 +54,8 @@ void main() {
         gasMix: domain.GasMix(o2: 32, he: 0),
         order: 0,
       ),
-      // Empty id: createDive mints one inside the batch closure.
+      // Empty id: createDive mints one, so the pending mark has to carry
+      // the minted value rather than anything the caller supplied.
       domain.DiveTank(id: '', gasMix: domain.GasMix(o2: 21, he: 0), order: 1),
     ],
     weights: const [
