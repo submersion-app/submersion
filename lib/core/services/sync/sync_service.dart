@@ -1570,6 +1570,11 @@ class SyncService {
             records: data.equipmentObservations,
             hasUpdatedAt: true,
           ),
+          (
+            type: 'equipmentFindings',
+            records: data.equipmentFindings,
+            hasUpdatedAt: false,
+          ),
         ];
 
     // Precompute the locally-tombstoned parents this payload will REVIVE (a
@@ -2267,6 +2272,7 @@ class SyncService {
     'emergencyChambers': true,
     'incidents': true,
     'equipmentObservations': true,
+    'equipmentFindings': false,
     'gasSwitches': false,
     'diveCustomFields': false,
     'diveDataSources': false,
@@ -2412,6 +2418,10 @@ class SyncService {
       (field: 'diverId', parent: 'divers', nullable: true),
       (field: 'equipmentId', parent: 'equipment', nullable: false),
       (field: 'diveId', parent: 'dives', nullable: true),
+    ],
+    // v202: condition findings, write-once children of equipment.
+    'equipmentFindings': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
     'diveSafetyReviews': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveSafetyFindings': [(field: 'diveId', parent: 'dives', nullable: false)],

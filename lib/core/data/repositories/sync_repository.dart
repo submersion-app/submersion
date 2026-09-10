@@ -121,6 +121,8 @@ class SyncRepository {
     // findings phase; registering the clock target now keeps the hlc census
     // honest about the table carrying a clock column.
     'equipmentObservations': (table: 'equipment_observations', pk: 'id'),
+    // equipment_findings has no hlc (it rides on the equipment row's clock)
+    // and equipment_condition_reviews is device-local: neither belongs here.
     'mediaSmartAlbums': (table: 'media_smart_albums', pk: 'id'),
   };
 
