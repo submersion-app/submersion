@@ -151,6 +151,34 @@ void main() {
     );
   });
 
+  test('an item with no findings is served from the marker too', () async {
+    // The majority of gear produces nothing. The marker has to record the
+    // engine version even with an empty result, or every read recomputes.
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'clean',
+            name: 'Clean',
+            type: 'bcd',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    final first = await container.read(
+      equipmentConditionProvider('clean').future,
+    );
+    expect(first, isEmpty);
+    expect(engine.calls, 1);
+
+    container.invalidate(equipmentConditionProvider('clean'));
+    final second = await container.read(
+      equipmentConditionProvider('clean').future,
+    );
+    expect(second, isEmpty);
+    expect(engine.calls, 1);
+  });
+
   test('an observation write recomputes', () async {
     final sub = container.listen(equipmentConditionProvider('reg'), (_, _) {});
     addTearDown(sub.close);
