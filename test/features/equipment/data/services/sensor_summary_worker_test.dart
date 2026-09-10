@@ -3,7 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_field_table.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_worker.dart';
 
@@ -107,5 +109,43 @@ void main() {
     expect(summary.maxDepth, isNull);
     expect(summary.cellMetrics, isEmpty);
     expect(summary.scrubberConsumedMinutes, 50);
+  });
+
+  group('forward codec versions', () {
+    /// A blob written by a hypothetical v2 codec: this build has no field
+    /// table for it, but the samples are fine and a newer build reads them.
+    Uint8List futureProfile() =>
+        const ProfileSeriesCodec(fieldTables: {2: kProfileFieldTableV1}).encode(
+          const [
+            ProfileSample(timestamp: 0, depth: 1.0),
+            ProfileSample(timestamp: 60, depth: 9.0),
+          ],
+          version: 2,
+        ).bytes;
+
+    test('a forward-version profile blob is refused, not summarised', () {
+      // Swallowing it would persist an empty summary as current for this
+      // dive's updated_at, and upgrading back to a build that CAN read the
+      // blob would never recompute it: the dive would look done forever.
+      expect(
+        () => computeSensorSummaryFromBlobs(input(primary: [futureProfile()])),
+        throwsA(isA<UnknownSeriesVersionException>()),
+      );
+    });
+
+    test('a corrupt blob is still skipped', () {
+      final summary = computeSensorSummaryFromBlobs(
+        input(
+          primary: [
+            profile(const [
+              ProfileSample(timestamp: 0, depth: 1.0),
+              ProfileSample(timestamp: 60, depth: 9.0),
+            ]),
+            Uint8List.fromList([1, 2, 3]),
+          ],
+        ),
+      );
+      expect(summary.maxDepth, 9.0);
+    });
   });
 }

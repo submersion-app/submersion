@@ -101,4 +101,41 @@ void main() {
     expect(a.cellMetrics, isEmpty);
     expect(a.transmitterGaps, isEmpty);
   });
+
+  group('lenient decoding', () {
+    // A newer peer or a corrupt row must yield null or a default, never a
+    // TypeError: these decoders are documented as lenient and run on the
+    // sync path, where a throw takes the whole batch down.
+    test('CellMetrics survives a wrong type on a counted field', () {
+      final metrics = CellMetrics.fromJson({
+        'slot': 1,
+        'samples': 10,
+        'highPpO2Samples': 'lots',
+        'gainMvPerBar': 'plenty',
+      });
+      expect(metrics, isNotNull);
+      expect(metrics!.slot, 1);
+      expect(metrics.highPpO2Samples, 0);
+      expect(metrics.gainMvPerBar, isNull);
+    });
+
+    test('TransmitterGap survives wrong types on its fields', () {
+      final gap = TransmitterGap.fromJson({
+        'tankId': 't1',
+        'cadenceSeconds': 10,
+        'transmitterSerial': 42,
+        'computerId': {'nested': true},
+        'gapSeconds': 'none',
+        'gapCount': 'none',
+        'longestGapSeconds': 'none',
+        'diveSeconds': 'none',
+      });
+      expect(gap, isNotNull);
+      expect(gap!.tankId, 't1');
+      expect(gap.transmitterSerial, isNull);
+      expect(gap.computerId, isNull);
+      expect(gap.gapSeconds, 0);
+      expect(gap.diveSeconds, 0);
+    });
+  });
 }

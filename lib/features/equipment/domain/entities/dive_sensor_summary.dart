@@ -101,7 +101,7 @@ class CellMetrics extends Equatable {
       samples: samples.toInt(),
       gainMvPerBar: _double(json['gainMvPerBar']),
       p95DivergenceBar: _double(json['p95DivergenceBar']),
-      highPpO2Samples: (json['highPpO2Samples'] as num?)?.toInt() ?? 0,
+      highPpO2Samples: _int(json['highPpO2Samples']),
       lowAtHighFraction: _double(json['lowAtHighFraction']),
       divergenceRanges: ranges is List
           ? [for (final r in ranges) ?DivergenceRange.fromJson(r)]
@@ -173,13 +173,13 @@ class TransmitterGap extends Equatable {
     if (tankId is! String || cadence is! num) return null;
     return TransmitterGap(
       tankId: tankId,
-      transmitterSerial: json['transmitterSerial'] as String?,
-      computerId: json['computerId'] as String?,
+      transmitterSerial: _string(json['transmitterSerial']),
+      computerId: _string(json['computerId']),
       cadenceSeconds: cadence.toDouble(),
-      gapSeconds: (json['gapSeconds'] as num?)?.toInt() ?? 0,
-      gapCount: (json['gapCount'] as num?)?.toInt() ?? 0,
-      longestGapSeconds: (json['longestGapSeconds'] as num?)?.toInt() ?? 0,
-      diveSeconds: (json['diveSeconds'] as num?)?.toInt() ?? 0,
+      gapSeconds: _int(json['gapSeconds']),
+      gapCount: _int(json['gapCount']),
+      longestGapSeconds: _int(json['longestGapSeconds']),
+      diveSeconds: _int(json['diveSeconds']),
     );
   }
 
@@ -272,3 +272,9 @@ List<T> _decodeList<T>(String json, T? Function(Object?) parse) {
 }
 
 double? _double(Object? value) => value is num ? value.toDouble() : null;
+
+/// Counted fields default to zero rather than throwing: a newer peer or a
+/// corrupt row must not take a whole sync batch down with a TypeError.
+int _int(Object? value) => value is num ? value.toInt() : 0;
+
+String? _string(Object? value) => value is String ? value : null;
