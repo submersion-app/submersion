@@ -45,8 +45,12 @@ void main() {
     for (final r in await db.select(db.diveCustomFields).get()) r.id,
   };
 
-  domain.Dive diveWithChildren({String id = 'dv'}) => domain.Dive(
-    id: id,
+  // One id for the dive and for the diveId its weights carry, so the two
+  // cannot drift apart if this helper ever builds a second dive.
+  const diveId = 'dv';
+
+  domain.Dive diveWithChildren() => domain.Dive(
+    id: diveId,
     dateTime: DateTime.utc(2026, 1, 1, 10),
     tanks: const [
       domain.DiveTank(
@@ -61,13 +65,13 @@ void main() {
     weights: const [
       domain.DiveWeight(
         id: 'weight-given',
-        diveId: 'dv',
+        diveId: diveId,
         weightType: WeightType.integrated,
         amountKg: 4,
       ),
       domain.DiveWeight(
         id: '',
-        diveId: 'dv',
+        diveId: diveId,
         weightType: WeightType.belt,
         amountKg: 2,
       ),
