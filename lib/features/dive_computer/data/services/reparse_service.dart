@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_computer/data/services/dive_parser.dart
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 /// Service responsible for applying re-parsed dive computer data back to the
 /// database while respecting the computer-authored vs user-authored field
@@ -416,6 +417,9 @@ class ReparseService {
       }
     }
 
+    // The re-parse rewrote the profile strands; the sensor summary is
+    // derived from them (condition phase 2).
+    if (sources.isNotEmpty) scheduleSensorSummaryRefresh([diveId]);
     return (errors: errors, profilesPreserved: profilesPreserved);
   }
 

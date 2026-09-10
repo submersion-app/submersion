@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -1962,6 +1963,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       );
       // Queue a data-quality rescan of the edited dives (fire-and-forget).
       scheduleQualityScan(ids);
+      scheduleSensorSummaryRefresh(ids);
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       if (widget.embedded) {
@@ -5291,6 +5293,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Queue a data-quality rescan of the saved dive (fire-and-forget).
       if (savedDiveId != null) {
         scheduleQualityScan([savedDiveId]);
+        scheduleSensorSummaryRefresh([savedDiveId]);
       }
 
       if (mounted && savedDiveId != null) {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 /// Global test harness config (run once per test file by `flutter test`).
 ///
@@ -11,7 +12,9 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_serv
 /// tests that is unwanted work that can leave pending async operations. Disable
 /// it by default here; tests that specifically exercise the scheduler
 /// (e.g. quality_scan_service_test) opt back in with
-/// `QualityScanScheduler.enabled = true`.
+/// `QualityScanScheduler.enabled = true`. The sensor summary scheduler
+/// (phase 2 of the equipment condition program) is disabled for the same
+/// reason; `sensor_summary_scheduler_test` opts back in.
 ///
 /// `canShareFiles` reads the host platform, and it is false on Linux because
 /// share_plus cannot put files on the sheet there. Left alone, every test that
@@ -21,6 +24,7 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_serv
 /// against, and let share_file_fallback_test opt out for the other branch.
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   QualityScanScheduler.enabled = false;
+  SensorSummaryScheduler.enabled = false;
   debugCanShareFiles = true;
   await testMain();
 }

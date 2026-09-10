@@ -22,6 +22,7 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_serv
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
@@ -793,6 +794,7 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(netImportedDiveIds);
+    scheduleSensorSummaryRefresh(netImportedDiveIds);
 
     final notices = groupImportNotices(payload.warnings, netDives);
 
