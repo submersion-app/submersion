@@ -111,7 +111,10 @@ class GooglePhotosAuthManager {
   /// registered on the OAuth client and is where the browser lands after
   /// consent.
   Uri beginAuthorization({required String redirectUri}) {
-    if (_clientId.isEmpty) {
+    // Both halves: this manager is the confidential desktop-client path and
+    // always sends `client_secret` at the token endpoint, so an OAuth flow
+    // started without one can only fail later at the exchange.
+    if (_clientId.isEmpty || _clientSecret.isEmpty) {
       throw const GooglePhotosAuthException(
         'Google Photos is not configured in this build.',
       );
