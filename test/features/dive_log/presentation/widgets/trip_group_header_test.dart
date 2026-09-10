@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sections.dart';
@@ -10,6 +11,22 @@ import '../../../../helpers/test_app.dart';
 
 void main() {
   _extentTests();
+
+  // The date range in the header is formatted by intl, which resolves against
+  // Intl.defaultLocale: a PROCESS GLOBAL that app.dart sets from the app
+  // locale. MaterialApp.locale does not touch it, so pinning the widget's
+  // locale is not enough on its own and the 'Jun' assertion below would ride
+  // on intl's implicit en_US fallback, or on whatever another test left
+  // behind. Pin it, and restore it so the global stays contained.
+  //
+  // No initializeDateFormatting needed here, unlike a pure unit test:
+  // GlobalMaterialLocalizations.delegate does that for widget tests.
+  String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
 
   TripSection section({
     int loaded = 2,
