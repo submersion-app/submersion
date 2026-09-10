@@ -10,6 +10,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -394,9 +395,23 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Replace the equipment attached to the plan (Gear & Weights, v104).
+  ///
+  /// Provenance follows the ids so the two never drift (#1487): an id that
+  /// survives keeps its row, a new id starts as a loose row, and a dropped
+  /// id takes its row with it.
   void setEquipmentIds(List<String> ids) {
+    final byId = {for (final p in state.gearProvenance) p.equipmentId: p};
+    setGear(ids, [
+      for (final id in ids) byId[id] ?? GearProvenance(equipmentId: id),
+    ]);
+  }
+
+  /// Replace the gear and its provenance in one step, so the ids and their
+  /// assembly and set pointers never disagree (issue #1487).
+  void setGear(List<String> ids, List<GearProvenance> provenance) {
     state = state.copyWith(
       equipmentIds: ids,
+      gearProvenance: provenance,
       isDirty: true,
       updatedAt: DateTime.now(),
     );

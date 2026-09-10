@@ -13,11 +13,9 @@ import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_section_pairs.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
-import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -127,7 +125,6 @@ import 'package:submersion/features/reef/presentation/widgets/water_conditions_c
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
@@ -4627,15 +4624,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Get collapsed state from provider
     final isExpanded = ref.watch(equipmentSectionExpandedProvider);
 
-    // Collapsed subtitle showing item count
+    // Collapsed subtitle showing the top-level row count as the tree view
+    // places it: an assembly's parts sit inside its row, and an orphaned
+    // row is promoted, so the count matches what expands below (#1487).
     final collapsedSubtitle = context.l10n.diveLog_detail_equipmentCount(
-      dive.equipment.length,
-    );
-
-    final groups = arrangeEquipment(
-      dive.equipment,
-      ref.watch(equipmentArrangementProvider),
-      typeLabel: (type) => type.localizedName(context.l10n),
+      GearTree.topLevelCount(dive.gearProvenance),
     );
 
     return CollapsibleCardSection(
@@ -4658,63 +4651,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       contentBuilder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final group in groups) ...[
-              if (group.type != null) EquipmentGroupHeader(type: group.type!),
-              ...group.items.map((item) {
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.tertiaryContainer,
-                    child: Icon(
-                      equipmentTypeIcon(item.type),
-                      color: Theme.of(context).colorScheme.onTertiaryContainer,
-                      size: 20,
-                    ),
-                  ),
-                  title: Text(item.name),
-                  subtitle: item.brand != null || item.model != null
-                      ? Text(
-                          [
-                            item.brand,
-                            item.model,
-                          ].where((s) => s != null && s.isNotEmpty).join(' '),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        )
-                      : null,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Redundant under a group heading, which already names
-                      // the type.
-                      if (group.type == null)
-                        Text(
-                          item.type.localizedName(context.l10n),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.chevron_right, size: 20),
-                    ],
-                  ),
-                  onTap: () => context.push('/equipment/${item.id}'),
-                );
-              }),
-            ],
-          ],
+        child: DiveGearTreeView(
+          links: dive.gear,
+          onTap: (item) => context.push('/equipment/${item.id}'),
         ),
       ),
     );

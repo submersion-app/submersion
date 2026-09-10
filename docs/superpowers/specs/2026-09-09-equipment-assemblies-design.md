@@ -1,6 +1,7 @@
 # Equipment Assemblies: Components Within Equipment
 
-Status: proposed
+Status: PR 1 (equipment side) merged as #1696 at schema v203; PR 2 (dive
+side) in progress
 Date: 2026-09-09
 Issue: #1487
 Related: `2026-07-13-default-geofenced-equipment-sets-design.md`,
@@ -351,9 +352,26 @@ columns.
 
 ### 4. Rendering on dives
 
+**Combining with the gear arrangement.** After this spec was written, the
+gear arrangement (issue #1486 and #1576, landed as PR #1680) started
+ordering every gear list on a dive by a diver preference: group by type on
+or off, a type order, and an item sort. The two combine by layering, decided
+on 2026-09-09:
+
+- Rows are first bucketed by the set they came from, loose gear last.
+- Inside each bucket the arrangement orders, and optionally type-groups, the
+  top-level rows only. An assembly is one row placed by its own type.
+- An assembly expands in place to its parts in template order (role and
+  sort order), which the arrangement never touches.
+
+The preference stays fully honoured; sets and assemblies are structure, not
+sort keys. The same layering applies to the edit page, the bulk-edit list,
+the planner's rig composer, and the PDF logbook.
+
 **Dive detail, Equipment section.** The section stays a
 `CollapsibleCardSection`; its content is a `DiveGearTreeView` built from
-`GearTree.build(dive.gear)`:
+`GearTree.build(dive.gear)`, with each bucket's top-level rows passed through
+`arrangeEquipment`:
 
 - Set groups first. A set header row (set icon, name, item count)
   introduces every row carrying that set id, and tapping it opens the set

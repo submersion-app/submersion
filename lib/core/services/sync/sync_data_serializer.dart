@@ -6511,6 +6511,7 @@ class SyncDataSerializer {
       'tissueColorScheme': 'classic',
       'tissueVizMode': 'heatMap',
       'showMapBackgroundOnDiveCards': false,
+      'groupTripsInDiveList': false,
       'showMapBackgroundOnSiteCards': false,
       // Dive profile markers
       'showMaxDepthMarker': true,

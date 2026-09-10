@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/weight_planner/data/repositories/weight_history_repository.dart';
 
 import '../../../helpers/test_database.dart';
@@ -54,7 +55,7 @@ void main() {
           diverId: diverId,
           dateTime: DateTime(2026, 2, 1),
           waterType: WaterType.salt,
-          equipment: [suit],
+          gear: looseGear([suit]),
           weights: const [
             DiveWeight(
               id: 'w1',
@@ -200,7 +201,7 @@ void main() {
             id: '',
             diverId: diverId,
             dateTime: DateTime(2026, 1, 1),
-            equipment: [plate, sta],
+            gear: looseGear([plate, sta]),
           ),
         );
 
@@ -227,7 +228,7 @@ void main() {
           id: '',
           diverId: diverId,
           dateTime: DateTime(2026, 1, 1),
-          equipment: [belt],
+          gear: looseGear([belt]),
           weights: const [
             DiveWeight(
               id: 'w1',
@@ -253,7 +254,7 @@ void main() {
           id: '',
           diverId: diverId,
           dateTime: DateTime(2026, 1, 1),
-          equipment: [bare],
+          gear: looseGear([bare]),
         ),
       );
       expect(await repository.observationsForDiver(diverId), isEmpty);
@@ -279,7 +280,7 @@ void main() {
           id: '',
           diverId: diverId,
           dateTime: DateTime(2026, 1, 1),
-          equipment: [bcd],
+          gear: looseGear([bcd]),
         ),
       );
       expect(await repository.observationsForDiver(diverId), isEmpty);

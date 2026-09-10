@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 
 /// End-to-end reconstruction of the rig from issue #1103: a cold-water
 /// backplate-and-wing diver whose entire ~30 lb of ballast is built into
@@ -104,7 +105,7 @@ void main() {
     id: 'd1',
     dateTime: DateTime(2026, 8, 1),
     waterType: WaterType.salt,
-    equipment: rig,
+    gear: looseGear(rig),
     profile: profile(),
     tanks: [
       // AL80 run from 3000 psi down to the reported 642 psi.

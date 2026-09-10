@@ -34,6 +34,9 @@ class _StubDiveRepository extends Fake implements DiveRepository {
   Stream<void> watchDivesChanges() => const Stream.empty();
 
   @override
+  Stream<void> watchDiveListChanges() => const Stream.empty();
+
+  @override
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
     String? diverId,

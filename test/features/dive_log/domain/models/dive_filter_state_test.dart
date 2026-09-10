@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 
 /// Helper to create a minimal Dive for filter testing.
 Dive _makeDive({
@@ -37,7 +38,7 @@ Dive _makeDive({
     tripId: tripId,
     tanks: const [],
     profile: profile,
-    equipment: equipment,
+    gear: looseGear(equipment),
     notes: '',
     photoIds: const [],
     sightings: const [],

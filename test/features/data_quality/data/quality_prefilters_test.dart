@@ -42,11 +42,14 @@ void main() {
         'source_conflict',
       }),
     );
-    // v2 records `sameComputer` on every duplicate pair. The bump is what
-    // raises the "new checks are available" banner, so an existing library
-    // gets the flag on a rescan instead of keeping a Consolidate button that
-    // cannot work.
-    expect(qualityDetectorVersions()['duplicate'], 3);
+    // Each bump is what raises the "new checks are available" banner, so an
+    // existing library gets the new fact on a rescan rather than keeping a
+    // button the fact would have withheld. v2 records `sameComputer` on every
+    // duplicate pair, so a Consolidate that cannot work is not offered. v4
+    // withholds `redundantDiveId` when the copy it would delete carries the
+    // diver's own entries (#1720), and the repair mapping refuses to act on a
+    // pre-v4 finding, so the rescan is what restores the repair.
+    expect(qualityDetectorVersions()['duplicate'], 4);
   });
 
   test('profile detectors only get dives that have profiles', () async {

@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -86,7 +87,7 @@ void main() {
         maxDepth: 12,
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         notes: '',
         photoIds: const [],
         sightings: const [],
@@ -138,7 +139,7 @@ void main() {
           order: 1,
         ),
       ],
-      equipment: [regulator, mask],
+      gear: looseGear([regulator, mask]),
       notes: 'Two eagle rays at the wall',
       rating: 4,
       photoIds: const [],

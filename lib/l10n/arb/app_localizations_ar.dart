@@ -13,6 +13,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر فتح المتصفح. استخدم نسخ الرابط والصق العنوان في متصفحك.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'إضافة مكوّن';
 
   @override
@@ -36,6 +41,46 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.';
+
+  @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تحديث $count غطسات أيضًا',
+      one: 'تحديث غطسة واحدة أيضًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'إضافة الجزء الجديد إلى تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'إزالة الجزء من تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'تبديل الجزء في تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'من الآن فصاعدًا';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'هذه التجميعة موجودة في $count غطسات مسجلة.',
+      one: 'هذه التجميعة موجودة في غطسة مسجلة واحدة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle => 'تحديث الغطسات السابقة؟';
 
   @override
   String equipment_components_partOf(Object name) {
@@ -70,6 +115,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد معدات نشطة أخرى يمكن إضافتها هنا.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'استبدال';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'استبدال بـ';
+
+  @override
   String get equipment_components_pickerTitle => 'إضافة مكوّنات';
 
   @override
@@ -77,6 +128,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'إعادة ترتيب';
+
+  @override
+  String get equipment_components_replace => 'استبدال المكوّن';
 
   @override
   String get equipment_components_role => 'الدور';
@@ -2731,6 +2785,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'بدء';
+
+  @override
+  String get diveLog_gear_collapse => 'إخفاء الأجزاء';
+
+  @override
+  String get diveLog_gear_expand => 'إظهار الأجزاء';
+
+  @override
+  String get diveLog_gear_removeAssembly => 'إزالة التجميعة وأجزائها';
+
+  @override
+  String get diveLog_gear_removePart => 'إزالة الجزء';
+
+  @override
+  String get diveLog_gear_removeSet => 'إزالة الطقم من هذه الغطسة';
+
+  @override
+  String get diveLog_gear_unknownSet => 'طقم';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -6918,6 +6990,57 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'البحث في الغوصات...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'تجميع الرحلات متوقف أثناء الترتيب حسب $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'الترتيب حسب التاريخ';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'تجميع الرحلات';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'توسيع كل الرحلات';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => 'طي كل الرحلات';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'رحلة';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصات',
+      one: 'غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded من $total غوصات';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return 'إظهار غوصات $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return 'إخفاء غوصات $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return 'فتح رحلة $tripName';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'عرض أول $limit نتيجة مطابقة. حسّن البحث لتضييق النتائج.';
   }
@@ -7621,13 +7744,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'تعيين لحساب He% تلقائياً';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '(تم استخدام $amount)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1.4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -10412,6 +10540,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_retired => 'متقاعد';
+
+  @override
+  String get enum_equipmentStatus_sold => 'تم بيعه';
 
   @override
   String get enum_equipmentType_backplate => 'لوحة ظهر';
@@ -21013,16 +21144,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'القادمة';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'من الشاطئ';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'قارب إقامة';
 
   @override
-  String get trips_type_resort => 'Resort';
+  String get trips_type_resort => 'منتجع';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'رحلة يومية';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

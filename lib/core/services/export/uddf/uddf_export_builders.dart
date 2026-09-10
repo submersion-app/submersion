@@ -19,8 +19,10 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -871,6 +873,9 @@ class UddfExportBuilders {
     );
   }
 
+  static bool _hasProvenance(GearLink g) =>
+      g.viaEquipmentId != null || g.viaSetId != null;
+
   static void buildApplicationData(
     XmlBuilder builder, {
     List<EquipmentItem>? equipment,
@@ -889,9 +894,20 @@ class UddfExportBuilders {
     List<Course>? courses,
     List<DiveSourceExport>? dataSources,
     Map<String, String?> dataSourceDumps = const {},
+    List<EquipmentComponent>? components,
+    List<Dive>? gearLinkDives,
   }) {
+    // Gear provenance per dive (issue #1487): only rows attached through
+    // an assembly or applied from a set are worth a link; the standard
+    // <equipmentused> list already names every item.
+    final linkDives = [
+      for (final d in gearLinkDives ?? const <Dive>[])
+        if (d.gear.any(_hasProvenance)) d,
+    ];
     final hasData =
         (equipment?.isNotEmpty ?? false) ||
+        (components?.isNotEmpty ?? false) ||
+        linkDives.isNotEmpty ||
         (certifications?.isNotEmpty ?? false) ||
         (diveCenters?.isNotEmpty ?? false) ||
         (species?.isNotEmpty ?? false) ||
@@ -1364,6 +1380,63 @@ class UddfExportBuilders {
                                   nest: 'equip_$itemId',
                                 );
                               }
+                            },
+                          );
+                        }
+                      },
+                    );
+                  }
+                },
+              );
+            }
+
+            // Assembly templates (issue #1487): one element per
+            // equipment_components row, refs prefixed like every other
+            // private-block reference.
+            if (components != null && components.isNotEmpty) {
+              builder.element(
+                'components',
+                nest: () {
+                  for (final c in components) {
+                    builder.element(
+                      'component',
+                      attributes: {
+                        'parent': 'equip_${c.parentEquipmentId}',
+                        'component': 'equip_${c.componentEquipmentId}',
+                        'order': '${c.sortOrder}',
+                      },
+                      nest: () {
+                        if (c.role.isNotEmpty) {
+                          builder.element('role', nest: c.role);
+                        }
+                      },
+                    );
+                  }
+                },
+              );
+            }
+
+            // Gear provenance per dive: the assembly a row was attached
+            // through and the set that was applied.
+            if (linkDives.isNotEmpty) {
+              builder.element(
+                'gearlinks',
+                nest: () {
+                  for (final d in linkDives) {
+                    builder.element(
+                      'dive',
+                      attributes: {'ref': 'dive_${d.id}'},
+                      nest: () {
+                        for (final g in d.gear) {
+                          if (!_hasProvenance(g)) continue;
+                          builder.element(
+                            'link',
+                            attributes: {
+                              'item': 'equip_${g.item.id}',
+                              if (g.viaEquipmentId != null)
+                                'via': 'equip_${g.viaEquipmentId}',
+                              if (g.viaSetId != null)
+                                'set': 'set_${g.viaSetId}',
                             },
                           );
                         }

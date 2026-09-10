@@ -53,7 +53,13 @@ class DiveEquipmentDefaulter {
       );
       if (best == null || best.equipmentIds.isEmpty) return false;
 
-      await _dives.bulkAddEquipment([diveId], best.equipmentIds);
+      // Tag every row with the set that won so the dive remembers it and
+      // the pages can group by it (issue #1487).
+      await _dives.bulkAddEquipment(
+        [diveId],
+        best.equipmentIds,
+        viaSetId: best.id,
+      );
       SyncEventBus.notifyLocalChange();
       return true;
     } catch (_) {

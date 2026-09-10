@@ -216,6 +216,51 @@ class EquipmentComponentRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Swaps the item on one template row for [newComponentId], keeping the
+  /// row's role and order (issue #1487, replace a part). Cycle-guarded
+  /// like an add; the unique (parent, component) constraint rejects a
+  /// swap onto a part the assembly already has.
+  Future<EquipmentComponent> replaceComponent(
+    String id,
+    String newComponentId,
+  ) async {
+    final row = await (_db.select(
+      _db.equipmentComponents,
+    )..where((t) => t.id.equals(id))).getSingle();
+    if (await wouldCreateCycle(
+      parentId: row.parentEquipmentId,
+      componentId: newComponentId,
+    )) {
+      throw EquipmentComponentCycleException(
+        row.parentEquipmentId,
+        newComponentId,
+      );
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.equipmentComponents,
+    )..where((t) => t.id.equals(id))).write(
+      EquipmentComponentsCompanion(
+        componentEquipmentId: Value(newComponentId),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: entityType,
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+    _log.info(
+      'Replaced ${row.componentEquipmentId} with $newComponentId under '
+      '${row.parentEquipmentId}',
+    );
+    final updated = await (_db.select(
+      _db.equipmentComponents,
+    )..where((t) => t.id.equals(id))).getSingle();
+    return _map(updated);
+  }
+
   /// Rewrites sort_order so [orderedIds] (component row ids under
   /// [parentId]) run 0..n-1 in the given sequence.
   Future<void> reorder(String parentId, List<String> orderedIds) async {

@@ -61,8 +61,14 @@ class CsvExportService {
   }
 
   /// Export equipment to CSV format and share via system sheet.
-  Future<String> exportEquipmentToCsv(List<EquipmentItem> equipment) async {
-    final csvData = generateEquipmentCsvContent(equipment);
+  Future<String> exportEquipmentToCsv(
+    List<EquipmentItem> equipment, {
+    Map<String, List<String>> componentNames = const {},
+  }) async {
+    final csvData = generateEquipmentCsvContent(
+      equipment,
+      componentNames: componentNames,
+    );
     return saveAndShareFile(csvData, 'equipment_export.csv', 'text/csv');
   }
 
@@ -242,7 +248,12 @@ class CsvExportService {
   }
 
   /// Generate CSV content for equipment (without sharing).
-  String generateEquipmentCsvContent(List<EquipmentItem> equipment) {
+  /// [componentNames] maps an assembly's id to its parts' names in template
+  /// order (issue #1487); items absent from it get an empty cell.
+  String generateEquipmentCsvContent(
+    List<EquipmentItem> equipment, {
+    Map<String, List<String>> componentNames = const {},
+  }) {
     final headers = [
       'Name',
       'Type',
@@ -257,6 +268,7 @@ class CsvExportService {
       'Buoyancy (kg)',
       'Dry Weight (kg)',
       'Attributes',
+      'Components',
       'Active',
       'Notes',
     ];
@@ -301,6 +313,7 @@ class CsvExportService {
             )
             .map((a) => '${a.key}=${a.valueText ?? a.valueNum}')
             .join('; '),
+        componentNames[item.id]?.join('; ') ?? '',
         item.isActive ? 'Yes' : 'No',
         item.notes.replaceAll('\n', ' '),
       ]);
@@ -348,8 +361,14 @@ class CsvExportService {
   }
 
   /// Save equipment CSV to a user-selected location.
-  Future<String?> saveEquipmentCsvToFile(List<EquipmentItem> equipment) async {
-    final csvContent = generateEquipmentCsvContent(equipment);
+  Future<String?> saveEquipmentCsvToFile(
+    List<EquipmentItem> equipment, {
+    Map<String, List<String>> componentNames = const {},
+  }) async {
+    final csvContent = generateEquipmentCsvContent(
+      equipment,
+      componentNames: componentNames,
+    );
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'equipment_export_$dateStr.csv';
 

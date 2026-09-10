@@ -27,6 +27,7 @@ Certification _makeCert({
   CertificationLevel? level,
   DateTime? issueDate,
   CertificationAgency agency = CertificationAgency.padi,
+  List<CertificationCredential> additionalCredentials = const [],
 }) {
   return Certification(
     id: 'c1',
@@ -34,6 +35,7 @@ Certification _makeCert({
     agency: agency,
     level: level,
     issueDate: issueDate,
+    additionalCredentials: additionalCredentials,
     createdAt: _now,
     updatedAt: _now,
   );
@@ -128,6 +130,29 @@ void main() {
       expect(find.text('Divemaster'), findsOneWidget);
       expect(_subtitleOf(tester, find.byType(ListTile)), 'PADI');
     });
+
+    testWidgets('a multi-credential card names every recognition', (
+      tester,
+    ) async {
+      await _pumpField(
+        tester,
+        _makeCert(
+          name: '',
+          agency: CertificationAgency.ffessm,
+          level: CertificationLevel.ffessmN1,
+          additionalCredentials: const [
+            CertificationCredential(
+              agency: CertificationAgency.cmas,
+              level: CertificationLevel.cmas1StarDiver,
+            ),
+          ],
+        ),
+      );
+
+      final subtitle = _subtitleOf(tester, find.byType(ListTile));
+      expect(subtitle, contains('FFESSM'));
+      expect(subtitle, contains('CMAS'));
+    });
   });
 
   group('picker sheet', () {
@@ -156,6 +181,34 @@ void main() {
       ]);
 
       expect(_subtitleOf(tester, find.byType(ListTile)), 'PADI - Divemaster');
+    });
+
+    testWidgets('a multi-credential card lists every recognition in the row', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+
+      await _pumpSheet(tester, [
+        _makeCert(
+          name: '',
+          agency: CertificationAgency.ffessm,
+          level: CertificationLevel.ffessmN1,
+          additionalCredentials: const [
+            CertificationCredential(
+              agency: CertificationAgency.cmas,
+              level: CertificationLevel.cmas1StarDiver,
+            ),
+          ],
+        ),
+      ]);
+
+      final subtitle = _subtitleOf(tester, find.byType(ListTile));
+      expect(subtitle, contains('FFESSM'));
+      expect(subtitle, contains('CMAS'));
+      // The a11y label also names the extra recognition.
+      expect(find.bySemanticsLabel(RegExp('CMAS')), findsWidgets);
+
+      handle.dispose();
     });
 
     testWidgets('the accessibility label names the certification too', (

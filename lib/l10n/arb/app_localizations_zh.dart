@@ -13,6 +13,11 @@ class AppLocalizationsZh extends AppLocalizations {
       '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name（+$count）';
+  }
+
+  @override
   String get equipment_components_add => '添加组件';
 
   @override
@@ -34,6 +39,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_components_empty => '暂无组件。请添加构成此装备的部件。';
+
+  @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '同时更新 $count 次潜水',
+      one: '同时更新 1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded => '也将新部件添加到这些潜水，还是仅从现在起？';
+
+  @override
+  String get equipment_components_historyAskRemoved => '也从这些潜水中移除该部件，还是仅从现在起？';
+
+  @override
+  String get equipment_components_historyAskReplaced => '也在这些潜水中更换该部件，还是仅从现在起？';
+
+  @override
+  String get equipment_components_historyFutureOnly => '从现在起';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此组合出现在 $count 次已记录的潜水中。',
+      one: '此组合出现在 1 次已记录的潜水中。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle => '更新过去的潜水？';
 
   @override
   String equipment_components_partOf(Object name) {
@@ -67,6 +109,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_components_pickerEmpty => '没有其他可添加的在用装备。';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => '更换';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => '更换为';
+
+  @override
   String get equipment_components_pickerTitle => '添加组件';
 
   @override
@@ -74,6 +122,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => '调整顺序';
+
+  @override
+  String get equipment_components_replace => '更换组件';
 
   @override
   String get equipment_components_role => '用途';
@@ -2628,6 +2679,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get preDive_start_begin => '开始';
+
+  @override
+  String get diveLog_gear_collapse => '隐藏部件';
+
+  @override
+  String get diveLog_gear_expand => '显示部件';
+
+  @override
+  String get diveLog_gear_removeAssembly => '移除组合及其部件';
+
+  @override
+  String get diveLog_gear_removePart => '移除部件';
+
+  @override
+  String get diveLog_gear_removeSet => '从本次潜水移除套装';
+
+  @override
+  String get diveLog_gear_unknownSet => '套装';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist => '开始潜前检查清单';
@@ -6704,6 +6773,57 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => '搜索潜水...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return '按 $sortName 排序时，旅行分组已关闭';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => '按日期排序';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => '按旅行分组';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => '展开所有旅行';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips => '折叠所有旅行';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => '旅行';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$total 次中的 $loaded 次潜水';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return '显示 $tripName 的潜水';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return '隐藏 $tripName 的潜水';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return '打开旅行 $tripName';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return '仅显示前 $limit 条匹配结果。请细化搜索以缩小范围。';
   }
@@ -7395,13 +7515,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_mndHelper => '设置自动计算 He%';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return '最大作业深度：$depth（氧分压 1.4）';
+  String diveLog_tank_gasUsed(String amount) {
+    return '（已用 $amount）';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return '最大作业深度：$mod（氧分压 1.4）| 最大等效氮深：$mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return '最大作业深度：$depth（氧分压 $ppO2）';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return '最大作业深度：$mod（氧分压 $ppO2）| 最大等效氮深：$mnd';
   }
 
   @override
@@ -10109,6 +10234,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_retired => '已退役';
+
+  @override
+  String get enum_equipmentStatus_sold => '已售出';
 
   @override
   String get enum_equipmentType_backplate => '背板';
@@ -20301,7 +20429,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_type_resort => '度假村';
 
   @override
-  String get trips_type_dayTrip => '天旅行';
+  String get trips_type_dayTrip => '一日游';
 
   @override
   String get trips_edit_label_tripType => '旅行类型';

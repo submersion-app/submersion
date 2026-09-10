@@ -185,6 +185,7 @@ void main() {
         int durationSeconds = 2100,
         double maxDepth = 20,
         String? serial = 'S1',
+        bool? carriesDiverData = false,
       }) => QualityNeighbor(
         id: id,
         entryTime: entry.add(const Duration(minutes: 1)),
@@ -192,6 +193,7 @@ void main() {
         durationSeconds: durationSeconds,
         computerSerial: serial,
         sampleCount: samples,
+        carriesDiverData: carriesDiverData,
       );
 
       test('names the fragment when the other recording dominates', () {
@@ -433,6 +435,104 @@ void main() {
         expect(fromA.single.id, fromB.single.id);
         expect(fromA.single.params['redundantDiveId'], 'dB');
         expect(fromB.single.params['redundantDiveId'], 'dB');
+      });
+
+      // Issue #1720. The reporter had logged gear onto an older, shorter
+      // download and then re-downloaded the dive; the fresh copy recorded
+      // more, so the poorer RECORDING was the richer LOG and naming it
+      // redundant offered to delete the diver's work. Recording richness
+      // alone must not decide that.
+      test('withholds the name when the dominated copy carries diver data', () {
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dA',
+            entry: entry,
+            maxDepth: 20,
+            runtime: const Duration(minutes: 35),
+            serial: 'S1',
+          ),
+          primarySampleCount: 420,
+          neighbors: [
+            neighbor(
+              id: 'dB',
+              samples: 3,
+              durationSeconds: 13,
+              maxDepth: 1.7,
+              carriesDiverData: true,
+            ),
+          ],
+        );
+        final params = det.detect(ctx).single.params;
+        expect(params['sameComputer'], isTrue);
+        expect(params.containsKey('redundantDiveId'), isFalse);
+      });
+
+      test('withholds when the scanned dive is the dominated side and '
+          'carries diver data', () {
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dB',
+            entry: entry,
+            maxDepth: 1.7,
+            runtime: const Duration(seconds: 13),
+            serial: 'S1',
+          ),
+          primarySampleCount: 3,
+          carriesDiverData: true,
+          neighbors: [neighbor(id: 'dA', samples: 420, durationSeconds: 2100)],
+        );
+        expect(
+          det.detect(ctx).single.params.containsKey('redundantDiveId'),
+          isFalse,
+        );
+      });
+
+      // Only the copy about to be deleted matters: the survivor keeps
+      // whatever it holds, so its own entries are no reason to withhold.
+      test('the survivor carrying diver data does not withhold the name', () {
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dA',
+            entry: entry,
+            maxDepth: 20,
+            runtime: const Duration(minutes: 35),
+            serial: 'S1',
+          ),
+          primarySampleCount: 420,
+          carriesDiverData: true,
+          neighbors: [
+            neighbor(id: 'dB', samples: 3, durationSeconds: 13, maxDepth: 1.7),
+          ],
+        );
+        expect(det.detect(ctx).single.params['redundantDiveId'], 'dB');
+      });
+
+      // This verdict deletes a dive, so "nobody checked" must not read as
+      // "nothing to lose" -- the same rule the recording metrics follow.
+      test('withholds when the dominated copy\'s diver data is unknown', () {
+        final ctx = makeContext(
+          dive: makeTestDive(
+            id: 'dA',
+            entry: entry,
+            maxDepth: 20,
+            runtime: const Duration(minutes: 35),
+            serial: 'S1',
+          ),
+          primarySampleCount: 420,
+          neighbors: [
+            neighbor(
+              id: 'dB',
+              samples: 3,
+              durationSeconds: 13,
+              maxDepth: 1.7,
+              carriesDiverData: null,
+            ),
+          ],
+        );
+        expect(
+          det.detect(ctx).single.params.containsKey('redundantDiveId'),
+          isFalse,
+        );
       });
     });
 
