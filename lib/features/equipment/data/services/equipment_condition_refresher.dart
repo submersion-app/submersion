@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_finding.
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
 import 'package:submersion/features/equipment/domain/services/condition_input_fingerprint.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_condition_engine.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
@@ -91,6 +92,7 @@ class EquipmentConditionRefresher {
       children: children,
       thresholds: thresholds,
       engineVersion: EquipmentConditionEngine.engineVersion,
+      summaryVersion: DiveSensorSummaryService.version,
     );
     final review = await _findings.getReview(item.id);
     final current =
