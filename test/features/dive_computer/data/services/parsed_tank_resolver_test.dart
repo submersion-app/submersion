@@ -417,8 +417,8 @@ void main() {
         expect(tanks.firstWhere((t) => t.o2Percent == 99.0).role, 'deco');
       });
 
-      test('sensorless CCR: reported gas usage maps oxygen/diluent/sidemount '
-          'directly, regardless of O2%', () {
+      test('sensorless CCR: reported gas usage maps oxygen/diluent directly '
+          'and sidemount to back gas, regardless of O2%', () {
         final parsed = makeParsedDive(
           diveMode: 'ccr',
           gasMixes: [

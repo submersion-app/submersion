@@ -209,9 +209,12 @@ String _inferRole(int? usage, double o2Percent, double hePercent) {
 /// Role for each of [gasMixes], in order, on a sensorless (tankless) dive.
 ///
 /// A gas whose usage the computer reported directly on the gas mix itself
-/// (`dc_gasmix_t.usage`, independent of any tank/transmitter record) keeps
-/// that role regardless of dive mode: oxygen, diluent or sidemount is
-/// authoritative device data.
+/// (`dc_gasmix_t.usage`, independent of any tank/transmitter record) is
+/// authoritative device data, regardless of dive mode: oxygen maps to
+/// [TankRole.oxygenSupply], diluent to [TankRole.diluent]. Sidemount maps to
+/// [TankRole.backGas] rather than [TankRole.sidemountLeft]/`Right` -- the
+/// flag only says the gas is on a sidemount cylinder, not which side, so it
+/// cannot pick between the two.
 ///
 /// For a dive recognized as CCR, the gases left with no reported usage are
 /// the open-circuit bailout candidates and are ranked against each other
