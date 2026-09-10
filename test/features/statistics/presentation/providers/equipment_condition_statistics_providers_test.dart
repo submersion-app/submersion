@@ -163,6 +163,61 @@ void main() {
     },
   );
 
+  test('findings on another diver\'s gear are not counted', () async {
+    // equipment_findings has no diver_id, so an unscoped read pulls in
+    // every profile on the device and reports a count this diver has no
+    // way to act on.
+    for (final id in ['me', 'other']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+    final repo = EquipmentRepository();
+    final mine = await repo.createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'My reg',
+        type: EquipmentType.regulator,
+        diverId: 'me',
+      ),
+    );
+    final theirs = await repo.createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'Their reg',
+        type: EquipmentType.regulator,
+        diverId: 'other',
+      ),
+    );
+    final findings = EquipmentFindingsRepository(db: db);
+    for (final id in [mine.id, theirs.id]) {
+      await findings.saveReview(
+        equipmentId: id,
+        inputFingerprint: 'fp-$id',
+        findings: [finding(id, ConditionRuleId.issueRecurring)],
+        engineVersion: 1,
+        now: DateTime(2026, 2),
+      );
+    }
+
+    final scoped = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => settings),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+      ],
+    );
+    addTearDown(scoped.dispose);
+    final ranking = await scoped.read(findingsByRuleProvider.future);
+    expect(ranking.single.count, 1);
+  });
+
   test('issue tags rank by how often they were reported', () async {
     final observations = EquipmentObservationRepository(db: db);
     await observations.create(

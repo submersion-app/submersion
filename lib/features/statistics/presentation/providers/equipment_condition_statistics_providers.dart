@@ -67,6 +67,11 @@ final exposureRankingProvider = FutureProvider<List<RankingItem>>((ref) async {
 
 /// Undismissed findings per rule after the display filters, worst-first
 /// by count. The id is the rule's dbValue so a row can be traced.
+///
+/// Scoped to the diver's own active gear: `equipment_findings` carries no
+/// diver of its own, so an unscoped read would count another profile's
+/// items, and retired gear would report findings nobody is going to act
+/// on.
 final findingsByRuleProvider = FutureProvider<List<RankingItem>>((ref) async {
   final (enabled, disabled) = ref.watch(
     settingsProvider.select(
@@ -74,11 +79,18 @@ final findingsByRuleProvider = FutureProvider<List<RankingItem>>((ref) async {
     ),
   );
   final findings = ref.watch(equipmentFindingsRepositoryProvider);
+  final repository = ref.watch(equipmentRepositoryProvider);
   ref.invalidateSelfWhen(findings.watchChanges());
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   if (!enabled) return const [];
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final mine = {
+    for (final e in await repository.getActiveEquipment(diverId: diverId)) e.id,
+  };
   final l10n = ref.watch(appLocalizationsProvider);
   final counts = <ConditionRuleId, int>{};
   for (final f in await findings.getAllUndismissed()) {
+    if (!mine.contains(f.equipmentId)) continue;
     if (disabled.contains(f.ruleId.dbValue)) continue;
     counts[f.ruleId] = (counts[f.ruleId] ?? 0) + 1;
   }

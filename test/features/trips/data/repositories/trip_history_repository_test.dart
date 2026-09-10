@@ -35,6 +35,7 @@ void main() {
     String id,
     DateTime at, {
     String? tripId,
+    String? diverId,
     String mode = 'oc',
     int runtime = 3600,
     double? scrubber,
@@ -49,6 +50,7 @@ void main() {
             updatedAt: 1,
           ).copyWith(
             tripId: Value(tripId),
+            diverId: Value(diverId),
             diveMode: Value(mode),
             runtime: Value(runtime),
           ),
@@ -123,5 +125,61 @@ void main() {
       limit: 1,
     );
     expect(one.single.scrubberMinutes, 55);
+  });
+
+  group('shared trips', () {
+    Future<void> diver(String id) => db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(id: id, name: id, createdAt: 1, updatedAt: 1),
+        );
+
+    test('counts only the requested diver\'s dives on a shared trip', () async {
+      await diver('me');
+      await diver('buddy');
+      await db
+          .into(db.trips)
+          .insert(
+            TripsCompanion.insert(
+              id: 'shared',
+              name: 'shared',
+              startDate: DateTime(2025, 1, 1).millisecondsSinceEpoch,
+              endDate: DateTime(2025, 1, 3).millisecondsSinceEpoch,
+              createdAt: 1,
+              updatedAt: 1,
+            ).copyWith(diverId: const Value('me')),
+          );
+      // Two of mine on one day, four of my buddy's across two.
+      await dive(
+        'm1',
+        DateTime(2025, 1, 1, 9),
+        tripId: 'shared',
+        diverId: 'me',
+      );
+      await dive(
+        'm2',
+        DateTime(2025, 1, 1, 14),
+        tripId: 'shared',
+        diverId: 'me',
+      );
+      for (final (i, at) in [
+        DateTime(2025, 1, 1, 10),
+        DateTime(2025, 1, 1, 15),
+        DateTime(2025, 1, 2, 10),
+        DateTime(2025, 1, 2, 15),
+      ].indexed) {
+        await dive('b$i', at, tripId: 'shared', diverId: 'buddy');
+      }
+
+      // Mine: 2 dives on 1 day. Counting the buddy's would give 6 over 2.
+      expect(
+        await repo.divesPerDiveDay(diverId: 'me', before: DateTime(2026)),
+        [2],
+      );
+      expect(
+        await repo.divesPerDiveDay(diverId: 'buddy', before: DateTime(2026)),
+        [2],
+      );
+    });
   });
 }

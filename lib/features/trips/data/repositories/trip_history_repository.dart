@@ -13,14 +13,19 @@ class TripHistoryRepository {
   AppDatabase get _db => _dbOverride ?? DatabaseService.instance.database;
 
   /// Dives per dive day for the diver's most recent [limit] trips that
-  /// ended before [before] and had at least one dive, newest first. A
-  /// dive day is a distinct calendar date with a dive on it.
+  /// ended before [before] and carry at least one dive of THEIRS, newest
+  /// first. A dive day is a distinct calendar date they dived on. Trips
+  /// are shared, so both the count and the days come from this diver's
+  /// dives alone.
   Future<List<double>> divesPerDiveDay({
     String? diverId,
     required DateTime before,
     int limit = 3,
   }) async {
-    final diverFilter = diverId != null ? 'AND t.diver_id = ?' : '';
+    // On the DIVE, not the trip: a shared trip carries other divers'
+    // dives too, and counting those would report a rate this diver never
+    // swam.
+    final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
     final rows = await _db
         .customSelect(
           '''
