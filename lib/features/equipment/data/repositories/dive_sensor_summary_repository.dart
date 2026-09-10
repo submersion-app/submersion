@@ -35,6 +35,28 @@ class DiveSensorSummaryRepository {
     return row == null ? null : _toDomain(row);
   }
 
+  /// The stored rows for [diveIds], keyed by dive, in chunks that stay
+  /// under SQLite's bound-variable cap. Dives without a row are absent;
+  /// nothing is computed here (condition phase 3b, the engine's read).
+  Future<Map<String, DiveSensorSummary>> getSummaries(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const {};
+    final unique = diveIds.toSet().toList();
+    const chunk = 500;
+    final result = <String, DiveSensorSummary>{};
+    for (var start = 0; start < unique.length; start += chunk) {
+      final end = start + chunk < unique.length ? start + chunk : unique.length;
+      final rows = await (_db.select(
+        _db.diveSensorSummaries,
+      )..where((t) => t.diveId.isIn(unique.sublist(start, end)))).get();
+      for (final row in rows) {
+        result[row.diveId] = _toDomain(row);
+      }
+    }
+    return result;
+  }
+
   /// The stored row when its engine version and source stamp match the
   /// dive, else a fresh computation, stored before it is returned. Null
   /// when [diveId] does not exist. [force] recomputes regardless.

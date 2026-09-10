@@ -59,6 +59,18 @@ class TransmitterRepository {
     return row == null ? null : _map(row);
   }
 
+  /// The normalised serials of every registry row that names [equipmentId]
+  /// (condition phase 3b): the condition engine keys a transmitter item's
+  /// gap entries on them.
+  Future<Set<String>> getSerialsForEquipment(String equipmentId) async {
+    final rows = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.equipmentId.equals(equipmentId))).get();
+    return {
+      for (final r in rows) ?normalizeTransmitterSerial(r.transmitterSerial),
+    };
+  }
+
   Future<Transmitter> create(Transmitter t) async {
     final normalized = _normalized(
       t,
