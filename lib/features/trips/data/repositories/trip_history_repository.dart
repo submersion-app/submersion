@@ -12,11 +12,14 @@ class TripHistoryRepository {
 
   AppDatabase get _db => _dbOverride ?? DatabaseService.instance.database;
 
-  /// Dives per dive day for the diver's most recent [limit] trips that
-  /// ended before [before] and carry at least one dive of THEIRS, newest
-  /// first. A dive day is a distinct calendar date they dived on. Trips
-  /// are shared, so both the count and the days come from this diver's
-  /// dives alone.
+  /// Dives per dive day over the most recent [limit] trips that ended
+  /// before [before] and carry at least one dive, newest first. A dive
+  /// day is a distinct calendar date with a dive on it.
+  ///
+  /// [diverId] scopes it to one diver's own dives, which matters because
+  /// trips are shared: both the count and the day count then come from
+  /// their dives alone. Null applies no scoping at all and counts every
+  /// diver's dives, which is what a library with no active diver wants.
   Future<List<double>> divesPerDiveDay({
     String? diverId,
     required DateTime before,
@@ -52,9 +55,12 @@ class TripHistoryRepository {
     ];
   }
 
-  /// The diver's most recent [limit] CCR or SCR dives before [before],
-  /// newest first: the summary's scrubber minutes when the dive has one,
-  /// and the runtime in minutes.
+  /// The most recent [limit] CCR or SCR dives before [before], newest
+  /// first: the summary's scrubber minutes when the dive has one, and the
+  /// runtime in minutes.
+  ///
+  /// [diverId] scopes it to one diver; null applies no scoping and reads
+  /// every diver's loop dives, as a library with no active diver wants.
   Future<List<({double? scrubberMinutes, double runtimeMinutes})>>
   recentCcrFigures({
     String? diverId,
