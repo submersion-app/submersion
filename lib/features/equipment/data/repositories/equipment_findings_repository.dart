@@ -103,6 +103,10 @@ class EquipmentFindingsRepository {
     required DateTime now,
   }) async {
     final nowMs = now.millisecondsSinceEpoch;
+    // Only `equipment_findings` syncs; the review marker is device-local.
+    // A review that writes and deletes nothing has changed nothing a peer
+    // could fetch, and that is the commonest outcome of all.
+    var syncedRowsChanged = false;
     await _db.transaction(() async {
       final existingRows = await (_db.select(
         _db.equipmentFindings,
@@ -168,6 +172,7 @@ class EquipmentFindingsRepository {
           recordId: finding.id,
           localUpdatedAt: nowMs,
         );
+        syncedRowsChanged = true;
       }
 
       for (final old in existingRows) {
@@ -179,6 +184,7 @@ class EquipmentFindingsRepository {
           entityType: entityType,
           recordId: old.id,
         );
+        syncedRowsChanged = true;
       }
 
       await _db
@@ -199,14 +205,18 @@ class EquipmentFindingsRepository {
 
       // The findings carry no HLC; the incremental exporter picks them up
       // for equipment whose clock advanced, so bump the parent (the safety
-      // review does the same with dives).
-      await _syncRepository.markRecordPending(
-        entityType: 'equipment',
-        recordId: equipmentId,
-        localUpdatedAt: nowMs,
-      );
+      // review does the same with dives). Only when a findings row really
+      // moved: otherwise every recompute would hand each peer a version to
+      // fetch that carries nothing new.
+      if (syncedRowsChanged) {
+        await _syncRepository.markRecordPending(
+          entityType: 'equipment',
+          recordId: equipmentId,
+          localUpdatedAt: nowMs,
+        );
+      }
     });
-    SyncEventBus.notifyLocalChange();
+    if (syncedRowsChanged) SyncEventBus.notifyLocalChange();
   }
 
   Future<void> setDismissed({

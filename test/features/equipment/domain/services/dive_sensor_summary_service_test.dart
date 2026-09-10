@@ -352,6 +352,26 @@ void main() {
       expect(gap.gapFraction, 0);
     });
 
+    test('an uncovered edge span is judged by the same threshold', () {
+      // Waking 20s into a dive at a 10s cadence is the first reading
+      // landing normally, not a dropout: the edge spans go through the
+      // same "longer than three cadences" test as an interval, so a
+      // transmitter is not charged for the moment before it started.
+      final late20 = DiveSensorSummaryService.transmitterGaps(depth(100), [
+        tank([20, 30, 40, 50, 60, 70, 80, 90, 100]),
+      ]);
+      expect(late20.single.gapCount, 0);
+      expect(late20.single.gapSeconds, 0);
+      expect(late20.single.diveSeconds, 100);
+
+      // Waking 40s in is past the threshold and is charged.
+      final late40 = DiveSensorSummaryService.transmitterGaps(depth(100), [
+        tank([40, 50, 60, 70, 80, 90, 100]),
+      ]);
+      expect(late40.single.gapCount, 1);
+      expect(late40.single.gapSeconds, 40);
+    });
+
     test('an interval of exactly three cadences is not a gap', () {
       final gaps = DiveSensorSummaryService.transmitterGaps(depth(60), [
         tank([0, 10, 20, 50, 60]),
