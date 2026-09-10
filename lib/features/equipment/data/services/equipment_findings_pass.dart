@@ -54,7 +54,8 @@ class EquipmentFindingsPassResult {
 /// Brings every active item's condition findings up to date through the
 /// review marker, one item at a time. Shared by the settings sweep and
 /// the sensor summary scheduler so both visit the same gear the same way.
-/// An unchanged item costs one marker read and no engine run.
+/// An unchanged item still has its inputs read, since that is how the
+/// fingerprint is built, but it runs no engine and writes nothing.
 class EquipmentFindingsPass {
   final EquipmentRepository _equipment;
   final EquipmentConditionRefresher _refresher;

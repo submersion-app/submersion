@@ -7,7 +7,9 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 
 /// The device-local marker that the engine has run over an item's current
-/// inputs. An unchanged item costs one row read.
+/// inputs. Matching it is what lets a refresh skip the engine and the
+/// writes; the inputs themselves still have to be read to know whether it
+/// matches, so this saves computing and storing, not querying.
 class EquipmentConditionReview {
   final String equipmentId;
   final int engineVersion;

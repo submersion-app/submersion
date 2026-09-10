@@ -56,8 +56,9 @@ class EquipmentConditionSweep {
   /// true. [force] also recomputes rows that are current.
   ///
   /// With [findings] set (the default) and the engine's master toggle on,
-  /// the active items follow the dives in the same progress count; the
-  /// pass itself skips any item whose inputs have not changed.
+  /// the active items follow the dives in the same progress count. Each
+  /// item's inputs are read to build its fingerprint; one that matches the
+  /// marker skips the engine and writes nothing.
   ///
   /// [onProgress] fires once with (0, total), then after each dive and
   /// each item. [isCancelled] is polled before each; cancelling is
