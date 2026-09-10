@@ -155,6 +155,56 @@ void main() {
     expect(await tombstones(), isEmpty);
   });
 
+  test('a moved window is written even when the fingerprint holds', () async {
+    // evidenceFingerprint hashes the dive ids and the values, not the
+    // window. Editing a dive's date moves windowStart without changing
+    // either, so a skip-if-identical check built on the fingerprint alone
+    // would leave the sentence quoting a date the dive no longer has.
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp1',
+      findings: [incident()],
+      engineVersion: 1,
+      now: t0,
+    );
+    final before = (await repo.getFindings('reg')).single;
+
+    final moved = incident();
+    final shifted = EquipmentFinding(
+      id: moved.id,
+      equipmentId: moved.equipmentId,
+      ruleId: moved.ruleId,
+      severity: moved.severity,
+      value: moved.value,
+      evidence: FindingEvidence(
+        n: moved.evidence.n,
+        windowStart: moved.evidence.windowStart.add(const Duration(days: 2)),
+        windowEnd: moved.evidence.windowEnd.add(const Duration(days: 2)),
+        diveIds: moved.evidence.diveIds,
+        values: moved.evidence.values,
+        tag: moved.evidence.tag,
+        slot: moved.evidence.slot,
+      ),
+      evidenceFingerprint: moved.evidenceFingerprint,
+      engineVersion: moved.engineVersion,
+      createdAt: moved.createdAt,
+    );
+    expect(shifted.evidenceFingerprint, before.evidenceFingerprint);
+
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp2',
+      findings: [shifted],
+      engineVersion: 1,
+      now: t0.add(const Duration(days: 1)),
+    );
+    final after = (await repo.getFindings('reg')).single;
+    expect(
+      after.evidence.windowStart,
+      before.evidence.windowStart.add(const Duration(days: 2)),
+    );
+  });
+
   test('a review with no findings still records the engine version', () async {
     // An item the engine cleared is the common case. Recording 0 here (the
     // newest version among no rows) made the marker read as stale forever,
