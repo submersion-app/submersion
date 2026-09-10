@@ -466,4 +466,40 @@ void main() {
     );
     expect(chip.selected, isTrue);
   });
+  testWidgets('a saved category survives picking an item on edit', (
+    tester,
+  ) async {
+    // The stored category was the diver's choice when they saved it, so
+    // naming an item later must not flip it to Equipment.
+    useTallSurface(tester);
+    final repo = _FakeIncidentRepository(result: existingIncident());
+    final fins = EquipmentItem(
+      id: 'fins',
+      name: 'Jet Fins',
+      type: EquipmentType.fins,
+      createdAt: DateTime.utc(2026),
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          activeEquipmentProvider.overrideWith((ref) async => [fins]),
+        ],
+        router: routerFor(const IncidentEditPage(incidentId: 'i1')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Equipment involved'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Jet Fins'));
+    await tester.pumpAndSettle();
+    final chip = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, 'Equipment'),
+    );
+    expect(chip.selected, isFalse);
+  });
 }
