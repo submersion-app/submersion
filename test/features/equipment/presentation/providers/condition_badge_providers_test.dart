@@ -49,7 +49,7 @@ void main() {
       overrides: [settingsProvider.overrideWith((ref) => settings)],
     );
     addTearDown(container.dispose);
-    for (final id in ['reg', 'bcd', 'mask']) {
+    for (final id in ['reg', 'bcd', 'mask', 'fins']) {
       await db
           .into(db.equipment)
           .insert(
@@ -85,6 +85,12 @@ void main() {
       findings: [finding('mask', ConditionRuleId.cellOutputLow, slot: 1)],
       now: now,
     );
+    await repo.saveReview(
+      equipmentId: 'fins',
+      inputFingerprint: 'd',
+      findings: [finding('fins', ConditionRuleId.incidentLinked)],
+      now: now,
+    );
     await repo.setDismissed(
       findingId: conditionFindingId(
         'mask',
@@ -106,6 +112,8 @@ void main() {
     expect(badges['reg']?.rule, ConditionRuleId.issueRecurring);
     expect(badges['bcd']?.severity, ConditionSeverity.significant);
     expect(badges.containsKey('mask'), isFalse);
+    // Info never badges, even alone.
+    expect(badges.containsKey('fins'), isFalse);
   });
 
   test('a disabled rule drops out', () async {
