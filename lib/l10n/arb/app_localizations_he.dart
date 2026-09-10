@@ -13,6 +13,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'הוספת רכיב';
 
   @override
@@ -2708,6 +2713,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'התחל';
+
+  @override
+  String get diveLog_gear_collapse => 'הסתרת חלקים';
+
+  @override
+  String get diveLog_gear_expand => 'הצגת חלקים';
+
+  @override
+  String get diveLog_gear_removeAssembly => 'הסרת המכלול וחלקיו';
+
+  @override
+  String get diveLog_gear_removePart => 'הסרת חלק';
+
+  @override
+  String get diveLog_gear_removeSet => 'הסרת הסט מהצלילה הזו';
+
+  @override
+  String get diveLog_gear_unknownSet => 'סט';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -7631,13 +7654,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'הגדר לחישוב אוטומטי של He%';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount נוצלו)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1.4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -20873,16 +20901,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'קרובים';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'מהחוף';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'סירת שהייה';
 
   @override
-  String get trips_type_resort => 'Resort';
+  String get trips_type_resort => 'ריזורט';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'טיול יום';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

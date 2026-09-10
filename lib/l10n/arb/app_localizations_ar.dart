@@ -13,6 +13,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر فتح المتصفح. استخدم نسخ الرابط والصق العنوان في متصفحك.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'إضافة مكوّن';
 
   @override
@@ -2731,6 +2736,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'بدء';
+
+  @override
+  String get diveLog_gear_collapse => 'إخفاء الأجزاء';
+
+  @override
+  String get diveLog_gear_expand => 'إظهار الأجزاء';
+
+  @override
+  String get diveLog_gear_removeAssembly => 'إزالة التجميعة وأجزائها';
+
+  @override
+  String get diveLog_gear_removePart => 'إزالة الجزء';
+
+  @override
+  String get diveLog_gear_removeSet => 'إزالة الطقم من هذه الغطسة';
+
+  @override
+  String get diveLog_gear_unknownSet => 'طقم';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -7672,13 +7695,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'تعيين لحساب He% تلقائياً';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '(تم استخدام $amount)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1.4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -21026,16 +21054,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'القادمة';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'من الشاطئ';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'قارب إقامة';
 
   @override
-  String get trips_type_resort => 'Resort';
+  String get trips_type_resort => 'منتجع';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'رحلة يومية';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

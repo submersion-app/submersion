@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -156,7 +157,7 @@ class CylindersCard extends ConsumerWidget {
               '${units.volumeSymbol}'
         : '';
     final used = pressureUsed != null && pressureUsed > 0
-        ? ' (${units.formatPressure(pressureUsed)}$volumeUsed used)'
+        ? ' ${context.l10n.diveLog_tank_gasUsed('${units.formatPressure(pressureUsed)}$volumeUsed')}'
         : '';
 
     // Preset display name, falling back to formatted volume.
@@ -176,7 +177,11 @@ class CylindersCard extends ConsumerWidget {
         ? tank.name!
         : context.l10n.diveLog_tank_title(index + 1);
 
-    final modDepth = units.formatDepth(tank.gasMix.mod(), decimals: 0);
+    final workingPpO2 = settings.ppO2MaxWorking;
+    final modDepth = units.formatDepth(
+      tank.gasMix.mod(ppO2: workingPpO2),
+      decimals: 0,
+    );
     final mndValue = tank.gasMix.mnd(
       endLimit: settings.endLimit,
       o2Narcotic: settings.o2Narcotic,
@@ -184,7 +189,11 @@ class CylindersCard extends ConsumerWidget {
     final mndDepth = mndValue.isFinite
         ? units.formatDepth(mndValue, decimals: 0)
         : '--';
-    final modMndText = context.l10n.diveLog_tank_modMndInfo(modDepth, mndDepth);
+    final modMndText = context.l10n.diveLog_tank_modMndInfo(
+      modDepth,
+      formatFixedForDisplay(workingPpO2, 1),
+      mndDepth,
+    );
 
     return ListTile(
       contentPadding: EdgeInsets.zero,

@@ -13,6 +13,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível abrir o navegador. Use Copiar link e cole o endereço no navegador.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'Adicionar componente';
 
   @override
@@ -2783,6 +2788,25 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Começar';
+
+  @override
+  String get diveLog_gear_collapse => 'Ocultar peças';
+
+  @override
+  String get diveLog_gear_expand => 'Mostrar peças';
+
+  @override
+  String get diveLog_gear_removeAssembly =>
+      'Remover o conjunto e as suas peças';
+
+  @override
+  String get diveLog_gear_removePart => 'Remover peça';
+
+  @override
+  String get diveLog_gear_removeSet => 'Remover o conjunto deste mergulho';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Conjunto';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -7832,13 +7856,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Configurar para calcular He% automaticamente';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount usados)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1.4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -21422,7 +21451,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'Proximas';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Costa';
 
   @override
   String get trips_type_liveaboard => 'Liveaboard';
@@ -21431,7 +21460,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_type_resort => 'Resort';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Bate-volta';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

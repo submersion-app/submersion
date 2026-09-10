@@ -13,6 +13,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo abrir el navegador. Usa Copiar enlace y pega la dirección en tu navegador.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'Añadir componente';
 
   @override
@@ -2787,6 +2792,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Comenzar';
+
+  @override
+  String get diveLog_gear_collapse => 'Ocultar piezas';
+
+  @override
+  String get diveLog_gear_expand => 'Mostrar piezas';
+
+  @override
+  String get diveLog_gear_removeAssembly => 'Quitar el conjunto y sus piezas';
+
+  @override
+  String get diveLog_gear_removePart => 'Quitar pieza';
+
+  @override
+  String get diveLog_gear_removeSet => 'Quitar el equipo de esta inmersión';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Equipo';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -7834,13 +7857,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Configurar para calcular He% automaticamente';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount usados)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1.4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -21439,16 +21467,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'Proximos';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Costa';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'Crucero';
 
   @override
   String get trips_type_resort => 'Resort';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Salida de un día';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

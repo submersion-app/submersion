@@ -482,13 +482,12 @@ class DiveConsolidationService {
           (r) => r.diveId == secondary.id,
         )) {
           if (!targetEquipmentIds.add(row.equipmentId)) continue;
+          // Copy the row rather than rebuild a bare pair, so the assembly
+          // and set provenance travel with it (issue #1487).
           await _db
               .into(_db.diveEquipment)
               .insert(
-                DiveEquipmentCompanion(
-                  diveId: Value(targetDiveId),
-                  equipmentId: Value(row.equipmentId),
-                ),
+                row.toCompanion(false).copyWith(diveId: Value(targetDiveId)),
               );
           await _sync.markRecordPending(
             entityType: 'diveEquipment',

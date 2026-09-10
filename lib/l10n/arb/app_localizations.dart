@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Could not open your browser. Use Copy link and paste the address into your browser.'**
   String get settings_oauth_connect_browserFailed;
 
+  /// No description provided for @equipment_assemblyChip_label.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (+{count})'**
+  String equipment_assemblyChip_label(Object count, Object name);
+
   /// No description provided for @equipment_components_add.
   ///
   /// In en, this message translates to:
@@ -4646,6 +4652,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Begin'**
   String get preDive_start_begin;
+
+  /// No description provided for @diveLog_gear_collapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide parts'**
+  String get diveLog_gear_collapse;
+
+  /// No description provided for @diveLog_gear_expand.
+  ///
+  /// In en, this message translates to:
+  /// **'Show parts'**
+  String get diveLog_gear_expand;
+
+  /// No description provided for @diveLog_gear_removeAssembly.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove assembly and its parts'**
+  String get diveLog_gear_removeAssembly;
+
+  /// No description provided for @diveLog_gear_removePart.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove part'**
+  String get diveLog_gear_removePart;
+
+  /// No description provided for @diveLog_gear_removeSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove set from this dive'**
+  String get diveLog_gear_removeSet;
+
+  /// No description provided for @diveLog_gear_unknownSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get diveLog_gear_unknownSet;
 
   /// No description provided for @diveLog_listPage_bottomSheet_preDiveChecklist.
   ///
@@ -12999,17 +13041,23 @@ abstract class AppLocalizations {
   /// **'Set to auto-calculate He%'**
   String get diveLog_tank_mndHelper;
 
+  /// Trailing note on the tank pressure line: how much gas the dive consumed, e.g. "(160 bar / 1920 L used)"
+  ///
+  /// In en, this message translates to:
+  /// **'({amount} used)'**
+  String diveLog_tank_gasUsed(String amount);
+
   /// No description provided for @diveLog_tank_modInfo.
   ///
   /// In en, this message translates to:
-  /// **'MOD: {depth} (ppO2 1.4)'**
-  String diveLog_tank_modInfo(Object depth);
+  /// **'MOD: {depth} (ppO₂ {ppO2})'**
+  String diveLog_tank_modInfo(Object depth, String ppO2);
 
   /// No description provided for @diveLog_tank_modMndInfo.
   ///
   /// In en, this message translates to:
-  /// **'MOD: {mod} (ppO₂ 1.4) | MND: {mnd}'**
-  String diveLog_tank_modMndInfo(Object mod, Object mnd);
+  /// **'MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}'**
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd);
 
   /// No description provided for @diveLog_tank_section_gasMix.
   ///

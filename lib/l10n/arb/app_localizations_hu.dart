@@ -13,6 +13,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült megnyitni a böngészőt. Használd a Link másolása gombot, és illeszd be a címet a böngésződbe.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'Alkatrész hozzáadása';
 
   @override
@@ -2774,6 +2779,26 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Kezdés';
+
+  @override
+  String get diveLog_gear_collapse => 'Részek elrejtése';
+
+  @override
+  String get diveLog_gear_expand => 'Részek megjelenítése';
+
+  @override
+  String get diveLog_gear_removeAssembly =>
+      'Összeállítás és részei eltávolítása';
+
+  @override
+  String get diveLog_gear_removePart => 'Rész eltávolítása';
+
+  @override
+  String get diveLog_gear_removeSet =>
+      'Készlet eltávolítása erről a merülésről';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Készlet';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -7812,13 +7837,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Állítsa automatikusra a He% kiszámításához';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount felhasználva)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1.4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -21355,16 +21385,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'Kozelgo';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Partról';
 
   @override
-  String get trips_type_liveaboard => 'Liveaboard';
+  String get trips_type_liveaboard => 'Hajós';
 
   @override
-  String get trips_type_resort => 'Resort';
+  String get trips_type_resort => 'Üdülő';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Napi túra';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

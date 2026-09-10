@@ -1,5 +1,6 @@
 {
   "settings_oauth_connect_browserFailed": "Could not open your browser. Use Copy link and paste the address into your browser.",
+  "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Add component",
   "equipment_components_count": "{count, plural, =1{1 component} other{{count} components}}",
   "equipment_components_cycleError": "That item already contains this one, so it cannot be added as a component.",
@@ -1706,6 +1707,12 @@
   "preDive_start_noEquipmentSet": "None",
   "preDive_start_noEquipment": "None",
   "preDive_start_begin": "Begin",
+  "diveLog_gear_collapse": "Hide parts",
+  "diveLog_gear_expand": "Show parts",
+  "diveLog_gear_removeAssembly": "Remove assembly and its parts",
+  "diveLog_gear_removePart": "Remove part",
+  "diveLog_gear_removeSet": "Remove set from this dive",
+  "diveLog_gear_unknownSet": "Set",
   "diveLog_listPage_bottomSheet_preDiveChecklist": "Start pre-dive checklist",
   "preDive_dashboard_title": "Pre-Dive Check",
   "preDive_dashboard_resume": "Resume - {done} of {total}",
@@ -4153,8 +4160,9 @@
   "diveLog_tank_label_volume": "Volume",
   "diveLog_tank_label_workingPressure": "Working P",
   "diveLog_tank_mndHelper": "Set to auto-calculate He%",
-  "diveLog_tank_modInfo": "MOD: {depth} (ppO2 1.4)",
-  "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ 1.4) | MND: {mnd}",
+  "diveLog_tank_gasUsed": "({amount} used)",
+  "diveLog_tank_modInfo": "MOD: {depth} (ppO₂ {ppO2})",
+  "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
   "diveLog_tank_section_gasMix": "Gas Mix",
   "diveLog_tank_selectPreset": "Select Preset...",
   "diveLog_tank_saveAsPreset": "Save as preset",
@@ -4886,10 +4894,21 @@
       }
     }
   },
+  "@diveLog_tank_gasUsed": {
+    "description": "Trailing note on the tank pressure line: how much gas the dive consumed, e.g. \"(160 bar / 1920 L used)\"",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "@diveLog_tank_modInfo": {
     "placeholders": {
       "depth": {
         "type": "Object"
+      },
+      "ppO2": {
+        "type": "String"
       }
     }
   },
@@ -4897,6 +4916,9 @@
     "placeholders": {
       "mod": {
         "type": "Object"
+      },
+      "ppO2": {
+        "type": "String"
       },
       "mnd": {
         "type": "Object"

@@ -45,7 +45,12 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/domain/services/components_index.dart';
+import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -337,9 +342,22 @@ class DiveRepository {
                   ]))
                 .get();
         final equipmentByDive = <String, List<EquipmentItem>>{};
+        // Where each row came from (issue #1487), joined back onto the
+        // attribute-hydrated items at the mapper call below.
+        final provenanceByDive = <String, List<GearProvenance>>{};
         for (final joinRow in allDiveEquipment) {
-          final diveId = joinRow.readTable(_db.diveEquipment).diveId;
+          final link = joinRow.readTable(_db.diveEquipment);
+          final diveId = link.diveId;
           final e = joinRow.readTable(_db.equipment);
+          provenanceByDive
+              .putIfAbsent(diveId, () => [])
+              .add(
+                GearProvenance(
+                  equipmentId: link.equipmentId,
+                  viaEquipmentId: link.viaEquipmentId,
+                  viaSetId: link.viaSetId,
+                ),
+              );
           equipmentByDive
               .putIfAbsent(diveId, () => [])
               .add(
@@ -409,7 +427,10 @@ class DiveRepository {
               (row) => _mapRowToDiveWithPreloadedData(
                 row,
                 tanks: tanksByDive[row.id] ?? [],
-                equipment: equipmentByDive[row.id] ?? [],
+                gear: gearLinksFor(
+                  equipmentByDive[row.id] ?? const [],
+                  provenanceByDive[row.id] ?? const [],
+                ),
                 site: row.siteId != null ? sitesById[row.siteId] : null,
                 center: row.diveCenterId != null
                     ? centersById[row.diveCenterId]
@@ -1470,17 +1491,30 @@ class DiveRepository {
             );
           }
 
-          // Insert equipment associations
-          for (final item in dive.equipment) {
+          // Insert equipment associations with their provenance.
+          for (final g in dive.gear) {
             batch.insert(
               _db.diveEquipment,
               DiveEquipmentCompanion(
                 diveId: Value(id),
-                equipmentId: Value(item.id),
+                equipmentId: Value(g.item.id),
+                viaEquipmentId: Value(g.viaEquipmentId),
+                viaSetId: Value(g.viaSetId),
               ),
             );
           }
         });
+
+        // The links above were batched; mark them pending like the other
+        // child rows so a new dive's gear reaches peers without waiting
+        // for a full snapshot.
+        for (final g in dive.gear) {
+          await _syncRepository.markRecordPending(
+            entityType: 'diveEquipment',
+            recordId: '$id|${g.item.id}',
+            localUpdatedAt: now,
+          );
+        }
 
         // Profile samples: one packed primary series with no computer and no
         // source, the same identity the legacy rows carried for a manual dive.
@@ -1770,34 +1804,11 @@ class DiveRepository {
         );
       }
 
-      // Update equipment: delete and re-insert
-      final existingEquipment = await (_db.select(
-        _db.diveEquipment,
-      )..where((t) => t.diveId.equals(dive.id))).get();
-      await (_db.delete(
-        _db.diveEquipment,
-      )..where((t) => t.diveId.equals(dive.id))).go();
-      for (final item in existingEquipment) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveEquipment',
-          recordId: '${item.diveId}|${item.equipmentId}',
-        );
-      }
-      for (final item in dive.equipment) {
-        await _db
-            .into(_db.diveEquipment)
-            .insert(
-              DiveEquipmentCompanion(
-                diveId: Value(dive.id),
-                equipmentId: Value(item.id),
-              ),
-            );
-        await _syncRepository.markRecordPending(
-          entityType: 'diveEquipment',
-          recordId: '${dive.id}|${item.id}',
-          localUpdatedAt: now,
-        );
-      }
+      // Equipment: a diff keyed by equipment id, shared with the bulk
+      // operations, so an unchanged row is neither tombstoned nor
+      // re-marked pending (issue #1487).
+      final desiredGear = [for (final g in dive.gear) g.provenance];
+      await _writeGearDiff(dive.id, desiredGear, now);
 
       // Update custom fields: delete and re-insert
       final existingCustomFields = await (_db.select(
@@ -3440,7 +3451,7 @@ class DiveRepository {
   domain.Dive _mapRowToDiveWithPreloadedData(
     Dive row, {
     required List<DiveTank> tanks,
-    required List<EquipmentItem> equipment,
+    required List<GearLink> gear,
     DiveSite? site,
     DiveCenter? center,
     Trip? trip,
@@ -3666,7 +3677,7 @@ class DiveRepository {
           )
           .toList(),
       profile: const [], // Profile not loaded for list views
-      equipment: equipment,
+      gear: gear,
       weights: const [], // Weights not loaded for list views (use detail view)
       isFavorite: row.isFavorite,
       excludedFromStats: row.excludedFromStats,
@@ -3823,6 +3834,17 @@ class DiveRepository {
           ),
         )
         .toList();
+    final singleDiveProvenance = <GearProvenance>[];
+    for (final joinRow in equipmentRows) {
+      final link = joinRow.readTable(_db.diveEquipment);
+      singleDiveProvenance.add(
+        GearProvenance(
+          equipmentId: link.equipmentId,
+          viaEquipmentId: link.viaEquipmentId,
+          viaSetId: link.viaSetId,
+        ),
+      );
+    }
 
     // Get weights for this dive
     final weights = await _loadWeightsForDive(row.id);
@@ -4073,7 +4095,7 @@ class DiveRepository {
         );
       }).toList(),
       profile: seriesProfile,
-      equipment: hydratedEquipmentItems,
+      gear: gearLinksFor(hydratedEquipmentItems, singleDiveProvenance),
       weights: weights,
       isFavorite: row.isFavorite,
       excludedFromStats: row.excludedFromStats,
@@ -5198,7 +5220,7 @@ class DiveRepository {
       return _mapRowToDiveWithPreloadedData(
         row,
         tanks: tankRows,
-        equipment: const [],
+        gear: const [],
       ).copyWith(profile: profile);
     } catch (e, stackTrace) {
       _log.error(
@@ -5773,93 +5795,194 @@ class DiveRepository {
     await _bumpDives(diveIds, now);
   }
 
-  /// Add each equipment id to each dive (junction upsert). No notify/txn.
+  Future<List<GearProvenance>> _provenanceOf(String diveId) async {
+    final rows = await (_db.select(
+      _db.diveEquipment,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    return [
+      for (final r in rows)
+        GearProvenance(
+          equipmentId: r.equipmentId,
+          viaEquipmentId: r.viaEquipmentId,
+          viaSetId: r.viaSetId,
+        ),
+    ];
+  }
+
+  /// Makes the dive's gear rows equal to [desired]: rows whose provenance
+  /// changed are updated, added rows inserted, removed rows deleted with a
+  /// tombstone, and every written row marked pending. (Delete-all-then-
+  /// reinsert produced a payload where one key was both live and
+  /// tombstoned in the same sync round.)
+  Future<void> _writeGearDiff(
+    String diveId,
+    List<GearProvenance> desired,
+    int now,
+  ) async {
+    final existing = await (_db.select(
+      _db.diveEquipment,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    final existingById = {for (final r in existing) r.equipmentId: r};
+    final desiredIds = {for (final p in desired) p.equipmentId};
+    for (final row in existing) {
+      if (desiredIds.contains(row.equipmentId)) continue;
+      await (_db.delete(_db.diveEquipment)..where(
+            (t) =>
+                t.diveId.equals(diveId) & t.equipmentId.equals(row.equipmentId),
+          ))
+          .go();
+      await _syncRepository.logDeletion(
+        entityType: 'diveEquipment',
+        recordId: '$diveId|${row.equipmentId}',
+      );
+    }
+    for (final p in desired) {
+      final current = existingById[p.equipmentId];
+      if (current != null &&
+          current.viaEquipmentId == p.viaEquipmentId &&
+          current.viaSetId == p.viaSetId) {
+        continue;
+      }
+      await _db
+          .into(_db.diveEquipment)
+          .insertOnConflictUpdate(
+            DiveEquipmentCompanion(
+              diveId: Value(diveId),
+              equipmentId: Value(p.equipmentId),
+              viaEquipmentId: Value(p.viaEquipmentId),
+              viaSetId: Value(p.viaSetId),
+            ),
+          );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveEquipment',
+        recordId: '$diveId|${p.equipmentId}',
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  /// Writes [rows] as the dive's exact gear list, with provenance (the
+  /// bulk-edit undo path). No notify/txn.
+  Future<void> replaceGearRows(String diveId, List<GearProvenance> rows) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _writeGearDiff(diveId, rows, now);
+    await _bumpDives([diveId], now);
+  }
+
+  /// The assembly template as an adjacency index, read directly rather than
+  /// through EquipmentComponentRepository to keep this repository free of a
+  /// sibling repository dependency.
+  Future<ComponentsIndex> _loadComponentsIndex() async {
+    final rows =
+        await (_db.select(_db.equipmentComponents)..orderBy([
+              (t) => OrderingTerm.asc(t.parentEquipmentId),
+              (t) => OrderingTerm.asc(t.sortOrder),
+              (t) => OrderingTerm.asc(t.id),
+            ]))
+            .get();
+    return ComponentsIndex.fromRows([
+      for (final r in rows)
+        EquipmentComponent(
+          id: r.id,
+          parentEquipmentId: r.parentEquipmentId,
+          componentEquipmentId: r.componentEquipmentId,
+          role: r.role,
+          sortOrder: r.sortOrder,
+          createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(r.updatedAt),
+        ),
+    ]);
+  }
+
+  /// Which of [ids] are active gear (not retired or lost, still flagged
+  /// active): the expander skips the rest.
+  Future<Set<String>> _activeIdsAmong(Set<String> ids) async {
+    if (ids.isEmpty) return const {};
+    final rows =
+        await (_db.select(_db.equipment)..where(
+              (t) =>
+                  t.id.isIn(ids.toList()) &
+                  t.isActive.equals(true) &
+                  t.status.isNotIn([
+                    EquipmentStatus.retired.name,
+                    EquipmentStatus.lost.name,
+                  ]),
+            ))
+            .get();
+    return {for (final r in rows) r.id};
+  }
+
+  /// Add each equipment id to each dive, expanding assemblies into their
+  /// active parts and tagging every written row with [viaSetId] when the
+  /// addition came from a set. No notify/txn.
   Future<void> bulkAddEquipment(
     List<String> diveIds,
-    List<String> equipmentIds,
-  ) async {
+    List<String> equipmentIds, {
+    String? viaSetId,
+  }) async {
     if (diveIds.isEmpty || equipmentIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
+    final index = await _loadComponentsIndex();
+    final candidates = {
+      for (final id in equipmentIds) ...[id, ...index.descendantsOf(id)],
+    };
+    final active = await _activeIdsAmong(candidates);
+    final additions = [
+      for (final id in equipmentIds) (equipmentId: id, viaSetId: viaSetId),
+    ];
     for (final diveId in diveIds) {
-      for (final equipmentId in equipmentIds) {
-        await _db
-            .into(_db.diveEquipment)
-            .insertOnConflictUpdate(
-              DiveEquipmentCompanion(
-                diveId: Value(diveId),
-                equipmentId: Value(equipmentId),
-              ),
-            );
-        await _syncRepository.markRecordPending(
-          entityType: 'diveEquipment',
-          recordId: '$diveId|$equipmentId',
-          localUpdatedAt: now,
-        );
-      }
+      final expanded = GearExpander.expand(
+        additions: additions,
+        index: index,
+        existing: await _provenanceOf(diveId),
+        isActive: active.contains,
+      );
+      await _writeGearDiff(diveId, expanded, now);
     }
     await _bumpDives(diveIds, now);
   }
 
-  /// Remove each equipment id from each dive. No notify/txn.
+  /// Remove each equipment id, and everything attached through it, from
+  /// each dive. No notify/txn.
   Future<void> bulkRemoveEquipment(
     List<String> diveIds,
     List<String> equipmentIds,
   ) async {
     if (diveIds.isEmpty || equipmentIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    final existing =
-        await (_db.select(_db.diveEquipment)..where(
-              (t) => t.diveId.isIn(diveIds) & t.equipmentId.isIn(equipmentIds),
-            ))
-            .get();
-    await (_db.delete(_db.diveEquipment)..where(
-          (t) => t.diveId.isIn(diveIds) & t.equipmentId.isIn(equipmentIds),
-        ))
-        .go();
-    for (final row in existing) {
-      await _syncRepository.logDeletion(
-        entityType: 'diveEquipment',
-        recordId: '${row.diveId}|${row.equipmentId}',
-      );
+    for (final diveId in diveIds) {
+      var rows = await _provenanceOf(diveId);
+      for (final id in equipmentIds) {
+        rows = GearExpander.removeSubtree(rows, id);
+      }
+      await _writeGearDiff(diveId, rows, now);
     }
     await _bumpDives(diveIds, now);
   }
 
-  /// Replace each dive's equipment with exactly [equipmentIds]. No notify/txn.
+  /// Replace each dive's equipment with exactly [equipmentIds], expanded
+  /// the same way an add is. No notify/txn.
   Future<void> bulkReplaceEquipment(
     List<String> diveIds,
     List<String> equipmentIds,
   ) async {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    final existing = await (_db.select(
-      _db.diveEquipment,
-    )..where((t) => t.diveId.isIn(diveIds))).get();
-    await (_db.delete(
-      _db.diveEquipment,
-    )..where((t) => t.diveId.isIn(diveIds))).go();
-    for (final row in existing) {
-      await _syncRepository.logDeletion(
-        entityType: 'diveEquipment',
-        recordId: '${row.diveId}|${row.equipmentId}',
-      );
-    }
+    final index = await _loadComponentsIndex();
+    final candidates = {
+      for (final id in equipmentIds) ...[id, ...index.descendantsOf(id)],
+    };
+    final active = await _activeIdsAmong(candidates);
+    final expanded = GearExpander.expand(
+      additions: [
+        for (final id in equipmentIds) (equipmentId: id, viaSetId: null),
+      ],
+      index: index,
+      existing: const [],
+      isActive: active.contains,
+    );
     for (final diveId in diveIds) {
-      for (final equipmentId in equipmentIds) {
-        await _db
-            .into(_db.diveEquipment)
-            .insertOnConflictUpdate(
-              DiveEquipmentCompanion(
-                diveId: Value(diveId),
-                equipmentId: Value(equipmentId),
-              ),
-            );
-        await _syncRepository.markRecordPending(
-          entityType: 'diveEquipment',
-          recordId: '$diveId|$equipmentId',
-          localUpdatedAt: now,
-        );
-      }
+      await _writeGearDiff(diveId, expanded, now);
     }
     await _bumpDives(diveIds, now);
   }

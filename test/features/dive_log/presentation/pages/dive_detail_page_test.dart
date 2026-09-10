@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
@@ -179,7 +180,7 @@ void main() {
           const DiveProfilePoint(timestamp: 2400, depth: 18),
           const DiveProfilePoint(timestamp: 2700, depth: 0),
         ],
-        equipment: const [],
+        gear: looseGear(const []),
         notes: '',
         photoIds: const [],
         sightings: const [],
@@ -695,7 +696,7 @@ void main() {
           const DiveProfilePoint(timestamp: 2700, depth: 20),
           const DiveProfilePoint(timestamp: 3000, depth: 0),
         ],
-        equipment: const [],
+        gear: looseGear(const []),
         notes: '',
         photoIds: const [],
         sightings: const [],
@@ -780,7 +781,7 @@ void main() {
             ),
           ],
           profile: const [],
-          equipment: const [],
+          gear: looseGear(const []),
           notes: '',
           photoIds: const [],
           sightings: const [],

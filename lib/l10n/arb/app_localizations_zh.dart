@@ -13,6 +13,11 @@ class AppLocalizationsZh extends AppLocalizations {
       '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name（+$count）';
+  }
+
+  @override
   String get equipment_components_add => '添加组件';
 
   @override
@@ -2628,6 +2633,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get preDive_start_begin => '开始';
+
+  @override
+  String get diveLog_gear_collapse => '隐藏部件';
+
+  @override
+  String get diveLog_gear_expand => '显示部件';
+
+  @override
+  String get diveLog_gear_removeAssembly => '移除组合及其部件';
+
+  @override
+  String get diveLog_gear_removePart => '移除部件';
+
+  @override
+  String get diveLog_gear_removeSet => '从本次潜水移除套装';
+
+  @override
+  String get diveLog_gear_unknownSet => '套装';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist => '开始潜前检查清单';
@@ -7446,13 +7469,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_mndHelper => '设置自动计算 He%';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return '最大作业深度：$depth（氧分压 1.4）';
+  String diveLog_tank_gasUsed(String amount) {
+    return '（已用 $amount）';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return '最大作业深度：$mod（氧分压 1.4）| 最大等效氮深：$mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return '最大作业深度：$depth（氧分压 $ppO2）';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return '最大作业深度：$mod（氧分压 $ppO2）| 最大等效氮深：$mnd';
   }
 
   @override
@@ -20316,7 +20344,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_type_resort => '度假村';
 
   @override
-  String get trips_type_dayTrip => '天旅行';
+  String get trips_type_dayTrip => '一日游';
 
   @override
   String get trips_edit_label_tripType => '旅行类型';

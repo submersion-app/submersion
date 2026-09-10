@@ -12,8 +12,11 @@ import 'package:submersion/features/divers/data/repositories/diver_weight_entry_
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -24,6 +27,20 @@ import 'package:submersion/features/weight_planner/presentation/providers/weight
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_app.dart';
 import '../../../helpers/test_database.dart';
+
+/// Serves the parts an assembly expansion asks for from a fixed catalog,
+/// so the page test needs no equipment rows in the database.
+class _CatalogEquipmentRepository extends EquipmentRepository {
+  _CatalogEquipmentRepository(this.catalog);
+
+  final List<EquipmentItem> catalog;
+
+  @override
+  Future<List<EquipmentItem>> getEquipmentByIds(List<String> ids) async => [
+    for (final item in catalog)
+      if (ids.contains(item.id)) item,
+  ];
+}
 
 void main() {
   const suitItem = EquipmentItem(
@@ -158,6 +175,51 @@ void main() {
     expect(find.byType(InputChip), findsOneWidget);
     final after = predictedText(tester);
     expect(after, isNot(before));
+
+    // Let the 4-second delta chip timer elapse.
+    await tester.pump(const Duration(seconds: 5));
+  });
+
+  testWidgets('an assembly folds its parts into one chip and leaves with '
+      'them', (tester) async {
+    // The wing is an assembly whose one part is the suit (issue #1487).
+    final t0 = DateTime(2026, 1, 1);
+    final index = ComponentsIndex.fromRows([
+      EquipmentComponent(
+        id: 'c1',
+        parentEquipmentId: 'bcd',
+        componentEquipmentId: 'suit',
+        sortOrder: 0,
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+    ]);
+    await pumpPage(
+      tester,
+      extraOverrides: [
+        equipmentComponentsIndexProvider.overrideWith((ref) async => index),
+        equipmentRepositoryProvider.overrideWithValue(
+          _CatalogEquipmentRepository(const [suitItem, bcdItem]),
+        ),
+      ],
+    );
+
+    await tester.tap(find.text('Add gear'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Wing').last);
+    await tester.pumpAndSettle();
+
+    // One chip carrying the part count; the part has no chip of its own.
+    expect(find.text('Wing (+1)'), findsOneWidget);
+    expect(find.byType(InputChip), findsOneWidget);
+    expect(find.text('5mm Suit'), findsNothing);
+
+    // Deleting the assembly takes its part with it.
+    await tester.tap(
+      find.descendant(of: find.byType(InputChip), matching: find.byType(Icon)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(InputChip), findsNothing);
 
     // Let the 4-second delta chip timer elapse.
     await tester.pump(const Duration(seconds: 5));
