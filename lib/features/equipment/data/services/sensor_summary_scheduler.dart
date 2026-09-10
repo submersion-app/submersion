@@ -57,34 +57,47 @@ class SensorSummaryScheduler {
   }
 
   void _enqueue() {
+    // The queue is one chained future, so the callback must always
+    // complete normally: an error escaping it leaves _tail completed with
+    // that error, and every later schedule chains onto a failed future and
+    // silently never runs. The inner catches keep their own wording; this
+    // outer one is the backstop that holds however the body changes.
     _tail = _tail.then((_) async {
-      final ids = Set.of(_pending);
-      _pending.clear();
-      final sweep = _staleSweepPending;
-      _staleSweepPending = false;
-      if (ids.isEmpty && !sweep) return;
-      final repo = repositoryFactory();
-      if (sweep) {
-        try {
-          ids.addAll(await repo.staleDiveIds());
-        } catch (e, st) {
-          _log.error(
-            'Stale sensor summary query failed',
-            error: e,
-            stackTrace: st,
-          );
+      try {
+        final ids = Set.of(_pending);
+        _pending.clear();
+        final sweep = _staleSweepPending;
+        _staleSweepPending = false;
+        if (ids.isEmpty && !sweep) return;
+        final repo = repositoryFactory();
+        if (sweep) {
+          try {
+            ids.addAll(await repo.staleDiveIds());
+          } catch (e, st) {
+            _log.error(
+              'Stale sensor summary query failed',
+              error: e,
+              stackTrace: st,
+            );
+          }
         }
-      }
-      for (final id in ids) {
-        try {
-          await repo.ensureCurrent(id);
-        } catch (e, st) {
-          _log.error(
-            'Scheduled sensor summary failed for $id',
-            error: e,
-            stackTrace: st,
-          );
+        for (final id in ids) {
+          try {
+            await repo.ensureCurrent(id);
+          } catch (e, st) {
+            _log.error(
+              'Scheduled sensor summary failed for $id',
+              error: e,
+              stackTrace: st,
+            );
+          }
         }
+      } catch (e, st) {
+        _log.error(
+          'Scheduled sensor summary batch failed',
+          error: e,
+          stackTrace: st,
+        );
       }
       await _refreshFindings();
     });
