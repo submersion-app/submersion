@@ -8175,6 +8175,75 @@
   "settings_section_equipmentCondition_title": "Felszerelés állapota",
   "settings_section_equipmentCondition_subtitle": "Terhelési küszöbök a szervizórákhoz",
   "equipmentConditionSettings_title": "Felszerelés állapota",
+  "equipmentCondition_children_title": "Beépített alkatrészek",
+  "equipmentCondition_children_slot": "{slot}. hely",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Beépítve: {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{ma} =1{1 napja} other{{days} napja}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{1 hónapja} other{{months} hónapja}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Csere",
+  "equipmentCondition_children_open": "Megnyitás",
+  "equipmentCondition_children_replaceTitle": "Cseréli: {name}?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "A(z) {name} ma kivonásra kerül, és egy új {type} veszi át a helyét ugyanazon a helyen. A sorozatszám és a megjegyzések üresen indulnak.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Csere",
+  "equipmentCondition_children_replaceCancel": "Mégse",
+  "equipmentCondition_children_replaced": "{name} kicserélve",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "Nincs rögzített cella vagy akkumulátor",
+  "equipmentCondition_children_add": "Hozzáadás",
   "equipmentCondition_findings_title": "Állapotmegállapítások",
   "equipmentCondition_findings_count": "{count, plural, =1{1 megállapítás} other{{count} megállapítás}}",
   "@equipmentCondition_findings_count": {

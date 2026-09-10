@@ -14,6 +14,7 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
@@ -552,6 +553,41 @@ class EquipmentRepository {
       );
       rethrow;
     }
+  }
+
+  /// Retires [old] and creates its successor in the same parent and slot
+  /// (condition phase 4a): same diver, type, name, brand and model, the
+  /// `cell_slot` attribute when present, `installed_date` set to [now];
+  /// serial, notes and purchase details start empty because it is a new
+  /// part. Both rows are staged for sync. Returns the new item.
+  Future<EquipmentItem> replaceChild(EquipmentItem old, {DateTime? now}) async {
+    final stamp = now ?? DateTime.now();
+    final slot = old.attrNum(EquipmentAttrKeys.cellSlot);
+    final successor = EquipmentItem(
+      id: '',
+      diverId: old.diverId,
+      name: old.name,
+      type: old.type,
+      brand: old.brand,
+      model: old.model,
+      parentEquipmentId: old.parentEquipmentId,
+      attributes: [
+        if (slot != null)
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: EquipmentAttrKeys.cellSlot,
+            valueNum: slot,
+          ),
+        EquipmentAttribute.curated(
+          equipmentId: '',
+          key: EquipmentAttrKeys.installedDate,
+          valueNum: stamp.millisecondsSinceEpoch.toDouble(),
+        ),
+      ],
+    );
+    final created = await createEquipment(successor);
+    await retireEquipment(old.id);
+    return created;
   }
 
   /// Reactivate equipment

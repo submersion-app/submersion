@@ -26882,6 +26882,76 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Estado do equipamento';
 
   @override
+  String get equipmentCondition_children_title => 'Peças instaladas';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return 'Ranhura $slot';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return 'Instalado a $date, $age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'há $days dias',
+      one: 'há 1 dia',
+      zero: 'hoje',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'há $months meses',
+      one: 'há 1 mês',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => 'Substituir';
+
+  @override
+  String get equipmentCondition_children_open => 'Abrir';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return 'Substituir $name?';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return '$name é retirado hoje e um novo $type ocupa o seu lugar na mesma ranhura. O número de série e as notas começam vazios.';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => 'Substituir';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => 'Cancelar';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return '$name substituído';
+  }
+
+  @override
+  String get equipmentCondition_children_empty =>
+      'Sem células ou baterias registadas';
+
+  @override
+  String get equipmentCondition_children_add => 'Adicionar';
+
+  @override
   String get equipmentCondition_findings_title => 'Constatações de estado';
 
   @override

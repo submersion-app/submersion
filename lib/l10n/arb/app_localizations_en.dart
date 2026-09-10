@@ -26439,6 +26439,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Equipment condition';
 
   @override
+  String get equipmentCondition_children_title => 'Installed parts';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return 'Slot $slot';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return 'Installed $date, $age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days ago',
+      one: '1 day ago',
+      zero: 'today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months months ago',
+      one: '1 month ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => 'Replace';
+
+  @override
+  String get equipmentCondition_children_open => 'Open';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return 'Replace $name?';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return '$name is retired today and a new $type takes its place in the same slot. Serial and notes start empty.';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => 'Replace';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => 'Cancel';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return '$name replaced';
+  }
+
+  @override
+  String get equipmentCondition_children_empty =>
+      'No cells or batteries recorded';
+
+  @override
+  String get equipmentCondition_children_add => 'Add';
+
+  @override
   String get equipmentCondition_findings_title => 'Condition findings';
 
   @override

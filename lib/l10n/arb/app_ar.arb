@@ -8175,6 +8175,75 @@
   "settings_section_equipmentCondition_title": "حالة المعدات",
   "settings_section_equipmentCondition_subtitle": "حدود التعرض لساعات الصيانة",
   "equipmentConditionSettings_title": "حالة المعدات",
+  "equipmentCondition_children_title": "الأجزاء المركّبة",
+  "equipmentCondition_children_slot": "الفتحة {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "رُكّب في {date}، {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{اليوم} =1{قبل يوم واحد} other{قبل {days} أيام}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{قبل شهر واحد} other{قبل {months} أشهر}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "استبدال",
+  "equipmentCondition_children_open": "فتح",
+  "equipmentCondition_children_replaceTitle": "هل تريد استبدال {name}؟",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "سيُسحب {name} اليوم ويحل محله {type} جديد في الفتحة نفسها. يبدأ الرقم التسلسلي والملاحظات فارغين.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "استبدال",
+  "equipmentCondition_children_replaceCancel": "إلغاء",
+  "equipmentCondition_children_replaced": "تم استبدال {name}",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "لا توجد خلايا أو بطاريات مسجّلة",
+  "equipmentCondition_children_add": "إضافة",
   "equipmentCondition_findings_title": "نتائج الحالة",
   "equipmentCondition_findings_count": "{count, plural, =1{نتيجة واحدة} other{{count} نتائج}}",
   "@equipmentCondition_findings_count": {

@@ -8175,6 +8175,75 @@
   "settings_section_equipmentCondition_title": "Estado do equipamento",
   "settings_section_equipmentCondition_subtitle": "Limites de exposição para os relógios de manutenção",
   "equipmentConditionSettings_title": "Estado do equipamento",
+  "equipmentCondition_children_title": "Peças instaladas",
+  "equipmentCondition_children_slot": "Ranhura {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Instalado a {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{hoje} =1{há 1 dia} other{há {days} dias}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{há 1 mês} other{há {months} meses}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Substituir",
+  "equipmentCondition_children_open": "Abrir",
+  "equipmentCondition_children_replaceTitle": "Substituir {name}?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} é retirado hoje e um novo {type} ocupa o seu lugar na mesma ranhura. O número de série e as notas começam vazios.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Substituir",
+  "equipmentCondition_children_replaceCancel": "Cancelar",
+  "equipmentCondition_children_replaced": "{name} substituído",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "Sem células ou baterias registadas",
+  "equipmentCondition_children_add": "Adicionar",
   "equipmentCondition_findings_title": "Constatações de estado",
   "equipmentCondition_findings_count": "{count, plural, =1{1 constatação} other{{count} constatações}}",
   "@equipmentCondition_findings_count": {

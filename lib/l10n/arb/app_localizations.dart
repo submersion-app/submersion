@@ -44355,6 +44355,90 @@ abstract class AppLocalizations {
   /// **'Equipment condition'**
   String get equipmentConditionSettings_title;
 
+  /// No description provided for @equipmentCondition_children_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed parts'**
+  String get equipmentCondition_children_title;
+
+  /// No description provided for @equipmentCondition_children_slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot {slot}'**
+  String equipmentCondition_children_slot(int slot);
+
+  /// No description provided for @equipmentCondition_children_installed.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed {date}, {age}'**
+  String equipmentCondition_children_installed(String date, String age);
+
+  /// No description provided for @equipmentCondition_children_ageDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{today} =1{1 day ago} other{{days} days ago}}'**
+  String equipmentCondition_children_ageDays(int days);
+
+  /// No description provided for @equipmentCondition_children_ageMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{months, plural, =1{1 month ago} other{{months} months ago}}'**
+  String equipmentCondition_children_ageMonths(int months);
+
+  /// No description provided for @equipmentCondition_children_replace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get equipmentCondition_children_replace;
+
+  /// No description provided for @equipmentCondition_children_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get equipmentCondition_children_open;
+
+  /// No description provided for @equipmentCondition_children_replaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace {name}?'**
+  String equipmentCondition_children_replaceTitle(String name);
+
+  /// No description provided for @equipmentCondition_children_replaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is retired today and a new {type} takes its place in the same slot. Serial and notes start empty.'**
+  String equipmentCondition_children_replaceBody(String name, String type);
+
+  /// No description provided for @equipmentCondition_children_replaceConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get equipmentCondition_children_replaceConfirm;
+
+  /// No description provided for @equipmentCondition_children_replaceCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get equipmentCondition_children_replaceCancel;
+
+  /// No description provided for @equipmentCondition_children_replaced.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} replaced'**
+  String equipmentCondition_children_replaced(String name);
+
+  /// No description provided for @equipmentCondition_children_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No cells or batteries recorded'**
+  String get equipmentCondition_children_empty;
+
+  /// No description provided for @equipmentCondition_children_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get equipmentCondition_children_add;
+
   /// No description provided for @equipmentCondition_findings_title.
   ///
   /// In en, this message translates to:

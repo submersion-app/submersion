@@ -8175,6 +8175,75 @@
   "settings_section_equipmentCondition_title": "Stato dell'attrezzatura",
   "settings_section_equipmentCondition_subtitle": "Soglie di esposizione per i contatori di manutenzione",
   "equipmentConditionSettings_title": "Stato dell'attrezzatura",
+  "equipmentCondition_children_title": "Parti installate",
+  "equipmentCondition_children_slot": "Slot {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Installato il {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{oggi} =1{1 giorno fa} other{{days} giorni fa}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{1 mese fa} other{{months} mesi fa}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Sostituisci",
+  "equipmentCondition_children_open": "Apri",
+  "equipmentCondition_children_replaceTitle": "Sostituire {name}?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} viene ritirato oggi e un nuovo elemento di tipo {type} ne prende il posto nello stesso slot. Numero di serie e note partono vuoti.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Sostituisci",
+  "equipmentCondition_children_replaceCancel": "Annulla",
+  "equipmentCondition_children_replaced": "{name} sostituito",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "Nessuna cella o batteria registrata",
+  "equipmentCondition_children_add": "Aggiungi",
   "equipmentCondition_findings_title": "Rilievi sullo stato",
   "equipmentCondition_findings_count": "{count, plural, =1{1 rilievo} other{{count} rilievi}}",
   "@equipmentCondition_findings_count": {

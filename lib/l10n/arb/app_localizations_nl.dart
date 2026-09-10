@@ -26684,6 +26684,76 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Staat van uitrusting';
 
   @override
+  String get equipmentCondition_children_title => 'Geplaatste onderdelen';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return 'Slot $slot';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return 'Geplaatst op $date, $age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days dagen geleden',
+      one: '1 dag geleden',
+      zero: 'vandaag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months maanden geleden',
+      one: '1 maand geleden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => 'Vervangen';
+
+  @override
+  String get equipmentCondition_children_open => 'Openen';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return '$name vervangen?';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return '$name wordt vandaag buiten gebruik gesteld en een nieuwe $type neemt dezelfde slot in. Serienummer en notities beginnen leeg.';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => 'Vervangen';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => 'Annuleren';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return '$name vervangen';
+  }
+
+  @override
+  String get equipmentCondition_children_empty =>
+      'Geen cellen of batterijen vastgelegd';
+
+  @override
+  String get equipmentCondition_children_add => 'Toevoegen';
+
+  @override
   String get equipmentCondition_findings_title => 'Conditiebevindingen';
 
   @override

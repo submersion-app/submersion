@@ -26780,6 +26780,76 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Felszerelés állapota';
 
   @override
+  String get equipmentCondition_children_title => 'Beépített alkatrészek';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return '$slot. hely';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return 'Beépítve: $date, $age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days napja',
+      one: '1 napja',
+      zero: 'ma',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months hónapja',
+      one: '1 hónapja',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => 'Csere';
+
+  @override
+  String get equipmentCondition_children_open => 'Megnyitás';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return 'Cseréli: $name?';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return 'A(z) $name ma kivonásra kerül, és egy új $type veszi át a helyét ugyanazon a helyen. A sorozatszám és a megjegyzések üresen indulnak.';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => 'Csere';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => 'Mégse';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return '$name kicserélve';
+  }
+
+  @override
+  String get equipmentCondition_children_empty =>
+      'Nincs rögzített cella vagy akkumulátor';
+
+  @override
+  String get equipmentCondition_children_add => 'Hozzáadás';
+
+  @override
   String get equipmentCondition_findings_title => 'Állapotmegállapítások';
 
   @override

@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/data/repositories/service_kind_rep
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -236,6 +237,24 @@ final equipmentItemProvider = FutureProvider.family<EquipmentItem?, String>((
 /// Backs the "Used on N dives" figure. A junction read over `dive_equipment`,
 /// whose rows vanish by cascade when a dive is deleted, so it over-counted
 /// after a merge until it took the dives tick as well (issue #974).
+/// The active children installed in a parent (cells sorted by slot, then
+/// batteries by name), for the children card (condition phase 4a).
+final childEquipmentProvider =
+    FutureProvider.family<List<EquipmentItem>, String>((ref, parentId) async {
+      final repository = ref.watch(equipmentRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      final children = await repository.getChildEquipment(parentId);
+      int slotOf(EquipmentItem e) =>
+          e.attrNum(EquipmentAttrKeys.cellSlot)?.round() ?? 1 << 20;
+      return children.where((c) => c.isActive).toList()..sort((a, b) {
+        final byType = a.type.index.compareTo(b.type.index);
+        if (byType != 0) return byType;
+        final bySlot = slotOf(a).compareTo(slotOf(b));
+        if (bySlot != 0) return bySlot;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+    });
+
 final equipmentDiveCountProvider = FutureProvider.family<int, String>((
   ref,
   equipmentId,

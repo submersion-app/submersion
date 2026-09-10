@@ -8175,6 +8175,75 @@
   "settings_section_equipmentCondition_title": "État du matériel",
   "settings_section_equipmentCondition_subtitle": "Seuils d'exposition pour les compteurs d'entretien",
   "equipmentConditionSettings_title": "État du matériel",
+  "equipmentCondition_children_title": "Pièces installées",
+  "equipmentCondition_children_slot": "Emplacement {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Installé le {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{aujourd'hui} =1{il y a 1 jour} other{il y a {days} jours}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{il y a 1 mois} other{il y a {months} mois}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Remplacer",
+  "equipmentCondition_children_open": "Ouvrir",
+  "equipmentCondition_children_replaceTitle": "Remplacer {name} ?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} est retiré aujourd'hui et un nouvel élément de type {type} prend sa place dans le même emplacement. Le numéro de série et les notes démarrent vides.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Remplacer",
+  "equipmentCondition_children_replaceCancel": "Annuler",
+  "equipmentCondition_children_replaced": "{name} remplacé",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "Aucune cellule ni batterie enregistrée",
+  "equipmentCondition_children_add": "Ajouter",
   "equipmentCondition_findings_title": "Constats d'état",
   "equipmentCondition_findings_count": "{count, plural, =1{1 constat} other{{count} constats}}",
   "@equipmentCondition_findings_count": {

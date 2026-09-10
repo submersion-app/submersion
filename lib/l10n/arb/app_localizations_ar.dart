@@ -26410,6 +26410,76 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentConditionSettings_title => 'حالة المعدات';
 
   @override
+  String get equipmentCondition_children_title => 'الأجزاء المركّبة';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return 'الفتحة $slot';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return 'رُكّب في $date، $age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'قبل $days أيام',
+      one: 'قبل يوم واحد',
+      zero: 'اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'قبل $months أشهر',
+      one: 'قبل شهر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => 'استبدال';
+
+  @override
+  String get equipmentCondition_children_open => 'فتح';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return 'هل تريد استبدال $name؟';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return 'سيُسحب $name اليوم ويحل محله $type جديد في الفتحة نفسها. يبدأ الرقم التسلسلي والملاحظات فارغين.';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => 'استبدال';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => 'إلغاء';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return 'تم استبدال $name';
+  }
+
+  @override
+  String get equipmentCondition_children_empty =>
+      'لا توجد خلايا أو بطاريات مسجّلة';
+
+  @override
+  String get equipmentCondition_children_add => 'إضافة';
+
+  @override
   String get equipmentCondition_findings_title => 'نتائج الحالة';
 
   @override

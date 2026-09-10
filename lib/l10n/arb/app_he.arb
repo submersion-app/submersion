@@ -8175,6 +8175,75 @@
   "settings_section_equipmentCondition_title": "מצב הציוד",
   "settings_section_equipmentCondition_subtitle": "ספי חשיפה לשעוני תחזוקה",
   "equipmentConditionSettings_title": "מצב הציוד",
+  "equipmentCondition_children_title": "חלקים מותקנים",
+  "equipmentCondition_children_slot": "חריץ {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "הותקן ב-{date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{היום} =1{לפני יום} other{לפני {days} ימים}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{לפני חודש} other{לפני {months} חודשים}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "החלפה",
+  "equipmentCondition_children_open": "פתיחה",
+  "equipmentCondition_children_replaceTitle": "להחליף את {name}?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} יוצא משימוש היום ו{type} חדש תופס את מקומו באותו חריץ. המספר הסידורי וההערות מתחילים ריקים.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "החלפה",
+  "equipmentCondition_children_replaceCancel": "ביטול",
+  "equipmentCondition_children_replaced": "{name} הוחלף",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "לא נרשמו תאים או סוללות",
+  "equipmentCondition_children_add": "הוספה",
   "equipmentCondition_findings_title": "ממצאי מצב",
   "equipmentCondition_findings_count": "{count, plural, =1{ממצא אחד} other{{count} ממצאים}}",
   "@equipmentCondition_findings_count": {

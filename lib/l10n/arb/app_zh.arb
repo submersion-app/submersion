@@ -8175,6 +8175,75 @@
   "settings_section_equipmentCondition_title": "装备状况",
   "settings_section_equipmentCondition_subtitle": "保养计时的暴露阈值",
   "equipmentConditionSettings_title": "装备状况",
+  "equipmentCondition_children_title": "已安装部件",
+  "equipmentCondition_children_slot": "插槽 {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "安装于 {date}，{age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{今天} =1{1 天前} other{{days} 天前}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{1 个月前} other{{months} 个月前}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "更换",
+  "equipmentCondition_children_open": "打开",
+  "equipmentCondition_children_replaceTitle": "更换 {name}？",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} 将于今天退役，新的{type}将在同一插槽中取代它。序列号和备注将从空白开始。",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "更换",
+  "equipmentCondition_children_replaceCancel": "取消",
+  "equipmentCondition_children_replaced": "已更换 {name}",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "未记录任何电池或电芯",
+  "equipmentCondition_children_add": "添加",
   "equipmentCondition_findings_title": "状态发现",
   "equipmentCondition_findings_count": "{count, plural, =1{1 项发现} other{{count} 项发现}}",
   "@equipmentCondition_findings_count": {

@@ -26983,6 +26983,76 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipmentConditionSettings_title => 'État du matériel';
 
   @override
+  String get equipmentCondition_children_title => 'Pièces installées';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return 'Emplacement $slot';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return 'Installé le $date, $age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'il y a $days jours',
+      one: 'il y a 1 jour',
+      zero: 'aujourd\'hui',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'il y a $months mois',
+      one: 'il y a 1 mois',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => 'Remplacer';
+
+  @override
+  String get equipmentCondition_children_open => 'Ouvrir';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return 'Remplacer $name ?';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return '$name est retiré aujourd\'hui et un nouvel élément de type $type prend sa place dans le même emplacement. Le numéro de série et les notes démarrent vides.';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => 'Remplacer';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => 'Annuler';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return '$name remplacé';
+  }
+
+  @override
+  String get equipmentCondition_children_empty =>
+      'Aucune cellule ni batterie enregistrée';
+
+  @override
+  String get equipmentCondition_children_add => 'Ajouter';
+
+  @override
   String get equipmentCondition_findings_title => 'Constats d\'état';
 
   @override

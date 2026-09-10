@@ -25505,6 +25505,75 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_title => '装备状况';
 
   @override
+  String get equipmentCondition_children_title => '已安装部件';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return '插槽 $slot';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return '安装于 $date，$age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days 天前',
+      one: '1 天前',
+      zero: '今天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months 个月前',
+      one: '1 个月前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => '更换';
+
+  @override
+  String get equipmentCondition_children_open => '打开';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return '更换 $name？';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return '$name 将于今天退役，新的$type将在同一插槽中取代它。序列号和备注将从空白开始。';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => '更换';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => '取消';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return '已更换 $name';
+  }
+
+  @override
+  String get equipmentCondition_children_empty => '未记录任何电池或电芯';
+
+  @override
+  String get equipmentCondition_children_add => '添加';
+
+  @override
   String get equipmentCondition_findings_title => '状态发现';
 
   @override

@@ -26836,6 +26836,76 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Ausrüstungszustand';
 
   @override
+  String get equipmentCondition_children_title => 'Eingebaute Teile';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return 'Steckplatz $slot';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return 'Eingebaut am $date, $age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'vor $days Tagen',
+      one: 'vor 1 Tag',
+      zero: 'heute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: 'vor $months Monaten',
+      one: 'vor 1 Monat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => 'Ersetzen';
+
+  @override
+  String get equipmentCondition_children_open => 'Öffnen';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return '$name ersetzen?';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return '$name wird heute stillgelegt und ein neues Teil vom Typ $type übernimmt denselben Steckplatz. Seriennummer und Notizen beginnen leer.';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => 'Ersetzen';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => 'Abbrechen';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return '$name ersetzt';
+  }
+
+  @override
+  String get equipmentCondition_children_empty =>
+      'Keine Zellen oder Akkus erfasst';
+
+  @override
+  String get equipmentCondition_children_add => 'Hinzufügen';
+
+  @override
   String get equipmentCondition_findings_title => 'Zustandsbefunde';
 
   @override

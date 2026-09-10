@@ -17130,6 +17130,75 @@
   "settings_section_equipmentCondition_title": "Equipment condition",
   "settings_section_equipmentCondition_subtitle": "Exposure thresholds for service clocks",
   "equipmentConditionSettings_title": "Equipment condition",
+  "equipmentCondition_children_title": "Installed parts",
+  "equipmentCondition_children_slot": "Slot {slot}",
+  "@equipmentCondition_children_slot": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_installed": "Installed {date}, {age}",
+  "@equipmentCondition_children_installed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_ageDays": "{days, plural, =0{today} =1{1 day ago} other{{days} days ago}}",
+  "@equipmentCondition_children_ageDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_ageMonths": "{months, plural, =1{1 month ago} other{{months} months ago}}",
+  "@equipmentCondition_children_ageMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_children_replace": "Replace",
+  "equipmentCondition_children_open": "Open",
+  "equipmentCondition_children_replaceTitle": "Replace {name}?",
+  "@equipmentCondition_children_replaceTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceBody": "{name} is retired today and a new {type} takes its place in the same slot. Serial and notes start empty.",
+  "@equipmentCondition_children_replaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_replaceConfirm": "Replace",
+  "equipmentCondition_children_replaceCancel": "Cancel",
+  "equipmentCondition_children_replaced": "{name} replaced",
+  "@equipmentCondition_children_replaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_children_empty": "No cells or batteries recorded",
+  "equipmentCondition_children_add": "Add",
   "equipmentCondition_findings_title": "Condition findings",
   "equipmentCondition_findings_count": "{count, plural, =1{1 finding} other{{count} findings}}",
   "@equipmentCondition_findings_count": {

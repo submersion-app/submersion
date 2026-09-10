@@ -26886,6 +26886,76 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Stato dell\'attrezzatura';
 
   @override
+  String get equipmentCondition_children_title => 'Parti installate';
+
+  @override
+  String equipmentCondition_children_slot(int slot) {
+    return 'Slot $slot';
+  }
+
+  @override
+  String equipmentCondition_children_installed(String date, String age) {
+    return 'Installato il $date, $age';
+  }
+
+  @override
+  String equipmentCondition_children_ageDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days giorni fa',
+      one: '1 giorno fa',
+      zero: 'oggi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_children_ageMonths(int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months mesi fa',
+      one: '1 mese fa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_children_replace => 'Sostituisci';
+
+  @override
+  String get equipmentCondition_children_open => 'Apri';
+
+  @override
+  String equipmentCondition_children_replaceTitle(String name) {
+    return 'Sostituire $name?';
+  }
+
+  @override
+  String equipmentCondition_children_replaceBody(String name, String type) {
+    return '$name viene ritirato oggi e un nuovo elemento di tipo $type ne prende il posto nello stesso slot. Numero di serie e note partono vuoti.';
+  }
+
+  @override
+  String get equipmentCondition_children_replaceConfirm => 'Sostituisci';
+
+  @override
+  String get equipmentCondition_children_replaceCancel => 'Annulla';
+
+  @override
+  String equipmentCondition_children_replaced(String name) {
+    return '$name sostituito';
+  }
+
+  @override
+  String get equipmentCondition_children_empty =>
+      'Nessuna cella o batteria registrata';
+
+  @override
+  String get equipmentCondition_children_add => 'Aggiungi';
+
+  @override
   String get equipmentCondition_findings_title => 'Rilievi sullo stato';
 
   @override
