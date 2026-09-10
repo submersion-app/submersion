@@ -1037,6 +1037,7 @@
   "preDive_runner_flag": "Markeren",
   "preDive_runner_undo": "Terugzetten naar openstaand",
   "preDive_runner_serviceOverdue": "Onderhoud verlopen",
+  "preDive_runner_conditionFindings": "Conditiebevindingen",
   "preDive_runner_addNote": "Notitie toevoegen",
   "preDive_runner_enterValue": "Waarde invoeren",
   "preDive_runner_cellInAir": "In lucht",

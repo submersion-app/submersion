@@ -2600,6 +2600,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get preDive_runner_serviceOverdue => 'Onderhoud verlopen';
 
   @override
+  String get preDive_runner_conditionFindings => 'Conditiebevindingen';
+
+  @override
   String get preDive_runner_addNote => 'Notitie toevoegen';
 
   @override

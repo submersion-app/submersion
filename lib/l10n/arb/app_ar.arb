@@ -1037,6 +1037,7 @@
   "preDive_runner_flag": "وضع علامة",
   "preDive_runner_undo": "إعادة إلى قيد الانتظار",
   "preDive_runner_serviceOverdue": "الصيانة متأخرة",
+  "preDive_runner_conditionFindings": "نتائج الحالة",
   "preDive_runner_addNote": "إضافة ملاحظة",
   "preDive_runner_enterValue": "أدخل القيمة",
   "preDive_runner_cellInAir": "في الهواء",

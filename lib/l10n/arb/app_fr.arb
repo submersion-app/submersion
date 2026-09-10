@@ -1037,6 +1037,7 @@
   "preDive_runner_flag": "Signaler",
   "preDive_runner_undo": "Remettre en attente",
   "preDive_runner_serviceOverdue": "Entretien en retard",
+  "preDive_runner_conditionFindings": "Constats d'état",
   "preDive_runner_addNote": "Ajouter une note",
   "preDive_runner_enterValue": "Saisir une valeur",
   "preDive_runner_cellInAir": "Dans l'air",

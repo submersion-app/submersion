@@ -1037,6 +1037,7 @@
   "preDive_runner_flag": "Megjelölés",
   "preDive_runner_undo": "Visszaállítás függő állapotba",
   "preDive_runner_serviceOverdue": "A karbantartás lejárt",
+  "preDive_runner_conditionFindings": "Állapotmegállapítások",
   "preDive_runner_addNote": "Megjegyzés hozzáadása",
   "preDive_runner_enterValue": "Érték megadása",
   "preDive_runner_cellInAir": "Levegőben",

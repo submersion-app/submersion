@@ -2617,6 +2617,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get preDive_runner_serviceOverdue => 'Manutenzione scaduta';
 
   @override
+  String get preDive_runner_conditionFindings => 'Rilievi sullo stato';
+
+  @override
   String get preDive_runner_addNote => 'Aggiungi nota';
 
   @override

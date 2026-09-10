@@ -4343,6 +4343,12 @@ abstract class AppLocalizations {
   /// **'Service overdue'**
   String get preDive_runner_serviceOverdue;
 
+  /// No description provided for @preDive_runner_conditionFindings.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition findings'**
+  String get preDive_runner_conditionFindings;
+
   /// No description provided for @preDive_runner_addNote.
   ///
   /// In en, this message translates to:

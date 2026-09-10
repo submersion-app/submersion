@@ -1037,6 +1037,7 @@
   "preDive_runner_flag": "Markieren",
   "preDive_runner_undo": "Auf ausstehend zurücksetzen",
   "preDive_runner_serviceOverdue": "Wartung überfällig",
+  "preDive_runner_conditionFindings": "Zustandsbefunde",
   "preDive_runner_addNote": "Notiz hinzufügen",
   "preDive_runner_enterValue": "Wert eingeben",
   "preDive_runner_cellInAir": "In Luft",

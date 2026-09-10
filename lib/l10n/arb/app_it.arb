@@ -1037,6 +1037,7 @@
   "preDive_runner_flag": "Segnala",
   "preDive_runner_undo": "Reimposta come in sospeso",
   "preDive_runner_serviceOverdue": "Manutenzione scaduta",
+  "preDive_runner_conditionFindings": "Rilievi sullo stato",
   "preDive_runner_addNote": "Aggiungi nota",
   "preDive_runner_enterValue": "Inserisci valore",
   "preDive_runner_cellInAir": "In aria",

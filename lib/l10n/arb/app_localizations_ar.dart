@@ -2565,6 +2565,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_runner_serviceOverdue => 'الصيانة متأخرة';
 
   @override
+  String get preDive_runner_conditionFindings => 'نتائج الحالة';
+
+  @override
   String get preDive_runner_addNote => 'إضافة ملاحظة';
 
   @override

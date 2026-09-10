@@ -2466,6 +2466,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_runner_serviceOverdue => '维护已逾期';
 
   @override
+  String get preDive_runner_conditionFindings => '状态发现';
+
+  @override
   String get preDive_runner_addNote => '添加备注';
 
   @override

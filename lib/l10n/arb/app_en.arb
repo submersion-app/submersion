@@ -1612,6 +1612,7 @@
   "preDive_runner_flag": "Flag",
   "preDive_runner_undo": "Reset to pending",
   "preDive_runner_serviceOverdue": "Service overdue",
+  "preDive_runner_conditionFindings": "Condition findings",
   "preDive_runner_addNote": "Add note",
   "preDive_runner_enterValue": "Enter value",
   "preDive_runner_cellInAir": "In air",

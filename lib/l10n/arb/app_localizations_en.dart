@@ -2570,6 +2570,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preDive_runner_serviceOverdue => 'Service overdue';
 
   @override
+  String get preDive_runner_conditionFindings => 'Condition findings';
+
+  @override
   String get preDive_runner_addNote => 'Add note';
 
   @override

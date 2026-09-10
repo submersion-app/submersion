@@ -1037,6 +1037,7 @@
   "preDive_runner_flag": "Sinalizar",
   "preDive_runner_undo": "Redefinir como pendente",
   "preDive_runner_serviceOverdue": "Manutenção vencida",
+  "preDive_runner_conditionFindings": "Constatações de estado",
   "preDive_runner_addNote": "Adicionar nota",
   "preDive_runner_enterValue": "Inserir valor",
   "preDive_runner_cellInAir": "No ar",

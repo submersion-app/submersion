@@ -1037,6 +1037,7 @@
   "preDive_runner_flag": "סמן בדגל",
   "preDive_runner_undo": "אפס לממתין",
   "preDive_runner_serviceOverdue": "פג תוקף הטיפול",
+  "preDive_runner_conditionFindings": "ממצאי מצב",
   "preDive_runner_addNote": "הוסף הערה",
   "preDive_runner_enterValue": "הזן ערך",
   "preDive_runner_cellInAir": "באוויר",

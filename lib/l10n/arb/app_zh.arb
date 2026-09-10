@@ -1131,6 +1131,7 @@
   "preDive_runner_flag": "标记",
   "preDive_runner_undo": "重置为待办",
   "preDive_runner_serviceOverdue": "维护已逾期",
+  "preDive_runner_conditionFindings": "状态发现",
   "preDive_runner_addNote": "添加备注",
   "preDive_runner_enterValue": "输入数值",
   "preDive_runner_cellInAir": "空气中",
