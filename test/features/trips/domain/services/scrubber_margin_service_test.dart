@@ -50,6 +50,24 @@ void main() {
     expect(m.caution, isTrue);
   });
 
+  test('a zero or negative override is ignored, as the trip form does', () {
+    // The trip form saves a non-positive entry as unset; a stale or synced
+    // row could still carry one, and it must not zero the expected use or
+    // claim it was set on this trip.
+    for (final bad in const [0, -3]) {
+      final m = computeScrubberMargin(
+        inputs(divesOverride: bad, runtimeOverride: bad),
+      );
+      final estimate = computeScrubberMargin(inputs());
+      expect(m.expectedDives, estimate.expectedDives, reason: 'dives $bad');
+      expect(m.expectedDivesN, estimate.expectedDivesN);
+      expect(m.divesFromOverride, isFalse);
+      expect(m.minutesPerDive, estimate.minutesPerDive, reason: 'min $bad');
+      expect(m.minutesPerDiveN, estimate.minutesPerDiveN);
+      expect(m.minutesFromOverride, isFalse);
+    }
+  });
+
   test('estimates use the medians with their n', () {
     final m = computeScrubberMargin(inputs());
     // 5 dive days times the median of 2, 3, 2 = 10 dives.

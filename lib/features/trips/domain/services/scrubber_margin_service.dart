@@ -10,8 +10,12 @@ const scrubberCautionFraction = 0.2;
 /// per dive day over recent trips (default 2), rounded up. Minutes per
 /// dive = override, else the median summary figure over recent CCR dives,
 /// else the median CCR runtime, else 0. Margin = remaining minus expected
-/// use; null without a rating.
+/// use; null without a rating. A zero or negative override counts as
+/// unset, the same rule the trip form applies when it saves.
 ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
+  int? positive(int? v) => v != null && v > 0 ? v : null;
+  final divesOverride = positive(inputs.expectedDivesOverride);
+  final minutesOverride = positive(inputs.runtimeMinutesOverride);
   final rated = inputs.ratedMinutes;
   final remaining = rated == null
       ? 0.0
@@ -19,8 +23,8 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
 
   final int expectedDives;
   final int expectedDivesN;
-  if (inputs.expectedDivesOverride != null) {
-    expectedDives = inputs.expectedDivesOverride!;
+  if (divesOverride != null) {
+    expectedDives = divesOverride;
     expectedDivesN = 0;
   } else {
     final history = inputs.divesPerDiveDayHistory;
@@ -31,8 +35,8 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
 
   final double minutesPerDive;
   final int minutesPerDiveN;
-  if (inputs.runtimeMinutesOverride != null) {
-    minutesPerDive = inputs.runtimeMinutesOverride!.toDouble();
+  if (minutesOverride != null) {
+    minutesPerDive = minutesOverride.toDouble();
     minutesPerDiveN = 0;
   } else if (inputs.scrubberMinutesHistory.isNotEmpty) {
     minutesPerDive = _median(inputs.scrubberMinutesHistory);
@@ -59,10 +63,10 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
     remainingBefore: remaining,
     expectedDives: expectedDives,
     expectedDivesN: expectedDivesN,
-    divesFromOverride: inputs.expectedDivesOverride != null,
+    divesFromOverride: divesOverride != null,
     minutesPerDive: minutesPerDive,
     minutesPerDiveN: minutesPerDiveN,
-    minutesFromOverride: inputs.runtimeMinutesOverride != null,
+    minutesFromOverride: minutesOverride != null,
     expectedUse: expectedUse,
     marginAfter: margin,
     caution: caution,
