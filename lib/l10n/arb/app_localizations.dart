@@ -44355,6 +44355,54 @@ abstract class AppLocalizations {
   /// **'Could not save. Try again.'**
   String get equipmentConditionSettings_saveFailed;
 
+  /// No description provided for @equipmentConditionSettings_sensorHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor summaries'**
+  String get equipmentConditionSettings_sensorHeader;
+
+  /// No description provided for @equipmentConditionSettings_sensorHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Each dive\'s profile is summarised once for cell output, transmitter dropouts and scrubber use. New and edited dives are summarised on their own.'**
+  String get equipmentConditionSettings_sensorHelp;
+
+  /// No description provided for @equipmentConditionSettings_rebuild.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebuild sensor summaries'**
+  String get equipmentConditionSettings_rebuild;
+
+  /// No description provided for @equipmentConditionSettings_rebuild_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recompute every dive\'s summary from its profile'**
+  String get equipmentConditionSettings_rebuild_subtitle;
+
+  /// No description provided for @equipmentConditionSettings_rebuild_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Summarised {done} of {total}'**
+  String equipmentConditionSettings_rebuild_progress(int done, int total);
+
+  /// No description provided for @equipmentConditionSettings_rebuild_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor summaries rebuilt'**
+  String get equipmentConditionSettings_rebuild_done;
+
+  /// No description provided for @equipmentConditionSettings_rebuild_doneWithErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor summaries rebuilt; {count, plural, =1{1 dive could not be summarised} other{{count} dives could not be summarised}}'**
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count);
+
+  /// No description provided for @equipmentConditionSettings_rebuild_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not rebuild the sensor summaries.'**
+  String get equipmentConditionSettings_rebuild_failed;
+
   /// No description provided for @settings_section_security_title.
   ///
   /// In en, this message translates to:

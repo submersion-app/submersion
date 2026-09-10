@@ -26441,6 +26441,44 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not save. Try again.';
 
   @override
+  String get equipmentConditionSettings_sensorHeader => 'Sensor summaries';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'Each dive\'s profile is summarised once for cell output, transmitter dropouts and scrubber use. New and edited dives are summarised on their own.';
+
+  @override
+  String get equipmentConditionSettings_rebuild => 'Rebuild sensor summaries';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'Recompute every dive\'s summary from its profile';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return 'Summarised $done of $total';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Sensor summaries rebuilt';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives could not be summarised',
+      one: '1 dive could not be summarised',
+    );
+    return 'Sensor summaries rebuilt; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'Could not rebuild the sensor summaries.';
+
+  @override
   String get settings_section_security_title => 'App Security';
 
   @override

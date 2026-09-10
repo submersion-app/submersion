@@ -26888,6 +26888,46 @@ class AppLocalizationsIt extends AppLocalizations {
       'Salvataggio non riuscito. Riprova.';
 
   @override
+  String get equipmentConditionSettings_sensorHeader =>
+      'Riepiloghi dei sensori';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'Il profilo di ogni immersione viene riepilogato una volta per l\'uscita delle celle, le perdite del trasmettitore e l\'uso del filtro. Le immersioni nuove e modificate si riepilogano da sole.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'Ricostruisci i riepiloghi dei sensori';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'Ricalcola il riepilogo di ogni immersione dal suo profilo';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return 'Riepilogate $done di $total';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Riepiloghi dei sensori ricostruiti';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni non sono state riepilogate',
+      one: '1 immersione non è stata riepilogata',
+    );
+    return 'Riepiloghi dei sensori ricostruiti; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'Impossibile ricostruire i riepiloghi dei sensori.';
+
+  @override
   String get settings_section_security_title => 'Sicurezza dell\'app';
 
   @override

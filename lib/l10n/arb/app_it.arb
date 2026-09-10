@@ -8175,6 +8175,31 @@
   "equipmentConditionSettings_o2Label": "Miscela ad alto O2 oltre (% O2)",
   "equipmentConditionSettings_invalid": "Inserisci un numero",
   "equipmentConditionSettings_saveFailed": "Salvataggio non riuscito. Riprova.",
+  "equipmentConditionSettings_sensorHeader": "Riepiloghi dei sensori",
+  "equipmentConditionSettings_sensorHelp": "Il profilo di ogni immersione viene riepilogato una volta per l'uscita delle celle, le perdite del trasmettitore e l'uso del filtro. Le immersioni nuove e modificate si riepilogano da sole.",
+  "equipmentConditionSettings_rebuild": "Ricostruisci i riepiloghi dei sensori",
+  "equipmentConditionSettings_rebuild_subtitle": "Ricalcola il riepilogo di ogni immersione dal suo profilo",
+  "equipmentConditionSettings_rebuild_progress": "Riepilogate {done} di {total}",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Riepiloghi dei sensori ricostruiti",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Riepiloghi dei sensori ricostruiti; {count, plural, =1{1 immersione non è stata riepilogata} other{{count} immersioni non sono state riepilogate}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "Impossibile ricostruire i riepiloghi dei sensori.",
   "dataQuality_inbox_title": "Qualità dei dati",
   "dataQuality_dive_unknown": "Dettagli dell'immersione non disponibili",
   "dataQuality_dive_number": "#{number}",

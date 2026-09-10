@@ -8175,6 +8175,31 @@
   "equipmentConditionSettings_o2Label": "高氧混合气高于（% O2）",
   "equipmentConditionSettings_invalid": "请输入数字",
   "equipmentConditionSettings_saveFailed": "无法保存。请重试。",
+  "equipmentConditionSettings_sensorHeader": "传感器摘要",
+  "equipmentConditionSettings_sensorHelp": "每次潜水的剖面只汇总一次，用于电池输出、发射器断连和吸收剂用量。新增和编辑的潜水会自动汇总。",
+  "equipmentConditionSettings_rebuild": "重建传感器摘要",
+  "equipmentConditionSettings_rebuild_subtitle": "根据每次潜水的剖面重新计算其摘要",
+  "equipmentConditionSettings_rebuild_progress": "已汇总 {done} / {total}",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "传感器摘要已重建",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "传感器摘要已重建；{count, plural, =1{1 次潜水无法汇总} other{{count} 次潜水无法汇总}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "无法重建传感器摘要。",
   "dataQuality_inbox_title": "数据质量",
   "dataQuality_dive_unknown": "无法获取潜水详情",
   "dataQuality_dive_number": "#{number}",

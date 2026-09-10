@@ -26782,6 +26782,45 @@ class AppLocalizationsHu extends AppLocalizations {
       'A mentés nem sikerült. Próbálja újra.';
 
   @override
+  String get equipmentConditionSettings_sensorHeader => 'Szenzor-összegzések';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'Minden merülés profilját egyszer összegezzük a cellakimenet, az adókimaradások és a szűrőfelhasználás szerint. Az új és a szerkesztett merülések maguktól összegződnek.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'Szenzor-összegzések újraépítése';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'Minden merülés összegzésének újraszámítása a profiljából';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return '$done / $total összegezve';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Szenzor-összegzések újraépítve';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülést nem sikerült összegezni',
+      one: '1 merülést nem sikerült összegezni',
+    );
+    return 'Szenzor-összegzések újraépítve; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'A szenzor-összegzéseket nem sikerült újraépíteni.';
+
+  @override
   String get settings_section_security_title => 'Alkalmazásbiztonság';
 
   @override

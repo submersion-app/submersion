@@ -26907,6 +26907,45 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo guardar. Inténtalo de nuevo.';
 
   @override
+  String get equipmentConditionSettings_sensorHeader => 'Resúmenes de sensores';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'El perfil de cada inmersión se resume una vez para la salida de las células, las pérdidas del transmisor y el uso del absorbente. Las inmersiones nuevas y editadas se resumen solas.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'Reconstruir resúmenes de sensores';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'Recalcular el resumen de cada inmersión a partir de su perfil';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return 'Resumidas $done de $total';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Resúmenes de sensores reconstruidos';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones no se pudieron resumir',
+      one: '1 inmersión no se pudo resumir',
+    );
+    return 'Resúmenes de sensores reconstruidos; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'No se pudieron reconstruir los resúmenes de sensores.';
+
+  @override
   String get settings_section_security_title => 'Seguridad de la app';
 
   @override

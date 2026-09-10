@@ -8175,6 +8175,31 @@
   "equipmentConditionSettings_o2Label": "خليط بأكسجين مرتفع فوق (% O2)",
   "equipmentConditionSettings_invalid": "أدخل رقمًا",
   "equipmentConditionSettings_saveFailed": "تعذر الحفظ. حاول مرة أخرى.",
+  "equipmentConditionSettings_sensorHeader": "ملخصات المستشعرات",
+  "equipmentConditionSettings_sensorHelp": "يُلخَّص ملف كل غطسة مرة واحدة لقياس خرج الخلايا وانقطاعات جهاز الإرسال واستهلاك المنظّف. تُلخَّص الغطسات الجديدة والمعدّلة تلقائيًا.",
+  "equipmentConditionSettings_rebuild": "إعادة بناء ملخصات المستشعرات",
+  "equipmentConditionSettings_rebuild_subtitle": "إعادة حساب ملخص كل غطسة من ملفها",
+  "equipmentConditionSettings_rebuild_progress": "تم تلخيص {done} من {total}",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "أُعيد بناء ملخصات المستشعرات",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "أُعيد بناء ملخصات المستشعرات؛ {count, plural, =1{تعذّر تلخيص غطسة واحدة} other{تعذّر تلخيص {count} غطسات}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "تعذّرت إعادة بناء ملخصات المستشعرات.",
   "dataQuality_inbox_title": "جودة البيانات",
   "dataQuality_dive_unknown": "تفاصيل الغطسة غير متاحة",
   "dataQuality_dive_number": "#{number}",

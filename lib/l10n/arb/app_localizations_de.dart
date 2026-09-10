@@ -26837,6 +26837,46 @@ class AppLocalizationsDe extends AppLocalizations {
       'Speichern fehlgeschlagen. Bitte erneut versuchen.';
 
   @override
+  String get equipmentConditionSettings_sensorHeader =>
+      'Sensorzusammenfassungen';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'Das Profil jedes Tauchgangs wird einmal für Zellenausgang, Sender-Aussetzer und Scrubber-Verbrauch zusammengefasst. Neue und bearbeitete Tauchgänge werden automatisch erfasst.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'Sensorzusammenfassungen neu erstellen';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'Die Zusammenfassung jedes Tauchgangs aus seinem Profil neu berechnen';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return '$done von $total zusammengefasst';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Sensorzusammenfassungen neu erstellt';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge konnten nicht zusammengefasst werden',
+      one: '1 Tauchgang konnte nicht zusammengefasst werden',
+    );
+    return 'Sensorzusammenfassungen neu erstellt; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'Die Sensorzusammenfassungen konnten nicht neu erstellt werden.';
+
+  @override
   String get settings_section_security_title => 'App-Sicherheit';
 
   @override

@@ -8175,6 +8175,31 @@
   "equipmentConditionSettings_o2Label": "O2-reiches Gemisch über (% O2)",
   "equipmentConditionSettings_invalid": "Bitte eine Zahl eingeben",
   "equipmentConditionSettings_saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
+  "equipmentConditionSettings_sensorHeader": "Sensorzusammenfassungen",
+  "equipmentConditionSettings_sensorHelp": "Das Profil jedes Tauchgangs wird einmal für Zellenausgang, Sender-Aussetzer und Scrubber-Verbrauch zusammengefasst. Neue und bearbeitete Tauchgänge werden automatisch erfasst.",
+  "equipmentConditionSettings_rebuild": "Sensorzusammenfassungen neu erstellen",
+  "equipmentConditionSettings_rebuild_subtitle": "Die Zusammenfassung jedes Tauchgangs aus seinem Profil neu berechnen",
+  "equipmentConditionSettings_rebuild_progress": "{done} von {total} zusammengefasst",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Sensorzusammenfassungen neu erstellt",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Sensorzusammenfassungen neu erstellt; {count, plural, =1{1 Tauchgang konnte nicht zusammengefasst werden} other{{count} Tauchgänge konnten nicht zusammengefasst werden}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "Die Sensorzusammenfassungen konnten nicht neu erstellt werden.",
   "dataQuality_inbox_title": "Datenqualität",
   "dataQuality_dive_unknown": "Tauchgangsdetails nicht verfügbar",
   "dataQuality_dive_number": "#{number}",

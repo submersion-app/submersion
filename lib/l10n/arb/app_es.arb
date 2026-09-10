@@ -8175,6 +8175,31 @@
   "equipmentConditionSettings_o2Label": "Mezcla con alto O2 por encima de (% O2)",
   "equipmentConditionSettings_invalid": "Introduce un número",
   "equipmentConditionSettings_saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+  "equipmentConditionSettings_sensorHeader": "Resúmenes de sensores",
+  "equipmentConditionSettings_sensorHelp": "El perfil de cada inmersión se resume una vez para la salida de las células, las pérdidas del transmisor y el uso del absorbente. Las inmersiones nuevas y editadas se resumen solas.",
+  "equipmentConditionSettings_rebuild": "Reconstruir resúmenes de sensores",
+  "equipmentConditionSettings_rebuild_subtitle": "Recalcular el resumen de cada inmersión a partir de su perfil",
+  "equipmentConditionSettings_rebuild_progress": "Resumidas {done} de {total}",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Resúmenes de sensores reconstruidos",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Resúmenes de sensores reconstruidos; {count, plural, =1{1 inmersión no se pudo resumir} other{{count} inmersiones no se pudieron resumir}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "No se pudieron reconstruir los resúmenes de sensores.",
   "dataQuality_inbox_title": "Calidad de datos",
   "dataQuality_dive_unknown": "Detalles de la inmersión no disponibles",
   "dataQuality_dive_number": "#{number}",

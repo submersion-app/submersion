@@ -8175,6 +8175,31 @@
   "equipmentConditionSettings_o2Label": "תערובת בחמצן גבוה מעל (% O2)",
   "equipmentConditionSettings_invalid": "יש להזין מספר",
   "equipmentConditionSettings_saveFailed": "השמירה נכשלה. נסו שוב.",
+  "equipmentConditionSettings_sensorHeader": "סיכומי חיישנים",
+  "equipmentConditionSettings_sensorHelp": "פרופיל כל צלילה מסוכם פעם אחת עבור פלט התאים, נפילות המשדר ושימוש בסופג. צלילות חדשות ונערכות מסוכמות מעצמן.",
+  "equipmentConditionSettings_rebuild": "בנייה מחדש של סיכומי חיישנים",
+  "equipmentConditionSettings_rebuild_subtitle": "חישוב מחדש של סיכום כל צלילה מהפרופיל שלה",
+  "equipmentConditionSettings_rebuild_progress": "סוכמו {done} מתוך {total}",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "סיכומי החיישנים נבנו מחדש",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "סיכומי החיישנים נבנו מחדש; {count, plural, =1{צלילה אחת לא ניתן היה לסכם} other{{count} צלילות לא ניתן היה לסכם}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "לא ניתן היה לבנות מחדש את סיכומי החיישנים.",
   "dataQuality_inbox_title": "איכות הנתונים",
   "dataQuality_dive_unknown": "פרטי הצלילה אינם זמינים",
   "dataQuality_dive_number": "#{number}",

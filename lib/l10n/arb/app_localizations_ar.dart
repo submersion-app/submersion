@@ -26411,6 +26411,45 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر الحفظ. حاول مرة أخرى.';
 
   @override
+  String get equipmentConditionSettings_sensorHeader => 'ملخصات المستشعرات';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'يُلخَّص ملف كل غطسة مرة واحدة لقياس خرج الخلايا وانقطاعات جهاز الإرسال واستهلاك المنظّف. تُلخَّص الغطسات الجديدة والمعدّلة تلقائيًا.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'إعادة بناء ملخصات المستشعرات';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'إعادة حساب ملخص كل غطسة من ملفها';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return 'تم تلخيص $done من $total';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'أُعيد بناء ملخصات المستشعرات';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر تلخيص $count غطسات',
+      one: 'تعذّر تلخيص غطسة واحدة',
+    );
+    return 'أُعيد بناء ملخصات المستشعرات؛ $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'تعذّرت إعادة بناء ملخصات المستشعرات.';
+
+  @override
   String get settings_section_security_title => 'أمان التطبيق';
 
   @override

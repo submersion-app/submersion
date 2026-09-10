@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_condition_sweep.dart';
 import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -99,4 +101,90 @@ void main() {
     await tester.pumpAndSettle();
     expect(notifier.state.deepDiveThresholdM, closeTo(30.48, 0.01));
   });
+
+  group('rebuild sensor summaries', () {
+    Widget buildWithSweep(EquipmentConditionSweep sweep) => ProviderScope(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        // The rebuild scopes to the active diver; override the provider so
+        // it does not build the real notifier (SharedPreferences and DB).
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        equipmentConditionSweepProvider.overrideWithValue(sweep),
+      ],
+      child: const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: EquipmentConditionSettingsPage(),
+      ),
+    );
+
+    testWidgets('runs a forced sweep for the active diver and reports', (
+      tester,
+    ) async {
+      var forced = false;
+      String? diverSeen;
+      await tester.pumpWidget(
+        buildWithSweep(
+          _FakeSweep((diverId, force, onProgress) async {
+            forced = force;
+            diverSeen = diverId;
+            onProgress?.call(0, 2);
+            onProgress?.call(2, 2);
+            return const EquipmentConditionSweepResult(
+              swept: 2,
+              failed: 0,
+              cancelled: false,
+            );
+          }),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Rebuild sensor summaries'), findsOneWidget);
+      await tester.tap(find.text('Rebuild sensor summaries'));
+      await tester.pumpAndSettle();
+
+      expect(forced, isTrue);
+      expect(diverSeen, isNull);
+      expect(find.text('Sensor summaries rebuilt'), findsOneWidget);
+    });
+
+    testWidgets('a failing sweep shows the failure text', (tester) async {
+      await tester.pumpWidget(
+        buildWithSweep(
+          _FakeSweep((_, _, _) async => throw StateError('no db')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rebuild sensor summaries'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Could not rebuild the sensor summaries.'),
+        findsOneWidget,
+      );
+    });
+  });
+}
+
+class _FakeSweep implements EquipmentConditionSweep {
+  final Future<EquipmentConditionSweepResult> Function(
+    String? diverId,
+    bool force,
+    void Function(int, int)? onProgress,
+  )
+  _run;
+
+  _FakeSweep(this._run);
+
+  @override
+  Future<EquipmentConditionSweepResult> run({
+    String? diverId,
+    List<String>? diveIds,
+    bool force = false,
+    void Function(int done, int total)? onProgress,
+    bool Function()? isCancelled,
+  }) => _run(diverId, force, onProgress);
 }

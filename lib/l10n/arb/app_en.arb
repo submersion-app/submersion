@@ -17130,6 +17130,31 @@
   "equipmentConditionSettings_o2Label": "High-O2 mix above (% O2)",
   "equipmentConditionSettings_invalid": "Enter a number",
   "equipmentConditionSettings_saveFailed": "Could not save. Try again.",
+  "equipmentConditionSettings_sensorHeader": "Sensor summaries",
+  "equipmentConditionSettings_sensorHelp": "Each dive's profile is summarised once for cell output, transmitter dropouts and scrubber use. New and edited dives are summarised on their own.",
+  "equipmentConditionSettings_rebuild": "Rebuild sensor summaries",
+  "equipmentConditionSettings_rebuild_subtitle": "Recompute every dive's summary from its profile",
+  "equipmentConditionSettings_rebuild_progress": "Summarised {done} of {total}",
+  "@equipmentConditionSettings_rebuild_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_done": "Sensor summaries rebuilt",
+  "equipmentConditionSettings_rebuild_doneWithErrors": "Sensor summaries rebuilt; {count, plural, =1{1 dive could not be summarised} other{{count} dives could not be summarised}}",
+  "@equipmentConditionSettings_rebuild_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentConditionSettings_rebuild_failed": "Could not rebuild the sensor summaries.",
   "settings_section_security_title": "App Security",
   "settings_section_security_subtitle": "App lock & database encryption",
   "settings_section_trimixMixer_title": "Trimix Mixer",

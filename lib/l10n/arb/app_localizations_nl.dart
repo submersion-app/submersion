@@ -26686,6 +26686,45 @@ class AppLocalizationsNl extends AppLocalizations {
       'Opslaan mislukt. Probeer het opnieuw.';
 
   @override
+  String get equipmentConditionSettings_sensorHeader => 'Sensorsamenvattingen';
+
+  @override
+  String get equipmentConditionSettings_sensorHelp =>
+      'Het profiel van elke duik wordt eenmaal samengevat voor celuitvoer, zenderuitval en scrubbergebruik. Nieuwe en bewerkte duiken worden vanzelf samengevat.';
+
+  @override
+  String get equipmentConditionSettings_rebuild =>
+      'Sensorsamenvattingen opnieuw opbouwen';
+
+  @override
+  String get equipmentConditionSettings_rebuild_subtitle =>
+      'De samenvatting van elke duik opnieuw berekenen uit het profiel';
+
+  @override
+  String equipmentConditionSettings_rebuild_progress(int done, int total) {
+    return '$done van $total samengevat';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_done =>
+      'Sensorsamenvattingen opnieuw opgebouwd';
+
+  @override
+  String equipmentConditionSettings_rebuild_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken konden niet worden samengevat',
+      one: '1 duik kon niet worden samengevat',
+    );
+    return 'Sensorsamenvattingen opnieuw opgebouwd; $_temp0';
+  }
+
+  @override
+  String get equipmentConditionSettings_rebuild_failed =>
+      'De sensorsamenvattingen konden niet opnieuw worden opgebouwd.';
+
+  @override
   String get settings_section_security_title => 'App-beveiliging';
 
   @override
