@@ -281,8 +281,8 @@ class _UsbDevicesTab extends ConsumerStatefulWidget {
 }
 
 class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
-  bool _isSearching = false;
   String _searchQuery = '';
+  String? _selectedManufacturer;
   final _searchController = TextEditingController();
 
   @override
@@ -295,10 +295,18 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
   Map<String, List<DeviceModel>> _filterDevices(
     Map<String, List<DeviceModel>> devices,
   ) {
-    if (_searchQuery.isEmpty) return devices;
     final query = _searchQuery.toLowerCase();
     final result = <String, List<DeviceModel>>{};
     for (final entry in devices.entries) {
+      if (_selectedManufacturer != null && _selectedManufacturer != entry.key) {
+        continue;
+      }
+      
+      if (query.isEmpty) {
+        result[entry.key] = entry.value;
+        continue;
+      }
+      
       // If manufacturer matches, include all its models.
       if (entry.key.toLowerCase().contains(query)) {
         result[entry.key] = entry.value;
@@ -343,65 +351,68 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
           children: [
             // Instructions + search
             Container(
-              margin: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: _isSearching
-                  ? Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            autofocus: true,
-                            decoration: InputDecoration(
-                              hintText: context
-                                  .l10n
-                                  .diveComputer_discovery_usbSearchHint,
-                              border: InputBorder.none,
-                              isDense: true,
-                            ),
-                            onChanged: (value) =>
-                                setState(() => _searchQuery = value),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          tooltip: MaterialLocalizations.of(
-                            context,
-                          ).closeButtonTooltip,
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _isSearching = false;
-                              _searchQuery = '';
-                            });
-                          },
-                        ),
-                      ],
-                    )
-                  : Row(
-                      children: [
-                        Icon(Icons.info_outline, color: colorScheme.primary),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            context.l10n.diveComputer_discovery_usbInstructions,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.search),
-                          tooltip:
-                              context.l10n.diveComputer_discovery_usbSearchHint,
-                          onPressed: () => setState(() => _isSearching = true),
-                        ),
-                      ],
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      context.l10n.diveComputer_discovery_usbInstructions,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Search and Brand Filter
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: context.l10n.diveComputer_discovery_usbSearchHint,
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        isDense: true,
+                      ),
+                      onChanged: (value) => setState(() => _searchQuery = value),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  DropdownMenu<String?>(
+                    initialSelection: _selectedManufacturer,
+                    hintText: context.l10n.diveLog_filter_allComputers,
+                    dropdownMenuEntries: [
+                      DropdownMenuEntry(
+                        value: null,
+                        label: context.l10n.diveLog_filter_allComputers,
+                      ),
+                      ...usbDevicesByManufacturer.keys.map(
+                        (m) => DropdownMenuEntry(value: m, label: m),
+                      ),
+                    ],
+                    onSelected: (value) {
+                      setState(() {
+                        _selectedManufacturer = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
             ),
 
             // Device list grouped by manufacturer
