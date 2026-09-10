@@ -148,7 +148,11 @@ class EquipmentFindingsRepository {
             .insertOnConflictUpdate(
               EquipmentFindingsCompanion.insert(
                 id: finding.id,
-                equipmentId: finding.equipmentId,
+                // The parameter, not the finding's own field: this
+                // transaction scopes its deletions and its marker to that
+                // item, so a row written under another one would be
+                // invisible to both and leave the findings inconsistent.
+                equipmentId: equipmentId,
                 ruleId: finding.ruleId.dbValue,
                 severity: finding.severity.dbValue,
                 value: Value(finding.value),
