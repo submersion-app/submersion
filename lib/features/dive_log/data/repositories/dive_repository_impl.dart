@@ -1429,17 +1429,34 @@ class DiveRepository {
         );
         await _replaceDiveTypeRows(id, dive.diveTypeIds, now);
 
+        // Child ids are resolved before the batch rather than inside it:
+        // _db.batch takes a synchronous closure, so an id minted in there is
+        // unreachable from the async markRecordPending calls below and the
+        // rows would only ever publish on a full base export.
+        final tankIds = [
+          for (final tank in dive.tanks)
+            tank.id.isNotEmpty ? tank.id : _uuid.v4(),
+        ];
+        final weightIds = [
+          for (final weight in dive.weights)
+            weight.id.isNotEmpty ? weight.id : _uuid.v4(),
+        ];
+        final customFieldIds = [
+          for (final field in dive.customFields)
+            field.id.isNotEmpty ? field.id : _uuid.v4(),
+        ];
+
         // Batch insert all child records for performance
         // Profile points, tanks, weights, and equipment are inserted in a single
         // transaction, which is ~100x faster than individual inserts.
         await _db.batch((batch) {
           // Insert tanks (preserve provided IDs if not empty, otherwise generate)
-          for (final tank in dive.tanks) {
-            final tankId = tank.id.isNotEmpty ? tank.id : _uuid.v4();
+          for (var i = 0; i < dive.tanks.length; i++) {
+            final tank = dive.tanks[i];
             batch.insert(
               _db.diveTanks,
               DiveTanksCompanion(
-                id: Value(tankId),
+                id: Value(tankIds[i]),
                 diveId: Value(id),
                 volume: Value(tank.volume),
                 workingPressure: Value(tank.workingPressure),
@@ -1461,12 +1478,12 @@ class DiveRepository {
           }
 
           // Insert weights
-          for (final weight in dive.weights) {
-            final weightId = weight.id.isNotEmpty ? weight.id : _uuid.v4();
+          for (var i = 0; i < dive.weights.length; i++) {
+            final weight = dive.weights[i];
             batch.insert(
               _db.diveWeights,
               DiveWeightsCompanion(
-                id: Value(weightId),
+                id: Value(weightIds[i]),
                 diveId: Value(id),
                 weightType: Value(weight.weightType.name),
                 amountKg: Value(weight.amountKg),
@@ -1477,12 +1494,12 @@ class DiveRepository {
           }
 
           // Insert custom fields
-          for (final field in dive.customFields) {
-            final fieldId = field.id.isNotEmpty ? field.id : _uuid.v4();
+          for (var i = 0; i < dive.customFields.length; i++) {
+            final field = dive.customFields[i];
             batch.insert(
               _db.diveCustomFields,
               DiveCustomFieldsCompanion(
-                id: Value(fieldId),
+                id: Value(customFieldIds[i]),
                 diveId: Value(id),
                 fieldKey: Value(field.key),
                 fieldValue: Value(field.value),
@@ -1506,9 +1523,31 @@ class DiveRepository {
           }
         });
 
-        // The links above were batched; mark them pending like the other
-        // child rows so a new dive's gear reaches peers without waiting
-        // for a full snapshot.
+        // The rows above were batched, so nothing in the closure could mark
+        // them. Mark them here, like updateDive does, so a new dive's tanks,
+        // weights, custom fields and gear reach peers incrementally instead
+        // of waiting for a full snapshot.
+        for (final tankId in tankIds) {
+          await _syncRepository.markRecordPending(
+            entityType: 'diveTanks',
+            recordId: tankId,
+            localUpdatedAt: now,
+          );
+        }
+        for (final weightId in weightIds) {
+          await _syncRepository.markRecordPending(
+            entityType: 'diveWeights',
+            recordId: weightId,
+            localUpdatedAt: now,
+          );
+        }
+        for (final fieldId in customFieldIds) {
+          await _syncRepository.markRecordPending(
+            entityType: 'diveCustomFields',
+            recordId: fieldId,
+            localUpdatedAt: now,
+          );
+        }
         for (final g in dive.gear) {
           await _syncRepository.markRecordPending(
             entityType: 'diveEquipment',
