@@ -458,8 +458,15 @@ class EquipmentConditionEngine {
     }
     final floor = 1 / outside.length;
     final ratio = insideShare / (outsideShare > floor ? outsideShare : floor);
+    // The dive id breaks the tie, as it does for the top-level sample
+    // sort. Without it the two buckets stay glued together in the
+    // encoded evidence, so an item whose cold/warm split shifts rewrites
+    // and re-syncs the row without its evidence having changed.
     final all = [...inside, ...outside]
-      ..sort((a, b) => a.date.compareTo(b.date));
+      ..sort((a, b) {
+        final byDate = a.date.compareTo(b.date);
+        return byDate != 0 ? byDate : a.diveId.compareTo(b.diveId);
+      });
     final prefixIn = cold ? 'cold' : 'deep';
     final prefixOut = cold ? 'warm' : 'shallow';
     return [
@@ -489,12 +496,16 @@ class EquipmentConditionEngine {
   // ------------------------------------------------------------ incidents
 
   List<EquipmentFinding> _incidentLinked(ConditionEngineInput input) {
-    final linked = [
-      for (final i in input.incidents)
-        if (i.equipmentId == input.item.id &&
-            i.severity != IncidentSeverity.minor)
-          i,
-    ]..sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
+    final linked =
+        [
+          for (final i in input.incidents)
+            if (i.equipmentId == input.item.id &&
+                i.severity != IncidentSeverity.minor)
+              i,
+        ]..sort((a, b) {
+          final byDate = a.occurredAt.compareTo(b.occurredAt);
+          return byDate != 0 ? byDate : a.id.compareTo(b.id);
+        });
     if (linked.isEmpty) return const [];
     return [
       _finding(
