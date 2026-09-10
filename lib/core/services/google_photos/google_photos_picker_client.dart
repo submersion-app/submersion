@@ -152,13 +152,18 @@ class GooglePhotosPickerClient {
   }
 
   Future<http.Response> _dispatch(String method, Uri uri) async {
+    // An auth failure is meaningful on its own (sign-in expired, revoked);
+    // let it through rather than flatten it into a transport error.
     final token = await _auth.getAccessToken();
     final request = http.Request(method, uri)
       ..headers['Authorization'] = 'Bearer $token';
     try {
       final streamed = await _http.send(request);
       return await http.Response.fromStream(streamed);
-    } on http.ClientException catch (e) {
+    } on Exception catch (e) {
+      // http.ClientException, SocketException, TimeoutException, Handshake
+      // failures -- every transport error becomes one statusCode-0 type so
+      // callers have a single exception to catch.
       throw GooglePhotosApiException(0, 'Could not reach Google Photos: $e');
     }
   }

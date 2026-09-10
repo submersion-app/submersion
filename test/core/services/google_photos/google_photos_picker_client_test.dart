@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -197,6 +198,21 @@ void main() {
               'message',
               'Permission denied on session.',
             ),
+      ),
+    );
+  });
+
+  test('a transport error (not just http.ClientException) surfaces as a '
+      'statusCode-0 GooglePhotosApiException', () async {
+    final c = await client((_) async => throw const SocketException('down'));
+    await expectLater(
+      c.getSession('sess1'),
+      throwsA(
+        isA<GooglePhotosApiException>().having(
+          (e) => e.statusCode,
+          'statusCode',
+          0,
+        ),
       ),
     );
   });
