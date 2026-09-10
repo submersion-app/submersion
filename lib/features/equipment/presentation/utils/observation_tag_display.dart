@@ -43,6 +43,19 @@ extension ObservationTagDisplay on ObservationTag {
   };
 }
 
+extension ObservationDisplay on EquipmentObservation {
+  /// A row title: the issue tags, or the status when there are none. An
+  /// issue can arrive with no tags, because tag names written by a newer
+  /// build are dropped on read, and a blank title would hide the row.
+  String displayTitle(AppLocalizations l10n) => isIssue && issueTags.isNotEmpty
+      ? issueTags.map((t) => t.localizedName(l10n)).join(', ')
+      : status.localizedName(l10n);
+
+  /// The note on a single line, for a summary row. Empty when there is no
+  /// note.
+  String get noteSummary => note.trim().split(RegExp(r'\s+')).join(' ');
+}
+
 extension ObservationStatusDisplay on ObservationStatus {
   String localizedName(AppLocalizations l10n) => switch (this) {
     ObservationStatus.ok => l10n.equipmentObservation_status_ok,

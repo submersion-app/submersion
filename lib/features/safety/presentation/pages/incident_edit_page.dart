@@ -41,7 +41,8 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
 
   /// The item involved, when the diver names one. Choosing an item while the
   /// category is still the untouched default flips it to `equipment`; a
-  /// category picked by hand is never overridden, hence the flag.
+  /// category picked by hand, or one loaded from a saved incident, is never
+  /// overridden, hence the flag.
   String? _equipmentId;
   var _categoryTouched = false;
   // A timezone-stable wall-clock date (stored as UTC), so the chosen day does
@@ -72,6 +73,8 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
               _existing = incident;
               if (incident != null) {
                 _category = incident.category;
+                // The saved category was chosen when it was saved.
+                _categoryTouched = true;
                 _severity = incident.severity;
                 _equipmentId = incident.equipmentId;
                 _occurredAt = incident.occurredAt;
