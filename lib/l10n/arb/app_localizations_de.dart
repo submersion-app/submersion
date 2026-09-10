@@ -43,6 +43,47 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Komponenten. Füge die Teile hinzu, aus denen dieser Gegenstand besteht.';
 
   @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Auch $count Tauchgänge aktualisieren',
+      one: 'Auch 1 Tauchgang aktualisieren',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'Das neue Teil auch dort hinzufügen oder nur ab jetzt?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'Das Teil auch dort entfernen oder nur ab jetzt?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'Das Teil auch dort tauschen oder nur ab jetzt?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'Ab jetzt';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Diese Baugruppe ist auf $count protokollierten Tauchgängen.',
+      one: 'Diese Baugruppe ist auf 1 protokollierten Tauchgang.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle =>
+      'Vergangene Tauchgänge aktualisieren?';
+
+  @override
   String equipment_components_partOf(Object name) {
     return 'Teil von $name';
   }
@@ -75,6 +116,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine weitere aktive Ausrüstung kann hier hinzugefügt werden.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'Ersetzen';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'Ersetzen durch';
+
+  @override
   String get equipment_components_pickerTitle => 'Komponenten hinzufügen';
 
   @override
@@ -82,6 +129,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'Neu anordnen';
+
+  @override
+  String get equipment_components_replace => 'Komponente ersetzen';
 
   @override
   String get equipment_components_role => 'Rolle';

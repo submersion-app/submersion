@@ -43,6 +43,46 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen onderdelen. Voeg de delen toe waaruit dit item is opgebouwd.';
 
   @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ook $count duiken bijwerken',
+      one: 'Ook 1 duik bijwerken',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'Het nieuwe onderdeel ook aan die duiken toevoegen, of alleen vanaf nu?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'Het onderdeel ook van die duiken verwijderen, of alleen vanaf nu?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'Het onderdeel ook op die duiken vervangen, of alleen vanaf nu?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'Vanaf nu';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dit samenstel staat op $count gelogde duiken.',
+      one: 'Dit samenstel staat op 1 gelogde duik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle => 'Eerdere duiken bijwerken?';
+
+  @override
   String equipment_components_partOf(Object name) {
     return 'Onderdeel van $name';
   }
@@ -75,6 +115,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Er is geen andere actieve uitrusting die hier kan worden toegevoegd.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'Vervangen';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'Vervangen door';
+
+  @override
   String get equipment_components_pickerTitle => 'Onderdelen toevoegen';
 
   @override
@@ -82,6 +128,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'Herschikken';
+
+  @override
+  String get equipment_components_replace => 'Onderdeel vervangen';
 
   @override
   String get equipment_components_role => 'Rol';

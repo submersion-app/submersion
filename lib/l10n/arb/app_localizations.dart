@@ -158,6 +158,48 @@ abstract class AppLocalizations {
   /// **'No components. Add the parts this item is assembled from.'**
   String get equipment_components_empty;
 
+  /// No description provided for @equipment_components_historyAlsoPast.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Also update 1 dive} other{Also update {count} dives}}'**
+  String equipment_components_historyAlsoPast(num count);
+
+  /// No description provided for @equipment_components_historyAskAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the new part to those dives as well, or only from now on?'**
+  String get equipment_components_historyAskAdded;
+
+  /// No description provided for @equipment_components_historyAskRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the part from those dives as well, or only from now on?'**
+  String get equipment_components_historyAskRemoved;
+
+  /// No description provided for @equipment_components_historyAskReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap the part on those dives as well, or only from now on?'**
+  String get equipment_components_historyAskReplaced;
+
+  /// No description provided for @equipment_components_historyFutureOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'From now on'**
+  String get equipment_components_historyFutureOnly;
+
+  /// No description provided for @equipment_components_historyOnDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This assembly is on 1 logged dive.} other{This assembly is on {count} logged dives.}}'**
+  String equipment_components_historyOnDives(num count);
+
+  /// No description provided for @equipment_components_historyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update past dives?'**
+  String get equipment_components_historyTitle;
+
   /// No description provided for @equipment_components_partOf.
   ///
   /// In en, this message translates to:
@@ -182,6 +224,18 @@ abstract class AppLocalizations {
   /// **'No other active gear can be added here.'**
   String get equipment_components_pickerEmpty;
 
+  /// No description provided for @equipment_components_pickerReplaceConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get equipment_components_pickerReplaceConfirm;
+
+  /// No description provided for @equipment_components_pickerReplaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace with'**
+  String get equipment_components_pickerReplaceTitle;
+
   /// No description provided for @equipment_components_pickerTitle.
   ///
   /// In en, this message translates to:
@@ -199,6 +253,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reorder'**
   String get equipment_components_reorder;
+
+  /// No description provided for @equipment_components_replace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace component'**
+  String get equipment_components_replace;
 
   /// No description provided for @equipment_components_role.
   ///

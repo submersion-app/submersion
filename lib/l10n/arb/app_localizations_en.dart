@@ -43,6 +43,46 @@ class AppLocalizationsEn extends AppLocalizations {
       'No components. Add the parts this item is assembled from.';
 
   @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Also update $count dives',
+      one: 'Also update 1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'Add the new part to those dives as well, or only from now on?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'Remove the part from those dives as well, or only from now on?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'Swap the part on those dives as well, or only from now on?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'From now on';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'This assembly is on $count logged dives.',
+      one: 'This assembly is on 1 logged dive.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle => 'Update past dives?';
+
+  @override
   String equipment_components_partOf(Object name) {
     return 'Part of $name';
   }
@@ -75,6 +115,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'No other active gear can be added here.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'Replace';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'Replace with';
+
+  @override
   String get equipment_components_pickerTitle => 'Add components';
 
   @override
@@ -82,6 +128,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'Reorder';
+
+  @override
+  String get equipment_components_replace => 'Replace component';
 
   @override
   String get equipment_components_role => 'Role';

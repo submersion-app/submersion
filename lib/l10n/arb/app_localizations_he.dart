@@ -43,6 +43,46 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין רכיבים. הוסיפו את החלקים שמהם מורכב הפריט.';
 
   @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לעדכן גם $count צלילות',
+      one: 'לעדכן גם צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'להוסיף את החלק החדש גם לצלילות האלה, או רק מעכשיו?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'להסיר את החלק גם מהצלילות האלה, או רק מעכשיו?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'להחליף את החלק גם בצלילות האלה, או רק מעכשיו?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'מעכשיו';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'המכלול הזה נמצא ב-$count צלילות רשומות.',
+      one: 'המכלול הזה נמצא בצלילה רשומה אחת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle => 'לעדכן צלילות קודמות?';
+
+  @override
   String equipment_components_partOf(Object name) {
     return 'חלק מ-$name';
   }
@@ -75,6 +115,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין ציוד פעיל נוסף שאפשר להוסיף כאן.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'החלפה';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'להחליף ב';
+
+  @override
   String get equipment_components_pickerTitle => 'הוספת רכיבים';
 
   @override
@@ -82,6 +128,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'סידור מחדש';
+
+  @override
+  String get equipment_components_replace => 'החלפת רכיב';
 
   @override
   String get equipment_components_role => 'תפקיד';

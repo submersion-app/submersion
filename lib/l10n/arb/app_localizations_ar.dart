@@ -43,6 +43,46 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد مكوّنات. أضف الأجزاء التي يتكوّن منها هذا العنصر.';
 
   @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تحديث $count غطسات أيضًا',
+      one: 'تحديث غطسة واحدة أيضًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'إضافة الجزء الجديد إلى تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'إزالة الجزء من تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'تبديل الجزء في تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'من الآن فصاعدًا';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'هذه التجميعة موجودة في $count غطسات مسجلة.',
+      one: 'هذه التجميعة موجودة في غطسة مسجلة واحدة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle => 'تحديث الغطسات السابقة؟';
+
+  @override
   String equipment_components_partOf(Object name) {
     return 'جزء من $name';
   }
@@ -75,6 +115,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد معدات نشطة أخرى يمكن إضافتها هنا.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'استبدال';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'استبدال بـ';
+
+  @override
   String get equipment_components_pickerTitle => 'إضافة مكوّنات';
 
   @override
@@ -82,6 +128,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'إعادة ترتيب';
+
+  @override
+  String get equipment_components_replace => 'استبدال المكوّن';
 
   @override
   String get equipment_components_role => 'الدور';

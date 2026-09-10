@@ -43,6 +43,47 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun composant. Ajoutez les pièces qui composent cet équipement.';
 
   @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mettre aussi à jour $count plongées',
+      one: 'Mettre aussi à jour 1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'Ajouter la nouvelle pièce à ces plongées aussi, ou seulement à partir de maintenant ?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'Retirer la pièce de ces plongées aussi, ou seulement à partir de maintenant ?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'Remplacer la pièce sur ces plongées aussi, ou seulement à partir de maintenant ?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'À partir de maintenant';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Cet ensemble figure sur $count plongées enregistrées.',
+      one: 'Cet ensemble figure sur 1 plongée enregistrée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle =>
+      'Mettre à jour les plongées passées ?';
+
+  @override
   String equipment_components_partOf(Object name) {
     return 'Fait partie de $name';
   }
@@ -75,6 +116,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun autre équipement actif ne peut être ajouté ici.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'Remplacer';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'Remplacer par';
+
+  @override
   String get equipment_components_pickerTitle => 'Ajouter des composants';
 
   @override
@@ -82,6 +129,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'Réorganiser';
+
+  @override
+  String get equipment_components_replace => 'Remplacer le composant';
 
   @override
   String get equipment_components_role => 'Rôle';

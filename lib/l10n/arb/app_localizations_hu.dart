@@ -43,6 +43,47 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincsenek alkatrészek. Add hozzá azokat a részeket, amelyekből ez a felszerelés áll.';
 
   @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés frissítése is',
+      one: '1 merülés frissítése is',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'Az új részt azokhoz a merülésekhez is hozzáadja, vagy csak mostantól?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'A részt azokról a merülésekről is eltávolítja, vagy csak mostantól?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'A részt azokon a merüléseken is kicseréli, vagy csak mostantól?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'Mostantól';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ez az összeállítás $count naplózott merülésen szerepel.',
+      one: 'Ez az összeállítás 1 naplózott merülésen szerepel.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle =>
+      'Frissíti a korábbi merüléseket?';
+
+  @override
   String equipment_components_partOf(Object name) {
     return '$name része';
   }
@@ -75,6 +116,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs más aktív felszerelés, amit ide lehetne adni.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'Csere';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'Csere erre';
+
+  @override
   String get equipment_components_pickerTitle => 'Alkatrészek hozzáadása';
 
   @override
@@ -82,6 +129,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'Átrendezés';
+
+  @override
+  String get equipment_components_replace => 'Alkatrész cseréje';
 
   @override
   String get equipment_components_role => 'Szerep';

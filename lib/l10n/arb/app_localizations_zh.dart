@@ -41,6 +41,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_components_empty => '暂无组件。请添加构成此装备的部件。';
 
   @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '同时更新 $count 次潜水',
+      one: '同时更新 1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded => '也将新部件添加到这些潜水，还是仅从现在起？';
+
+  @override
+  String get equipment_components_historyAskRemoved => '也从这些潜水中移除该部件，还是仅从现在起？';
+
+  @override
+  String get equipment_components_historyAskReplaced => '也在这些潜水中更换该部件，还是仅从现在起？';
+
+  @override
+  String get equipment_components_historyFutureOnly => '从现在起';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此组合出现在 $count 次已记录的潜水中。',
+      one: '此组合出现在 1 次已记录的潜水中。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle => '更新过去的潜水？';
+
+  @override
   String equipment_components_partOf(Object name) {
     return '属于 $name';
   }
@@ -72,6 +109,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_components_pickerEmpty => '没有其他可添加的在用装备。';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => '更换';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => '更换为';
+
+  @override
   String get equipment_components_pickerTitle => '添加组件';
 
   @override
@@ -79,6 +122,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => '调整顺序';
+
+  @override
+  String get equipment_components_replace => '更换组件';
 
   @override
   String get equipment_components_role => '用途';
