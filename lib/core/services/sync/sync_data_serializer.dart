@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -1854,9 +1855,10 @@ class SyncDataSerializer {
                   ..where((t) => t.setId.equals(parts[0]))
                   ..where((t) => t.equipmentId.equals(parts[1])))
                 .getSingleOrNull();
-        return row == null
-            ? null
-            : {'setId': row.setId, 'equipmentId': row.equipmentId};
+        // toJson, not a hand-built pair: the merge's age guards read
+        // updatedAt off this map, and a hand-built one silently drops it
+        // (issue #1728). The other two junctions already use toJson.
+        return row?.toJson();
       case 'media':
         final row = await (_db.select(
           _db.media,
@@ -2751,9 +2753,7 @@ class SyncDataSerializer {
             .insertOnConflictUpdate(DiveTank.fromJson(data));
         return;
       case 'diveEquipment':
-        await _db
-            .into(_db.diveEquipment)
-            .insertOnConflictUpdate(DiveEquipmentData.fromJson(data));
+        await _upsertGearJunction(entityType, [data]);
         return;
       case 'diveWeights':
         await _db
@@ -2822,9 +2822,7 @@ class SyncDataSerializer {
             );
         return;
       case 'equipmentSetItems':
-        await _db
-            .into(_db.equipmentSetItems)
-            .insertOnConflictUpdate(EquipmentSetItem.fromJson(data));
+        await _upsertGearJunction(entityType, [data]);
         return;
       case 'media':
         await _db
@@ -3034,12 +3032,8 @@ class SyncDataSerializer {
               DivePlanSegment.fromJson(data).toCompanion(false),
             );
         return;
-      // Clockless composite-PK junction: plain data-class upsert
-      // (nullToAbsent). Do NOT add .toCompanion(false) here.
       case 'divePlanEquipment':
-        await _db
-            .into(_db.divePlanEquipment)
-            .insertOnConflictUpdate(DivePlanEquipmentData.fromJson(data));
+        await _upsertGearJunction(entityType, [data]);
         return;
       case 'diverWeightEntries':
         await _db
@@ -3491,12 +3485,7 @@ class SyncDataSerializer {
         );
         return;
       case 'diveEquipment':
-        await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.diveEquipment,
-            records.map((r) => DiveEquipmentData.fromJson(r)).toList(),
-          ),
-        );
+        await _upsertGearJunction(entityType, records);
         return;
       case 'diveWeights':
         await _db.batch(
@@ -3601,12 +3590,7 @@ class SyncDataSerializer {
         );
         return;
       case 'equipmentSetItems':
-        await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.equipmentSetItems,
-            records.map((r) => EquipmentSetItem.fromJson(r)).toList(),
-          ),
-        );
+        await _upsertGearJunction(entityType, records);
         return;
       case 'media':
         await _db.batch(
@@ -3927,12 +3911,7 @@ class SyncDataSerializer {
         );
         return;
       case 'divePlanEquipment':
-        await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.divePlanEquipment,
-            records.map((r) => DivePlanEquipmentData.fromJson(r)).toList(),
-          ),
-        );
+        await _upsertGearJunction(entityType, records);
         return;
       case 'diverWeightEntries':
         await _db.batch(
@@ -4577,7 +4556,121 @@ class SyncDataSerializer {
     await _db.delete(_syncTableFor(entityType)).go();
   }
 
+  /// Upsert for the three composite-natural-key gear junctions, shared by the
+  /// single- and batch-record paths so the two cannot drift apart.
+  ///
+  /// The subtlety is the clock these tables gained in v207 (issue #1728). A
+  /// peer on an older build puts only the key pair on the wire, and Drift's
+  /// insert uses `toColumns(nullToAbsent: true)`, so the absent `updatedAt`
+  /// falls through to the column's `clientDefault` and arrives as `now`. Let
+  /// that reach the row and every base import from an old peer restamps every
+  /// gear link as freshly edited, which flips the new age guard the other way:
+  /// legitimate removals stop applying and pile up as conflicts instead.
+  ///
+  /// So rows are split on whether the WIRE carried a clock. Rows that did
+  /// upsert normally. Rows that did not leave an existing row's `updated_at`
+  /// untouched, while a genuinely new row still gets the `clientDefault`
+  /// stamp on insert.
+  ///
+  /// The provenance pointers are overwritten either way, including with null:
+  /// a peer that deleted the parent clears them on purpose.
+  Future<void> _upsertGearJunction(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    if (records.isEmpty) return;
+    final clocked = <Map<String, dynamic>>[];
+    final clockless = <Map<String, dynamic>>[];
+    for (final record in records) {
+      (record['updatedAt'] is int ? clocked : clockless).add(record);
+    }
+
+    switch (entityType) {
+      case 'diveEquipment':
+        if (clocked.isNotEmpty) {
+          await _db.batch(
+            (b) => b.insertAllOnConflictUpdate(
+              _db.diveEquipment,
+              clocked.map(DiveEquipmentData.fromJson).toList(),
+            ),
+          );
+        }
+        if (clockless.isNotEmpty) {
+          await _db.batch(
+            (b) => b.insertAll(
+              _db.diveEquipment,
+              clockless.map(DiveEquipmentData.fromJson).toList(),
+              onConflict:
+                  DoUpdate<$DiveEquipmentTable, DiveEquipmentData>.withExcluded(
+                    (old, excluded) => DiveEquipmentCompanion.custom(
+                      viaEquipmentId: excluded.viaEquipmentId,
+                      viaSetId: excluded.viaSetId,
+                    ),
+                  ),
+            ),
+          );
+        }
+        return;
+      case 'divePlanEquipment':
+        if (clocked.isNotEmpty) {
+          await _db.batch(
+            (b) => b.insertAllOnConflictUpdate(
+              _db.divePlanEquipment,
+              clocked.map(DivePlanEquipmentData.fromJson).toList(),
+            ),
+          );
+        }
+        if (clockless.isNotEmpty) {
+          await _db.batch(
+            (b) => b.insertAll(
+              _db.divePlanEquipment,
+              clockless.map(DivePlanEquipmentData.fromJson).toList(),
+              onConflict:
+                  DoUpdate<
+                    $DivePlanEquipmentTable,
+                    DivePlanEquipmentData
+                  >.withExcluded(
+                    (old, excluded) => DivePlanEquipmentCompanion.custom(
+                      viaEquipmentId: excluded.viaEquipmentId,
+                      viaSetId: excluded.viaSetId,
+                    ),
+                  ),
+            ),
+          );
+        }
+        return;
+      case 'equipmentSetItems':
+        if (clocked.isNotEmpty) {
+          await _db.batch(
+            (b) => b.insertAllOnConflictUpdate(
+              _db.equipmentSetItems,
+              clocked.map(EquipmentSetItem.fromJson).toList(),
+            ),
+          );
+        }
+        if (clockless.isNotEmpty) {
+          // The row's whole payload is its key, so there is nothing to update
+          // on conflict; ignoring leaves the local clock standing.
+          await _db.batch(
+            (b) => b.insertAll(
+              _db.equipmentSetItems,
+              clockless.map(EquipmentSetItem.fromJson).toList(),
+              mode: InsertMode.insertOrIgnore,
+            ),
+          );
+        }
+        return;
+    }
+    throw ArgumentError('Not a gear junction: $entityType');
+  }
+
   /// The Drift table backing a synced [entityType] (mirrors recordIdsFor).
+  /// Exposed for the structural test that pins every composite-key table to a
+  /// [SyncService.recordIdForEntity] case (issue #1728).
+  @visibleForTesting
+  TableInfo<Table, dynamic> syncTableFor(String entityType) =>
+      _syncTableFor(entityType);
+
   TableInfo<Table, dynamic> _syncTableFor(String entityType) {
     switch (entityType) {
       case 'settings':
@@ -5401,14 +5494,13 @@ class SyncDataSerializer {
       final rows = await (_db.select(
         _db.equipmentSetItems,
       )..where((t) => t.setId.isIn(setIds))).get();
-      return rows
-          .map((r) => {'setId': r.setId, 'equipmentId': r.equipmentId})
-          .toList();
+      // toJson, not a hand-built pair: the receiver's tombstone guards read
+      // updatedAt off this map, so hand-building one keeps the column from
+      // ever leaving this device (issue #1728).
+      return rows.map((r) => r.toJson()).toList();
     }
     final rows = await _db.select(_db.equipmentSetItems).get();
-    return rows
-        .map((r) => {'setId': r.setId, 'equipmentId': r.equipmentId})
-        .toList();
+    return rows.map((r) => r.toJson()).toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportMedia(String? hlcSince) async {

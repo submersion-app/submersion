@@ -1217,7 +1217,7 @@ class SyncService {
       final contradicted = <String>{};
       for (final rec in live) {
         if (rec is! Map<String, dynamic>) continue;
-        final id = _recordIdForEntity(delEntry.key, rec);
+        final id = recordIdForEntity(delEntry.key, rec);
         if (id != null && deletedIds.contains(id)) contradicted.add(id);
       }
       if (contradicted.isNotEmpty) {
@@ -1589,7 +1589,7 @@ class SyncService {
         continue;
       }
       for (final rec in entry.records) {
-        final id = _recordIdForEntity(parentType, rec);
+        final id = recordIdForEntity(parentType, rec);
         if (id == null) continue;
         final deletedAt = tombs[id];
         if (deletedAt == null) continue;
@@ -1797,7 +1797,7 @@ class SyncService {
       for (final r in p2batch!) {
         final table = r.table;
         final rec = r.row;
-        final id = _recordIdForEntity(table, rec);
+        final id = recordIdForEntity(table, rec);
         if (id == null) continue;
         if (parentTypes.contains(table) &&
             _baseApplyEntityFlags[table] == true) {
@@ -1970,7 +1970,7 @@ class SyncService {
           (parentTypes.contains(table) || deletionIds.containsKey(table)),
       onRow: (section, table, rowBytes) async {
         final rec = jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>;
-        final id = _recordIdForEntity(table, rec);
+        final id = recordIdForEntity(table, rec);
         if (id == null) return;
         if (parentTypes.contains(table) &&
             _baseApplyEntityFlags[table] == true) {
@@ -2189,9 +2189,20 @@ class SyncService {
     );
   }
 
-  /// Per-entity "has an updatedAt column" flag, mirroring the `mergeOrder`
-  /// records in [_applyRemotePayloadInner]. The streaming base apply
-  /// ([_applyRemoteBaseFile]) uses it (via [_baseApplyEntityFlags], which
+  /// Per-entity merge-strategy flag, mirroring the `mergeOrder`
+  /// records in [_applyRemotePayloadInner].
+  ///
+  /// True means "resolve this entity as LWW": fetch the local row, compare
+  /// clocks, overlay, and raise a two-sided edit as a conflict. False means
+  /// "apply as a blind upsert". It is NOT a claim that the table has no
+  /// `updated_at`: the three composite-natural-key gear junctions carry one
+  /// as of v207 (issue #1728) and stay false here on purpose. Their payload
+  /// is the key itself, so there is nothing to overlay, and routing them
+  /// through the LWW path would surface a conflict card for a gear link.
+  /// Code that wants a row's age must call [_extractUpdatedAtMillis]
+  /// directly rather than gate on this flag.
+  ///
+  /// The streaming base apply ([_applyRemoteBaseFile]) uses it (via [_baseApplyEntityFlags], which
   /// also folds in [inboundOnlyLegacyEntities]) for (a) conflict-detection
   /// behavior in [_mergeEntity] and (b) the set of entity tables it applies
   /// (a table absent from that union is silently skipped on base import).
@@ -2563,7 +2574,7 @@ class SyncService {
     final localById = hasUpdatedAt
         ? await _serializer.fetchRecords(entityType, [
             for (final record in records)
-              ?_recordIdForEntity(entityType, record),
+              ?recordIdForEntity(entityType, record),
           ])
         : const <String, Map<String, dynamic>>{};
     final toUpsert = <Map<String, dynamic>>[];
@@ -2572,7 +2583,7 @@ class SyncService {
       String? recordId;
       int? localUpdatedAt;
       try {
-        recordId = _recordIdForEntity(entityType, record);
+        recordId = recordIdForEntity(entityType, record);
         if (recordId == null) {
           // A record with no resolvable id is malformed data, not a two-sided
           // conflict -- count it as a failure so performSync surfaces an error.
@@ -2626,9 +2637,15 @@ class SyncService {
               recordId: recordId,
             );
           } else {
-            final remoteUpdatedAt = hasUpdatedAt
-                ? _extractUpdatedAtMillis(record)
-                : null;
+            // Read the remote clock whether or not this entity resolves as
+            // LWW. [hasUpdatedAt] selects the merge STRATEGY (an entity that
+            // is false here is applied as a blind upsert, never overlaid or
+            // conflicted); it is not a claim that the row carries no
+            // timestamp. Gating on it made this branch unreachable for the
+            // gear junctions, so a link lost anywhere could never be revived
+            // by a live copy from a peer (issue #1728). A genuinely clockless
+            // entity still yields null here and is unaffected.
+            final remoteUpdatedAt = _extractUpdatedAtMillis(record);
             if (remoteUpdatedAt == null || remoteUpdatedAt <= deletedAt) {
               // No newer remote edit -- the deletion wins; stay deleted.
               continue;
@@ -2818,7 +2835,17 @@ class SyncService {
     }
   }
 
-  String? _recordIdForEntity(String entityType, Map<String, dynamic> record) {
+  /// The id the merge keys a record by: `id` for most entities, the natural
+  /// key for the handful that have none. Must agree with the id
+  /// [SyncDataSerializer.recordIdsFor] emits and [SyncDataSerializer
+  /// .deleteRecord] accepts, or the entity's rows silently fail to merge --
+  /// which is what a missing `divePlanEquipment` case did (issue #1728).
+  /// A structural test pins every composite-key table to a case here.
+  @visibleForTesting
+  static String? recordIdForEntity(
+    String entityType,
+    Map<String, dynamic> record,
+  ) {
     switch (entityType) {
       case 'settings':
         return record['key'] as String?;
@@ -2831,12 +2858,21 @@ class SyncService {
       case 'equipmentSetItems':
         return record['id'] as String? ??
             _compositeId(record['setId'], record['equipmentId']);
+      case 'divePlanEquipment':
+        // Composite (planId, equipmentId), same shape as diveEquipment. The
+        // serializer has always keyed it that way in fetchRecord,
+        // deleteRecord and allRecordIds; without this case the merge fell
+        // through to record['id'], which these rows do not have, so every
+        // incoming dive-plan gear row was counted as malformed and never
+        // applied.
+        return record['id'] as String? ??
+            _compositeId(record['planId'], record['equipmentId']);
       default:
         return record['id'] as String?;
     }
   }
 
-  String? _compositeId(Object? left, Object? right) {
+  static String? _compositeId(Object? left, Object? right) {
     if (left == null || right == null) return null;
     return '$left|$right';
   }
@@ -3629,7 +3665,7 @@ class SyncService {
         final entityType = entry.key;
         final records = (entry.value as List).cast<Map<String, dynamic>>();
         for (final record in records) {
-          final id = _recordIdForEntity(entityType, record);
+          final id = recordIdForEntity(entityType, record);
           if (id == null) continue;
           (cloudIds[entityType] ??= <String>{}).add(id);
           (restored[entityType] ??= {})[id] = record;
@@ -3642,7 +3678,7 @@ class SyncService {
       final entityType = entry.key;
       final records = (entry.value as List).cast<Map<String, dynamic>>();
       for (final record in records) {
-        final id = _recordIdForEntity(entityType, record);
+        final id = recordIdForEntity(entityType, record);
         if (id == null) continue;
         if (!(cloudIds[entityType]?.contains(id) ?? false)) {
           await _serializer.deleteRecord(entityType, id);
@@ -3721,7 +3757,7 @@ class SyncService {
     ) async {
       final valid = [
         for (final r in records)
-          if (_recordIdForEntity(table, r) != null) r,
+          if (recordIdForEntity(table, r) != null) r,
       ];
       if (valid.isEmpty) return;
       await _serializer.upsertRecords(table, valid);

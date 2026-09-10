@@ -33,7 +33,7 @@ Future<Set<String>> _foreignKeys(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v203 is the current schema version and is in the ladder', () {
+  test('v203 is in the ladder and shipped', () {
     // Renumbered twice: the cell linearity link took 201 and condition
     // intelligence took 202 while this branch was open.
     // Relaxed as this rung's own convention asks, now that v204 (dive list
