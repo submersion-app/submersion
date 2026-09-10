@@ -224,9 +224,23 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     ExposureUnit.dives => l10n.statistics_equipment_exposureUnit_hours,
   };
 
-  /// The row's unit word, lower case after the number.
-  String _countLabel(AppLocalizations l10n, ExposureUnit unit) =>
-      _unitLabel(l10n, unit).toLowerCase();
+  /// The row's unit word as it reads after a number. Translated per
+  /// locale rather than lowercased here: German capitalises its nouns, so
+  /// "12 Stunden" became "12 stunden", and Dart's case mapping is not
+  /// locale-aware anyway.
+  String _countLabel(
+    AppLocalizations l10n,
+    ExposureUnit unit,
+  ) => switch (unit) {
+    ExposureUnit.hours => l10n.statistics_equipment_countLabel_hours,
+    ExposureUnit.saltHours => l10n.statistics_equipment_countLabel_saltHours,
+    ExposureUnit.coldDives => l10n.statistics_equipment_countLabel_coldDives,
+    ExposureUnit.o2Hours => l10n.statistics_equipment_countLabel_o2Hours,
+    ExposureUnit.deepCycles => l10n.statistics_equipment_countLabel_deepCycles,
+    ExposureUnit.cycles => l10n.statistics_equipment_countLabel_cycles,
+    ExposureUnit.days ||
+    ExposureUnit.dives => l10n.statistics_equipment_countLabel_hours,
+  };
 
   Widget _buildWeightTrendSection(
     BuildContext context,

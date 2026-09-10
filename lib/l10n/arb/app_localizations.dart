@@ -31386,6 +31386,42 @@ abstract class AppLocalizations {
   /// **'reports'**
   String get statistics_equipment_countLabel_reports;
 
+  /// No description provided for @statistics_equipment_countLabel_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'hours'**
+  String get statistics_equipment_countLabel_hours;
+
+  /// No description provided for @statistics_equipment_countLabel_saltHours.
+  ///
+  /// In en, this message translates to:
+  /// **'salt-water hours'**
+  String get statistics_equipment_countLabel_saltHours;
+
+  /// No description provided for @statistics_equipment_countLabel_coldDives.
+  ///
+  /// In en, this message translates to:
+  /// **'cold dives'**
+  String get statistics_equipment_countLabel_coldDives;
+
+  /// No description provided for @statistics_equipment_countLabel_o2Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'high-O2 hours'**
+  String get statistics_equipment_countLabel_o2Hours;
+
+  /// No description provided for @statistics_equipment_countLabel_deepCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'deep dives'**
+  String get statistics_equipment_countLabel_deepCycles;
+
+  /// No description provided for @statistics_equipment_countLabel_cycles.
+  ///
+  /// In en, this message translates to:
+  /// **'battery cycles'**
+  String get statistics_equipment_countLabel_cycles;
+
   /// No description provided for @statistics_equipment_exposureUnit_hours.
   ///
   /// In en, this message translates to:

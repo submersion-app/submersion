@@ -18984,6 +18984,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get statistics_equipment_countLabel_reports => 'registos';
 
   @override
+  String get statistics_equipment_countLabel_hours => 'horas';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours =>
+      'horas em água salgada';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'mergulhos frios';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'horas com O2 elevado';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles =>
+      'mergulhos profundos';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'ciclos de bateria';
+
+  @override
   String get statistics_equipment_exposureUnit_hours => 'Horas';
 
   @override

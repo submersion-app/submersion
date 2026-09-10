@@ -19057,6 +19057,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statistics_equipment_countLabel_reports => 'signalements';
 
   @override
+  String get statistics_equipment_countLabel_hours => 'heures';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours => 'heures en eau salée';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'plongées froides';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'heures à O2 élevé';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => 'plongées profondes';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'cycles de batterie';
+
+  @override
   String get statistics_equipment_exposureUnit_hours => 'Heures';
 
   @override

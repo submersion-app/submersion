@@ -25,6 +25,7 @@ void main() {
   Future<void> pumpPage(
     WidgetTester tester, {
     bool failRankings = false,
+    Locale locale = const Locale('en'),
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -70,11 +71,11 @@ void main() {
             ),
           ),
         ].cast(),
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: StatisticsEquipmentPage(embedded: true),
+          home: const StatisticsEquipmentPage(embedded: true),
         ),
       ),
     );
@@ -133,5 +134,19 @@ void main() {
     expect(find.text('No open findings'), findsNothing);
     expect(find.text('Failed to load reported issues'), findsOneWidget);
     expect(find.text('No issues reported'), findsNothing);
+  });
+
+  testWidgets('the count label keeps the casing each locale wants', (
+    tester,
+  ) async {
+    // German capitalises its nouns, so lowercasing a localised label in
+    // code produced "12 stunden". The label is translated per locale in
+    // the casing it needs after a number, and never transformed here.
+    await pumpPage(tester);
+    expect(find.text('12 hours'), findsOneWidget);
+
+    await pumpPage(tester, locale: const Locale('de'));
+    expect(find.text('12 Stunden'), findsOneWidget);
+    expect(find.text('12 stunden'), findsNothing);
   });
 }

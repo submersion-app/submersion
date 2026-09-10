@@ -18920,6 +18920,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get statistics_equipment_countLabel_reports => 'bejelentés';
 
   @override
+  String get statistics_equipment_countLabel_hours => 'óra';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours => 'sósvízi óra';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'hideg merülés';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'óra magas O2-vel';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => 'mély merülés';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'akkumulátorciklus';
+
+  @override
   String get statistics_equipment_exposureUnit_hours => 'Óra';
 
   @override

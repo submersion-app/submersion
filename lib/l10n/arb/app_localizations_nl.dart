@@ -18820,6 +18820,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get statistics_equipment_countLabel_reports => 'meldingen';
 
   @override
+  String get statistics_equipment_countLabel_hours => 'uur';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours => 'uur in zout water';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => 'koude duiken';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => 'uur met hoog O2';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => 'diepe duiken';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => 'batterijcycli';
+
+  @override
   String get statistics_equipment_exposureUnit_hours => 'Uur';
 
   @override

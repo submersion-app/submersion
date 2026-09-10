@@ -18002,6 +18002,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_equipment_countLabel_reports => '条';
 
   @override
+  String get statistics_equipment_countLabel_hours => '小时';
+
+  @override
+  String get statistics_equipment_countLabel_saltHours => '盐水小时';
+
+  @override
+  String get statistics_equipment_countLabel_coldDives => '冷水潜水';
+
+  @override
+  String get statistics_equipment_countLabel_o2Hours => '高氧小时';
+
+  @override
+  String get statistics_equipment_countLabel_deepCycles => '深潜';
+
+  @override
+  String get statistics_equipment_countLabel_cycles => '电池循环';
+
+  @override
   String get statistics_equipment_exposureUnit_hours => '小时';
 
   @override
