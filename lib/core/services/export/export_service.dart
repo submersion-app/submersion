@@ -81,8 +81,10 @@ class ExportService {
   Future<String> exportSitesToCsv(List<DiveSite> sites) =>
       _csv.exportSitesToCsv(sites);
 
-  Future<String> exportEquipmentToCsv(List<EquipmentItem> equipment) =>
-      _csv.exportEquipmentToCsv(equipment);
+  Future<String> exportEquipmentToCsv(
+    List<EquipmentItem> equipment, {
+    Map<String, List<String>> componentNames = const {},
+  }) => _csv.exportEquipmentToCsv(equipment, componentNames: componentNames);
 
   Future<String> exportTripsToCsv(List<Trip> trips) =>
       _csv.exportTripsToCsv(trips);
@@ -93,8 +95,13 @@ class ExportService {
   String generateSitesCsvContent(List<DiveSite> sites) =>
       _csv.generateSitesCsvContent(sites);
 
-  String generateEquipmentCsvContent(List<EquipmentItem> equipment) =>
-      _csv.generateEquipmentCsvContent(equipment);
+  String generateEquipmentCsvContent(
+    List<EquipmentItem> equipment, {
+    Map<String, List<String>> componentNames = const {},
+  }) => _csv.generateEquipmentCsvContent(
+    equipment,
+    componentNames: componentNames,
+  );
 
   Future<String?> saveDivesCsvToFile(List<Dive> dives) =>
       _csv.saveDivesCsvToFile(dives);
@@ -102,8 +109,10 @@ class ExportService {
   Future<String?> saveSitesCsvToFile(List<DiveSite> sites) =>
       _csv.saveSitesCsvToFile(sites);
 
-  Future<String?> saveEquipmentCsvToFile(List<EquipmentItem> equipment) =>
-      _csv.saveEquipmentCsvToFile(equipment);
+  Future<String?> saveEquipmentCsvToFile(
+    List<EquipmentItem> equipment, {
+    Map<String, List<String>> componentNames = const {},
+  }) => _csv.saveEquipmentCsvToFile(equipment, componentNames: componentNames);
 
   // ==================== PDF Export ====================
 
@@ -233,6 +242,7 @@ class ExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    Map<String, List<String>> componentNames = const {},
   }) => _excel.exportToExcel(
     dives: dives,
     sites: sites,
@@ -244,6 +254,7 @@ class ExportService {
     dateFormat: dateFormat,
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
+    componentNames: componentNames,
   );
 
   Future<List<int>> generateExcelBytes({
@@ -257,6 +268,7 @@ class ExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    Map<String, List<String>> componentNames = const {},
   }) => _excel.generateExcelBytes(
     dives: dives,
     sites: sites,
@@ -268,6 +280,7 @@ class ExportService {
     dateFormat: dateFormat,
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
+    componentNames: componentNames,
   );
 
   Future<String?> saveExcelToFile({
@@ -281,6 +294,7 @@ class ExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    Map<String, List<String>> componentNames = const {},
   }) => _excel.saveExcelToFile(
     dives: dives,
     sites: sites,
@@ -292,6 +306,7 @@ class ExportService {
     dateFormat: dateFormat,
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
+    componentNames: componentNames,
   );
 
   // ==================== Maintenance Log Export ====================

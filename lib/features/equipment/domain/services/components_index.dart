@@ -1,4 +1,5 @@
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 /// Forward and reverse adjacency over every assembly edge, built once per
 /// change tick so list tiles and pickers read by id instead of querying.
@@ -37,6 +38,20 @@ class ComponentsIndex {
   int componentCount(String id) => byParent[id]?.length ?? 0;
 
   bool isAssembly(String id) => componentCount(id) > 0;
+
+  /// Each assembly's part names in template order, for the CSV and Excel
+  /// exports. A part whose item is not in [itemsById] falls back to its id
+  /// rather than vanishing from the row.
+  Map<String, List<String>> namesByParent(
+    Map<String, EquipmentItem> itemsById,
+  ) => {
+    for (final entry in byParent.entries)
+      entry.key: [
+        for (final edge in entry.value)
+          itemsById[edge.componentEquipmentId]?.name ??
+              edge.componentEquipmentId,
+      ],
+  };
 
   List<String> parentIdsOf(String id) => [
     for (final edge in byComponent[id] ?? const <EquipmentComponent>[])
