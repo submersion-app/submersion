@@ -154,7 +154,14 @@ class EquipmentFindingsRepository {
         // and hand every peer the same record to fetch again. It is still
         // in `keep`, so the deletion pass below does not mistake it for a
         // rule that stopped firing.
+        //
+        // The whole encoded evidence is compared, not just its
+        // fingerprint: the fingerprint hashes the dive ids and the values,
+        // so editing a dive's date moves the window without touching it,
+        // and the stored sentence would keep quoting the old date.
+        final encodedEvidence = finding.evidence.encode();
         if (old != null &&
+            old.evidence == encodedEvidence &&
             old.evidenceFingerprint == finding.evidenceFingerprint &&
             old.ruleId == finding.ruleId.dbValue &&
             old.severity == finding.severity.dbValue &&
@@ -177,7 +184,7 @@ class EquipmentFindingsRepository {
                 ruleId: finding.ruleId.dbValue,
                 severity: finding.severity.dbValue,
                 value: Value(finding.value),
-                evidence: Value(finding.evidence.encode()),
+                evidence: Value(encodedEvidence),
                 evidenceFingerprint: finding.evidenceFingerprint,
                 engineVersion: finding.engineVersion,
                 dismissedAt: Value(dismissedAt),
