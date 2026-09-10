@@ -19,6 +19,9 @@ void main() {
   }) async {
     await tester.pumpWidget(
       MaterialApp(
+        // Every assertion matches an English label, so pin the locale instead
+        // of inheriting the ambient platform one.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
