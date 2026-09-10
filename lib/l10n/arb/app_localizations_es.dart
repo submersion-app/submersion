@@ -27528,6 +27528,95 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String dataQuality_deleteDuplicate_carries(String items) {
+    return 'Esta copia también tiene: $items';
+  }
+
+  @override
+  String dataQuality_carries_gear(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipos',
+      one: '1 equipo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_weights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lastres',
+      one: '1 lastre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_buddies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count compañeros',
+      one: '1 compañero',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_tags(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count etiquetas',
+      one: '1 etiqueta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos o vídeos',
+      one: '1 foto o vídeo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_customFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count campos personalizados',
+      one: '1 campo personalizado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_carries_rating => 'una valoración';
+
+  @override
+  String get dataQuality_carries_favorite => 'un favorito';
+
+  @override
+  String get dataQuality_carries_site => 'un punto de inmersión';
+
+  @override
+  String get dataQuality_carries_trip => 'un viaje';
+
+  @override
+  String get dataQuality_carries_diveCenter => 'un centro de buceo';
+
+  @override
+  String get dataQuality_carries_course => 'un curso';
+
+  @override
   String get dataQuality_repairLabel_combine => 'Combinar en una inmersión';
 
   @override

@@ -27022,6 +27022,95 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_deleteDuplicate_carries(String items) {
+    return 'تحتوي هذه النسخة أيضًا على: $items';
+  }
+
+  @override
+  String dataQuality_carries_gear(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قطع معدات',
+      one: 'قطعة معدات واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_weights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أوزان',
+      one: 'وزن واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_buddies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رفقاء',
+      one: 'رفيق واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_tags(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count وسوم',
+      one: 'وسم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صور أو مقاطع فيديو',
+      one: 'صورة أو فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_customFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حقول مخصصة',
+      one: 'حقل مخصص واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_carries_rating => 'تقييم';
+
+  @override
+  String get dataQuality_carries_favorite => 'علامة مفضلة';
+
+  @override
+  String get dataQuality_carries_site => 'موقع غوص';
+
+  @override
+  String get dataQuality_carries_trip => 'رحلة';
+
+  @override
+  String get dataQuality_carries_diveCenter => 'مركز غوص';
+
+  @override
+  String get dataQuality_carries_course => 'دورة';
+
+  @override
   String get dataQuality_repairLabel_combine => 'دمج في غوصة واحدة';
 
   @override

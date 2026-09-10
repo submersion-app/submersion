@@ -26831,6 +26831,95 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_deleteDuplicate_carries(String items) {
+    return 'העותק הזה מכיל גם: $items';
+  }
+
+  @override
+  String dataQuality_carries_gear(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד',
+      one: 'פריט ציוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_weights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count משקולות',
+      one: 'משקולת אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_buddies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בני זוג',
+      one: 'בן זוג אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_tags(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תוויות',
+      one: 'תווית אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות או סרטונים',
+      one: 'תמונה או סרטון אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_customFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שדות מותאמים',
+      one: 'שדה מותאם אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_carries_rating => 'דירוג';
+
+  @override
+  String get dataQuality_carries_favorite => 'סימון מועדף';
+
+  @override
+  String get dataQuality_carries_site => 'אתר צלילה';
+
+  @override
+  String get dataQuality_carries_trip => 'טיול';
+
+  @override
+  String get dataQuality_carries_diveCenter => 'מרכז צלילה';
+
+  @override
+  String get dataQuality_carries_course => 'קורס';
+
+  @override
   String get dataQuality_repairLabel_combine => 'מיזוג לצלילה אחת';
 
   @override

@@ -26092,6 +26092,95 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dataQuality_deleteDuplicate_carries(String items) {
+    return '此副本还包含：$items';
+  }
+
+  @override
+  String dataQuality_carries_gear(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备',
+      one: '1 件装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_weights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项配重',
+      one: '1 项配重',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_buddies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 位潜伴',
+      one: '1 位潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_tags(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个标签',
+      one: '1 个标签',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片或视频',
+      one: '1 张照片或视频',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_customFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个自定义字段',
+      one: '1 个自定义字段',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_carries_rating => '一个评分';
+
+  @override
+  String get dataQuality_carries_favorite => '一个收藏标记';
+
+  @override
+  String get dataQuality_carries_site => '一个潜点';
+
+  @override
+  String get dataQuality_carries_trip => '一次行程';
+
+  @override
+  String get dataQuality_carries_diveCenter => '一家潜水中心';
+
+  @override
+  String get dataQuality_carries_course => '一个课程';
+
+  @override
   String get dataQuality_repairLabel_combine => '合并为一次潜水';
 
   @override

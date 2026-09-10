@@ -27402,6 +27402,95 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dataQuality_deleteDuplicate_carries(String items) {
+    return 'Ez a példány ezt is tartalmazza: $items';
+  }
+
+  @override
+  String dataQuality_carries_gear(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelés',
+      one: '1 felszerelés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_weights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ólomsúly',
+      one: '1 ólomsúly',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_buddies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count búvártárs',
+      one: '1 búvártárs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_tags(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count címke',
+      one: '1 címke',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó vagy videó',
+      one: '1 fotó vagy videó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_carries_customFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count egyéni mező',
+      one: '1 egyéni mező',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_carries_rating => 'egy értékelés';
+
+  @override
+  String get dataQuality_carries_favorite => 'egy kedvenc jelölés';
+
+  @override
+  String get dataQuality_carries_site => 'egy merülőhely';
+
+  @override
+  String get dataQuality_carries_trip => 'egy utazás';
+
+  @override
+  String get dataQuality_carries_diveCenter => 'egy búvárbázis';
+
+  @override
+  String get dataQuality_carries_course => 'egy tanfolyam';
+
+  @override
   String get dataQuality_repairLabel_combine => 'Összevonás egy merüléssé';
 
   @override

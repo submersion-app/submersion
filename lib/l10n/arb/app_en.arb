@@ -17641,6 +17641,93 @@
       }
     }
   },
+  "dataQuality_deleteDuplicate_carries": "This copy also has: {items}",
+  "@dataQuality_deleteDuplicate_carries": {
+    "description": "Introduces the list of things the copy about to be deleted carries, shown under the red delete line.",
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_carries_gear": "{count, plural, one{1 gear item} other{{count} gear items}}",
+  "@dataQuality_carries_gear": {
+    "description": "Summary fragment: how many gear links the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_weights": "{count, plural, one{1 weight} other{{count} weights}}",
+  "@dataQuality_carries_weights": {
+    "description": "Summary fragment: how many weight entries the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_buddies": "{count, plural, one{1 buddy} other{{count} buddies}}",
+  "@dataQuality_carries_buddies": {
+    "description": "Summary fragment: how many buddies the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_tags": "{count, plural, one{1 tag} other{{count} tags}}",
+  "@dataQuality_carries_tags": {
+    "description": "Summary fragment: how many tags the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_media": "{count, plural, one{1 photo or video} other{{count} photos or videos}}",
+  "@dataQuality_carries_media": {
+    "description": "Summary fragment: how many photos or videos the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_customFields": "{count, plural, one{1 custom field} other{{count} custom fields}}",
+  "@dataQuality_carries_customFields": {
+    "description": "Summary fragment: how many custom fields the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_carries_rating": "a rating",
+  "@dataQuality_carries_rating": {
+    "description": "Summary fragment: the dive about to be deleted has a rating."
+  },
+  "dataQuality_carries_favorite": "a favorite",
+  "@dataQuality_carries_favorite": {
+    "description": "Summary fragment: the dive about to be deleted is marked as a favorite."
+  },
+  "dataQuality_carries_site": "a site",
+  "@dataQuality_carries_site": {
+    "description": "Summary fragment: the dive about to be deleted is linked to a dive site."
+  },
+  "dataQuality_carries_trip": "a trip",
+  "@dataQuality_carries_trip": {
+    "description": "Summary fragment: the dive about to be deleted is linked to a trip."
+  },
+  "dataQuality_carries_diveCenter": "a dive center",
+  "@dataQuality_carries_diveCenter": {
+    "description": "Summary fragment: the dive about to be deleted is linked to a dive center."
+  },
+  "dataQuality_carries_course": "a course",
+  "@dataQuality_carries_course": {
+    "description": "Summary fragment: the dive about to be deleted is linked to a course."
+  },
   "dataQuality_repairLabel_combine": "Combine into one dive",
   "dataQuality_repairLabel_despike": "Remove spike",
   "dataQuality_repairLabel_clampNegative": "Clamp above-surface depths",

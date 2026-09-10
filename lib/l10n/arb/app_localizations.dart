@@ -45267,6 +45267,84 @@ abstract class AppLocalizations {
   /// **'Delete: {dive}'**
   String dataQuality_deleteDuplicate_delete(String dive);
 
+  /// Introduces the list of things the copy about to be deleted carries, shown under the red delete line.
+  ///
+  /// In en, this message translates to:
+  /// **'This copy also has: {items}'**
+  String dataQuality_deleteDuplicate_carries(String items);
+
+  /// Summary fragment: how many gear links the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 gear item} other{{count} gear items}}'**
+  String dataQuality_carries_gear(int count);
+
+  /// Summary fragment: how many weight entries the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 weight} other{{count} weights}}'**
+  String dataQuality_carries_weights(int count);
+
+  /// Summary fragment: how many buddies the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 buddy} other{{count} buddies}}'**
+  String dataQuality_carries_buddies(int count);
+
+  /// Summary fragment: how many tags the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 tag} other{{count} tags}}'**
+  String dataQuality_carries_tags(int count);
+
+  /// Summary fragment: how many photos or videos the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 photo or video} other{{count} photos or videos}}'**
+  String dataQuality_carries_media(int count);
+
+  /// Summary fragment: how many custom fields the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 custom field} other{{count} custom fields}}'**
+  String dataQuality_carries_customFields(int count);
+
+  /// Summary fragment: the dive about to be deleted has a rating.
+  ///
+  /// In en, this message translates to:
+  /// **'a rating'**
+  String get dataQuality_carries_rating;
+
+  /// Summary fragment: the dive about to be deleted is marked as a favorite.
+  ///
+  /// In en, this message translates to:
+  /// **'a favorite'**
+  String get dataQuality_carries_favorite;
+
+  /// Summary fragment: the dive about to be deleted is linked to a dive site.
+  ///
+  /// In en, this message translates to:
+  /// **'a site'**
+  String get dataQuality_carries_site;
+
+  /// Summary fragment: the dive about to be deleted is linked to a trip.
+  ///
+  /// In en, this message translates to:
+  /// **'a trip'**
+  String get dataQuality_carries_trip;
+
+  /// Summary fragment: the dive about to be deleted is linked to a dive center.
+  ///
+  /// In en, this message translates to:
+  /// **'a dive center'**
+  String get dataQuality_carries_diveCenter;
+
+  /// Summary fragment: the dive about to be deleted is linked to a course.
+  ///
+  /// In en, this message translates to:
+  /// **'a course'**
+  String get dataQuality_carries_course;
+
   /// No description provided for @dataQuality_repairLabel_combine.
   ///
   /// In en, this message translates to:

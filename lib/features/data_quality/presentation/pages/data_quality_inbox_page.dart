@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/data_quality/data/services/diver_data_query.dart';
 import 'package:submersion/features/data_quality/data/services/quality_repair_executor.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_registry.dart';
@@ -58,6 +59,16 @@ class DataQualityInboxPage extends ConsumerStatefulWidget {
 }
 
 class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
+  /// Material's own SnackBar default, restated because the framework keeps
+  /// the constant private.
+  static const Duration _defaultUndoWindow = Duration(seconds: 4);
+
+  /// The window a repair that deletes a dive gets instead. Undo is the only
+  /// way back from it, and a diver working through a batch of findings has
+  /// dismissed the snackbar and moved on well before four seconds are up
+  /// (#1729).
+  static const Duration _destructiveUndoWindow = Duration(seconds: 10);
+
   ({int done, int total})? _scanProgress;
   bool _cancelRequested = false;
 
@@ -107,12 +118,16 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
 
-    Future<void> withUndo(Future<RepairResult> Function() run) async {
+    Future<void> withUndo(
+      Future<RepairResult> Function() run, {
+      Duration undoWindow = _defaultUndoWindow,
+    }) async {
       try {
         final result = await run();
         final undo = result.undo;
         messenger.showSnackBar(
           SnackBar(
+            duration: undoWindow,
             content: Text(
               result.changed
                   ? l10n.dataQuality_repair_applied
@@ -162,13 +177,17 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           consolidateOnly: true,
         );
       case DeleteDuplicateRepair(:final keepDiveId, :final deleteDiveId):
-        // Destructive, so it names both dives and waits for an explicit yes
-        // before the executor writes anything. Undo rides the same SnackBar
-        // as every other repair.
+        // Destructive, so it names both dives, says what the copy it deletes
+        // carries, and waits for an explicit yes before the executor writes
+        // anything. The counts are read here rather than in build: one dive,
+        // once, on the tap that could lose it.
+        final carries = await DiverDataQuery().forDive(deleteDiveId);
+        if (!mounted) return;
         final confirmed = await showDeleteDuplicateDialog(
           context,
           keep: identityOf(keepDiveId),
           delete: identityOf(deleteDiveId),
+          carries: carries,
         );
         if (confirmed != true) return;
         await withUndo(
@@ -177,6 +196,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
             deleteDiveId: deleteDiveId,
             findingId: f.id,
           ),
+          undoWindow: _destructiveUndoWindow,
         );
       case CombineSplitRepair(:final diveIds):
         await showCombineDivesDialog(context: context, diveIds: diveIds);
