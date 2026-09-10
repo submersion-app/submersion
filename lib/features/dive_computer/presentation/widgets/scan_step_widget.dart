@@ -301,12 +301,12 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
       if (_selectedManufacturer != null && _selectedManufacturer != entry.key) {
         continue;
       }
-      
+
       if (query.isEmpty) {
         result[entry.key] = entry.value;
         continue;
       }
-      
+
       // If manufacturer matches, include all its models.
       if (entry.key.toLowerCase().contains(query)) {
         result[entry.key] = entry.value;
@@ -351,7 +351,12 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
           children: [
             // Instructions + search
             Container(
-              margin: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
+              margin: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 8,
+              ),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainerHighest,
@@ -372,7 +377,7 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
                 ],
               ),
             ),
-            
+
             // Search and Brand Filter
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -382,14 +387,16 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
                     child: TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: context.l10n.diveComputer_discovery_usbSearchHint,
+                        hintText:
+                            context.l10n.diveComputer_discovery_usbSearchHint,
                         prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         isDense: true,
                       ),
-                      onChanged: (value) => setState(() => _searchQuery = value),
+                      onChanged: (value) =>
+                          setState(() => _searchQuery = value),
                     ),
                   ),
                   const SizedBox(width: 12),
