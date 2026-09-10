@@ -78,6 +78,46 @@ void main() {
       },
     );
 
+    test('a safety finding ticks the list, which renders its badge', () async {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion(
+              id: const Value('d9'),
+              diveDateTime: Value(
+                asWallClockUtc(DateTime(2026, 6, 8)).millisecondsSinceEpoch,
+              ),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+
+      final listTicks = await ticksDuring(
+        repository.watchDiveListChanges(),
+        // The generated companion, not hand-written SQL: this table has no
+        // updated_at, and a literal column list silently rots against the
+        // schema.
+        () => db
+            .into(db.diveSafetyFindings)
+            .insert(
+              DiveSafetyFindingsCompanion(
+                id: const Value('f1'),
+                diveId: const Value('d9'),
+                ruleId: const Value('ascent_rate'),
+                severity: const Value('warning'),
+                engineVersion: const Value(1),
+                createdAt: Value(now),
+              ),
+            ),
+      );
+
+      expect(
+        listTicks,
+        greaterThan(0),
+        reason: 'the row badge counts findings, so the list must reload',
+      );
+    });
+
     test('a dive write still ticks the list', () async {
       final ticks = await ticksDuring(
         repository.watchDiveListChanges(),

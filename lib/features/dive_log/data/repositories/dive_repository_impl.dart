@@ -151,26 +151,36 @@ class DiveRepository {
       .tableUpdates(TableUpdateQuery.onTable(_db.dives))
       .debounce(changeTickDebounce);
 
-  /// Change-tick for the dive LIST: fires when any table the list's own SELECT
-  /// reads is written.
+  /// Change-tick for the dive LIST: fires when a table the list renders from
+  /// is written.
   ///
-  /// Broader than [watchDivesChanges] by exactly two tables, and no more. The
+  /// Broader than [watchDivesChanges], which watches only `dives`. The
   /// paginated summary query LEFT JOINs `dive_sites` and `trips` to render the
-  /// site line and the trip group header (#1193), so renaming a trip or a site,
-  /// or moving a trip's dates, changes what the list displays without touching
-  /// the `dives` table at all. On the dives-only tick those edits stayed on
-  /// screen stale until some unrelated dive write happened to shake the list.
+  /// site line and the trip group header (#1193), and carries a correlated
+  /// count over `dive_safety_findings` for the row's finding badge. All three
+  /// change what the list displays without touching `dives` at all, so on the
+  /// dives-only tick a trip rename, a site rename, or a synced safety review
+  /// stayed on screen stale until some unrelated dive write shook the list.
   ///
-  /// Deliberately NOT [watchDiveDetailChanges]: that also watches profile
-  /// series, tank pressures, equipment and safety findings, none of which the
-  /// list reads, and every one of which would reload the whole list for
-  /// nothing.
+  /// Deliberately NOT [watchDiveDetailChanges]: that also watches tank
+  /// pressures, gas switches, equipment and media, none of which the list
+  /// reads, and every one of which would reload the whole list for nothing.
+  ///
+  /// One known gap, taken on purpose. `dive_profile_series` and
+  /// `dive_profile_events` appear in the query's `readsFrom` because the
+  /// decompression filter joins them (see [decoSignalCondition]), so with that
+  /// filter active a profile write can change which dives match. They are left
+  /// out because a profile import writes thousands of sample rows and would
+  /// otherwise reload the whole list behind every one of them, to correct a
+  /// filter most sessions never switch on. This is no worse than the
+  /// dives-only tick it replaces.
   Stream<void> watchDiveListChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.dives),
           TableUpdateQuery.onTable(_db.diveSites),
           TableUpdateQuery.onTable(_db.trips),
+          TableUpdateQuery.onTable(_db.diveSafetyFindings),
         ]),
       )
       .debounce(changeTickDebounce);
