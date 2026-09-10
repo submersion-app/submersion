@@ -26836,6 +26836,114 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Ausrüstungszustand';
 
   @override
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
+    return 'Der Ausgang von Zelle $slot fiel über $n Tauchgänge seit dem $since um $percent Prozent';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
+    return 'Der Ausgang von Zelle $slot liegt in den letzten $n Tauchgängen bei $gain mV pro bar';
+  }
+
+  @override
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
+    return 'Zelle $slot wich bei $count der letzten $n Tauchgänge um bis zu $bar bar von den anderen ab';
+  }
+
+  @override
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
+    return 'Zelle $slot las bei hohem ppO2 in $count der letzten $n Tauchgänge zu niedrig, bei bis zu $percent Prozent der Messwerte';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
+    return 'Der Druck fiel bei $recent Prozent der letzten 5 Tauchgänge aus, zuvor bei $prior Prozent der $priorCount davor';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
+    return 'Der Druck fiel im Schnitt bei $recent Prozent der letzten $n Tauchgänge aus, bei $count davon über 10 Prozent';
+  }
+
+  @override
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
+    return '$tag in den letzten $n Tauchgängen $count-mal gemeldet';
+  }
+
+  @override
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue von $totalIssue gemeldeten Problemen traten bei Tauchgängen kälter als $threshold auf, über $n Tauchgänge mit diesem Teil';
+  }
+
+  @override
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue von $totalIssue gemeldeten Problemen traten bei Tauchgängen tiefer als $threshold auf, über $n Tauchgänge mit diesem Teil';
+  }
+
+  @override
+  String equipmentCondition_finding_incidentLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Vorfälle nennen dieses Teil',
+      one: '1 Vorfall nennt dieses Teil',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_window(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0, $range';
+  }
+
+  @override
   String get equipmentConditionSettings_thresholdsHeader => 'Belastungsgrenzen';
 
   @override

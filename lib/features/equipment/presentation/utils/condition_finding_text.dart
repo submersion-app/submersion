@@ -1,0 +1,149 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
+import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+/// A value the evidence did not carry renders as this, never as a
+/// fabricated 0 that would read as "output fell 0 percent".
+const _unknown = '--';
+
+/// The sentence for a finding, composed at render time from its evidence
+/// with every number in the diver's units. No template names a date
+/// prediction, a remaining life or a probability.
+String conditionFindingTitle(
+  EquipmentFinding finding,
+  AppLocalizations l10n,
+  UnitFormatter units, {
+  required ExposureThresholds thresholds,
+}) {
+  final e = finding.evidence;
+  double? v(String key) => e.values[key];
+  int count(String key) => v(key)?.round() ?? 0;
+  String pct(double? fraction) =>
+      fraction == null ? _unknown : (fraction * 100).round().toString();
+  String one(double? x) => x == null ? _unknown : x.toStringAsFixed(1);
+  final slot = e.slot ?? 0;
+
+  return switch (finding.ruleId) {
+    ConditionRuleId.cellOutputDeclining =>
+      l10n.equipmentCondition_finding_cellOutputDeclining(
+        slot,
+        finding.value == null ? _unknown : finding.value!.round().toString(),
+        e.n,
+        units.formatDate(e.windowStart),
+      ),
+    ConditionRuleId.cellOutputLow =>
+      l10n.equipmentCondition_finding_cellOutputLow(
+        slot,
+        one(v('recentMedian')),
+        e.n,
+      ),
+    ConditionRuleId.cellDivergent =>
+      l10n.equipmentCondition_finding_cellDivergent(
+        slot,
+        one(v('worstP95')),
+        count('count'),
+        e.n,
+      ),
+    ConditionRuleId.cellCurrentLimited =>
+      l10n.equipmentCondition_finding_cellCurrentLimited(
+        slot,
+        count('count'),
+        e.n,
+        pct(v('worstFraction')),
+      ),
+    ConditionRuleId.transmitterDropoutRising =>
+      l10n.equipmentCondition_finding_transmitterDropoutRising(
+        pct(v('recentMean')),
+        pct(v('priorMean')),
+        e.n - 5,
+      ),
+    ConditionRuleId.transmitterDropoutHigh =>
+      l10n.equipmentCondition_finding_transmitterDropoutHigh(
+        pct(v('recentMean')),
+        e.n,
+        count('count'),
+      ),
+    ConditionRuleId.issueRecurring =>
+      l10n.equipmentCondition_finding_issueRecurring(
+        _tagLabel(e.tag, l10n),
+        count('count'),
+        e.n,
+      ),
+    ConditionRuleId.issueColdCorrelated =>
+      l10n.equipmentCondition_finding_issueColdCorrelated(
+        count('coldIssueDives'),
+        count('coldIssueDives') + count('warmIssueDives'),
+        units.formatTemperature(thresholds.coldWaterC, decimals: 0),
+        e.n,
+      ),
+    ConditionRuleId.issueDeepCorrelated =>
+      l10n.equipmentCondition_finding_issueDeepCorrelated(
+        count('deepIssueDives'),
+        count('deepIssueDives') + count('shallowIssueDives'),
+        units.formatDepth(thresholds.deepDiveM, decimals: 0),
+        e.n,
+      ),
+    ConditionRuleId.incidentLinked =>
+      l10n.equipmentCondition_finding_incidentLinked(count('count')),
+  };
+}
+
+/// "{n} dives, {range}": the evidence window under the sentence.
+String conditionFindingWindow(
+  EquipmentFinding finding,
+  AppLocalizations l10n,
+  UnitFormatter units,
+) {
+  final e = finding.evidence;
+  return l10n.equipmentCondition_finding_window(
+    e.n,
+    units.formatDateRange(e.windowStart, e.windowEnd, l10n: l10n),
+  );
+}
+
+/// Localized rule name only, the settings-page strings.
+String conditionFindingShortLabel(ConditionRuleId rule, AppLocalizations l10n) {
+  return switch (rule) {
+    ConditionRuleId.cellOutputDeclining =>
+      l10n.equipmentConditionSettings_rule_cellOutputDeclining,
+    ConditionRuleId.cellOutputLow =>
+      l10n.equipmentConditionSettings_rule_cellOutputLow,
+    ConditionRuleId.cellDivergent =>
+      l10n.equipmentConditionSettings_rule_cellDivergent,
+    ConditionRuleId.cellCurrentLimited =>
+      l10n.equipmentConditionSettings_rule_cellCurrentLimited,
+    ConditionRuleId.transmitterDropoutRising =>
+      l10n.equipmentConditionSettings_rule_transmitterDropoutRising,
+    ConditionRuleId.transmitterDropoutHigh =>
+      l10n.equipmentConditionSettings_rule_transmitterDropoutHigh,
+    ConditionRuleId.issueRecurring =>
+      l10n.equipmentConditionSettings_rule_issueRecurring,
+    ConditionRuleId.issueColdCorrelated =>
+      l10n.equipmentConditionSettings_rule_issueColdCorrelated,
+    ConditionRuleId.issueDeepCorrelated =>
+      l10n.equipmentConditionSettings_rule_issueDeepCorrelated,
+    ConditionRuleId.incidentLinked =>
+      l10n.equipmentConditionSettings_rule_incidentLinked,
+  };
+}
+
+/// The service clock palette, so one page reads one scale: significant is
+/// the overdue colour, caution the due-soon colour, info stays quiet.
+Color conditionSeverityColor(ConditionSeverity severity, ColorScheme scheme) {
+  return switch (severity) {
+    ConditionSeverity.significant => scheme.error,
+    ConditionSeverity.caution => scheme.tertiary,
+    ConditionSeverity.info => scheme.onSurfaceVariant,
+  };
+}
+
+String _tagLabel(String? dbValue, AppLocalizations l10n) {
+  if (dbValue == null) return _unknown;
+  final tag = ObservationTag.fromDbValue(dbValue);
+  return tag?.localizedName(l10n) ?? dbValue;
+}

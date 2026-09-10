@@ -26886,6 +26886,114 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Stato dell\'attrezzatura';
 
   @override
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
+    return 'L\'uscita della cella $slot è calata del $percent per cento in $n immersioni dal $since';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
+    return 'L\'uscita della cella $slot è di $gain mV per bar nelle ultime $n immersioni';
+  }
+
+  @override
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
+    return 'La cella $slot ha discordato dalle altre fino a $bar bar in $count delle ultime $n immersioni';
+  }
+
+  @override
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
+    return 'La cella $slot ha letto basso ad alta ppO2 in $count delle ultime $n immersioni, fino al $percent per cento dei campioni';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
+    return 'La pressione è mancata per il $recent per cento delle ultime 5 immersioni, contro il $prior per cento nelle $priorCount precedenti';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
+    return 'La pressione è mancata in media per il $recent per cento delle ultime $n immersioni, $count delle quali oltre il 10 per cento';
+  }
+
+  @override
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
+    return '$tag segnalato $count volte nelle ultime $n immersioni';
+  }
+
+  @override
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue di $totalIssue problemi segnalati riguardavano immersioni più fredde di $threshold, su $n immersioni con questo articolo';
+  }
+
+  @override
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue di $totalIssue problemi segnalati riguardavano immersioni oltre $threshold, su $n immersioni con questo articolo';
+  }
+
+  @override
+  String equipmentCondition_finding_incidentLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count incidenti citano questo articolo',
+      one: '1 incidente cita questo articolo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_window(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n immersioni',
+      one: '1 immersione',
+    );
+    return '$_temp0, $range';
+  }
+
+  @override
   String get equipmentConditionSettings_thresholdsHeader =>
       'Soglie di esposizione';
 

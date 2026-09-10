@@ -8175,6 +8175,166 @@
   "settings_section_equipmentCondition_title": "Felszerelés állapota",
   "settings_section_equipmentCondition_subtitle": "Terhelési küszöbök a szervizórákhoz",
   "equipmentConditionSettings_title": "Felszerelés állapota",
+  "equipmentCondition_finding_cellOutputDeclining": "A(z) {slot}. cella kimenete {percent} százalékkal csökkent {n} merülés alatt {since} óta",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "A(z) {slot}. cella kimenete {gain} mV/bar az utolsó {n} merülésen",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "A(z) {slot}. cella az utolsó {n} merülésből {count} alkalommal akár {bar} bar-ral eltért a többitől",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "A(z) {slot}. cella magas ppO2-nél az utolsó {n} merülésből {count} alkalommal alacsonyat mért, a minták akár {percent} százalékánál",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "A nyomásadat az utolsó 5 merülés {recent} százalékában kimaradt, az azt megelőző {priorCount} merülésen mért {prior} százalékhoz képest",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "A nyomásadat az utolsó {n} merülés átlagosan {recent} százalékában kimaradt, ebből {count} merülésen 10 százalék felett",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag}: {count} alkalommal jelentve az utolsó {n} merülésen",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{totalIssue} jelentett problémából {insideIssue} a(z) {threshold} alatti hőmérsékletű merüléseken történt, {n} merülés alapján ezzel az eszközzel",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{totalIssue} jelentett problémából {insideIssue} a(z) {threshold} mélységen túli merüléseken történt, {n} merülés alapján ezzel az eszközzel",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 esemény említi ezt az eszközt} other{{count} esemény említi ezt az eszközt}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 merülés} other{{n} merülés}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "Terhelési küszöbök",
   "equipmentConditionSettings_thresholdsHelp": "Egy merülés akkor számít hidegnek, mélynek vagy magas O2-tartalmúnak a szervizórák számára, ha átlépi ezeket a határokat.",
   "equipmentConditionSettings_coldLabel": "Hideg víz ez alatt",

@@ -26410,6 +26410,114 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentConditionSettings_title => 'حالة المعدات';
 
   @override
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
+    return 'انخفض خرج الخلية $slot بنسبة $percent بالمئة عبر $n غطسة منذ $since';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
+    return 'خرج الخلية $slot هو $gain مللي فولت لكل بار خلال آخر $n غطسة';
+  }
+
+  @override
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
+    return 'اختلفت الخلية $slot عن نظيراتها بما يصل إلى $bar بار في $count من آخر $n غطسة';
+  }
+
+  @override
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
+    return 'قرأت الخلية $slot قيمة منخفضة عند ppO2 مرتفع في $count من آخر $n غطسة، بما يصل إلى $percent بالمئة من العينات';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
+    return 'انقطعت قراءة الضغط في $recent بالمئة من آخر 5 غطسات، مقارنة بنسبة $prior بالمئة في الغطسات $priorCount السابقة';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
+    return 'انقطعت قراءة الضغط في المتوسط في $recent بالمئة من آخر $n غطسة، منها $count فوق 10 بالمئة';
+  }
+
+  @override
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
+    return 'تم الإبلاغ عن $tag $count مرات في آخر $n غطسة';
+  }
+
+  @override
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue من $totalIssue بلاغات مشكلات كانت في غطسات أبرد من $threshold، على مدى $n غطسة بهذه القطعة';
+  }
+
+  @override
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue من $totalIssue بلاغات مشكلات كانت في غطسات أعمق من $threshold، على مدى $n غطسة بهذه القطعة';
+  }
+
+  @override
+  String equipmentCondition_finding_incidentLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حوادث تذكر هذه القطعة',
+      one: 'حادث واحد يذكر هذه القطعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_window(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n غطسات',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0، $range';
+  }
+
+  @override
   String get equipmentConditionSettings_thresholdsHeader => 'حدود التعرض';
 
   @override

@@ -8175,6 +8175,166 @@
   "settings_section_equipmentCondition_title": "מצב הציוד",
   "settings_section_equipmentCondition_subtitle": "ספי חשיפה לשעוני תחזוקה",
   "equipmentConditionSettings_title": "מצב הציוד",
+  "equipmentCondition_finding_cellOutputDeclining": "פלט תא {slot} ירד ב-{percent} אחוזים לאורך {n} צלילות מאז {since}",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "פלט תא {slot} הוא {gain} mV לבר ב-{n} הצלילות האחרונות",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "תא {slot} חרג מהאחרים בעד {bar} בר ב-{count} מתוך {n} הצלילות האחרונות",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "תא {slot} קרא נמוך ב-ppO2 גבוה ב-{count} מתוך {n} הצלילות האחרונות, עד {percent} אחוזים מהדגימות",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "קריאת הלחץ נפלה ב-{recent} אחוזים מ-5 הצלילות האחרונות, לעומת {prior} אחוזים ב-{priorCount} שלפניהן",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "קריאת הלחץ נפלה בממוצע ב-{recent} אחוזים מ-{n} הצלילות האחרונות, {count} מהן מעל 10 אחוזים",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag} דווח {count} פעמים ב-{n} הצלילות האחרונות",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} מתוך {totalIssue} דיווחי תקלה היו בצלילות קרות מ-{threshold}, מתוך {n} צלילות עם פריט זה",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} מתוך {totalIssue} דיווחי תקלה היו בצלילות עמוקות מ-{threshold}, מתוך {n} צלילות עם פריט זה",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{אירוע אחד מזכיר פריט זה} other{{count} אירועים מזכירים פריט זה}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{צלילה אחת} other{{n} צלילות}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "ספי חשיפה",
   "equipmentConditionSettings_thresholdsHelp": "צלילה נחשבת קרה, עמוקה או בחמצן גבוה לשעוני התחזוקה כאשר היא חוצה ספים אלה.",
   "equipmentConditionSettings_coldLabel": "מים קרים מתחת ל",

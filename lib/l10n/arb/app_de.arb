@@ -8175,6 +8175,166 @@
   "settings_section_equipmentCondition_title": "Ausrüstungszustand",
   "settings_section_equipmentCondition_subtitle": "Belastungsgrenzen für Wartungsuhren",
   "equipmentConditionSettings_title": "Ausrüstungszustand",
+  "equipmentCondition_finding_cellOutputDeclining": "Der Ausgang von Zelle {slot} fiel über {n} Tauchgänge seit dem {since} um {percent} Prozent",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "Der Ausgang von Zelle {slot} liegt in den letzten {n} Tauchgängen bei {gain} mV pro bar",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "Zelle {slot} wich bei {count} der letzten {n} Tauchgänge um bis zu {bar} bar von den anderen ab",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "Zelle {slot} las bei hohem ppO2 in {count} der letzten {n} Tauchgänge zu niedrig, bei bis zu {percent} Prozent der Messwerte",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "Der Druck fiel bei {recent} Prozent der letzten 5 Tauchgänge aus, zuvor bei {prior} Prozent der {priorCount} davor",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "Der Druck fiel im Schnitt bei {recent} Prozent der letzten {n} Tauchgänge aus, bei {count} davon über 10 Prozent",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag} in den letzten {n} Tauchgängen {count}-mal gemeldet",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} von {totalIssue} gemeldeten Problemen traten bei Tauchgängen kälter als {threshold} auf, über {n} Tauchgänge mit diesem Teil",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} von {totalIssue} gemeldeten Problemen traten bei Tauchgängen tiefer als {threshold} auf, über {n} Tauchgänge mit diesem Teil",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 Vorfall nennt dieses Teil} other{{count} Vorfälle nennen dieses Teil}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 Tauchgang} other{{n} Tauchgänge}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "Belastungsgrenzen",
   "equipmentConditionSettings_thresholdsHelp": "Ein Tauchgang zählt für Wartungsuhren als kalt, tief oder O2-reich, wenn er diese Grenzen überschreitet.",
   "equipmentConditionSettings_coldLabel": "Kaltwasser unter",

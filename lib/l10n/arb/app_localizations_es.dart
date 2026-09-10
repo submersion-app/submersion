@@ -26904,6 +26904,114 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Estado del equipo';
 
   @override
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
+    return 'La salida de la celda $slot cayó un $percent por ciento en $n inmersiones desde el $since';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
+    return 'La salida de la celda $slot es de $gain mV por bar en las últimas $n inmersiones';
+  }
+
+  @override
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
+    return 'La celda $slot discrepó de sus pares hasta $bar bar en $count de las últimas $n inmersiones';
+  }
+
+  @override
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
+    return 'La celda $slot leyó bajo a ppO2 alta en $count de las últimas $n inmersiones, hasta un $percent por ciento de las muestras';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
+    return 'La presión se perdió durante el $recent por ciento de las últimas 5 inmersiones, frente al $prior por ciento en las $priorCount anteriores';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
+    return 'La presión se perdió durante el $recent por ciento de las últimas $n inmersiones de media, $count de ellas por encima del 10 por ciento';
+  }
+
+  @override
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
+    return '$tag registrado $count veces en las últimas $n inmersiones';
+  }
+
+  @override
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue de $totalIssue problemas registrados fueron en inmersiones más frías que $threshold, en $n inmersiones con este artículo';
+  }
+
+  @override
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue de $totalIssue problemas registrados fueron en inmersiones más allá de $threshold, en $n inmersiones con este artículo';
+  }
+
+  @override
+  String equipmentCondition_finding_incidentLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count incidentes mencionan este artículo',
+      one: '1 incidente menciona este artículo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_window(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n inmersiones',
+      one: '1 inmersión',
+    );
+    return '$_temp0, $range';
+  }
+
+  @override
   String get equipmentConditionSettings_thresholdsHeader =>
       'Umbrales de exposición';
 

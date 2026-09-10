@@ -44355,6 +44355,109 @@ abstract class AppLocalizations {
   /// **'Equipment condition'**
   String get equipmentConditionSettings_title;
 
+  /// No description provided for @equipmentCondition_finding_cellOutputDeclining.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {slot} output fell {percent} percent across {n} dives since {since}'**
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  );
+
+  /// No description provided for @equipmentCondition_finding_cellOutputLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {slot} output is {gain} mV per bar over the last {n} dives'**
+  String equipmentCondition_finding_cellOutputLow(int slot, String gain, int n);
+
+  /// No description provided for @equipmentCondition_finding_cellDivergent.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {slot} disagreed with its peers by up to {bar} bar on {count} of the last {n} dives'**
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  );
+
+  /// No description provided for @equipmentCondition_finding_cellCurrentLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {slot} read low at high ppO2 on {count} of the last {n} dives, up to {percent} percent of samples'**
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  );
+
+  /// No description provided for @equipmentCondition_finding_transmitterDropoutRising.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure dropped out for {recent} percent of the last 5 dives, up from {prior} percent over the {priorCount} before'**
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  );
+
+  /// No description provided for @equipmentCondition_finding_transmitterDropoutHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure dropped out for {recent} percent of the last {n} dives on average, {count} of them above 10 percent'**
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  );
+
+  /// No description provided for @equipmentCondition_finding_issueRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'{tag} reported {count} times in the last {n} dives'**
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  );
+
+  /// No description provided for @equipmentCondition_finding_issueColdCorrelated.
+  ///
+  /// In en, this message translates to:
+  /// **'{insideIssue} of {totalIssue} issue reports were on dives colder than {threshold}, over {n} dives with this item'**
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  );
+
+  /// No description provided for @equipmentCondition_finding_issueDeepCorrelated.
+  ///
+  /// In en, this message translates to:
+  /// **'{insideIssue} of {totalIssue} issue reports were on dives beyond {threshold}, over {n} dives with this item'**
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  );
+
+  /// No description provided for @equipmentCondition_finding_incidentLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 incident names this item} other{{count} incidents name this item}}'**
+  String equipmentCondition_finding_incidentLinked(int count);
+
+  /// No description provided for @equipmentCondition_finding_window.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 dive} other{{n} dives}}, {range}'**
+  String equipmentCondition_finding_window(int n, String range);
+
   /// No description provided for @equipmentConditionSettings_thresholdsHeader.
   ///
   /// In en, this message translates to:

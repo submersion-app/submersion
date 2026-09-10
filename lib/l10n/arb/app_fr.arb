@@ -8175,6 +8175,166 @@
   "settings_section_equipmentCondition_title": "État du matériel",
   "settings_section_equipmentCondition_subtitle": "Seuils d'exposition pour les compteurs d'entretien",
   "equipmentConditionSettings_title": "État du matériel",
+  "equipmentCondition_finding_cellOutputDeclining": "La sortie de la cellule {slot} a chuté de {percent} pour cent sur {n} plongées depuis le {since}",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "La sortie de la cellule {slot} est de {gain} mV par bar sur les {n} dernières plongées",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "La cellule {slot} a divergé des autres jusqu'à {bar} bar sur {count} des {n} dernières plongées",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "La cellule {slot} a lu trop bas à ppO2 élevée sur {count} des {n} dernières plongées, jusqu'à {percent} pour cent des mesures",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "La pression a été perdue pendant {recent} pour cent des 5 dernières plongées, contre {prior} pour cent sur les {priorCount} précédentes",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "La pression a été perdue pendant {recent} pour cent des {n} dernières plongées en moyenne, dont {count} au-dessus de 10 pour cent",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "{tag} signalé {count} fois sur les {n} dernières plongées",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{insideIssue} des {totalIssue} problèmes signalés concernaient des plongées plus froides que {threshold}, sur {n} plongées avec cet équipement",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{insideIssue} des {totalIssue} problèmes signalés concernaient des plongées au-delà de {threshold}, sur {n} plongées avec cet équipement",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 incident mentionne cet équipement} other{{count} incidents mentionnent cet équipement}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 plongée} other{{n} plongées}}, {range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "Seuils d'exposition",
   "equipmentConditionSettings_thresholdsHelp": "Une plongée compte comme froide, profonde ou à haut O2 pour les compteurs d'entretien lorsqu'elle franchit ces seuils.",
   "equipmentConditionSettings_coldLabel": "Eau froide en dessous de",

@@ -26684,6 +26684,114 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Staat van uitrusting';
 
   @override
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
+    return 'De uitvoer van cel $slot daalde $percent procent over $n duiken sinds $since';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
+    return 'De uitvoer van cel $slot is $gain mV per bar over de laatste $n duiken';
+  }
+
+  @override
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
+    return 'Cel $slot week bij $count van de laatste $n duiken tot $bar bar af van de andere';
+  }
+
+  @override
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
+    return 'Cel $slot las bij hoge ppO2 te laag bij $count van de laatste $n duiken, tot $percent procent van de metingen';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
+    return 'De druk viel weg tijdens $recent procent van de laatste 5 duiken, tegen $prior procent over de $priorCount daarvoor';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
+    return 'De druk viel gemiddeld weg tijdens $recent procent van de laatste $n duiken, bij $count ervan boven 10 procent';
+  }
+
+  @override
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
+    return '$tag $count keer gemeld in de laatste $n duiken';
+  }
+
+  @override
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue van $totalIssue gemelde problemen waren op duiken kouder dan $threshold, over $n duiken met dit item';
+  }
+
+  @override
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue van $totalIssue gemelde problemen waren op duiken dieper dan $threshold, over $n duiken met dit item';
+  }
+
+  @override
+  String equipmentCondition_finding_incidentLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count incidenten noemen dit item',
+      one: '1 incident noemt dit item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_window(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n duiken',
+      one: '1 duik',
+    );
+    return '$_temp0, $range';
+  }
+
+  @override
   String get equipmentConditionSettings_thresholdsHeader =>
       'Blootstellingsdrempels';
 

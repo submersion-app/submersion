@@ -1,0 +1,174 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
+import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
+
+/// Sentences are composed at render time from the evidence, in the diver's
+/// units. No template names a date prediction or a probability.
+void main() {
+  final l10n = AppLocalizationsEn();
+  const metric = UnitFormatter(AppSettings());
+  const thresholds = ExposureThresholds.defaults;
+
+  EquipmentFinding finding(
+    ConditionRuleId rule, {
+    Map<String, double> values = const {},
+    int? slot,
+    String? tag,
+    double? value,
+    int n = 14,
+  }) {
+    final evidence = FindingEvidence(
+      n: n,
+      windowStart: DateTime(2026, 3, 3),
+      windowEnd: DateTime(2026, 6, 9),
+      diveIds: const ['d1', 'd2'],
+      values: values,
+      slot: slot,
+      tag: tag,
+    );
+    return EquipmentFinding(
+      id: conditionFindingId('reg', rule, slot: slot, tag: tag),
+      equipmentId: 'reg',
+      ruleId: rule,
+      severity: rule.severity,
+      value: value,
+      evidence: evidence,
+      evidenceFingerprint: evidenceFingerprint(evidence),
+      engineVersion: 1,
+      createdAt: DateTime(2026, 6, 9),
+    );
+  }
+
+  test(
+    'the decline sentence carries slot, percent, n and the window start',
+    () {
+      final f = finding(
+        ConditionRuleId.cellOutputDeclining,
+        slot: 2,
+        value: 22.4,
+        values: {'recentMedian': 41.2, 'baselineMedian': 52.8},
+      );
+      expect(
+        conditionFindingTitle(f, l10n, metric, thresholds: thresholds),
+        'Cell 2 output fell 22 percent across 14 dives since Mar 3, 2026',
+      );
+    },
+  );
+
+  test('the cold correlation sentence shows the threshold in diver units', () {
+    final f = finding(
+      ConditionRuleId.issueColdCorrelated,
+      values: {
+        'coldIssueDives': 3,
+        'coldDives': 8,
+        'warmIssueDives': 1,
+        'warmDives': 33,
+      },
+      n: 41,
+    );
+    const imperial = UnitFormatter(
+      AppSettings(temperatureUnit: TemperatureUnit.fahrenheit),
+    );
+    expect(
+      conditionFindingTitle(f, l10n, imperial, thresholds: thresholds),
+      '3 of 4 issue reports were on dives colder than 50°F, over 41 dives '
+      'with this item',
+    );
+    expect(
+      conditionFindingTitle(f, l10n, metric, thresholds: thresholds),
+      startsWith('3 of 4 issue reports were on dives colder than 10°C'),
+    );
+  });
+
+  test('the recurring sentence names the tag', () {
+    final f = finding(
+      ConditionRuleId.issueRecurring,
+      values: {'count': 3},
+      tag: 'freeFlow',
+      n: 20,
+    );
+    expect(
+      conditionFindingTitle(f, l10n, metric, thresholds: thresholds),
+      'Free flow reported 3 times in the last 20 dives',
+    );
+  });
+
+  test('linked incidents pluralise', () {
+    expect(
+      conditionFindingTitle(
+        finding(ConditionRuleId.incidentLinked, values: {'count': 1}),
+        l10n,
+        metric,
+        thresholds: thresholds,
+      ),
+      '1 incident names this item',
+    );
+    expect(
+      conditionFindingTitle(
+        finding(ConditionRuleId.incidentLinked, values: {'count': 3}),
+        l10n,
+        metric,
+        thresholds: thresholds,
+      ),
+      '3 incidents name this item',
+    );
+  });
+
+  test('a missing value renders a placeholder, never a fabricated zero', () {
+    final f = finding(ConditionRuleId.cellOutputLow, slot: 1, n: 3);
+    expect(
+      conditionFindingTitle(f, l10n, metric, thresholds: thresholds),
+      'Cell 1 output is -- mV per bar over the last 3 dives',
+    );
+  });
+
+  test('the transmitter sentences use whole percentages', () {
+    final rising = finding(
+      ConditionRuleId.transmitterDropoutRising,
+      values: {'recentMean': 0.12, 'priorMean': 0.03},
+      n: 15,
+    );
+    expect(
+      conditionFindingTitle(rising, l10n, metric, thresholds: thresholds),
+      'Pressure dropped out for 12 percent of the last 5 dives, up from 3 '
+      'percent over the 10 before',
+    );
+  });
+
+  test('the window line counts dives and formats the range', () {
+    final f = finding(ConditionRuleId.incidentLinked, n: 1);
+    expect(
+      conditionFindingWindow(f, l10n, metric),
+      '1 dive, Mar 3 - Jun 9, 2026',
+    );
+  });
+
+  test('short labels reuse the settings rule names', () {
+    expect(
+      conditionFindingShortLabel(ConditionRuleId.cellDivergent, l10n),
+      'Cell disagrees with its peers',
+    );
+  });
+
+  test('severity colours follow the service clock palette', () {
+    const scheme = ColorScheme.light();
+    expect(
+      conditionSeverityColor(ConditionSeverity.significant, scheme),
+      scheme.error,
+    );
+    expect(
+      conditionSeverityColor(ConditionSeverity.caution, scheme),
+      scheme.tertiary,
+    );
+    expect(
+      conditionSeverityColor(ConditionSeverity.info, scheme),
+      scheme.onSurfaceVariant,
+    );
+  });
+}

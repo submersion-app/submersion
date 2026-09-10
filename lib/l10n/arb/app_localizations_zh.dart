@@ -25505,6 +25505,114 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_title => '装备状况';
 
   @override
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
+    return '自 $since 起，$n 次潜水中电池 $slot 的输出下降了 $percent%';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
+    return '最近 $n 次潜水中电池 $slot 的输出为 $gain mV/bar';
+  }
+
+  @override
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
+    return '最近 $n 次潜水中有 $count 次电池 $slot 与其他电池的偏差达 $bar bar';
+  }
+
+  @override
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
+    return '最近 $n 次潜水中有 $count 次电池 $slot 在高 ppO2 下读数偏低，最多占样本的 $percent%';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
+    return '最近 5 次潜水中压力信号中断占 $recent%，此前 $priorCount 次为 $prior%';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
+    return '最近 $n 次潜水中压力信号中断平均占 $recent%，其中 $count 次超过 10%';
+  }
+
+  @override
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
+    return '最近 $n 次潜水中 $tag 被记录了 $count 次';
+  }
+
+  @override
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$totalIssue 条问题记录中有 $insideIssue 条发生在低于 $threshold 的潜水中，基于使用此装备的 $n 次潜水';
+  }
+
+  @override
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$totalIssue 条问题记录中有 $insideIssue 条发生在超过 $threshold 的潜水中，基于使用此装备的 $n 次潜水';
+  }
+
+  @override
+  String equipmentCondition_finding_incidentLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 起事件涉及此装备',
+      one: '1 起事件涉及此装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_window(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n 次潜水',
+      one: '1 次潜水',
+    );
+    return '$_temp0，$range';
+  }
+
+  @override
   String get equipmentConditionSettings_thresholdsHeader => '暴露阈值';
 
   @override

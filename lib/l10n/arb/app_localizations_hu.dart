@@ -26780,6 +26780,114 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Felszerelés állapota';
 
   @override
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
+    return 'A(z) $slot. cella kimenete $percent százalékkal csökkent $n merülés alatt $since óta';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
+    return 'A(z) $slot. cella kimenete $gain mV/bar az utolsó $n merülésen';
+  }
+
+  @override
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
+    return 'A(z) $slot. cella az utolsó $n merülésből $count alkalommal akár $bar bar-ral eltért a többitől';
+  }
+
+  @override
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
+    return 'A(z) $slot. cella magas ppO2-nél az utolsó $n merülésből $count alkalommal alacsonyat mért, a minták akár $percent százalékánál';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
+    return 'A nyomásadat az utolsó 5 merülés $recent százalékában kimaradt, az azt megelőző $priorCount merülésen mért $prior százalékhoz képest';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
+    return 'A nyomásadat az utolsó $n merülés átlagosan $recent százalékában kimaradt, ebből $count merülésen 10 százalék felett';
+  }
+
+  @override
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
+    return '$tag: $count alkalommal jelentve az utolsó $n merülésen';
+  }
+
+  @override
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$totalIssue jelentett problémából $insideIssue a(z) $threshold alatti hőmérsékletű merüléseken történt, $n merülés alapján ezzel az eszközzel';
+  }
+
+  @override
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$totalIssue jelentett problémából $insideIssue a(z) $threshold mélységen túli merüléseken történt, $n merülés alapján ezzel az eszközzel';
+  }
+
+  @override
+  String equipmentCondition_finding_incidentLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count esemény említi ezt az eszközt',
+      one: '1 esemény említi ezt az eszközt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_window(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0, $range';
+  }
+
+  @override
   String get equipmentConditionSettings_thresholdsHeader =>
       'Terhelési küszöbök';
 

@@ -26223,6 +26223,114 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipmentConditionSettings_title => 'מצב הציוד';
 
   @override
+  String equipmentCondition_finding_cellOutputDeclining(
+    int slot,
+    String percent,
+    int n,
+    String since,
+  ) {
+    return 'פלט תא $slot ירד ב-$percent אחוזים לאורך $n צלילות מאז $since';
+  }
+
+  @override
+  String equipmentCondition_finding_cellOutputLow(
+    int slot,
+    String gain,
+    int n,
+  ) {
+    return 'פלט תא $slot הוא $gain mV לבר ב-$n הצלילות האחרונות';
+  }
+
+  @override
+  String equipmentCondition_finding_cellDivergent(
+    int slot,
+    String bar,
+    int count,
+    int n,
+  ) {
+    return 'תא $slot חרג מהאחרים בעד $bar בר ב-$count מתוך $n הצלילות האחרונות';
+  }
+
+  @override
+  String equipmentCondition_finding_cellCurrentLimited(
+    int slot,
+    int count,
+    int n,
+    String percent,
+  ) {
+    return 'תא $slot קרא נמוך ב-ppO2 גבוה ב-$count מתוך $n הצלילות האחרונות, עד $percent אחוזים מהדגימות';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutRising(
+    String recent,
+    String prior,
+    int priorCount,
+  ) {
+    return 'קריאת הלחץ נפלה ב-$recent אחוזים מ-5 הצלילות האחרונות, לעומת $prior אחוזים ב-$priorCount שלפניהן';
+  }
+
+  @override
+  String equipmentCondition_finding_transmitterDropoutHigh(
+    String recent,
+    int n,
+    int count,
+  ) {
+    return 'קריאת הלחץ נפלה בממוצע ב-$recent אחוזים מ-$n הצלילות האחרונות, $count מהן מעל 10 אחוזים';
+  }
+
+  @override
+  String equipmentCondition_finding_issueRecurring(
+    String tag,
+    int count,
+    int n,
+  ) {
+    return '$tag דווח $count פעמים ב-$n הצלילות האחרונות';
+  }
+
+  @override
+  String equipmentCondition_finding_issueColdCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue מתוך $totalIssue דיווחי תקלה היו בצלילות קרות מ-$threshold, מתוך $n צלילות עם פריט זה';
+  }
+
+  @override
+  String equipmentCondition_finding_issueDeepCorrelated(
+    int insideIssue,
+    int totalIssue,
+    String threshold,
+    int n,
+  ) {
+    return '$insideIssue מתוך $totalIssue דיווחי תקלה היו בצלילות עמוקות מ-$threshold, מתוך $n צלילות עם פריט זה';
+  }
+
+  @override
+  String equipmentCondition_finding_incidentLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אירועים מזכירים פריט זה',
+      one: 'אירוע אחד מזכיר פריט זה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_finding_window(int n, String range) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0, $range';
+  }
+
+  @override
   String get equipmentConditionSettings_thresholdsHeader => 'ספי חשיפה';
 
   @override

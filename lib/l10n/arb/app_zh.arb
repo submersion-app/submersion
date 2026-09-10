@@ -8175,6 +8175,166 @@
   "settings_section_equipmentCondition_title": "装备状况",
   "settings_section_equipmentCondition_subtitle": "保养计时的暴露阈值",
   "equipmentConditionSettings_title": "装备状况",
+  "equipmentCondition_finding_cellOutputDeclining": "自 {since} 起，{n} 次潜水中电池 {slot} 的输出下降了 {percent}%",
+  "@equipmentCondition_finding_cellOutputDeclining": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "since": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellOutputLow": "最近 {n} 次潜水中电池 {slot} 的输出为 {gain} mV/bar",
+  "@equipmentCondition_finding_cellOutputLow": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "gain": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellDivergent": "最近 {n} 次潜水中有 {count} 次电池 {slot} 与其他电池的偏差达 {bar} bar",
+  "@equipmentCondition_finding_cellDivergent": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "bar": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_cellCurrentLimited": "最近 {n} 次潜水中有 {count} 次电池 {slot} 在高 ppO2 下读数偏低，最多占样本的 {percent}%",
+  "@equipmentCondition_finding_cellCurrentLimited": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutRising": "最近 5 次潜水中压力信号中断占 {recent}%，此前 {priorCount} 次为 {prior}%",
+  "@equipmentCondition_finding_transmitterDropoutRising": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      },
+      "priorCount": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_transmitterDropoutHigh": "最近 {n} 次潜水中压力信号中断平均占 {recent}%，其中 {count} 次超过 10%",
+  "@equipmentCondition_finding_transmitterDropoutHigh": {
+    "placeholders": {
+      "recent": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueRecurring": "最近 {n} 次潜水中 {tag} 被记录了 {count} 次",
+  "@equipmentCondition_finding_issueRecurring": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueColdCorrelated": "{totalIssue} 条问题记录中有 {insideIssue} 条发生在低于 {threshold} 的潜水中，基于使用此装备的 {n} 次潜水",
+  "@equipmentCondition_finding_issueColdCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_issueDeepCorrelated": "{totalIssue} 条问题记录中有 {insideIssue} 条发生在超过 {threshold} 的潜水中，基于使用此装备的 {n} 次潜水",
+  "@equipmentCondition_finding_issueDeepCorrelated": {
+    "placeholders": {
+      "insideIssue": {
+        "type": "int"
+      },
+      "totalIssue": {
+        "type": "int"
+      },
+      "threshold": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_incidentLinked": "{count, plural, =1{1 起事件涉及此装备} other{{count} 起事件涉及此装备}}",
+  "@equipmentCondition_finding_incidentLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_finding_window": "{n, plural, =1{1 次潜水} other{{n} 次潜水}}，{range}",
+  "@equipmentCondition_finding_window": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentConditionSettings_thresholdsHeader": "暴露阈值",
   "equipmentConditionSettings_thresholdsHelp": "潜水越过这些界线时，保养计时将其计为冷水、深潜或高氧。",
   "equipmentConditionSettings_coldLabel": "冷水低于",
