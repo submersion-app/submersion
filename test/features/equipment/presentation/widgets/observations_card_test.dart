@@ -36,6 +36,8 @@ void main() {
             (ref) async =>
                 Dive(id: 'd1', diveNumber: 42, dateTime: DateTime.utc(2026)),
           ),
+          // A dive that has not resolved: the row must not show its id.
+          diveProvider('d-unresolved').overrideWith((ref) async => null),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -86,5 +88,55 @@ void main() {
     expect(find.textContaining('Cold water'), findsOneWidget);
     expect(find.byIcon(Icons.warning_amber), findsOneWidget);
     expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+  });
+
+  EquipmentObservation observation({
+    String id = 'o1',
+    String? diveId,
+    ObservationStatus status = ObservationStatus.issue,
+    List<ObservationTag> tags = const [ObservationTag.freeFlow],
+    String note = '',
+  }) => EquipmentObservation(
+    id: id,
+    equipmentId: 'reg',
+    diveId: diveId,
+    observedAt: DateTime.utc(2026, 3, 1),
+    status: status,
+    issueTags: tags,
+    note: note,
+    createdAt: DateTime.utc(2026),
+    updatedAt: DateTime.utc(2026),
+  );
+
+  testWidgets('an issue whose tags were all dropped still has a title', (
+    tester,
+  ) async {
+    // A newer build's tag names are dropped on read, which can leave an
+    // issue with no tags at all. The row falls back to the status.
+    await pump(tester, [observation(tags: const [])]);
+    expect(find.text('Issue'), findsOneWidget);
+  });
+
+  testWidgets('a multi-line note shows on one line', (tester) async {
+    await pump(tester, [observation(note: 'Cold water\nat depth\n\nagain')]);
+    expect(find.text('Cold water at depth again'), findsOneWidget);
+  });
+
+  testWidgets('a dive that has not resolved shows a label, not its id', (
+    tester,
+  ) async {
+    await pump(tester, [observation(diveId: 'd-unresolved')]);
+    expect(find.textContaining('d-unresolved'), findsNothing);
+    expect(find.textContaining('Dive'), findsOneWidget);
+  });
+
+  testWidgets('the edit button opens that check-in in the editor', (
+    tester,
+  ) async {
+    await pump(tester, [observation(diveId: 'd1', note: 'Cold water')]);
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.pumpAndSettle();
+    expect(find.text('Save'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Cold water'), findsOneWidget);
   });
 }
