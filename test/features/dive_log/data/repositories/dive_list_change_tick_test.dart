@@ -45,6 +45,19 @@ void main() {
     return count;
   }
 
+  Future<void> insertLooseDive(String id) => db
+      .into(db.dives)
+      .insert(
+        DivesCompanion(
+          id: Value(id),
+          diveDateTime: Value(
+            asWallClockUtc(DateTime(2026, 6, 8)).millisecondsSinceEpoch,
+          ),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+
   group('dive list change tick', () {
     test(
       'a trip rename ticks the list but not the dives-only stream',
@@ -115,6 +128,86 @@ void main() {
         listTicks,
         greaterThan(0),
         reason: 'the row badge counts findings, so the list must reload',
+      );
+    });
+
+    test('a tag rename ticks the list, which renders tag chips', () async {
+      await db
+          .into(db.tags)
+          .insert(
+            TagsCompanion(
+              id: const Value('tag1'),
+              name: const Value('Night'),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+
+      final ticks = await ticksDuring(
+        repository.watchDiveListChanges(),
+        () => (db.update(db.tags)..where((t) => t.id.equals('tag1'))).write(
+          const TagsCompanion(name: Value('Night dive')),
+        ),
+      );
+
+      expect(
+        ticks,
+        greaterThan(0),
+        reason: 'the row renders tag names, which the main SELECT never reads',
+      );
+    });
+
+    test('a tag membership change ticks the list', () async {
+      await insertLooseDive('d7');
+      await db
+          .into(db.tags)
+          .insert(
+            TagsCompanion(
+              id: const Value('tag2'),
+              name: const Value('Wreck'),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+
+      final ticks = await ticksDuring(
+        repository.watchDiveListChanges(),
+        () => db
+            .into(db.diveTags)
+            .insert(
+              DiveTagsCompanion(
+                id: const Value('dt1'),
+                diveId: const Value('d7'),
+                tagId: const Value('tag2'),
+                createdAt: Value(now),
+              ),
+            ),
+      );
+
+      expect(ticks, greaterThan(0));
+    });
+
+    test('a dive-type assignment ticks the list', () async {
+      await insertLooseDive('d8');
+
+      final ticks = await ticksDuring(
+        repository.watchDiveListChanges(),
+        () => db
+            .into(db.diveDiveTypes)
+            .insert(
+              DiveDiveTypesCompanion(
+                id: const Value('ddt1'),
+                diveId: const Value('d8'),
+                diveTypeId: const Value('wreck'),
+                createdAt: Value(now),
+              ),
+            ),
+      );
+
+      expect(
+        ticks,
+        greaterThan(0),
+        reason: 'the row renders dive-type badges from this junction',
       );
     });
 

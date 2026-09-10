@@ -154,13 +154,21 @@ class DiveRepository {
   /// Change-tick for the dive LIST: fires when a table the list renders from
   /// is written.
   ///
+  /// A [DiveSummary] is assembled from THREE queries, not one, which is what
+  /// makes this set larger than it first looks: the paginated summary SELECT,
+  /// a batched tag fetch (`getTagsForDives`, joining `tags` and `dive_tags`),
+  /// and a batched dive-type fetch (`_diveTypesForDives`, over
+  /// `dive_dive_types`). Every one of those feeds a visible part of the row,
+  /// so every one belongs here.
+  ///
   /// Broader than [watchDivesChanges], which watches only `dives`. The
   /// paginated summary query LEFT JOINs `dive_sites` and `trips` to render the
   /// site line and the trip group header (#1193), and carries a correlated
-  /// count over `dive_safety_findings` for the row's finding badge. All three
-  /// change what the list displays without touching `dives` at all, so on the
-  /// dives-only tick a trip rename, a site rename, or a synced safety review
-  /// stayed on screen stale until some unrelated dive write shook the list.
+  /// count over `dive_safety_findings` for the row's finding badge. All of
+  /// these change what the list displays without touching `dives` at all, so
+  /// on the dives-only tick a trip rename, a site rename, a synced safety
+  /// review or a tag rename stayed on screen stale until some unrelated dive
+  /// write shook the list.
   ///
   /// Deliberately NOT [watchDiveDetailChanges]: that also watches tank
   /// pressures, gas switches, equipment and media, none of which the list
@@ -181,6 +189,12 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.diveSites),
           TableUpdateQuery.onTable(_db.trips),
           TableUpdateQuery.onTable(_db.diveSafetyFindings),
+          // Row chips: tag membership and tag names, and the dive-type
+          // badges. The type NAMES resolve through their own provider, so
+          // only the junction is needed for them.
+          TableUpdateQuery.onTable(_db.diveTags),
+          TableUpdateQuery.onTable(_db.tags),
+          TableUpdateQuery.onTable(_db.diveDiveTypes),
         ]),
       )
       .debounce(changeTickDebounce);
