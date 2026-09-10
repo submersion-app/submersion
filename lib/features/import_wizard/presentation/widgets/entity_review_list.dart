@@ -229,18 +229,29 @@ class EntityReviewList extends StatelessWidget {
               index: index,
               isSelected: selectedIndices.contains(index),
               onToggle: () {
-                final isShiftPressed = HardwareKeyboard.instance.logicalKeysPressed.any(
-                  (k) => k == LogicalKeyboardKey.shiftLeft || k == LogicalKeyboardKey.shiftRight
-                );
+                final isShiftPressed = HardwareKeyboard
+                    .instance
+                    .logicalKeysPressed
+                    .any(
+                      (k) =>
+                          k == LogicalKeyboardKey.shiftLeft ||
+                          k == LogicalKeyboardKey.shiftRight,
+                    );
                 final isSelecting = !selectedIndices.contains(index);
 
-                if (isShiftPressed && _lastToggledIndex != null && onSetSelections != null) {
-                  final startIndex = nonDuplicateIndices.indexOf(_lastToggledIndex!);
+                if (isShiftPressed &&
+                    _lastToggledIndex != null &&
+                    onSetSelections != null) {
+                  final startIndex = nonDuplicateIndices.indexOf(
+                    _lastToggledIndex!,
+                  );
                   final endIndex = nonDuplicateIndices.indexOf(index);
                   if (startIndex != -1 && endIndex != -1) {
                     final start = startIndex < endIndex ? startIndex : endIndex;
                     final end = startIndex < endIndex ? endIndex : startIndex;
-                    final range = nonDuplicateIndices.sublist(start, end + 1).toSet();
+                    final range = nonDuplicateIndices
+                        .sublist(start, end + 1)
+                        .toSet();
                     onSetSelections!(range, isSelecting);
                   } else {
                     onToggleSelection(index);
