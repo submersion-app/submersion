@@ -215,6 +215,7 @@ typedef struct {
 typedef struct {
     double oxygen;             // fraction 0.0-1.0
     double helium;             // fraction 0.0-1.0
+    unsigned int usage;        // dc_usage_t (0=none, 1=oxygen, 2=diluent, 3=sidemount)
 } libdc_gasmix_t;
 
 typedef struct {
