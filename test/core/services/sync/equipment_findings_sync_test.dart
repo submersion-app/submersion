@@ -116,6 +116,7 @@ void main() {
           createdAt: DateTime.utc(2026),
         ),
       ],
+      engineVersion: 1,
       now: DateTime.utc(2026),
     );
     final base = await serializer.exportChangeset(

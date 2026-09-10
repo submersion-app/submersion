@@ -98,6 +98,7 @@ class EquipmentFindingsRepository {
     required String equipmentId,
     required String inputFingerprint,
     required List<EquipmentFinding> findings,
+    required int engineVersion,
     required DateTime now,
   }) async {
     final nowMs = now.millisecondsSinceEpoch;
@@ -170,9 +171,12 @@ class EquipmentFindingsRepository {
           .insertOnConflictUpdate(
             EquipmentConditionReviewsCompanion.insert(
               equipmentId: equipmentId,
-              engineVersion: findings.isEmpty
-                  ? _newestEngineVersion(existingRows)
-                  : findings.first.engineVersion,
+              // The version of the engine that produced this review, from
+              // the caller. Reading it off the findings breaks on the most
+              // common case of all: an item the engine cleared has no
+              // finding to read it from, and the marker then recorded a
+              // version older than any engine, so every read recomputed.
+              engineVersion: engineVersion,
               inputFingerprint: inputFingerprint,
               reviewedAt: nowMs,
             ),
@@ -220,14 +224,6 @@ class EquipmentFindingsRepository {
       );
     });
     SyncEventBus.notifyLocalChange();
-  }
-
-  int _newestEngineVersion(List<EquipmentFindingRow> rows) {
-    var version = 0;
-    for (final r in rows) {
-      if (r.engineVersion > version) version = r.engineVersion;
-    }
-    return version;
   }
 
   List<EquipmentFinding> _sorted(List<EquipmentFinding> findings) =>

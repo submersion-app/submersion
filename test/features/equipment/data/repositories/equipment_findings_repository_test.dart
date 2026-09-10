@@ -88,6 +88,23 @@ void main() {
       if (t.entityType == 'equipmentFindings') t.recordId,
   };
 
+  test('a review with no findings still records the engine version', () async {
+    // An item the engine cleared is the common case. Recording 0 here (the
+    // newest version among no rows) made the marker read as stale forever,
+    // so every read recomputed instead of serving from it.
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp-empty',
+      findings: const [],
+      engineVersion: 1,
+      now: t0,
+    );
+    final review = await repo.getReview('reg');
+    expect(review!.engineVersion, 1);
+    expect(review.inputFingerprint, 'fp-empty');
+    expect(await repo.getFindings('reg'), isEmpty);
+  });
+
   test('saveReview stores findings, the marker and marks the parent', () async {
     await repo.saveReview(
       equipmentId: 'reg',
@@ -96,6 +113,7 @@ void main() {
         recurring(['d1', 'd2', 'd3']),
         incident(),
       ],
+      engineVersion: 1,
       now: t0,
     );
     final stored = await repo.getFindings('reg');
@@ -124,6 +142,7 @@ void main() {
         findings: [
           recurring(['d1', 'd2', 'd3'], createdAt: t0),
         ],
+        engineVersion: 1,
         now: t0,
       );
       final later = t0.add(const Duration(days: 10));
@@ -133,6 +152,7 @@ void main() {
         findings: [
           recurring(['d1', 'd2', 'd3', 'd4'], createdAt: later),
         ],
+        engineVersion: 1,
         now: later,
       );
       final stored = (await repo.getFindings('reg')).single;
@@ -150,6 +170,7 @@ void main() {
       findings: [
         recurring(['d1', 'd2', 'd3']),
       ],
+      engineVersion: 1,
       now: t0,
     );
     final id = conditionFindingId(
@@ -171,6 +192,7 @@ void main() {
       findings: [
         recurring(['d1', 'd2', 'd3', 'd4', 'd5']),
       ],
+      engineVersion: 1,
       now: t0.add(const Duration(days: 5)),
     );
     expect((await repo.getFindings('reg')).single.isDismissed, isTrue);
@@ -182,6 +204,7 @@ void main() {
       findings: [
         recurring(['d1', 'd2', 'd3', 'd4', 'd5', 'd6']),
       ],
+      engineVersion: 1,
       now: t0.add(const Duration(days: 9)),
     );
     expect((await repo.getFindings('reg')).single.isDismissed, isFalse);
@@ -195,12 +218,14 @@ void main() {
         recurring(['d1', 'd2', 'd3']),
         incident(),
       ],
+      engineVersion: 1,
       now: t0,
     );
     await repo.saveReview(
       equipmentId: 'reg',
       inputFingerprint: 'fp2',
       findings: [incident()],
+      engineVersion: 1,
       now: t0,
     );
     final stored = await repo.getFindings('reg');
@@ -235,6 +260,7 @@ void main() {
           recurring(['d1', 'd2', 'd3']),
           incident(),
         ],
+        engineVersion: 1,
         now: t0,
       );
       await repo.saveReview(
@@ -243,6 +269,7 @@ void main() {
         findings: [
           incident().copyWith(id: 'cf_bcd_incidentLinked', equipmentId: 'bcd'),
         ],
+        engineVersion: 1,
         now: t0,
       );
       await repo.setDismissed(
@@ -269,6 +296,7 @@ void main() {
         equipmentId: 'reg',
         inputFingerprint: 'fp1',
         findings: [incident()],
+        engineVersion: 1,
         now: t0,
       );
       await db
@@ -295,6 +323,7 @@ void main() {
       equipmentId: 'reg',
       inputFingerprint: 'fp1',
       findings: [incident()],
+      engineVersion: 1,
       now: t0,
     );
     await (db.delete(db.equipment)..where((t) => t.id.equals('reg'))).go();
