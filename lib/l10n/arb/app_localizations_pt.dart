@@ -20546,6 +20546,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Exportar inventario de equipamentos e informacoes de manutencao';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'Cada verificação OK e cada problema reportado, com mergulho, etiquetas e nota';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'Exportar localizacoes e detalhes dos pontos de mergulho';
 
@@ -20562,6 +20566,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV de Equipamentos';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle =>
+      'CSV de verificações de equipamento';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'CSV de Pontos';
 
   @override
@@ -20574,6 +20582,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Equipamentos';
+
+  @override
+  String get transfer_csvExport_typeObservations =>
+      'Verificações de equipamento';
 
   @override
   String get transfer_csvExport_typeSites => 'Pontos';
@@ -36506,6 +36518,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Exportando equipamentos para CSV...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'A exportar verificações de equipamento para CSV...';
+
+  @override
   String get settings_export_progress_pdf =>
       'Gerando diário de mergulho em PDF...';
 
@@ -36575,6 +36591,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Preparando CSV de equipamentos...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'A preparar CSV de verificações de equipamento...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'Preparando arquivo UDDF...';
 
@@ -36598,6 +36618,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_empty_equipment =>
       'Nenhum equipamento para exportar';
+
+  @override
+  String get settings_export_empty_observations =>
+      'Sem verificações de equipamento para exportar';
 
   @override
   String get settings_export_empty_data => 'Nenhum dado para exportar';
@@ -36638,6 +36662,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_success_equipment =>
       'Equipamentos exportados com sucesso';
+
+  @override
+  String get settings_export_success_observations =>
+      'Verificações de equipamento exportadas';
 
   @override
   String get settings_export_success_pdf =>
@@ -36691,6 +36719,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_saved_equipmentCsv =>
       'CSV de equipamentos salvo com sucesso';
+
+  @override
+  String get settings_export_saved_observationsCsv =>
+      'CSV de verificações de equipamento guardado';
 
   @override
   String get settings_export_saved_uddf => 'Arquivo UDDF salvo com sucesso';

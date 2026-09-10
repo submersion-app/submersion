@@ -20496,6 +20496,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ausrüstungsinventar und Serviceinformationen exportieren';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'Jede OK-Prüfung und jedes gemeldete Problem mit Tauchgang, Schlagwörtern und Notiz';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'Tauchplatzstandorte und Details exportieren';
 
@@ -20512,6 +20516,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'Ausrüstung CSV';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle =>
+      'Ausrüstungs-Check-ins als CSV';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'Tauchplätze CSV';
 
   @override
@@ -20524,6 +20532,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Ausrüstung';
+
+  @override
+  String get transfer_csvExport_typeObservations => 'Ausrüstungs-Check-ins';
 
   @override
   String get transfer_csvExport_typeSites => 'Tauchplätze';
@@ -36411,6 +36422,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ausrüstung wird nach CSV exportiert...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'Ausrüstungs-Check-ins werden als CSV exportiert...';
+
+  @override
   String get settings_export_progress_pdf => 'PDF-Logbuch wird erstellt...';
 
   @override
@@ -36479,6 +36494,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ausrüstungs-CSV wird vorbereitet...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'CSV der Ausrüstungs-Check-ins wird vorbereitet...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'UDDF-Datei wird vorbereitet...';
 
@@ -36502,6 +36521,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_export_empty_equipment =>
       'Keine Ausrüstung zum Exportieren';
+
+  @override
+  String get settings_export_empty_observations =>
+      'Keine Ausrüstungs-Check-ins zum Exportieren';
 
   @override
   String get settings_export_empty_data => 'Keine Daten zum Exportieren';
@@ -36544,6 +36567,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_export_success_equipment =>
       'Ausrüstung erfolgreich exportiert';
+
+  @override
+  String get settings_export_success_observations =>
+      'Ausrüstungs-Check-ins exportiert';
 
   @override
   String get settings_export_success_pdf => 'PDF-Logbuch erfolgreich erstellt';
@@ -36598,6 +36625,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_export_saved_equipmentCsv =>
       'Ausrüstungs-CSV erfolgreich gespeichert';
+
+  @override
+  String get settings_export_saved_observationsCsv =>
+      'CSV der Ausrüstungs-Check-ins gespeichert';
 
   @override
   String get settings_export_saved_uddf => 'UDDF-Datei erfolgreich gespeichert';

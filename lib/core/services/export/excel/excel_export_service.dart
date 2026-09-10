@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
+import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/excel/pre_dive_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
@@ -21,6 +22,7 @@ class ExcelExportService {
   final _timeFormat = DateFormat('HH:mm');
   final _preDive = PreDiveExcelExportService();
   final _maintenance = MaintenanceExcelExportService();
+  final _observations = ObservationsExcelExportService();
 
   /// Export all dive data to Excel format and share via system sheet.
   ///
@@ -41,6 +43,7 @@ class ExcelExportService {
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     List<MaintenanceLogRow> maintenanceRows = const [],
+    List<ObservationExportRow> observationRows = const [],
   }) async {
     final bytes = await generateExcelBytes(
       dives: dives,
@@ -54,6 +57,7 @@ class ExcelExportService {
       preDiveSessions: preDiveSessions,
       preDiveItemsBySession: preDiveItemsBySession,
       maintenanceRows: maintenanceRows,
+      observationRows: observationRows,
     );
 
     final dateStr = _dateFormat.format(DateTime.now());
@@ -79,6 +83,7 @@ class ExcelExportService {
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     List<MaintenanceLogRow> maintenanceRows = const [],
+    List<ObservationExportRow> observationRows = const [],
   }) async {
     final excel = xl.Excel.createExcel();
 
@@ -105,6 +110,15 @@ class ExcelExportService {
       _maintenance.buildSheet(
         excel,
         rows: maintenanceRows,
+        dateFormat: dateFormat,
+      );
+    }
+    // Same guard: a library with no check-ins does not gain an empty sheet
+    // (condition phase 3a).
+    if (observationRows.isNotEmpty) {
+      _observations.buildSheet(
+        excel,
+        rows: observationRows,
         dateFormat: dateFormat,
       );
     }
@@ -144,6 +158,7 @@ class ExcelExportService {
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
     List<MaintenanceLogRow> maintenanceRows = const [],
+    List<ObservationExportRow> observationRows = const [],
   }) async {
     final bytes = await generateExcelBytes(
       dives: dives,
@@ -157,6 +172,7 @@ class ExcelExportService {
       preDiveSessions: preDiveSessions,
       preDiveItemsBySession: preDiveItemsBySession,
       maintenanceRows: maintenanceRows,
+      observationRows: observationRows,
     );
 
     final dateStr = _dateFormat.format(DateTime.now());

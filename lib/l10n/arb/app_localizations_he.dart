@@ -20013,6 +20013,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'ייצא מלאי ציוד ופרטי תחזוקה';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'כל בדיקה תקינה וכל בעיה שדווחה, עם הצלילה, התגיות וההערה';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'ייצא מיקומי אתרי צלילה ופרטים';
 
@@ -20029,6 +20033,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV ציוד';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle => 'CSV של בדיקות ציוד';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'CSV אתרים';
 
   @override
@@ -20041,6 +20048,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'ציוד';
+
+  @override
+  String get transfer_csvExport_typeObservations => 'בדיקות ציוד';
 
   @override
   String get transfer_csvExport_typeSites => 'אתרים';
@@ -35783,6 +35793,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_progress_equipmentCsv => 'מייצא ציוד ל-CSV...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'מייצא בדיקות ציוד ל-CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'יוצר יומן צלילות בפורמט PDF...';
 
   @override
@@ -35844,6 +35858,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'מכין CSV של ציוד...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'מכין CSV של בדיקות ציוד...';
+
+  @override
   String get settings_export_progress_preparingUddf => 'מכין קובץ UDDF...';
 
   @override
@@ -35863,6 +35881,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_export_empty_equipment => 'אין ציוד לייצוא';
+
+  @override
+  String get settings_export_empty_observations => 'אין בדיקות ציוד לייצוא';
 
   @override
   String get settings_export_empty_data => 'אין נתונים לייצוא';
@@ -35899,6 +35920,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_export_success_equipment => 'הציוד יוצא בהצלחה';
+
+  @override
+  String get settings_export_success_observations => 'בדיקות הציוד יוצאו';
 
   @override
   String get settings_export_success_pdf =>
@@ -35949,6 +35973,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_export_saved_equipmentCsv => 'CSV של הציוד נשמר בהצלחה';
+
+  @override
+  String get settings_export_saved_observationsCsv =>
+      'קובץ ה-CSV של בדיקות הציוד נשמר';
 
   @override
   String get settings_export_saved_uddf => 'קובץ UDDF נשמר בהצלחה';

@@ -20164,6 +20164,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تصدير جرد المعدات ومعلومات الصيانة';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'كل فحص سليم وكل مشكلة مُبلَّغ عنها مع الغطسة والوسوم والملاحظة';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'تصدير مواقع الغوص وتفاصيلها';
 
@@ -20180,6 +20184,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'المعدات CSV';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle =>
+      'ملف CSV لفحوصات المعدات';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'المواقع CSV';
 
   @override
@@ -20192,6 +20200,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'المعدات';
+
+  @override
+  String get transfer_csvExport_typeObservations => 'فحوصات المعدات';
 
   @override
   String get transfer_csvExport_typeSites => 'المواقع';
@@ -36127,6 +36138,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'جارٍ تصدير المعدات إلى CSV...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'جارٍ تصدير فحوصات المعدات إلى CSV...';
+
+  @override
   String get settings_export_progress_pdf =>
       'جارٍ إنشاء سجل الغوص بصيغة PDF...';
 
@@ -36193,6 +36208,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'جارٍ تحضير ملف CSV للمعدات...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'جارٍ تحضير ملف CSV لفحوصات المعدات...';
+
+  @override
   String get settings_export_progress_preparingUddf => 'جارٍ تحضير ملف UDDF...';
 
   @override
@@ -36214,6 +36233,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_export_empty_equipment => 'لا توجد معدات للتصدير';
+
+  @override
+  String get settings_export_empty_observations => 'لا فحوصات معدات للتصدير';
 
   @override
   String get settings_export_empty_data => 'لا توجد بيانات للتصدير';
@@ -36251,6 +36273,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_export_success_equipment => 'تم تصدير المعدات بنجاح';
+
+  @override
+  String get settings_export_success_observations => 'تم تصدير فحوصات المعدات';
 
   @override
   String get settings_export_success_pdf =>
@@ -36304,6 +36329,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_export_saved_equipmentCsv =>
       'تم حفظ ملف CSV للمعدات بنجاح';
+
+  @override
+  String get settings_export_saved_observationsCsv =>
+      'تم حفظ ملف CSV لفحوصات المعدات';
 
   @override
   String get settings_export_saved_uddf => 'تم حفظ ملف UDDF بنجاح';

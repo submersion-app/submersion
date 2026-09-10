@@ -5,6 +5,7 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -64,6 +65,53 @@ class CsvExportService {
   Future<String> exportEquipmentToCsv(List<EquipmentItem> equipment) async {
     final csvData = generateEquipmentCsvContent(equipment);
     return saveAndShareFile(csvData, 'equipment_export.csv', 'text/csv');
+  }
+
+  /// Export gear check-ins to CSV format and share via system sheet
+  /// (condition phase 3a).
+  Future<String> exportObservationsToCsv(List<ObservationExportRow> rows) {
+    final csvData = generateObservationsCsvContent(rows);
+    return saveAndShareFile(csvData, 'observations_export.csv', 'text/csv');
+  }
+
+  /// Generate CSV content for gear check-ins (without sharing). Same
+  /// columns as the workbook's Observations sheet; tag names are the stored
+  /// values, joined by "; ".
+  String generateObservationsCsvContent(List<ObservationExportRow> rows) {
+    final table = <List<dynamic>>[
+      ObservationsExcelExportService.headers,
+      for (final row in rows)
+        [
+          row.equipmentName,
+          row.equipmentType,
+          _dateFormat.format(row.observation.observedAt),
+          row.diveNumber ?? '',
+          row.observation.status.dbValue,
+          row.observation.issueTags.map((t) => t.dbValue).join('; '),
+          row.observation.note,
+        ],
+    ];
+    return const ListToCsvConverter().convert(table);
+  }
+
+  /// Save gear check-ins CSV to a user-selected location.
+  Future<String?> saveObservationsCsvToFile(
+    List<ObservationExportRow> rows,
+  ) async {
+    final csvContent = generateObservationsCsvContent(rows);
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'observations_export_$dateStr.csv';
+
+    final result = await FilePicker.saveFile(
+      dialogTitle: 'Save Gear Check-ins CSV',
+      fileName: fileName,
+      type: FileType.custom,
+      bytes: Uint8List.fromList(utf8.encode(csvContent)),
+      mimeType: 'text/csv',
+    );
+
+    if (result == null) return null;
+    return savedFileLocation(result);
   }
 
   /// Export trips to CSV format and share via system sheet.

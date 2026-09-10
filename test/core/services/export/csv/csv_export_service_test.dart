@@ -3,6 +3,7 @@ import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 
 import '../../../../helpers/mock_file_picker_platform.dart';
 
@@ -104,6 +105,52 @@ void main() {
       mockPicker.saveFileResult = null;
       final result = await service.saveEquipmentCsvToFile(<EquipmentItem>[]);
       expect(result, isNull);
+    });
+  });
+
+  group('generateObservationsCsvContent (condition phase 3a)', () {
+    test('writes the header and quotes a note with a comma', () {
+      final csv = service.generateObservationsCsvContent([
+        (
+          equipmentName: 'Apeks XTX',
+          equipmentType: 'Regulator',
+          diveNumber: 42,
+          observation: EquipmentObservation(
+            id: 'o1',
+            equipmentId: 'reg',
+            diveId: 'd1',
+            observedAt: DateTime.utc(2026, 3, 14, 11),
+            status: ObservationStatus.issue,
+            issueTags: const [ObservationTag.freeFlow, ObservationTag.leak],
+            note: 'Cold, 4 C',
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+          ),
+        ),
+        (
+          equipmentName: 'Apeks XTX',
+          equipmentType: 'Regulator',
+          diveNumber: null,
+          observation: EquipmentObservation(
+            id: 'o2',
+            equipmentId: 'reg',
+            observedAt: DateTime.utc(2026, 3, 15, 9),
+            status: ObservationStatus.ok,
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+          ),
+        ),
+      ]);
+      final lines = csv.trim().split(RegExp(r'\r?\n'));
+      expect(
+        lines.first,
+        'Equipment,Equipment Type,Date,Dive Number,Status,Tags,Note',
+      );
+      expect(lines, hasLength(3));
+      expect(lines[1], contains('Apeks XTX,Regulator,2026-03-14,42,issue,'));
+      expect(lines[1], contains('freeFlow; leak'));
+      expect(lines[1], contains('"Cold, 4 C"'));
+      expect(lines[2], contains(',,ok,,'));
     });
   });
 }

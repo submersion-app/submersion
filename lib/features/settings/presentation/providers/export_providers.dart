@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -249,6 +251,104 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         status: ExportStatus.error,
         message: _l10n.settings_data_export_failed('$e'),
+      );
+    }
+  }
+
+  /// Every gear check-in flattened for the Excel sheet and the CSV file:
+  /// the item name and type, the dive number when the check-in is on a
+  /// dive the export knows, and the observation itself (condition 3a).
+  Future<List<ObservationExportRow>> _observationRows(
+    List<EquipmentItem> equipment,
+    List<Dive> dives,
+  ) async {
+    final observations = await _ref
+        .read(equipmentObservationRepositoryProvider)
+        .getAll();
+    final itemsById = {for (final e in equipment) e.id: e};
+    final numberByDive = {for (final d in dives) d.id: d.diveNumber};
+    return [
+      for (final o in observations)
+        if (itemsById[o.equipmentId] case final item?)
+          (
+            equipmentName: item.name,
+            equipmentType: item.type.displayName,
+            diveNumber: o.diveId == null ? null : numberByDive[o.diveId],
+            observation: o,
+          ),
+    ];
+  }
+
+  Future<void> exportObservationsToCsv() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: _l10n.settings_export_progress_observationsCsv,
+    );
+    try {
+      final equipment = await _ref.read(allEquipmentProvider.future);
+      final dives = await _ref.read(divesProvider.future);
+      final rows = await _observationRows(equipment, dives);
+      if (rows.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: _l10n.settings_export_empty_observations,
+        );
+        return;
+      }
+      final path = await _exportService.exportObservationsToCsv(rows);
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: _l10n.settings_export_success_observations,
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: _l10n.settings_data_export_failed('$e'),
+      );
+    }
+  }
+
+  /// Save gear check-ins CSV to a user-selected location.
+  Future<void> saveObservationsCsvToFile() async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: _l10n.settings_export_progress_preparingObservationsCsv,
+    );
+    try {
+      final equipment = await _ref.read(allEquipmentProvider.future);
+      final dives = await _ref.read(divesProvider.future);
+      final rows = await _observationRows(equipment, dives);
+      if (rows.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: _l10n.settings_export_empty_observations,
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        message: _l10n.settings_export_progress_chooseLocation,
+      );
+      final path = await _exportService.saveObservationsCsvToFile(rows);
+
+      if (path == null) {
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: _l10n.settings_export_cancelled_save,
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: _l10n.settings_export_saved_observationsCsv,
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: _l10n.settings_export_saveFailed('$e'),
       );
     }
   }
@@ -601,6 +701,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dateFormat: settings.dateFormat,
         preDiveSessions: preDiveSessions,
         preDiveItemsBySession: preDiveItems,
+        observationRows: await _observationRows(equipment, dives),
       );
 
       state = state.copyWith(
@@ -707,6 +808,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dateFormat: settings.dateFormat,
         preDiveSessions: preDiveSessions,
         preDiveItemsBySession: preDiveItems,
+        observationRows: await _observationRows(equipment, dives),
       );
 
       if (path == null) {

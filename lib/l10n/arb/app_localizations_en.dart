@@ -20185,6 +20185,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Export equipment inventory and service info';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'Every OK check and reported issue, with its dive, tags and note';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'Export dive site locations and details';
 
@@ -20201,6 +20205,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'Equipment CSV';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle => 'Gear check-ins CSV';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'Sites CSV';
 
   @override
@@ -20213,6 +20220,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Equipment';
+
+  @override
+  String get transfer_csvExport_typeObservations => 'Gear check-ins';
 
   @override
   String get transfer_csvExport_typeSites => 'Sites';
@@ -35949,6 +35959,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Exporting equipment to CSV...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'Exporting gear check-ins to CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'Generating PDF logbook...';
 
   @override
@@ -36015,6 +36029,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Preparing equipment CSV...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'Preparing gear check-ins CSV...';
+
+  @override
   String get settings_export_progress_preparingUddf => 'Preparing UDDF file...';
 
   @override
@@ -36036,6 +36054,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_export_empty_equipment => 'No equipment to export';
+
+  @override
+  String get settings_export_empty_observations =>
+      'No gear check-ins to export';
 
   @override
   String get settings_export_empty_data => 'No data to export';
@@ -36073,6 +36095,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_export_success_equipment =>
       'Equipment exported successfully';
+
+  @override
+  String get settings_export_success_observations => 'Gear check-ins exported';
 
   @override
   String get settings_export_success_pdf =>
@@ -36124,6 +36149,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_export_saved_equipmentCsv =>
       'Equipment CSV saved successfully';
+
+  @override
+  String get settings_export_saved_observationsCsv =>
+      'Gear check-ins CSV saved';
 
   @override
   String get settings_export_saved_uddf => 'UDDF file saved successfully';

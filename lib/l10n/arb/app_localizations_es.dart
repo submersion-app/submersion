@@ -20555,6 +20555,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Exportar inventario de equipos e informacion de servicio';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'Cada revisión OK y cada problema notificado, con su inmersión, etiquetas y nota';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'Exportar ubicaciones y detalles de puntos de buceo';
 
@@ -20571,6 +20575,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV de equipos';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle =>
+      'CSV de revisiones de equipo';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'CSV de puntos';
 
   @override
@@ -20583,6 +20591,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Equipos';
+
+  @override
+  String get transfer_csvExport_typeObservations => 'Revisiones de equipo';
 
   @override
   String get transfer_csvExport_typeSites => 'Puntos';
@@ -36534,6 +36545,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Exportando equipo a CSV...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'Exportando revisiones de equipo a CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'Generando registro PDF...';
 
   @override
@@ -36601,6 +36616,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Preparando el CSV de equipo...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'Preparando CSV de revisiones de equipo...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'Preparando el archivo UDDF...';
 
@@ -36624,6 +36643,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_export_empty_equipment => 'No hay equipo para exportar';
+
+  @override
+  String get settings_export_empty_observations =>
+      'No hay revisiones de equipo para exportar';
 
   @override
   String get settings_export_empty_data => 'No hay datos para exportar';
@@ -36665,6 +36688,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_export_success_equipment =>
       'Equipo exportado correctamente';
+
+  @override
+  String get settings_export_success_observations =>
+      'Revisiones de equipo exportadas';
 
   @override
   String get settings_export_success_pdf =>
@@ -36721,6 +36748,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_export_saved_equipmentCsv =>
       'CSV de equipo guardado correctamente';
+
+  @override
+  String get settings_export_saved_observationsCsv =>
+      'CSV de revisiones de equipo guardado';
 
   @override
   String get settings_export_saved_uddf =>

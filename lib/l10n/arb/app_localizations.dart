@@ -33766,6 +33766,12 @@ abstract class AppLocalizations {
   /// **'Export equipment inventory and service info'**
   String get transfer_csvExport_descriptionEquipment;
 
+  /// No description provided for @transfer_csvExport_descriptionObservations.
+  ///
+  /// In en, this message translates to:
+  /// **'Every OK check and reported issue, with its dive, tags and note'**
+  String get transfer_csvExport_descriptionObservations;
+
   /// No description provided for @transfer_csvExport_descriptionSites.
   ///
   /// In en, this message translates to:
@@ -33796,6 +33802,12 @@ abstract class AppLocalizations {
   /// **'Equipment CSV'**
   String get transfer_csvExport_optionEquipmentTitle;
 
+  /// No description provided for @transfer_csvExport_optionObservationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-ins CSV'**
+  String get transfer_csvExport_optionObservationsTitle;
+
   /// No description provided for @transfer_csvExport_optionSitesTitle.
   ///
   /// In en, this message translates to:
@@ -33819,6 +33831,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment'**
   String get transfer_csvExport_typeEquipment;
+
+  /// No description provided for @transfer_csvExport_typeObservations.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-ins'**
+  String get transfer_csvExport_typeObservations;
 
   /// No description provided for @transfer_csvExport_typeSites.
   ///
@@ -60065,6 +60083,12 @@ abstract class AppLocalizations {
   /// **'Exporting equipment to CSV...'**
   String get settings_export_progress_equipmentCsv;
 
+  /// No description provided for @settings_export_progress_observationsCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting gear check-ins to CSV...'**
+  String get settings_export_progress_observationsCsv;
+
   /// No description provided for @settings_export_progress_pdf.
   ///
   /// In en, this message translates to:
@@ -60173,6 +60197,12 @@ abstract class AppLocalizations {
   /// **'Preparing equipment CSV...'**
   String get settings_export_progress_preparingEquipmentCsv;
 
+  /// No description provided for @settings_export_progress_preparingObservationsCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing gear check-ins CSV...'**
+  String get settings_export_progress_preparingObservationsCsv;
+
   /// No description provided for @settings_export_progress_preparingUddf.
   ///
   /// In en, this message translates to:
@@ -60214,6 +60244,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No equipment to export'**
   String get settings_export_empty_equipment;
+
+  /// No description provided for @settings_export_empty_observations.
+  ///
+  /// In en, this message translates to:
+  /// **'No gear check-ins to export'**
+  String get settings_export_empty_observations;
 
   /// No description provided for @settings_export_empty_data.
   ///
@@ -60275,6 +60311,12 @@ abstract class AppLocalizations {
   /// **'Equipment exported successfully'**
   String get settings_export_success_equipment;
 
+  /// No description provided for @settings_export_success_observations.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-ins exported'**
+  String get settings_export_success_observations;
+
   /// No description provided for @settings_export_success_pdf.
   ///
   /// In en, this message translates to:
@@ -60328,6 +60370,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment CSV saved successfully'**
   String get settings_export_saved_equipmentCsv;
+
+  /// No description provided for @settings_export_saved_observationsCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear check-ins CSV saved'**
+  String get settings_export_saved_observationsCsv;
 
   /// No description provided for @settings_export_saved_uddf.
   ///

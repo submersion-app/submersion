@@ -6,6 +6,7 @@ import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/core/services/export/excel/blender_invoice_excel_export_service.dart';
 import 'package:submersion/core/services/export/excel/excel_export_service.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
+import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/kml/kml_export_service.dart';
 import 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
@@ -104,6 +105,15 @@ class ExportService {
 
   Future<String?> saveEquipmentCsvToFile(List<EquipmentItem> equipment) =>
       _csv.saveEquipmentCsvToFile(equipment);
+
+  Future<String> exportObservationsToCsv(List<ObservationExportRow> rows) =>
+      _csv.exportObservationsToCsv(rows);
+
+  String generateObservationsCsvContent(List<ObservationExportRow> rows) =>
+      _csv.generateObservationsCsvContent(rows);
+
+  Future<String?> saveObservationsCsvToFile(List<ObservationExportRow> rows) =>
+      _csv.saveObservationsCsvToFile(rows);
 
   // ==================== PDF Export ====================
 
@@ -233,6 +243,7 @@ class ExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    List<ObservationExportRow> observationRows = const [],
   }) => _excel.exportToExcel(
     dives: dives,
     sites: sites,
@@ -244,6 +255,7 @@ class ExportService {
     dateFormat: dateFormat,
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
+    observationRows: observationRows,
   );
 
   Future<List<int>> generateExcelBytes({
@@ -257,6 +269,7 @@ class ExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    List<ObservationExportRow> observationRows = const [],
   }) => _excel.generateExcelBytes(
     dives: dives,
     sites: sites,
@@ -268,6 +281,7 @@ class ExportService {
     dateFormat: dateFormat,
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
+    observationRows: observationRows,
   );
 
   Future<String?> saveExcelToFile({
@@ -281,6 +295,7 @@ class ExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    List<ObservationExportRow> observationRows = const [],
   }) => _excel.saveExcelToFile(
     dives: dives,
     sites: sites,
@@ -292,6 +307,7 @@ class ExportService {
     dateFormat: dateFormat,
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
+    observationRows: observationRows,
   );
 
   // ==================== Maintenance Log Export ====================

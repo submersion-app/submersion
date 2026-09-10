@@ -20480,6 +20480,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felszereles leltarazasa es szervizinformaciok exportalasa';
 
   @override
+  String get transfer_csvExport_descriptionObservations =>
+      'Minden OK ellenőrzés és jelentett probléma a merüléssel, címkékkel és megjegyzéssel';
+
+  @override
   String get transfer_csvExport_descriptionSites =>
       'Merülohelyek es reszleteik exportalasa';
 
@@ -20496,6 +20500,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'Felszereles CSV';
 
   @override
+  String get transfer_csvExport_optionObservationsTitle =>
+      'Felszerelés-ellenőrzések CSV';
+
+  @override
   String get transfer_csvExport_optionSitesTitle => 'Merülohelyek CSV';
 
   @override
@@ -20508,6 +20516,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Felszereles';
+
+  @override
+  String get transfer_csvExport_typeObservations => 'Felszerelés-ellenőrzések';
 
   @override
   String get transfer_csvExport_typeSites => 'Merülohelyek';
@@ -36339,6 +36350,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felszerelés exportálása CSV-be...';
 
   @override
+  String get settings_export_progress_observationsCsv =>
+      'Felszerelés-ellenőrzések exportálása CSV-be...';
+
+  @override
   String get settings_export_progress_pdf => 'PDF merülési napló készítése...';
 
   @override
@@ -36408,6 +36423,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felszerelés CSV-fájljának előkészítése...';
 
   @override
+  String get settings_export_progress_preparingObservationsCsv =>
+      'Felszerelés-ellenőrzések CSV előkészítése...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'UDDF-fájl előkészítése...';
 
@@ -36431,6 +36450,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_export_empty_equipment =>
       'Nincs exportálható felszerelés';
+
+  @override
+  String get settings_export_empty_observations =>
+      'Nincs exportálható felszerelés-ellenőrzés';
 
   @override
   String get settings_export_empty_data => 'Nincs exportálható adat';
@@ -36471,6 +36494,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_export_success_equipment =>
       'A felszerelés exportálása sikerült';
+
+  @override
+  String get settings_export_success_observations =>
+      'Felszerelés-ellenőrzések exportálva';
 
   @override
   String get settings_export_success_pdf =>
@@ -36524,6 +36551,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_export_saved_equipmentCsv =>
       'A felszerelés CSV-fájlja mentve';
+
+  @override
+  String get settings_export_saved_observationsCsv =>
+      'Felszerelés-ellenőrzések CSV mentve';
 
   @override
   String get settings_export_saved_uddf => 'Az UDDF-fájl mentve';
