@@ -12,7 +12,7 @@ Future<String> plan(AppDatabase db, String sql) async {
 /// cursor, no filters). Keep in sync with dive_repository_impl.dart.
 const _summariesPage1Sql =
     "SELECT d.id, COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, "
-    "t.name AS trip_name "
+    "s.name AS site_name, t.name AS trip_name "
     "FROM dives d LEFT JOIN dive_sites s ON d.site_id = s.id "
     "LEFT JOIN trips t ON d.trip_id = t.id "
     "WHERE d.diver_id = 'x' "
@@ -63,9 +63,29 @@ void main() {
     // The list's group headers (#1193) read four scalars off trips. This is
     // the hottest query in the app, so the join has to resolve by key: a
     // SCAN here would cost one trips pass per page.
+    //
+    // SQLite names the ALIAS in its plan, not the table: the row reads
+    // "SEARCH t USING INDEX sqlite_autoindex_trips_1 (id=?) LEFT-JOIN". An
+    // assertion against "SCAN trips" therefore never matches whatever the
+    // planner does, and passes even on a full scan. Match the alias, with a
+    // word boundary so "SCAN trips" would still be caught if the output ever
+    // changes shape.
     final p = await plan(db, _summariesPage1Sql);
-    expect(p, isNot(contains('SCAN trips')));
-    expect(p, contains('SEARCH t'));
+    expect(
+      p,
+      isNot(matches(RegExp(r'SCAN (t|trips)\b'))),
+      reason: 'a scan of trips costs one full pass per page',
+    );
+    expect(p, contains('SEARCH t USING'));
+  });
+
+  test('the site join looks sites up, never scans them', () async {
+    // Same reasoning, and the reason the fixture selects a site column: with
+    // nothing read from s, SQLite drops the join and the guard covers
+    // nothing.
+    final p = await plan(db, _summariesPage1Sql);
+    expect(p, isNot(matches(RegExp(r'SCAN (s|dive_sites)\b'))));
+    expect(p, contains('SEARCH s USING'));
   });
 
   test(

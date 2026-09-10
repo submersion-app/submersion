@@ -96,7 +96,7 @@ void main() {
       expect(container.read(diveListGroupingPausedBySortProvider), isFalse);
     });
 
-    test('a depth sort in table mode is still not paused by the sort', () {
+    test('a depth sort in table mode is paused by the sort', () {
       final container = makeContainer(
         toggle: true,
         sortField: DiveSortField.depth,
@@ -107,8 +107,9 @@ void main() {
         container.read(diveListGroupingPausedBySortProvider),
         isTrue,
         reason:
-            'the sort really is the blocker here; table mode never renders '
-            'the notice because it never builds the list body',
+            'the sort really is a blocker here, independently of the view '
+            'mode; table mode never renders the notice anyway, because it '
+            'never builds the list body',
       );
     });
 

@@ -725,10 +725,10 @@ class PaginatedDiveListNotifier
     // The list tick, not the dives one: the summary query joins sites and
     // trips, so a trip rename or a site rename changes what is on screen
     // without touching the dives table (#1193).
-    final divesChangeSub = _repository.watchDiveListChanges().listen(
+    final listChangeSub = _repository.watchDiveListChanges().listen(
       (_) => _silentReloadLoadedPages(),
     );
-    _ref.onDispose(divesChangeSub.cancel);
+    _ref.onDispose(listChangeSub.cancel);
   }
 
   bool get _isDateSort {
