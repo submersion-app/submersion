@@ -49,6 +49,13 @@ const String kDiverDataExistsSql =
 /// never read as zero where [kDiverDataExistsSql] reads as true. That is why
 /// gear counts assembly parts as well as the assemblies themselves (#1487):
 /// each row is a link the delete would take with it.
+///
+/// `media` is the one table split in two, because it holds more than its
+/// name suggests: signatures, documents and maps share it with photos and
+/// videos. The halves are exact complements (the `COALESCE` keeps a NULL
+/// `file_type` from falling out of both), so together they still count every
+/// row, and a type added later lands among the attachments rather than being
+/// called a photo.
 const String kDiverDataCountsSql =
     '(SELECT COUNT(*) FROM dive_equipment c WHERE c.dive_id = dives.id) '
     'AS gear_count, '
@@ -62,8 +69,11 @@ const String kDiverDataCountsSql =
     'AS custom_field_count, '
     '(SELECT COUNT(*) FROM sightings c WHERE c.dive_id = dives.id) '
     'AS sighting_count, '
-    '(SELECT COUNT(*) FROM media c WHERE c.dive_id = dives.id) '
-    'AS media_count, '
+    '(SELECT COUNT(*) FROM media c WHERE c.dive_id = dives.id '
+    "AND c.file_type IN ('photo', 'video')) AS photo_video_count, "
+    '(SELECT COUNT(*) FROM media c WHERE c.dive_id = dives.id '
+    "AND COALESCE(c.file_type, '') NOT IN ('photo', 'video')) "
+    'AS attachment_count, '
     "(dives.notes IS NOT NULL AND TRIM(dives.notes) != '') AS has_notes, "
     '(dives.rating IS NOT NULL) AS has_rating, '
     '(dives.is_favorite = 1) AS has_favorite, '

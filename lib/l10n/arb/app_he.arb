@@ -8290,6 +8290,7 @@
   "dataQuality_carries_buddies": "{count, plural, one{בן זוג אחד} other{{count} בני זוג}}",
   "dataQuality_carries_tags": "{count, plural, one{תווית אחת} other{{count} תוויות}}",
   "dataQuality_carries_media": "{count, plural, one{תמונה או סרטון אחד} other{{count} תמונות או סרטונים}}",
+  "dataQuality_carries_attachments": "{count, plural, one{קובץ מצורף אחד} other{{count} קבצים מצורפים}}",
   "dataQuality_carries_customFields": "{count, plural, one{שדה מותאם אחד} other{{count} שדות מותאמים}}",
   "dataQuality_carries_rating": "דירוג",
   "dataQuality_carries_favorite": "סימון מועדף",

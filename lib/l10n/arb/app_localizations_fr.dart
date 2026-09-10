@@ -27669,6 +27669,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_carries_attachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pièces jointes',
+      one: '1 pièce jointe',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_carries_customFields(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

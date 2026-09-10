@@ -8290,6 +8290,7 @@
   "dataQuality_carries_buddies": "{count, plural, one{1 búvártárs} other{{count} búvártárs}}",
   "dataQuality_carries_tags": "{count, plural, one{1 címke} other{{count} címke}}",
   "dataQuality_carries_media": "{count, plural, one{1 fotó vagy videó} other{{count} fotó vagy videó}}",
+  "dataQuality_carries_attachments": "{count, plural, one{1 melléklet} other{{count} melléklet}}",
   "dataQuality_carries_customFields": "{count, plural, one{1 egyéni mező} other{{count} egyéni mező}}",
   "dataQuality_carries_rating": "egy értékelés",
   "dataQuality_carries_favorite": "egy kedvenc jelölés",

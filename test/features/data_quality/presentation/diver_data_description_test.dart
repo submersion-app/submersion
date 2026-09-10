@@ -37,14 +37,15 @@ void main() {
 
   // Every signal carriesDiverData tests has to be sayable, or the dialog
   // would fall silent on a copy the detector treats as carrying work.
-  test('names each of the fourteen signals', () {
+  test('names every signal', () {
     const all = DiverDataSummary(
       gear: 1,
       weights: 2,
       buddies: 3,
       tags: 4,
       sightings: 5,
-      media: 6,
+      photosAndVideos: 6,
+      attachments: 8,
       customFields: 7,
       hasNotes: true,
       hasRating: true,
@@ -57,7 +58,8 @@ void main() {
     expect(
       describeDiverData(all, l10n),
       '1 gear item · 2 weights · 3 buddies · 4 tags · 5 species · '
-      '6 photos or videos · 7 custom fields · notes · a rating · '
+      '6 photos or videos · 8 attachments · 7 custom fields · notes · '
+      'a rating · '
       'a favorite · a site · a trip · a dive center · a course',
     );
   });

@@ -27568,6 +27568,17 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String dataQuality_carries_attachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count allegati',
+      one: '1 allegato',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_carries_customFields(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

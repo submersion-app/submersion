@@ -8290,6 +8290,7 @@
   "dataQuality_carries_buddies": "{count, plural, one{1 buddy} other{{count} buddy's}}",
   "dataQuality_carries_tags": "{count, plural, one{1 label} other{{count} labels}}",
   "dataQuality_carries_media": "{count, plural, one{1 foto of video} other{{count} foto's of video's}}",
+  "dataQuality_carries_attachments": "{count, plural, one{1 bijlage} other{{count} bijlagen}}",
   "dataQuality_carries_customFields": "{count, plural, one{1 eigen veld} other{{count} eigen velden}}",
   "dataQuality_carries_rating": "een beoordeling",
   "dataQuality_carries_favorite": "een favoriet",

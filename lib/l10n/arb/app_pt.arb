@@ -8290,6 +8290,7 @@
   "dataQuality_carries_buddies": "{count, plural, one{1 parceiro} other{{count} parceiros}}",
   "dataQuality_carries_tags": "{count, plural, one{1 etiqueta} other{{count} etiquetas}}",
   "dataQuality_carries_media": "{count, plural, one{1 foto ou vídeo} other{{count} fotos ou vídeos}}",
+  "dataQuality_carries_attachments": "{count, plural, one{1 anexo} other{{count} anexos}}",
   "dataQuality_carries_customFields": "{count, plural, one{1 campo personalizado} other{{count} campos personalizados}}",
   "dataQuality_carries_rating": "uma avaliação",
   "dataQuality_carries_favorite": "um favorito",

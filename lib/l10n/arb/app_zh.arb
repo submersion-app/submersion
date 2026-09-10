@@ -8290,6 +8290,7 @@
   "dataQuality_carries_buddies": "{count, plural, one{1 位潜伴} other{{count} 位潜伴}}",
   "dataQuality_carries_tags": "{count, plural, one{1 个标签} other{{count} 个标签}}",
   "dataQuality_carries_media": "{count, plural, one{1 张照片或视频} other{{count} 张照片或视频}}",
+  "dataQuality_carries_attachments": "{count, plural, one{1 个附件} other{{count} 个附件}}",
   "dataQuality_carries_customFields": "{count, plural, one{1 个自定义字段} other{{count} 个自定义字段}}",
   "dataQuality_carries_rating": "一个评分",
   "dataQuality_carries_favorite": "一个收藏标记",

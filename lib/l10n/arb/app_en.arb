@@ -17695,6 +17695,15 @@
       }
     }
   },
+  "dataQuality_carries_attachments": "{count, plural, one{1 attachment} other{{count} attachments}}",
+  "@dataQuality_carries_attachments": {
+    "description": "Summary fragment: how many signatures, documents, maps or other non-photo attachments the dive about to be deleted carries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dataQuality_carries_customFields": "{count, plural, one{1 custom field} other{{count} custom fields}}",
   "@dataQuality_carries_customFields": {
     "description": "Summary fragment: how many custom fields the dive about to be deleted carries.",

@@ -27588,6 +27588,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String dataQuality_carries_attachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count adjuntos',
+      one: '1 adjunto',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_carries_customFields(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

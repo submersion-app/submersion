@@ -8290,6 +8290,7 @@
   "dataQuality_carries_buddies": "{count, plural, one{رفيق واحد} other{{count} رفقاء}}",
   "dataQuality_carries_tags": "{count, plural, one{وسم واحد} other{{count} وسوم}}",
   "dataQuality_carries_media": "{count, plural, one{صورة أو فيديو واحد} other{{count} صور أو مقاطع فيديو}}",
+  "dataQuality_carries_attachments": "{count, plural, one{مرفق واحد} other{{count} مرفقات}}",
   "dataQuality_carries_customFields": "{count, plural, one{حقل مخصص واحد} other{{count} حقول مخصصة}}",
   "dataQuality_carries_rating": "تقييم",
   "dataQuality_carries_favorite": "علامة مفضلة",

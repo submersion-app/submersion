@@ -45303,6 +45303,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{1 photo or video} other{{count} photos or videos}}'**
   String dataQuality_carries_media(int count);
 
+  /// Summary fragment: how many signatures, documents, maps or other non-photo attachments the dive about to be deleted carries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 attachment} other{{count} attachments}}'**
+  String dataQuality_carries_attachments(int count);
+
   /// Summary fragment: how many custom fields the dive about to be deleted carries.
   ///
   /// In en, this message translates to:

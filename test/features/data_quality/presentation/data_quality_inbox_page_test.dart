@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_state_store.dart';
@@ -1238,6 +1239,35 @@ void main() {
       );
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
+    });
+
+    // The read that fills that line runs on the tap, before the dialog. The
+    // repair card drops the Future it returns, so an error there used to go
+    // nowhere: the tap did nothing and said nothing. It must not fall back to
+    // a dialog without the line either, because that is indistinguishable
+    // from "this copy holds nothing", the one reassurance a failed read
+    // cannot give.
+    testWidgets('a failed read reports it rather than confirming blind', (
+      tester,
+    ) async {
+      final finding = await seedPair();
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [finding]));
+      await tester.pumpAndSettle();
+
+      final db = DatabaseService.instance.database;
+      await tester.runAsync(
+        () => db.customStatement('DROP TABLE dive_custom_fields'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete duplicate'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.textContaining('Repair failed'), findsOneWidget);
+      final survivors = await tester.runAsync(
+        () => db.customSelect("SELECT id FROM dives WHERE id = 'd2'").get(),
+      );
+      expect(survivors, hasLength(1));
     });
 
     testWidgets('cancelling the confirmation deletes nothing', (tester) async {
