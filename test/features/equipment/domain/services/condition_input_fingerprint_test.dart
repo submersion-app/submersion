@@ -118,4 +118,53 @@ void main() {
     // frozen against readings that have since been recomputed.
     expect(fp(summaryVersion: 2), isNot(fp()));
   });
+
+  group('identity, not just counts', () {
+    // Deleting one dive and importing another of the same vintage keeps
+    // the count and the newest stamp exactly where they were. Hashing
+    // only those two would call the item unchanged and serve findings
+    // built from a dive that is no longer in the logbook.
+    test('a swapped dive of the same vintage restales the item', () {
+      final swapped = [
+        samples.first,
+        EquipmentExposureSample(
+          diveId: 'other',
+          date: DateTime.utc(2026, 1, 2),
+          durationSeconds: 100,
+          updatedAt: 20,
+        ),
+      ];
+      expect(fp(s: swapped), isNot(fp()));
+    });
+
+    test('a swapped check-in of the same vintage restales the item', () {
+      final swapped = EquipmentObservation(
+        id: 'other',
+        equipmentId: 'reg',
+        observedAt: now,
+        status: ObservationStatus.ok,
+        createdAt: now,
+        updatedAt: now,
+      );
+      expect(fp(o: [swapped]), isNot(fp()));
+    });
+
+    test('a swapped incident of the same vintage restales the item', () {
+      final swapped = Incident(
+        id: 'other',
+        equipmentId: 'reg',
+        occurredAt: now,
+        category: IncidentCategory.equipment,
+        severity: IncidentSeverity.moderate,
+        narrative: 'n',
+        createdAt: now,
+        updatedAt: now,
+      );
+      expect(fp(i: [swapped]), isNot(fp()));
+    });
+
+    test('the same input in another order hashes the same', () {
+      expect(fp(s: samples.reversed.toList()), fp());
+    });
+  });
 }
