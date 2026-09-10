@@ -21438,6 +21438,74 @@ class AppLocalizationsIt extends AppLocalizations {
       'Lascia vuoto per stimare dalle tue immersioni CCR recenti';
 
   @override
+  String get trips_scrubber_title => 'Margine della calce';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'al $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min rimasti prima del viaggio (nominale $rated min, $consumed min usati dall\'ultimo ricambio)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '$dives immersioni previste';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '(dai tuoi ultimi $n viaggi)';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(impostato su questo viaggio)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes min per immersione';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '(dalle tue ultime $n immersioni CCR)';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes min di uso previsto';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes min di margine dopo il viaggio';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'Sotto il 20 per cento della durata nominale. Pianifica un ricambio o porta calce di scorta.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'Nessuna durata nominale su questo rebreather; aggiungi la durata della calce ai suoi attributi o una pianificazione di ricambio.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes min di margine della calce';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count rebreather, il margine più basso è $minutes min';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

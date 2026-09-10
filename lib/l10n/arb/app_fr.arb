@@ -6297,6 +6297,99 @@
   "trips_edit_hint_expectedDives": "Laisser vide pour estimer d'après vos voyages récents",
   "trips_edit_label_expectedRuntime": "Durée prévue par plongée (minutes)",
   "trips_edit_hint_expectedRuntime": "Laisser vide pour estimer d'après vos plongées CCR récentes",
+  "trips_scrubber_title": "Marge de chaux",
+  "trips_scrubber_asOfStart": "au {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min restantes avant le voyage (nominal {rated} min, {consumed} min utilisées depuis le dernier remplissage)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives} plongées prévues",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "(d'après vos {n} derniers voyages)",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(défini sur ce voyage)",
+  "trips_scrubber_perDive": "{minutes} min par plongée",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "(d'après vos {n} dernières plongées CCR)",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min d'usage prévu",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min de marge après le voyage",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Moins de 20 pour cent de la durée nominale. Prévoyez un remplissage ou emportez de la chaux de rechange.",
+  "trips_scrubber_noRating": "Aucune durée nominale sur ce recycleur ; ajoutez la durée de la chaux à ses attributs ou un calendrier de remplissage.",
+  "trips_scrubber_bannerMargin": "{minutes} min de marge de chaux",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} recycleurs, la plus faible marge de chaux est de {minutes} min",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Date de fin",

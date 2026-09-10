@@ -6381,6 +6381,99 @@
   "trips_edit_hint_expectedDives": "Déjalo vacío para estimar a partir de tus viajes recientes",
   "trips_edit_label_expectedRuntime": "Duración prevista por inmersión (minutos)",
   "trips_edit_hint_expectedRuntime": "Déjalo vacío para estimar a partir de tus inmersiones CCR recientes",
+  "trips_scrubber_title": "Margen del absorbente",
+  "trips_scrubber_asOfStart": "a fecha de {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min restantes antes del viaje (nominal {rated} min, {consumed} min usados desde el último cambio)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives} inmersiones previstas",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "(según tus últimos {n} viajes)",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(fijado en este viaje)",
+  "trips_scrubber_perDive": "{minutes} min por inmersión",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "(según tus últimas {n} inmersiones CCR)",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min de uso previsto",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min de margen tras el viaje",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Menos del 20 por ciento de la duración nominal. Planifica un cambio o lleva absorbente de repuesto.",
+  "trips_scrubber_noRating": "Este rebreather no tiene duración nominal; añade la duración del absorbente a sus atributos o un programa de cambio.",
+  "trips_scrubber_bannerMargin": "{minutes} min de margen de absorbente",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreathers, el menor con {minutes} min de margen de absorbente",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Fecha de fin",

@@ -35302,6 +35302,94 @@ abstract class AppLocalizations {
   /// **'Leave empty to estimate from your recent CCR dives'**
   String get trips_edit_hint_expectedRuntime;
 
+  /// No description provided for @trips_scrubber_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber margin'**
+  String get trips_scrubber_title;
+
+  /// No description provided for @trips_scrubber_asOfStart.
+  ///
+  /// In en, this message translates to:
+  /// **'as of {date}'**
+  String trips_scrubber_asOfStart(String date);
+
+  /// No description provided for @trips_scrubber_remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left before the trip (rated {rated} min, {consumed} min used since the last repack)'**
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  );
+
+  /// No description provided for @trips_scrubber_expectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives} expected dives'**
+  String trips_scrubber_expectedDives(int dives);
+
+  /// No description provided for @trips_scrubber_fromTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'(from your last {n} trips)'**
+  String trips_scrubber_fromTrips(int n);
+
+  /// No description provided for @trips_scrubber_fromOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'(set on this trip)'**
+  String get trips_scrubber_fromOverride;
+
+  /// No description provided for @trips_scrubber_perDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min per dive'**
+  String trips_scrubber_perDive(String minutes);
+
+  /// No description provided for @trips_scrubber_fromDives.
+  ///
+  /// In en, this message translates to:
+  /// **'(from your last {n} CCR dives)'**
+  String trips_scrubber_fromDives(int n);
+
+  /// No description provided for @trips_scrubber_expectedUse.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min expected use'**
+  String trips_scrubber_expectedUse(String minutes);
+
+  /// No description provided for @trips_scrubber_margin.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min margin after the trip'**
+  String trips_scrubber_margin(String minutes);
+
+  /// No description provided for @trips_scrubber_caution.
+  ///
+  /// In en, this message translates to:
+  /// **'Under 20 percent of the rated duration. Plan a repack or carry spare absorbent.'**
+  String get trips_scrubber_caution;
+
+  /// No description provided for @trips_scrubber_noRating.
+  ///
+  /// In en, this message translates to:
+  /// **'No rated duration on this rebreather; add scrubber duration to its attributes or a repack schedule.'**
+  String get trips_scrubber_noRating;
+
+  /// No description provided for @trips_scrubber_bannerMargin.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min scrubber margin'**
+  String trips_scrubber_bannerMargin(String minutes);
+
+  /// No description provided for @trips_scrubber_bannerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} rebreathers, lowest {minutes} min scrubber margin'**
+  String trips_scrubber_bannerCount(int count, String minutes);
+
   /// No description provided for @trips_edit_sectionTitle_embarkDisembark.
   ///
   /// In en, this message translates to:

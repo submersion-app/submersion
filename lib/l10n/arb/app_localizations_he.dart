@@ -20892,6 +20892,74 @@ class AppLocalizationsHe extends AppLocalizations {
       'השאר ריק כדי להעריך מצלילות ה-CCR האחרונות שלך';
 
   @override
+  String get trips_scrubber_title => 'מרווח הסופג';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'נכון ל-$date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes דק\' נותרו לפני הטיול (נקוב $rated דק\', $consumed דק\' נוצלו מאז המילוי האחרון)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '$dives צלילות צפויות';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '(לפי $n הטיולים האחרונים שלך)';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(הוגדר בטיול זה)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes דק\' לכל צלילה';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '(לפי $n צלילות ה-CCR האחרונות שלך)';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes דק\' שימוש צפוי';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes דק\' מרווח אחרי הטיול';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'מתחת ל-20 אחוז מהמשך הנקוב. תכננו מילוי או קחו סופג רזרבי.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'אין משך נקוב לריברידר זה; הוסיפו את משך הסופג למאפיינים או לוח זמנים למילוי.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes דק\' מרווח סופג';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count ריברידרים, מרווח הסופג הנמוך ביותר $minutes דק\'';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

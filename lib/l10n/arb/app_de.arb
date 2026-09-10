@@ -6381,6 +6381,99 @@
   "trips_edit_hint_expectedDives": "Leer lassen, um aus deinen letzten Reisen zu schätzen",
   "trips_edit_label_expectedRuntime": "Erwartete Laufzeit je Tauchgang (Minuten)",
   "trips_edit_hint_expectedRuntime": "Leer lassen, um aus deinen letzten CCR-Tauchgängen zu schätzen",
+  "trips_scrubber_title": "Atemkalkreserve",
+  "trips_scrubber_asOfStart": "Stand {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min übrig vor der Reise (nominell {rated} min, {consumed} min seit dem letzten Wechsel verbraucht)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives} erwartete Tauchgänge",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "(aus deinen letzten {n} Reisen)",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(auf dieser Reise festgelegt)",
+  "trips_scrubber_perDive": "{minutes} min je Tauchgang",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "(aus deinen letzten {n} CCR-Tauchgängen)",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min erwarteter Verbrauch",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min Reserve nach der Reise",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Unter 20 Prozent der nominellen Dauer. Plane einen Wechsel oder nimm Ersatzkalk mit.",
+  "trips_scrubber_noRating": "Für diesen Rebreather ist keine nominelle Dauer hinterlegt; trage die Atemkalkdauer in den Attributen ein oder lege einen Wechselplan an.",
+  "trips_scrubber_bannerMargin": "{minutes} min Atemkalkreserve",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} Rebreather, niedrigste Atemkalkreserve {minutes} min",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Enddatum",

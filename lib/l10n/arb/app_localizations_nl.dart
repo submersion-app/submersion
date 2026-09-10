@@ -21260,6 +21260,74 @@ class AppLocalizationsNl extends AppLocalizations {
       'Laat leeg om te schatten op basis van je recente CCR-duiken';
 
   @override
+  String get trips_scrubber_title => 'Scrubbermarge';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'per $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min over voor de reis (nominaal $rated min, $consumed min gebruikt sinds de laatste vulling)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '$dives verwachte duiken';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '(uit je laatste $n reizen)';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(ingesteld op deze reis)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes min per duik';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '(uit je laatste $n CCR-duiken)';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes min verwacht gebruik';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes min marge na de reis';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'Onder 20 procent van de nominale duur. Plan een vulling of neem reservekalk mee.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'Geen nominale duur op deze rebreather; voeg de scrubberduur toe aan de attributen of maak een vulschema.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes min scrubbermarge';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count rebreathers, laagste scrubbermarge $minutes min';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

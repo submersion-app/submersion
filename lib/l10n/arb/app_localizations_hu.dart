@@ -21375,6 +21375,74 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hagyd üresen, hogy a legutóbbi CCR-merüléseidből becsüljük';
 
   @override
+  String get trips_scrubber_title => 'Szűrőtartalék';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return '$date állapot szerint';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes perc maradt az utazás előtt (névleges $rated perc, $consumed perc elhasználva a legutóbbi csere óta)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '$dives várható merülés';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '(a legutóbbi $n utazásod alapján)';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(ezen az utazáson beállítva)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes perc merülésenként';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '(a legutóbbi $n CCR-merülésed alapján)';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes perc várható használat';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes perc tartalék az utazás után';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'A névleges időtartam 20 százaléka alatt. Tervezz cserét, vagy vigyél tartalék szűrőanyagot.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'Ehhez a rebreatherhez nincs névleges időtartam; add meg a szűrő időtartamát az attribútumoknál, vagy hozz létre csereütemezést.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes perc szűrőtartalék';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count rebreather, a legkisebb szűrőtartalék $minutes perc';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

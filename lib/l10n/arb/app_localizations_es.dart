@@ -21458,6 +21458,74 @@ class AppLocalizationsEs extends AppLocalizations {
       'Déjalo vacío para estimar a partir de tus inmersiones CCR recientes';
 
   @override
+  String get trips_scrubber_title => 'Margen del absorbente';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'a fecha de $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min restantes antes del viaje (nominal $rated min, $consumed min usados desde el último cambio)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '$dives inmersiones previstas';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '(según tus últimos $n viajes)';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(fijado en este viaje)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes min por inmersión';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '(según tus últimas $n inmersiones CCR)';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes min de uso previsto';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes min de margen tras el viaje';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'Menos del 20 por ciento de la duración nominal. Planifica un cambio o lleva absorbente de repuesto.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'Este rebreather no tiene duración nominal; añade la duración del absorbente a sus atributos o un programa de cambio.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes min de margen de absorbente';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count rebreathers, el menor con $minutes min de margen de absorbente';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

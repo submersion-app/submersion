@@ -1,0 +1,148 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_card.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
+
+import '../../../../helpers/mock_providers.dart';
+
+const ccr = EquipmentItem(
+  id: 'r1',
+  name: 'My CCR',
+  type: EquipmentType.rebreather,
+);
+
+Trip trip({bool past = false}) {
+  final start = past
+      ? DateTime(2025, 3, 1)
+      : DateTime.now().add(const Duration(days: 10));
+  return Trip(
+    id: 't1',
+    name: 'Trip',
+    startDate: start,
+    endDate: start.add(const Duration(days: 4)),
+    createdAt: DateTime(2025),
+    updatedAt: DateTime(2025),
+  );
+}
+
+ScrubberMargin margin({
+  double? rated = 300,
+  double? marginAfter = -140,
+  bool caution = true,
+  int divesN = 0,
+  int minutesN = 2,
+}) => ScrubberMargin(
+  item: ccr,
+  ratedMinutes: rated,
+  consumedMinutes: 90,
+  remainingBefore: rated == null ? 0 : 210,
+  expectedDives: 10,
+  expectedDivesN: divesN,
+  minutesPerDive: 35,
+  minutesPerDiveN: minutesN,
+  expectedUse: 350,
+  marginAfter: marginAfter,
+  caution: caution,
+);
+
+Widget host(List<ScrubberMargin> margins, {bool past = false}) => ProviderScope(
+  overrides: [
+    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    tripScrubberMarginsProvider('t1').overrideWith((ref) async => margins),
+  ],
+  child: MaterialApp(
+    locale: const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: TripScrubberMarginCard(trip: trip(past: past)),
+    ),
+  ),
+);
+
+void main() {
+  testWidgets('states the four figures with their n and the caution', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host([margin()]));
+    await tester.pumpAndSettle();
+    expect(find.text('Scrubber margin'), findsOneWidget);
+    expect(find.text('My CCR'), findsOneWidget);
+    expect(
+      find.text(
+        '210 min left before the trip (rated 300 min, 90 min used since the last repack)',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('10 expected dives (set on this trip)'), findsOneWidget);
+    expect(
+      find.text('35 min per dive (from your last 2 CCR dives)'),
+      findsOneWidget,
+    );
+    expect(find.text('350 min expected use'), findsOneWidget);
+    expect(find.text('-140 min margin after the trip'), findsOneWidget);
+    expect(find.textContaining('Under 20 percent'), findsOneWidget);
+  });
+
+  testWidgets('estimated dives name the trips behind them, no caution line', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host([margin(marginAfter: 100, caution: false, divesN: 3)]),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text('10 expected dives (from your last 3 trips)'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Under 20 percent'), findsNothing);
+  });
+
+  testWidgets('a past trip says as of its start', (tester) async {
+    await tester.pumpWidget(host([margin()], past: true));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('as of Mar 1, 2025'), findsOneWidget);
+  });
+
+  testWidgets('no rating shows the hint instead of a margin', (tester) async {
+    await tester.pumpWidget(
+      host([margin(rated: null, marginAfter: null, caution: false)]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('No rated duration'), findsOneWidget);
+    expect(find.textContaining('margin after'), findsNothing);
+  });
+
+  testWidgets('no rebreather renders nothing', (tester) async {
+    await tester.pumpWidget(host(const []));
+    await tester.pumpAndSettle();
+    expect(find.byType(Card), findsNothing);
+  });
+
+  test('the banner summary picks the lowest margin', () {
+    final l10n = AppLocalizationsEn();
+    expect(
+      tripScrubberMarginSummary(l10n, [margin()]),
+      '-140 min scrubber margin',
+    );
+    expect(
+      tripScrubberMarginSummary(l10n, [
+        margin(marginAfter: 50),
+        margin(marginAfter: 20),
+      ]),
+      '2 rebreathers, lowest 20 min scrubber margin',
+    );
+    expect(
+      tripScrubberMarginSummary(l10n, [margin(rated: null, marginAfter: null)]),
+      isNull,
+    );
+  });
+}

@@ -20323,6 +20323,72 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_hint_expectedRuntime => '留空则根据近期 CCR 潜水估算';
 
   @override
+  String get trips_scrubber_title => '吸收剂余量';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return '截至 $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '行程前剩余 $minutes 分钟（额定 $rated 分钟，自上次更换以来已使用 $consumed 分钟）';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '预计 $dives 次潜水';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '（根据您最近 $n 次行程）';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '（在本行程中设置）';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '每次潜水 $minutes 分钟';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '（根据您最近 $n 次 CCR 潜水）';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '预计使用 $minutes 分钟';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '行程后余量 $minutes 分钟';
+  }
+
+  @override
+  String get trips_scrubber_caution => '低于额定时长的 20%。请安排更换或携带备用吸收剂。';
+
+  @override
+  String get trips_scrubber_noRating => '此呼吸器没有额定时长；请在属性中添加吸收剂时长或添加更换计划。';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '吸收剂余量 $minutes 分钟';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count 台呼吸器，最低吸收剂余量 $minutes 分钟';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => '上船/下船';
 
   @override

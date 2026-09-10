@@ -8,7 +8,9 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/upcoming_trip_banner.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -53,10 +55,14 @@ void main() {
   Widget buildBanner(
     List<DueClock> alerts, {
     ({int done, int total})? progress,
+    List<ScrubberMargin> margins = const [],
   }) {
     return ProviderScope(
       overrides: [
         tripServiceAlertsProvider('trip-1').overrideWith((ref) async => alerts),
+        tripScrubberMarginsProvider(
+          'trip-1',
+        ).overrideWith((ref) async => margins),
         tripChecklistProgressProvider(
           'trip-1',
         ).overrideWith((ref) async => progress ?? (done: 0, total: 0)),
@@ -102,5 +108,38 @@ void main() {
 
     expect(find.byIcon(Icons.build), findsOneWidget);
     expect(find.textContaining('2'), findsWidgets);
+  });
+
+  testWidgets('a scrubber margin line follows the service line', (
+    tester,
+  ) async {
+    const ccr = EquipmentItem(
+      id: 'r1',
+      name: 'CCR',
+      type: EquipmentType.rebreather,
+    );
+    await tester.pumpWidget(
+      buildBanner(
+        const [],
+        margins: const [
+          ScrubberMargin(
+            item: ccr,
+            ratedMinutes: 300,
+            consumedMinutes: 90,
+            remainingBefore: 210,
+            expectedDives: 10,
+            expectedDivesN: 0,
+            minutesPerDive: 35,
+            minutesPerDiveN: 2,
+            expectedUse: 350,
+            marginAfter: -140,
+            caution: true,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.air), findsOneWidget);
+    expect(find.text('-140 min scrubber margin'), findsOneWidget);
   });
 }

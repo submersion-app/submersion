@@ -6567,6 +6567,99 @@
   "trips_edit_hint_expectedDives": "留空则根据近期行程估算",
   "trips_edit_label_expectedRuntime": "每次潜水预计运行时间（分钟）",
   "trips_edit_hint_expectedRuntime": "留空则根据近期 CCR 潜水估算",
+  "trips_scrubber_title": "吸收剂余量",
+  "trips_scrubber_asOfStart": "截至 {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "行程前剩余 {minutes} 分钟（额定 {rated} 分钟，自上次更换以来已使用 {consumed} 分钟）",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "预计 {dives} 次潜水",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "（根据您最近 {n} 次行程）",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "（在本行程中设置）",
+  "trips_scrubber_perDive": "每次潜水 {minutes} 分钟",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "（根据您最近 {n} 次 CCR 潜水）",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "预计使用 {minutes} 分钟",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "行程后余量 {minutes} 分钟",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "低于额定时长的 20%。请安排更换或携带备用吸收剂。",
+  "trips_scrubber_noRating": "此呼吸器没有额定时长；请在属性中添加吸收剂时长或添加更换计划。",
+  "trips_scrubber_bannerMargin": "吸收剂余量 {minutes} 分钟",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} 台呼吸器，最低吸收剂余量 {minutes} 分钟",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "下船港口",
   "trips_edit_label_embarkPort": "登船港口",
   "trips_edit_label_endDate": "结束日期",

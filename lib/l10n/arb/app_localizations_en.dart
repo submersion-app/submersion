@@ -21067,6 +21067,74 @@ class AppLocalizationsEn extends AppLocalizations {
       'Leave empty to estimate from your recent CCR dives';
 
   @override
+  String get trips_scrubber_title => 'Scrubber margin';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'as of $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min left before the trip (rated $rated min, $consumed min used since the last repack)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '$dives expected dives';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '(from your last $n trips)';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(set on this trip)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes min per dive';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '(from your last $n CCR dives)';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes min expected use';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes min margin after the trip';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'Under 20 percent of the rated duration. Plan a repack or carry spare absorbent.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'No rated duration on this rebreather; add scrubber duration to its attributes or a repack schedule.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes min scrubber margin';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count rebreathers, lowest $minutes min scrubber margin';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

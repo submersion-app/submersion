@@ -21046,6 +21046,74 @@ class AppLocalizationsAr extends AppLocalizations {
       'اتركه فارغًا للتقدير من غطسات الدائرة المغلقة الأخيرة';
 
   @override
+  String get trips_scrubber_title => 'هامش المنظّف';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'حتى $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes دقيقة متبقية قبل الرحلة (المقدّر $rated دقيقة، استُهلك $consumed دقيقة منذ آخر إعادة تعبئة)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '$dives غطسة متوقعة';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '(من آخر $n رحلات لك)';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(محدد في هذه الرحلة)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes دقيقة لكل غطسة';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '(من آخر $n غطسات دائرة مغلقة لك)';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes دقيقة استخدام متوقع';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes دقيقة هامش بعد الرحلة';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'أقل من 20 بالمئة من المدة المقدّرة. خطّط لإعادة تعبئة أو احمل مادة ماصّة احتياطية.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'لا توجد مدة مقدّرة لهذا الجهاز؛ أضف مدة المنظّف إلى سماته أو جدول إعادة تعبئة.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes دقيقة هامش المنظّف';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count أجهزة، أدنى هامش منظّف $minutes دقيقة';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

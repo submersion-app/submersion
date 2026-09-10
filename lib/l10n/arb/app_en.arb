@@ -12750,6 +12750,99 @@
   "trips_edit_hint_expectedDives": "Leave empty to estimate from your recent trips",
   "trips_edit_label_expectedRuntime": "Expected runtime per dive (minutes)",
   "trips_edit_hint_expectedRuntime": "Leave empty to estimate from your recent CCR dives",
+  "trips_scrubber_title": "Scrubber margin",
+  "trips_scrubber_asOfStart": "as of {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min left before the trip (rated {rated} min, {consumed} min used since the last repack)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives} expected dives",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "(from your last {n} trips)",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(set on this trip)",
+  "trips_scrubber_perDive": "{minutes} min per dive",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "(from your last {n} CCR dives)",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min expected use",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min margin after the trip",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Under 20 percent of the rated duration. Plan a repack or carry spare absorbent.",
+  "trips_scrubber_noRating": "No rated duration on this rebreather; add scrubber duration to its attributes or a repack schedule.",
+  "trips_scrubber_bannerMargin": "{minutes} min scrubber margin",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreathers, lowest {minutes} min scrubber margin",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_sectionTitle_embarkDisembark": "Embark / Disembark",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_hint_embarkPort": "e.g. Hurghada Marina",

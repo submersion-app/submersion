@@ -21390,6 +21390,74 @@ class AppLocalizationsDe extends AppLocalizations {
       'Leer lassen, um aus deinen letzten CCR-Tauchgängen zu schätzen';
 
   @override
+  String get trips_scrubber_title => 'Atemkalkreserve';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'Stand $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min übrig vor der Reise (nominell $rated min, $consumed min seit dem letzten Wechsel verbraucht)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '$dives erwartete Tauchgänge';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '(aus deinen letzten $n Reisen)';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(auf dieser Reise festgelegt)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes min je Tauchgang';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '(aus deinen letzten $n CCR-Tauchgängen)';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes min erwarteter Verbrauch';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes min Reserve nach der Reise';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'Unter 20 Prozent der nominellen Dauer. Plane einen Wechsel oder nimm Ersatzkalk mit.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'Für diesen Rebreather ist keine nominelle Dauer hinterlegt; trage die Atemkalkdauer in den Attributen ein oder lege einen Wechselplan an.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes min Atemkalkreserve';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count Rebreather, niedrigste Atemkalkreserve $minutes min';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

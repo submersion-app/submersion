@@ -6381,6 +6381,99 @@
   "trips_edit_hint_expectedDives": "Laat leeg om te schatten op basis van je recente reizen",
   "trips_edit_label_expectedRuntime": "Verwachte looptijd per duik (minuten)",
   "trips_edit_hint_expectedRuntime": "Laat leeg om te schatten op basis van je recente CCR-duiken",
+  "trips_scrubber_title": "Scrubbermarge",
+  "trips_scrubber_asOfStart": "per {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min over voor de reis (nominaal {rated} min, {consumed} min gebruikt sinds de laatste vulling)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives} verwachte duiken",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "(uit je laatste {n} reizen)",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(ingesteld op deze reis)",
+  "trips_scrubber_perDive": "{minutes} min per duik",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "(uit je laatste {n} CCR-duiken)",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min verwacht gebruik",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min marge na de reis",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Onder 20 procent van de nominale duur. Plan een vulling of neem reservekalk mee.",
+  "trips_scrubber_noRating": "Geen nominale duur op deze rebreather; voeg de scrubberduur toe aan de attributen of maak een vulschema.",
+  "trips_scrubber_bannerMargin": "{minutes} min scrubbermarge",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreathers, laagste scrubbermarge {minutes} min",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Einddatum",

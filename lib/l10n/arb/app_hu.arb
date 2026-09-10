@@ -6297,6 +6297,99 @@
   "trips_edit_hint_expectedDives": "Hagyd üresen, hogy a legutóbbi utazásaidból becsüljük",
   "trips_edit_label_expectedRuntime": "Várható futásidő merülésenként (perc)",
   "trips_edit_hint_expectedRuntime": "Hagyd üresen, hogy a legutóbbi CCR-merüléseidből becsüljük",
+  "trips_scrubber_title": "Szűrőtartalék",
+  "trips_scrubber_asOfStart": "{date} állapot szerint",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} perc maradt az utazás előtt (névleges {rated} perc, {consumed} perc elhasználva a legutóbbi csere óta)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives} várható merülés",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "(a legutóbbi {n} utazásod alapján)",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(ezen az utazáson beállítva)",
+  "trips_scrubber_perDive": "{minutes} perc merülésenként",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "(a legutóbbi {n} CCR-merülésed alapján)",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} perc várható használat",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} perc tartalék az utazás után",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "A névleges időtartam 20 százaléka alatt. Tervezz cserét, vagy vigyél tartalék szűrőanyagot.",
+  "trips_scrubber_noRating": "Ehhez a rebreatherhez nincs névleges időtartam; add meg a szűrő időtartamát az attribútumoknál, vagy hozz létre csereütemezést.",
+  "trips_scrubber_bannerMargin": "{minutes} perc szűrőtartalék",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreather, a legkisebb szűrőtartalék {minutes} perc",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Befejezes datuma",

@@ -6293,6 +6293,99 @@
   "trips_edit_hint_expectedDives": "Lascia vuoto per stimare dai tuoi viaggi recenti",
   "trips_edit_label_expectedRuntime": "Durata prevista per immersione (minuti)",
   "trips_edit_hint_expectedRuntime": "Lascia vuoto per stimare dalle tue immersioni CCR recenti",
+  "trips_scrubber_title": "Margine della calce",
+  "trips_scrubber_asOfStart": "al {date}",
+  "@trips_scrubber_asOfStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_remaining": "{minutes} min rimasti prima del viaggio (nominale {rated} min, {consumed} min usati dall'ultimo ricambio)",
+  "@trips_scrubber_remaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "rated": {
+        "type": "String"
+      },
+      "consumed": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_expectedDives": "{dives} immersioni previste",
+  "@trips_scrubber_expectedDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromTrips": "(dai tuoi ultimi {n} viaggi)",
+  "@trips_scrubber_fromTrips": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_fromOverride": "(impostato su questo viaggio)",
+  "trips_scrubber_perDive": "{minutes} min per immersione",
+  "@trips_scrubber_perDive": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_fromDives": "(dalle tue ultime {n} immersioni CCR)",
+  "@trips_scrubber_fromDives": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_scrubber_expectedUse": "{minutes} min di uso previsto",
+  "@trips_scrubber_expectedUse": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_margin": "{minutes} min di margine dopo il viaggio",
+  "@trips_scrubber_margin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_caution": "Sotto il 20 per cento della durata nominale. Pianifica un ricambio o porta calce di scorta.",
+  "trips_scrubber_noRating": "Nessuna durata nominale su questo rebreather; aggiungi la durata della calce ai suoi attributi o una pianificazione di ricambio.",
+  "trips_scrubber_bannerMargin": "{minutes} min di margine della calce",
+  "@trips_scrubber_bannerMargin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_scrubber_bannerCount": "{count} rebreather, il margine più basso è {minutes} min",
+  "@trips_scrubber_bannerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Data di fine",

@@ -21531,6 +21531,74 @@ class AppLocalizationsFr extends AppLocalizations {
       'Laisser vide pour estimer d\'après vos plongées CCR récentes';
 
   @override
+  String get trips_scrubber_title => 'Marge de chaux';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'au $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min restantes avant le voyage (nominal $rated min, $consumed min utilisées depuis le dernier remplissage)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '$dives plongées prévues';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '(d\'après vos $n derniers voyages)';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(défini sur ce voyage)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes min par plongée';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '(d\'après vos $n dernières plongées CCR)';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes min d\'usage prévu';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes min de marge après le voyage';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'Moins de 20 pour cent de la durée nominale. Prévoyez un remplissage ou emportez de la chaux de rechange.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'Aucune durée nominale sur ce recycleur ; ajoutez la durée de la chaux à ses attributs ou un calendrier de remplissage.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes min de marge de chaux';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count recycleurs, la plus faible marge de chaux est de $minutes min';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

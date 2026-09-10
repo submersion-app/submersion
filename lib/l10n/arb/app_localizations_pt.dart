@@ -21442,6 +21442,74 @@ class AppLocalizationsPt extends AppLocalizations {
       'Deixe vazio para estimar a partir dos seus mergulhos CCR recentes';
 
   @override
+  String get trips_scrubber_title => 'Margem do absorvente';
+
+  @override
+  String trips_scrubber_asOfStart(String date) {
+    return 'à data de $date';
+  }
+
+  @override
+  String trips_scrubber_remaining(
+    String minutes,
+    String rated,
+    String consumed,
+  ) {
+    return '$minutes min restantes antes da viagem (nominal $rated min, $consumed min usados desde a última troca)';
+  }
+
+  @override
+  String trips_scrubber_expectedDives(int dives) {
+    return '$dives mergulhos previstos';
+  }
+
+  @override
+  String trips_scrubber_fromTrips(int n) {
+    return '(das suas últimas $n viagens)';
+  }
+
+  @override
+  String get trips_scrubber_fromOverride => '(definido nesta viagem)';
+
+  @override
+  String trips_scrubber_perDive(String minutes) {
+    return '$minutes min por mergulho';
+  }
+
+  @override
+  String trips_scrubber_fromDives(int n) {
+    return '(dos seus últimos $n mergulhos CCR)';
+  }
+
+  @override
+  String trips_scrubber_expectedUse(String minutes) {
+    return '$minutes min de uso previsto';
+  }
+
+  @override
+  String trips_scrubber_margin(String minutes) {
+    return '$minutes min de margem após a viagem';
+  }
+
+  @override
+  String get trips_scrubber_caution =>
+      'Abaixo de 20 por cento da duração nominal. Planeie uma troca ou leve absorvente de reserva.';
+
+  @override
+  String get trips_scrubber_noRating =>
+      'Sem duração nominal neste rebreather; adicione a duração do absorvente aos atributos ou um plano de troca.';
+
+  @override
+  String trips_scrubber_bannerMargin(String minutes) {
+    return '$minutes min de margem de absorvente';
+  }
+
+  @override
+  String trips_scrubber_bannerCount(int count, String minutes) {
+    return '$count rebreathers, a menor margem de absorvente é de $minutes min';
+  }
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override
