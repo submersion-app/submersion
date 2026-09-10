@@ -100,9 +100,15 @@ class GearPartReplaced extends GearHistoryRewrite {
   List<GearProvenance> applyTo(List<GearProvenance> rows, String assemblyId) {
     final old = GearHistoryRewrite._rowUnder(rows, oldPartId, assemblyId);
     if (old == null) return rows;
-    if (GearHistoryRewrite._rowFor(rows, newPartId) != null) {
-      // The new part is already on the dive: it adopts the assembly and
-      // the old row goes with its subtree, so the composite key holds.
+    final existing = GearHistoryRewrite._rowFor(rows, newPartId);
+    if (existing != null) {
+      // The new part is already on the dive, and one item sits in one
+      // place: a loose row adopts the assembly, but a row hanging under
+      // some other parent is that assembly's, so the dive is left as it
+      // is rather than quietly restructured. Same rule as an add.
+      if (!existing.isTopLevel) return rows;
+      // Adopting, the old row goes with its subtree so the composite key
+      // holds.
       final adopted = [
         for (final r in rows)
           if (r.equipmentId == newPartId)

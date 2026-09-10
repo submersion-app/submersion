@@ -113,6 +113,46 @@ void main() {
       },
     );
 
+    test('a new part under another assembly is left alone', () {
+      // One item sits in one place, and the row belongs to the other
+      // assembly: adopting it here would silently take a component off
+      // that assembly on this dive.
+      const rows = [
+        GearProvenance(equipmentId: 'reg', viaSetId: 'winter'),
+        GearProvenance(
+          equipmentId: 'hose',
+          viaEquipmentId: 'reg',
+          viaSetId: 'winter',
+        ),
+        GearProvenance(equipmentId: 'kit'),
+        GearProvenance(equipmentId: 'newhose', viaEquipmentId: 'kit'),
+      ];
+      expect(
+        const GearPartReplaced(
+          oldPartId: 'hose',
+          newPartId: 'newhose',
+        ).applyTo(rows, 'reg'),
+        rows,
+      );
+    });
+
+    test('a new part already under this assembly leaves the dive alone', () {
+      // The template refuses this pair anyway (unique parent+component),
+      // so the conservative answer is to change nothing.
+      const rows = [
+        GearProvenance(equipmentId: 'reg'),
+        GearProvenance(equipmentId: 'hose', viaEquipmentId: 'reg'),
+        GearProvenance(equipmentId: 'fins', viaEquipmentId: 'reg'),
+      ];
+      expect(
+        const GearPartReplaced(
+          oldPartId: 'hose',
+          newPartId: 'fins',
+        ).applyTo(rows, 'reg'),
+        rows,
+      );
+    });
+
     test('without the old row under the assembly nothing changes', () {
       expect(
         const GearPartReplaced(
