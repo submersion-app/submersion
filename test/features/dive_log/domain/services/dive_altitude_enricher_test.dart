@@ -3,6 +3,10 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart'
+    show DiveEquipmentCompanion, EquipmentCompanion;
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
@@ -67,6 +71,49 @@ void main() {
     expect(applied, isTrue);
     final stored = await repository.getDiveById(dive.id);
     expect(stored!.altitude, 740.0);
+  });
+
+  // Issue #1720. Every file-import seam persists the dive, runs
+  // DiveEquipmentDefaulter (which writes dive_equipment), and only then calls
+  // this enricher with the SAME in-memory entity -- whose gear list predates
+  // the defaulter. updateDive rewrites a dive's children from the entity it is
+  // handed, so writing that stale entity back deleted the gear the defaulter
+  // had just applied. The enricher must write back what storage holds now.
+  test('does not wipe gear written after the entity was built', () async {
+    final dive = await repository.createDive(
+      buildDive('d-gear', entryLocation: const GeoPoint(46.4, 8.0)),
+    );
+    // Stands in for DiveEquipmentDefaulter: a gear row lands after `dive` was
+    // built, so the entity the caller still holds knows nothing about it.
+    final db = DatabaseService.instance.database;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'e-bcd',
+            name: 'My BCD',
+            type: EquipmentType.bcd.name,
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(diveId: dive.id, equipmentId: 'e-bcd'),
+        );
+
+    final enricher = DiveAltitudeEnricher(
+      elevationService: countingService([]),
+      diveRepository: repository,
+    );
+    expect(await enricher.applyForImportedDive(dive), isTrue);
+
+    final stored = await repository.getDiveById(dive.id);
+    expect(stored!.altitude, 740.0, reason: 'the enrichment still lands');
+    expect(stored.gear.map((g) => g.item.id), [
+      'e-bcd',
+    ], reason: 'the gear the defaulter applied must survive the write-back');
   });
 
   test('skips dives that already have altitude', () async {
