@@ -26983,6 +26983,56 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipmentConditionSettings_title => 'État du matériel';
 
   @override
+  String get equipmentCondition_findings_title => 'Constats d\'état';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count constats',
+      one: '1 constat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => 'Plongées à l\'appui';
+
+  @override
+  String get equipmentCondition_findings_dismiss => 'Ignorer';
+
+  @override
+  String get equipmentCondition_findings_restore => 'Rétablir';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Afficher $count ignorés',
+      one: 'Afficher 1 ignoré',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => 'Plongées à l\'appui';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return 'Plongée $number';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => 'Plongée';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n min';
+  }
+
+  @override
   String get equipmentCondition_trend_title_cellGain =>
       'Sortie des cellules par plongée';
 

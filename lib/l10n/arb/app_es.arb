@@ -8175,6 +8175,44 @@
   "settings_section_equipmentCondition_title": "Estado del equipo",
   "settings_section_equipmentCondition_subtitle": "Umbrales de exposición para los relojes de mantenimiento",
   "equipmentConditionSettings_title": "Estado del equipo",
+  "equipmentCondition_findings_title": "Hallazgos de estado",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 hallazgo} other{{count} hallazgos}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Inmersiones de evidencia",
+  "equipmentCondition_findings_dismiss": "Descartar",
+  "equipmentCondition_findings_restore": "Restaurar",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{Mostrar 1 descartado} other{Mostrar {count} descartados}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Inmersiones de evidencia",
+  "equipmentCondition_evidence_dive": "Inmersión {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Inmersión",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_trend_title_cellGain": "Salida de las celdas por inmersión",
   "equipmentCondition_trend_title_gap": "Pérdidas de señal del transmisor por inmersión",
   "equipmentCondition_trend_title_scrubber": "Uso del absorbente por inmersión",

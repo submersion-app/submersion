@@ -8175,6 +8175,44 @@
   "settings_section_equipmentCondition_title": "מצב הציוד",
   "settings_section_equipmentCondition_subtitle": "ספי חשיפה לשעוני תחזוקה",
   "equipmentConditionSettings_title": "מצב הציוד",
+  "equipmentCondition_findings_title": "ממצאי מצב",
+  "equipmentCondition_findings_count": "{count, plural, =1{ממצא אחד} other{{count} ממצאים}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "צלילות הראיה",
+  "equipmentCondition_findings_dismiss": "התעלמות",
+  "equipmentCondition_findings_restore": "שחזור",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{הצג ממצא אחד שהוסתר} other{הצג {count} ממצאים שהוסתרו}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "צלילות הראיה",
+  "equipmentCondition_evidence_dive": "צלילה {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "צלילה",
+  "equipmentCondition_evidence_minutes": "{n} דק'",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_trend_title_cellGain": "פלט התאים לכל צלילה",
   "equipmentCondition_trend_title_gap": "נפילות המשדר לכל צלילה",
   "equipmentCondition_trend_title_scrubber": "שימוש בסופג לכל צלילה",

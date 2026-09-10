@@ -26223,6 +26223,56 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipmentConditionSettings_title => 'מצב הציוד';
 
   @override
+  String get equipmentCondition_findings_title => 'ממצאי מצב';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ממצאים',
+      one: 'ממצא אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => 'צלילות הראיה';
+
+  @override
+  String get equipmentCondition_findings_dismiss => 'התעלמות';
+
+  @override
+  String get equipmentCondition_findings_restore => 'שחזור';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצג $count ממצאים שהוסתרו',
+      one: 'הצג ממצא אחד שהוסתר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => 'צלילות הראיה';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return 'צלילה $number';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => 'צלילה';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n דק\'';
+  }
+
+  @override
   String get equipmentCondition_trend_title_cellGain => 'פלט התאים לכל צלילה';
 
   @override

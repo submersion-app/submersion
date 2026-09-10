@@ -8175,6 +8175,44 @@
   "settings_section_equipmentCondition_title": "État du matériel",
   "settings_section_equipmentCondition_subtitle": "Seuils d'exposition pour les compteurs d'entretien",
   "equipmentConditionSettings_title": "État du matériel",
+  "equipmentCondition_findings_title": "Constats d'état",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 constat} other{{count} constats}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Plongées à l'appui",
+  "equipmentCondition_findings_dismiss": "Ignorer",
+  "equipmentCondition_findings_restore": "Rétablir",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{Afficher 1 ignoré} other{Afficher {count} ignorés}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Plongées à l'appui",
+  "equipmentCondition_evidence_dive": "Plongée {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Plongée",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_trend_title_cellGain": "Sortie des cellules par plongée",
   "equipmentCondition_trend_title_gap": "Pertes de signal de l'émetteur par plongée",
   "equipmentCondition_trend_title_scrubber": "Usage de la chaux par plongée",

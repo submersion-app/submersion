@@ -26836,6 +26836,56 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Ausrüstungszustand';
 
   @override
+  String get equipmentCondition_findings_title => 'Zustandsbefunde';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Befunde',
+      one: '1 Befund',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => 'Belegtauchgänge';
+
+  @override
+  String get equipmentCondition_findings_dismiss => 'Verwerfen';
+
+  @override
+  String get equipmentCondition_findings_restore => 'Wiederherstellen';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count verworfene anzeigen',
+      one: '1 verworfenen anzeigen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => 'Belegtauchgänge';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return 'Tauchgang $number';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => 'Tauchgang';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n min';
+  }
+
+  @override
   String get equipmentCondition_trend_title_cellGain =>
       'Zellenausgang je Tauchgang';
 

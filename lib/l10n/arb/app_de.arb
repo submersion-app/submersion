@@ -8175,6 +8175,44 @@
   "settings_section_equipmentCondition_title": "Ausrüstungszustand",
   "settings_section_equipmentCondition_subtitle": "Belastungsgrenzen für Wartungsuhren",
   "equipmentConditionSettings_title": "Ausrüstungszustand",
+  "equipmentCondition_findings_title": "Zustandsbefunde",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 Befund} other{{count} Befunde}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Belegtauchgänge",
+  "equipmentCondition_findings_dismiss": "Verwerfen",
+  "equipmentCondition_findings_restore": "Wiederherstellen",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{1 verworfenen anzeigen} other{{count} verworfene anzeigen}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Belegtauchgänge",
+  "equipmentCondition_evidence_dive": "Tauchgang {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Tauchgang",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_trend_title_cellGain": "Zellenausgang je Tauchgang",
   "equipmentCondition_trend_title_gap": "Senderaussetzer je Tauchgang",
   "equipmentCondition_trend_title_scrubber": "Atemkalkverbrauch je Tauchgang",

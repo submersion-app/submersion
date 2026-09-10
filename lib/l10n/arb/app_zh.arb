@@ -8175,6 +8175,44 @@
   "settings_section_equipmentCondition_title": "装备状况",
   "settings_section_equipmentCondition_subtitle": "保养计时的暴露阈值",
   "equipmentConditionSettings_title": "装备状况",
+  "equipmentCondition_findings_title": "状态发现",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 项发现} other{{count} 项发现}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "证据潜水",
+  "equipmentCondition_findings_dismiss": "忽略",
+  "equipmentCondition_findings_restore": "恢复",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{显示 1 项已忽略} other{显示 {count} 项已忽略}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "证据潜水",
+  "equipmentCondition_evidence_dive": "第 {number} 次潜水",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "潜水",
+  "equipmentCondition_evidence_minutes": "{n} 分钟",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_trend_title_cellGain": "每次潜水的电池输出",
   "equipmentCondition_trend_title_gap": "每次潜水的发射器断连",
   "equipmentCondition_trend_title_scrubber": "每次潜水的吸收剂用量",

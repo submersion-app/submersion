@@ -8175,6 +8175,44 @@
   "settings_section_equipmentCondition_title": "Stato dell'attrezzatura",
   "settings_section_equipmentCondition_subtitle": "Soglie di esposizione per i contatori di manutenzione",
   "equipmentConditionSettings_title": "Stato dell'attrezzatura",
+  "equipmentCondition_findings_title": "Rilievi sullo stato",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 rilievo} other{{count} rilievi}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Immersioni a supporto",
+  "equipmentCondition_findings_dismiss": "Ignora",
+  "equipmentCondition_findings_restore": "Ripristina",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{Mostra 1 ignorato} other{Mostra {count} ignorati}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Immersioni a supporto",
+  "equipmentCondition_evidence_dive": "Immersione {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Immersione",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_trend_title_cellGain": "Uscita delle celle per immersione",
   "equipmentCondition_trend_title_gap": "Perdite di segnale del trasmettitore per immersione",
   "equipmentCondition_trend_title_scrubber": "Uso della calce per immersione",

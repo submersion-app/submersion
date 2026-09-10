@@ -8175,6 +8175,44 @@
   "settings_section_equipmentCondition_title": "Estado do equipamento",
   "settings_section_equipmentCondition_subtitle": "Limites de exposição para os relógios de manutenção",
   "equipmentConditionSettings_title": "Estado do equipamento",
+  "equipmentCondition_findings_title": "Constatações de estado",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 constatação} other{{count} constatações}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Mergulhos de evidência",
+  "equipmentCondition_findings_dismiss": "Dispensar",
+  "equipmentCondition_findings_restore": "Repor",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{Mostrar 1 dispensada} other{Mostrar {count} dispensadas}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Mergulhos de evidência",
+  "equipmentCondition_evidence_dive": "Mergulho {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Mergulho",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_trend_title_cellGain": "Saída das células por mergulho",
   "equipmentCondition_trend_title_gap": "Falhas de sinal do transmissor por mergulho",
   "equipmentCondition_trend_title_scrubber": "Uso do absorvente por mergulho",

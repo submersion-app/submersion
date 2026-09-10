@@ -26684,6 +26684,56 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Staat van uitrusting';
 
   @override
+  String get equipmentCondition_findings_title => 'Conditiebevindingen';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bevindingen',
+      one: '1 bevinding',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => 'Bewijsduiken';
+
+  @override
+  String get equipmentCondition_findings_dismiss => 'Negeren';
+
+  @override
+  String get equipmentCondition_findings_restore => 'Herstellen';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Toon $count genegeerde',
+      one: 'Toon 1 genegeerde',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => 'Bewijsduiken';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return 'Duik $number';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => 'Duik';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n min';
+  }
+
+  @override
   String get equipmentCondition_trend_title_cellGain => 'Celuitvoer per duik';
 
   @override

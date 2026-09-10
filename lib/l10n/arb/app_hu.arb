@@ -8175,6 +8175,44 @@
   "settings_section_equipmentCondition_title": "Felszerelés állapota",
   "settings_section_equipmentCondition_subtitle": "Terhelési küszöbök a szervizórákhoz",
   "equipmentConditionSettings_title": "Felszerelés állapota",
+  "equipmentCondition_findings_title": "Állapotmegállapítások",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 megállapítás} other{{count} megállapítás}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Bizonyító merülések",
+  "equipmentCondition_findings_dismiss": "Elvetés",
+  "equipmentCondition_findings_restore": "Visszaállítás",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{1 elvetett mutatása} other{{count} elvetett mutatása}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Bizonyító merülések",
+  "equipmentCondition_evidence_dive": "{number}. merülés",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Merülés",
+  "equipmentCondition_evidence_minutes": "{n} perc",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_trend_title_cellGain": "Cellakimenet merülésenként",
   "equipmentCondition_trend_title_gap": "Adókimaradás merülésenként",
   "equipmentCondition_trend_title_scrubber": "Szűrőhasználat merülésenként",

@@ -26780,6 +26780,56 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Felszerelés állapota';
 
   @override
+  String get equipmentCondition_findings_title => 'Állapotmegállapítások';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count megállapítás',
+      one: '1 megállapítás',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => 'Bizonyító merülések';
+
+  @override
+  String get equipmentCondition_findings_dismiss => 'Elvetés';
+
+  @override
+  String get equipmentCondition_findings_restore => 'Visszaállítás';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elvetett mutatása',
+      one: '1 elvetett mutatása',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => 'Bizonyító merülések';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => 'Merülés';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n perc';
+  }
+
+  @override
   String get equipmentCondition_trend_title_cellGain =>
       'Cellakimenet merülésenként';
 

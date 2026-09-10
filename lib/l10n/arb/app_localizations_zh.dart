@@ -25505,6 +25505,56 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_title => '装备状况';
 
   @override
+  String get equipmentCondition_findings_title => '状态发现';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项发现',
+      one: '1 项发现',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => '证据潜水';
+
+  @override
+  String get equipmentCondition_findings_dismiss => '忽略';
+
+  @override
+  String get equipmentCondition_findings_restore => '恢复';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '显示 $count 项已忽略',
+      one: '显示 1 项已忽略',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => '证据潜水';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return '第 $number 次潜水';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => '潜水';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n 分钟';
+  }
+
+  @override
   String get equipmentCondition_trend_title_cellGain => '每次潜水的电池输出';
 
   @override

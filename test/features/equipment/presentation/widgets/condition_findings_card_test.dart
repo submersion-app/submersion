@@ -1,0 +1,177 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_findings_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/condition_trend_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
+
+const reg = EquipmentItem(
+  id: 'reg',
+  name: 'Reg',
+  type: EquipmentType.regulator,
+);
+
+class _RecordingFindings extends EquipmentFindingsRepository {
+  final calls = <(String, bool)>[];
+
+  @override
+  Future<void> setDismissed({
+    required String findingId,
+    required bool dismissed,
+    required DateTime now,
+  }) async {
+    calls.add((findingId, dismissed));
+  }
+}
+
+EquipmentFinding finding(
+  ConditionRuleId rule, {
+  Map<String, double> values = const {},
+  int? slot,
+  String? tag,
+  bool dismissed = false,
+}) {
+  final evidence = FindingEvidence(
+    n: 5,
+    windowStart: DateTime(2026, 3, 3),
+    windowEnd: DateTime(2026, 6, 9),
+    diveIds: const ['d1', 'd2'],
+    values: values,
+    slot: slot,
+    tag: tag,
+  );
+  return EquipmentFinding(
+    id: conditionFindingId('reg', rule, slot: slot, tag: tag),
+    equipmentId: 'reg',
+    ruleId: rule,
+    severity: rule.severity,
+    value: 30,
+    evidence: evidence,
+    evidenceFingerprint: evidenceFingerprint(evidence),
+    engineVersion: 1,
+    createdAt: DateTime(2026, 6, 9),
+    dismissedAt: dismissed ? DateTime(2026, 6, 10) : null,
+  );
+}
+
+final three = [
+  finding(ConditionRuleId.incidentLinked, values: {'count': 1}),
+  finding(
+    ConditionRuleId.issueRecurring,
+    values: {'count': 3},
+    tag: 'freeFlow',
+  ),
+  finding(
+    ConditionRuleId.cellOutputLow,
+    values: {'recentMedian': 35.5},
+    slot: 1,
+    dismissed: true,
+  ),
+];
+
+Widget host(
+  List<EquipmentFinding>? findings, {
+  AppSettings settings = const AppSettings(),
+  EquipmentFindingsRepository? repo,
+}) => ProviderScope(
+  overrides: [
+    settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
+    equipmentConditionProvider('reg').overrideWith((ref) async => findings),
+    if (repo != null)
+      equipmentFindingsRepositoryProvider.overrideWithValue(repo),
+  ],
+  child: const MaterialApp(
+    locale: Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(body: ConditionFindingsCard(equipment: reg)),
+  ),
+);
+
+void main() {
+  testWidgets('lists active findings and folds the dismissed away', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(three));
+    await tester.pumpAndSettle();
+    expect(find.text('Condition findings'), findsOneWidget);
+    expect(find.text('2 findings'), findsOneWidget);
+    expect(find.text('1 incident names this item'), findsOneWidget);
+    expect(
+      find.text('Free flow reported 3 times in the last 5 dives'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Cell 1 output'), findsNothing);
+    await tester.tap(find.text('Show 1 dismissed'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Cell 1 output'), findsOneWidget);
+    expect(find.text('5 dives, Mar 3 - Jun 9, 2026'), findsNWidgets(3));
+  });
+
+  testWidgets('a disabled rule is hidden and the count follows', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        three,
+        settings: const AppSettings(conditionDisabledRules: {'issueRecurring'}),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('1 finding'), findsOneWidget);
+    expect(find.textContaining('Free flow'), findsNothing);
+  });
+
+  testWidgets('the master toggle off renders no card', (tester) async {
+    await tester.pumpWidget(
+      host(three, settings: const AppSettings(conditionEngineEnabled: false)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(Card), findsNothing);
+  });
+
+  testWidgets('no findings renders no card', (tester) async {
+    await tester.pumpWidget(host(const []));
+    await tester.pumpAndSettle();
+    expect(find.byType(Card), findsNothing);
+  });
+
+  testWidgets(
+    'tapping a finding selects it for the chart, tapping again clears',
+    (tester) async {
+      await tester.pumpWidget(host(three));
+      await tester.pumpAndSettle();
+      final scope = ProviderScope.containerOf(
+        tester.element(find.byType(ConditionFindingsCard)),
+      );
+      await tester.tap(find.text('1 incident names this item'));
+      await tester.pumpAndSettle();
+      expect(
+        scope.read(selectedConditionFindingProvider('reg'))?.ruleId,
+        ConditionRuleId.incidentLinked,
+      );
+      await tester.tap(find.text('1 incident names this item'));
+      await tester.pumpAndSettle();
+      expect(scope.read(selectedConditionFindingProvider('reg')), isNull);
+    },
+  );
+
+  testWidgets('the dismiss button writes through the repository', (
+    tester,
+  ) async {
+    final repo = _RecordingFindings();
+    await tester.pumpWidget(host(three, repo: repo));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Dismiss').first);
+    await tester.pumpAndSettle();
+    expect(repo.calls, [('cf_reg_incidentLinked', true)]);
+  });
+}

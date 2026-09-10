@@ -26410,6 +26410,56 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentConditionSettings_title => 'حالة المعدات';
 
   @override
+  String get equipmentCondition_findings_title => 'نتائج الحالة';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نتائج',
+      one: 'نتيجة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => 'غطسات الدليل';
+
+  @override
+  String get equipmentCondition_findings_dismiss => 'تجاهل';
+
+  @override
+  String get equipmentCondition_findings_restore => 'استعادة';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إظهار $count نتائج متجاهلة',
+      one: 'إظهار نتيجة متجاهلة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => 'غطسات الدليل';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return 'الغطسة $number';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => 'غطسة';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n دقيقة';
+  }
+
+  @override
   String get equipmentCondition_trend_title_cellGain => 'خرج الخلايا لكل غطسة';
 
   @override

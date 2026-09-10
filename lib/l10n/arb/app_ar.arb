@@ -8175,6 +8175,44 @@
   "settings_section_equipmentCondition_title": "حالة المعدات",
   "settings_section_equipmentCondition_subtitle": "حدود التعرض لساعات الصيانة",
   "equipmentConditionSettings_title": "حالة المعدات",
+  "equipmentCondition_findings_title": "نتائج الحالة",
+  "equipmentCondition_findings_count": "{count, plural, =1{نتيجة واحدة} other{{count} نتائج}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "غطسات الدليل",
+  "equipmentCondition_findings_dismiss": "تجاهل",
+  "equipmentCondition_findings_restore": "استعادة",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{إظهار نتيجة متجاهلة واحدة} other{إظهار {count} نتائج متجاهلة}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "غطسات الدليل",
+  "equipmentCondition_evidence_dive": "الغطسة {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "غطسة",
+  "equipmentCondition_evidence_minutes": "{n} دقيقة",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_trend_title_cellGain": "خرج الخلايا لكل غطسة",
   "equipmentCondition_trend_title_gap": "انقطاعات جهاز الإرسال لكل غطسة",
   "equipmentCondition_trend_title_scrubber": "استهلاك المنظّف لكل غطسة",

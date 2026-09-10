@@ -26886,6 +26886,56 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Stato dell\'attrezzatura';
 
   @override
+  String get equipmentCondition_findings_title => 'Rilievi sullo stato';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rilievi',
+      one: '1 rilievo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => 'Immersioni a supporto';
+
+  @override
+  String get equipmentCondition_findings_dismiss => 'Ignora';
+
+  @override
+  String get equipmentCondition_findings_restore => 'Ripristina';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mostra $count ignorati',
+      one: 'Mostra 1 ignorato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => 'Immersioni a supporto';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return 'Immersione $number';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => 'Immersione';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n min';
+  }
+
+  @override
   String get equipmentCondition_trend_title_cellGain =>
       'Uscita delle celle per immersione';
 

@@ -26439,6 +26439,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Equipment condition';
 
   @override
+  String get equipmentCondition_findings_title => 'Condition findings';
+
+  @override
+  String equipmentCondition_findings_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count findings',
+      one: '1 finding',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_findings_evidence => 'Evidence dives';
+
+  @override
+  String get equipmentCondition_findings_dismiss => 'Dismiss';
+
+  @override
+  String get equipmentCondition_findings_restore => 'Restore';
+
+  @override
+  String equipmentCondition_findings_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count dismissed',
+      one: 'Show 1 dismissed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_evidence_title => 'Evidence dives';
+
+  @override
+  String equipmentCondition_evidence_dive(int number) {
+    return 'Dive $number';
+  }
+
+  @override
+  String get equipmentCondition_evidence_unnumbered => 'Dive';
+
+  @override
+  String equipmentCondition_evidence_minutes(int n) {
+    return '$n min';
+  }
+
+  @override
   String get equipmentCondition_trend_title_cellGain => 'Cell output per dive';
 
   @override

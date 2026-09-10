@@ -44355,6 +44355,66 @@ abstract class AppLocalizations {
   /// **'Equipment condition'**
   String get equipmentConditionSettings_title;
 
+  /// No description provided for @equipmentCondition_findings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition findings'**
+  String get equipmentCondition_findings_title;
+
+  /// No description provided for @equipmentCondition_findings_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 finding} other{{count} findings}}'**
+  String equipmentCondition_findings_count(int count);
+
+  /// No description provided for @equipmentCondition_findings_evidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence dives'**
+  String get equipmentCondition_findings_evidence;
+
+  /// No description provided for @equipmentCondition_findings_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get equipmentCondition_findings_dismiss;
+
+  /// No description provided for @equipmentCondition_findings_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get equipmentCondition_findings_restore;
+
+  /// No description provided for @equipmentCondition_findings_showDismissed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show 1 dismissed} other{Show {count} dismissed}}'**
+  String equipmentCondition_findings_showDismissed(int count);
+
+  /// No description provided for @equipmentCondition_evidence_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence dives'**
+  String get equipmentCondition_evidence_title;
+
+  /// No description provided for @equipmentCondition_evidence_dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {number}'**
+  String equipmentCondition_evidence_dive(int number);
+
+  /// No description provided for @equipmentCondition_evidence_unnumbered.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get equipmentCondition_evidence_unnumbered;
+
+  /// No description provided for @equipmentCondition_evidence_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} min'**
+  String equipmentCondition_evidence_minutes(int n);
+
   /// No description provided for @equipmentCondition_trend_title_cellGain.
   ///
   /// In en, this message translates to:

@@ -8175,6 +8175,44 @@
   "settings_section_equipmentCondition_title": "Staat van uitrusting",
   "settings_section_equipmentCondition_subtitle": "Blootstellingsdrempels voor onderhoudsklokken",
   "equipmentConditionSettings_title": "Staat van uitrusting",
+  "equipmentCondition_findings_title": "Conditiebevindingen",
+  "equipmentCondition_findings_count": "{count, plural, =1{1 bevinding} other{{count} bevindingen}}",
+  "@equipmentCondition_findings_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_findings_evidence": "Bewijsduiken",
+  "equipmentCondition_findings_dismiss": "Negeren",
+  "equipmentCondition_findings_restore": "Herstellen",
+  "equipmentCondition_findings_showDismissed": "{count, plural, =1{Toon 1 genegeerde} other{Toon {count} genegeerde}}",
+  "@equipmentCondition_findings_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_title": "Bewijsduiken",
+  "equipmentCondition_evidence_dive": "Duik {number}",
+  "@equipmentCondition_evidence_dive": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_evidence_unnumbered": "Duik",
+  "equipmentCondition_evidence_minutes": "{n} min",
+  "@equipmentCondition_evidence_minutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentCondition_trend_title_cellGain": "Celuitvoer per duik",
   "equipmentCondition_trend_title_gap": "Zenderuitval per duik",
   "equipmentCondition_trend_title_scrubber": "Scrubbergebruik per duik",
