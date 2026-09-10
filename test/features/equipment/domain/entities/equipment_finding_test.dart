@@ -116,4 +116,29 @@ void main() {
     expect(f.copyWith(clearDismissedAt: true).isDismissed, isFalse);
     expect(f, f.copyWith());
   });
+
+  group('lenient decoding', () {
+    // decode() is documented to return null on anything it cannot read,
+    // never to throw: it runs on the sync read path, where a TypeError
+    // would take the whole batch down rather than dropping one row.
+    test('a non-string tag decodes as no tag', () {
+      final decoded = FindingEvidence.decode(
+        '{"n":3,"windowStart":0,"windowEnd":1000,"tag":42}',
+      );
+      expect(decoded, isNotNull);
+      expect(decoded!.tag, isNull);
+      expect(decoded.n, 3);
+    });
+
+    test('a wrong type anywhere else still decodes what it can', () {
+      final decoded = FindingEvidence.decode(
+        '{"n":3,"windowStart":0,"windowEnd":1000,"diveIds":[1,"d2"],'
+        '"values":{"count":"lots","worst":2.5},"slot":"one","tag":{"a":1}}',
+      );
+      expect(decoded!.diveIds, ['d2']);
+      expect(decoded.values, {'worst': 2.5});
+      expect(decoded.slot, isNull);
+      expect(decoded.tag, isNull);
+    });
+  });
 }

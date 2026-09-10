@@ -279,6 +279,23 @@ void main() {
     expect((await repo.getFindings('reg')).single.isDismissed, isFalse);
   });
 
+  test('a stored row is keyed to the item the review is for', () async {
+    // The transaction scopes its deletions and its marker to this
+    // equipmentId, so a row written under a different one would be
+    // invisible to both and leave the item's findings inconsistent.
+    final stray = incident().copyWith(equipmentId: 'other');
+    await repo.saveReview(
+      equipmentId: 'reg',
+      inputFingerprint: 'fp1',
+      findings: [stray],
+      engineVersion: 1,
+      now: t0,
+    );
+    final rows = await db.select(db.equipmentFindings).get();
+    expect(rows.map((r) => r.equipmentId), ['reg']);
+    expect((await repo.getFindings('reg')).single.equipmentId, 'reg');
+  });
+
   test('a rule that stops firing is deleted with a tombstone', () async {
     await repo.saveReview(
       equipmentId: 'reg',

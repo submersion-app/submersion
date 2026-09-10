@@ -111,6 +111,14 @@ DiveSensorSummary computeSensorSummaryFromBlobs(SensorSummaryWorkInput input) {
 List<T>? _decodeOrNull<T>(List<T> Function() decode) {
   try {
     return decode();
+  } on UnknownSeriesVersionException catch (e) {
+    // A version NEWER than anything this build knows is not corruption:
+    // the samples are fine and a later build reads them. Swallowing it
+    // would persist a summary with none of them as current for the dive's
+    // updated_at, and upgrading back would never recompute it. Let it
+    // escape so the dive stays stale until it can be read.
+    if (e.isForwardVersion) rethrow;
+    return null;
   } on ProfileSeriesCodecException {
     return null;
   }
