@@ -21357,6 +21357,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_edit_label_capacity => 'Passenger Capacity';
 
   @override
+  String get trips_edit_sectionTitle_planning => 'Tervezés';
+
+  @override
+  String get trips_edit_label_expectedDives => 'Várható merülések';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'Hagyd üresen, hogy a legutóbbi utazásaidból becsüljük';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'Várható futásidő merülésenként (perc)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'Hagyd üresen, hogy a legutóbbi CCR-merüléseidből becsüljük';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

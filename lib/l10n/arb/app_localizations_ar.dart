@@ -21028,6 +21028,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_label_capacity => 'Passenger Capacity';
 
   @override
+  String get trips_edit_sectionTitle_planning => 'التخطيط';
+
+  @override
+  String get trips_edit_label_expectedDives => 'الغطسات المتوقعة';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'اتركه فارغًا للتقدير من رحلاتك الأخيرة';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'مدة التشغيل المتوقعة لكل غطسة (بالدقائق)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'اتركه فارغًا للتقدير من غطسات الدائرة المغلقة الأخيرة';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

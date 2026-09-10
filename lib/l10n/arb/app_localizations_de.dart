@@ -21372,6 +21372,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_edit_label_capacity => 'Passenger Capacity';
 
   @override
+  String get trips_edit_sectionTitle_planning => 'Planung';
+
+  @override
+  String get trips_edit_label_expectedDives => 'Erwartete Tauchgänge';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'Leer lassen, um aus deinen letzten Reisen zu schätzen';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'Erwartete Laufzeit je Tauchgang (Minuten)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'Leer lassen, um aus deinen letzten CCR-Tauchgängen zu schätzen';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

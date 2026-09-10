@@ -17,6 +17,12 @@ class Trip extends Equatable {
 
   /// Return flight departure, wall-clock-as-UTC (the dive-time frame).
   final DateTime? returnFlightAt;
+
+  /// Scrubber margin overrides (condition phase 4b): the diver's own dive
+  /// count and runtime per dive for this trip. Null means estimate from
+  /// recent history.
+  final int? expectedDives;
+  final int? expectedRuntimeMinutes;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -33,6 +39,8 @@ class Trip extends Equatable {
     this.notes = '',
     this.isShared = false,
     this.returnFlightAt,
+    this.expectedDives,
+    this.expectedRuntimeMinutes,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -121,6 +129,8 @@ class Trip extends Equatable {
     String? notes,
     bool? isShared,
     Object? returnFlightAt = _undefined,
+    Object? expectedDives = _undefined,
+    Object? expectedRuntimeMinutes = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -143,6 +153,12 @@ class Trip extends Equatable {
       returnFlightAt: returnFlightAt == _undefined
           ? this.returnFlightAt
           : returnFlightAt as DateTime?,
+      expectedDives: expectedDives == _undefined
+          ? this.expectedDives
+          : expectedDives as int?,
+      expectedRuntimeMinutes: expectedRuntimeMinutes == _undefined
+          ? this.expectedRuntimeMinutes
+          : expectedRuntimeMinutes as int?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -162,6 +178,8 @@ class Trip extends Equatable {
     notes,
     isShared,
     returnFlightAt,
+    expectedDives,
+    expectedRuntimeMinutes,
     createdAt,
     updatedAt,
   ];

@@ -35272,6 +35272,36 @@ abstract class AppLocalizations {
   /// **'Passenger Capacity'**
   String get trips_edit_label_capacity;
 
+  /// No description provided for @trips_edit_sectionTitle_planning.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning'**
+  String get trips_edit_sectionTitle_planning;
+
+  /// No description provided for @trips_edit_label_expectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected dives'**
+  String get trips_edit_label_expectedDives;
+
+  /// No description provided for @trips_edit_hint_expectedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to estimate from your recent trips'**
+  String get trips_edit_hint_expectedDives;
+
+  /// No description provided for @trips_edit_label_expectedRuntime.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected runtime per dive (minutes)'**
+  String get trips_edit_label_expectedRuntime;
+
+  /// No description provided for @trips_edit_hint_expectedRuntime.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to estimate from your recent CCR dives'**
+  String get trips_edit_hint_expectedRuntime;
+
   /// No description provided for @trips_edit_sectionTitle_embarkDisembark.
   ///
   /// In en, this message translates to:

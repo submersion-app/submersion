@@ -42,6 +42,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   final _resortController = TextEditingController();
   final _liveaboardController = TextEditingController();
   final _notesController = TextEditingController();
+  final _expectedDivesController = TextEditingController();
+  final _expectedRuntimeController = TextEditingController();
 
   TripType _tripType = TripType.shore;
   final _vesselNameController = TextEditingController();
@@ -88,6 +90,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     _resortController.addListener(_onFieldChanged);
     _liveaboardController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
+    _expectedDivesController.addListener(_onFieldChanged);
+    _expectedRuntimeController.addListener(_onFieldChanged);
     _vesselNameController.addListener(_onFieldChanged);
     _operatorController.addListener(_onFieldChanged);
     _cabinTypeController.addListener(_onFieldChanged);
@@ -115,6 +119,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         _resortController.text = trip.resortName ?? '';
         _liveaboardController.text = trip.liveaboardName ?? '';
         _notesController.text = trip.notes;
+        _expectedDivesController.text = trip.expectedDives?.toString() ?? '';
+        _expectedRuntimeController.text =
+            trip.expectedRuntimeMinutes?.toString() ?? '';
         _tripType = trip.tripType;
 
         // Load liveaboard details if applicable
@@ -162,6 +169,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     _resortController.dispose();
     _liveaboardController.dispose();
     _notesController.dispose();
+    _expectedDivesController.dispose();
+    _expectedRuntimeController.dispose();
     _vesselNameController.dispose();
     _operatorController.dispose();
     _cabinTypeController.dispose();
@@ -524,6 +533,36 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     ),
                     maxLines: 4,
                   ),
+                  const SizedBox(height: 24),
+
+                  // Planning (condition phase 4b): the scrubber margin's
+                  // two overrides. Empty means estimate from history.
+                  Text(
+                    context.l10n.trips_edit_sectionTitle_planning,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _expectedDivesController,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_expectedDives,
+                      prefixIcon: const Icon(Icons.scuba_diving),
+                      hintText: context.l10n.trips_edit_hint_expectedDives,
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _expectedRuntimeController,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_expectedRuntime,
+                      prefixIcon: const Icon(Icons.timer_outlined),
+                      hintText: context.l10n.trips_edit_hint_expectedRuntime,
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
                   const SizedBox(height: 16),
 
                   // Share toggle — only shown when multiple diver profiles exist
@@ -861,6 +900,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         notes: _notesController.text.trim(),
         isShared: _isShared,
         returnFlightAt: _returnFlightAt,
+        expectedDives: int.tryParse(_expectedDivesController.text.trim()),
+        expectedRuntimeMinutes: int.tryParse(
+          _expectedRuntimeController.text.trim(),
+        ),
         createdAt: _originalTrip?.createdAt ?? now,
         updatedAt: now,
       );

@@ -20308,6 +20308,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_label_capacity => '乘客容量';
 
   @override
+  String get trips_edit_sectionTitle_planning => '计划';
+
+  @override
+  String get trips_edit_label_expectedDives => '预计潜水次数';
+
+  @override
+  String get trips_edit_hint_expectedDives => '留空则根据近期行程估算';
+
+  @override
+  String get trips_edit_label_expectedRuntime => '每次潜水预计运行时间（分钟）';
+
+  @override
+  String get trips_edit_hint_expectedRuntime => '留空则根据近期 CCR 潜水估算';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => '上船/下船';
 
   @override

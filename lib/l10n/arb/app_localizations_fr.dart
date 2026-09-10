@@ -21513,6 +21513,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_edit_label_capacity => 'Passenger Capacity';
 
   @override
+  String get trips_edit_sectionTitle_planning => 'Planification';
+
+  @override
+  String get trips_edit_label_expectedDives => 'Plongées prévues';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'Laisser vide pour estimer d\'après vos voyages récents';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'Durée prévue par plongée (minutes)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'Laisser vide pour estimer d\'après vos plongées CCR récentes';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

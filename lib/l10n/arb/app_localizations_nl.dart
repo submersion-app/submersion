@@ -21242,6 +21242,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_edit_label_capacity => 'Passenger Capacity';
 
   @override
+  String get trips_edit_sectionTitle_planning => 'Planning';
+
+  @override
+  String get trips_edit_label_expectedDives => 'Verwachte duiken';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'Laat leeg om te schatten op basis van je recente reizen';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'Verwachte looptijd per duik (minuten)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'Laat leeg om te schatten op basis van je recente CCR-duiken';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

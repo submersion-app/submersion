@@ -20874,6 +20874,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_label_capacity => 'Passenger Capacity';
 
   @override
+  String get trips_edit_sectionTitle_planning => 'תכנון';
+
+  @override
+  String get trips_edit_label_expectedDives => 'צלילות צפויות';
+
+  @override
+  String get trips_edit_hint_expectedDives =>
+      'השאר ריק כדי להעריך מהטיולים האחרונים שלך';
+
+  @override
+  String get trips_edit_label_expectedRuntime =>
+      'זמן ריצה צפוי לכל צלילה (דקות)';
+
+  @override
+  String get trips_edit_hint_expectedRuntime =>
+      'השאר ריק כדי להעריך מצלילות ה-CCR האחרונות שלך';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override
