@@ -56,4 +56,21 @@ void main() {
     expect(find.text('No dives with this item yet'), findsOneWidget);
     expect(find.byType(Chip), findsNothing);
   });
+  testWidgets('a days total never renders as a blank chip', (tester) async {
+    // Days are a date trigger with no usage total, so the totals should
+    // never carry them; if they do, the card skips them.
+    await tester.pumpWidget(
+      host(
+        EquipmentExposureTotals(
+          byUnit: const {ExposureUnit.days: 40, ExposureUnit.dives: 3},
+          diveCount: 3,
+          firstDive: DateTime(2026, 1, 10),
+          lastDive: DateTime(2026, 3, 10),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(Chip), findsOneWidget);
+    expect(find.text('3 dives'), findsOneWidget);
+  });
 }

@@ -152,5 +152,34 @@ void main() {
       expect(lines[1], contains('"Cold, 4 C"'));
       expect(lines[2], contains(',,ok,,'));
     });
+
+    test(
+      'a formula-looking note or name is neutralised and kept on one row',
+      () {
+        final csv = service.generateObservationsCsvContent([
+          (
+            equipmentName: '=HYPERLINK("x")',
+            equipmentType: 'Regulator',
+            diveNumber: null,
+            observation: EquipmentObservation(
+              id: 'o1',
+              equipmentId: 'reg',
+              observedAt: DateTime.utc(2026, 3, 14),
+              status: ObservationStatus.ok,
+              note: '=1+1\nsecond line',
+              createdAt: DateTime.utc(2026),
+              updatedAt: DateTime.utc(2026),
+            ),
+          ),
+        ]);
+        final lines = csv.trim().split(RegExp(r'\r?\n'));
+        // One header and one data row: the note's line break is flattened,
+        // as the trips export does.
+        expect(lines, hasLength(2));
+        // A leading quote makes a spreadsheet read the cell as text.
+        expect(lines[1], startsWith('"\'=HYPERLINK(""x"")"'));
+        expect(lines[1], endsWith("'=1+1 second line"));
+      },
+    );
   });
 }

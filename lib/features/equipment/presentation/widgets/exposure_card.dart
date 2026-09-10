@@ -78,7 +78,8 @@ class ExposureCard extends ConsumerWidget {
           children: [
             for (final unit in ExposureUnit.values)
               if (totals.byUnit[unit] case final total?)
-                Chip(label: Text(_chipText(l10n, unit, total))),
+                if (_chipText(l10n, unit, total) case final text?)
+                  Chip(label: Text(text)),
           ],
         ),
         const SizedBox(height: 8),
@@ -97,13 +98,13 @@ class ExposureCard extends ConsumerWidget {
     );
   }
 
-  /// Hours keep one decimal; counts are whole. Days never reach here
-  /// (a date trigger has no usage total).
-  String _chipText(AppLocalizations l10n, ExposureUnit unit, double total) {
+  /// Hours keep one decimal; counts are whole. Null for days, which a date
+  /// trigger owns and which has no usage total, so no chip is drawn.
+  String? _chipText(AppLocalizations l10n, ExposureUnit unit, double total) {
     final hours = total.toStringAsFixed(1);
     final count = total.round();
     return switch (unit) {
-      ExposureUnit.days => '',
+      ExposureUnit.days => null,
       ExposureUnit.dives => l10n.equipmentCondition_exposure_dives(count),
       ExposureUnit.hours => l10n.equipmentCondition_exposure_hours(hours),
       ExposureUnit.saltHours => l10n.equipmentCondition_exposure_saltHours(

@@ -53,11 +53,12 @@ ConditionTrend? buildConditionTrend({
       summariesByDive,
       transmitterSerials,
     ),
-    ConditionTrendKind.minTemperature => _minTemperature(
-      item,
-      samples,
-      observations,
-    ),
+    // Only the types whose default it is: the other kinds check the type
+    // themselves, and this one has no type of its own to check.
+    ConditionTrendKind.minTemperature =>
+      defaultConditionTrendKind(item.type) == ConditionTrendKind.minTemperature
+          ? _minTemperature(item, samples, observations)
+          : null,
   };
 }
 

@@ -96,8 +96,11 @@ class _EvidenceSheet extends ConsumerWidget {
                       subtitle: Text(_diveSubtitle(context, units, dive)),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
+                        // Both looked up before the pop: the sheet's
+                        // context is on its way out once the route pops.
+                        final router = GoRouter.of(context);
                         Navigator.of(context).pop();
-                        context.push('/dives/${dive.id}');
+                        router.push('/dives/${dive.id}');
                       },
                     ),
                 ],
