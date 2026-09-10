@@ -31296,6 +31296,114 @@ abstract class AppLocalizations {
   /// **'Weight Trend'**
   String get statistics_equipment_weightTrend_title;
 
+  /// No description provided for @statistics_equipment_exposure_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure'**
+  String get statistics_equipment_exposure_title;
+
+  /// No description provided for @statistics_equipment_exposure_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Totals per item with your thresholds'**
+  String get statistics_equipment_exposure_subtitle;
+
+  /// No description provided for @statistics_equipment_exposure_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives with gear yet'**
+  String get statistics_equipment_exposure_empty;
+
+  /// No description provided for @statistics_equipment_findings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition findings'**
+  String get statistics_equipment_findings_title;
+
+  /// No description provided for @statistics_equipment_findings_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open findings by rule'**
+  String get statistics_equipment_findings_subtitle;
+
+  /// No description provided for @statistics_equipment_findings_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No open findings'**
+  String get statistics_equipment_findings_empty;
+
+  /// No description provided for @statistics_equipment_issues_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported issues'**
+  String get statistics_equipment_issues_title;
+
+  /// No description provided for @statistics_equipment_issues_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Most frequent check-in tags'**
+  String get statistics_equipment_issues_subtitle;
+
+  /// No description provided for @statistics_equipment_issues_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No issues reported'**
+  String get statistics_equipment_issues_empty;
+
+  /// No description provided for @statistics_equipment_countLabel_items.
+  ///
+  /// In en, this message translates to:
+  /// **'items'**
+  String get statistics_equipment_countLabel_items;
+
+  /// No description provided for @statistics_equipment_countLabel_findings.
+  ///
+  /// In en, this message translates to:
+  /// **'findings'**
+  String get statistics_equipment_countLabel_findings;
+
+  /// No description provided for @statistics_equipment_countLabel_reports.
+  ///
+  /// In en, this message translates to:
+  /// **'reports'**
+  String get statistics_equipment_countLabel_reports;
+
+  /// No description provided for @statistics_equipment_exposureUnit_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get statistics_equipment_exposureUnit_hours;
+
+  /// No description provided for @statistics_equipment_exposureUnit_saltHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Salt-water hours'**
+  String get statistics_equipment_exposureUnit_saltHours;
+
+  /// No description provided for @statistics_equipment_exposureUnit_coldDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold dives'**
+  String get statistics_equipment_exposureUnit_coldDives;
+
+  /// No description provided for @statistics_equipment_exposureUnit_o2Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'High-O2 hours'**
+  String get statistics_equipment_exposureUnit_o2Hours;
+
+  /// No description provided for @statistics_equipment_exposureUnit_deepCycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep dives'**
+  String get statistics_equipment_exposureUnit_deepCycles;
+
+  /// No description provided for @statistics_equipment_exposureUnit_cycles.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery cycles'**
+  String get statistics_equipment_exposureUnit_cycles;
+
   /// No description provided for @statistics_error_loadingStatistics.
   ///
   /// In en, this message translates to:

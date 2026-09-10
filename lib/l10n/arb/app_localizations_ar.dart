@@ -18587,6 +18587,63 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'اتجاه الأوزان';
 
   @override
+  String get statistics_equipment_exposure_title => 'التعرّض';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'الإجماليات لكل قطعة وفق حدودك';
+
+  @override
+  String get statistics_equipment_exposure_empty => 'لا توجد غطسات بمعدات بعد';
+
+  @override
+  String get statistics_equipment_findings_title => 'نتائج الحالة';
+
+  @override
+  String get statistics_equipment_findings_subtitle =>
+      'النتائج المفتوحة حسب القاعدة';
+
+  @override
+  String get statistics_equipment_findings_empty => 'لا توجد نتائج مفتوحة';
+
+  @override
+  String get statistics_equipment_issues_title => 'المشكلات المبلّغ عنها';
+
+  @override
+  String get statistics_equipment_issues_subtitle => 'أكثر وسوم الفحص تكرارًا';
+
+  @override
+  String get statistics_equipment_issues_empty => 'لم يُبلَّغ عن مشكلات';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'قطع';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'نتائج';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'بلاغات';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'ساعات';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours =>
+      'ساعات في المياه المالحة';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'غطسات باردة';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'ساعات بأكسجين مرتفع';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'غطسات عميقة';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'دورات بطارية';
+
+  @override
   String get statistics_error_loadingStatistics => 'خطأ في تحميل الإحصائيات';
 
   @override

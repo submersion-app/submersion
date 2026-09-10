@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/presentation/providers/equipment_condition_statistics_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/statistics/presentation/widgets/ranking_list.dart';
@@ -29,6 +33,12 @@ class StatisticsEquipmentPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildMostUsedGearSection(context, ref),
+          const SizedBox(height: 16),
+          _buildExposureSection(context, ref, units),
+          const SizedBox(height: 16),
+          _buildFindingsSection(context, ref),
+          const SizedBox(height: 16),
+          _buildIssuesSection(context, ref),
           const SizedBox(height: 16),
           _buildWeightTrendSection(context, ref, units),
         ],
@@ -79,6 +89,139 @@ class StatisticsEquipmentPage extends ConsumerWidget {
       ),
     );
   }
+
+  /// Exposure per active item in the unit the dropdown selects; the row
+  /// count is the rounded total, the subtitle the exact figure.
+  Widget _buildExposureSection(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+  ) {
+    final l10n = context.l10n;
+    final unit = ref.watch(exposureRankingUnitProvider);
+    final rankingAsync = ref.watch(exposureRankingProvider);
+    return StatSectionCard(
+      title: l10n.statistics_equipment_exposure_title,
+      subtitle: l10n.statistics_equipment_exposure_subtitle,
+      trailing: DropdownButton<ExposureUnit>(
+        key: const ValueKey('exposure-unit'),
+        value: unit,
+        underline: const SizedBox.shrink(),
+        items: [
+          for (final u in _rankingUnits)
+            DropdownMenuItem(value: u, child: Text(_unitLabel(l10n, u))),
+        ],
+        onChanged: (u) {
+          if (u != null) {
+            ref.read(exposureRankingUnitProvider.notifier).state = u;
+          }
+        },
+      ),
+      child: rankingAsync.when(
+        data: (data) => data.isEmpty
+            ? StatEmptyState(
+                icon: Icons.waves,
+                message: l10n.statistics_equipment_exposure_empty,
+              )
+            : RankingList(
+                items: data,
+                countLabel: _countLabel(l10n, unit),
+                maxItems: 10,
+                onItemTap: (item) => context.push('/equipment/${item.id}'),
+              ),
+        loading: () => const SizedBox(
+          height: 120,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, _) => StatEmptyState(
+          icon: Icons.error_outline,
+          message: l10n.statistics_equipment_exposure_empty,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFindingsSection(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    return _rankingSection(
+      context,
+      ref.watch(findingsByRuleProvider),
+      title: l10n.statistics_equipment_findings_title,
+      subtitle: l10n.statistics_equipment_findings_subtitle,
+      countLabel: l10n.statistics_equipment_countLabel_findings,
+      empty: l10n.statistics_equipment_findings_empty,
+      icon: Icons.insights_outlined,
+    );
+  }
+
+  Widget _buildIssuesSection(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    return _rankingSection(
+      context,
+      ref.watch(issueTagRankingProvider),
+      title: l10n.statistics_equipment_issues_title,
+      subtitle: l10n.statistics_equipment_issues_subtitle,
+      countLabel: l10n.statistics_equipment_countLabel_reports,
+      empty: l10n.statistics_equipment_issues_empty,
+      icon: Icons.report_problem_outlined,
+    );
+  }
+
+  Widget _rankingSection(
+    BuildContext context,
+    AsyncValue<List<RankingItem>> rankingAsync, {
+    required String title,
+    required String subtitle,
+    required String countLabel,
+    required String empty,
+    required IconData icon,
+  }) {
+    return StatSectionCard(
+      title: title,
+      subtitle: subtitle,
+      child: rankingAsync.when(
+        data: (data) => data.isEmpty
+            ? StatEmptyState(icon: icon, message: empty)
+            : RankingList(
+                items: data,
+                countLabel: countLabel,
+                maxItems: 10,
+                showMedals: false,
+              ),
+        loading: () => const SizedBox(
+          height: 120,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, _) =>
+            StatEmptyState(icon: Icons.error_outline, message: empty),
+      ),
+    );
+  }
+
+  static const _rankingUnits = [
+    ExposureUnit.hours,
+    ExposureUnit.saltHours,
+    ExposureUnit.coldDives,
+    ExposureUnit.o2Hours,
+    ExposureUnit.deepCycles,
+    ExposureUnit.cycles,
+  ];
+
+  String _unitLabel(AppLocalizations l10n, ExposureUnit unit) => switch (unit) {
+    ExposureUnit.hours => l10n.statistics_equipment_exposureUnit_hours,
+    ExposureUnit.saltHours => l10n.statistics_equipment_exposureUnit_saltHours,
+    ExposureUnit.coldDives => l10n.statistics_equipment_exposureUnit_coldDives,
+    ExposureUnit.o2Hours => l10n.statistics_equipment_exposureUnit_o2Hours,
+    ExposureUnit.deepCycles =>
+      l10n.statistics_equipment_exposureUnit_deepCycles,
+    ExposureUnit.cycles => l10n.statistics_equipment_exposureUnit_cycles,
+    ExposureUnit.days ||
+    ExposureUnit.dives => l10n.statistics_equipment_exposureUnit_hours,
+  };
+
+  /// The row's unit word, lower case after the number.
+  String _countLabel(AppLocalizations l10n, ExposureUnit unit) =>
+      _unitLabel(l10n, unit).toLowerCase();
 
   Widget _buildWeightTrendSection(
     BuildContext context,

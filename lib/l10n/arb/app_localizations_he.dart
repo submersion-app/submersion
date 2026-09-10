@@ -18447,6 +18447,62 @@ class AppLocalizationsHe extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'מגמת משקל';
 
   @override
+  String get statistics_equipment_exposure_title => 'חשיפה';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'סיכומים לכל פריט לפי הספים שלך';
+
+  @override
+  String get statistics_equipment_exposure_empty => 'אין עדיין צלילות עם ציוד';
+
+  @override
+  String get statistics_equipment_findings_title => 'ממצאי מצב';
+
+  @override
+  String get statistics_equipment_findings_subtitle => 'ממצאים פתוחים לפי כלל';
+
+  @override
+  String get statistics_equipment_findings_empty => 'אין ממצאים פתוחים';
+
+  @override
+  String get statistics_equipment_issues_title => 'תקלות שדווחו';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'תגיות הבדיקה הנפוצות ביותר';
+
+  @override
+  String get statistics_equipment_issues_empty => 'לא דווחו תקלות';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'פריטים';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'ממצאים';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'דיווחים';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'שעות';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => 'שעות במים מלוחים';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'צלילות קרות';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'שעות ב-O2 גבוה';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'צלילות עמוקות';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'מחזורי סוללה';
+
+  @override
   String get statistics_error_loadingStatistics => 'שגיאה בטעינת סטטיסטיקות';
 
   @override

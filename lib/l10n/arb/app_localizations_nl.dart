@@ -18768,6 +18768,64 @@ class AppLocalizationsNl extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'Gewichtstrend';
 
   @override
+  String get statistics_equipment_exposure_title => 'Blootstelling';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'Totalen per item met jouw drempels';
+
+  @override
+  String get statistics_equipment_exposure_empty =>
+      'Nog geen duiken met uitrusting';
+
+  @override
+  String get statistics_equipment_findings_title => 'Conditiebevindingen';
+
+  @override
+  String get statistics_equipment_findings_subtitle =>
+      'Open bevindingen per regel';
+
+  @override
+  String get statistics_equipment_findings_empty => 'Geen open bevindingen';
+
+  @override
+  String get statistics_equipment_issues_title => 'Gemelde problemen';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'Meest voorkomende check-in-tags';
+
+  @override
+  String get statistics_equipment_issues_empty => 'Geen problemen gemeld';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'items';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'bevindingen';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'meldingen';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'Uur';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => 'Uur in zout water';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'Koude duiken';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'Uur met hoog O2';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'Diepe duiken';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'Batterijcycli';
+
+  @override
   String get statistics_error_loadingStatistics =>
       'Fout bij laden van statistieken';
 

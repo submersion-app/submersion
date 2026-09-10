@@ -18932,6 +18932,67 @@ class AppLocalizationsEs extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'Tendencia de peso';
 
   @override
+  String get statistics_equipment_exposure_title => 'Exposición';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'Totales por artículo con tus umbrales';
+
+  @override
+  String get statistics_equipment_exposure_empty =>
+      'Aún no hay inmersiones con equipo';
+
+  @override
+  String get statistics_equipment_findings_title => 'Hallazgos de estado';
+
+  @override
+  String get statistics_equipment_findings_subtitle =>
+      'Hallazgos abiertos por regla';
+
+  @override
+  String get statistics_equipment_findings_empty => 'No hay hallazgos abiertos';
+
+  @override
+  String get statistics_equipment_issues_title => 'Problemas registrados';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'Etiquetas de revisión más frecuentes';
+
+  @override
+  String get statistics_equipment_issues_empty =>
+      'No hay problemas registrados';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'artículos';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'hallazgos';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'registros';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'Horas';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours =>
+      'Horas en agua salada';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'Inmersiones frías';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'Horas con O2 alto';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles =>
+      'Inmersiones profundas';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'Ciclos de batería';
+
+  @override
   String get statistics_error_loadingStatistics =>
       'Error al cargar las estadisticas';
 

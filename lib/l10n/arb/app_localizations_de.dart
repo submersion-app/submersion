@@ -18892,6 +18892,64 @@ class AppLocalizationsDe extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'Gewichtstrend';
 
   @override
+  String get statistics_equipment_exposure_title => 'Belastung';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'Summen je Teil mit deinen Schwellen';
+
+  @override
+  String get statistics_equipment_exposure_empty =>
+      'Noch keine Tauchgänge mit Ausrüstung';
+
+  @override
+  String get statistics_equipment_findings_title => 'Zustandsbefunde';
+
+  @override
+  String get statistics_equipment_findings_subtitle =>
+      'Offene Befunde je Regel';
+
+  @override
+  String get statistics_equipment_findings_empty => 'Keine offenen Befunde';
+
+  @override
+  String get statistics_equipment_issues_title => 'Gemeldete Probleme';
+
+  @override
+  String get statistics_equipment_issues_subtitle => 'Häufigste Check-in-Tags';
+
+  @override
+  String get statistics_equipment_issues_empty => 'Keine Probleme gemeldet';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'Teile';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'Befunde';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'Meldungen';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'Stunden';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => 'Salzwasserstunden';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'Kalte Tauchgänge';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours =>
+      'Stunden mit hohem O2';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'Tiefe Tauchgänge';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'Akkuzyklen';
+
+  @override
   String get statistics_error_loadingStatistics =>
       'Fehler beim Laden der Statistiken';
 

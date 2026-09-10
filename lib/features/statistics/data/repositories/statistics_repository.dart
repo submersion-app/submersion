@@ -2234,10 +2234,15 @@ class StatisticsRepository {
           e.name,
           e.type,
           e.brand,
-          COUNT(de.dive_id) AS use_count
+          COUNT(DISTINCT u.dive_id) AS use_count
         FROM equipment e
-        JOIN dive_equipment de ON de.equipment_id = e.id
-        JOIN dives d ON d.id = de.dive_id
+        JOIN (
+          SELECT dive_id, equipment_id FROM dive_equipment
+          UNION
+          SELECT dive_id, equipment_id FROM dive_tanks
+          WHERE equipment_id IS NOT NULL
+        ) u ON u.equipment_id = e.id
+        JOIN dives d ON d.id = u.dive_id
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY e.id
         ORDER BY use_count DESC

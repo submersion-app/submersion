@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_equipment_page.dart';
+import 'package:submersion/features/statistics/presentation/providers/equipment_condition_statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -25,6 +28,25 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
+          exposureRankingProvider.overrideWith(
+            (ref) async => [
+              RankingItem(id: 'reg', name: 'Apeks XTX', count: 12, value: 12.4),
+            ],
+          ),
+          findingsByRuleProvider.overrideWith(
+            (ref) async => [
+              RankingItem(
+                id: 'issueRecurring',
+                name: 'Recurring issue',
+                count: 2,
+              ),
+            ],
+          ),
+          issueTagRankingProvider.overrideWith(
+            (ref) async => [
+              RankingItem(id: 'freeFlow', name: 'Free flow', count: 3),
+            ],
+          ),
           weightTrendProvider.overrideWith(
             (ref) async => List.generate(
               20,
@@ -61,5 +83,28 @@ void main() {
 
     final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
     expect(chart.aggregation, TrendAggregation.none);
+  });
+
+  testWidgets('shows the three condition rankings', (tester) async {
+    await pumpPage(tester);
+    expect(find.text('Exposure'), findsOneWidget);
+    expect(find.text('Apeks XTX'), findsOneWidget);
+    expect(find.text('Condition findings'), findsOneWidget);
+    expect(find.text('Recurring issue'), findsOneWidget);
+    expect(find.text('Reported issues'), findsOneWidget);
+    expect(find.text('Free flow'), findsOneWidget);
+  });
+
+  testWidgets('the exposure unit dropdown switches the unit', (tester) async {
+    await pumpPage(tester);
+    final scope = ProviderScope.containerOf(
+      tester.element(find.byType(StatisticsEquipmentPage)),
+    );
+    expect(scope.read(exposureRankingUnitProvider), ExposureUnit.hours);
+    await tester.tap(find.byKey(const ValueKey('exposure-unit')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cold dives').last);
+    await tester.pumpAndSettle();
+    expect(scope.read(exposureRankingUnitProvider), ExposureUnit.coldDives);
   });
 }

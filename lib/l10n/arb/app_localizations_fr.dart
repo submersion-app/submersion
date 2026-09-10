@@ -19005,6 +19005,66 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'Tendance de lestage';
 
   @override
+  String get statistics_equipment_exposure_title => 'Exposition';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'Totaux par équipement avec vos seuils';
+
+  @override
+  String get statistics_equipment_exposure_empty =>
+      'Aucune plongée avec équipement pour l\'instant';
+
+  @override
+  String get statistics_equipment_findings_title => 'Constats d\'état';
+
+  @override
+  String get statistics_equipment_findings_subtitle =>
+      'Constats ouverts par règle';
+
+  @override
+  String get statistics_equipment_findings_empty => 'Aucun constat ouvert';
+
+  @override
+  String get statistics_equipment_issues_title => 'Problèmes signalés';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'Étiquettes de contrôle les plus fréquentes';
+
+  @override
+  String get statistics_equipment_issues_empty => 'Aucun problème signalé';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'équipements';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'constats';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'signalements';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'Heures';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours =>
+      'Heures en eau salée';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'Plongées froides';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'Heures à O2 élevé';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles =>
+      'Plongées profondes';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'Cycles de batterie';
+
+  @override
   String get statistics_error_loadingStatistics =>
       'Erreur de chargement des statistiques';
 

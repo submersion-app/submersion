@@ -17957,6 +17957,60 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => '配重趋势';
 
   @override
+  String get statistics_equipment_exposure_title => '使用暴露';
+
+  @override
+  String get statistics_equipment_exposure_subtitle => '按您的阈值统计每件装备的总量';
+
+  @override
+  String get statistics_equipment_exposure_empty => '尚无使用装备的潜水';
+
+  @override
+  String get statistics_equipment_findings_title => '状态发现';
+
+  @override
+  String get statistics_equipment_findings_subtitle => '按规则统计的未处理发现';
+
+  @override
+  String get statistics_equipment_findings_empty => '没有未处理的发现';
+
+  @override
+  String get statistics_equipment_issues_title => '已报告的问题';
+
+  @override
+  String get statistics_equipment_issues_subtitle => '最常见的检查标签';
+
+  @override
+  String get statistics_equipment_issues_empty => '未报告问题';
+
+  @override
+  String get statistics_equipment_countLabel_items => '件';
+
+  @override
+  String get statistics_equipment_countLabel_findings => '项';
+
+  @override
+  String get statistics_equipment_countLabel_reports => '条';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => '小时';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => '盐水小时';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => '冷水潜水';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => '高氧小时';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => '深潜';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => '电池循环';
+
+  @override
   String get statistics_error_loadingStatistics => '加载统计数据时出错';
 
   @override

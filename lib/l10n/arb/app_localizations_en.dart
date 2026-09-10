@@ -18603,6 +18603,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'Weight Trend';
 
   @override
+  String get statistics_equipment_exposure_title => 'Exposure';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'Totals per item with your thresholds';
+
+  @override
+  String get statistics_equipment_exposure_empty => 'No dives with gear yet';
+
+  @override
+  String get statistics_equipment_findings_title => 'Condition findings';
+
+  @override
+  String get statistics_equipment_findings_subtitle => 'Open findings by rule';
+
+  @override
+  String get statistics_equipment_findings_empty => 'No open findings';
+
+  @override
+  String get statistics_equipment_issues_title => 'Reported issues';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'Most frequent check-in tags';
+
+  @override
+  String get statistics_equipment_issues_empty => 'No issues reported';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'items';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'findings';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'reports';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'Hours';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => 'Salt-water hours';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'Cold dives';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'High-O2 hours';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'Deep dives';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'Battery cycles';
+
+  @override
   String get statistics_error_loadingStatistics => 'Error loading statistics';
 
   @override

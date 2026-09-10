@@ -18867,6 +18867,65 @@ class AppLocalizationsHu extends AppLocalizations {
   String get statistics_equipment_weightTrend_title => 'Suly trend';
 
   @override
+  String get statistics_equipment_exposure_title => 'Igénybevétel';
+
+  @override
+  String get statistics_equipment_exposure_subtitle =>
+      'Összegek eszközönként a küszöbeiddel';
+
+  @override
+  String get statistics_equipment_exposure_empty =>
+      'Még nincs merülés felszereléssel';
+
+  @override
+  String get statistics_equipment_findings_title => 'Állapotmegállapítások';
+
+  @override
+  String get statistics_equipment_findings_subtitle =>
+      'Nyitott megállapítások szabályonként';
+
+  @override
+  String get statistics_equipment_findings_empty =>
+      'Nincs nyitott megállapítás';
+
+  @override
+  String get statistics_equipment_issues_title => 'Bejelentett problémák';
+
+  @override
+  String get statistics_equipment_issues_subtitle =>
+      'Leggyakoribb ellenőrzési címkék';
+
+  @override
+  String get statistics_equipment_issues_empty => 'Nincs bejelentett probléma';
+
+  @override
+  String get statistics_equipment_countLabel_items => 'eszköz';
+
+  @override
+  String get statistics_equipment_countLabel_findings => 'megállapítás';
+
+  @override
+  String get statistics_equipment_countLabel_reports => 'bejelentés';
+
+  @override
+  String get statistics_equipment_exposureUnit_hours => 'Óra';
+
+  @override
+  String get statistics_equipment_exposureUnit_saltHours => 'Sósvízi óra';
+
+  @override
+  String get statistics_equipment_exposureUnit_coldDives => 'Hideg merülés';
+
+  @override
+  String get statistics_equipment_exposureUnit_o2Hours => 'Óra magas O2-vel';
+
+  @override
+  String get statistics_equipment_exposureUnit_deepCycles => 'Mély merülés';
+
+  @override
+  String get statistics_equipment_exposureUnit_cycles => 'Akkumulátorciklus';
+
+  @override
   String get statistics_error_loadingStatistics =>
       'Hiba a statisztikak betoltesekor';
 
