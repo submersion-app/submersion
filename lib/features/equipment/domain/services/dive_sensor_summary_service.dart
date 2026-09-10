@@ -250,11 +250,67 @@ class DiveSensorSummaryService {
     _ => null,
   };
 
-  /// Task 4 fills this in.
+  /// One [TransmitterGap] per tank whose series has at least two samples.
+  ///
+  /// The dive spans from the earlier of the profile start and the series
+  /// start to the later of their ends, so a transmitter that woke up late
+  /// or died early is charged for the span the depth series covered
+  /// without it.
   static List<TransmitterGap> transmitterGaps(
     List<ProfileSample> samples,
     List<TankSensorSeries> tanks,
-  ) => const [];
+  ) {
+    final profileStart = samples.isEmpty ? null : samples.first.timestamp;
+    final profileEnd = samples.isEmpty ? null : samples.last.timestamp;
+    final result = <TransmitterGap>[];
+    for (final tank in tanks) {
+      final series = tank.samples;
+      if (series.length < 2) continue;
+      final intervals = <double>[
+        for (var i = 1; i < series.length; i++)
+          (series[i].timestamp - series[i - 1].timestamp).toDouble(),
+      ];
+      final cadence = median(intervals);
+      if (cadence <= 0) continue;
+      final limit = cadence * gapCadenceFactor;
+
+      var gapSeconds = 0;
+      var gapCount = 0;
+      var longest = 0;
+      void account(int seconds) {
+        if (seconds <= limit) return;
+        gapSeconds += seconds;
+        gapCount++;
+        if (seconds > longest) longest = seconds;
+      }
+
+      for (final interval in intervals) {
+        account(interval.round());
+      }
+      final start = profileStart == null
+          ? series.first.timestamp
+          : math.min(profileStart, series.first.timestamp);
+      final end = profileEnd == null
+          ? series.last.timestamp
+          : math.max(profileEnd, series.last.timestamp);
+      account(series.first.timestamp - start);
+      account(end - series.last.timestamp);
+
+      result.add(
+        TransmitterGap(
+          tankId: tank.tankId,
+          transmitterSerial: tank.transmitterSerial,
+          computerId: tank.computerId,
+          cadenceSeconds: cadence,
+          gapSeconds: gapSeconds,
+          gapCount: gapCount,
+          longestGapSeconds: longest,
+          diveSeconds: end - start,
+        ),
+      );
+    }
+    return result;
+  }
 
   /// Median of a non-empty list. Even counts average the middle pair.
   static double median(List<double> values) {

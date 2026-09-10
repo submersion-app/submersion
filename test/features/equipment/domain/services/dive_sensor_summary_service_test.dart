@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 
 void main() {
@@ -314,6 +315,103 @@ void main() {
         cells(0, [1.0, null, 1.0]),
       ]);
       expect(metrics.map((m) => m.slot), [1, 3]);
+    });
+  });
+
+  group('transmitterGaps', () {
+    List<ProfileSample> depth(int endSeconds) => [
+      for (var t = 0; t <= endSeconds; t += 10)
+        ProfileSample(timestamp: t, depth: 20.0),
+    ];
+
+    TankSensorSeries tank(List<int> timestamps, {String id = 't1'}) =>
+        TankSensorSeries(
+          tankId: id,
+          transmitterSerial: '180777',
+          computerId: 'c1',
+          samples: [
+            for (final t in timestamps)
+              TankPressureSample(timestamp: t, pressure: 200.0),
+          ],
+        );
+
+    test('a clean series has no gaps and carries its identity', () {
+      final gaps = DiveSensorSummaryService.transmitterGaps(depth(100), [
+        tank([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]),
+      ]);
+      expect(gaps, hasLength(1));
+      final gap = gaps.single;
+      expect(gap.tankId, 't1');
+      expect(gap.transmitterSerial, '180777');
+      expect(gap.computerId, 'c1');
+      expect(gap.cadenceSeconds, 10);
+      expect(gap.gapSeconds, 0);
+      expect(gap.gapCount, 0);
+      expect(gap.longestGapSeconds, 0);
+      expect(gap.diveSeconds, 100);
+      expect(gap.gapFraction, 0);
+    });
+
+    test('an interval of exactly three cadences is not a gap', () {
+      final gaps = DiveSensorSummaryService.transmitterGaps(depth(60), [
+        tank([0, 10, 20, 50, 60]),
+      ]);
+      expect(gaps.single.gapCount, 0);
+    });
+
+    test('an interval longer than three cadences is a gap', () {
+      final gaps = DiveSensorSummaryService.transmitterGaps(depth(100), [
+        tank([0, 10, 20, 60, 70, 80, 90, 100]),
+      ]);
+      final gap = gaps.single;
+      expect(gap.cadenceSeconds, 10);
+      expect(gap.gapCount, 1);
+      expect(gap.gapSeconds, 40);
+      expect(gap.longestGapSeconds, 40);
+      expect(gap.gapFraction, closeTo(0.4, 1e-9));
+    });
+
+    test('several gaps accumulate and the longest is kept', () {
+      final gaps = DiveSensorSummaryService.transmitterGaps(depth(200), [
+        tank([0, 10, 20, 60, 70, 80, 90, 100, 190, 200]),
+      ]);
+      final gap = gaps.single;
+      expect(gap.gapCount, 2);
+      expect(gap.gapSeconds, 130);
+      expect(gap.longestGapSeconds, 90);
+    });
+
+    test('a series that stops while the profile continues is a gap', () {
+      final gaps = DiveSensorSummaryService.transmitterGaps(depth(200), [
+        tank([0, 10, 20, 30, 40, 50]),
+      ]);
+      final gap = gaps.single;
+      expect(gap.diveSeconds, 200);
+      expect(gap.gapCount, 1);
+      expect(gap.gapSeconds, 150);
+    });
+
+    test('a series that starts late is a gap too', () {
+      final gaps = DiveSensorSummaryService.transmitterGaps(depth(100), [
+        tank([60, 70, 80, 90, 100]),
+      ]);
+      expect(gaps.single.gapSeconds, 60);
+    });
+
+    test('without a profile the series span is the dive span', () {
+      final gaps = DiveSensorSummaryService.transmitterGaps(const [], [
+        tank([0, 10, 20, 30]),
+      ]);
+      expect(gaps.single.diveSeconds, 30);
+      expect(gaps.single.gapCount, 0);
+    });
+
+    test('a series with fewer than two samples is skipped', () {
+      final gaps = DiveSensorSummaryService.transmitterGaps(depth(100), [
+        tank([50]),
+        tank([0, 50, 100], id: 't2'),
+      ]);
+      expect(gaps.map((g) => g.tankId), ['t2']);
     });
   });
 }
