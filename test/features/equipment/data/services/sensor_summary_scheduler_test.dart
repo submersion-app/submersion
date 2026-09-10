@@ -76,6 +76,32 @@ void main() {
     expect(visited, isEmpty);
   });
 
+  test('a failing repository factory does not poison the queue', () async {
+    // The queue is one chained future. An error escaping the callback
+    // leaves _tail completed with it, and every later schedule chains onto
+    // a failed future and never runs: the scheduler is dead until restart.
+    var broken = true;
+    SensorSummaryScheduler.instance.repositoryFactory = () {
+      if (broken) throw StateError('database not initialized');
+      return DiveSensorSummaryRepository(
+        db: db,
+        runner: (input) async {
+          visited.add(input.diveId);
+          return computeSensorSummaryFromBlobs(input);
+        },
+      );
+    };
+
+    scheduleSensorSummaryRefresh(['d1']);
+    await SensorSummaryScheduler.instance.idle;
+    expect(visited, isEmpty);
+
+    broken = false;
+    scheduleSensorSummaryRefresh(['d2']);
+    await SensorSummaryScheduler.instance.idle;
+    expect(visited, ['d2']);
+  });
+
   test('a failing dive does not poison the queue', () async {
     SensorSummaryScheduler.instance.repositoryFactory = () =>
         DiveSensorSummaryRepository(
