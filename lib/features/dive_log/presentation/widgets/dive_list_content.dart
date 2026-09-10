@@ -1996,18 +1996,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       decoration: BoxDecoration(
         // The band is the only thing besides the header marking the group,
         // now that the side rail was dropped, so it has to be legible rather
-        // than merely present. The original 0.14 fill read as almost nothing
-        // on a real library.
-        color: scheme.secondaryContainer.withValues(alpha: 0.38),
+        // than merely present.
+        //
+        // Checked on a simulator rather than guessed at. The dive cards are
+        // near-white and nearly fill the band's width, so only the margins
+        // and the gaps between cards show the tint at all: a faint alpha
+        // reads as nothing, and raising it a little only darkens thin
+        // slivers. It takes close to the full container colour for the group
+        // to read as one block. 0.14 and 0.38 were both too weak on device.
+        color: scheme.secondaryContainer.withValues(alpha: 0.9),
         border: Border(
-          top: BorderSide(
-            color: scheme.secondary.withValues(alpha: 0.55),
-            width: 1.5,
-          ),
-          bottom: BorderSide(
-            color: scheme.secondary.withValues(alpha: 0.55),
-            width: 1.5,
-          ),
+          top: BorderSide(color: scheme.secondary, width: 2),
+          bottom: BorderSide(color: scheme.secondary, width: 2),
         ),
       ),
       sliver: SliverMainAxisGroup(
