@@ -78,6 +78,12 @@ enum _BulkExportFormat { pdf, csv, uddf }
 ///
 /// This widget contains the core list functionality extracted from DiveListPage.
 /// It can be used standalone (mobile) or as the master pane in a split view (desktop).
+/// Height of the grouping-paused notice row, when it is showing.
+const double _kGroupingPausedNoticeHeight = 48;
+
+/// Trailing spacer that keeps the last row clear of the FAB.
+const double _kListBottomSpacer = 80;
+
 class DiveListContent extends ConsumerStatefulWidget {
   /// Callback when an item is selected. Used in master-detail mode.
   final void Function(String?)? onItemSelected;
@@ -136,6 +142,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   DiveMergeOutcome? _lastMergeOutcome;
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
+
+  /// The sections the list rendered on its last build.
+  ///
+  /// Read only by [_scrollToSelectedItem], which has to know how much of the
+  /// scrollable height is trip-group chrome rather than dive rows, and which
+  /// dives are folded away and so occupy none of it (#1193).
+  List<DiveListSection> _lastSections = const [];
+
+  /// Whether the last build showed the grouping-paused notice, which sits
+  /// above every row and shifts them all down.
+  bool _lastShowedPausedNotice = false;
 
   /// True while a kick from the loader row is waiting for the frame to end.
   ///
@@ -256,6 +273,26 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// when omitted. An explicit id lets callers (e.g. the combine flow) scroll
   /// to a freshly created row without depending on when the URL selection
   /// propagates.
+  /// How many pinned trip headers sit above [diveId] in the current layout.
+  ///
+  /// A header before the target adds its own extent to the target's offset,
+  /// which a flat average over dive rows cannot account for.
+  int _headerCountBefore(String diveId) {
+    var headers = 0;
+    for (final section in _lastSections) {
+      if (section is TripSection) {
+        headers++;
+        if (!section.collapsed &&
+            section.entries.any((e) => e.dive.id == diveId)) {
+          return headers;
+        }
+      } else if (section.entries.any((e) => e.dive.id == diveId)) {
+        return headers;
+      }
+    }
+    return headers;
+  }
+
   void _scrollToSelectedItem([String? overrideId]) {
     final targetId = overrideId ?? widget.selectedId;
     if (targetId == null) return;
@@ -273,14 +310,40 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           final maxScroll = _scrollController.position.maxScrollExtent;
           final viewportHeight = _scrollController.position.viewportDimension;
 
-          // Calculate actual average item height from scroll geometry
-          // Total content = viewport + max scroll extent
-          // Subtract bottom padding (80px) from total to get actual list content height
-          final totalContentHeight = maxScroll + viewportHeight - 80;
-          final avgItemHeight = totalContentHeight / dives.length;
+          // Rows are built lazily, so there is no exact offset to read; this
+          // estimates one from scroll geometry. With trip grouping the
+          // scrollable also carries chrome that is not a dive row (a pinned
+          // header per group, the paused notice, the bottom spacer), and a
+          // dive folded inside a collapsed trip occupies no height at all.
+          // Averaging raw height over every loaded dive would count that
+          // chrome as dive rows and count hidden dives as if they were
+          // visible, landing the scroll well off target (#1193).
+          final visible = visibleDivesOf(_lastSections);
+          final visibleIndex = visible.indexWhere((d) => d.id == targetId);
+          if (visibleIndex < 0 || visible.isEmpty) return;
 
-          // Target position: put item 1/3 from top of viewport for comfortable viewing
-          final targetOffset = (index * avgItemHeight) - (viewportHeight / 3);
+          final headerExtent = tripGroupHeaderExtent(context);
+          final headerCount = _lastSections.whereType<TripSection>().length;
+          final noticeHeight = _lastShowedPausedNotice
+              ? _kGroupingPausedNoticeHeight
+              : 0.0;
+          final chromeHeight =
+              headerCount * headerExtent + noticeHeight + _kListBottomSpacer;
+
+          // Whatever is left is dive rows, spread over the visible ones.
+          final rowsHeight = maxScroll + viewportHeight - chromeHeight;
+          final avgItemHeight = rowsHeight <= 0
+              ? 0.0
+              : rowsHeight / visible.length;
+
+          // Headers above the target push it further down the scrollable.
+          final headersBefore = _headerCountBefore(targetId);
+
+          final targetOffset =
+              noticeHeight +
+              headersBefore * headerExtent +
+              visibleIndex * avgItemHeight -
+              (viewportHeight / 3);
           final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
           _scrollController.animateTo(
@@ -1633,6 +1696,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       tripTotals: tripTotals,
       forceExpandedTripId: openDiveTripId,
     );
+    _lastSections = sections;
+    _lastShowedPausedNotice = ref.watch(diveListGroupingPausedBySortProvider);
 
     // Taps, ranges and prev/next walk what the diver can actually see, so a
     // shift-range never sweeps up rows folded inside a collapsed trip.
@@ -1704,7 +1769,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     child: _buildTrailingRow(context, paginatedState),
                   ),
                 // Clears the FAB, matching the old list's bottom padding.
-                const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: _kListBottomSpacer),
+                ),
               ],
             ),
           ),
