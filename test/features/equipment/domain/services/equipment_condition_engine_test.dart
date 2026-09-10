@@ -9,6 +9,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_observat
 import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_condition_engine.dart';
+import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 
 void main() {
@@ -474,6 +476,47 @@ void main() {
       expect(found.evidence.tag, 'freeFlow');
       expect(found.evidence.diveIds, unorderedEquals(['d10', 'd12', 'd20']));
       expect(found.evidence.n, 20);
+    });
+
+    test('a dive exactly on a threshold sides with the classifier', () {
+      // These two comparisons are deliberately bare, unlike the rule
+      // boundaries that carry _epsilon: those weigh a COMPUTED median,
+      // mean or ratio, where accumulated error can straddle a round
+      // number. Here a stored reading meets a diver-set threshold with no
+      // arithmetic on either side, and the answer has to be the one
+      // ExposureClassifier gives, or the same dive would count as cold for
+      // the exposure total and warm for this rule.
+      const thresholds = ExposureThresholds.defaults;
+      const classifier = ExposureClassifier(thresholds: thresholds);
+      final atCold = sample(0, minTemp: thresholds.coldWaterC);
+      final atDeep = sample(1, maxDepth: thresholds.deepDiveM);
+
+      // Cold is strictly below the line, deep is at it or beyond.
+      expect(classifier.contribution(atCold, ExposureUnit.coldDives), 0);
+      expect(classifier.contribution(atDeep, ExposureUnit.deepCycles), 1);
+
+      // The rule agrees: five dives exactly on the cold line are all warm,
+      // so a cold correlation has nothing on its cold side to report.
+      final onTheLine = [
+        for (var i = 0; i < 5; i++) sample(i, minTemp: thresholds.coldWaterC),
+        for (var i = 5; i < 10; i++) sample(i, minTemp: 25),
+      ];
+      expect(
+        of(
+          engine.evaluate(
+            input(
+              item: item('reg', EquipmentType.regulator),
+              samples: onTheLine,
+              observations: [
+                for (var i = 0; i < 3; i++)
+                  issue('o$i', 'reg', 'd$i', ObservationTag.freeFlow),
+              ],
+            ),
+          ),
+          ConditionRuleId.issueColdCorrelated,
+        ),
+        isEmpty,
+      );
     });
 
     test('issueColdCorrelated needs 5 dives each side and 3 cold issues', () {
