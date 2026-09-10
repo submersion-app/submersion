@@ -99,6 +99,7 @@ class EquipmentFindingsRepository {
     required String inputFingerprint,
     required List<EquipmentFinding> findings,
     required int engineVersion,
+    Map<String, DateTime> diveDates = const {},
     required DateTime now,
   }) async {
     final nowMs = now.millisecondsSinceEpoch;
@@ -122,12 +123,22 @@ class EquipmentFindingsRepository {
             // "new dives" is always measured from the dismissal, not from
             // the last recompute. Once enough arrive, the row updates and
             // clears in one step.
+            //
+            // The dive must also have HAPPENED after the dismissal, per
+            // the spec. Counting any unseen id would let an imported
+            // logbook or a restore clear every dismissal at once, which is
+            // the opposite of what dismissing one asked for. A dive whose
+            // date the caller did not supply cannot be shown to be newer,
+            // so it does not count.
+            final dismissedMs = dismissedAt;
             final oldIds =
                 FindingEvidence.decode(old.evidence)?.diveIds.toSet() ??
                 const <String>{};
-            final newIds = finding.evidence.diveIds
-                .where((id) => !oldIds.contains(id))
-                .length;
+            final newIds = finding.evidence.diveIds.where((id) {
+              if (oldIds.contains(id)) return false;
+              final date = diveDates[id];
+              return date != null && date.millisecondsSinceEpoch > dismissedMs;
+            }).length;
             if (newIds < dismissalClearsAfterNewDives) continue;
             dismissedAt = null;
           }
