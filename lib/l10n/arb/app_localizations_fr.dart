@@ -27049,6 +27049,55 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de reconstruire les synthèses des capteurs.';
 
   @override
+  String get equipmentConditionSettings_masterToggle => 'Constats d\'état';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'Signale les tendances de la sortie des cellules, des pertes de signal de l\'émetteur et des problèmes signalés, avec les chiffres à l\'appui';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => 'Règles';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'Sortie de cellule en baisse';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow =>
+      'Sortie de cellule faible';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'Cellule en désaccord avec les autres';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'Cellule limitée en courant à ppO2 élevée';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'Pertes de signal de l\'émetteur en hausse';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'Pertes de signal de l\'émetteur élevées';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring =>
+      'Problème récurrent';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'Problèmes lors des plongées froides';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'Problèmes lors des plongées profondes';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked => 'Incidents liés';
+
+  @override
   String get equipmentObservation_tag_freeFlow => 'Débit continu';
 
   @override

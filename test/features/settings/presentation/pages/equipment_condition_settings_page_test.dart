@@ -167,6 +167,90 @@ void main() {
       );
     });
   });
+
+  group('condition engine toggles', () {
+    SwitchListTile switchFor(WidgetTester tester, String label) => tester
+        .widget<SwitchListTile>(find.widgetWithText(SwitchListTile, label));
+
+    Future<void> pumpTall(WidgetTester tester, MockSettingsNotifier n) async {
+      // The page is a ListView; a tall surface builds every tile.
+      tester.view.physicalSize = const Size(2400, 9000);
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(_build(n));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('shows the master switch and one per rule, all on', (
+      tester,
+    ) async {
+      await pumpTall(tester, MockSettingsNotifier());
+      expect(find.byType(SwitchListTile), findsNWidgets(11));
+      expect(find.text('Condition findings'), findsOneWidget);
+      expect(find.text('Rules'), findsOneWidget);
+      for (final label in [
+        'Cell output declining',
+        'Cell output low',
+        'Cell disagrees with its peers',
+        'Cell current-limited at high ppO2',
+        'Transmitter dropouts rising',
+        'Transmitter dropouts high',
+        'Recurring issue',
+        'Issues on cold dives',
+        'Issues on deep dives',
+        'Linked incidents',
+      ]) {
+        expect(switchFor(tester, label).value, isTrue, reason: label);
+        expect(switchFor(tester, label).onChanged, isNotNull, reason: label);
+      }
+    });
+
+    testWidgets('the master switch writes the setting and locks the rules', (
+      tester,
+    ) async {
+      final notifier = MockSettingsNotifier();
+      await pumpTall(tester, notifier);
+      await tester.tap(
+        find.widgetWithText(SwitchListTile, 'Condition findings'),
+      );
+      await tester.pumpAndSettle();
+      expect(notifier.state.conditionEngineEnabled, isFalse);
+      expect(switchFor(tester, 'Condition findings').value, isFalse);
+      expect(switchFor(tester, 'Cell output low').onChanged, isNull);
+      // A rule's own state survives the master being off.
+      expect(switchFor(tester, 'Cell output low').value, isTrue);
+    });
+
+    testWidgets('a rule switch records the rule as disabled and back', (
+      tester,
+    ) async {
+      final notifier = MockSettingsNotifier();
+      await pumpTall(tester, notifier);
+      await tester.tap(find.widgetWithText(SwitchListTile, 'Cell output low'));
+      await tester.pumpAndSettle();
+      expect(notifier.state.conditionDisabledRules, {'cellOutputLow'});
+      expect(switchFor(tester, 'Cell output low').value, isFalse);
+      expect(switchFor(tester, 'Cell output declining').value, isTrue);
+      await tester.tap(find.widgetWithText(SwitchListTile, 'Cell output low'));
+      await tester.pumpAndSettle();
+      expect(notifier.state.conditionDisabledRules, isEmpty);
+    });
+
+    testWidgets('rules start locked when the master is off', (tester) async {
+      await pumpTall(
+        tester,
+        MockSettingsNotifier(
+          const AppSettings(
+            conditionEngineEnabled: false,
+            conditionDisabledRules: {'incidentLinked'},
+          ),
+        ),
+      );
+      expect(switchFor(tester, 'Condition findings').value, isFalse);
+      expect(switchFor(tester, 'Linked incidents').value, isFalse);
+      expect(switchFor(tester, 'Linked incidents').onChanged, isNull);
+      expect(switchFor(tester, 'Recurring issue').onChanged, isNull);
+    });
+  });
 }
 
 class _FakeSweep implements EquipmentConditionSweep {
@@ -184,6 +268,7 @@ class _FakeSweep implements EquipmentConditionSweep {
     String? diverId,
     List<String>? diveIds,
     bool force = false,
+    bool findings = true,
     void Function(int done, int total)? onProgress,
     bool Function()? isCancelled,
   }) => _run(diverId, force, onProgress);

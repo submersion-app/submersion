@@ -26844,6 +26844,56 @@ class AppLocalizationsHu extends AppLocalizations {
       'A szenzor-összegzéseket nem sikerült újraépíteni.';
 
   @override
+  String get equipmentConditionSettings_masterToggle => 'Állapotmegállapítások';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'Jelzi a cellakimenet, az adókimaradások és a bejelentett problémák trendjeit, a mögöttük álló számokkal';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => 'Szabályok';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'Csökkenő cellakimenet';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow =>
+      'Alacsony cellakimenet';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'A cella eltér a többitől';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'Áramkorlátozott cella magas ppO2-nél';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'Növekvő adókimaradások';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'Sok adókimaradás';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring =>
+      'Visszatérő probléma';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'Problémák hideg merüléseken';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'Problémák mély merüléseken';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked =>
+      'Kapcsolódó események';
+
+  @override
   String get equipmentObservation_tag_freeFlow => 'Szabadáramlás';
 
   @override

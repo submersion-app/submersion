@@ -26951,6 +26951,56 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile ricostruire i riepiloghi dei sensori.';
 
   @override
+  String get equipmentConditionSettings_masterToggle => 'Rilievi sullo stato';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'Segnala le tendenze dell\'uscita delle celle, delle perdite di segnale del trasmettitore e dei problemi registrati, con i numeri a supporto';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => 'Regole';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'Uscita della cella in calo';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow =>
+      'Uscita della cella bassa';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'La cella discorda dalle altre';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'Cella limitata in corrente ad alta ppO2';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'Perdite di segnale del trasmettitore in aumento';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'Perdite di segnale del trasmettitore elevate';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring =>
+      'Problema ricorrente';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'Problemi nelle immersioni fredde';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'Problemi nelle immersioni profonde';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked =>
+      'Incidenti collegati';
+
+  @override
   String get equipmentObservation_tag_freeFlow => 'Erogazione continua';
 
   @override

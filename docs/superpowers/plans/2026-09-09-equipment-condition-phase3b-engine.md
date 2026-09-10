@@ -315,4 +315,181 @@ Commit `feat(settings): condition engine master and rule toggles (condition phas
 
 ## Translation Appendix
 
-Filled in at Task 11 execution time with the strings that shipped, per locale, like the phase 3a plan.
+Shipped at Task 11, 13 keys under `equipmentConditionSettings_`, anchored after `equipmentConditionSettings_rebuild_failed` in all 11 files.
+
+### en
+
+- `masterToggle`: Condition findings
+- `masterToggle_subtitle`: Report trends in cell output, transmitter dropouts and reported issues, with the numbers behind them
+- `rulesHeader`: Rules
+- `rule_cellOutputDeclining`: Cell output declining
+- `rule_cellOutputLow`: Cell output low
+- `rule_cellDivergent`: Cell disagrees with its peers
+- `rule_cellCurrentLimited`: Cell current-limited at high ppO2
+- `rule_transmitterDropoutRising`: Transmitter dropouts rising
+- `rule_transmitterDropoutHigh`: Transmitter dropouts high
+- `rule_issueRecurring`: Recurring issue
+- `rule_issueColdCorrelated`: Issues on cold dives
+- `rule_issueDeepCorrelated`: Issues on deep dives
+- `rule_incidentLinked`: Linked incidents
+
+### es
+
+- `masterToggle`: Hallazgos de estado
+- `masterToggle_subtitle`: Informa de tendencias en la salida de las celdas, pérdidas de señal del transmisor y problemas registrados, con las cifras que las respaldan
+- `rulesHeader`: Reglas
+- `rule_cellOutputDeclining`: Salida de la celda en descenso
+- `rule_cellOutputLow`: Salida de la celda baja
+- `rule_cellDivergent`: La celda discrepa de sus pares
+- `rule_cellCurrentLimited`: Celda limitada por corriente a ppO2 alta
+- `rule_transmitterDropoutRising`: Pérdidas de señal del transmisor en aumento
+- `rule_transmitterDropoutHigh`: Pérdidas de señal del transmisor elevadas
+- `rule_issueRecurring`: Problema recurrente
+- `rule_issueColdCorrelated`: Problemas en inmersiones frías
+- `rule_issueDeepCorrelated`: Problemas en inmersiones profundas
+- `rule_incidentLinked`: Incidentes vinculados
+
+### de
+
+- `masterToggle`: Zustandsbefunde
+- `masterToggle_subtitle`: Meldet Trends bei Zellenausgang, Senderaussetzern und gemeldeten Problemen, mit den Zahlen dahinter
+- `rulesHeader`: Regeln
+- `rule_cellOutputDeclining`: Zellenausgang sinkt
+- `rule_cellOutputLow`: Zellenausgang niedrig
+- `rule_cellDivergent`: Zelle weicht von den anderen ab
+- `rule_cellCurrentLimited`: Zelle strombegrenzt bei hohem ppO2
+- `rule_transmitterDropoutRising`: Senderaussetzer nehmen zu
+- `rule_transmitterDropoutHigh`: Senderaussetzer hoch
+- `rule_issueRecurring`: Wiederkehrendes Problem
+- `rule_issueColdCorrelated`: Probleme bei kalten Tauchgängen
+- `rule_issueDeepCorrelated`: Probleme bei tiefen Tauchgängen
+- `rule_incidentLinked`: Verknüpfte Vorfälle
+
+### fr
+
+- `masterToggle`: Constats d'état
+- `masterToggle_subtitle`: Signale les tendances de la sortie des cellules, des pertes de signal de l'émetteur et des problèmes signalés, avec les chiffres à l'appui
+- `rulesHeader`: Règles
+- `rule_cellOutputDeclining`: Sortie de cellule en baisse
+- `rule_cellOutputLow`: Sortie de cellule faible
+- `rule_cellDivergent`: Cellule en désaccord avec les autres
+- `rule_cellCurrentLimited`: Cellule limitée en courant à ppO2 élevée
+- `rule_transmitterDropoutRising`: Pertes de signal de l'émetteur en hausse
+- `rule_transmitterDropoutHigh`: Pertes de signal de l'émetteur élevées
+- `rule_issueRecurring`: Problème récurrent
+- `rule_issueColdCorrelated`: Problèmes lors des plongées froides
+- `rule_issueDeepCorrelated`: Problèmes lors des plongées profondes
+- `rule_incidentLinked`: Incidents liés
+
+### it
+
+- `masterToggle`: Rilievi sullo stato
+- `masterToggle_subtitle`: Segnala le tendenze dell'uscita delle celle, delle perdite di segnale del trasmettitore e dei problemi registrati, con i numeri a supporto
+- `rulesHeader`: Regole
+- `rule_cellOutputDeclining`: Uscita della cella in calo
+- `rule_cellOutputLow`: Uscita della cella bassa
+- `rule_cellDivergent`: La cella discorda dalle altre
+- `rule_cellCurrentLimited`: Cella limitata in corrente ad alta ppO2
+- `rule_transmitterDropoutRising`: Perdite di segnale del trasmettitore in aumento
+- `rule_transmitterDropoutHigh`: Perdite di segnale del trasmettitore elevate
+- `rule_issueRecurring`: Problema ricorrente
+- `rule_issueColdCorrelated`: Problemi nelle immersioni fredde
+- `rule_issueDeepCorrelated`: Problemi nelle immersioni profonde
+- `rule_incidentLinked`: Incidenti collegati
+
+### pt
+
+- `masterToggle`: Constatações de estado
+- `masterToggle_subtitle`: Relata tendências na saída das células, falhas de sinal do transmissor e problemas registados, com os números por trás
+- `rulesHeader`: Regras
+- `rule_cellOutputDeclining`: Saída da célula em queda
+- `rule_cellOutputLow`: Saída da célula baixa
+- `rule_cellDivergent`: Célula discorda das outras
+- `rule_cellCurrentLimited`: Célula limitada por corrente a ppO2 alta
+- `rule_transmitterDropoutRising`: Falhas de sinal do transmissor a aumentar
+- `rule_transmitterDropoutHigh`: Falhas de sinal do transmissor elevadas
+- `rule_issueRecurring`: Problema recorrente
+- `rule_issueColdCorrelated`: Problemas em mergulhos frios
+- `rule_issueDeepCorrelated`: Problemas em mergulhos profundos
+- `rule_incidentLinked`: Incidentes associados
+
+### nl
+
+- `masterToggle`: Conditiebevindingen
+- `masterToggle_subtitle`: Meldt trends in celuitvoer, zenderuitval en gemelde problemen, met de cijfers erachter
+- `rulesHeader`: Regels
+- `rule_cellOutputDeclining`: Celuitvoer daalt
+- `rule_cellOutputLow`: Celuitvoer laag
+- `rule_cellDivergent`: Cel wijkt af van de andere
+- `rule_cellCurrentLimited`: Cel stroombegrensd bij hoge ppO2
+- `rule_transmitterDropoutRising`: Zenderuitval neemt toe
+- `rule_transmitterDropoutHigh`: Zenderuitval hoog
+- `rule_issueRecurring`: Terugkerend probleem
+- `rule_issueColdCorrelated`: Problemen bij koude duiken
+- `rule_issueDeepCorrelated`: Problemen bij diepe duiken
+- `rule_incidentLinked`: Gekoppelde incidenten
+
+### hu
+
+- `masterToggle`: Állapotmegállapítások
+- `masterToggle_subtitle`: Jelzi a cellakimenet, az adókimaradások és a bejelentett problémák trendjeit, a mögöttük álló számokkal
+- `rulesHeader`: Szabályok
+- `rule_cellOutputDeclining`: Csökkenő cellakimenet
+- `rule_cellOutputLow`: Alacsony cellakimenet
+- `rule_cellDivergent`: A cella eltér a többitől
+- `rule_cellCurrentLimited`: Áramkorlátozott cella magas ppO2-nél
+- `rule_transmitterDropoutRising`: Növekvő adókimaradások
+- `rule_transmitterDropoutHigh`: Sok adókimaradás
+- `rule_issueRecurring`: Visszatérő probléma
+- `rule_issueColdCorrelated`: Problémák hideg merüléseken
+- `rule_issueDeepCorrelated`: Problémák mély merüléseken
+- `rule_incidentLinked`: Kapcsolódó események
+
+### ar
+
+- `masterToggle`: نتائج الحالة
+- `masterToggle_subtitle`: يُبلغ عن اتجاهات خرج الخلايا وانقطاعات جهاز الإرسال والمشكلات المسجّلة، مع الأرقام التي تدعمها
+- `rulesHeader`: القواعد
+- `rule_cellOutputDeclining`: خرج الخلية في انخفاض
+- `rule_cellOutputLow`: خرج الخلية منخفض
+- `rule_cellDivergent`: الخلية تختلف عن نظيراتها
+- `rule_cellCurrentLimited`: الخلية محدودة التيار عند ppO2 مرتفع
+- `rule_transmitterDropoutRising`: انقطاعات جهاز الإرسال في ازدياد
+- `rule_transmitterDropoutHigh`: انقطاعات جهاز الإرسال مرتفعة
+- `rule_issueRecurring`: مشكلة متكررة
+- `rule_issueColdCorrelated`: مشكلات في الغطسات الباردة
+- `rule_issueDeepCorrelated`: مشكلات في الغطسات العميقة
+- `rule_incidentLinked`: حوادث مرتبطة
+
+### he
+
+- `masterToggle`: ממצאי מצב
+- `masterToggle_subtitle`: מדווח על מגמות בפלט התאים, בנפילות המשדר ובתקלות שדווחו, עם המספרים שמאחוריהן
+- `rulesHeader`: כללים
+- `rule_cellOutputDeclining`: פלט התא יורד
+- `rule_cellOutputLow`: פלט התא נמוך
+- `rule_cellDivergent`: התא חורג מהאחרים
+- `rule_cellCurrentLimited`: התא מוגבל זרם ב-ppO2 גבוה
+- `rule_transmitterDropoutRising`: נפילות המשדר במגמת עלייה
+- `rule_transmitterDropoutHigh`: נפילות המשדר רבות
+- `rule_issueRecurring`: תקלה חוזרת
+- `rule_issueColdCorrelated`: תקלות בצלילות קרות
+- `rule_issueDeepCorrelated`: תקלות בצלילות עמוקות
+- `rule_incidentLinked`: אירועים מקושרים
+
+### zh
+
+- `masterToggle`: 状态发现
+- `masterToggle_subtitle`: 报告电池输出、发射器断连和已记录问题的趋势，并附上背后的数据
+- `rulesHeader`: 规则
+- `rule_cellOutputDeclining`: 电池输出下降
+- `rule_cellOutputLow`: 电池输出偏低
+- `rule_cellDivergent`: 电池与其他电池不一致
+- `rule_cellCurrentLimited`: 高 ppO2 下电池电流受限
+- `rule_transmitterDropoutRising`: 发射器断连增多
+- `rule_transmitterDropoutHigh`: 发射器断连频繁
+- `rule_issueRecurring`: 反复出现的问题
+- `rule_issueColdCorrelated`: 冷水潜水中的问题
+- `rule_issueDeepCorrelated`: 深潜中的问题
+- `rule_incidentLinked`: 关联事件
+

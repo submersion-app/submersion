@@ -26501,6 +26501,55 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not rebuild the sensor summaries.';
 
   @override
+  String get equipmentConditionSettings_masterToggle => 'Condition findings';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'Report trends in cell output, transmitter dropouts and reported issues, with the numbers behind them';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => 'Rules';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'Cell output declining';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow => 'Cell output low';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'Cell disagrees with its peers';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'Cell current-limited at high ppO2';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'Transmitter dropouts rising';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'Transmitter dropouts high';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring =>
+      'Recurring issue';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'Issues on cold dives';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'Issues on deep dives';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked =>
+      'Linked incidents';
+
+  @override
   String get equipmentObservation_tag_freeFlow => 'Free flow';
 
   @override

@@ -26900,6 +26900,56 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Sensorzusammenfassungen konnten nicht neu erstellt werden.';
 
   @override
+  String get equipmentConditionSettings_masterToggle => 'Zustandsbefunde';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'Meldet Trends bei Zellenausgang, Senderaussetzern und gemeldeten Problemen, mit den Zahlen dahinter';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => 'Regeln';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'Zellenausgang sinkt';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow =>
+      'Zellenausgang niedrig';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'Zelle weicht von den anderen ab';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'Zelle strombegrenzt bei hohem ppO2';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'Senderaussetzer nehmen zu';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'Senderaussetzer hoch';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring =>
+      'Wiederkehrendes Problem';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'Probleme bei kalten Tauchgängen';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'Probleme bei tiefen Tauchgängen';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked =>
+      'Verknüpfte Vorfälle';
+
+  @override
   String get equipmentObservation_tag_freeFlow => 'Abblasen';
 
   @override

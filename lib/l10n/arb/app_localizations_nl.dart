@@ -26748,6 +26748,55 @@ class AppLocalizationsNl extends AppLocalizations {
       'De sensorsamenvattingen konden niet opnieuw worden opgebouwd.';
 
   @override
+  String get equipmentConditionSettings_masterToggle => 'Conditiebevindingen';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'Meldt trends in celuitvoer, zenderuitval en gemelde problemen, met de cijfers erachter';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => 'Regels';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'Celuitvoer daalt';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow => 'Celuitvoer laag';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'Cel wijkt af van de andere';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'Cel stroombegrensd bij hoge ppO2';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'Zenderuitval neemt toe';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'Zenderuitval hoog';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring =>
+      'Terugkerend probleem';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'Problemen bij koude duiken';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'Problemen bij diepe duiken';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked =>
+      'Gekoppelde incidenten';
+
+  @override
   String get equipmentObservation_tag_freeFlow => 'Vrije flow';
 
   @override

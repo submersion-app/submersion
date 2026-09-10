@@ -26285,6 +26285,54 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה לבנות מחדש את סיכומי החיישנים.';
 
   @override
+  String get equipmentConditionSettings_masterToggle => 'ממצאי מצב';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'מדווח על מגמות בפלט התאים, בנפילות המשדר ובתקלות שדווחו, עם המספרים שמאחוריהן';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => 'כללים';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'פלט התא יורד';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow => 'פלט התא נמוך';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'התא חורג מהאחרים';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'התא מוגבל זרם ב-ppO2 גבוה';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'נפילות המשדר במגמת עלייה';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'נפילות המשדר רבות';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring => 'תקלה חוזרת';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'תקלות בצלילות קרות';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'תקלות בצלילות עמוקות';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked =>
+      'אירועים מקושרים';
+
+  @override
   String get equipmentObservation_tag_freeFlow => 'זרימה חופשית';
 
   @override

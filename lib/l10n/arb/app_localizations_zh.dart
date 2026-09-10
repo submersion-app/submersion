@@ -25562,6 +25562,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_rebuild_failed => '无法重建传感器摘要。';
 
   @override
+  String get equipmentConditionSettings_masterToggle => '状态发现';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      '报告电池输出、发射器断连和已记录问题的趋势，并附上背后的数据';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => '规则';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining => '电池输出下降';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow => '电池输出偏低';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent => '电池与其他电池不一致';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      '高 ppO2 下电池电流受限';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      '发射器断连增多';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      '发射器断连频繁';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring => '反复出现的问题';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated => '冷水潜水中的问题';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated => '深潜中的问题';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked => '关联事件';
+
+  @override
   String get equipmentObservation_tag_freeFlow => '自由流';
 
   @override

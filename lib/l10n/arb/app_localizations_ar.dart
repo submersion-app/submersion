@@ -26473,6 +26473,54 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّرت إعادة بناء ملخصات المستشعرات.';
 
   @override
+  String get equipmentConditionSettings_masterToggle => 'نتائج الحالة';
+
+  @override
+  String get equipmentConditionSettings_masterToggle_subtitle =>
+      'يُبلغ عن اتجاهات خرج الخلايا وانقطاعات جهاز الإرسال والمشكلات المسجّلة، مع الأرقام التي تدعمها';
+
+  @override
+  String get equipmentConditionSettings_rulesHeader => 'القواعد';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputDeclining =>
+      'خرج الخلية في انخفاض';
+
+  @override
+  String get equipmentConditionSettings_rule_cellOutputLow =>
+      'خرج الخلية منخفض';
+
+  @override
+  String get equipmentConditionSettings_rule_cellDivergent =>
+      'الخلية تختلف عن نظيراتها';
+
+  @override
+  String get equipmentConditionSettings_rule_cellCurrentLimited =>
+      'الخلية محدودة التيار عند ppO2 مرتفع';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutRising =>
+      'انقطاعات جهاز الإرسال في ازدياد';
+
+  @override
+  String get equipmentConditionSettings_rule_transmitterDropoutHigh =>
+      'انقطاعات جهاز الإرسال مرتفعة';
+
+  @override
+  String get equipmentConditionSettings_rule_issueRecurring => 'مشكلة متكررة';
+
+  @override
+  String get equipmentConditionSettings_rule_issueColdCorrelated =>
+      'مشكلات في الغطسات الباردة';
+
+  @override
+  String get equipmentConditionSettings_rule_issueDeepCorrelated =>
+      'مشكلات في الغطسات العميقة';
+
+  @override
+  String get equipmentConditionSettings_rule_incidentLinked => 'حوادث مرتبطة';
+
+  @override
   String get equipmentObservation_tag_freeFlow => 'تدفق حر';
 
   @override
