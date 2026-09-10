@@ -179,6 +179,62 @@ void main() {
       );
     });
 
+    test('same-instant evidence keeps one order whatever the input order', () {
+      // The rule splits the dives into cold and warm and joins the two
+      // back together. Sorting that by date alone leaves every tie in
+      // bucket order, which is not the dive order. The encoded evidence
+      // keeps whatever order comes out, and saveReview compares the
+      // encoding, so a shifted split would rewrite and re-sync the row.
+      List<String> idsFor(List<EquipmentExposureSample> ordered) {
+        final found = of(
+          engine.evaluate(
+            input(
+              item: item('reg', EquipmentType.regulator),
+              samples: ordered,
+              observations: [
+                for (var i = 0; i < 6; i += 2)
+                  issue('o$i', 'reg', 'd$i', ObservationTag.freeFlow),
+              ],
+            ),
+          ),
+          ConditionRuleId.issueColdCorrelated,
+        );
+        return found.single.evidence.diveIds;
+      }
+
+      // Five cold and five warm dives, every one on the same instant,
+      // interleaved so the cold group followed by the warm group is not
+      // the same order as the dive ids.
+      EquipmentExposureSample tiedSample(int i, double temp) =>
+          EquipmentExposureSample(
+            diveId: 'd$i',
+            date: DateTime.utc(2026, 1, 1),
+            durationSeconds: 3000,
+            minTemperature: temp,
+            maxDepth: 15,
+            updatedAt: 1,
+          );
+      final tied = [
+        for (var i = 0; i < 10; i++) tiedSample(i, i.isEven ? 4 : 25),
+      ];
+      // Handed to the engine backwards, the evidence still comes out in
+      // one order, decided by the dive id once the dates tie.
+      const ascending = [
+        'd0',
+        'd1',
+        'd2',
+        'd3',
+        'd4',
+        'd5',
+        'd6',
+        'd7',
+        'd8',
+        'd9',
+      ];
+      expect(idsFor(tied), ascending);
+      expect(idsFor(tied.reversed.toList()), ascending);
+    });
+
     test('the decline baseline stays anchored at install', () {
       // The baseline is deliberately the FIRST five dives since install,
       // not a rolling window: a cell wears out gradually, and a baseline
@@ -681,16 +737,18 @@ void main() {
   });
 
   group('incidentLinked', () {
-    Incident incident(String id, IncidentSeverity severity) => Incident(
-      id: id,
-      equipmentId: 'reg',
-      occurredAt: now,
-      category: IncidentCategory.equipment,
-      severity: severity,
-      narrative: 'n',
-      createdAt: now,
-      updatedAt: now,
-    );
+    Incident incident(String id, IncidentSeverity severity, {String? diveId}) =>
+        Incident(
+          id: id,
+          diveId: diveId,
+          equipmentId: 'reg',
+          occurredAt: now,
+          category: IncidentCategory.equipment,
+          severity: severity,
+          narrative: 'n',
+          createdAt: now,
+          updatedAt: now,
+        );
 
     test('minor incidents do not count; moderate and serious do', () {
       expect(
@@ -723,6 +781,26 @@ void main() {
       expect(found.evidence.n, 2);
       expect(found.engineVersion, EquipmentConditionEngine.engineVersion);
       expect(found.createdAt, now);
+    });
+
+    test('incidents on the same instant are ordered by their id', () {
+      // Every incident here shares an instant, so only the id decides.
+      // The order reaches the stored evidence, and saveReview compares
+      // the encoding, so a wobble would rewrite and re-sync the row.
+      final found = of(
+        engine.evaluate(
+          input(
+            item: item('reg', EquipmentType.regulator),
+            incidents: [
+              incident('i3', IncidentSeverity.moderate, diveId: 'd3'),
+              incident('i1', IncidentSeverity.moderate, diveId: 'd1'),
+              incident('i2', IncidentSeverity.moderate, diveId: 'd2'),
+            ],
+          ),
+        ),
+        ConditionRuleId.incidentLinked,
+      ).single;
+      expect(found.evidence.diveIds, ['d1', 'd2', 'd3']);
     });
   });
 

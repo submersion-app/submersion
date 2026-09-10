@@ -101,9 +101,8 @@ class _ObservationRow extends ConsumerWidget {
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final scheme = Theme.of(context).colorScheme;
-    final title = observation.isIssue
-        ? observation.issueTags.map((t) => t.localizedName(l10n)).join(', ')
-        : ObservationStatus.ok.localizedName(l10n);
+    final title = observation.displayTitle(l10n);
+    final note = observation.noteSummary;
     final when = units.formatDate(observation.observedAt);
     final diveId = observation.diveId;
     final diveNumber = diveId == null
@@ -111,8 +110,9 @@ class _ObservationRow extends ConsumerWidget {
         : ref.watch(diveProvider(diveId)).value?.diveNumber;
     final where = diveId == null
         ? l10n.equipmentObservation_card_bench
+        // Until the dive resolves, a plain label: the id is internal.
         : diveNumber == null
-        ? diveId
+        ? l10n.equipmentObservation_sheet_diveLabel
         : l10n.equipmentObservation_card_onDive(diveNumber);
     final detail = '$when, $where';
     return ListTile(
@@ -122,15 +122,25 @@ class _ObservationRow extends ConsumerWidget {
         color: observation.isIssue ? scheme.error : scheme.tertiary,
       ),
       title: Text(title),
-      subtitle: Text(
-        observation.note.isEmpty ? detail : '${observation.note}\n$detail',
-      ),
-      isThreeLine: observation.note.isNotEmpty,
+      subtitle: note.isEmpty
+          ? Text(detail)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(note, maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(detail),
+              ],
+            ),
+      isThreeLine: note.isNotEmpty,
       trailing: IconButton(
         icon: const Icon(Icons.edit_outlined),
         tooltip: l10n.equipmentObservation_sheet_edit,
-        onPressed: () =>
-            showEquipmentObservationSheet(context, equipment: equipment),
+        onPressed: () => showEquipmentObservationSheet(
+          context,
+          equipment: equipment,
+          editing: observation,
+        ),
       ),
     );
   }

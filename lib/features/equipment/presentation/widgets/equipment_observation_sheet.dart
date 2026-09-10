@@ -26,25 +26,29 @@ DateTime defaultObservedAt(Dive dive) {
 
 /// Opens the check-in sheet for [equipment]. With [dive], the sheet lists
 /// and adds observations on that dive; without it (the item page) each new
-/// observation may pick a dive or stay a bench note.
+/// observation may pick a dive or stay a bench note. With [editing], the
+/// sheet opens straight into the editor for that observation.
 Future<void> showEquipmentObservationSheet(
   BuildContext context, {
   required EquipmentItem equipment,
   Dive? dive,
+  EquipmentObservation? editing,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => _ObservationSheet(equipment: equipment, dive: dive),
+    builder: (_) =>
+        _ObservationSheet(equipment: equipment, dive: dive, editing: editing),
   );
 }
 
 class _ObservationSheet extends ConsumerStatefulWidget {
   final EquipmentItem equipment;
   final Dive? dive;
+  final EquipmentObservation? editing;
 
-  const _ObservationSheet({required this.equipment, this.dive});
+  const _ObservationSheet({required this.equipment, this.dive, this.editing});
 
   @override
   ConsumerState<_ObservationSheet> createState() => _ObservationSheetState();
@@ -53,6 +57,14 @@ class _ObservationSheet extends ConsumerStatefulWidget {
 class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
   /// Null while the list shows; a draft while the editor shows.
   _Draft? _draft;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.editing case final existing?) {
+      _draft = _Draft.fromExisting(existing);
+    }
+  }
 
   @override
   void dispose() {
@@ -98,13 +110,20 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 12),
+          // The editor scrolls: an issue shows its tag chips and, off a
+          // dive, the dive and date pickers too, which outgrows a short
+          // window.
           if (_draft case final draft?)
-            _Editor(
-              draft: draft,
-              equipment: widget.equipment,
-              hasDive: dive != null,
-              onCancel: _closeEditor,
-              onSave: () => _save(draft),
+            Flexible(
+              child: SingleChildScrollView(
+                child: _Editor(
+                  draft: draft,
+                  equipment: widget.equipment,
+                  hasDive: dive != null,
+                  onCancel: _closeEditor,
+                  onSave: () => _save(draft),
+                ),
+              ),
             )
           else ...[
             if (observations.isEmpty)
@@ -392,9 +411,10 @@ class _DiveLabel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dive = ref.watch(diveProvider(diveId)).value;
     final number = dive?.diveNumber;
+    // Until the dive resolves, a plain label: the id is internal.
     return Text(
       number == null
-          ? diveId
+          ? context.l10n.equipmentObservation_sheet_diveLabel
           : context.l10n.equipmentObservation_card_onDive(number),
     );
   }
@@ -416,9 +436,8 @@ class _ObservationTile extends ConsumerWidget {
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final scheme = Theme.of(context).colorScheme;
-    final title = observation.isIssue
-        ? observation.issueTags.map((t) => t.localizedName(l10n)).join(', ')
-        : ObservationStatus.ok.localizedName(l10n);
+    final title = observation.displayTitle(l10n);
+    final note = observation.noteSummary;
     final when = units.formatDateTime(observation.observedAt, l10n: l10n);
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -427,10 +446,17 @@ class _ObservationTile extends ConsumerWidget {
         color: observation.isIssue ? scheme.error : scheme.tertiary,
       ),
       title: Text(title),
-      subtitle: Text(
-        observation.note.isEmpty ? when : '${observation.note}\n$when',
-      ),
-      isThreeLine: observation.note.isNotEmpty,
+      subtitle: note.isEmpty
+          ? Text(when)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(note, maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(when),
+              ],
+            ),
+      isThreeLine: note.isNotEmpty,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

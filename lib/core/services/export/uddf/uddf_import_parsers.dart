@@ -837,7 +837,9 @@ class UddfImportParsers {
       item['observations'] = [
         for (final o in observationsElement.findElements('observation'))
           {
-            'observedAt': DateTime.tryParse(getElementText(o, 'date') ?? ''),
+            // Wall clock, like a dive date: a zoneless value must not be
+            // read as the importing device's local time.
+            'observedAt': parseDiveDateTime(getElementText(o, 'date')),
             'diveRef': getElementText(o, 'diveref'),
             'status': getElementText(o, 'status'),
             'tags': [

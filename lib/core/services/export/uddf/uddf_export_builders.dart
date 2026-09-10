@@ -915,6 +915,13 @@ class UddfExportBuilders {
 
     if (!hasData) return;
 
+    // Check-ins grouped by item once, in their list order, so each item
+    // looks its own up instead of scanning every check-in in the logbook.
+    final observationsByItem = <String, List<EquipmentObservation>>{};
+    for (final o in observations ?? const <EquipmentObservation>[]) {
+      (observationsByItem[o.equipmentId] ??= []).add(o);
+    }
+
     builder.element(
       'applicationdata',
       nest: () {
@@ -994,11 +1001,9 @@ class UddfExportBuilders {
                             nest: 'equip_${item.parentEquipmentId}',
                           );
                         }
-                        final mine = [
-                          for (final o
-                              in observations ?? const <EquipmentObservation>[])
-                            if (o.equipmentId == item.id) o,
-                        ];
+                        final mine =
+                            observationsByItem[item.id] ??
+                            const <EquipmentObservation>[];
                         if (mine.isNotEmpty) {
                           builder.element(
                             'observations',
