@@ -44355,6 +44355,66 @@ abstract class AppLocalizations {
   /// **'Equipment condition'**
   String get equipmentConditionSettings_title;
 
+  /// No description provided for @equipmentCondition_trend_title_cellGain.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell output per dive'**
+  String get equipmentCondition_trend_title_cellGain;
+
+  /// No description provided for @equipmentCondition_trend_title_gap.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter dropouts per dive'**
+  String get equipmentCondition_trend_title_gap;
+
+  /// No description provided for @equipmentCondition_trend_title_scrubber.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber use per dive'**
+  String get equipmentCondition_trend_title_scrubber;
+
+  /// No description provided for @equipmentCondition_trend_title_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum temperature per dive'**
+  String get equipmentCondition_trend_title_temperature;
+
+  /// No description provided for @equipmentCondition_trend_cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {slot}'**
+  String equipmentCondition_trend_cell(int slot);
+
+  /// No description provided for @equipmentCondition_trend_issues.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives with an issue'**
+  String get equipmentCondition_trend_issues;
+
+  /// No description provided for @equipmentCondition_trend_scrubber.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber minutes'**
+  String get equipmentCondition_trend_scrubber;
+
+  /// No description provided for @equipmentCondition_trend_gap.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropout share'**
+  String get equipmentCondition_trend_gap;
+
+  /// No description provided for @equipmentCondition_trend_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum temperature'**
+  String get equipmentCondition_trend_temperature;
+
+  /// No description provided for @equipmentCondition_trend_axis_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get equipmentCondition_trend_axis_minutes;
+
   /// No description provided for @equipmentCondition_exposure_title.
   ///
   /// In en, this message translates to:

@@ -26886,6 +26886,42 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Stato dell\'attrezzatura';
 
   @override
+  String get equipmentCondition_trend_title_cellGain =>
+      'Uscita delle celle per immersione';
+
+  @override
+  String get equipmentCondition_trend_title_gap =>
+      'Perdite di segnale del trasmettitore per immersione';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber =>
+      'Uso della calce per immersione';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'Temperatura minima per immersione';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return 'Cella $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'Immersioni con un problema';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'Minuti di calce';
+
+  @override
+  String get equipmentCondition_trend_gap => 'Quota di perdite';
+
+  @override
+  String get equipmentCondition_trend_temperature => 'Temperatura minima';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'min';
+
+  @override
   String get equipmentCondition_exposure_title => 'Esposizione';
 
   @override

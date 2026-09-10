@@ -8175,6 +8175,23 @@
   "settings_section_equipmentCondition_title": "Felszerelés állapota",
   "settings_section_equipmentCondition_subtitle": "Terhelési küszöbök a szervizórákhoz",
   "equipmentConditionSettings_title": "Felszerelés állapota",
+  "equipmentCondition_trend_title_cellGain": "Cellakimenet merülésenként",
+  "equipmentCondition_trend_title_gap": "Adókimaradás merülésenként",
+  "equipmentCondition_trend_title_scrubber": "Szűrőhasználat merülésenként",
+  "equipmentCondition_trend_title_temperature": "Legalacsonyabb hőmérséklet merülésenként",
+  "equipmentCondition_trend_cell": "{slot}. cella",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Merülések problémával",
+  "equipmentCondition_trend_scrubber": "Szűrőpercek",
+  "equipmentCondition_trend_gap": "Kimaradási arány",
+  "equipmentCondition_trend_temperature": "Legalacsonyabb hőmérséklet",
+  "equipmentCondition_trend_axis_minutes": "perc",
   "equipmentCondition_exposure_title": "Igénybevétel",
   "equipmentCondition_exposure_empty": "Még nincs merülés ezzel az eszközzel",
   "equipmentCondition_exposure_footer": "{n, plural, =1{1 merülés} other{{n} merülés}}, {range}",

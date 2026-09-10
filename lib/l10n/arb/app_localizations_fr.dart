@@ -26983,6 +26983,42 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipmentConditionSettings_title => 'État du matériel';
 
   @override
+  String get equipmentCondition_trend_title_cellGain =>
+      'Sortie des cellules par plongée';
+
+  @override
+  String get equipmentCondition_trend_title_gap =>
+      'Pertes de signal de l\'émetteur par plongée';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber =>
+      'Usage de la chaux par plongée';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'Température minimale par plongée';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return 'Cellule $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'Plongées avec un problème';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'Minutes de chaux';
+
+  @override
+  String get equipmentCondition_trend_gap => 'Part des pertes';
+
+  @override
+  String get equipmentCondition_trend_temperature => 'Température minimale';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'min';
+
+  @override
   String get equipmentCondition_exposure_title => 'Exposition';
 
   @override

@@ -25505,6 +25505,38 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_title => '装备状况';
 
   @override
+  String get equipmentCondition_trend_title_cellGain => '每次潜水的电池输出';
+
+  @override
+  String get equipmentCondition_trend_title_gap => '每次潜水的发射器断连';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber => '每次潜水的吸收剂用量';
+
+  @override
+  String get equipmentCondition_trend_title_temperature => '每次潜水的最低温度';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return '电池 $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => '有问题的潜水';
+
+  @override
+  String get equipmentCondition_trend_scrubber => '吸收剂分钟数';
+
+  @override
+  String get equipmentCondition_trend_gap => '断连占比';
+
+  @override
+  String get equipmentCondition_trend_temperature => '最低温度';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => '分钟';
+
+  @override
   String get equipmentCondition_exposure_title => '使用暴露';
 
   @override

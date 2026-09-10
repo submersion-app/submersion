@@ -8175,6 +8175,23 @@
   "settings_section_equipmentCondition_title": "Staat van uitrusting",
   "settings_section_equipmentCondition_subtitle": "Blootstellingsdrempels voor onderhoudsklokken",
   "equipmentConditionSettings_title": "Staat van uitrusting",
+  "equipmentCondition_trend_title_cellGain": "Celuitvoer per duik",
+  "equipmentCondition_trend_title_gap": "Zenderuitval per duik",
+  "equipmentCondition_trend_title_scrubber": "Scrubbergebruik per duik",
+  "equipmentCondition_trend_title_temperature": "Minimumtemperatuur per duik",
+  "equipmentCondition_trend_cell": "Cel {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Duiken met een probleem",
+  "equipmentCondition_trend_scrubber": "Scrubberminuten",
+  "equipmentCondition_trend_gap": "Aandeel uitval",
+  "equipmentCondition_trend_temperature": "Minimumtemperatuur",
+  "equipmentCondition_trend_axis_minutes": "min",
   "equipmentCondition_exposure_title": "Blootstelling",
   "equipmentCondition_exposure_empty": "Nog geen duiken met dit item",
   "equipmentCondition_exposure_footer": "{n, plural, =1{1 duik} other{{n} duiken}}, {range}",

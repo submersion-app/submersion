@@ -26836,6 +26836,42 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Ausrüstungszustand';
 
   @override
+  String get equipmentCondition_trend_title_cellGain =>
+      'Zellenausgang je Tauchgang';
+
+  @override
+  String get equipmentCondition_trend_title_gap =>
+      'Senderaussetzer je Tauchgang';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber =>
+      'Atemkalkverbrauch je Tauchgang';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'Mindesttemperatur je Tauchgang';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return 'Zelle $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'Tauchgänge mit Problem';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'Atemkalkminuten';
+
+  @override
+  String get equipmentCondition_trend_gap => 'Aussetzeranteil';
+
+  @override
+  String get equipmentCondition_trend_temperature => 'Mindesttemperatur';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'min';
+
+  @override
   String get equipmentCondition_exposure_title => 'Belastung';
 
   @override

@@ -8175,6 +8175,23 @@
   "settings_section_equipmentCondition_title": "Ausrüstungszustand",
   "settings_section_equipmentCondition_subtitle": "Belastungsgrenzen für Wartungsuhren",
   "equipmentConditionSettings_title": "Ausrüstungszustand",
+  "equipmentCondition_trend_title_cellGain": "Zellenausgang je Tauchgang",
+  "equipmentCondition_trend_title_gap": "Senderaussetzer je Tauchgang",
+  "equipmentCondition_trend_title_scrubber": "Atemkalkverbrauch je Tauchgang",
+  "equipmentCondition_trend_title_temperature": "Mindesttemperatur je Tauchgang",
+  "equipmentCondition_trend_cell": "Zelle {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Tauchgänge mit Problem",
+  "equipmentCondition_trend_scrubber": "Atemkalkminuten",
+  "equipmentCondition_trend_gap": "Aussetzeranteil",
+  "equipmentCondition_trend_temperature": "Mindesttemperatur",
+  "equipmentCondition_trend_axis_minutes": "min",
   "equipmentCondition_exposure_title": "Belastung",
   "equipmentCondition_exposure_empty": "Noch keine Tauchgänge mit diesem Teil",
   "equipmentCondition_exposure_footer": "{n, plural, =1{1 Tauchgang} other{{n} Tauchgänge}}, {range}",

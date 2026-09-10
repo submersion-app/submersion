@@ -8175,6 +8175,23 @@
   "settings_section_equipmentCondition_title": "Estado del equipo",
   "settings_section_equipmentCondition_subtitle": "Umbrales de exposición para los relojes de mantenimiento",
   "equipmentConditionSettings_title": "Estado del equipo",
+  "equipmentCondition_trend_title_cellGain": "Salida de las celdas por inmersión",
+  "equipmentCondition_trend_title_gap": "Pérdidas de señal del transmisor por inmersión",
+  "equipmentCondition_trend_title_scrubber": "Uso del absorbente por inmersión",
+  "equipmentCondition_trend_title_temperature": "Temperatura mínima por inmersión",
+  "equipmentCondition_trend_cell": "Celda {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Inmersiones con un problema",
+  "equipmentCondition_trend_scrubber": "Minutos de absorbente",
+  "equipmentCondition_trend_gap": "Proporción de pérdidas",
+  "equipmentCondition_trend_temperature": "Temperatura mínima",
+  "equipmentCondition_trend_axis_minutes": "min",
   "equipmentCondition_exposure_title": "Exposición",
   "equipmentCondition_exposure_empty": "Aún no hay inmersiones con este artículo",
   "equipmentCondition_exposure_footer": "{n, plural, =1{1 inmersión} other{{n} inmersiones}}, {range}",

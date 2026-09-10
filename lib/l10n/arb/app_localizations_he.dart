@@ -26223,6 +26223,39 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipmentConditionSettings_title => 'מצב הציוד';
 
   @override
+  String get equipmentCondition_trend_title_cellGain => 'פלט התאים לכל צלילה';
+
+  @override
+  String get equipmentCondition_trend_title_gap => 'נפילות המשדר לכל צלילה';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber => 'שימוש בסופג לכל צלילה';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'טמפרטורה מזערית לכל צלילה';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return 'תא $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'צלילות עם תקלה';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'דקות סופג';
+
+  @override
+  String get equipmentCondition_trend_gap => 'שיעור הנפילות';
+
+  @override
+  String get equipmentCondition_trend_temperature => 'טמפרטורה מזערית';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'דק\'';
+
+  @override
   String get equipmentCondition_exposure_title => 'חשיפה';
 
   @override

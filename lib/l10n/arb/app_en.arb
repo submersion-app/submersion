@@ -17130,6 +17130,23 @@
   "settings_section_equipmentCondition_title": "Equipment condition",
   "settings_section_equipmentCondition_subtitle": "Exposure thresholds for service clocks",
   "equipmentConditionSettings_title": "Equipment condition",
+  "equipmentCondition_trend_title_cellGain": "Cell output per dive",
+  "equipmentCondition_trend_title_gap": "Transmitter dropouts per dive",
+  "equipmentCondition_trend_title_scrubber": "Scrubber use per dive",
+  "equipmentCondition_trend_title_temperature": "Minimum temperature per dive",
+  "equipmentCondition_trend_cell": "Cell {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Dives with an issue",
+  "equipmentCondition_trend_scrubber": "Scrubber minutes",
+  "equipmentCondition_trend_gap": "Dropout share",
+  "equipmentCondition_trend_temperature": "Minimum temperature",
+  "equipmentCondition_trend_axis_minutes": "min",
   "equipmentCondition_exposure_title": "Exposure",
   "equipmentCondition_exposure_empty": "No dives with this item yet",
   "equipmentCondition_exposure_footer": "{n, plural, =1{1 dive} other{{n} dives}}, {range}",

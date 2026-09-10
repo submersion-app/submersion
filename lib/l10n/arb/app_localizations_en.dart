@@ -26439,6 +26439,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Equipment condition';
 
   @override
+  String get equipmentCondition_trend_title_cellGain => 'Cell output per dive';
+
+  @override
+  String get equipmentCondition_trend_title_gap =>
+      'Transmitter dropouts per dive';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber => 'Scrubber use per dive';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'Minimum temperature per dive';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return 'Cell $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'Dives with an issue';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'Scrubber minutes';
+
+  @override
+  String get equipmentCondition_trend_gap => 'Dropout share';
+
+  @override
+  String get equipmentCondition_trend_temperature => 'Minimum temperature';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'min';
+
+  @override
   String get equipmentCondition_exposure_title => 'Exposure';
 
   @override

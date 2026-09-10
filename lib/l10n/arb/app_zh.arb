@@ -8175,6 +8175,23 @@
   "settings_section_equipmentCondition_title": "装备状况",
   "settings_section_equipmentCondition_subtitle": "保养计时的暴露阈值",
   "equipmentConditionSettings_title": "装备状况",
+  "equipmentCondition_trend_title_cellGain": "每次潜水的电池输出",
+  "equipmentCondition_trend_title_gap": "每次潜水的发射器断连",
+  "equipmentCondition_trend_title_scrubber": "每次潜水的吸收剂用量",
+  "equipmentCondition_trend_title_temperature": "每次潜水的最低温度",
+  "equipmentCondition_trend_cell": "电池 {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "有问题的潜水",
+  "equipmentCondition_trend_scrubber": "吸收剂分钟数",
+  "equipmentCondition_trend_gap": "断连占比",
+  "equipmentCondition_trend_temperature": "最低温度",
+  "equipmentCondition_trend_axis_minutes": "分钟",
   "equipmentCondition_exposure_title": "使用暴露",
   "equipmentCondition_exposure_empty": "尚无使用此装备的潜水",
   "equipmentCondition_exposure_footer": "{n, plural, =1{1 次潜水} other{{n} 次潜水}}，{range}",

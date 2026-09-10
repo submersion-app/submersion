@@ -8175,6 +8175,23 @@
   "settings_section_equipmentCondition_title": "Stato dell'attrezzatura",
   "settings_section_equipmentCondition_subtitle": "Soglie di esposizione per i contatori di manutenzione",
   "equipmentConditionSettings_title": "Stato dell'attrezzatura",
+  "equipmentCondition_trend_title_cellGain": "Uscita delle celle per immersione",
+  "equipmentCondition_trend_title_gap": "Perdite di segnale del trasmettitore per immersione",
+  "equipmentCondition_trend_title_scrubber": "Uso della calce per immersione",
+  "equipmentCondition_trend_title_temperature": "Temperatura minima per immersione",
+  "equipmentCondition_trend_cell": "Cella {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Immersioni con un problema",
+  "equipmentCondition_trend_scrubber": "Minuti di calce",
+  "equipmentCondition_trend_gap": "Quota di perdite",
+  "equipmentCondition_trend_temperature": "Temperatura minima",
+  "equipmentCondition_trend_axis_minutes": "min",
   "equipmentCondition_exposure_title": "Esposizione",
   "equipmentCondition_exposure_empty": "Ancora nessuna immersione con questo articolo",
   "equipmentCondition_exposure_footer": "{n, plural, =1{1 immersione} other{{n} immersioni}}, {range}",

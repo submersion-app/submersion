@@ -26882,6 +26882,42 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Estado do equipamento';
 
   @override
+  String get equipmentCondition_trend_title_cellGain =>
+      'Saída das células por mergulho';
+
+  @override
+  String get equipmentCondition_trend_title_gap =>
+      'Falhas de sinal do transmissor por mergulho';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber =>
+      'Uso do absorvente por mergulho';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'Temperatura mínima por mergulho';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return 'Célula $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'Mergulhos com um problema';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'Minutos de absorvente';
+
+  @override
+  String get equipmentCondition_trend_gap => 'Percentagem de falhas';
+
+  @override
+  String get equipmentCondition_trend_temperature => 'Temperatura mínima';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'min';
+
+  @override
   String get equipmentCondition_exposure_title => 'Exposição';
 
   @override

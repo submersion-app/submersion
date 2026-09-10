@@ -26410,6 +26410,41 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipmentConditionSettings_title => 'حالة المعدات';
 
   @override
+  String get equipmentCondition_trend_title_cellGain => 'خرج الخلايا لكل غطسة';
+
+  @override
+  String get equipmentCondition_trend_title_gap =>
+      'انقطاعات جهاز الإرسال لكل غطسة';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber =>
+      'استهلاك المنظّف لكل غطسة';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'أدنى درجة حرارة لكل غطسة';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return 'الخلية $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'غطسات بها مشكلة';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'دقائق المنظّف';
+
+  @override
+  String get equipmentCondition_trend_gap => 'نسبة الانقطاع';
+
+  @override
+  String get equipmentCondition_trend_temperature => 'أدنى درجة حرارة';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'دقيقة';
+
+  @override
   String get equipmentCondition_exposure_title => 'التعرّض';
 
   @override

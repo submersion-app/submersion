@@ -8175,6 +8175,23 @@
   "settings_section_equipmentCondition_title": "מצב הציוד",
   "settings_section_equipmentCondition_subtitle": "ספי חשיפה לשעוני תחזוקה",
   "equipmentConditionSettings_title": "מצב הציוד",
+  "equipmentCondition_trend_title_cellGain": "פלט התאים לכל צלילה",
+  "equipmentCondition_trend_title_gap": "נפילות המשדר לכל צלילה",
+  "equipmentCondition_trend_title_scrubber": "שימוש בסופג לכל צלילה",
+  "equipmentCondition_trend_title_temperature": "טמפרטורה מזערית לכל צלילה",
+  "equipmentCondition_trend_cell": "תא {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "צלילות עם תקלה",
+  "equipmentCondition_trend_scrubber": "דקות סופג",
+  "equipmentCondition_trend_gap": "שיעור הנפילות",
+  "equipmentCondition_trend_temperature": "טמפרטורה מזערית",
+  "equipmentCondition_trend_axis_minutes": "דק'",
   "equipmentCondition_exposure_title": "חשיפה",
   "equipmentCondition_exposure_empty": "אין עדיין צלילות עם פריט זה",
   "equipmentCondition_exposure_footer": "{n, plural, =1{צלילה אחת} other{{n} צלילות}}, {range}",

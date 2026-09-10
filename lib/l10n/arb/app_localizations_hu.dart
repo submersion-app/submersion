@@ -26780,6 +26780,42 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Felszerelés állapota';
 
   @override
+  String get equipmentCondition_trend_title_cellGain =>
+      'Cellakimenet merülésenként';
+
+  @override
+  String get equipmentCondition_trend_title_gap => 'Adókimaradás merülésenként';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber =>
+      'Szűrőhasználat merülésenként';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'Legalacsonyabb hőmérséklet merülésenként';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return '$slot. cella';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'Merülések problémával';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'Szűrőpercek';
+
+  @override
+  String get equipmentCondition_trend_gap => 'Kimaradási arány';
+
+  @override
+  String get equipmentCondition_trend_temperature =>
+      'Legalacsonyabb hőmérséklet';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'perc';
+
+  @override
   String get equipmentCondition_exposure_title => 'Igénybevétel';
 
   @override

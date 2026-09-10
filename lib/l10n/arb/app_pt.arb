@@ -8175,6 +8175,23 @@
   "settings_section_equipmentCondition_title": "Estado do equipamento",
   "settings_section_equipmentCondition_subtitle": "Limites de exposição para os relógios de manutenção",
   "equipmentConditionSettings_title": "Estado do equipamento",
+  "equipmentCondition_trend_title_cellGain": "Saída das células por mergulho",
+  "equipmentCondition_trend_title_gap": "Falhas de sinal do transmissor por mergulho",
+  "equipmentCondition_trend_title_scrubber": "Uso do absorvente por mergulho",
+  "equipmentCondition_trend_title_temperature": "Temperatura mínima por mergulho",
+  "equipmentCondition_trend_cell": "Célula {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Mergulhos com um problema",
+  "equipmentCondition_trend_scrubber": "Minutos de absorvente",
+  "equipmentCondition_trend_gap": "Percentagem de falhas",
+  "equipmentCondition_trend_temperature": "Temperatura mínima",
+  "equipmentCondition_trend_axis_minutes": "min",
   "equipmentCondition_exposure_title": "Exposição",
   "equipmentCondition_exposure_empty": "Ainda não há mergulhos com este item",
   "equipmentCondition_exposure_footer": "{n, plural, =1{1 mergulho} other{{n} mergulhos}}, {range}",

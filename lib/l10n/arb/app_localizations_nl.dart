@@ -26684,6 +26684,40 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipmentConditionSettings_title => 'Staat van uitrusting';
 
   @override
+  String get equipmentCondition_trend_title_cellGain => 'Celuitvoer per duik';
+
+  @override
+  String get equipmentCondition_trend_title_gap => 'Zenderuitval per duik';
+
+  @override
+  String get equipmentCondition_trend_title_scrubber =>
+      'Scrubbergebruik per duik';
+
+  @override
+  String get equipmentCondition_trend_title_temperature =>
+      'Minimumtemperatuur per duik';
+
+  @override
+  String equipmentCondition_trend_cell(int slot) {
+    return 'Cel $slot';
+  }
+
+  @override
+  String get equipmentCondition_trend_issues => 'Duiken met een probleem';
+
+  @override
+  String get equipmentCondition_trend_scrubber => 'Scrubberminuten';
+
+  @override
+  String get equipmentCondition_trend_gap => 'Aandeel uitval';
+
+  @override
+  String get equipmentCondition_trend_temperature => 'Minimumtemperatuur';
+
+  @override
+  String get equipmentCondition_trend_axis_minutes => 'min';
+
+  @override
   String get equipmentCondition_exposure_title => 'Blootstelling';
 
   @override

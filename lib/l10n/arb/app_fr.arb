@@ -8175,6 +8175,23 @@
   "settings_section_equipmentCondition_title": "État du matériel",
   "settings_section_equipmentCondition_subtitle": "Seuils d'exposition pour les compteurs d'entretien",
   "equipmentConditionSettings_title": "État du matériel",
+  "equipmentCondition_trend_title_cellGain": "Sortie des cellules par plongée",
+  "equipmentCondition_trend_title_gap": "Pertes de signal de l'émetteur par plongée",
+  "equipmentCondition_trend_title_scrubber": "Usage de la chaux par plongée",
+  "equipmentCondition_trend_title_temperature": "Température minimale par plongée",
+  "equipmentCondition_trend_cell": "Cellule {slot}",
+  "@equipmentCondition_trend_cell": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_trend_issues": "Plongées avec un problème",
+  "equipmentCondition_trend_scrubber": "Minutes de chaux",
+  "equipmentCondition_trend_gap": "Part des pertes",
+  "equipmentCondition_trend_temperature": "Température minimale",
+  "equipmentCondition_trend_axis_minutes": "min",
   "equipmentCondition_exposure_title": "Exposition",
   "equipmentCondition_exposure_empty": "Aucune plongée avec cet équipement pour l'instant",
   "equipmentCondition_exposure_footer": "{n, plural, =1{1 plongée} other{{n} plongées}}, {range}",
