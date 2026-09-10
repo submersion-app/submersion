@@ -112,13 +112,20 @@ List<DiveListSection> buildDiveListSections({
       run.add(entries[index]);
       index++;
     }
-    final head = run.first.dive;
+    // Trip identity from the first entry that carries it, not simply the
+    // first entry. An optimistic summary built from a Dive that has tripId
+    // but no hydrated trip (the updateDive and addDive paths) knows its trip
+    // id and nothing else, and heading a run with one blanked the whole
+    // header until the next database read.
+    final named = run
+        .map((e) => e.dive)
+        .firstWhere((d) => d.tripName != null, orElse: () => run.first.dive);
     sections.add(
       TripSection(
         tripId: tripId,
-        tripName: head.tripName ?? '',
-        startDate: head.tripStartDate,
-        endDate: head.tripEndDate,
+        tripName: named.tripName ?? '',
+        startDate: named.tripStartDate,
+        endDate: named.tripEndDate,
         entries: run,
         collapsed:
             collapsedTripIds.contains(tripId) && tripId != forceExpandedTripId,

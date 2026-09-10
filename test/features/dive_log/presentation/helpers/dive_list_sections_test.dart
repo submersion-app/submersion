@@ -174,6 +174,56 @@ void main() {
       expect(trip.isPartial, isFalse);
     });
 
+    test('an optimistic summary at the head does not blank the header', () {
+      // DiveSummary.fromDive takes tripId from dive.tripId but the name and
+      // dates only from dive.trip, so the optimistic update paths can produce
+      // a summary that knows its trip id and nothing else. Heading a run with
+      // one used to blank the whole header until the next database read.
+      final optimistic = DiveSummary(
+        id: 'd1',
+        dateTime: DateTime(2026, 6, 8),
+        sortTimestamp: 0,
+        tripId: 't1',
+      );
+
+      final sections = buildDiveListSections(
+        dives: [
+          optimistic,
+          dive('d2', tripId: 't1', tripName: 'Tassie'),
+        ],
+        groupingEnabled: true,
+        collapsedTripIds: const {},
+        tripTotals: const {'t1': 2},
+      );
+
+      final trip = sections.single as TripSection;
+      expect(trip.tripName, 'Tassie');
+      expect(trip.startDate, DateTime(2026, 6, 8));
+      expect(trip.endDate, DateTime(2026, 6, 9));
+    });
+
+    test('a run of only optimistic summaries still groups', () {
+      // Nothing to recover the name from; the group must still form on the
+      // trip id rather than throwing or splitting.
+      final sections = buildDiveListSections(
+        dives: [
+          DiveSummary(
+            id: 'd1',
+            dateTime: DateTime(2026, 6, 8),
+            sortTimestamp: 0,
+            tripId: 't1',
+          ),
+        ],
+        groupingEnabled: true,
+        collapsedTripIds: const {},
+        tripTotals: const {'t1': 1},
+      );
+
+      final trip = sections.single as TripSection;
+      expect(trip.tripId, 't1');
+      expect(trip.tripName, '');
+    });
+
     test('a stale total below the loaded count never reads as partial', () {
       final sections = buildDiveListSections(
         dives: [

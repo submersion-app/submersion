@@ -46,6 +46,16 @@ class CollapsedTripsNotifier extends StateNotifier<Set<String>> {
     _write(next);
   }
 
+  /// Open [tripId], if it is folded shut.
+  ///
+  /// Used when navigation has to reveal a dive inside a collapsed trip. A real
+  /// expansion rather than a render-time override, so the header's own
+  /// collapse control still works afterwards.
+  void expand(String tripId) {
+    if (!state.contains(tripId)) return;
+    _write(Set<String>.from(state)..remove(tripId));
+  }
+
   /// Fold every trip in [tripIds] shut, keeping anything already collapsed.
   void collapseAll(Iterable<String> tripIds) => _write({...state, ...tripIds});
 

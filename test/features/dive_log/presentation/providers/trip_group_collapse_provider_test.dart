@@ -128,6 +128,34 @@ void main() {
       },
     );
 
+    test(
+      'expand opens one trip and leaves the collapse control usable',
+      () async {
+        final container = await makeContainer();
+        final notifier = container.read(collapsedTripIdsProvider.notifier);
+
+        notifier.collapseAll(['t1', 't2']);
+        notifier.expand('t1');
+
+        expect(container.read(collapsedTripIdsProvider), {'t2'});
+
+        // The point of expanding for real rather than overriding at render
+        // time: the header's own toggle still works afterwards.
+        notifier.toggle('t1');
+        expect(container.read(collapsedTripIdsProvider), {'t1', 't2'});
+      },
+    );
+
+    test('expand is a no-op on a trip that is already open', () async {
+      final container = await makeContainer();
+      final notifier = container.read(collapsedTripIdsProvider.notifier);
+
+      notifier.collapseAll(['t2']);
+      notifier.expand('t1');
+
+      expect(container.read(collapsedTripIdsProvider), {'t2'});
+    });
+
     test('expandAll clears everything', () async {
       final container = await makeContainer();
       final notifier = container.read(collapsedTripIdsProvider.notifier);

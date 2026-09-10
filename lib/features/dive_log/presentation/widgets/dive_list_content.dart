@@ -166,14 +166,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// above every row and shifts them all down.
   bool _lastShowedPausedNotice = false;
 
-  /// The dive a programmatic scroll is currently trying to reach.
-  ///
-  /// Feeds the same force-expand path as the open dive, so a target folded
-  /// inside a collapsed trip gets its trip opened for the retry. Needed for
-  /// the merge path in particular: that passes its dive as an override, which
-  /// never reaches [widget.selectedId] and so would not force anything open.
-  String? _scrollTargetId;
-
   /// Guards the retry to a single attempt, so a target that stays invisible
   /// cannot ping-pong between build and post-frame forever.
   String? _scrollRetriedFor;
@@ -313,7 +305,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
 
     _scrollRetriedFor = targetId;
-    setState(() {});
+    // A real expansion, not a render-time override. An override would have to
+    // stay set for the trip to remain open, which silently defeated the
+    // header's own collapse control; clearing it instead would re-hide the
+    // dive the scroll just travelled to.
+    final tripId = dives.firstWhere((d) => d.id == targetId).tripId;
+    if (tripId != null) {
+      ref.read(collapsedTripIdsProvider.notifier).expand(tripId);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _scrollToSelectedItem(targetId);
@@ -348,7 +347,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   void _scrollToSelectedItem([String? overrideId]) {
     final targetId = overrideId ?? widget.selectedId;
     if (targetId == null) return;
-    _scrollTargetId = targetId;
 
     // Get the current dive list from the paginated provider
     final divesAsync = ref.read(paginatedDiveListProvider);
@@ -375,12 +373,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           final visibleIndex = visible.indexWhere((d) => d.id == targetId);
           if (visibleIndex < 0 || visible.isEmpty) {
             // Loaded, but folded inside a collapsed trip as of the build this
-            // callback is measuring. Setting _scrollTargetId above makes the
-            // next build force that trip open, so retry once on the far side
-            // of it. Without the retry the scroll gives up silently and the
-            // dive is left off screen -- most visibly on the merge path,
-            // whose target arrives as an override and never reaches
-            // widget.selectedId.
+            // callback is measuring. Open that trip and retry once on the far
+            // side of the rebuild. Without the retry the scroll gives up
+            // silently and the dive is left off screen, most visibly on the
+            // merge path, whose target arrives as an override and so never
+            // reaches widget.selectedId.
             _retryScrollOnceAfterExpand(targetId, dives);
             return;
           }
@@ -1763,9 +1760,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // Never fold away the dive the diver is looking at: the row open in the
     // detail pane, or the highlighted one, keeps its trip expanded.
     final openDiveId =
-        widget.selectedId ??
-        _scrollTargetId ??
-        ref.watch(highlightedDiveIdProvider);
+        widget.selectedId ?? ref.watch(highlightedDiveIdProvider);
     String? openDiveTripId;
     if (openDiveId != null) {
       for (final dive in dives) {
