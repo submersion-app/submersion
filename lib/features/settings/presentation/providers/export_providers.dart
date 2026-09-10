@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -438,6 +439,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       )).where((r) => !r.isBuiltIn).toList();
       final diveComputers = await _ref.read(allDiveComputersProvider.future);
       final equipmentSets = await _ref.read(equipmentSetsProvider.future);
+      // Assembly templates ride with the equipment (issue #1487).
+      final components = await _ref
+          .read(equipmentComponentRepositoryProvider)
+          .getAllComponents();
 
       // Fetch courses
       final courses = await _ref.read(allCoursesProvider.future);
@@ -527,6 +532,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
+        components: components,
         serviceRecords: allServiceRecords,
         courses: courses,
         diveWeights: diveWeights,
@@ -1052,6 +1058,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       )).where((r) => !r.isBuiltIn).toList();
       final diveComputers = await _ref.read(allDiveComputersProvider.future);
       final equipmentSets = await _ref.read(equipmentSetsProvider.future);
+      // Assembly templates ride with the equipment (issue #1487).
+      final components = await _ref
+          .read(equipmentComponentRepositoryProvider)
+          .getAllComponents();
       final courses = await _ref.read(allCoursesProvider.future);
 
       // Fetch service records for all equipment
@@ -1138,6 +1148,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
+        components: components,
         serviceRecords: allServiceRecords,
         courses: courses,
         diveWeights: diveWeights,

@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -394,6 +395,7 @@ class ExportService {
     Map<String, List<ProfileEvent>>? diveProfileEvents,
     Map<String, List<DiveWeight>>? diveWeights,
     List<EquipmentSet>? equipmentSets,
+    List<EquipmentComponent>? components,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
@@ -420,6 +422,7 @@ class ExportService {
     diveProfileEvents: diveProfileEvents,
     diveWeights: diveWeights,
     equipmentSets: equipmentSets,
+    components: components,
     courses: courses,
     diveGasSwitches: diveGasSwitches,
     diveTankPressures: diveTankPressures,
@@ -448,6 +451,7 @@ class ExportService {
     Map<String, List<ProfileEvent>>? diveProfileEvents,
     Map<String, List<DiveWeight>>? diveWeights,
     List<EquipmentSet>? equipmentSets,
+    List<EquipmentComponent>? components,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
@@ -474,6 +478,7 @@ class ExportService {
     diveProfileEvents: diveProfileEvents,
     diveWeights: diveWeights,
     equipmentSets: equipmentSets,
+    components: components,
     courses: courses,
     diveGasSwitches: diveGasSwitches,
     diveTankPressures: diveTankPressures,
