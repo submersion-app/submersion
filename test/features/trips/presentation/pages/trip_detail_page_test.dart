@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -339,7 +340,7 @@ void main() {
           maxDepth: 25.0,
           tanks: const [],
           profile: const [],
-          equipment: const [],
+          gear: looseGear(const []),
           notes: '',
           photoIds: const [],
           sightings: const [],
@@ -1082,7 +1083,7 @@ void main() {
         maxDepth: 20.0,
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         notes: '',
         photoIds: const [],
         sightings: const [],

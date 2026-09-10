@@ -405,13 +405,14 @@ class DiveComputerMergeRepository {
     for (final link in links) {
       touched.add(link.diveId);
       if (linkedDives.add(link.diveId)) {
+        // Re-key the row onto the survivor but keep its provenance, so a
+        // twin that was a part of an assembly stays one (issue #1487).
         await _db
             .into(_db.diveEquipment)
             .insert(
-              db.DiveEquipmentCompanion(
-                diveId: Value(link.diveId),
-                equipmentId: Value(survivorTwinId),
-              ),
+              link
+                  .toCompanion(false)
+                  .copyWith(equipmentId: Value(survivorTwinId)),
             );
         await _syncRepository.markRecordPending(
           entityType: 'diveEquipment',

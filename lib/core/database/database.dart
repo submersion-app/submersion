@@ -2019,6 +2019,12 @@ class DiverSettings extends Table {
   // Dive list view mode (v51)
   TextColumn get diveListViewMode =>
       text().withDefault(const Constant('detailed'))();
+
+  /// Fold consecutive same-trip dives under a trip header in the dive list
+  /// (v204, issue #1193). Off by default: grouping changes the structure of
+  /// the list, so existing divers opt in rather than being reorganised.
+  BoolColumn get groupTripsInDiveList =>
+      boolean().withDefault(const Constant(false))();
   // List view modes for other features (v52)
   TextColumn get siteListViewMode =>
       text().withDefault(const Constant('detailed'))();
@@ -3840,7 +3846,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 203;
+  static const int currentSchemaVersion = 204;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4367,6 +4373,13 @@ class AppDatabase extends _$AppDatabase {
     // 203: equipment assemblies (issue #1487). Renumbered from 202, which
     // condition intelligence took while this branch was open.
     203,
+    // v204: diver_settings.group_trips_in_dive_list -- inline collapsible
+    // trip groups in the dive list (issue #1193). Additive defaulted boolean,
+    // no backfill. Renumbered from 202 and then 201: the linearity link,
+    // condition intelligence and assemblies all landed while this branch was
+    // open, and a rung at or below the shipped version never runs its
+    // onUpgrade step.
+    204,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -7312,6 +7325,22 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       "ALTER TABLE diver_settings ADD COLUMN default_planner_water_type "
       "TEXT NOT NULL DEFAULT 'salt'",
+    );
+  }
+
+  /// Idempotent DDL for diver_settings.group_trips_in_dive_list (v204).
+  /// Existing rows default to off, matching a fresh install: turning the dive
+  /// list into trip groups is opt-in.
+  Future<void> _assertGroupTripsInDiveListColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('group_trips_in_dive_list')) return;
+    await customStatement(
+      'ALTER TABLE diver_settings ADD COLUMN group_trips_in_dive_list '
+      'INTEGER NOT NULL DEFAULT 0',
     );
   }
 
@@ -11227,6 +11256,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertGearProvenanceColumns();
         }
         if (from < 203) await reportProgress();
+        // v204: diver_settings.group_trips_in_dive_list (issue #1193).
+        // Column-only rung, no backfill.
+        if (from < 204) {
+          await _assertGroupTripsInDiveListColumn();
+        }
+        if (from < 204) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -11436,6 +11471,9 @@ class AppDatabase extends _$AppDatabase {
 
         // v202 backstop: re-assert the condition columns and tables.
         await _assertEquipmentConditionSchema();
+
+        // v204 backstop: re-assert diver_settings.group_trips_in_dive_list.
+        await _assertGroupTripsInDiveListColumn();
 
         // v157 backstop: re-assert the default service price columns (issue
         // #829; same parallel-branch version-collision self-heal).

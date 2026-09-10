@@ -698,6 +698,33 @@ class UddfImportParsers {
     return equipmentSet;
   }
 
+  /// One `<component>` of the private `<components>` block (issue #1487):
+  /// an assembly template row, both ends as prefixed equipment refs.
+  static Map<String, dynamic> parseComponent(XmlElement element) => {
+    'parentRef': element.getAttribute('parent') ?? '',
+    'componentRef': element.getAttribute('component') ?? '',
+    'role': getElementText(element, 'role') ?? '',
+    'sortOrder': int.tryParse(element.getAttribute('order') ?? '') ?? 0,
+  };
+
+  /// The private `<gearlinks>` block: per dive ref, the gear rows that
+  /// carry provenance (the assembly they came through, the set applied).
+  static Map<String, List<Map<String, String?>>> parseGearLinks(
+    XmlElement gearlinks,
+  ) => {
+    for (final dive in gearlinks.findElements('dive'))
+      if (dive.getAttribute('ref') case final ref? when ref.isNotEmpty)
+        ref: [
+          for (final link in dive.findElements('link'))
+            if (link.getAttribute('item') case final item? when item.isNotEmpty)
+              {
+                'itemRef': item,
+                'viaRef': link.getAttribute('via'),
+                'setRef': link.getAttribute('set'),
+              },
+        ],
+  };
+
   static Map<String, dynamic> parseFullBuddy(XmlElement buddyElement) {
     final buddy = <String, dynamic>{};
     final buddyId = buddyElement.getAttribute('id');

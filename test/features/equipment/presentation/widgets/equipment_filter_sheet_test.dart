@@ -283,5 +283,21 @@ void main() {
       expect(_statusChip(EquipmentStatus.needsService), findsNothing);
       expect(find.text('Service Due'), findsOneWidget);
     });
+
+    testWidgets('sold is offered as a status so sold gear stays reachable', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final container = await _container();
+
+      await _openSheet(tester, container);
+
+      await tester.scrollUntilVisible(
+        _statusChip(EquipmentStatus.sold),
+        120,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(_statusChip(EquipmentStatus.sold), findsOneWidget);
+    });
   });
 }

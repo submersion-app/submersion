@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_import/domain/services/imported_dive_co
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/healthkit_adapter_steps.dart';
@@ -80,7 +81,7 @@ Dive makeDomainDive({
     diveTypeIds: [''],
     tanks: const [],
     profile: const [],
-    equipment: const [],
+    gear: looseGear(const []),
     photoIds: const [],
     sightings: const [],
   );
@@ -741,7 +742,7 @@ void main() {
         diveTypeIds: [''],
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         photoIds: const [],
         sightings: const [],
       );
@@ -777,7 +778,7 @@ void main() {
         diveTypeIds: [''],
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         photoIds: const [],
         sightings: const [],
       );
@@ -813,7 +814,7 @@ void main() {
         diveTypeIds: [''],
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         photoIds: const [],
         sightings: const [],
       );
@@ -850,7 +851,7 @@ void main() {
           diveTypeIds: [''],
           tanks: const [],
           profile: const [],
-          equipment: const [],
+          gear: looseGear(const []),
           photoIds: const [],
           sightings: const [],
         );
@@ -894,7 +895,7 @@ void main() {
         diveTypeIds: [''],
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         photoIds: const [],
         sightings: const [],
       );
@@ -974,7 +975,7 @@ void main() {
         diveTypeIds: [''],
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         photoIds: const [],
         sightings: const [],
       );
@@ -1030,7 +1031,7 @@ void main() {
         diveTypeIds: [''],
         tanks: const [],
         profile: const [],
-        equipment: const [],
+        gear: looseGear(const []),
         photoIds: const [],
         sightings: const [],
       );

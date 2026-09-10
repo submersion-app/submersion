@@ -13,6 +13,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível abrir o navegador. Use Copiar link e cole o endereço no navegador.';
 
   @override
+  String equipment_assemblyChip_label(Object count, Object name) {
+    return '$name (+$count)';
+  }
+
+  @override
   String get equipment_components_add => 'Adicionar componente';
 
   @override
@@ -36,6 +41,47 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get equipment_components_empty =>
       'Sem componentes. Adicione as peças que compõem este item.';
+
+  @override
+  String equipment_components_historyAlsoPast(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Atualizar também $count mergulhos',
+      one: 'Atualizar também 1 mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyAskAdded =>
+      'Adicionar a nova peça também a esses mergulhos, ou só a partir de agora?';
+
+  @override
+  String get equipment_components_historyAskRemoved =>
+      'Remover a peça também desses mergulhos, ou só a partir de agora?';
+
+  @override
+  String get equipment_components_historyAskReplaced =>
+      'Trocar a peça também nesses mergulhos, ou só a partir de agora?';
+
+  @override
+  String get equipment_components_historyFutureOnly => 'A partir de agora';
+
+  @override
+  String equipment_components_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Este conjunto está em $count mergulhos registados.',
+      one: 'Este conjunto está em 1 mergulho registado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_historyTitle =>
+      'Atualizar mergulhos anteriores?';
 
   @override
   String equipment_components_partOf(Object name) {
@@ -70,6 +116,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não há outro equipamento ativo que possa ser adicionado aqui.';
 
   @override
+  String get equipment_components_pickerReplaceConfirm => 'Substituir';
+
+  @override
+  String get equipment_components_pickerReplaceTitle => 'Substituir por';
+
+  @override
   String get equipment_components_pickerTitle => 'Adicionar componentes';
 
   @override
@@ -77,6 +129,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_components_reorder => 'Reordenar';
+
+  @override
+  String get equipment_components_replace => 'Substituir componente';
 
   @override
   String get equipment_components_role => 'Função';
@@ -2783,6 +2838,25 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Começar';
+
+  @override
+  String get diveLog_gear_collapse => 'Ocultar peças';
+
+  @override
+  String get diveLog_gear_expand => 'Mostrar peças';
+
+  @override
+  String get diveLog_gear_removeAssembly =>
+      'Remover o conjunto e as suas peças';
+
+  @override
+  String get diveLog_gear_removePart => 'Remover peça';
+
+  @override
+  String get diveLog_gear_removeSet => 'Remover o conjunto deste mergulho';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Conjunto';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
@@ -7064,6 +7138,58 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Buscar mergulhos...';
 
   @override
+  String diveLog_listPage_groupingPausedBySort(String sortName) {
+    return 'O agrupamento por viagem está desativado ao ordenar por $sortName';
+  }
+
+  @override
+  String get diveLog_listPage_groupingPausedAction => 'Ordenar por data';
+
+  @override
+  String get diveLog_listPage_menuGroupTrips => 'Agrupar viagens';
+
+  @override
+  String get diveLog_listPage_menuExpandAllTrips => 'Expandir todas as viagens';
+
+  @override
+  String get diveLog_listPage_menuCollapseAllTrips =>
+      'Recolher todas as viagens';
+
+  @override
+  String get diveLog_listPage_tripGroupLabel => 'VIAGEM';
+
+  @override
+  String diveLog_listPage_tripGroupDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '1 mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupDiveCountPartial(int loaded, int total) {
+    return '$loaded de $total mergulhos';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupExpand(String tripName) {
+    return 'Mostrar mergulhos de $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupCollapse(String tripName) {
+    return 'Ocultar mergulhos de $tripName';
+  }
+
+  @override
+  String diveLog_listPage_tripGroupOpenTrip(String tripName) {
+    return 'Abrir viagem $tripName';
+  }
+
+  @override
   String diveLog_listPage_searchLimitNotice(int limit) {
     return 'Mostrando as primeiras $limit correspondências. Refine a busca para restringir os resultados.';
   }
@@ -7780,13 +7906,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Configurar para calcular He% automaticamente';
 
   @override
-  String diveLog_tank_modInfo(Object depth) {
-    return 'MOD: $depth (ppO₂ 1.4)';
+  String diveLog_tank_gasUsed(String amount) {
+    return '($amount usados)';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, Object mnd) {
-    return 'MOD: $mod (ppO₂ 1.4) | MND: $mnd';
+  String diveLog_tank_modInfo(Object depth, String ppO2) {
+    return 'MOD: $depth (ppO₂ $ppO2)';
+  }
+
+  @override
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
@@ -10605,6 +10736,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_equipmentStatus_retired => 'Aposentado';
+
+  @override
+  String get enum_equipmentStatus_sold => 'Vendido';
 
   @override
   String get enum_equipmentType_backplate => 'Backplate';
@@ -21370,7 +21504,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_summary_upcomingTitle => 'Proximas';
 
   @override
-  String get trips_type_shore => 'Shore';
+  String get trips_type_shore => 'Costa';
 
   @override
   String get trips_type_liveaboard => 'Liveaboard';
@@ -21379,7 +21513,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_type_resort => 'Resort';
 
   @override
-  String get trips_type_dayTrip => 'Day Trip';
+  String get trips_type_dayTrip => 'Bate-volta';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

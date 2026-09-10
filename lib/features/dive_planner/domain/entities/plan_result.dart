@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode, TurnPressureRule;
 
@@ -568,6 +569,24 @@ class DivePlanState extends Equatable {
   /// Equipment attached to the plan (Gear & Weights, v104).
   final List<String> equipmentIds;
 
+  /// Where each id in [equipmentIds] came from (issue #1487): the assembly
+  /// it was attached through and the set applied.
+  final List<GearProvenance> gearProvenance;
+
+  /// One provenance row per attached id, in [equipmentIds] order. An id
+  /// with no row (a state assembled before provenance existed) is a loose
+  /// top-level row. Readers that walk the tree must use this rather than
+  /// [gearProvenance]: a missing assembly row would leave its parts as
+  /// orphans with nothing rolled up, and buoyancy would count the assembly
+  /// and its parts.
+  List<GearProvenance> get fullGearProvenance {
+    final byId = {for (final p in gearProvenance) p.equipmentId: p};
+    return [
+      for (final id in equipmentIds)
+        byId[id] ?? GearProvenance(equipmentId: id),
+    ];
+  }
+
   /// Accepted weight-prediction snapshot; placement keyed by
   /// WeightType.name -> kg.
   final double? plannedWeightKg;
@@ -618,6 +637,7 @@ class DivePlanState extends Equatable {
     this.turnPressureFraction,
     this.reservePressure = kDefaultReservePressureBar,
     this.equipmentIds = const [],
+    this.gearProvenance = const [],
     this.plannedWeightKg,
     this.plannedWeightPlacement,
     this.notes = '',
@@ -691,6 +711,7 @@ class DivePlanState extends Equatable {
     bool clearTurnPressureRule = false,
     double? reservePressure,
     List<String>? equipmentIds,
+    List<GearProvenance>? gearProvenance,
     double? plannedWeightKg,
     Map<String, double>? plannedWeightPlacement,
     bool clearPlannedWeight = false,
@@ -758,6 +779,7 @@ class DivePlanState extends Equatable {
           : (turnPressureFraction ?? this.turnPressureFraction),
       reservePressure: reservePressure ?? this.reservePressure,
       equipmentIds: equipmentIds ?? this.equipmentIds,
+      gearProvenance: gearProvenance ?? this.gearProvenance,
       plannedWeightKg: clearPlannedWeight
           ? null
           : (plannedWeightKg ?? this.plannedWeightKg),
@@ -805,6 +827,7 @@ class DivePlanState extends Equatable {
     turnPressureFraction,
     reservePressure,
     equipmentIds,
+    gearProvenance,
     plannedWeightKg,
     plannedWeightPlacement,
     notes,

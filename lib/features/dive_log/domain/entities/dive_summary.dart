@@ -39,6 +39,13 @@ class DiveSummary extends Equatable {
   final double? siteLatitude;
   final double? siteLongitude;
 
+  // Trip fields (from LEFT JOIN trips). Four scalars, deliberately not a Trip
+  // object: a list row must never drag a full entity behind it.
+  final String? tripId;
+  final String? tripName;
+  final DateTime? tripStartDate;
+  final DateTime? tripEndDate;
+
   // Cursor field for pagination: COALESCE(entry_time, dive_date_time)
   final int sortTimestamp;
 
@@ -68,6 +75,10 @@ class DiveSummary extends Equatable {
     this.siteRegion,
     this.siteLatitude,
     this.siteLongitude,
+    this.tripId,
+    this.tripName,
+    this.tripStartDate,
+    this.tripEndDate,
     required this.sortTimestamp,
     this.safetyFindingCount = 0,
   });
@@ -101,6 +112,10 @@ class DiveSummary extends Equatable {
       siteRegion: dive.site?.region,
       siteLatitude: dive.site?.location?.latitude,
       siteLongitude: dive.site?.location?.longitude,
+      tripId: dive.tripId ?? dive.trip?.id,
+      tripName: dive.trip?.name,
+      tripStartDate: dive.trip?.startDate,
+      tripEndDate: dive.trip?.endDate,
       sortTimestamp: ts.millisecondsSinceEpoch,
       // Optimistic conversions can't know the count; the next DB read
       // corrects it.
@@ -154,6 +169,10 @@ class DiveSummary extends Equatable {
     String? siteRegion,
     double? siteLatitude,
     double? siteLongitude,
+    String? tripId,
+    String? tripName,
+    DateTime? tripStartDate,
+    DateTime? tripEndDate,
     int? sortTimestamp,
     int? safetyFindingCount,
   }) {
@@ -179,6 +198,10 @@ class DiveSummary extends Equatable {
       siteRegion: siteRegion ?? this.siteRegion,
       siteLatitude: siteLatitude ?? this.siteLatitude,
       siteLongitude: siteLongitude ?? this.siteLongitude,
+      tripId: tripId ?? this.tripId,
+      tripName: tripName ?? this.tripName,
+      tripStartDate: tripStartDate ?? this.tripStartDate,
+      tripEndDate: tripEndDate ?? this.tripEndDate,
       sortTimestamp: sortTimestamp ?? this.sortTimestamp,
       safetyFindingCount: safetyFindingCount ?? this.safetyFindingCount,
     );
@@ -207,6 +230,10 @@ class DiveSummary extends Equatable {
     siteRegion,
     siteLatitude,
     siteLongitude,
+    tripId,
+    tripName,
+    tripStartDate,
+    tripEndDate,
     sortTimestamp,
     safetyFindingCount,
   ];

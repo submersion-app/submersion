@@ -310,6 +310,10 @@ class AppSettings {
   /// Which layout to use for the dive list
   final ListViewMode diveListViewMode;
 
+  /// Fold consecutive same-trip dives under a trip header in the dive list
+  /// (issue #1193). Applies to the card view modes only; the table ignores it.
+  final bool groupTripsInDiveList;
+
   /// Which layout to use for the site list
   final ListViewMode siteListViewMode;
 
@@ -576,6 +580,7 @@ class AppSettings {
     // Appearance defaults
     this.cardColorAttribute = CardColorAttribute.none,
     this.diveListViewMode = ListViewMode.detailed,
+    this.groupTripsInDiveList = false,
     this.siteListViewMode = ListViewMode.detailed,
     this.tripListViewMode = ListViewMode.detailed,
     this.equipmentListViewMode = ListViewMode.detailed,
@@ -747,6 +752,7 @@ class AppSettings {
     CnsCalculationMethod? cnsCalculationMethod,
     CardColorAttribute? cardColorAttribute,
     ListViewMode? diveListViewMode,
+    bool? groupTripsInDiveList,
     ListViewMode? siteListViewMode,
     ListViewMode? tripListViewMode,
     ListViewMode? equipmentListViewMode,
@@ -896,6 +902,7 @@ class AppSettings {
       cnsCalculationMethod: cnsCalculationMethod ?? this.cnsCalculationMethod,
       cardColorAttribute: cardColorAttribute ?? this.cardColorAttribute,
       diveListViewMode: diveListViewMode ?? this.diveListViewMode,
+      groupTripsInDiveList: groupTripsInDiveList ?? this.groupTripsInDiveList,
       siteListViewMode: siteListViewMode ?? this.siteListViewMode,
       tripListViewMode: tripListViewMode ?? this.tripListViewMode,
       equipmentListViewMode:
@@ -1791,6 +1798,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setGroupTripsInDiveList(bool value) async {
+    state = state.copyWith(groupTripsInDiveList: value);
+    await _saveSettings();
+  }
+
   Future<void> setSiteListViewMode(ListViewMode mode) async {
     state = state.copyWith(siteListViewMode: mode);
     await _saveSettings();
@@ -2479,6 +2491,16 @@ final tissueVizModeProvider = Provider<TissueVizMode>((ref) {
 final diveListViewModeProvider = StateProvider<ListViewMode>((ref) {
   final settings = ref.read(settingsProvider);
   return settings.diveListViewMode;
+});
+
+/// Runtime-scoped "group trips" toggle for the dive list (issue #1193).
+///
+/// Same contract as [diveListViewModeProvider] directly above, and for the
+/// same reason: seeded once with `ref.read` so a write to any other setting
+/// cannot stomp a session override.
+final diveListGroupTripsProvider = StateProvider<bool>((ref) {
+  final settings = ref.read(settingsProvider);
+  return settings.groupTripsInDiveList;
 });
 
 final siteListViewModeProvider = StateProvider<ListViewMode>((ref) {

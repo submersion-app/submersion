@@ -23,6 +23,8 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -161,6 +163,19 @@ class ExportNotifier extends StateNotifier<ExportState> {
 
   ExportNotifier(this._exportService, this._ref) : super(const ExportState());
 
+  /// Each assembly's part names in template order, for the Components
+  /// column of the equipment CSV and the Excel sheet (issue #1487).
+  Future<Map<String, List<String>>> _componentNamesFor(
+    List<EquipmentItem> equipment,
+  ) async {
+    final rows = await _ref
+        .read(equipmentComponentRepositoryProvider)
+        .getAllComponents();
+    return ComponentsIndex.fromRows(
+      rows,
+    ).namesByParent({for (final e in equipment) e.id: e});
+  }
+
   /// Localizations for the status messages this notifier publishes.
   ///
   /// A provider has no BuildContext, so the persisted locale setting is
@@ -238,7 +253,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
         return;
       }
-      final path = await _exportService.exportEquipmentToCsv(equipment);
+      final path = await _exportService.exportEquipmentToCsv(
+        equipment,
+        componentNames: await _componentNamesFor(equipment),
+      );
       state = state.copyWith(
         status: ExportStatus.success,
         message: _l10n.settings_export_success_equipment,
@@ -438,6 +456,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       )).where((r) => !r.isBuiltIn).toList();
       final diveComputers = await _ref.read(allDiveComputersProvider.future);
       final equipmentSets = await _ref.read(equipmentSetsProvider.future);
+      // Assembly templates ride with the equipment (issue #1487).
+      final components = await _ref
+          .read(equipmentComponentRepositoryProvider)
+          .getAllComponents();
 
       // Fetch courses
       final courses = await _ref.read(allCoursesProvider.future);
@@ -527,6 +549,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
+        components: components,
         serviceRecords: allServiceRecords,
         courses: courses,
         diveWeights: diveWeights,
@@ -590,6 +613,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dives: dives,
         sites: sites,
         equipment: equipment,
+        componentNames: await _componentNamesFor(equipment),
         depthUnit: settings.depthUnit,
         temperatureUnit: settings.temperatureUnit,
         pressureUnit: settings.pressureUnit,
@@ -696,6 +720,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         dives: dives,
         sites: sites,
         equipment: equipment,
+        componentNames: await _componentNamesFor(equipment),
         depthUnit: settings.depthUnit,
         temperatureUnit: settings.temperatureUnit,
         pressureUnit: settings.pressureUnit,
@@ -990,7 +1015,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
-      final path = await _exportService.saveEquipmentCsvToFile(equipment);
+      final path = await _exportService.saveEquipmentCsvToFile(
+        equipment,
+        componentNames: await _componentNamesFor(equipment),
+      );
 
       if (path == null) {
         state = state.copyWith(
@@ -1052,6 +1080,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       )).where((r) => !r.isBuiltIn).toList();
       final diveComputers = await _ref.read(allDiveComputersProvider.future);
       final equipmentSets = await _ref.read(equipmentSetsProvider.future);
+      // Assembly templates ride with the equipment (issue #1487).
+      final components = await _ref
+          .read(equipmentComponentRepositoryProvider)
+          .getAllComponents();
       final courses = await _ref.read(allCoursesProvider.future);
 
       // Fetch service records for all equipment
@@ -1138,6 +1170,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
+        components: components,
         serviceRecords: allServiceRecords,
         courses: courses,
         diveWeights: diveWeights,

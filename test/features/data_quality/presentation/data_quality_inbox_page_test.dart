@@ -121,13 +121,14 @@ QualityFinding _f({
   required QualityCategory category,
   Map<String, Object?> params = const {},
   QualitySeverity severity = QualitySeverity.warning,
+  int detectorVersion = 1,
 }) => QualityFinding(
   id: id,
   diveId: diveId,
   relatedDiveId: relatedDiveId,
   computerId: computerId,
   detectorId: detectorId,
-  detectorVersion: 1,
+  detectorVersion: detectorVersion,
   category: category,
   severity: severity,
   status: QualityStatus.open,
@@ -1154,6 +1155,10 @@ void main() {
         relatedDiveId: 'd2',
         detectorId: 'duplicate',
         category: QualityCategory.duplicate,
+        // Only detector 4 checks whether the doomed copy carries the diver's
+        // own entries, and the repair mapping will not act on an older
+        // finding (#1720), so a fixture offering the repair must say 4.
+        detectorVersion: 4,
         params: const {
           'score': 0.9,
           'timeDiffMinutes': 1,

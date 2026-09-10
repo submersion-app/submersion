@@ -49,7 +49,10 @@ class CertificationPicker extends ConsumerWidget {
       ),
       subtitle: selectedCertification != null
           ? Text(
-              certificationAgencyAndLevelL10n(
+              // Every recognition the card grants, not just the row's own
+              // agency -- an FFESSM N1 that is also a CMAS 1-star reads as
+              // both here.
+              certificationCredentialsLineL10n(
                 selectedCertification!,
                 context.l10n,
               ),
@@ -205,9 +208,19 @@ class CertificationPickerSheet extends ConsumerWidget {
                   // Keep the agency: this label replaces the tile's own
                   // semantics, including the subtitle that shows the agency
                   // visually. The title is derived so it is not said twice.
+                  // A multi-credential card also names its other recognitions,
+                  // matching what the visible subtitle now shows.
+                  final alsoRecognized = additionalCredentialsLineL10n(
+                    cert,
+                    context.l10n,
+                  );
+                  final alsoLabel = alsoRecognized != null
+                      ? ', $alsoRecognized'
+                      : '';
                   final certName =
                       '${cert.agency.localizedName(context.l10n)} '
-                      '${certificationTitleL10n(cert, context.l10n)}$levelLabel';
+                      '${certificationTitleL10n(cert, context.l10n)}$levelLabel'
+                      '$alsoLabel';
                   final certLabel = cert.issueDate != null
                       ? '$certName, issued ${units.formatDate(cert.issueDate)}${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}'
                       : '$certName${isSelected ? ', selected' : ''}${cert.isExpired ? ', expired' : ''}';
@@ -238,8 +251,8 @@ class CertificationPickerSheet extends ConsumerWidget {
                       title: Text(certificationTitleL10n(cert, context.l10n)),
                       subtitle: Text(
                         cert.issueDate != null
-                            ? '${certificationAgencyAndLevelL10n(cert, context.l10n)} - ${units.formatDate(cert.issueDate)}'
-                            : certificationAgencyAndLevelL10n(
+                            ? '${certificationCredentialsLineL10n(cert, context.l10n)} - ${units.formatDate(cert.issueDate)}'
+                            : certificationCredentialsLineL10n(
                                 cert,
                                 context.l10n,
                               ),
