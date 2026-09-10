@@ -18590,6 +18590,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statistics_equipment_exposure_title => 'التعرّض';
 
   @override
+  String get statistics_equipment_exposure_error =>
+      'تعذّر تحميل بيانات التعرّض';
+
+  @override
+  String get statistics_equipment_findings_error => 'تعذّر تحميل نتائج الحالة';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'تعذّر تحميل المشكلات المبلّغ عنها';
+
+  @override
   String get statistics_equipment_exposure_subtitle =>
       'الإجماليات لكل قطعة وفق حدودك';
 

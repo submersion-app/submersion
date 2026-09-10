@@ -22,30 +22,43 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    bool failRankings = false,
+  }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           ...overrides,
           exposureRankingProvider.overrideWith(
-            (ref) async => [
-              RankingItem(id: 'reg', name: 'Apeks XTX', count: 12, value: 12.4),
-            ],
+            (ref) async => failRankings
+                ? throw StateError('no db')
+                : [
+                    RankingItem(
+                      id: 'reg',
+                      name: 'Apeks XTX',
+                      count: 12,
+                      value: 12.4,
+                      subtitle: '12 dives',
+                    ),
+                  ],
           ),
           findingsByRuleProvider.overrideWith(
-            (ref) async => [
-              RankingItem(
-                id: 'issueRecurring',
-                name: 'Recurring issue',
-                count: 2,
-              ),
-            ],
+            (ref) async => failRankings
+                ? throw StateError('no db')
+                : [
+                    RankingItem(
+                      id: 'issueRecurring',
+                      name: 'Recurring issue',
+                      count: 2,
+                    ),
+                  ],
           ),
           issueTagRankingProvider.overrideWith(
-            (ref) async => [
-              RankingItem(id: 'freeFlow', name: 'Free flow', count: 3),
-            ],
+            (ref) async => failRankings
+                ? throw StateError('no db')
+                : [RankingItem(id: 'freeFlow', name: 'Free flow', count: 3)],
           ),
           weightTrendProvider.overrideWith(
             (ref) async => List.generate(
@@ -106,5 +119,19 @@ void main() {
     await tester.tap(find.text('Cold dives').last);
     await tester.pumpAndSettle();
     expect(scope.read(exposureRankingUnitProvider), ExposureUnit.coldDives);
+  });
+
+  testWidgets('a failed ranking says so instead of showing the empty copy', (
+    tester,
+  ) async {
+    await pumpPage(tester, failRankings: true);
+    // "No dives with gear yet" would read as a fact about the library
+    // rather than a load that failed.
+    expect(find.text('Failed to load exposure data'), findsOneWidget);
+    expect(find.text('No dives with gear yet'), findsNothing);
+    expect(find.text('Failed to load condition findings'), findsOneWidget);
+    expect(find.text('No open findings'), findsNothing);
+    expect(find.text('Failed to load reported issues'), findsOneWidget);
+    expect(find.text('No issues reported'), findsNothing);
   });
 }

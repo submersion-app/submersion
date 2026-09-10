@@ -98,6 +98,9 @@ void main() {
     expect(byHours.map((r) => r.id), [reg.id, bcd.id]);
     expect(byHours.first.count, 3);
     expect(byHours.first.value, closeTo(3.0, 1e-9));
+    // The n behind the total: three hours across how many dives.
+    expect(byHours.first.subtitle, '3 dives');
+    expect(byHours.last.subtitle, '2 dives');
 
     container.read(exposureRankingUnitProvider.notifier).state =
         ExposureUnit.coldDives;
@@ -117,12 +120,14 @@ void main() {
           finding(reg.id, ConditionRuleId.issueRecurring),
           finding(reg.id, ConditionRuleId.incidentLinked),
         ],
+        engineVersion: 1,
         now: DateTime(2026, 2),
       );
       await findings.saveReview(
         equipmentId: bcd.id,
         inputFingerprint: 'b',
         findings: [finding(bcd.id, ConditionRuleId.issueRecurring)],
+        engineVersion: 1,
         now: DateTime(2026, 2),
       );
       final ranking = await container.read(findingsByRuleProvider.future);

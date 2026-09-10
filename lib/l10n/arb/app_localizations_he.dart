@@ -18450,6 +18450,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get statistics_equipment_exposure_title => 'חשיפה';
 
   @override
+  String get statistics_equipment_exposure_error => 'טעינת נתוני החשיפה נכשלה';
+
+  @override
+  String get statistics_equipment_findings_error => 'טעינת ממצאי המצב נכשלה';
+
+  @override
+  String get statistics_equipment_issues_error => 'טעינת התקלות שדווחו נכשלה';
+
+  @override
   String get statistics_equipment_exposure_subtitle =>
       'סיכומים לכל פריט לפי הספים שלך';
 

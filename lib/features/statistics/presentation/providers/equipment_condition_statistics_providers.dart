@@ -23,8 +23,8 @@ final exposureRankingUnitProvider = StateProvider<ExposureUnit>(
 /// Active items ranked by their total in the chosen unit, through the
 /// same samples and classifier the item page uses, so the two never
 /// disagree. `count` is the rounded total (what the row prints), `value`
-/// the exact one, and the item's dive count rides in the subtitle slot
-/// for the card to format.
+/// the exact one, and `subtitle` states the dive count behind it, since a
+/// total means little without the n it was gathered over.
 final exposureRankingProvider = FutureProvider<List<RankingItem>>((ref) async {
   final unit = ref.watch(exposureRankingUnitProvider);
   final repository = ref.watch(equipmentRepositoryProvider);
@@ -33,6 +33,7 @@ final exposureRankingProvider = FutureProvider<List<RankingItem>>((ref) async {
     ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
   );
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  final l10n = ref.watch(appLocalizationsProvider);
   final items = await repository.getActiveEquipment(diverId: diverId);
   final out = <RankingItem>[];
   for (final item in items) {
@@ -51,6 +52,7 @@ final exposureRankingProvider = FutureProvider<List<RankingItem>>((ref) async {
         name: item.name,
         count: total.round(),
         value: total,
+        subtitle: l10n.equipmentCondition_exposure_dives(inputs.samples.length),
       ),
     );
   }

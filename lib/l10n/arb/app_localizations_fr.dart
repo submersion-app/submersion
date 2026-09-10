@@ -19008,6 +19008,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statistics_equipment_exposure_title => 'Exposition';
 
   @override
+  String get statistics_equipment_exposure_error =>
+      'Impossible de charger les données d\'exposition';
+
+  @override
+  String get statistics_equipment_findings_error =>
+      'Impossible de charger les constats d\'état';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'Impossible de charger les problèmes signalés';
+
+  @override
   String get statistics_equipment_exposure_subtitle =>
       'Totaux par équipement avec vos seuils';
 

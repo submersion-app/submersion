@@ -18870,6 +18870,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get statistics_equipment_exposure_title => 'Igénybevétel';
 
   @override
+  String get statistics_equipment_exposure_error =>
+      'Az igénybevételi adatokat nem sikerült betölteni';
+
+  @override
+  String get statistics_equipment_findings_error =>
+      'Az állapotmegállapításokat nem sikerült betölteni';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'A bejelentett problémákat nem sikerült betölteni';
+
+  @override
   String get statistics_equipment_exposure_subtitle =>
       'Összegek eszközönként a küszöbeiddel';
 

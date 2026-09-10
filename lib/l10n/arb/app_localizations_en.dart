@@ -18606,6 +18606,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statistics_equipment_exposure_title => 'Exposure';
 
   @override
+  String get statistics_equipment_exposure_error =>
+      'Failed to load exposure data';
+
+  @override
+  String get statistics_equipment_findings_error =>
+      'Failed to load condition findings';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'Failed to load reported issues';
+
+  @override
   String get statistics_equipment_exposure_subtitle =>
       'Totals per item with your thresholds';
 

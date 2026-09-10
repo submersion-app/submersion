@@ -133,9 +133,11 @@ class StatisticsEquipmentPage extends ConsumerWidget {
           height: 120,
           child: Center(child: CircularProgressIndicator()),
         ),
+        // A failed load is not an empty library: saying "no dives with
+        // gear yet" would state a fact about the data that nobody checked.
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: l10n.statistics_equipment_exposure_empty,
+          message: l10n.statistics_equipment_exposure_error,
         ),
       ),
     );
@@ -150,6 +152,7 @@ class StatisticsEquipmentPage extends ConsumerWidget {
       subtitle: l10n.statistics_equipment_findings_subtitle,
       countLabel: l10n.statistics_equipment_countLabel_findings,
       empty: l10n.statistics_equipment_findings_empty,
+      error: l10n.statistics_equipment_findings_error,
       icon: Icons.insights_outlined,
     );
   }
@@ -163,6 +166,7 @@ class StatisticsEquipmentPage extends ConsumerWidget {
       subtitle: l10n.statistics_equipment_issues_subtitle,
       countLabel: l10n.statistics_equipment_countLabel_reports,
       empty: l10n.statistics_equipment_issues_empty,
+      error: l10n.statistics_equipment_issues_error,
       icon: Icons.report_problem_outlined,
     );
   }
@@ -174,6 +178,7 @@ class StatisticsEquipmentPage extends ConsumerWidget {
     required String subtitle,
     required String countLabel,
     required String empty,
+    required String error,
     required IconData icon,
   }) {
     return StatSectionCard(
@@ -193,7 +198,7 @@ class StatisticsEquipmentPage extends ConsumerWidget {
           child: Center(child: CircularProgressIndicator()),
         ),
         error: (_, _) =>
-            StatEmptyState(icon: Icons.error_outline, message: empty),
+            StatEmptyState(icon: Icons.error_outline, message: error),
       ),
     );
   }

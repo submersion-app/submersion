@@ -18895,6 +18895,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get statistics_equipment_exposure_title => 'Belastung';
 
   @override
+  String get statistics_equipment_exposure_error =>
+      'Belastungsdaten konnten nicht geladen werden';
+
+  @override
+  String get statistics_equipment_findings_error =>
+      'Zustandsbefunde konnten nicht geladen werden';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'Gemeldete Probleme konnten nicht geladen werden';
+
+  @override
   String get statistics_equipment_exposure_subtitle =>
       'Summen je Teil mit deinen Schwellen';
 

@@ -18771,6 +18771,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get statistics_equipment_exposure_title => 'Blootstelling';
 
   @override
+  String get statistics_equipment_exposure_error =>
+      'Kan blootstellingsgegevens niet laden';
+
+  @override
+  String get statistics_equipment_findings_error =>
+      'Kan conditiebevindingen niet laden';
+
+  @override
+  String get statistics_equipment_issues_error =>
+      'Kan gemelde problemen niet laden';
+
+  @override
   String get statistics_equipment_exposure_subtitle =>
       'Totalen per item met jouw drempels';
 

@@ -71,24 +71,28 @@ void main() {
         finding('reg', ConditionRuleId.incidentLinked),
         finding('reg', ConditionRuleId.issueRecurring),
       ],
+      engineVersion: 1,
       now: now,
     );
     await repo.saveReview(
       equipmentId: 'bcd',
       inputFingerprint: 'b',
       findings: [finding('bcd', ConditionRuleId.cellOutputLow, slot: 1)],
+      engineVersion: 1,
       now: now,
     );
     await repo.saveReview(
       equipmentId: 'mask',
       inputFingerprint: 'c',
       findings: [finding('mask', ConditionRuleId.cellOutputLow, slot: 1)],
+      engineVersion: 1,
       now: now,
     );
     await repo.saveReview(
       equipmentId: 'fins',
       inputFingerprint: 'd',
       findings: [finding('fins', ConditionRuleId.incidentLinked)],
+      engineVersion: 1,
       now: now,
     );
     await repo.setDismissed(

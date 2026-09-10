@@ -17960,6 +17960,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_equipment_exposure_title => '使用暴露';
 
   @override
+  String get statistics_equipment_exposure_error => '无法加载使用暴露数据';
+
+  @override
+  String get statistics_equipment_findings_error => '无法加载状态发现';
+
+  @override
+  String get statistics_equipment_issues_error => '无法加载已报告的问题';
+
+  @override
   String get statistics_equipment_exposure_subtitle => '按您的阈值统计每件装备的总量';
 
   @override

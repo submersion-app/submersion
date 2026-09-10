@@ -31302,6 +31302,24 @@ abstract class AppLocalizations {
   /// **'Exposure'**
   String get statistics_equipment_exposure_title;
 
+  /// No description provided for @statistics_equipment_exposure_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load exposure data'**
+  String get statistics_equipment_exposure_error;
+
+  /// No description provided for @statistics_equipment_findings_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load condition findings'**
+  String get statistics_equipment_findings_error;
+
+  /// No description provided for @statistics_equipment_issues_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load reported issues'**
+  String get statistics_equipment_issues_error;
+
   /// No description provided for @statistics_equipment_exposure_subtitle.
   ///
   /// In en, this message translates to:
