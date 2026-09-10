@@ -76,6 +76,7 @@ class BulkMembershipEditor extends StatefulWidget {
     this.addLabel,
     this.secondaryAction,
     this.trailingBuilder,
+    this.ensureOn,
   });
 
   final String title;
@@ -93,6 +94,14 @@ class BulkMembershipEditor extends StatefulWidget {
   /// (tags, dive types, equipment) leave it null.
   final Widget Function(BulkMembershipItem item)? trailingBuilder;
 
+  /// A one-shot instruction to put [ids] on every selected dive, whatever
+  /// their rows currently say. An update carrying the same [serial] changes
+  /// nothing, so a row the user unchecks afterwards stays unchecked; a fresh
+  /// State (a remount) starts from the defaults and applies it again.
+  /// Applying an equipment set sends one, because the set's items must end up
+  /// on all the dives, including rows the user had already unchecked (#1754).
+  final ({int serial, Set<String> ids})? ensureOn;
+
   @override
   State<BulkMembershipEditor> createState() => _BulkMembershipEditorState();
 }
@@ -106,6 +115,7 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
     for (final item in widget.items) {
       _choices[item.id] = _defaultChoice(_presenceOf(item.id));
     }
+    _applyEnsureOn();
     // Emit the baseline so the parent has a delta before any interaction.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) widget.onChanged(_delta());
@@ -123,6 +133,9 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
         changed = true;
       }
     }
+    if (widget.ensureOn?.serial != old.ensureOn?.serial) {
+      changed = _applyEnsureOn() || changed;
+    }
     final before = _choices.length;
     _choices.removeWhere((id, _) => !ids.contains(id));
     changed = changed || _choices.length != before;
@@ -131,6 +144,21 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
         if (mounted) widget.onChanged(_delta());
       });
     }
+  }
+
+  /// Sets every listed row named by [BulkMembershipEditor.ensureOn] to
+  /// [MembershipChoice.ensureOn]. Returns whether any choice changed.
+  bool _applyEnsureOn() {
+    final request = widget.ensureOn;
+    if (request == null) return false;
+    var changed = false;
+    for (final item in widget.items) {
+      if (!request.ids.contains(item.id)) continue;
+      if (_choices[item.id] == MembershipChoice.ensureOn) continue;
+      _choices[item.id] = MembershipChoice.ensureOn;
+      changed = true;
+    }
+    return changed;
   }
 
   MembershipPresence _presenceOf(String id) {
