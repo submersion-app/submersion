@@ -417,27 +417,24 @@ void main() {
         expect(tanks.firstWhere((t) => t.o2Percent == 99.0).role, 'deco');
       });
 
-      test(
-        'sensorless CCR: reported gas usage maps oxygen/diluent/sidemount '
-        'directly, regardless of O2%',
-        () {
-          final parsed = makeParsedDive(
-            diveMode: 'ccr',
-            gasMixes: [
-              pigeon.GasMix(index: 0, o2Percent: 100.0, hePercent: 0.0, usage: 1),
-              pigeon.GasMix(index: 1, o2Percent: 18.0, hePercent: 45.0, usage: 2),
-              pigeon.GasMix(index: 2, o2Percent: 21.0, hePercent: 0.0, usage: 3),
-            ],
-          );
-          final tanks = resolveParsedTanks(parsed);
-          expect(
-            tanks.firstWhere((t) => t.o2Percent == 100.0).role,
-            'oxygenSupply',
-          );
-          expect(tanks.firstWhere((t) => t.o2Percent == 18.0).role, 'diluent');
-          expect(tanks.firstWhere((t) => t.o2Percent == 21.0).role, 'backGas');
-        },
-      );
+      test('sensorless CCR: reported gas usage maps oxygen/diluent/sidemount '
+          'directly, regardless of O2%', () {
+        final parsed = makeParsedDive(
+          diveMode: 'ccr',
+          gasMixes: [
+            pigeon.GasMix(index: 0, o2Percent: 100.0, hePercent: 0.0, usage: 1),
+            pigeon.GasMix(index: 1, o2Percent: 18.0, hePercent: 45.0, usage: 2),
+            pigeon.GasMix(index: 2, o2Percent: 21.0, hePercent: 0.0, usage: 3),
+          ],
+        );
+        final tanks = resolveParsedTanks(parsed);
+        expect(
+          tanks.firstWhere((t) => t.o2Percent == 100.0).role,
+          'oxygenSupply',
+        );
+        expect(tanks.firstWhere((t) => t.o2Percent == 18.0).role, 'diluent');
+        expect(tanks.firstWhere((t) => t.o2Percent == 21.0).role, 'backGas');
+      });
 
       test(
         'sensorless CCR: bailout gases with no reported usage are ranked '
@@ -458,57 +455,48 @@ void main() {
         },
       );
 
-      test(
-        'sensorless CCR bailout tie: same lowest O2, higher helium wins '
-        'bailout; the loser falls through to deco/stage instead',
-        () {
-          final parsed = makeParsedDive(
-            diveMode: 'ccr',
-            gasMixes: [
-              pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
-              pigeon.GasMix(index: 1, o2Percent: 18.0, hePercent: 50.0),
-              pigeon.GasMix(index: 2, o2Percent: 32.0, hePercent: 0.0),
-            ],
-          );
-          final tanks = resolveParsedTanks(parsed);
-          expect(tanks.firstWhere((t) => t.hePercent == 45.0).role, 'stage');
-          expect(tanks.firstWhere((t) => t.hePercent == 50.0).role, 'bailout');
-          expect(tanks.firstWhere((t) => t.o2Percent == 32.0).role, 'stage');
-        },
-      );
+      test('sensorless CCR bailout tie: same lowest O2, higher helium wins '
+          'bailout; the loser falls through to deco/stage instead', () {
+        final parsed = makeParsedDive(
+          diveMode: 'ccr',
+          gasMixes: [
+            pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
+            pigeon.GasMix(index: 1, o2Percent: 18.0, hePercent: 50.0),
+            pigeon.GasMix(index: 2, o2Percent: 32.0, hePercent: 0.0),
+          ],
+        );
+        final tanks = resolveParsedTanks(parsed);
+        expect(tanks.firstWhere((t) => t.hePercent == 45.0).role, 'stage');
+        expect(tanks.firstWhere((t) => t.hePercent == 50.0).role, 'bailout');
+        expect(tanks.firstWhere((t) => t.o2Percent == 32.0).role, 'stage');
+      });
 
-      test(
-        'sensorless CCR bailout tie: same lowest O2 and helium -> both '
-        'gases get the bailout role',
-        () {
-          final parsed = makeParsedDive(
-            diveMode: 'ccr',
-            gasMixes: [
-              pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
-              pigeon.GasMix(index: 1, o2Percent: 18.0, hePercent: 45.0),
-            ],
-          );
-          final tanks = resolveParsedTanks(parsed);
-          expect(tanks.every((t) => t.role == 'bailout'), isTrue);
-        },
-      );
+      test('sensorless CCR bailout tie: same lowest O2 and helium -> both '
+          'gases get the bailout role', () {
+        final parsed = makeParsedDive(
+          diveMode: 'ccr',
+          gasMixes: [
+            pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
+            pigeon.GasMix(index: 1, o2Percent: 18.0, hePercent: 45.0),
+          ],
+        );
+        final tanks = resolveParsedTanks(parsed);
+        expect(tanks.every((t) => t.role == 'bailout'), isTrue);
+      });
 
-      test(
-        'sensorless SCR keeps the original single-threshold heuristic, '
-        'unaffected by the CCR bailout ranking',
-        () {
-          final parsed = makeParsedDive(
-            diveMode: 'scr',
-            gasMixes: [
-              pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
-              pigeon.GasMix(index: 1, o2Percent: 50.0, hePercent: 0.0),
-            ],
-          );
-          final tanks = resolveParsedTanks(parsed);
-          expect(tanks.firstWhere((t) => t.o2Percent == 18.0).role, 'backGas');
-          expect(tanks.firstWhere((t) => t.o2Percent == 50.0).role, 'deco');
-        },
-      );
+      test('sensorless SCR keeps the original single-threshold heuristic, '
+          'unaffected by the CCR bailout ranking', () {
+        final parsed = makeParsedDive(
+          diveMode: 'scr',
+          gasMixes: [
+            pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
+            pigeon.GasMix(index: 1, o2Percent: 50.0, hePercent: 0.0),
+          ],
+        );
+        final tanks = resolveParsedTanks(parsed);
+        expect(tanks.firstWhere((t) => t.o2Percent == 18.0).role, 'backGas');
+        expect(tanks.firstWhere((t) => t.o2Percent == 50.0).role, 'deco');
+      });
     });
   });
 

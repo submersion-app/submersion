@@ -259,9 +259,7 @@ List<String> _inferSensorlessRoles(
     final lowestO2 = unranked
         .map((i) => gasMixes[i].o2Percent)
         .reduce((a, b) => a < b ? a : b);
-    final atLowestO2 = unranked.where(
-      (i) => gasMixes[i].o2Percent == lowestO2,
-    );
+    final atLowestO2 = unranked.where((i) => gasMixes[i].o2Percent == lowestO2);
     final highestHeAtLowestO2 = atLowestO2
         .map((i) => gasMixes[i].hePercent)
         .reduce((a, b) => a > b ? a : b);
