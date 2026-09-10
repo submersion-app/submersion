@@ -76,6 +76,29 @@ void main() {
       expect(find.textContaining('Trip grouping is off'), findsNothing);
     });
 
+    testWidgets('the notice renders at exactly the height the scroll '
+        'geometry assumes', (tester) async {
+      // _scrollToSelectedItem subtracts kGroupingPausedNoticeHeight from the
+      // scrollable to work out how much of it is dive rows, so the constant
+      // has to match what this widget really renders at. It was 48 while the
+      // widget rendered at 56, because the action button carries a 48px tap
+      // target under 8px of padding, biasing every estimate by 8px whenever
+      // the notice showed.
+      //
+      // The notice is deliberately left to size itself: constraining it to
+      // the constant would make this assertion true by construction and prove
+      // nothing.
+      await pumpList(tester, sortField: DiveSortField.depth);
+
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('grouping_paused_notice')))
+            .height,
+        kGroupingPausedNoticeHeight,
+        reason: 'the rendered notice and the scroll constant must agree',
+      );
+    });
+
     testWidgets('the action restores the date sort and the groups', (
       tester,
     ) async {

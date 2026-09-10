@@ -79,7 +79,19 @@ enum _BulkExportFormat { pdf, csv, uddf }
 /// This widget contains the core list functionality extracted from DiveListPage.
 /// It can be used standalone (mobile) or as the master pane in a split view (desktop).
 /// Height of the grouping-paused notice row, when it is showing.
-const double _kGroupingPausedNoticeHeight = 48;
+///
+/// This must equal what the notice actually renders at: 8px of top padding
+/// over a Row whose height comes from the action button's 48px tap target.
+/// [_scrollToSelectedItem] subtracts it from the scrollable to work out how
+/// much of that height is dive rows, so a value that drifted from the real
+/// one would bias every scroll-to-selected estimate by the difference,
+/// silently, and only while the notice happens to be showing.
+///
+/// Deliberately NOT enforced by wrapping the notice in a SizedBox of this
+/// height: that makes any test comparing the two a tautology, and would hide
+/// a content change by clipping it rather than failing.
+/// `dive_list_grouping_paused_test.dart` measures the real widget against it.
+const double kGroupingPausedNoticeHeight = 56;
 
 /// Trailing spacer that keeps the last row clear of the FAB.
 const double _kListBottomSpacer = 80;
@@ -325,7 +337,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           final headerExtent = tripGroupHeaderExtent(context);
           final headerCount = _lastSections.whereType<TripSection>().length;
           final noticeHeight = _lastShowedPausedNotice
-              ? _kGroupingPausedNoticeHeight
+              ? kGroupingPausedNoticeHeight
               : 0.0;
           final chromeHeight =
               headerCount * headerExtent + noticeHeight + _kListBottomSpacer;
@@ -1802,6 +1814,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     final theme = Theme.of(context);
     final sort = ref.watch(diveSortProvider);
     return Padding(
+      key: const ValueKey('grouping_paused_notice'),
       padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
       child: Row(
         children: [
